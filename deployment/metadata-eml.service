@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve metadata-eml
+After=network.target
+
+[Service]
+User=pasta
+Group=www-data
+WorkingDirectory=/home/pasta/metadata-eml
+Environment="PATH=/home/pasta/anaconda3/envs/metadata-eml/bin"
+ExecStart=/home/pasta/anaconda3/envs/metadata-eml/bin/uwsgi --ini deployment/metadata-eml.ini
+
+[Install]
+WantedBy=multi-user.target

@@ -15,6 +15,7 @@ import os
 
 import daiquiri
 from flask import Flask
+from flask_bootstrap import Bootstrap
 
 from webapp.config import Config
 
@@ -26,5 +27,6 @@ logger = daiquiri.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object(Config)
+bootstrap = Bootstrap(app)
 
 from webapp import views

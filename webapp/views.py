@@ -17,6 +17,6 @@ from webapp import app
 
 logger = daiquiri.getLogger('views.py: ' + __name__)
 
-@app.route('/')
+@app.route('/eml')
 def index():
     return 'Hell on wheels...'

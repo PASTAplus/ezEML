@@ -29,4 +29,5 @@ app = Flask(__name__)
 app.config.from_object(Config)
 bootstrap = Bootstrap(app)
 
-from webapp import views
+from webapp.home.views import home
+app.register_blueprint(home, url_prefix='/eml')

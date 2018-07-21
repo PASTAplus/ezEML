@@ -1,0 +1,65 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+{% if title %}{{ title }} - Metadata EML{% endif %}
+{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button aria-controls="navbar" aria-expanded="false"
+                    class="navbar-toggle collapsed" data-target="#top-navbar"
+                    data-toggle="collapse" type="button">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{{ url_for('home.index') }}">Metadata EML</a>
+        </div>
+        <div class="navbar-collapse collapse" id="top-navbar">
+            <ul class="nav navbar-nav">
+                <li class="active">
+                    <a href="{{ url_for('home.about') }}" title="About">About</a>
+                </li>
+                <li class="dropdown">
+                    <a aria-expanded="false" aria-haspopup="true"
+                       class="dropdown-toggle" data-toggle="dropdown" href="#"
+                       role="button">EDI Portals
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="https://portal.edirepository.org/nis">Production</a>
+                        </li>
+                        <li>
+                            <a href="https://portal-s.edirepository.org/nis">Staging</a>
+                        </li>
+                        <li>
+                            <a href="https://portal-d.edirepository.org/nis">Development</a>
+                        </li>
+                    </ul>
+                </li>
+          </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-info" role="alert">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {# application content needs to be provided in the app_content block #}
+    {% block app_content %}{% endblock %}
+
+</div>
+
+{% endblock %}

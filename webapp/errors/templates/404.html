@@ -1,0 +1,15 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+{% if title %}{{ title }} - EDI EML{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% block app_content %}
+        <h3 align="center">The web page you have requested does not exist.
+        Please contact support@enivronmentaldatainitiative.org for
+        assistance.</h3>
+    {% endblock %}
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Create Minimal EML</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <h5>Please fill in <em>all fields</em> below:</h5>
+                {{ wtf.form_field(form.title) }}
+                {{ wtf.form_field(form.contact_gn) }}
+                {{ wtf.form_field(form.contact_sn) }}
+                {{ wtf.form_field(form.creator_gn) }}
+                {{ wtf.form_field(form.creator_sn) }}
+                <input class="btn btn-primary" type="submit" value="Create EML"/>
+                <input class="btn btn-primary" type="reset" value="Clear"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -6,24 +6,23 @@
 :Synopsis:
 
 :Author:
+    costa
     servilla
 
 :Created:
-    3/6/18
+    7/23/18
 """
 import daiquiri
 import json
 from flask import Blueprint, flash, render_template, redirect, request, url_for
 from webapp.home.forms import CreateEMLForm, KeywordsForm, MinimalEMLForm
 
-from metapype.eml2_1_1.exceptions import MetapypeRuleError
 from metapype.eml2_1_1 import export
-from metapype.eml2_1_1 import evaluate
 from metapype.eml2_1_1 import names
-from metapype.eml2_1_1 import rule
 from metapype.eml2_1_1 import validate
 from metapype.model.node import Node
-from metapype.model import io
+
+from webapp.home.metapype_client import load_eml, save_eml, log_as_xml
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -57,7 +56,8 @@ def create():
         create_eml(packageid=packageid,
                    title=form.title.data,
                    abstract=form.abstract.data)
-        return redirect(url_for('home.keywords', packageid=packageid))
+        new_page = 'keywords' if (submit_type == 'Next') else 'create'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     return render_template('create_eml.html', title='Create New EML', form=form)
 
@@ -82,11 +82,6 @@ def keywords(packageid=None):
     return render_template('keywords.html', title='Keywords', packageid=packageid, form=form)
 
 
-def append_if_non_empty(some_list: list, value: str):
-    if (value is not None and len(value) > 0):
-        some_list.append(value)
-
-
 @home.route('/minimal', methods=['GET', 'POST'])
 def minimal():
     # Process POST
@@ -100,6 +95,11 @@ def minimal():
                          contact_sn=form.contact_sn.data)
     # Process GET
     return render_template('minimal_eml.html', title='Minimal EML', form=form)
+
+
+def append_if_non_empty(some_list: list, value: str):
+    if (value is not None and len(value) > 0):
+        some_list.append(value)
 
 
 def create_eml(packageid=None, title=None, abstract=None):
@@ -148,37 +148,6 @@ def create_keywords(packageid:str=None, keywords_list:list=[]):
 
         except Exception as e:
             logger.error(e)
-
-
-def log_as_xml(node: Node):
-    xml_str = export.to_xml(node)
-    logger.info("\n\n" + xml_str)
-
-
-def save_eml(packageid:str=None, eml_node:Node=None):
-    if packageid is not None:
-        if eml_node is not None:
-            json_str = io.to_json(eml_node)
-            filename = f"{packageid}.json"
-            with open(filename, "w") as fh:
-                fh.write(json_str)
-        else:
-            raise Exception(f"No EML node was supplied for saving EML.")
-    else:
-        raise Exception(f"No packageid value was supplied for saving EML.")
-
-
-def load_eml(packageid:str=None):
-    eml_node = None
-    filename = f"{packageid}.json"
-    with open(filename, "r") as json_file:
-        json_obj = json.load(json_file)
-        eml_node = io.from_json(json_obj)
-    if eml_node is not None:
-        log_as_xml(eml_node)
-    else:
-        raise Exception(f"Error loading package ID: {packageid} from file {filename}")
-    return eml_node
 
 
 def validate_minimal(packageid=None, title=None, contact_gn=None, contact_sn=None, creator_gn=None, creator_sn=None):

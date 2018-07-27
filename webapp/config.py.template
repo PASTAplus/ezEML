@@ -15,5 +15,5 @@
 class Config(object):
 
     # Flask app configuration
-    SECRET_KEY = '93c5e59a147296edbf840d46333573ca'
-    DEBUG = True
+    SECRET_KEY = 'SECRET KEY'
+    DEBUG = False

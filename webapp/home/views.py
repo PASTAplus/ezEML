@@ -13,8 +13,9 @@
 """
 import daiquiri
 import json
-from flask import Blueprint, flash, render_template, redirect, url_for
+from flask import Blueprint, flash, render_template, redirect, request, url_for
 from webapp.home.forms import CreateEMLForm, KeywordsForm, MinimalEMLForm
+
 from metapype.eml2_1_1.exceptions import MetapypeRuleError
 from metapype.eml2_1_1 import export
 from metapype.eml2_1_1 import evaluate
@@ -41,8 +42,16 @@ def about():
 
 @home.route('/create', methods=['GET', 'POST'])
 def create():
-    # Process POST
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Validate' in request.form:
+            submit_type = 'Validate'
+        elif 'Next' in request.form:
+            submit_type = 'Next'
+        else:
+            submit_type = None
     form = CreateEMLForm()
+    # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
         create_eml(packageid=packageid,

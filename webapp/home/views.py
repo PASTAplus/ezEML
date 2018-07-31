@@ -91,7 +91,10 @@ def creator(packageid=None):
         email = form.email.data
         online_url = form.online_url.data
 
-        create_creator(
+        creator_node = Node(names.CREATOR)
+
+        create_responsible_party(
+            creator_node,
             packageid,   
             salutation,
             gn,
@@ -194,8 +197,10 @@ def contact(packageid=None):
         fax = form.fax.data
         email = form.email.data
         online_url = form.online_url.data
+        contact_node = Node(names.CONTACT)
 
-        create_contact(
+        create_responsible_party(
+            contact_node,
             packageid,   
             salutation,
             gn,
@@ -260,123 +265,6 @@ def create_eml(packageid=None, title=None):
         logger.error(e)
 
 
-def create_creator(packageid:str=None, 
-                   salutation:str=None,
-                   gn:str=None,
-                   sn:str=None,
-                   organization:str=None,
-                   position_name:str=None,
-                   address_1:str=None,
-                   address_2:str=None,
-                   city:str=None,
-                   state:str=None,
-                   postal_code:str=None,
-                   country:str=None,
-                   phone:str=None,
-                   fax:str=None,
-                   email:str=None,
-                   online_url:str=None):
-
-    try:
-        eml_node = load_eml(packageid=packageid)
-        logger.info(f"loaded the following package: {packageid} containing eml node: {eml_node}")
-        dataset_node = eml_node.find_child('dataset')
-        creator_node = Node(names.CREATOR)
-        dataset_node.add_child(creator_node)
-
-        individual_name_node = Node(names.INDIVIDUALNAME)
-
-        if salutation is not None:
-            salutation_node = Node(names.SALUTATION)
-            salutation_node.content = salutation
-            individual_name_node.add_child(salutation_node)
-
-        if gn is not None:
-            given_name_node = Node(names.GIVENNAME)
-            given_name_node.content = gn
-            individual_name_node.add_child(given_name_node)
-
-        if sn is not None:
-            surname_node = Node(names.SURNAME)
-            surname_node.content = sn
-            individual_name_node.add_child(surname_node)
-
-        creator_node.add_child(individual_name_node)
-
-        if organization is not None:
-            organization_name_node = Node(names.ORGANIZATIONNAME)
-            organization_name_node.content = organization
-            creator_node.add_child(organization_name_node)
-
-        if position_name is not None:
-            position_name_node = Node(names.POSITIONNAME)
-            position_name_node.content = position_name
-            creator_node.add_child(position_name_node)
-
-        address_node = Node(names.ADDRESS)
-
-        if address_1 is not None:
-            delivery_point_node_1 = Node(names.DELIVERYPOINT)
-            delivery_point_node_1.content = address_1
-            address_node.add_child(delivery_point_node_1)
-
-        if address_2 is not None:
-            delivery_point_node_2 = Node(names.DELIVERYPOINT)
-            delivery_point_node_2.content = address_2
-            address_node.add_child(delivery_point_node_2)
-
-        if city is not None:
-            city_node = Node(names.CITY)
-            city_node.content = city
-            address_node.add_child(city_node)
-
-        if state is not None:
-            administrative_area_node = Node(names.ADMINISTRATIVEAREA)
-            administrative_area_node.content = state
-            address_node.add_child(administrative_area_node)
-
-        if postal_code is not None:
-            postal_code_node = Node(names.POSTALCODE)
-            postal_code_node.content = postal_code
-            address_node.add_child(postal_code_node)
-
-        if country is not None:
-            country_node = Node(names.COUNTRY)
-            country_node.content = country
-            address_node.add_child(country_node)
-
-        creator_node.add_child(address_node)
-
-        if phone is not None:
-            phone_node = Node(names.PHONE)
-            phone_node.content = phone
-            phone_node.add_attribute('phonetype', 'voice')
-            creator_node.add_child(phone_node)
-
-        if fax is not None:
-            fax_node = Node(names.PHONE)
-            fax_node.content = fax
-            fax_node.add_attribute('phonetype', 'facsimile')
-            creator_node.add_child(fax_node)
-
-        if email is not None:
-            email_node = Node(names.ELECTRONICMAILADDRESS)
-            email_node.content = email
-            creator_node.add_child(email_node)
-
-        if online_url is not None:
-            online_url_node = Node(names.ONLINEURL)
-            online_url_node.content = online_url
-            creator_node.add_child(online_url_node)
-             
-        validate_node(eml_node)
-        log_as_xml(eml_node)
-        save_eml(packageid=packageid, eml_node=eml_node)
-
-    except Exception as e:
-        logger.error(e)
-   
-
 def create_abstract(packageid=None, abstract=None):
     if abstract is not None:
         try:
@@ -417,7 +305,9 @@ def create_keywords(packageid:str=None, keywords_list:list=[]):
             logger.error(e)
 
 
-def create_contact(packageid:str=None, 
+def create_responsible_party(
+                   responsible_party_node:Node=None,
+                   packageid:str=None, 
                    salutation:str=None,
                    gn:str=None,
                    sn:str=None,
@@ -436,10 +326,9 @@ def create_contact(packageid:str=None,
 
     try:
         eml_node = load_eml(packageid=packageid)
-        logger.info(f"loaded the following package: {packageid} containing eml node: {eml_node}")
+        logger.info(f"loaded data package: {packageid}")
         dataset_node = eml_node.find_child('dataset')
-        contact_node = Node(names.CONTACT)
-        dataset_node.add_child(contact_node)
+        dataset_node.add_child(responsible_party_node)
 
         individual_name_node = Node(names.INDIVIDUALNAME)
 
@@ -458,17 +347,17 @@ def create_contact(packageid:str=None,
             surname_node.content = sn
             individual_name_node.add_child(surname_node)
 
-        contact_node.add_child(individual_name_node)
+        responsible_party_node.add_child(individual_name_node)
 
         if organization is not None:
             organization_name_node = Node(names.ORGANIZATIONNAME)
             organization_name_node.content = organization
-            contact_node.add_child(organization_name_node)
+            responsible_party_node.add_child(organization_name_node)
 
         if position_name is not None:
             position_name_node = Node(names.POSITIONNAME)
             position_name_node.content = position_name
-            contact_node.add_child(position_name_node)
+            responsible_party_node.add_child(position_name_node)
 
         address_node = Node(names.ADDRESS)
 
@@ -502,29 +391,29 @@ def create_contact(packageid:str=None,
             country_node.content = country
             address_node.add_child(country_node)
 
-        contact_node.add_child(address_node)
+        responsible_party_node.add_child(address_node)
 
         if phone is not None:
             phone_node = Node(names.PHONE)
             phone_node.content = phone
             phone_node.add_attribute('phonetype', 'voice')
-            contact_node.add_child(phone_node)
+            responsible_party_node.add_child(phone_node)
 
         if fax is not None:
             fax_node = Node(names.PHONE)
             fax_node.content = fax
             fax_node.add_attribute('phonetype', 'facsimile')
-            contact_node.add_child(fax_node)
+            responsible_party_node.add_child(fax_node)
 
         if email is not None:
             email_node = Node(names.ELECTRONICMAILADDRESS)
             email_node.content = email
-            contact_node.add_child(email_node)
+            responsible_party_node.add_child(email_node)
 
         if online_url is not None:
             online_url_node = Node(names.ONLINEURL)
             online_url_node.content = online_url
-            contact_node.add_child(online_url_node)
+            responsible_party_node.add_child(online_url_node)
              
         validate_node(eml_node)
         log_as_xml(eml_node)
@@ -532,7 +421,7 @@ def create_contact(packageid:str=None,
 
     except Exception as e:
         logger.error(e)
-   
+
 
 def validate_minimal(packageid=None, title=None, contact_gn=None, contact_sn=None, creator_gn=None, creator_sn=None):
     eml = Node(names.EML)

@@ -16,14 +16,17 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
     SelectField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms.validators import DataRequired, Email, URL
 from wtforms.widgets import TextArea
+
+
+class AbstractForm(FlaskForm):
+    abstract = StringField('Abstract', widget=TextArea())
 
 
 class CreateEMLForm(FlaskForm):
     packageid = StringField('Package ID', validators=[DataRequired()])
     title = StringField('Title', validators=[DataRequired()])
-    abstract = StringField('Abstract', widget=TextArea())
 
 
 class KeywordsForm(FlaskForm):
@@ -35,6 +38,24 @@ class KeywordsForm(FlaskForm):
     k06 = StringField('Keyword', validators=[])
     k07 = StringField('Keyword', validators=[])
     k08 = StringField('Keyword', validators=[])
+
+
+class ResponsiblePartyForm(FlaskForm):
+    salutation = StringField('Salutation')
+    gn = StringField('First Name')
+    sn = StringField('Last Name')
+    organization = StringField('Organization')
+    position_name = StringField('Position Name')
+    address_1 = StringField('Address 1')
+    address_2 = StringField('Address 2')
+    city = StringField('City')
+    state = StringField('State')
+    postal_code = StringField('Postal Code')
+    country = StringField('Country')
+    phone = StringField('Phone')
+    fax = StringField('Fax')
+    email = StringField('Email', validators=[Email()])
+    online_url = StringField('Online URL', validators=[URL()])
 
 
 class MinimalEMLForm(FlaskForm):

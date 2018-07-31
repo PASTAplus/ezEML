@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>{{responsible_party}}</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <h5>Please fill in the fields below:</h5>
+                {{ wtf.form_field(form.salutation) }}
+                {{ wtf.form_field(form.gn) }}
+                <h6>(One of Last Name, Organization, or Position Name is required):</h6>
+                {{ wtf.form_field(form.sn) }}
+                {{ wtf.form_field(form.organization) }}
+                {{ wtf.form_field(form.position_name) }}
+                {{ wtf.form_field(form.address_1) }}
+                {{ wtf.form_field(form.address_2) }}
+                {{ wtf.form_field(form.city) }}
+                {{ wtf.form_field(form.state) }}
+                {{ wtf.form_field(form.postal_code) }}
+                {{ wtf.form_field(form.country) }}
+                {{ wtf.form_field(form.phone) }}
+                {{ wtf.form_field(form.fax) }}
+                {{ wtf.form_field(form.email) }}
+                {{ wtf.form_field(form.online_url) }}
+                <input class="btn btn-primary" name="Validate" type="submit" value="Validate"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                <input class="btn btn-primary" name="Clear' type="reset" value="Clear"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

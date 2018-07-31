@@ -7,9 +7,8 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please fill in <em>all fields</em> below:</h5>
-                {{ wtf.form_field(form.packageid) }}
-                {{ wtf.form_field(form.title) }}
+                <h5>Please enter the abstract text below:</h5>
+                {{ wtf.form_field(form.abstract) }}
                 <input class="btn btn-primary" name='Validate' type="submit" value="Validate"/>
                 <input class="btn btn-primary" name='Next' type="submit" value="Next"/>
                 <input class="btn btn-primary" name='Clear' type="reset" value="Clear"/>

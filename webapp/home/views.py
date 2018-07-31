@@ -163,7 +163,8 @@ def keywords(packageid=None):
         append_if_non_empty(keywords_list, form.k08.data)
         create_keywords(packageid=packageid, keywords_list=keywords_list)
         new_page = 'contact' if (submit_type == 'Next') else 'keywords'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+        responsible_party = 'Contact' if (submit_type == 'Next') else ''
+        return redirect(url_for(f'home.{new_page}', packageid=packageid, responsible_party=responsible_party))
     # Process GET
     return render_template('keywords.html', title='Keywords', packageid=packageid, form=form)
 
@@ -240,7 +241,7 @@ def minimal():
 
 
 def append_if_non_empty(some_list: list, value: str):
-    if (value is not None and len(value) > 0):
+    if value:
         some_list.append(value)
 
 
@@ -266,7 +267,7 @@ def create_eml(packageid=None, title=None):
 
 
 def create_abstract(packageid=None, abstract=None):
-    if abstract is not None:
+    if abstract:
         try:
             eml_node = load_eml(packageid=packageid)
             logger.info(f"loaded the following package: {packageid} containing eml node: {eml_node}")
@@ -332,92 +333,92 @@ def create_responsible_party(
 
         individual_name_node = Node(names.INDIVIDUALNAME)
 
-        if salutation is not None:
+        if salutation:
             salutation_node = Node(names.SALUTATION)
             salutation_node.content = salutation
             individual_name_node.add_child(salutation_node)
 
-        if gn is not None:
+        if gn:
             given_name_node = Node(names.GIVENNAME)
             given_name_node.content = gn
             individual_name_node.add_child(given_name_node)
 
-        if sn is not None:
+        if sn:
             surname_node = Node(names.SURNAME)
             surname_node.content = sn
             individual_name_node.add_child(surname_node)
 
         responsible_party_node.add_child(individual_name_node)
 
-        if organization is not None:
+        if organization:
             organization_name_node = Node(names.ORGANIZATIONNAME)
             organization_name_node.content = organization
             responsible_party_node.add_child(organization_name_node)
 
-        if position_name is not None:
+        if position_name:
             position_name_node = Node(names.POSITIONNAME)
             position_name_node.content = position_name
             responsible_party_node.add_child(position_name_node)
 
         address_node = Node(names.ADDRESS)
 
-        if address_1 is not None:
+        if address_1:
             delivery_point_node_1 = Node(names.DELIVERYPOINT)
             delivery_point_node_1.content = address_1
             address_node.add_child(delivery_point_node_1)
 
-        if address_2 is not None:
+        if address_2:
             delivery_point_node_2 = Node(names.DELIVERYPOINT)
             delivery_point_node_2.content = address_2
             address_node.add_child(delivery_point_node_2)
 
-        if city is not None:
+        if city:
             city_node = Node(names.CITY)
             city_node.content = city
             address_node.add_child(city_node)
 
-        if state is not None:
+        if state:
             administrative_area_node = Node(names.ADMINISTRATIVEAREA)
             administrative_area_node.content = state
             address_node.add_child(administrative_area_node)
 
-        if postal_code is not None:
+        if postal_code:
             postal_code_node = Node(names.POSTALCODE)
             postal_code_node.content = postal_code
             address_node.add_child(postal_code_node)
 
-        if country is not None:
+        if country:
             country_node = Node(names.COUNTRY)
             country_node.content = country
             address_node.add_child(country_node)
 
         responsible_party_node.add_child(address_node)
 
-        if phone is not None:
+        if phone:
             phone_node = Node(names.PHONE)
             phone_node.content = phone
             phone_node.add_attribute('phonetype', 'voice')
             responsible_party_node.add_child(phone_node)
 
-        if fax is not None:
+        if fax:
             fax_node = Node(names.PHONE)
             fax_node.content = fax
             fax_node.add_attribute('phonetype', 'facsimile')
             responsible_party_node.add_child(fax_node)
 
-        if email is not None:
+        if email:
             email_node = Node(names.ELECTRONICMAILADDRESS)
             email_node.content = email
             responsible_party_node.add_child(email_node)
 
-        if online_url is not None:
+        if online_url:
             online_url_node = Node(names.ONLINEURL)
             online_url_node.content = online_url
             responsible_party_node.add_child(online_url_node)
              
         validate_node(eml_node)
-        log_as_xml(eml_node)
-        save_eml(packageid=packageid, eml_node=eml_node)
+        save_eml(packageid=packageid, eml_node=eml_node, format='json')
+        save_eml(packageid=packageid, eml_node=eml_node, format='xml')
 
     except Exception as e:
         logger.error(e)
@@ -470,7 +471,7 @@ def validate_minimal(packageid=None, title=None, contact_gn=None, contact_sn=Non
 
 
 def validate_node(node:Node):
-    if (node is not None):
+    if node:
         try:
             validate.tree(node)
             flash(f"{node.name} node is valid")

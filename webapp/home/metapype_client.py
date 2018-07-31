@@ -21,13 +21,22 @@ from metapype.model import io
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 
-def save_eml(packageid:str=None, eml_node:Node=None):
-    if packageid is not None:
+def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
+    if packageid:
         if eml_node is not None:
-            json_str = io.to_json(eml_node)
-            filename = f"{packageid}.json"
-            with open(filename, "w") as fh:
-                fh.write(json_str)
+            metadata_str = None
+
+            if format == 'json':
+                metadata_str = io.to_json(eml_node)
+            elif format == 'xml':
+                xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+                xml_str = export.to_xml(eml_node)
+                metadata_str = xml_declaration + xml_str
+            
+            if metadata_str:
+                filename = f"{packageid}.{format}"
+                with open(filename, "w") as fh:
+                    fh.write(metadata_str)
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:

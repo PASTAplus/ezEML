@@ -14,15 +14,18 @@
 """
 import daiquiri
 import json
-from flask import Blueprint, flash, render_template, redirect, request, url_for
-from webapp.home.forms import CreateEMLForm, ResponsiblePartyForm, AbstractForm, KeywordsForm, MinimalEMLForm
+from flask import Blueprint, flash, render_template, \
+                  redirect, request, url_for
+from webapp.home.forms import CreateEMLForm, TitleForm, \
+                              ResponsiblePartyForm, AbstractForm, \
+                              KeywordsForm, MinimalEMLForm
 
 from metapype.eml2_1_1 import export
 from metapype.eml2_1_1 import names
-from metapype.eml2_1_1 import validate
 from metapype.model.node import Node
 
-from webapp.home.metapype_client import load_eml, save_eml, log_as_xml
+from webapp.home.metapype_client import load_eml, save_both_formats, \
+                                        validate_tree
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -43,8 +46,8 @@ def about():
 def create():
     # Determine POST type
     if request.method == 'POST':
-        if 'Validate' in request.form:
-            submit_type = 'Validate'
+        if 'Back' in request.form:
+            submit_type = 'Back'
         elif 'Next' in request.form:
             submit_type = 'Next'
         else:
@@ -53,20 +56,43 @@ def create():
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
-        create_eml(packageid=packageid,
-                   title=form.title.data)
-        new_page = 'creator' if (submit_type == 'Next') else 'create'
+        create_eml(packageid=packageid)
+        new_page = 'title' if (submit_type == 'Next') else 'create'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     return render_template('create_eml.html', title='Create New EML', form=form)
+
+
+@home.route('/title/<packageid>', methods=['GET', 'POST'])
+def title(packageid=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Back' in request.form:
+            submit_type = 'Back'
+        elif 'Next' in request.form:
+            submit_type = 'Next'
+        else:
+            submit_type = None
+    form = TitleForm()
+    # Process POST
+    if form.validate_on_submit():
+        create_title(title=form.title.data, packageid=packageid)
+        new_page = 'creator' if (submit_type == 'Next') else 'title'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    title_node = eml_node.find_child(child_name='title')
+    if title_node:
+        form.title.data = title_node.content
+    return render_template('title.html', title='Title', form=form)
 
 
 @home.route('/creator/<packageid>', methods=['GET', 'POST'])
 def creator(packageid=None):
     # Determine POST type
     if request.method == 'POST':
-        if 'Validate' in request.form:
-            submit_type = 'Validate'
+        if 'Back' in request.form:
+            submit_type = 'Back'
         elif 'Next' in request.form:
             submit_type = 'Next'
         else:
@@ -112,18 +138,26 @@ def creator(packageid=None):
             email,
             online_url)
 
-        new_page = 'abstract' if (submit_type == 'Next') else 'creator'
+        new_page = 'title' if (submit_type == 'Back') else 'abstract'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
+    eml_node = load_eml(packageid=packageid)
+    creator_node = eml_node.find_child(child_name=names.CREATOR)
+    if creator_node:
+        populate_responsible_party_form(form, creator_node)
     return render_template('responsible_party.html', title='Creator', form=form)
+
+
+def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):
+    pass
 
 
 @home.route('/abstract/<packageid>', methods=['GET', 'POST'])
 def abstract(packageid=None):
     # Determine POST type
     if request.method == 'POST':
-        if 'Validate' in request.form:
-            submit_type = 'Validate'
+        if 'Back' in request.form:
+            submit_type = 'Back'
         elif 'Next' in request.form:
             submit_type = 'Next'
         else:
@@ -133,9 +167,13 @@ def abstract(packageid=None):
     if form.validate_on_submit():
         abstract = form.abstract.data
         create_abstract(packageid=packageid, abstract=abstract)
-        new_page = 'keywords' if (submit_type == 'Next') else 'abstract'
+        new_page = 'creator' if (submit_type == 'Back') else 'keywords'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
+    eml_node = load_eml(packageid=packageid)
+    abstract_node = eml_node.find_child(child_name=names.ABSTRACT)
+    if abstract_node:
+        form.abstract.data = abstract_node.content
     return render_template('abstract.html', title='Abstract', packageid=packageid, form=form)
 
 
@@ -143,29 +181,35 @@ def abstract(packageid=None):
 def keywords(packageid=None):
     # Determine POST type
     if request.method == 'POST':
-        if 'Validate' in request.form:
-            submit_type = 'Validate'
+        if 'Back' in request.form:
+            submit_type = 'Back'
         elif 'Next' in request.form:
             submit_type = 'Next'
         else:
             submit_type = None
-    # Process POST
+
     form = KeywordsForm(packageid=packageid)
+    form_fields = [form.k01, form.k02, form.k03, form.k04, \
+                   form.k05, form.k06, form.k07, form.k08]
+
+    # Process POST
     if form.validate_on_submit():
         keywords_list = []
-        append_if_non_empty(keywords_list, form.k01.data)
-        append_if_non_empty(keywords_list, form.k02.data)
-        append_if_non_empty(keywords_list, form.k03.data)
-        append_if_non_empty(keywords_list, form.k04.data)
-        append_if_non_empty(keywords_list, form.k05.data)
-        append_if_non_empty(keywords_list, form.k06.data)
-        append_if_non_empty(keywords_list, form.k07.data)
-        append_if_non_empty(keywords_list, form.k08.data)
+        for form_field in form_fields:
+            append_if_non_empty(keywords_list, form_field.data)
         create_keywords(packageid=packageid, keywords_list=keywords_list)
-        new_page = 'contact' if (submit_type == 'Next') else 'keywords'
+        new_page = 'abstract' if (submit_type == 'Back') else 'contact'
         responsible_party = 'Contact' if (submit_type == 'Next') else ''
         return redirect(url_for(f'home.{new_page}', packageid=packageid, responsible_party=responsible_party))
+
     # Process GET
+    eml_node = load_eml(packageid=packageid)
+    keywordset_node = eml_node.find_child(child_name=names.KEYWORDSET)
+    if keywordset_node:
+        i = 0
+        for keyword_node in keywordset_node.children:
+            form_fields[i].data = keyword_node.content
+            i = i + 1
     return render_template('keywords.html', title='Keywords', packageid=packageid, form=form)
 
 
@@ -173,8 +217,8 @@ def keywords(packageid=None):
 def contact(packageid=None):
     # Determine POST type
     if request.method == 'POST':
-        if 'Validate' in request.form:
-            submit_type = 'Validate'
+        if 'Back' in request.form:
+            submit_type = 'Back'
         elif 'Next' in request.form:
             submit_type = 'Next'
         else:
@@ -219,8 +263,9 @@ def contact(packageid=None):
             email,
             online_url)
 
-        new_page = 'contact' if (submit_type == 'Next') else 'contact'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+        new_page = 'keywords' if (submit_type == 'Back') else 'contact'
+        responsible_party = 'Contact' if (submit_type == 'Next') else ''
+        return redirect(url_for(f'home.{new_page}', packageid=packageid, responsible_party=responsible_party))
     # Process GET
     return render_template('responsible_party.html', title='Contact', form=form)
 
@@ -245,7 +290,7 @@ def append_if_non_empty(some_list: list, value: str):
         some_list.append(value)
 
 
-def create_eml(packageid=None, title=None):
+def create_eml(packageid=None):
     eml_node = Node(names.EML)
 
     eml_node.add_attribute('packageId', packageid)
@@ -254,56 +299,83 @@ def create_eml(packageid=None, title=None):
     dataset_node = Node(names.DATASET, parent=eml_node)
     eml_node.add_child(dataset_node)
 
-    title_node = Node(names.TITLE)
-    title_node.content = title
-    dataset_node.add_child(title_node)
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
 
-    validate_node(eml_node)
+
+def create_title(title=None, packageid=None):
+    eml_node = load_eml(packageid=packageid)
+
+    dataset_node = eml_node.find_child('dataset')
+    if dataset_node:
+        title_node = dataset_node.find_child('title')
+        if not title_node:
+            title_node = Node(names.TITLE, parent=dataset_node)
+            dataset_node.add_child(title_node)
+    else:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        eml_node.add_child(dataset_node)
+        title_node = Node(names.TITLE, parent=dataset_node)
+        dataset_node.add_child(title_node)
+
+    title_node.content = title
 
     try:
-        save_eml(packageid=packageid, eml_node=eml_node)
+        save_both_formats(packageid=packageid, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
 
 def create_abstract(packageid=None, abstract=None):
-    if abstract:
-        try:
-            eml_node = load_eml(packageid=packageid)
-            logger.info(f"loaded the following package: {packageid} containing eml node: {eml_node}")
-            dataset_node = eml_node.find_child('dataset')
-            abstract_node = Node(names.ABSTRACT)
-            abstract_node.content = abstract
-            abstract_node.add_attribute('xml:lang', 'en')
+    eml_node = load_eml(packageid=packageid)
+
+    dataset_node = eml_node.find_child(names.DATASET)
+    if dataset_node:
+        abstract_node = dataset_node.find_child(names.ABSTRACT)
+        if not abstract_node:
+            abstract_node = Node(names.ABSTRACT, parent=dataset_node)
             dataset_node.add_child(abstract_node)
-            validate_node(eml_node)
-            log_as_xml(eml_node)
-            save_eml(packageid=packageid, eml_node=eml_node)
-        except Exception as e:
-            logger.error(e)
+    else:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        eml_node.add_child(dataset_node)
+        abstract_node = Node(names.ABSTRACT, parent=dataset_node)
+        dataset_node.add_child(abstract_node)
+
+    abstract_node.content = abstract
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
 
 
 def create_keywords(packageid:str=None, keywords_list:list=[]):
-    logger.info(f"The keywords are: {keywords_list}")
-    if len(keywords_list) > 0:
-        try:
-            eml_node = load_eml(packageid=packageid)
-            logger.info(f"loaded the following package: {packageid} containing eml node: {eml_node}")
-            dataset_node = eml_node.find_child('dataset')
-            keywordset_node = Node(names.KEYWORDSET)
-            dataset_node.add_child(keywordset_node)
+    eml_node = load_eml(packageid=packageid)
 
-            for keyword in keywords_list:
-                keyword_node = Node(names.KEYWORD)
-                keyword_node.content = keyword
-                keywordset_node.add_child(keyword_node)
+    dataset_node = eml_node.find_child(names.DATASET)
+    if dataset_node:
+        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
+        if keywordset_node:
+            # Get rid of the old keyword set if it exists
+            dataset_node.remove_child(keywordset_node)
+    else:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        eml_node.add_child(dataset_node)
+    
+    if keywords_list:
+        keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
+        dataset_node.add_child(keywordset_node)
+        for keyword in keywords_list:
+            keyword_node = Node(names.KEYWORD, parent=keywordset_node)
+            keyword_node.content = keyword
+            keywordset_node.add_child(keyword_node)
 
-            validate_node(eml_node)
-            log_as_xml(eml_node)
-            save_eml(packageid=packageid, eml_node=eml_node)
-
-        except Exception as e:
-            logger.error(e)
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
 
 
 def create_responsible_party(
@@ -324,31 +396,37 @@ def create_responsible_party(
                    fax:str=None,
                    email:str=None,
                    online_url:str=None):
-
     try:
+        node_name = responsible_party_node.name
         eml_node = load_eml(packageid=packageid)
-        logger.info(f"loaded data package: {packageid}")
-        dataset_node = eml_node.find_child('dataset')
+        dataset_node = eml_node.find_child(names.DATASET)
+
+        if dataset_node:
+            old_responsible_party_node = dataset_node.find_child(node_name)
+            if old_responsible_party_node:
+                # Get rid of the old node if it exists
+                dataset_node.remove_child(old_responsible_party_node)
+        else:
+            dataset_node = Node(names.DATASET, parent=eml_node)
+            eml_node.add_child(dataset_node)
+
         dataset_node.add_child(responsible_party_node)
 
-        individual_name_node = Node(names.INDIVIDUALNAME)
-
-        if salutation:
-            salutation_node = Node(names.SALUTATION)
-            salutation_node.content = salutation
-            individual_name_node.add_child(salutation_node)
-
-        if gn:
-            given_name_node = Node(names.GIVENNAME)
-            given_name_node.content = gn
-            individual_name_node.add_child(given_name_node)
-
-        if sn:
-            surname_node = Node(names.SURNAME)
-            surname_node.content = sn
-            individual_name_node.add_child(surname_node)
-
-        responsible_party_node.add_child(individual_name_node)
+        if salutation or gn or sn:
+            individual_name_node = Node(names.INDIVIDUALNAME)
+            if salutation:
+                salutation_node = Node(names.SALUTATION)
+                salutation_node.content = salutation
+                individual_name_node.add_child(salutation_node)
+            if gn:
+                given_name_node = Node(names.GIVENNAME)
+                given_name_node.content = gn
+                individual_name_node.add_child(given_name_node)
+            if sn:
+                surname_node = Node(names.SURNAME)
+                surname_node.content = sn
+                individual_name_node.add_child(surname_node)
+            responsible_party_node.add_child(individual_name_node)
 
         if organization:
             organization_name_node = Node(names.ORGANIZATIONNAME)
@@ -360,39 +438,40 @@ def create_responsible_party(
             position_name_node.content = position_name
             responsible_party_node.add_child(position_name_node)
 
-        address_node = Node(names.ADDRESS)
+        if address_1 or address_2 or city or state or postal_code or country:
+            address_node = Node(names.ADDRESS)
 
-        if address_1:
-            delivery_point_node_1 = Node(names.DELIVERYPOINT)
-            delivery_point_node_1.content = address_1
-            address_node.add_child(delivery_point_node_1)
+            if address_1:
+                delivery_point_node_1 = Node(names.DELIVERYPOINT)
+                delivery_point_node_1.content = address_1
+                address_node.add_child(delivery_point_node_1)
 
-        if address_2:
-            delivery_point_node_2 = Node(names.DELIVERYPOINT)
-            delivery_point_node_2.content = address_2
-            address_node.add_child(delivery_point_node_2)
+            if address_2:
+                delivery_point_node_2 = Node(names.DELIVERYPOINT)
+                delivery_point_node_2.content = address_2
+                address_node.add_child(delivery_point_node_2)
 
-        if city:
-            city_node = Node(names.CITY)
-            city_node.content = city
-            address_node.add_child(city_node)
+            if city:
+                city_node = Node(names.CITY)
+                city_node.content = city
+                address_node.add_child(city_node)
 
-        if state:
-            administrative_area_node = Node(names.ADMINISTRATIVEAREA)
-            administrative_area_node.content = state
-            address_node.add_child(administrative_area_node)
+            if state:
+                administrative_area_node = Node(names.ADMINISTRATIVEAREA)
+                administrative_area_node.content = state
+                address_node.add_child(administrative_area_node)
 
-        if postal_code:
-            postal_code_node = Node(names.POSTALCODE)
-            postal_code_node.content = postal_code
-            address_node.add_child(postal_code_node)
+            if postal_code:
+                postal_code_node = Node(names.POSTALCODE)
+                postal_code_node.content = postal_code
+                address_node.add_child(postal_code_node)
 
-        if country:
-            country_node = Node(names.COUNTRY)
-            country_node.content = country
-            address_node.add_child(country_node)
+            if country:
+                country_node = Node(names.COUNTRY)
+                country_node.content = country
+                address_node.add_child(country_node)
 
-        responsible_party_node.add_child(address_node)
+            responsible_party_node.add_child(address_node)
 
         if phone:
             phone_node = Node(names.PHONE)
@@ -416,9 +495,7 @@ def create_responsible_party(
             online_url_node.content = online_url
             responsible_party_node.add_child(online_url_node)
              
-        validate_node(eml_node)
-        save_eml(packageid=packageid, eml_node=eml_node, format='json')
-        save_eml(packageid=packageid, eml_node=eml_node, format='xml')
+        save_both_formats(packageid=packageid, eml_node=eml_node)
 
     except Exception as e:
         logger.error(e)
@@ -467,13 +544,10 @@ def validate_minimal(packageid=None, title=None, contact_gn=None, contact_sn=Non
 
     xml_str =  export.to_xml(eml)
     print(xml_str)
-    validate_node(eml)
+    validate(eml)
 
 
-def validate_node(node:Node):
+def validate(node:Node):
     if node:
-        try:
-            validate.tree(node)
-            flash(f"{node.name} node is valid")
-        except Exception as e:
-            flash(str(e))
+        msg = validate_tree(node)
+        flash(msg)

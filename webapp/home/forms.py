@@ -21,12 +21,15 @@ from wtforms.widgets import TextArea
 
 
 class AbstractForm(FlaskForm):
-    abstract = StringField('Abstract', widget=TextArea())
+    abstract = StringField('Abstract', widget=TextArea(), validators=[])
 
 
 class CreateEMLForm(FlaskForm):
     packageid = StringField('Package ID', validators=[DataRequired()])
-    title = StringField('Title', validators=[DataRequired()])
+
+
+class TitleForm(FlaskForm):
+    title = StringField('Title', validators=[])
 
 
 class KeywordsForm(FlaskForm):
@@ -41,21 +44,21 @@ class KeywordsForm(FlaskForm):
 
 
 class ResponsiblePartyForm(FlaskForm):
-    salutation = StringField('Salutation')
-    gn = StringField('First Name')
-    sn = StringField('Last Name')
-    organization = StringField('Organization')
-    position_name = StringField('Position Name')
-    address_1 = StringField('Address 1')
-    address_2 = StringField('Address 2')
-    city = StringField('City')
-    state = StringField('State')
-    postal_code = StringField('Postal Code')
-    country = StringField('Country')
-    phone = StringField('Phone')
-    fax = StringField('Fax')
-    email = StringField('Email', validators=[Email()])
-    online_url = StringField('Online URL', validators=[URL()])
+    salutation = StringField('Salutation', validators=[])
+    gn = StringField('First Name', validators=[])
+    sn = StringField('Last Name', validators=[])
+    organization = StringField('Organization', validators=[])
+    position_name = StringField('Position Name', validators=[])
+    address_1 = StringField('Address 1', validators=[])
+    address_2 = StringField('Address 2', validators=[])
+    city = StringField('City', validators=[])
+    state = StringField('State', validators=[])
+    postal_code = StringField('Postal Code', validators=[])
+    country = StringField('Country', validators=[])
+    phone = StringField('Phone', validators=[])
+    fax = StringField('Fax', validators=[])
+    email = StringField('Email', validators=[])
+    online_url = StringField('Online URL', validators=[])
 
 
 class MinimalEMLForm(FlaskForm):

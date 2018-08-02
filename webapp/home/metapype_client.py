@@ -14,12 +14,35 @@
 import daiquiri
 import json
 
-from metapype.eml2_1_1 import export
+from metapype.eml2_1_1 import export, validate
 from metapype.model.node import Node
 from metapype.model import io
 
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
+
+def load_eml(packageid:str=None):
+    eml_node = None
+    filename = f"{packageid}.json"
+    with open(filename, "r") as json_file:
+        json_obj = json.load(json_file)
+        eml_node = io.from_json(json_obj)
+    if eml_node is not None:
+        log_as_xml(eml_node)
+    else:
+        raise Exception(f"Error loading package ID: {packageid} from file {filename}")
+    return eml_node
+
+
+def log_as_xml(node: Node):
+    xml_str = export.to_xml(node)
+    logger.info("\n\n" + xml_str)
+
+
+def save_both_formats(packageid:str=None, eml_node:Node=None):
+    save_eml(packageid=packageid, eml_node=eml_node, format='json')
+    save_eml(packageid=packageid, eml_node=eml_node, format='xml')
+
 
 def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
     if packageid:
@@ -43,19 +66,13 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
         raise Exception(f"No packageid value was supplied for saving EML.")
 
 
-def load_eml(packageid:str=None):
-    eml_node = None
-    filename = f"{packageid}.json"
-    with open(filename, "r") as json_file:
-        json_obj = json.load(json_file)
-        eml_node = io.from_json(json_obj)
-    if eml_node is not None:
-        log_as_xml(eml_node)
-    else:
-        raise Exception(f"Error loading package ID: {packageid} from file {filename}")
-    return eml_node
+def validate_tree(node:Node):
+    msg = ''
+    if node:
+        try:
+            validate.tree(node)
+            msg = f"{node.name} node is valid"
+        except Exception as e:
+            msg = str(e)
 
-
-def log_as_xml(node: Node):
-    xml_str = export.to_xml(node)
-    logger.info("\n\n" + xml_str)
+    return msg

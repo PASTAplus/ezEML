@@ -148,8 +148,74 @@ def creator(packageid=None):
     return render_template('responsible_party.html', title='Creator', form=form)
 
 
-def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):
-    pass
+def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):    
+    salutation_node = node.find_child(names.SALUTATION)
+    if salutation_node:
+        form.salutation.data = salutation_node.content
+    
+    gn_node = node.find_child(names.GIVENNAME)
+    if gn_node:
+        form.gn.data = gn_node.content
+    
+    sn_node = node.find_child(names.SURNAME)
+    if sn_node:
+        form.sn.data = sn_node.content
+
+    organization_node = node.find_child(names.ORGANIZATIONNAME)
+    if organization_node:
+        form.organization.data = organization_node.content
+
+    position_name_node = node.find_child(names.POSITIONNAME)
+    if position_name_node:
+        form.position_name.data = position_name_node.content
+
+    address_node = node.find_child(names.ADDRESS)
+
+    if address_node:
+        delivery_point_nodes = \
+            address_node.find_all_children(names.DELIVERYPOINT)
+        if len(delivery_point_nodes) > 0:
+            form.address_1.data = delivery_point_nodes[0].content
+        if len(delivery_point_nodes) > 1:
+            form.address_2.data = delivery_point_nodes[1].content
+
+        city_node = address_node.find_child(names.CITY)
+        if city_node:
+            form.city.data = city_node.content
+
+        administrative_area_node = \
+            address_node.find_child(names.ADMINISTRATIVEAREA)
+        if administrative_area_node:
+            form.state.data = administrative_area_node.content
+
+        postal_code_node = address_node.find_child(names.POSTALCODE)
+        if postal_code_node:
+            form.postal_code.data = postal_code_node.content
+
+        country_node = address_node.find_child(names.COUNTRY)
+        if country_node:
+            form.country.data = country_node.content
+
+        phone_node = node.find_child(names.PHONE)
+        if phone_node:
+            form.phone.data = phone_node.content
+
+   
+    phone_nodes = node.find_all_children(names.PHONE)
+    for phone_node in phone_nodes:
+        phone_type = phone_node.attribute_value('phonetype')
+        if phone_type == 'facsimile':
+            form.fax.data = phone_node.content
+        else:
+            form.phone.data = phone_node.content
+
+    email_node = node.find_child(names.ELECTRONICMAILADDRESS)
+    if email_node:
+        form.email.data = email_node.content
+
+    online_url_node = node.find_child(names.ONLINEURL)
+    if online_url_node:
+        form.online_url.data = online_url_node.content
 
 
 @home.route('/abstract/<packageid>', methods=['GET', 'POST'])
@@ -267,6 +333,10 @@ def contact(packageid=None):
         responsible_party = 'Contact' if (submit_type == 'Next') else ''
         return redirect(url_for(f'home.{new_page}', packageid=packageid, responsible_party=responsible_party))
     # Process GET
+    eml_node = load_eml(packageid=packageid)
+    contact_node = eml_node.find_child(child_name=names.CONTACT)
+    if contact_node:
+        populate_responsible_party_form(form, contact_node)
     return render_template('responsible_party.html', title='Contact', form=form)
 
 

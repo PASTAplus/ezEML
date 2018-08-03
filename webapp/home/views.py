@@ -97,7 +97,7 @@ def creator(packageid=None):
             submit_type = 'Next'
         else:
             submit_type = None
-    form = ResponsiblePartyForm(responsible_party="Creator", packageid=packageid)
+    form = ResponsiblePartyForm(packageid=packageid)
 
     # Process POST
     if form.validate_on_submit():   
@@ -145,7 +145,8 @@ def creator(packageid=None):
     creator_node = eml_node.find_child(child_name=names.CREATOR)
     if creator_node:
         populate_responsible_party_form(form, creator_node)
-    return render_template('responsible_party.html', title='Creator', form=form)
+    return render_template('responsible_party.html', title='Creator',
+                rp_capitalized='Creator', rp_lower='creator',form=form)
 
 
 def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):    
@@ -337,7 +338,8 @@ def contact(packageid=None):
     contact_node = eml_node.find_child(child_name=names.CONTACT)
     if contact_node:
         populate_responsible_party_form(form, contact_node)
-    return render_template('responsible_party.html', title='Contact', form=form)
+    return render_template('responsible_party.html', title='Contact',
+                rp_capitalized='Contact', rp_lower='contact',form=form)
 
 
 @home.route('/minimal', methods=['GET', 'POST'])

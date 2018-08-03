@@ -2,12 +2,12 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>{{responsible_party}}</h1>
+    <h1>{{ rp_capitalized }}</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please fill in the fields below:</h5>
+                <h5>Please document the metadata {{ rp_lower }} in the fields below:</h5>
                 {{ wtf.form_field(form.salutation) }}
                 {{ wtf.form_field(form.gn) }}
                 <h6>(One of Last Name, Organization, or Position Name is required):</h6>

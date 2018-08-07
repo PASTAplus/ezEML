@@ -7,18 +7,21 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please provide up to eight keywords below:</h5>
-                {{ wtf.form_field(form.k01) }}
-                {{ wtf.form_field(form.k02) }}
-                {{ wtf.form_field(form.k03) }}
-                {{ wtf.form_field(form.k04) }}
-                {{ wtf.form_field(form.k05) }}
-                {{ wtf.form_field(form.k06) }}
-                {{ wtf.form_field(form.k07) }}
-                {{ wtf.form_field(form.k08) }}
+                <h4>Current Keywords:</h4>
+                <table class="table table-striped">
+                    <th>Keyword</th><th>Keyword Type</th>
+                    {% for keyword in keyword_dict %}
+                        <tr><td>{{ keyword }}</td><td>{{ keyword_dict[keyword] }}</td></tr>
+                    {% endfor %}
+                </table>
+                <br/><br/>
+                {{ wtf.form_field(form.keyword) }} {{ wtf.form_field(form.keyword_type) }}
+                <input class="btn btn-primary" name="Add" type="submit" value="Add"/>
+                <input class="btn btn-primary" name="Remove" type="submit" value="Remove"/>
+                <input class="btn btn-primary" name="Clear" type="reset" value="Clear"/>
+                <br/><br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
-                <input class="btn btn-primary" name="Clear" type="reset" value="Clear"/>
             </form>
         </div>
     </div>

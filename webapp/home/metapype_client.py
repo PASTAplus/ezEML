@@ -13,6 +13,7 @@
 """
 import daiquiri
 import json
+import os.path
 
 from metapype.eml2_1_1 import export, validate
 from metapype.model.node import Node
@@ -24,13 +25,10 @@ logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 def load_eml(packageid:str=None):
     eml_node = None
     filename = f"{packageid}.json"
-    with open(filename, "r") as json_file:
-        json_obj = json.load(json_file)
-        eml_node = io.from_json(json_obj)
-    if eml_node is not None:
-        log_as_xml(eml_node)
-    else:
-        raise Exception(f"Error loading package ID: {packageid} from file {filename}")
+    if os.path.isfile(filename):
+        with open(filename, "r") as json_file:
+            json_obj = json.load(json_file)
+            eml_node = io.from_json(json_obj)
     return eml_node
 
 

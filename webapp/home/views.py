@@ -247,37 +247,50 @@ def abstract(packageid=None):
 @home.route('/keywords/<packageid>', methods=['GET', 'POST'])
 def keywords(packageid=None):
     # Determine POST type
+    submit_type = None
     if request.method == 'POST':
         if 'Back' in request.form:
             submit_type = 'Back'
         elif 'Next' in request.form:
             submit_type = 'Next'
-        else:
-            submit_type = None
+        elif 'Add' in request.form:
+            submit_type = 'Add'
+        elif 'Remove' in request.form:
+            submit_type = 'Remove'
 
     form = KeywordsForm(packageid=packageid)
-    form_fields = [form.k01, form.k02, form.k03, form.k04, \
-                   form.k05, form.k06, form.k07, form.k08]
 
     # Process POST
     if form.validate_on_submit():
-        keywords_list = []
-        for form_field in form_fields:
-            append_if_non_empty(keywords_list, form_field.data)
-        create_keywords(packageid=packageid, keywords_list=keywords_list)
-        new_page = 'abstract' if (submit_type == 'Back') else 'contact'
-        responsible_party = 'Contact' if (submit_type == 'Next') else ''
+        new_page = 'keywords'
+        user_keyword = form.keyword.data
+        user_keyword = user_keyword.strip()
+        user_keyword_type = form.keyword_type.data
+        responsible_party = ''
+        if submit_type == 'Add':
+            add_keyword(packageid=packageid, keyword=user_keyword, keyword_type=user_keyword_type)
+        elif submit_type == 'Remove':
+            remove_keyword(packageid=packageid, keyword=user_keyword)
+        elif submit_type == 'Back':
+            new_page = 'abstract'
+        elif submit_type == 'Next':
+            new_page = 'contact'
+            responsible_party = 'Contact'
         return redirect(url_for(f'home.{new_page}', packageid=packageid, responsible_party=responsible_party))
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
     keywordset_node = eml_node.find_child(child_name=names.KEYWORDSET)
+    keyword_dict = {}
     if keywordset_node:
-        i = 0
-        for keyword_node in keywordset_node.children:
-            form_fields[i].data = keyword_node.content
-            i = i + 1
-    return render_template('keywords.html', title='Keywords', packageid=packageid, form=form)
+        for keyword_node in keywordset_node.find_all_children(child_name=names.KEYWORD):
+            keyword = keyword_node.content
+            if keyword:
+                keyword_type = keyword_node.attribute_value('keywordType')
+                if keyword_type is None:
+                    keyword_type = ''
+                keyword_dict[keyword] = keyword_type
+    return render_template('keywords.html', title='Keywords', packageid=packageid, form=form, keyword_dict=keyword_dict)
 
 
 @home.route('/contact/<packageid>', methods=['GET', 'POST'])
@@ -363,18 +376,19 @@ def append_if_non_empty(some_list: list, value: str):
 
 
 def create_eml(packageid=None):
-    eml_node = Node(names.EML)
+    eml_node = load_eml(packageid=packageid)
 
-    eml_node.add_attribute('packageId', packageid)
-    eml_node.add_attribute('system', 'https://pasta.edirepository.org')
+    if not eml_node:
+        eml_node = Node(names.EML)
+        eml_node.add_attribute('packageId', packageid)
+        eml_node.add_attribute('system', 'https://pasta.edirepository.org')
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        eml_node.add_child(dataset_node)
 
-    dataset_node = Node(names.DATASET, parent=eml_node)
-    eml_node.add_child(dataset_node)
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
+        try:
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+        except Exception as e:
+            logger.error(e)
 
 
 def create_title(title=None, packageid=None):
@@ -416,6 +430,59 @@ def create_abstract(packageid=None, abstract=None):
         dataset_node.add_child(abstract_node)
 
     abstract_node.content = abstract
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+
+def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
+    if keyword:
+        eml_node = load_eml(packageid=packageid)
+
+        dataset_node = eml_node.find_child(names.DATASET)
+        if not dataset_node:
+            dataset_node = Node(names.DATASET, parent=eml_node)
+            eml_node.add_child(dataset_node)
+
+        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
+        if not keywordset_node:
+            keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
+            dataset_node.add_child(keywordset_node)
+
+        keyword_node = None
+        
+        # Does a matching keyword node already exist?
+        keyword_nodes = keywordset_node.find_all_children(names.KEYWORD)
+        for child_node in keyword_nodes:
+            if child_node.content == keyword:
+                keyword_node = child_node
+                break
+        
+        if not keyword_node:
+            keyword_node = Node(names.KEYWORD, parent=keywordset_node)
+            keyword_node.content = keyword
+            keywordset_node.add_child(keyword_node)
+        
+        if keyword_type:
+            keyword_node.add_attribute(name='keywordType', value=keyword_type)
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+
+def remove_keyword(packageid:str=None, keyword:str=None):
+    if keyword:
+        eml_node = load_eml(packageid=packageid)
+        keywordset_node = eml_node.find_child(names.KEYWORDSET)
+        if keywordset_node:
+            current_keywords = keywordset_node.find_all_children(child_name=names.KEYWORD)
+            for keyword_node in current_keywords:
+                if keyword_node.content == keyword:
+                    keywordset_node.remove_child(keyword_node)
 
     try:
         save_both_formats(packageid=packageid, eml_node=eml_node)

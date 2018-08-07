@@ -33,15 +33,8 @@ class TitleForm(FlaskForm):
 
 
 class KeywordsForm(FlaskForm):
-    k01 = StringField('Keyword', validators=[])
-    k02 = StringField('Keyword', validators=[])
-    k03 = StringField('Keyword', validators=[])
-    k04 = StringField('Keyword', validators=[])
-    k05 = StringField('Keyword', validators=[])
-    k06 = StringField('Keyword', validators=[])
-    k07 = StringField('Keyword', validators=[])
-    k08 = StringField('Keyword', validators=[])
-
+    keyword = StringField('Keyword', validators=[])
+    keyword_type = SelectField('Keyword Type (Optional)', choices=[("", ""), ("place", "place"), ("stratum", "stratum"), ("taxonomic", "taxonomic"), ("temporal", "temporal"), ("theme", "theme")])
 
 class ResponsiblePartyForm(FlaskForm):
     salutation = StringField('Salutation', validators=[])

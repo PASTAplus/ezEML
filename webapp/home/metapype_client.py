@@ -36,10 +36,10 @@ def compose_rp_label(rp_node:Node=None):
     label = ''
     if rp_node:
         individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
-        if individual_name_node:
-            individual_name_label = compose_individual_name_label(individual_name_node)
+        individual_name_label = compose_individual_name_label(individual_name_node)
         organization_name_label = compose_simple_label(rp_node, names.ORGANIZATIONNAME)
         position_name_label = compose_simple_label(rp_node, names.POSITIONNAME)
+        
         if individual_name_label:
             label = individual_name_label
         if position_name_label:

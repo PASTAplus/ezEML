@@ -165,6 +165,8 @@ def creator(packageid=None, node_id=None):
             email = form.email.data
             online_url = form.online_url.data
 
+            #if node_id:
+                #creator_node = dataset_node.find_child(names.CREATOR, )
             creator_node = Node(names.CREATOR, parent=dataset_node)
             dataset_node.add_child(creator_node)
 
@@ -198,12 +200,13 @@ def creator(packageid=None, node_id=None):
         pass
     else:
         eml_node = load_eml(packageid=packageid)
-    
-        creator_nodes = eml_node.find_all_children(child_name=names.CREATOR)
-        if creator_nodes:
-            for creator_node in creator_nodes:
-                if node_id == creator_node.id:
-                    populate_responsible_party_form(form, creator_node)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            creator_nodes = dataset_node.find_all_children(child_name=names.CREATOR)
+            if creator_nodes:
+                for creator_node in creator_nodes:
+                    if node_id == creator_node.id:
+                        populate_responsible_party_form(form, creator_node)
     
     return render_template('responsible_party.html', title='Creator',
                 rp_capitalized='Creator', rp_lower='creator',form=form)
@@ -326,7 +329,7 @@ def keywords(packageid=None):
         user_keyword = form.keyword.data
         user_keyword = user_keyword.strip()
         user_keyword_type = form.keyword_type.data
-        responsible_party = ''
+
         if submit_type == 'Add':
             add_keyword(packageid=packageid, keyword=user_keyword, keyword_type=user_keyword_type)
         elif submit_type == 'Remove':
@@ -334,9 +337,9 @@ def keywords(packageid=None):
         elif submit_type == 'Back':
             new_page = 'abstract'
         elif submit_type == 'Next':
-            new_page = 'contact'
-            responsible_party = 'Contact'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid, responsible_party=responsible_party))
+            new_page = 'contact_select'
+
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
@@ -353,66 +356,125 @@ def keywords(packageid=None):
     return render_template('keywords.html', title='Keywords', packageid=packageid, form=form, keyword_dict=keyword_dict)
 
 
-@home.route('/contact/<packageid>', methods=['GET', 'POST'])
-def contact(packageid=None):
+@home.route('/contact_select/<packageid>', methods=['GET', 'POST'])
+def contact_select(packageid=None):
     # Determine POST type
     if request.method == 'POST':
-        if 'Back' in request.form:
-            submit_type = 'Back'
-        elif 'Next' in request.form:
-            submit_type = 'Next'
-        else:
-            submit_type = None
-    form = ResponsiblePartyForm(responsible_party="Contact", packageid=packageid)
+        form_value = request.form
+        print(form_value)
+        my_dict = form_value.to_dict(flat=False)
+        node_id = ''
+        new_page = ''
+        if my_dict:
+            for key in my_dict:
+                val = my_dict[key][0]  # value is the first list element
+                if val == 'Back':
+                    new_page = 'keywords'
+                elif val == 'Next':
+                    new_page = 'contact_select'
+                elif val == 'Edit':
+                    new_page = 'contact'
+                    node_id = key
+                elif val == 'Add':
+                    new_page = 'contact'
+                    node_id = '1'
+    form = ResponsiblePartySelectForm(packageid=packageid)
 
     # Process POST
     if form.validate_on_submit():   
-        salutation = form.salutation.data
-        gn = form.gn.data
-        sn = form.sn.data
-        organization = form.organization.data
-        position_name = form.position_name.data
-        address_1 = form.address_1.data
-        address_2 = form.address_2.data
-        city = form.city.data
-        state = form.state.data
-        postal_code = form.postal_code.data
-        country = form.country.data
-        phone = form.phone.data
-        fax = form.fax.data
-        email = form.email.data
-        online_url = form.online_url.data
-        contact_node = Node(names.CONTACT)
-
-        create_responsible_party(
-            contact_node,
-            packageid,   
-            salutation,
-            gn,
-            sn,
-            organization,
-            position_name,
-            address_1,
-            address_2,
-            city,
-            state,
-            postal_code,
-            country,
-            phone,
-            fax,
-            email,
-            online_url)
-
-        new_page = 'keywords' if (submit_type == 'Back') else 'contact'
-        responsible_party = 'Contact' if (submit_type == 'Next') else ''
-        return redirect(url_for(f'home.{new_page}', packageid=packageid, responsible_party=responsible_party))
+        return redirect(url_for(f'home.{new_page}', packageid=packageid, node_id=node_id))
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    contact_node = eml_node.find_child(child_name=names.CONTACT)
-    if contact_node:
-        populate_responsible_party_form(form, contact_node)
+
+    rp_dict = {}
+    add_rps_to_dict(eml_node, names.CONTACT, rp_dict)
+    rp_dict['[Add New]'] = '1'
+
+    return render_template('responsible_party_select.html', title='Contact',
+                rp_capitalized='Contact', rp_lower='contact', rp_dict=rp_dict, form=form)
+
+
+@home.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])
+def contact(packageid=None, node_id=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+        else:
+            submit_type = None
+    form = ResponsiblePartyForm(packageid=packageid)
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+
+            salutation = form.salutation.data
+            gn = form.gn.data
+            sn = form.sn.data
+            organization = form.organization.data
+            position_name = form.position_name.data
+            address_1 = form.address_1.data
+            address_2 = form.address_2.data
+            city = form.city.data
+            state = form.state.data
+            postal_code = form.postal_code.data
+            country = form.country.data
+            phone = form.phone.data
+            fax = form.fax.data
+            email = form.email.data
+            online_url = form.online_url.data
+
+            contact_node = Node(names.CONTACT, parent=dataset_node)
+            dataset_node.add_child(contact_node)
+
+            create_responsible_party(
+                dataset_node,
+                contact_node,
+                packageid,   
+                salutation,
+                gn,
+                sn,
+                organization,
+                position_name,
+                address_1,
+                address_2,
+                city,
+                state,
+                postal_code,
+                country,
+                phone,
+                fax,
+                email,
+                online_url)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        new_page = 'contact_select'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+    
+        contact_nodes = eml_node.find_all_children(child_name=names.CONTACT)
+        if contact_nodes:
+            for contact_node in contact_nodes:
+                if node_id == contact_node.id:
+                    populate_responsible_party_form(form, contact_node)
+    
     return render_template('responsible_party.html', title='Contact',
                 rp_capitalized='Contact', rp_lower='contact',form=form)
+
+
 
 
 @home.route('/minimal', methods=['GET', 'POST'])

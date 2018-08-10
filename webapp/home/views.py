@@ -27,7 +27,8 @@ from metapype.eml2_1_1 import export
 from metapype.eml2_1_1 import names
 from metapype.model.node import Node
 from webapp.home.metapype_client import load_eml, add_rps_to_dict, \
-                              save_both_formats, validate_tree
+                              save_both_formats, validate_tree, \
+                              add_child
 
 
 
@@ -165,10 +166,7 @@ def creator(packageid=None, node_id=None):
             email = form.email.data
             online_url = form.online_url.data
 
-            #if node_id:
-                #creator_node = dataset_node.find_child(names.CREATOR, )
             creator_node = Node(names.CREATOR, parent=dataset_node)
-            dataset_node.add_child(creator_node)
 
             create_responsible_party(
                 dataset_node,
@@ -189,6 +187,15 @@ def creator(packageid=None, node_id=None):
                 fax,
                 email,
                 online_url)
+
+            if node_id and len(node_id) > 1:
+                # Better to implement this with a function call
+                old_creator_node = Node.get_node_instance(node_id)
+                if old_creator_node:
+                    dataset_parent_node = old_creator_node.parent
+                    dataset_parent_node.replace_child(old_creator_node, creator_node)
+                else:
+                    add_child(dataset_node, creator_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
@@ -432,7 +439,7 @@ def contact(packageid=None, node_id=None):
             online_url = form.online_url.data
 
             contact_node = Node(names.CONTACT, parent=dataset_node)
-            dataset_node.add_child(contact_node)
+            add_child(dataset_node, contact_node)
 
             create_responsible_party(
                 dataset_node,
@@ -505,7 +512,7 @@ def create_eml(packageid=None):
         eml_node.add_attribute('packageId', packageid)
         eml_node.add_attribute('system', 'https://pasta.edirepository.org')
         dataset_node = Node(names.DATASET, parent=eml_node)
-        eml_node.add_child(dataset_node)
+        add_child(eml_node, dataset_node)
 
         try:
             save_both_formats(packageid=packageid, eml_node=eml_node)
@@ -521,12 +528,12 @@ def create_title(title=None, packageid=None):
         title_node = dataset_node.find_child('title')
         if not title_node:
             title_node = Node(names.TITLE, parent=dataset_node)
-            dataset_node.add_child(title_node)
+            add_child(dataset_node, title_node)
     else:
         dataset_node = Node(names.DATASET, parent=eml_node)
-        eml_node.add_child(dataset_node)
+        add_child(eml_node, dataset_node)
         title_node = Node(names.TITLE, parent=dataset_node)
-        dataset_node.add_child(title_node)
+        add_child(dataset_node, title_node)
 
     title_node.content = title
 
@@ -544,12 +551,12 @@ def create_abstract(packageid=None, abstract=None):
         abstract_node = dataset_node.find_child(names.ABSTRACT)
         if not abstract_node:
             abstract_node = Node(names.ABSTRACT, parent=dataset_node)
-            dataset_node.add_child(abstract_node)
+            add_child(dataset_node, abstract_node)
     else:
         dataset_node = Node(names.DATASET, parent=eml_node)
-        eml_node.add_child(dataset_node)
+        add_child(eml_node, dataset_node)
         abstract_node = Node(names.ABSTRACT, parent=dataset_node)
-        dataset_node.add_child(abstract_node)
+        add_child(dataset_node, abstract_node)
 
     abstract_node.content = abstract
 
@@ -566,12 +573,12 @@ def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
             dataset_node = Node(names.DATASET, parent=eml_node)
-            eml_node.add_child(dataset_node)
+            add_child(eml_node, dataset_node)
 
         keywordset_node = dataset_node.find_child(names.KEYWORDSET)
         if not keywordset_node:
             keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
-            dataset_node.add_child(keywordset_node)
+            add_child(dataset_node, keywordset_node)
 
         keyword_node = None
         
@@ -585,7 +592,7 @@ def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
         if not keyword_node:
             keyword_node = Node(names.KEYWORD, parent=keywordset_node)
             keyword_node.content = keyword
-            keywordset_node.add_child(keyword_node)
+            add_child(keywordset_node, keyword_node)
         
         if keyword_type:
             keyword_node.add_attribute(name='keywordType', value=keyword_type)
@@ -623,15 +630,15 @@ def create_keywords(packageid:str=None, keywords_list:list=[]):
             dataset_node.remove_child(keywordset_node)
     else:
         dataset_node = Node(names.DATASET, parent=eml_node)
-        eml_node.add_child(dataset_node)
+        add_child(eml_node, dataset_node)
     
     if keywords_list:
         keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
-        dataset_node.add_child(keywordset_node)
+        add_child(dataset_node, keywordset_node)
         for keyword in keywords_list:
             keyword_node = Node(names.KEYWORD, parent=keywordset_node)
             keyword_node.content = keyword
-            keywordset_node.add_child(keyword_node)
+            add_child(keywordset_node, keyword_node)
 
     try:
         save_both_formats(packageid=packageid, eml_node=eml_node)
@@ -673,26 +680,26 @@ def create_responsible_party(
             if salutation:
                 salutation_node = Node(names.SALUTATION)
                 salutation_node.content = salutation
-                individual_name_node.add_child(salutation_node)
+                add_child(individual_name_node, salutation_node)
             if gn:
                 given_name_node = Node(names.GIVENNAME)
                 given_name_node.content = gn
-                individual_name_node.add_child(given_name_node)
+                add_child(individual_name_node, given_name_node)
             if sn:
                 surname_node = Node(names.SURNAME)
                 surname_node.content = sn
-                individual_name_node.add_child(surname_node)
-            responsible_party_node.add_child(individual_name_node)
+                add_child(individual_name_node, surname_node)
+            add_child(responsible_party_node, individual_name_node)
 
         if organization:
             organization_name_node = Node(names.ORGANIZATIONNAME)
             organization_name_node.content = organization
-            responsible_party_node.add_child(organization_name_node)
+            add_child(responsible_party_node, organization_name_node)
 
         if position_name:
             position_name_node = Node(names.POSITIONNAME)
             position_name_node.content = position_name
-            responsible_party_node.add_child(position_name_node)
+            add_child(responsible_party_node, position_name_node)
 
         if address_1 or address_2 or city or state or postal_code or country:
             address_node = Node(names.ADDRESS)
@@ -700,56 +707,56 @@ def create_responsible_party(
             if address_1:
                 delivery_point_node_1 = Node(names.DELIVERYPOINT)
                 delivery_point_node_1.content = address_1
-                address_node.add_child(delivery_point_node_1)
+                add_child(address_node, delivery_point_node_1)
 
             if address_2:
                 delivery_point_node_2 = Node(names.DELIVERYPOINT)
                 delivery_point_node_2.content = address_2
-                address_node.add_child(delivery_point_node_2)
+                add_child(address_node, delivery_point_node_2)
 
             if city:
                 city_node = Node(names.CITY)
                 city_node.content = city
-                address_node.add_child(city_node)
+                add_child(address_node, city_node)
 
             if state:
                 administrative_area_node = Node(names.ADMINISTRATIVEAREA)
                 administrative_area_node.content = state
-                address_node.add_child(administrative_area_node)
+                add_child(address_node, administrative_area_node)
 
             if postal_code:
                 postal_code_node = Node(names.POSTALCODE)
                 postal_code_node.content = postal_code
-                address_node.add_child(postal_code_node)
+                add_child(address_node, postal_code_node)
 
             if country:
                 country_node = Node(names.COUNTRY)
                 country_node.content = country
-                address_node.add_child(country_node)
+                add_child(address_node,country_node)
 
-            responsible_party_node.add_child(address_node)
+            add_child(responsible_party_node, address_node)
 
         if phone:
             phone_node = Node(names.PHONE)
             phone_node.content = phone
             phone_node.add_attribute('phonetype', 'voice')
-            responsible_party_node.add_child(phone_node)
+            add_child(responsible_party_node, phone_node)
 
         if fax:
             fax_node = Node(names.PHONE)
             fax_node.content = fax
             fax_node.add_attribute('phonetype', 'facsimile')
-            responsible_party_node.add_child(fax_node)
+            add_child(responsible_party_node, fax_node)
 
         if email:
             email_node = Node(names.ELECTRONICMAILADDRESS)
             email_node.content = email
-            responsible_party_node.add_child(email_node)
+            add_child(responsible_party_node, email_node)
 
         if online_url:
             online_url_node = Node(names.ONLINEURL)
             online_url_node.content = online_url
-            responsible_party_node.add_child(online_url_node)
+            add_child(responsible_party_node, online_url_node)
              
         return responsible_party_node
 
@@ -764,39 +771,39 @@ def validate_minimal(packageid=None, title=None, contact_gn=None, contact_sn=Non
     eml.add_attribute('system', 'https://pasta.edirepository.org')
 
     dataset = Node(names.DATASET, parent=eml)
-    eml.add_child(dataset)
+    add_child(eml, dataset)
 
     title_node = Node(names.TITLE)
     title_node.content = title
-    dataset.add_child(title_node)
+    add_child(dataset, title_node)
     
     creator_node = Node(names.CREATOR, parent=dataset)
-    dataset.add_child(creator_node)
+    add_child(dataset, creator_node)
 
     individualName_creator = Node(names.INDIVIDUALNAME, parent=creator_node)
-    creator_node.add_child(individualName_creator)
+    add_child(creator_node, individualName_creator)
 
     givenName_creator = Node(names.GIVENNAME, parent=individualName_creator)
     givenName_creator.content = creator_gn
-    individualName_creator.add_child(givenName_creator)
+    add_child(individualName_creator, givenName_creator)
 
     surName_creator = Node(names.SURNAME, parent=individualName_creator)
     surName_creator.content = creator_sn
-    individualName_creator.add_child(surName_creator)
+    add_child(individualName_creator, surName_creator)
 
     contact_node = Node(names.CONTACT, parent=dataset)
-    dataset.add_child(contact_node)
+    add_child(dataset, contact_node)
 
     individualName_contact = Node(names.INDIVIDUALNAME, parent=contact_node)
-    contact_node.add_child(individualName_contact)
+    add_child(contact_node, individualName_contact)
 
     givenName_contact = Node(names.GIVENNAME, parent=individualName_contact)
     givenName_contact.content = contact_gn
-    individualName_contact.add_child(givenName_contact)
+    add_child(individualName_contact, givenName_contact)
 
     surName_contact = Node(names.SURNAME, parent=individualName_contact)
     surName_contact.content = contact_sn
-    individualName_contact.add_child(surName_contact)
+    add_child(individualName_contact, surName_contact)
 
     xml_str =  export.to_xml(eml)
     print(xml_str)

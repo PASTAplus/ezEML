@@ -15,7 +15,7 @@ import daiquiri
 import json
 import os.path
 
-from metapype.eml2_1_1 import export, validate, names
+from metapype.eml2_1_1 import export, validate, names, rule
 from metapype.model.node import Node
 from metapype.model import io
 
@@ -30,6 +30,13 @@ def add_rps_to_dict(eml_node:Node=None, node_name:str=None, rp_dict:dict=None):
             for rp_node in rp_nodes:
                 rp_label = compose_rp_label(rp_node)
                 rp_dict[rp_label] = rp_node.id
+
+
+def add_child(parent_node:Node, child_node:Node):
+    if parent_node and child_node:
+        parent_rule = rule.get_rule(parent_node.name)
+        index = parent_rule.child_insert_index(parent_node, child_node)
+        parent_node.add_child(child_node, index=index)
 
 
 def compose_rp_label(rp_node:Node=None):

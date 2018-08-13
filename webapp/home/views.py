@@ -188,14 +188,15 @@ def creator(packageid=None, node_id=None):
                 email,
                 online_url)
 
-            if node_id and len(node_id) > 1:
-                # Better to implement this with a function call
+            if node_id and len(node_id) != 1:
                 old_creator_node = Node.get_node_instance(node_id)
                 if old_creator_node:
                     dataset_parent_node = old_creator_node.parent
                     dataset_parent_node.replace_child(old_creator_node, creator_node)
                 else:
-                    add_child(dataset_node, creator_node)
+                    raise Exception(f"No node found in the node store with node id {node_id}")
+            else:
+                add_child(dataset_node, creator_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
@@ -378,7 +379,7 @@ def contact_select(packageid=None):
                 if val == 'Back':
                     new_page = 'keywords'
                 elif val == 'Next':
-                    new_page = 'contact_select'
+                    new_page = 'title'
                 elif val == 'Edit':
                     new_page = 'contact'
                     node_id = key
@@ -439,7 +440,6 @@ def contact(packageid=None, node_id=None):
             online_url = form.online_url.data
 
             contact_node = Node(names.CONTACT, parent=dataset_node)
-            add_child(dataset_node, contact_node)
 
             create_responsible_party(
                 dataset_node,
@@ -461,6 +461,16 @@ def contact(packageid=None, node_id=None):
                 email,
                 online_url)
 
+            if node_id and len(node_id) != 1:
+                old_contact_node = Node.get_node_instance(node_id)
+                if old_contact_node:
+                    dataset_parent_node = old_contact_node.parent
+                    dataset_parent_node.replace_child(old_contact_node, contact_node)
+                else:
+                    raise Exception(f"No node found in the node store with node id {node_id}")
+            else:
+                add_child(dataset_node, contact_node)
+
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
         new_page = 'contact_select'
@@ -471,17 +481,16 @@ def contact(packageid=None, node_id=None):
         pass
     else:
         eml_node = load_eml(packageid=packageid)
-    
-        contact_nodes = eml_node.find_all_children(child_name=names.CONTACT)
-        if contact_nodes:
-            for contact_node in contact_nodes:
-                if node_id == contact_node.id:
-                    populate_responsible_party_form(form, contact_node)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            contact_nodes = dataset_node.find_all_children(child_name=names.CONTACT)
+            if contact_nodes:
+                for contact_node in contact_nodes:
+                    if node_id == contact_node.id:
+                        populate_responsible_party_form(form, contact_node)
     
     return render_template('responsible_party.html', title='Contact',
                 rp_capitalized='Contact', rp_lower='contact',form=form)
-
-
 
 
 @home.route('/minimal', methods=['GET', 'POST'])

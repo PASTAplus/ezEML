@@ -11,6 +11,7 @@
 :Created:
     7/27/18
 """
+import collections
 import daiquiri
 import json
 import os.path
@@ -22,14 +23,24 @@ from metapype.model import io
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 
-def add_rps_to_dict(eml_node:Node=None, node_name:str=None, rp_dict:dict=None):
+def list_responsible_parties(eml_node:Node=None, node_name:str=None):
+    rp_list = []
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             rp_nodes = dataset_node.find_all_children(node_name)
+
             for rp_node in rp_nodes:
-                rp_label = compose_rp_label(rp_node)
-                rp_dict[rp_label] = rp_node.id
+                RP_Entry = collections.namedtuple('RP_Entry', ["id", "label", "value"], verbose=False, rename=False)
+                label = compose_rp_label(rp_node)
+                id = rp_node.id
+                value = 'Edit'
+                rp_entry = RP_Entry(id=id, label=label, value=value)
+                rp_list.append(rp_entry)
+
+            add_new_entry = RP_Entry(id='1', label='', value='Add')
+            rp_list.append(add_new_entry)
+    return rp_list
 
 
 def add_child(parent_node:Node, child_node:Node):

@@ -26,7 +26,7 @@ from webapp.home.forms import CreateEMLForm, TitleForm, \
 from metapype.eml2_1_1 import export
 from metapype.eml2_1_1 import names
 from metapype.model.node import Node
-from webapp.home.metapype_client import load_eml, add_rps_to_dict, \
+from webapp.home.metapype_client import load_eml, list_responsible_parties, \
                               save_both_formats, validate_tree, \
                               add_child
 
@@ -120,13 +120,10 @@ def creator_select(packageid=None):
         return redirect(url_for(f'home.{new_page}', packageid=packageid, node_id=node_id))
     # Process GET
     eml_node = load_eml(packageid=packageid)
-
-    rp_dict = {}
-    add_rps_to_dict(eml_node, names.CREATOR, rp_dict)
-    rp_dict['[Add New]'] = '1'
+    rp_list = list_responsible_parties(eml_node, names.CREATOR)
 
     return render_template('responsible_party_select.html', title='Creator',
-                rp_capitalized='Creator', rp_lower='creator', rp_dict=rp_dict, form=form)
+                rp_capitalized='Creator', rp_list=rp_list, form=form)
 
 
 @home.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -217,7 +214,7 @@ def creator(packageid=None, node_id=None):
                         populate_responsible_party_form(form, creator_node)
     
     return render_template('responsible_party.html', title='Creator',
-                rp_capitalized='Creator', rp_lower='creator',form=form)
+                           rp_capitalized='Creator', form=form)
 
 
 def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):    
@@ -394,12 +391,11 @@ def contact_select(packageid=None):
     # Process GET
     eml_node = load_eml(packageid=packageid)
 
-    rp_dict = {}
-    add_rps_to_dict(eml_node, names.CONTACT, rp_dict)
-    rp_dict['[Add New]'] = '1'
+    eml_node = load_eml(packageid=packageid)
+    rp_list = list_responsible_parties(eml_node, names.CONTACT)
 
     return render_template('responsible_party_select.html', title='Contact',
-                rp_capitalized='Contact', rp_lower='contact', rp_dict=rp_dict, form=form)
+                rp_capitalized='Contact', rp_list=rp_list, form=form)
 
 
 @home.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -490,7 +486,7 @@ def contact(packageid=None, node_id=None):
                         populate_responsible_party_form(form, contact_node)
     
     return render_template('responsible_party.html', title='Contact',
-                rp_capitalized='Contact', rp_lower='contact',form=form)
+                rp_capitalized='Contact', form=form)
 
 
 @home.route('/minimal', methods=['GET', 'POST'])

@@ -8,9 +8,15 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table class="table table-striped">
-                    <th>{{ rp_capitalized }}</th><th></th>
-                    {% for rp in rp_dict %}
-                           <tr><td>{{ rp }}</td><td><input class="btn btn-primary" name="{{ rp_dict[rp] }}" type="submit" value="Edit"/></td></tr>
+                    <tr>
+                        <th>{{ rp_capitalized }}</th>
+                        <th></th>
+                    </tr>
+                    {% for rp_entry in rp_list %}
+                    <tr>
+                        <td>{{ rp_entry.label }}</td>
+                        <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="{{ rp_entry.value }}"/></td>
+                    </tr>
                     {% endfor %}
                 </table>
                 <br/>

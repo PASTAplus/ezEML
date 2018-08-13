@@ -29,9 +29,8 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             rp_nodes = dataset_node.find_all_children(node_name)
-
+            RP_Entry = collections.namedtuple('RP_Entry', ["id", "label", "value"], verbose=False, rename=False)
             for rp_node in rp_nodes:
-                RP_Entry = collections.namedtuple('RP_Entry', ["id", "label", "value"], verbose=False, rename=False)
                 label = compose_rp_label(rp_node)
                 id = rp_node.id
                 value = 'Edit'

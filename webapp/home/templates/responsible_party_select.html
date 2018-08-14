@@ -11,14 +11,21 @@
                     <tr>
                         <th>{{ title }}</th>
                         <th></th>
+                        <th></th>
                     </tr>
                     {% for rp_entry in rp_list %}
                     <tr>
                         <td>{{ rp_entry.label }}</td>
-                        <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="{{ rp_entry.value }}"/></td>
+                        <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="{{ rp_entry.edit_value }}"/></td>
+                        <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="{{ rp_entry.remove_value }}"/></td>
                     </tr>
                     {% endfor %}
-                </table>
+                    <tr>
+                           <td><input class="btn btn-primary" name="1" type="submit" value="Add {{ title }}"/></td>
+                           <td></td>
+                           <td></td>
+                        </tr>
+                    </table>
                 <br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>

@@ -29,16 +29,12 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             rp_nodes = dataset_node.find_all_children(node_name)
-            RP_Entry = collections.namedtuple('RP_Entry', ["id", "label", "value"], verbose=False, rename=False)
+            RP_Entry = collections.namedtuple('RP_Entry', ["id", "label", "edit_value", "remove_value"], verbose=False, rename=False)
             for rp_node in rp_nodes:
                 label = compose_rp_label(rp_node)
                 id = rp_node.id
-                value = 'Edit'
-                rp_entry = RP_Entry(id=id, label=label, value=value)
+                rp_entry = RP_Entry(id=id, label=label, edit_value='Edit', remove_value='Remove')
                 rp_list.append(rp_entry)
-
-            add_new_entry = RP_Entry(id='1', label='', value='Add')
-            rp_list.append(add_new_entry)
     return rp_list
 
 
@@ -105,6 +101,15 @@ def load_eml(packageid:str=None):
             json_obj = json.load(json_file)
             eml_node = io.from_json(json_obj)
     return eml_node
+
+
+def remove_child(node_id:str=None):
+    if node_id:
+        child_node = Node.get_node_instance(node_id)
+        if child_node:
+            parent_node = child_node.parent
+            if parent_node:
+                parent_node.remove_child(child_node)
 
 
 def store_eml(packageid:str=None, eml_node:Node=None):

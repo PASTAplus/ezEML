@@ -24,7 +24,7 @@ from webapp.home.forms import CreateEMLForm, TitleForm, \
                               ResponsiblePartySelectForm
 from webapp.home.metapype_client import load_eml, list_responsible_parties, \
                               save_both_formats, validate_tree, \
-                              add_child
+                              add_child, remove_child
 from metapype.eml2_1_1 import export
 from metapype.eml2_1_1 import names
 from metapype.model.node import Node
@@ -99,7 +99,7 @@ def creator_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = rp_select_post(packageid, form, form_dict, 
-                             'POST', 'title', 
+                             'POST', 'creator_select', 'title', 
                              'abstract', 'creator')
         return redirect(url)
 
@@ -108,7 +108,7 @@ def creator_select(packageid=None):
 
 
 def rp_select_post(packageid=None, form=None, form_dict=None,
-                   method=None, back_page=None,
+                   method=None, this_page=None, back_page=None, 
                    next_page=None, edit_page=None):
     node_id = ''
     new_page = ''
@@ -122,7 +122,13 @@ def rp_select_post(packageid=None, form=None, form_dict=None,
             elif val == 'Edit':
                 new_page = edit_page
                 node_id = key
-            elif val == 'Add':
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
 
@@ -400,7 +406,7 @@ def contact_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = rp_select_post(packageid, form, form_dict, 
-                             'POST', 'keywords', 
+                             'POST', 'contact_select', 'keywords', 
                              'title', 'contact')
         return redirect(url)
 

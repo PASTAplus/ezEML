@@ -93,37 +93,52 @@ def title(packageid=None):
 
 @home.route('/creator_select/<packageid>', methods=['GET', 'POST'])
 def creator_select(packageid=None):
-    # Determine POST type
+    form = ResponsiblePartySelectForm(packageid=packageid)
+    
+    # Process POST
     if request.method == 'POST':
         form_value = request.form
-        print(form_value)
-        my_dict = form_value.to_dict(flat=False)
-        node_id = ''
-        new_page = ''
-        if my_dict:
-            for key in my_dict:
-                val = my_dict[key][0]  # value is the first list element
-                if val == 'Back':
-                    new_page = 'title'
-                elif val == 'Next':
-                    new_page = 'abstract'
-                elif val == 'Edit':
-                    new_page = 'creator'
-                    node_id = key
-                elif val == 'Add':
-                    new_page = 'creator'
-                    node_id = '1'
-    form = ResponsiblePartySelectForm(packageid=packageid)
+        form_dict = form_value.to_dict(flat=False)
+        url = rp_select_post(packageid, form, form_dict, 
+                             'POST', 'title', 
+                             'abstract', 'creator')
+        return redirect(url)
 
-    # Process POST
+    # Process GET
+    return rp_select_get(packageid=packageid, form=form, rp_name='creator')
+
+
+def rp_select_post(packageid=None, form=None, form_dict=None,
+                   method=None, back_page=None,
+                   next_page=None, edit_page=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Add':
+                new_page = edit_page
+                node_id = '1'
+
     if form.validate_on_submit():   
-        return redirect(url_for(f'home.{new_page}', packageid=packageid, node_id=node_id))
+        return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
+
+
+def rp_select_get(packageid=None, form=None, rp_name=None):
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    rp_list = list_responsible_parties(eml_node, names.CREATOR)
+    rp_list = list_responsible_parties(eml_node, rp_name)
+    title = rp_name.capitalize()
 
-    return render_template('responsible_party_select.html', title='Creator',
-                rp_capitalized='Creator', rp_list=rp_list, form=form)
+    return render_template('responsible_party_select.html', title=title,
+                            rp_list=rp_list, form=form)
 
 
 @home.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -309,7 +324,9 @@ def abstract(packageid=None):
     abstract_node = eml_node.find_child(child_name=names.ABSTRACT)
     if abstract_node:
         form.abstract.data = abstract_node.content
-    return render_template('abstract.html', title='Abstract', packageid=packageid, form=form)
+    return render_template('abstract.html', 
+                           title='Abstract', 
+                           packageid=packageid, form=form)
 
 
 @home.route('/keywords/<packageid>', methods=['GET', 'POST'])
@@ -336,7 +353,9 @@ def keywords(packageid=None):
         user_keyword_type = form.keyword_type.data
 
         if submit_type == 'Add':
-            add_keyword(packageid=packageid, keyword=user_keyword, keyword_type=user_keyword_type)
+            add_keyword(packageid=packageid, 
+                        keyword=user_keyword, 
+                        keyword_type=user_keyword_type)
         elif submit_type == 'Remove':
             remove_keyword(packageid=packageid, keyword=user_keyword)
         elif submit_type == 'Back':
@@ -358,44 +377,27 @@ def keywords(packageid=None):
                 if keyword_type is None:
                     keyword_type = ''
                 keyword_dict[keyword] = keyword_type
-    return render_template('keywords.html', title='Keywords', packageid=packageid, form=form, keyword_dict=keyword_dict)
+    return render_template('keywords.html', 
+                            title='Keywords', 
+                            packageid=packageid, form=form, 
+                            keyword_dict=keyword_dict)
 
 
 @home.route('/contact_select/<packageid>', methods=['GET', 'POST'])
 def contact_select(packageid=None):
-    # Determine POST type
+    form = ResponsiblePartySelectForm(packageid=packageid)
+    
+    # Process POST
     if request.method == 'POST':
         form_value = request.form
-        print(form_value)
-        my_dict = form_value.to_dict(flat=False)
-        node_id = ''
-        new_page = ''
-        if my_dict:
-            for key in my_dict:
-                val = my_dict[key][0]  # value is the first list element
-                if val == 'Back':
-                    new_page = 'keywords'
-                elif val == 'Next':
-                    new_page = 'title'
-                elif val == 'Edit':
-                    new_page = 'contact'
-                    node_id = key
-                elif val == 'Add':
-                    new_page = 'contact'
-                    node_id = '1'
-    form = ResponsiblePartySelectForm(packageid=packageid)
+        form_dict = form_value.to_dict(flat=False)
+        url = rp_select_post(packageid, form, form_dict, 
+                             'POST', 'keywords', 
+                             'title', 'contact')
+        return redirect(url)
 
-    # Process POST
-    if form.validate_on_submit():   
-        return redirect(url_for(f'home.{new_page}', packageid=packageid, node_id=node_id))
     # Process GET
-    eml_node = load_eml(packageid=packageid)
-
-    eml_node = load_eml(packageid=packageid)
-    rp_list = list_responsible_parties(eml_node, names.CONTACT)
-
-    return render_template('responsible_party_select.html', title='Contact',
-                rp_capitalized='Contact', rp_list=rp_list, form=form)
+    return rp_select_get(packageid=packageid, form=form, rp_name='contact')
 
 
 @home.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])

@@ -34,7 +34,13 @@ class TitleForm(FlaskForm):
 
 class KeywordsForm(FlaskForm):
     keyword = StringField('Keyword', validators=[])
-    keyword_type = SelectField('Keyword Type (Optional)', choices=[("", ""), ("place", "place"), ("stratum", "stratum"), ("taxonomic", "taxonomic"), ("temporal", "temporal"), ("theme", "theme")])
+    keyword_type = SelectField('Keyword Type (Optional)', 
+                               choices=[("", ""), 
+                                        ("place", "place"), 
+                                        ("stratum", "stratum"), 
+                                        ("taxonomic", "taxonomic"), 
+                                        ("temporal", "temporal"), 
+                                        ("theme", "theme")])
 
 
 class ResponsiblePartySelectForm(FlaskForm):

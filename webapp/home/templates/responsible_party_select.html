@@ -2,14 +2,14 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>{{ rp_capitalized }}s</h1>
+    <h1>{{ title }}s</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th>{{ rp_capitalized }}</th>
+                        <th>{{ title }}</th>
                         <th></th>
                     </tr>
                     {% for rp_entry in rp_list %}

@@ -15,21 +15,19 @@
 import daiquiri
 import json
 
-
 from flask import Blueprint, flash, render_template, \
                   redirect, request, url_for
+
 from webapp.home.forms import CreateEMLForm, TitleForm, \
                               ResponsiblePartyForm, AbstractForm, \
                               KeywordsForm, MinimalEMLForm, \
                               ResponsiblePartySelectForm
-
-from metapype.eml2_1_1 import export
-from metapype.eml2_1_1 import names
-from metapype.model.node import Node
 from webapp.home.metapype_client import load_eml, list_responsible_parties, \
                               save_both_formats, validate_tree, \
                               add_child
-
+from metapype.eml2_1_1 import export
+from metapype.eml2_1_1 import names
+from metapype.model.node import Node
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -64,7 +62,8 @@ def create():
         new_page = 'title' if (submit_type == 'Next') else 'create'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
-    return render_template('create_eml.html', title='Create New EML', form=form)
+    return render_template('create_eml.html', title='Create New EML', 
+                           form=form)
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])
@@ -128,7 +127,8 @@ def rp_select_post(packageid=None, form=None, form_dict=None,
                 node_id = '1'
 
     if form.validate_on_submit():   
-        return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
+        return url_for(f'home.{new_page}', packageid=packageid, 
+                       node_id=node_id)
 
 
 def rp_select_get(packageid=None, form=None, rp_name=None):
@@ -143,6 +143,14 @@ def rp_select_get(packageid=None, form=None, rp_name=None):
 
 @home.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
 def creator(packageid=None, node_id=None):
+    method = request.method
+    return responsible_party(packageid=packageid, node_id=node_id, 
+                             method=method, node_name=names.CREATOR, 
+                             new_page='creator_select', title='Creator')
+
+
+def responsible_party(packageid=None, node_id=None, method=None, 
+                      node_name=None, new_page=None, title=None):
     # Determine POST type
     if request.method == 'POST':
         if 'Save Changes' in request.form:
@@ -178,11 +186,11 @@ def creator(packageid=None, node_id=None):
             email = form.email.data
             online_url = form.online_url.data
 
-            creator_node = Node(names.CREATOR, parent=dataset_node)
+            rp_node = Node(node_name, parent=dataset_node)
 
             create_responsible_party(
                 dataset_node,
-                creator_node,
+                rp_node,
                 packageid,   
                 salutation,
                 gn,
@@ -201,18 +209,18 @@ def creator(packageid=None, node_id=None):
                 online_url)
 
             if node_id and len(node_id) != 1:
-                old_creator_node = Node.get_node_instance(node_id)
-                if old_creator_node:
-                    dataset_parent_node = old_creator_node.parent
-                    dataset_parent_node.replace_child(old_creator_node, creator_node)
+                old_rp_node = Node.get_node_instance(node_id)
+                if old_rp_node:
+                    dataset_parent_node = old_rp_node.parent
+                    dataset_parent_node.replace_child(old_rp_node, rp_node)
                 else:
-                    raise Exception(f"No node found in the node store with node id {node_id}")
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
             else:
-                add_child(dataset_node, creator_node)
+                add_child(dataset_node, rp_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        new_page = 'creator_select'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
     # Process GET
@@ -222,14 +230,13 @@ def creator(packageid=None, node_id=None):
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            creator_nodes = dataset_node.find_all_children(child_name=names.CREATOR)
-            if creator_nodes:
-                for creator_node in creator_nodes:
-                    if node_id == creator_node.id:
-                        populate_responsible_party_form(form, creator_node)
+            rp_nodes = dataset_node.find_all_children(child_name=node_name)
+            if rp_nodes:
+                for rp_node in rp_nodes:
+                    if node_id == rp_node.id:
+                        populate_responsible_party_form(form, rp_node)
     
-    return render_template('responsible_party.html', title='Creator',
-                           rp_capitalized='Creator', form=form)
+    return render_template('responsible_party.html', title=title, form=form)
 
 
 def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):    
@@ -370,7 +377,8 @@ def keywords(packageid=None):
     keywordset_node = eml_node.find_child(child_name=names.KEYWORDSET)
     keyword_dict = {}
     if keywordset_node:
-        for keyword_node in keywordset_node.find_all_children(child_name=names.KEYWORD):
+        for keyword_node in \
+                keywordset_node.find_all_children(child_name=names.KEYWORD):
             keyword = keyword_node.content
             if keyword:
                 keyword_type = keyword_node.attribute_value('keywordType')
@@ -402,93 +410,10 @@ def contact_select(packageid=None):
 
 @home.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])
 def contact(packageid=None, node_id=None):
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-        else:
-            submit_type = None
-    form = ResponsiblePartyForm(packageid=packageid)
-
-    # Process POST
-    if form.validate_on_submit():
-        if submit_type == 'Save Changes':
-            eml_node = load_eml(packageid=packageid)
-
-            dataset_node = eml_node.find_child(names.DATASET)
-            if not dataset_node:
-                dataset_node = Node(names.DATASET)
-
-            salutation = form.salutation.data
-            gn = form.gn.data
-            sn = form.sn.data
-            organization = form.organization.data
-            position_name = form.position_name.data
-            address_1 = form.address_1.data
-            address_2 = form.address_2.data
-            city = form.city.data
-            state = form.state.data
-            postal_code = form.postal_code.data
-            country = form.country.data
-            phone = form.phone.data
-            fax = form.fax.data
-            email = form.email.data
-            online_url = form.online_url.data
-
-            contact_node = Node(names.CONTACT, parent=dataset_node)
-
-            create_responsible_party(
-                dataset_node,
-                contact_node,
-                packageid,   
-                salutation,
-                gn,
-                sn,
-                organization,
-                position_name,
-                address_1,
-                address_2,
-                city,
-                state,
-                postal_code,
-                country,
-                phone,
-                fax,
-                email,
-                online_url)
-
-            if node_id and len(node_id) != 1:
-                old_contact_node = Node.get_node_instance(node_id)
-                if old_contact_node:
-                    dataset_parent_node = old_contact_node.parent
-                    dataset_parent_node.replace_child(old_contact_node, contact_node)
-                else:
-                    raise Exception(f"No node found in the node store with node id {node_id}")
-            else:
-                add_child(dataset_node, contact_node)
-
-            save_both_formats(packageid=packageid, eml_node=eml_node)
-
-        new_page = 'contact_select'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
-
-    # Process GET
-    if node_id == '1':
-        pass
-    else:
-        eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            contact_nodes = dataset_node.find_all_children(child_name=names.CONTACT)
-            if contact_nodes:
-                for contact_node in contact_nodes:
-                    if node_id == contact_node.id:
-                        populate_responsible_party_form(form, contact_node)
-    
-    return render_template('responsible_party.html', title='Contact',
-                rp_capitalized='Contact', form=form)
+    method = request.method
+    return responsible_party(packageid=packageid, node_id=node_id, 
+                             method=method, node_name=names.CONTACT, 
+                             new_page='contact_select', title='Contact')
 
 
 @home.route('/minimal', methods=['GET', 'POST'])
@@ -615,7 +540,8 @@ def remove_keyword(packageid:str=None, keyword:str=None):
         eml_node = load_eml(packageid=packageid)
         keywordset_node = eml_node.find_child(names.KEYWORDSET)
         if keywordset_node:
-            current_keywords = keywordset_node.find_all_children(child_name=names.KEYWORD)
+            current_keywords = \
+                keywordset_node.find_all_children(child_name=names.KEYWORD)
             for keyword_node in current_keywords:
                 if keyword_node.content == keyword:
                     keywordset_node.remove_child(keyword_node)
@@ -771,7 +697,8 @@ def create_responsible_party(
         logger.error(e)
 
 
-def validate_minimal(packageid=None, title=None, contact_gn=None, contact_sn=None, creator_gn=None, creator_sn=None):
+def validate_minimal(packageid=None, title=None, contact_gn=None, 
+                     contact_sn=None, creator_gn=None, creator_sn=None):
     eml = Node(names.EML)
 
     eml.add_attribute('packageId', packageid)

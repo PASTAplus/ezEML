@@ -43,6 +43,10 @@ class KeywordsForm(FlaskForm):
                                         ("theme", "theme")])
 
 
+class PubDateForm(FlaskForm):
+    pubdate = StringField('Publication Date', validators=[])
+
+
 class ResponsiblePartySelectForm(FlaskForm):
     pass
 

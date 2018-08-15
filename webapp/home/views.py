@@ -21,7 +21,8 @@ from flask import Blueprint, flash, render_template, \
 from webapp.home.forms import CreateEMLForm, TitleForm, \
                               ResponsiblePartyForm, AbstractForm, \
                               KeywordsForm, MinimalEMLForm, \
-                              ResponsiblePartySelectForm
+                              ResponsiblePartySelectForm, \
+                              PubDateForm
 from webapp.home.metapype_client import load_eml, list_responsible_parties, \
                               save_both_formats, validate_tree, \
                               add_child, remove_child
@@ -100,7 +101,7 @@ def creator_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = rp_select_post(packageid, form, form_dict, 
                              'POST', 'creator_select', 'title', 
-                             'abstract', 'creator')
+                             'pubdate', 'creator')
         return redirect(url)
 
     # Process GET
@@ -315,6 +316,33 @@ def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):
         form.online_url.data = online_url_node.content
 
 
+@home.route('/pubdate/<packageid>', methods=['GET', 'POST'])
+def pubdate(packageid=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Back' in request.form:
+            submit_type = 'Back'
+        elif 'Next' in request.form:
+            submit_type = 'Next'
+        else:
+            submit_type = None
+    # Process POST
+    form = PubDateForm(packageid=packageid)
+    if form.validate_on_submit():
+        pubdate = form.pubdate.data
+        create_pubdate(packageid=packageid, pubdate=pubdate)
+        new_page = 'creator_select' if (submit_type == 'Back') else 'abstract'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    pubdate_node = eml_node.find_child(child_name=names.PUBDATE)
+    if pubdate_node:
+        form.pubdate.data = pubdate_node.content
+    return render_template('pubdate.html', 
+                           title='Publication Date', 
+                           packageid=packageid, form=form)
+
+
 @home.route('/abstract/<packageid>', methods=['GET', 'POST'])
 def abstract(packageid=None):
     # Determine POST type
@@ -330,7 +358,7 @@ def abstract(packageid=None):
     if form.validate_on_submit():
         abstract = form.abstract.data
         create_abstract(packageid=packageid, abstract=abstract)
-        new_page = 'creator_select' if (submit_type == 'Back') else 'keywords'
+        new_page = 'pubdate' if (submit_type == 'Back') else 'keywords'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)
@@ -474,6 +502,29 @@ def create_title(title=None, packageid=None):
         add_child(dataset_node, title_node)
 
     title_node.content = title
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+
+def create_pubdate(pubdate=None, packageid=None):
+    eml_node = load_eml(packageid=packageid)
+
+    dataset_node = eml_node.find_child(names.DATASET)
+    if dataset_node:
+        pubdate_node = dataset_node.find_child(names.PUBDATE)
+        if not pubdate_node:
+            pubdate_node = Node(names.PUBDATE, parent=dataset_node)
+            add_child(dataset_node, pubdate_node)
+    else:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        add_child(eml_node, dataset_node)
+        pubdate_node = Node(names.PUBDATE, parent=dataset_node)
+        add_child(dataset_node, pubdate_node)
+
+    pubdate_node.content = pubdate
 
     try:
         save_both_formats(packageid=packageid, eml_node=eml_node)

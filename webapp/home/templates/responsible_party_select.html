@@ -2,14 +2,14 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>{{ title }}s</h1>
+    <h1>{{ rp_plural }}</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th>{{ title }}</th>
+                        <th>{{ rp_singular }}</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -21,7 +21,7 @@
                     </tr>
                     {% endfor %}
                     <tr>
-                           <td><input class="btn btn-primary" name="1" type="submit" value="Add {{ title }}"/></td>
+                           <td><input class="btn btn-primary" name="1" type="submit" value="Add {{ rp_singular }}"/></td>
                            <td></td>
                            <td></td>
                         </tr>

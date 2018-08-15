@@ -101,11 +101,12 @@ def creator_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = rp_select_post(packageid, form, form_dict, 
                              'POST', 'creator_select', 'title', 
-                             'pubdate', 'creator')
+                             'metadata_provider_select', 'creator')
         return redirect(url)
 
     # Process GET
-    return rp_select_get(packageid=packageid, form=form, rp_name='creator')
+    return rp_select_get(packageid=packageid, form=form, rp_name=names.CREATOR, 
+                         rp_singular='Creator', rp_plural='Creators')
 
 
 def rp_select_post(packageid=None, form=None, form_dict=None,
@@ -138,14 +139,16 @@ def rp_select_post(packageid=None, form=None, form_dict=None,
                        node_id=node_id)
 
 
-def rp_select_get(packageid=None, form=None, rp_name=None):
+def rp_select_get(packageid=None, form=None, rp_name=None, 
+                  rp_singular=None, rp_plural=None):
     # Process GET
     eml_node = load_eml(packageid=packageid)
     rp_list = list_responsible_parties(eml_node, rp_name)
     title = rp_name.capitalize()
 
     return render_template('responsible_party_select.html', title=title,
-                            rp_list=rp_list, form=form)
+                            rp_list=rp_list, form=form, 
+                            rp_singular=rp_singular, rp_plural=rp_plural)
 
 
 @home.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -244,6 +247,68 @@ def responsible_party(packageid=None, node_id=None, method=None,
                         populate_responsible_party_form(form, rp_node)
     
     return render_template('responsible_party.html', title=title, form=form)
+
+
+
+@home.route('/metadata_provider_select/<packageid>', methods=['GET', 'POST'])
+def metadata_provider_select(packageid=None):
+    form = ResponsiblePartySelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = rp_select_post(packageid, form, form_dict, 
+                             'POST', 'metadata_provider_select', 
+                             'creator_select', 
+                             'associated_party_select', 
+                             'metadata_provider')
+        return redirect(url)
+
+    # Process GET
+    return rp_select_get(packageid=packageid, form=form, 
+                         rp_name=names.METADATAPROVIDER,
+                         rp_singular='Metadata Provider', 
+                         rp_plural='Metadata Providers')
+
+
+@home.route('/metadata_provider/<packageid>/<node_id>', methods=['GET', 'POST'])
+def metadata_provider(packageid=None, node_id=None):
+    method = request.method
+    return responsible_party(packageid=packageid, node_id=node_id, 
+                             method=method, node_name=names.METADATAPROVIDER, 
+                             new_page='metadata_provider_select', 
+                             title='Metadata Provider')
+
+
+@home.route('/associated_party_select/<packageid>', methods=['GET', 'POST'])
+def associated_party_select(packageid=None):
+    form = ResponsiblePartySelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = rp_select_post(packageid, form, form_dict, 
+                             'POST', 'associated_party_select', 
+                             'metadata_provider_select', 
+                             'pubdate', 'associated_party')
+        return redirect(url)
+
+    # Process GET
+    return rp_select_get(packageid=packageid, form=form, 
+                         rp_name=names.ASSOCIATEDPARTY,
+                         rp_singular='Associated Party', 
+                         rp_plural='Associated Parties')
+
+
+@home.route('/associated_party/<packageid>/<node_id>', methods=['GET', 'POST'])
+def associated_party(packageid=None, node_id=None):
+    method = request.method
+    return responsible_party(packageid=packageid, node_id=node_id, 
+                             method=method, node_name=names.ASSOCIATEDPARTY, 
+                             new_page='associated_party_select', 
+                             title='Associated Party')
 
 
 def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):    
@@ -439,7 +504,8 @@ def contact_select(packageid=None):
         return redirect(url)
 
     # Process GET
-    return rp_select_get(packageid=packageid, form=form, rp_name='contact')
+    return rp_select_get(packageid=packageid, form=form, rp_name='contact',
+                         rp_singular='Contact', rp_plural='Contacts')
 
 
 @home.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])

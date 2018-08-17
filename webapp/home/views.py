@@ -15,17 +15,24 @@
 import daiquiri
 import json
 
-from flask import Blueprint, flash, render_template, \
-                  redirect, request, url_for
+from flask import (
+    Blueprint, flash, render_template, redirect, request, url_for
+)
 
-from webapp.home.forms import CreateEMLForm, TitleForm, \
-                              ResponsiblePartyForm, AbstractForm, \
-                              KeywordsForm, MinimalEMLForm, \
-                              ResponsiblePartySelectForm, \
-                              PubDateForm
-from webapp.home.metapype_client import load_eml, list_responsible_parties, \
-                              save_both_formats, validate_tree, \
-                              add_child, remove_child
+from webapp.home.forms import ( 
+    CreateEMLForm, TitleForm, ResponsiblePartyForm, AbstractForm, 
+    KeywordsForm, MinimalEMLForm, ResponsiblePartySelectForm, PubDateForm,
+    GeographicCoverageSelectForm, GeographicCoverageForm
+)
+
+from webapp.home.metapype_client import ( 
+    load_eml, list_responsible_parties, save_both_formats, validate_tree,
+    add_child, remove_child, create_eml, create_title, create_pubdate,
+    create_abstract, add_keyword, remove_keyword, create_keywords,
+    create_responsible_party, validate_minimal, list_geographic_coverages,
+    create_geographic_coverage
+)
+
 from metapype.eml2_1_1 import export
 from metapype.eml2_1_1 import names
 from metapype.model.node import Node
@@ -467,7 +474,7 @@ def keywords(packageid=None):
         elif submit_type == 'Back':
             new_page = 'abstract'
         elif submit_type == 'Next':
-            new_page = 'contact_select'
+            new_page = 'geographic_coverage_select'
 
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
@@ -490,6 +497,156 @@ def keywords(packageid=None):
                             keyword_dict=keyword_dict)
 
 
+@home.route('/geographic_coverage_select/<packageid>', methods=['GET', 'POST'])
+def geographic_coverage_select(packageid=None):
+    form = GeographicCoverageSelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = geographic_coverage_select_post(packageid, form, form_dict, 
+                             'POST', 'geographic_coverage_select',
+                             'associated_party_select',
+                             'contact_select', 'geographic_coverage')
+        return redirect(url)
+
+    # Process GET
+    return geographic_coverage_select_get(packageid=packageid, form=form, rp_name='contact',
+                         rp_singular='Contact', rp_plural='Contacts')
+
+
+def geographic_coverage_select_post(packageid=None, form=None, form_dict=None,
+                   method=None, this_page=None, back_page=None, 
+                   next_page=None, edit_page=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+
+    if form.validate_on_submit():   
+        return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
+
+
+def geographic_coverage_select_get(packageid=None, form=None, rp_name=None, 
+                  rp_singular=None, rp_plural=None):
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    gc_list = list_geographic_coverages(eml_node)
+    title = "Geographic Coverage"
+
+    return render_template('geographic_coverage_select.html', title=title,
+                            gc_list=gc_list, form=form)
+
+
+@home.route('/geographic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
+def geographic_coverage(packageid=None, node_id=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+        else:
+            submit_type = None
+    form = GeographicCoverageForm(packageid=packageid)
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if not coverage_node:
+                coverage_node = Node(names.COVERAGE, parent=dataset_node)
+                dataset_node.add_child(coverage_node)
+
+            geographic_description = form.geographic_description.data
+            wbc = form.wbc.data
+            ebc = form.ebc.data
+            nbc = form.nbc.data
+            sbc = form.sbc.data
+
+            gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
+
+            create_geographic_coverage(
+                gc_node,
+                geographic_description,
+                wbc, ebc, nbc, sbc)
+
+            if node_id and len(node_id) != 1:
+                old_gc_node = Node.get_node_instance(node_id)
+                if old_gc_node:
+                    coverage_parent_node = old_gc_node.parent
+                    coverage_parent_node.replace_child(old_gc_node, gc_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(coverage_node, gc_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        return redirect(url_for('home.geographic_coverage_select', packageid=packageid))
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if coverage_node:
+                gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
+                if gc_nodes:
+                    for gc_node in gc_nodes:
+                        if node_id == gc_node.id:
+                            populate_geographic_coverage_form(form, gc_node)
+    
+    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form)
+
+
+def populate_geographic_coverage_form(form:GeographicCoverageForm, node:Node):    
+    geographic_description_node = node.find_child(names.GEOGRAPHICDESCRIPTION)
+    if geographic_description_node:
+        form.geographic_description.data = geographic_description_node.content
+    
+    wbc_node = node.find_child(names.WESTBOUNDINGCOORDINATE)
+    if wbc_node:
+        form.wbc.data = wbc_node.content
+    ebc_node = node.find_child(names.EASTBOUNDINGCOORDINATE)
+    if ebc_node:
+        form.ebc.data = ebc_node.content
+    nbc_node = node.find_child(names.NORTHBOUNDINGCOORDINATE)
+    if nbc_node:
+        form.nbc.data = nbc_node.content
+    sbc_node = node.find_child(names.SOUTHBOUNDINGCOORDINATE)
+    if sbc_node:
+        form.sbc.data = sbc_node.content
+    
+
 @home.route('/contact_select/<packageid>', methods=['GET', 'POST'])
 def contact_select(packageid=None):
     form = ResponsiblePartySelectForm(packageid=packageid)
@@ -499,7 +656,7 @@ def contact_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = rp_select_post(packageid, form, form_dict, 
-                             'POST', 'contact_select', 'keywords', 
+                             'POST', 'contact_select', 'geographic_coverage_select', 
                              'title', 'contact')
         return redirect(url)
 
@@ -521,350 +678,13 @@ def minimal():
     # Process POST
     form = MinimalEMLForm()
     if form.validate_on_submit():
-        validate_minimal(packageid=form.packageid.data,
+        msg = validate_minimal(packageid=form.packageid.data,
                          title=form.title.data, 
                          creator_gn=form.creator_gn.data, 
                          creator_sn=form.creator_sn.data,
                          contact_gn=form.contact_gn.data, 
                          contact_sn=form.contact_sn.data)
+        if msg:
+            flash(msg)
     # Process GET
     return render_template('minimal_eml.html', title='Minimal EML', form=form)
-
-
-def append_if_non_empty(some_list: list, value: str):
-    if value:
-        some_list.append(value)
-
-
-def create_eml(packageid=None):
-    eml_node = load_eml(packageid=packageid)
-
-    if not eml_node:
-        eml_node = Node(names.EML)
-        eml_node.add_attribute('packageId', packageid)
-        eml_node.add_attribute('system', 'https://pasta.edirepository.org')
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-
-        try:
-            save_both_formats(packageid=packageid, eml_node=eml_node)
-        except Exception as e:
-            logger.error(e)
-
-
-def create_title(title=None, packageid=None):
-    eml_node = load_eml(packageid=packageid)
-
-    dataset_node = eml_node.find_child('dataset')
-    if dataset_node:
-        title_node = dataset_node.find_child('title')
-        if not title_node:
-            title_node = Node(names.TITLE, parent=dataset_node)
-            add_child(dataset_node, title_node)
-    else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        title_node = Node(names.TITLE, parent=dataset_node)
-        add_child(dataset_node, title_node)
-
-    title_node.content = title
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
-
-
-def create_pubdate(pubdate=None, packageid=None):
-    eml_node = load_eml(packageid=packageid)
-
-    dataset_node = eml_node.find_child(names.DATASET)
-    if dataset_node:
-        pubdate_node = dataset_node.find_child(names.PUBDATE)
-        if not pubdate_node:
-            pubdate_node = Node(names.PUBDATE, parent=dataset_node)
-            add_child(dataset_node, pubdate_node)
-    else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        pubdate_node = Node(names.PUBDATE, parent=dataset_node)
-        add_child(dataset_node, pubdate_node)
-
-    pubdate_node.content = pubdate
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
-
-
-def create_abstract(packageid=None, abstract=None):
-    eml_node = load_eml(packageid=packageid)
-
-    dataset_node = eml_node.find_child(names.DATASET)
-    if dataset_node:
-        abstract_node = dataset_node.find_child(names.ABSTRACT)
-        if not abstract_node:
-            abstract_node = Node(names.ABSTRACT, parent=dataset_node)
-            add_child(dataset_node, abstract_node)
-    else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        abstract_node = Node(names.ABSTRACT, parent=dataset_node)
-        add_child(dataset_node, abstract_node)
-
-    abstract_node.content = abstract
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
-
-
-def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
-    if keyword:
-        eml_node = load_eml(packageid=packageid)
-
-        dataset_node = eml_node.find_child(names.DATASET)
-        if not dataset_node:
-            dataset_node = Node(names.DATASET, parent=eml_node)
-            add_child(eml_node, dataset_node)
-
-        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
-        if not keywordset_node:
-            keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
-            add_child(dataset_node, keywordset_node)
-
-        keyword_node = None
-        
-        # Does a matching keyword node already exist?
-        keyword_nodes = keywordset_node.find_all_children(names.KEYWORD)
-        for child_node in keyword_nodes:
-            if child_node.content == keyword:
-                keyword_node = child_node
-                break
-        
-        if not keyword_node:
-            keyword_node = Node(names.KEYWORD, parent=keywordset_node)
-            keyword_node.content = keyword
-            add_child(keywordset_node, keyword_node)
-        
-        if keyword_type:
-            keyword_node.add_attribute(name='keywordType', value=keyword_type)
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
-
-
-def remove_keyword(packageid:str=None, keyword:str=None):
-    if keyword:
-        eml_node = load_eml(packageid=packageid)
-        keywordset_node = eml_node.find_child(names.KEYWORDSET)
-        if keywordset_node:
-            current_keywords = \
-                keywordset_node.find_all_children(child_name=names.KEYWORD)
-            for keyword_node in current_keywords:
-                if keyword_node.content == keyword:
-                    keywordset_node.remove_child(keyword_node)
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
-
-
-def create_keywords(packageid:str=None, keywords_list:list=[]):
-    eml_node = load_eml(packageid=packageid)
-
-    dataset_node = eml_node.find_child(names.DATASET)
-    if dataset_node:
-        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
-        if keywordset_node:
-            # Get rid of the old keyword set if it exists
-            dataset_node.remove_child(keywordset_node)
-    else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-    
-    if keywords_list:
-        keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
-        add_child(dataset_node, keywordset_node)
-        for keyword in keywords_list:
-            keyword_node = Node(names.KEYWORD, parent=keywordset_node)
-            keyword_node.content = keyword
-            add_child(keywordset_node, keyword_node)
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
-
-
-def create_responsible_party(
-                   parent_node:Node=None,
-                   responsible_party_node:Node=None,
-                   packageid:str=None, 
-                   salutation:str=None,
-                   gn:str=None,
-                   sn:str=None,
-                   organization:str=None,
-                   position_name:str=None,
-                   address_1:str=None,
-                   address_2:str=None,
-                   city:str=None,
-                   state:str=None,
-                   postal_code:str=None,
-                   country:str=None,
-                   phone:str=None,
-                   fax:str=None,
-                   email:str=None,
-                   online_url:str=None):
-    try:
-        node_name = responsible_party_node.name
-
-        if parent_node:
-            old_responsible_party_node = parent_node.find_child(node_name)
-            if old_responsible_party_node:
-                pass
-                # Get rid of the old node if it exists
-                #dataset_node.remove_child(old_responsible_party_node)
-
-        if salutation or gn or sn:
-            individual_name_node = Node(names.INDIVIDUALNAME)
-            if salutation:
-                salutation_node = Node(names.SALUTATION)
-                salutation_node.content = salutation
-                add_child(individual_name_node, salutation_node)
-            if gn:
-                given_name_node = Node(names.GIVENNAME)
-                given_name_node.content = gn
-                add_child(individual_name_node, given_name_node)
-            if sn:
-                surname_node = Node(names.SURNAME)
-                surname_node.content = sn
-                add_child(individual_name_node, surname_node)
-            add_child(responsible_party_node, individual_name_node)
-
-        if organization:
-            organization_name_node = Node(names.ORGANIZATIONNAME)
-            organization_name_node.content = organization
-            add_child(responsible_party_node, organization_name_node)
-
-        if position_name:
-            position_name_node = Node(names.POSITIONNAME)
-            position_name_node.content = position_name
-            add_child(responsible_party_node, position_name_node)
-
-        if address_1 or address_2 or city or state or postal_code or country:
-            address_node = Node(names.ADDRESS)
-
-            if address_1:
-                delivery_point_node_1 = Node(names.DELIVERYPOINT)
-                delivery_point_node_1.content = address_1
-                add_child(address_node, delivery_point_node_1)
-
-            if address_2:
-                delivery_point_node_2 = Node(names.DELIVERYPOINT)
-                delivery_point_node_2.content = address_2
-                add_child(address_node, delivery_point_node_2)
-
-            if city:
-                city_node = Node(names.CITY)
-                city_node.content = city
-                add_child(address_node, city_node)
-
-            if state:
-                administrative_area_node = Node(names.ADMINISTRATIVEAREA)
-                administrative_area_node.content = state
-                add_child(address_node, administrative_area_node)
-
-            if postal_code:
-                postal_code_node = Node(names.POSTALCODE)
-                postal_code_node.content = postal_code
-                add_child(address_node, postal_code_node)
-
-            if country:
-                country_node = Node(names.COUNTRY)
-                country_node.content = country
-                add_child(address_node,country_node)
-
-            add_child(responsible_party_node, address_node)
-
-        if phone:
-            phone_node = Node(names.PHONE)
-            phone_node.content = phone
-            phone_node.add_attribute('phonetype', 'voice')
-            add_child(responsible_party_node, phone_node)
-
-        if fax:
-            fax_node = Node(names.PHONE)
-            fax_node.content = fax
-            fax_node.add_attribute('phonetype', 'facsimile')
-            add_child(responsible_party_node, fax_node)
-
-        if email:
-            email_node = Node(names.ELECTRONICMAILADDRESS)
-            email_node.content = email
-            add_child(responsible_party_node, email_node)
-
-        if online_url:
-            online_url_node = Node(names.ONLINEURL)
-            online_url_node.content = online_url
-            add_child(responsible_party_node, online_url_node)
-             
-        return responsible_party_node
-
-    except Exception as e:
-        logger.error(e)
-
-
-def validate_minimal(packageid=None, title=None, contact_gn=None, 
-                     contact_sn=None, creator_gn=None, creator_sn=None):
-    eml = Node(names.EML)
-
-    eml.add_attribute('packageId', packageid)
-    eml.add_attribute('system', 'https://pasta.edirepository.org')
-
-    dataset = Node(names.DATASET, parent=eml)
-    add_child(eml, dataset)
-
-    title_node = Node(names.TITLE)
-    title_node.content = title
-    add_child(dataset, title_node)
-    
-    creator_node = Node(names.CREATOR, parent=dataset)
-    add_child(dataset, creator_node)
-
-    individualName_creator = Node(names.INDIVIDUALNAME, parent=creator_node)
-    add_child(creator_node, individualName_creator)
-
-    givenName_creator = Node(names.GIVENNAME, parent=individualName_creator)
-    givenName_creator.content = creator_gn
-    add_child(individualName_creator, givenName_creator)
-
-    surName_creator = Node(names.SURNAME, parent=individualName_creator)
-    surName_creator.content = creator_sn
-    add_child(individualName_creator, surName_creator)
-
-    contact_node = Node(names.CONTACT, parent=dataset)
-    add_child(dataset, contact_node)
-
-    individualName_contact = Node(names.INDIVIDUALNAME, parent=contact_node)
-    add_child(contact_node, individualName_contact)
-
-    givenName_contact = Node(names.GIVENNAME, parent=individualName_contact)
-    givenName_contact.content = contact_gn
-    add_child(individualName_contact, givenName_contact)
-
-    surName_contact = Node(names.SURNAME, parent=individualName_contact)
-    surName_contact.content = contact_sn
-    add_child(individualName_contact, surName_contact)
-
-    xml_str =  export.to_xml(eml)
-    print(xml_str)
-
-    if eml:
-        msg = validate_tree(eml)
-        flash(msg)

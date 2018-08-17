@@ -14,8 +14,12 @@
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
-    SelectField
+
+from wtforms import (
+    StringField, PasswordField, BooleanField, SubmitField, SelectField,
+    FloatField
+)
+
 from wtforms.validators import DataRequired, Email, URL
 from wtforms.widgets import TextArea
 
@@ -28,8 +32,16 @@ class CreateEMLForm(FlaskForm):
     packageid = StringField('Package ID', validators=[DataRequired()])
 
 
-class TitleForm(FlaskForm):
-    title = StringField('Title', validators=[])
+class GeographicCoverageSelectForm(FlaskForm):
+    pass
+
+
+class GeographicCoverageForm(FlaskForm):
+    geographic_description = StringField('Geographic Description', widget=TextArea(), validators=[])
+    wbc = FloatField('West Bounding Coordinate', validators=[])
+    ebc = FloatField('East Bounding Coordinate', validators=[])
+    nbc = FloatField('North Bounding Coordinate', validators=[])
+    sbc = FloatField('South Bounding Coordinate', validators=[])
 
 
 class KeywordsForm(FlaskForm):
@@ -67,6 +79,10 @@ class ResponsiblePartyForm(FlaskForm):
     fax = StringField('Fax', validators=[])
     email = StringField('Email', validators=[])
     online_url = StringField('Online URL', validators=[])
+
+
+class TitleForm(FlaskForm):
+    title = StringField('Title', validators=[])
 
 
 class MinimalEMLForm(FlaskForm):

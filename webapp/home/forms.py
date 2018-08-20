@@ -38,6 +38,8 @@ class GeographicCoverageSelectForm(FlaskForm):
 
 class GeographicCoverageForm(FlaskForm):
     geographic_description = StringField('Geographic Description', widget=TextArea(), validators=[])
+    # Declaring these as FloatField forces the user to input a floating point value,
+    # preventing the user from leaving the field empty when they leave the form.
     wbc = FloatField('West Bounding Coordinate', validators=[])
     ebc = FloatField('East Bounding Coordinate', validators=[])
     nbc = FloatField('North Bounding Coordinate', validators=[])

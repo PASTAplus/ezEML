@@ -81,7 +81,7 @@ def compose_gc_label(gc_node:Node=None):
                                    str(ebc_node.content),
                                    str(nbc_node.content),
                                    str(sbc_node.content)]
-                label = ','.join(coordinate_list)
+                label = ', '.join(coordinate_list)
     return label
 
 

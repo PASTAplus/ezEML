@@ -268,7 +268,7 @@ def metadata_provider_select(packageid=None):
         url = rp_select_post(packageid, form, form_dict, 
                              'POST', 'metadata_provider_select', 
                              'creator_select', 
-                             'associated_party_select', 
+                             'geographic_coverage_select', 
                              'metadata_provider')
         return redirect(url)
 
@@ -507,7 +507,7 @@ def geographic_coverage_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = geographic_coverage_select_post(packageid, form, form_dict, 
                              'POST', 'geographic_coverage_select',
-                             'associated_party_select',
+                             'metadata_provider_select',
                              'contact_select', 'geographic_coverage')
         return redirect(url)
 

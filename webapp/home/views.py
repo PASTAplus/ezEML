@@ -22,7 +22,8 @@ from flask import (
 from webapp.home.forms import ( 
     CreateEMLForm, TitleForm, ResponsiblePartyForm, AbstractForm, 
     KeywordsForm, MinimalEMLForm, ResponsiblePartySelectForm, PubDateForm,
-    GeographicCoverageSelectForm, GeographicCoverageForm
+    GeographicCoverageSelectForm, GeographicCoverageForm,
+    TemporalCoverageSelectForm, TemporalCoverageForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -30,7 +31,8 @@ from webapp.home.metapype_client import (
     add_child, remove_child, create_eml, create_title, create_pubdate,
     create_abstract, add_keyword, remove_keyword, create_keywords,
     create_responsible_party, validate_minimal, list_geographic_coverages,
-    create_geographic_coverage
+    create_geographic_coverage, create_temporal_coverage,
+    list_temporal_coverages
 )
 
 from metapype.eml2_1_1 import export
@@ -508,12 +510,11 @@ def geographic_coverage_select(packageid=None):
         url = geographic_coverage_select_post(packageid, form, form_dict, 
                              'POST', 'geographic_coverage_select',
                              'metadata_provider_select',
-                             'contact_select', 'geographic_coverage')
+                             'temporal_coverage_select', 'geographic_coverage')
         return redirect(url)
 
     # Process GET
-    return geographic_coverage_select_get(packageid=packageid, form=form, rp_name='contact',
-                         rp_singular='Contact', rp_plural='Contacts')
+    return geographic_coverage_select_get(packageid=packageid, form=form)
 
 
 def geographic_coverage_select_post(packageid=None, form=None, form_dict=None,
@@ -545,8 +546,7 @@ def geographic_coverage_select_post(packageid=None, form=None, form_dict=None,
         return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
 
 
-def geographic_coverage_select_get(packageid=None, form=None, rp_name=None, 
-                  rp_singular=None, rp_plural=None):
+def geographic_coverage_select_get(packageid=None, form=None):
     # Process GET
     eml_node = load_eml(packageid=packageid)
     gc_list = list_geographic_coverages(eml_node)
@@ -580,7 +580,7 @@ def geographic_coverage(packageid=None, node_id=None):
             coverage_node = dataset_node.find_child(names.COVERAGE)
             if not coverage_node:
                 coverage_node = Node(names.COVERAGE, parent=dataset_node)
-                dataset_node.add_child(coverage_node)
+                add_child(dataset_node, coverage_node)
 
             geographic_description = form.geographic_description.data
             wbc = form.wbc.data
@@ -647,6 +647,146 @@ def populate_geographic_coverage_form(form:GeographicCoverageForm, node:Node):
         form.sbc.data = sbc_node.content
     
 
+@home.route('/temporal_coverage_select/<packageid>', methods=['GET', 'POST'])
+def temporal_coverage_select(packageid=None):
+    form = TemporalCoverageSelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = temporal_coverage_select_post(packageid, form, form_dict, 
+                             'POST', 'temporal_coverage_select',
+                             'geographic_coverage_select',
+                             'contact_select', 'temporal_coverage')
+        return redirect(url)
+
+    # Process GET
+    return temporal_coverage_select_get(packageid=packageid, form=form)
+
+
+def temporal_coverage_select_post(packageid=None, form=None, form_dict=None,
+                   method=None, this_page=None, back_page=None, 
+                   next_page=None, edit_page=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+
+    if form.validate_on_submit():   
+        return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
+
+
+def temporal_coverage_select_get(packageid=None, form=None):
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    tc_list = list_temporal_coverages(eml_node)
+    title = "Temporal Coverage"
+
+    return render_template('temporal_coverage_select.html', title=title,
+                            tc_list=tc_list, form=form)
+
+
+@home.route('/temporal_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
+def temporal_coverage(packageid=None, node_id=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+        else:
+            submit_type = None
+    form = TemporalCoverageForm(packageid=packageid)
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if not coverage_node:
+                coverage_node = Node(names.COVERAGE, parent=dataset_node)
+                add_child(dataset_node, coverage_node)
+
+            tc_node = Node(names.TEMPORALCOVERAGE, parent=coverage_node)
+
+            create_temporal_coverage(
+                tc_node, 
+                form.begin_date.data,
+                form.end_date.data)
+
+            if node_id and len(node_id) != 1:
+                old_tc_node = Node.get_node_instance(node_id)
+                if old_tc_node:
+                    coverage_parent_node = old_tc_node.parent
+                    coverage_parent_node.replace_child(old_tc_node, tc_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(coverage_node, tc_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        return redirect(url_for('home.temporal_coverage_select', packageid=packageid))
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if coverage_node:
+                tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
+                if tc_nodes:
+                    for tc_node in tc_nodes:
+                        if node_id == tc_node.id:
+                            populate_temporal_coverage_form(form, tc_node)
+    
+    return render_template('temporal_coverage.html', title='Temporal Coverage', form=form)
+
+
+def populate_temporal_coverage_form(form:TemporalCoverageForm, node:Node):    
+    begin_date_node = node.find_child(names.BEGINDATE)
+    if begin_date_node:
+        calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
+        form.begin_date.data = calendar_date_node.content
+    
+        end_date_node = node.find_child(names.ENDDATE)
+        if end_date_node:
+            calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
+            form.end_date.data = calendar_date_node.content
+    else:
+        single_date_time_node = node.find_child(names.SINGLEDATETIME)
+        if single_date_time_node:
+            calendar_date_node = single_date_time_node.find_child(names.CALENDARDATE)
+            form.begin_date.data = calendar_date_node.content
+    
+
 @home.route('/contact_select/<packageid>', methods=['GET', 'POST'])
 def contact_select(packageid=None):
     form = ResponsiblePartySelectForm(packageid=packageid)
@@ -656,7 +796,7 @@ def contact_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = rp_select_post(packageid, form, form_dict, 
-                             'POST', 'contact_select', 'geographic_coverage_select', 
+                             'POST', 'contact_select', 'temporal_coverage_select', 
                              'title', 'contact')
         return redirect(url)
 

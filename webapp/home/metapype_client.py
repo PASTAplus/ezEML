@@ -85,6 +85,46 @@ def compose_gc_label(gc_node:Node=None):
     return label
 
 
+def list_temporal_coverages(eml_node:Node=None):
+    tc_list = []
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            coverage_node = eml_node.find_child(names.COVERAGE)
+            if coverage_node:
+                tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
+                TC_Entry = collections.namedtuple(
+                    'TC_Entry', ["id", "begin_date", "end_date"],
+                    verbose=False, rename=False)
+                for tc_node in tc_nodes:
+                    id = tc_node.id
+
+                    single_datetime_nodes = tc_node.find_all_children(names.SINGLEDATETIME)
+                    if single_datetime_nodes:
+                        for sd_node in single_datetime_nodes:
+                            calendar_date_node = sd_node.find_child(names.CALENDARDATE)
+                            if calendar_date_node:
+                                begin_date = calendar_date_node.content
+                                end_date = ''
+                                tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date)
+                                tc_list.append(tc_entry)
+
+                    range_of_dates_nodes = tc_node.find_all_children(names.RANGEOFDATES)
+                    if range_of_dates_nodes:
+                        for rod_node in range_of_dates_nodes:
+                            begin_date_node = rod_node.find_child(names.BEGINDATE)
+                            if begin_date_node:
+                                calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
+                                begin_date = calendar_date_node.content
+                            end_date_node = rod_node.find_child(names.ENDDATE)
+                            if end_date_node:
+                                calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
+                                end_date = calendar_date_node.content
+                            tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date)
+                            tc_list.append(tc_entry)
+    return tc_list
+
+
 def add_child(parent_node:Node, child_node:Node):
     if parent_node and child_node:
         parent_rule = rule.get_rule(parent_node.name)
@@ -419,6 +459,39 @@ def create_geographic_coverage(
         add_child(geographic_coverage_node, bounding_coordinates_node)
 
         return geographic_coverage_node
+
+    except Exception as e:
+        logger.error(e)
+
+
+def create_temporal_coverage(
+                   temporal_coverage_node:Node=None,
+                   begin_date:str=None,
+                   end_date:str=None):
+    try:
+        if begin_date and end_date:
+            range_of_dates_node = Node(names.RANGEOFDATES, parent=temporal_coverage_node)
+            add_child(temporal_coverage_node, range_of_dates_node)
+
+            begin_date_node = Node(names.BEGINDATE, parent=range_of_dates_node)
+            add_child(range_of_dates_node, begin_date_node)
+            begin_calendar_date_node = Node(names.CALENDARDATE, parent=begin_date_node)
+            add_child(begin_date_node, begin_calendar_date_node)
+            begin_calendar_date_node.content = begin_date
+
+            end_date_node = Node(names.ENDDATE, parent=range_of_dates_node)
+            add_child(range_of_dates_node, end_date_node)
+            end_calendar_date_node = Node(names.CALENDARDATE, parent=end_date_node)
+            add_child(end_date_node, end_calendar_date_node)
+            end_calendar_date_node.content = end_date
+        elif begin_date:
+            single_datetime_node = Node(names.SINGLEDATETIME, parent=temporal_coverage_node)
+            add_child(temporal_coverage_node, single_datetime_node)
+            calendar_date_node = Node(names.CALENDARDATE, parent=single_datetime_node)
+            add_child(single_datetime_node, calendar_date_node)
+            calendar_date_node.content = begin_date
+
+        return temporal_coverage_node
 
     except Exception as e:
         logger.error(e)

@@ -83,6 +83,15 @@ class ResponsiblePartyForm(FlaskForm):
     online_url = StringField('Online URL', validators=[])
 
 
+class TemporalCoverageSelectForm(FlaskForm):
+    pass
+
+
+class TemporalCoverageForm(FlaskForm):
+    begin_date = StringField('Begin Date', validators=[])
+    end_date = StringField('End Date', validators=[])
+
+
 class TitleForm(FlaskForm):
     title = StringField('Title', validators=[])
 

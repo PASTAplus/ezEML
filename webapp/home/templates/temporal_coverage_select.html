@@ -9,8 +9,10 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th>Begin Date</th>
-                        <th>End Date</th>
+                        <th>Begin&nbsp;Date&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th>End&nbsp;Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th></th>
+                        <th></th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -18,6 +20,8 @@
                     <tr>
                         <td>{{ tc_entry.begin_date }}</td>
                         <td>{{ tc_entry.end_date }}</td>
+                        <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="&#x25B2;"/></td>
+                        <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="&#x25BC;"/></td>
                         <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

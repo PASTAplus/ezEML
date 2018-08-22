@@ -17,7 +17,7 @@ import json
 import os.path
 
 from metapype.eml2_1_1 import export, validate, names, rule
-from metapype.model.node import Node
+from metapype.model.node import Node, Shift
 from metapype.model import io
 
 
@@ -130,6 +130,16 @@ def add_child(parent_node:Node, child_node:Node):
         parent_rule = rule.get_rule(parent_node.name)
         index = parent_rule.child_insert_index(parent_node, child_node)
         parent_node.add_child(child_node, index=index)
+
+
+def move_up(parent_node:Node, child_node:Node):
+    if parent_node and child_node:
+        parent_node.shift(child_node, Shift.LEFT)
+
+
+def move_down(parent_node:Node, child_node:Node):
+    if parent_node and child_node:
+        parent_node.shift(child_node, Shift.RIGHT)
 
 
 def compose_rp_label(rp_node:Node=None):

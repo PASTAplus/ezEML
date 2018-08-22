@@ -13,6 +13,7 @@
     7/23/18
 """
 import daiquiri
+import html
 import json
 
 from flask import (
@@ -32,7 +33,7 @@ from webapp.home.metapype_client import (
     create_abstract, add_keyword, remove_keyword, create_keywords,
     create_responsible_party, validate_minimal, list_geographic_coverages,
     create_geographic_coverage, create_temporal_coverage,
-    list_temporal_coverages
+    list_temporal_coverages, move_up, move_down
 )
 
 from metapype.eml2_1_1 import export
@@ -686,6 +687,14 @@ def temporal_coverage_select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == html.unescape('&#x25B2;'):
+                new_page = this_page
+                node_id = key
+                process_up_button(packageid, node_id)
+            elif val == html.unescape('&#x25BC;'):
+                new_page = this_page
+                node_id = key
+                process_down_button(packageid, node_id)
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
@@ -828,3 +837,22 @@ def minimal():
             flash(msg)
     # Process GET
     return render_template('minimal_eml.html', title='Minimal EML', form=form)
+
+
+def process_up_button(packageid:str=None, node_id:str=None):
+    process_updown_button(packageid, node_id, move_up)
+
+
+def process_down_button(packageid:str=None, node_id:str=None):
+    process_updown_button(packageid, node_id, move_down)
+
+
+def process_updown_button(packageid:str=None, node_id:str=None, move_function=None):
+    if packageid and node_id and move_function:
+        eml_node = load_eml(packageid=packageid)
+        child_node = Node.get_node_instance(node_id)
+        if child_node:
+            parent_node = child_node.parent
+            if parent_node:
+                move_function(parent_node, child_node)
+                save_both_formats(packageid=packageid, eml_node=eml_node)

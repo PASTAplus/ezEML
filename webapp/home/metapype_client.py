@@ -13,6 +13,7 @@
 """
 import collections
 import daiquiri
+import html
 import json
 import os.path
 
@@ -22,6 +23,9 @@ from metapype.model import io
 
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
+
+UP_ARROW = html.unescape('&#x25B2;')
+DOWN_ARROW = html.unescape('&#x25BC;')
 
 def list_responsible_parties(eml_node:Node=None, node_name:str=None):
     rp_list = []
@@ -51,17 +55,29 @@ def list_geographic_coverages(eml_node:Node=None):
             if coverage_node:
                 gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
                 GC_Entry = collections.namedtuple(
-                    'GC_Entry', ["id", "geographic_description", "label"], 
+                    'GC_Entry', ["id", "geographic_description", "label", "upval", "downval"], 
                     verbose=False, rename=False)
-                for gc_node in gc_nodes:
+                for i, gc_node in enumerate(gc_nodes):
+                    id = gc_node.id
+                    upval = get_upval(i)
+                    downval = get_downval(i+1, len(gc_nodes))
                     geographic_description_node = \
                         gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
                     geographic_description = geographic_description_node.content
                     label = compose_gc_label(gc_node)
-                    id = gc_node.id
-                    gc_entry = GC_Entry(id=id, geographic_description=geographic_description, label=label)
+                    gc_entry = GC_Entry(id=id, geographic_description=geographic_description, label=label, upval=upval, downval=downval)
                     gc_list.append(gc_entry)
     return gc_list
+
+
+def get_upval(i:int):
+    upval = '[  ]' if i == 0 else UP_ARROW
+    return upval
+
+
+def get_downval(i:int, n:int):
+    downval = '[  ]' if i >= n else DOWN_ARROW
+    return downval
 
 
 def compose_gc_label(gc_node:Node=None):
@@ -94,10 +110,12 @@ def list_temporal_coverages(eml_node:Node=None):
             if coverage_node:
                 tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
                 TC_Entry = collections.namedtuple(
-                    'TC_Entry', ["id", "begin_date", "end_date"],
+                    'TC_Entry', ["id", "begin_date", "end_date", "upval", "downval"],
                     verbose=False, rename=False)
-                for tc_node in tc_nodes:
+                for i, tc_node in enumerate(tc_nodes):
                     id = tc_node.id
+                    upval = get_upval(i)
+                    downval = get_downval(i+1, len(tc_nodes))
 
                     single_datetime_nodes = tc_node.find_all_children(names.SINGLEDATETIME)
                     if single_datetime_nodes:
@@ -106,7 +124,7 @@ def list_temporal_coverages(eml_node:Node=None):
                             if calendar_date_node:
                                 begin_date = calendar_date_node.content
                                 end_date = ''
-                                tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date)
+                                tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
                                 tc_list.append(tc_entry)
 
                     range_of_dates_nodes = tc_node.find_all_children(names.RANGEOFDATES)
@@ -120,7 +138,7 @@ def list_temporal_coverages(eml_node:Node=None):
                             if end_date_node:
                                 calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
                                 end_date = calendar_date_node.content
-                            tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date)
+                            tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
                             tc_list.append(tc_entry)
     return tc_list
 

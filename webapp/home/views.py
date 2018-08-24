@@ -33,7 +33,7 @@ from webapp.home.metapype_client import (
     create_abstract, add_keyword, remove_keyword, create_keywords,
     create_responsible_party, validate_minimal, list_geographic_coverages,
     create_geographic_coverage, create_temporal_coverage,
-    list_temporal_coverages, move_up, move_down
+    list_temporal_coverages, move_up, move_down, UP_ARROW, DOWN_ARROW
 )
 
 from metapype.eml2_1_1 import export
@@ -109,7 +109,7 @@ def creator_select(packageid=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = rp_select_post(packageid, form, form_dict, 
+        url = select_post(packageid, form, form_dict, 
                              'POST', 'creator_select', 'title', 
                              'metadata_provider_select', 'creator')
         return redirect(url)
@@ -119,34 +119,12 @@ def creator_select(packageid=None):
                          rp_singular='Creator', rp_plural='Creators')
 
 
-def rp_select_post(packageid=None, form=None, form_dict=None,
-                   method=None, this_page=None, back_page=None, 
-                   next_page=None, edit_page=None):
-    node_id = ''
-    new_page = ''
-    if form_dict:
-        for key in form_dict:
-            val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
-                new_page = back_page
-            elif val == 'Next':
-                new_page = next_page
-            elif val == 'Edit':
-                new_page = edit_page
-                node_id = key
-            elif val == 'Remove':
-                new_page = this_page
-                node_id = key
-                eml_node = load_eml(packageid=packageid)
-                remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
-            elif val[0:3] == 'Add':
-                new_page = edit_page
-                node_id = '1'
-
-    if form.validate_on_submit():   
-        return url_for(f'home.{new_page}', packageid=packageid, 
-                       node_id=node_id)
+@home.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
+def creator(packageid=None, node_id=None):
+    method = request.method
+    return responsible_party(packageid=packageid, node_id=node_id, 
+                             method=method, node_name=names.CREATOR, 
+                             new_page='creator_select', title='Creator')
 
 
 def rp_select_get(packageid=None, form=None, rp_name=None, 
@@ -159,14 +137,6 @@ def rp_select_get(packageid=None, form=None, rp_name=None,
     return render_template('responsible_party_select.html', title=title,
                             rp_list=rp_list, form=form, 
                             rp_singular=rp_singular, rp_plural=rp_plural)
-
-
-@home.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
-def creator(packageid=None, node_id=None):
-    method = request.method
-    return responsible_party(packageid=packageid, node_id=node_id, 
-                             method=method, node_name=names.CREATOR, 
-                             new_page='creator_select', title='Creator')
 
 
 def responsible_party(packageid=None, node_id=None, method=None, 
@@ -268,7 +238,7 @@ def metadata_provider_select(packageid=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = rp_select_post(packageid, form, form_dict, 
+        url = select_post(packageid, form, form_dict, 
                              'POST', 'metadata_provider_select', 
                              'creator_select', 
                              'geographic_coverage_select', 
@@ -299,7 +269,7 @@ def associated_party_select(packageid=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = rp_select_post(packageid, form, form_dict, 
+        url = select_post(packageid, form, form_dict, 
                              'POST', 'associated_party_select', 
                              'metadata_provider_select', 
                              'pubdate', 'associated_party')
@@ -508,43 +478,14 @@ def geographic_coverage_select(packageid=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = geographic_coverage_select_post(packageid, form, form_dict, 
-                             'POST', 'geographic_coverage_select',
-                             'metadata_provider_select',
-                             'temporal_coverage_select', 'geographic_coverage')
+        url = select_post(packageid, form, form_dict, 
+                          'POST', 'geographic_coverage_select',
+                          'metadata_provider_select',
+                          'temporal_coverage_select', 'geographic_coverage')
         return redirect(url)
 
     # Process GET
     return geographic_coverage_select_get(packageid=packageid, form=form)
-
-
-def geographic_coverage_select_post(packageid=None, form=None, form_dict=None,
-                   method=None, this_page=None, back_page=None, 
-                   next_page=None, edit_page=None):
-    node_id = ''
-    new_page = ''
-    if form_dict:
-        for key in form_dict:
-            val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
-                new_page = back_page
-            elif val == 'Next':
-                new_page = next_page
-            elif val == 'Edit':
-                new_page = edit_page
-                node_id = key
-            elif val == 'Remove':
-                new_page = this_page
-                node_id = key
-                eml_node = load_eml(packageid=packageid)
-                remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
-            elif val[0:3] == 'Add':
-                new_page = edit_page
-                node_id = '1'
-
-    if form.validate_on_submit():   
-        return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
 
 
 def geographic_coverage_select_get(packageid=None, form=None):
@@ -656,19 +597,19 @@ def temporal_coverage_select(packageid=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = temporal_coverage_select_post(packageid, form, form_dict, 
-                             'POST', 'temporal_coverage_select',
-                             'geographic_coverage_select',
-                             'contact_select', 'temporal_coverage')
+        url = select_post(packageid, form, form_dict, 
+                          'POST', 'temporal_coverage_select',
+                          'geographic_coverage_select',
+                          'contact_select', 'temporal_coverage')
         return redirect(url)
 
     # Process GET
     return temporal_coverage_select_get(packageid=packageid, form=form)
 
 
-def temporal_coverage_select_post(packageid=None, form=None, form_dict=None,
-                   method=None, this_page=None, back_page=None, 
-                   next_page=None, edit_page=None):
+def select_post(packageid=None, form=None, form_dict=None,
+                method=None, this_page=None, back_page=None, 
+                next_page=None, edit_page=None):
     node_id = ''
     new_page = ''
     if form_dict:
@@ -687,17 +628,20 @@ def temporal_coverage_select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
-            elif val == html.unescape('&#x25B2;'):
+            elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
                 process_up_button(packageid, node_id)
-            elif val == html.unescape('&#x25BC;'):
+            elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
+            elif val == '[  ]':
+                new_page = this_page
+                node_id = key
 
     if form.validate_on_submit():   
         return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
@@ -804,7 +748,7 @@ def contact_select(packageid=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = rp_select_post(packageid, form, form_dict, 
+        url = select_post(packageid, form, form_dict, 
                              'POST', 'contact_select', 'temporal_coverage_select', 
                              'title', 'contact')
         return redirect(url)

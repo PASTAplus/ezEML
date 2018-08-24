@@ -34,14 +34,14 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
         if dataset_node:
             rp_nodes = dataset_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
-                'RP_Entry', ["id", "label", "edit_value", "remove_value"], 
+                'RP_Entry', ["id", "label", "upval", "downval"], 
                 verbose=False, rename=False)
-            for rp_node in rp_nodes:
+            for i, rp_node in enumerate(rp_nodes):
                 label = compose_rp_label(rp_node)
                 id = rp_node.id
-                rp_entry = RP_Entry(
-                    id=id, label=label, edit_value='Edit', 
-                    remove_value='Remove')
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(rp_nodes))
+                rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval)
                 rp_list.append(rp_entry)
     return rp_list
 
@@ -53,9 +53,11 @@ def list_geographic_coverages(eml_node:Node=None):
         if dataset_node:
             coverage_node = eml_node.find_child(names.COVERAGE)
             if coverage_node:
-                gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
+                gc_nodes = \
+                    coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
                 GC_Entry = collections.namedtuple(
-                    'GC_Entry', ["id", "geographic_description", "label", "upval", "downval"], 
+                    'GC_Entry', 
+                    ["id", "geographic_description", "label", "upval", "downval"],
                     verbose=False, rename=False)
                 for i, gc_node in enumerate(gc_nodes):
                     id = gc_node.id
@@ -65,7 +67,10 @@ def list_geographic_coverages(eml_node:Node=None):
                         gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
                     geographic_description = geographic_description_node.content
                     label = compose_gc_label(gc_node)
-                    gc_entry = GC_Entry(id=id, geographic_description=geographic_description, label=label, upval=upval, downval=downval)
+                    gc_entry = GC_Entry(id=id,
+                                        geographic_description=geographic_description,
+                                        label=label,
+                                        upval=upval, downval=downval)
                     gc_list.append(gc_entry)
     return gc_list
 
@@ -174,9 +179,13 @@ def compose_rp_label(rp_node:Node=None):
         if individual_name_label:
             label = individual_name_label
         if position_name_label:
-            label = label + ', ' + position_name_label
+            if label:
+                label = label + ', '
+            label = label + position_name_label
         if organization_name_label:
-            label = label + ', ' + organization_name_label
+            if label:
+                label = label + ', '
+            label = label + organization_name_label
     return label
 
 

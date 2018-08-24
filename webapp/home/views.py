@@ -241,7 +241,7 @@ def metadata_provider_select(packageid=None):
         url = select_post(packageid, form, form_dict, 
                              'POST', 'metadata_provider_select', 
                              'creator_select', 
-                             'geographic_coverage_select', 
+                             'pubdate', 
                              'metadata_provider')
         return redirect(url)
 
@@ -376,7 +376,7 @@ def pubdate(packageid=None):
     if form.validate_on_submit():
         pubdate = form.pubdate.data
         create_pubdate(packageid=packageid, pubdate=pubdate)
-        new_page = 'creator_select' if (submit_type == 'Back') else 'abstract'
+        new_page = 'metadata_provider_select' if (submit_type == 'Back') else 'abstract'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)
@@ -480,7 +480,7 @@ def geographic_coverage_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
                           'POST', 'geographic_coverage_select',
-                          'metadata_provider_select',
+                          'keywords',
                           'temporal_coverage_select', 'geographic_coverage')
         return redirect(url)
 

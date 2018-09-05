@@ -148,6 +148,42 @@ def list_temporal_coverages(eml_node:Node=None):
     return tc_list
 
 
+def list_taxonomic_coverages(eml_node:Node=None):
+    txc_list = []
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            coverage_node = eml_node.find_child(names.COVERAGE)
+            if coverage_node:
+                txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
+                TXC_Entry = collections.namedtuple(
+                    'TXC_Entry', ["id", "label", "upval", "downval"],
+                    verbose=False, rename=False)
+                for i, txc_node in enumerate(txc_nodes):
+                    id = txc_node.id
+                    upval = get_upval(i)
+                    downval = get_downval(i+1, len(txc_nodes))
+                    label = compose_taxonomic_label(txc_node, label='')
+                    txc_entry = TXC_Entry(id=id, label=label, upval=upval, downval=downval)
+                    txc_list.append(txc_entry)
+
+    return txc_list
+
+
+def compose_taxonomic_label(txc_node:Node=None, label:str=''):
+    if txc_node:
+        tc_node = txc_node.find_child(names.TAXONOMICCLASSIFICATION)
+        if tc_node:
+            trv_node = tc_node.find_child(names.TAXONRANKVALUE)
+            val = trv_node.content 
+            new_label = label + ' ' + val
+            return compose_taxonomic_label(tc_node, new_label)
+        else:
+            return label
+    else:
+        return label
+
+
 def add_child(parent_node:Node, child_node:Node):
     if parent_node and child_node:
         parent_rule = rule.get_rule(parent_node.name)
@@ -529,6 +565,144 @@ def create_temporal_coverage(
             calendar_date_node.content = begin_date
 
         return temporal_coverage_node
+
+    except Exception as e:
+        logger.error(e)
+
+
+def create_taxonomic_coverage(
+                taxonomic_coverage_node:Node,
+                general_taxonomic_coverage:str,
+                kingdom_value:str,
+                kingdom_common_name:str,
+                phylum_value:str,
+                phylum_common_name:str,
+                class_value:str,
+                class_common_name:str,
+                order_value:str,
+                order_common_name:str,
+                family_value:str,
+                family_common_name:str,
+                genus_value:str,
+                genus_common_name:str,
+                species_value:str,
+                species_common_name:str):
+    try:
+        if taxonomic_coverage_node:
+            if general_taxonomic_coverage:
+                general_taxonomic_coverage_node = Node(names.GENERALTAXONOMICCOVERAGE, 
+                                                       parent=taxonomic_coverage_node)
+                general_taxonomic_coverage_node.content = general_taxonomic_coverage
+                add_child(taxonomic_coverage_node, general_taxonomic_coverage_node)
+
+            taxonomic_classification_parent_node = taxonomic_coverage_node
+            
+            if kingdom_value:
+                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                taxon_rank_name_node.content = 'Kingdom'
+                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                taxon_rank_value_node.content = kingdom_value
+                if kingdom_common_name:
+                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node.content=kingdom_common_name
+                    taxonomic_classification_node.add_child(common_name_node)
+                taxonomic_classification_parent_node = taxonomic_classification_node
+
+            if phylum_value:
+                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                taxon_rank_name_node.content = 'Phylum'
+                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                taxon_rank_value_node.content = phylum_value
+                if phylum_common_name:
+                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node.content = phylum_common_name
+                    taxonomic_classification_node.add_child(common_name_node)
+                taxonomic_classification_parent_node = taxonomic_classification_node
+
+            if class_value:
+                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                taxon_rank_name_node.content = 'Class'
+                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                taxon_rank_value_node.content = class_value
+                if class_common_name:
+                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node.content = class_common_name
+                    taxonomic_classification_node.add_child(common_name_node)
+                taxonomic_classification_parent_node = taxonomic_classification_node
+
+            if order_value:
+                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                taxon_rank_name_node.content = 'Order'
+                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                taxon_rank_value_node.content = order_value
+                if order_common_name:
+                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node.content = order_common_name
+                    taxonomic_classification_node.add_child(common_name_node)
+                taxonomic_classification_parent_node = taxonomic_classification_node
+
+            if family_value:
+                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                taxon_rank_name_node.content = 'Family'
+                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                taxon_rank_value_node.content = family_value
+                if family_common_name:
+                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node.content = family_common_name
+                    taxonomic_classification_node.add_child(common_name_node)
+                taxonomic_classification_parent_node = taxonomic_classification_node
+
+            if genus_value:
+                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                taxon_rank_name_node.content = 'Genus'
+                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                taxon_rank_value_node.content = genus_value
+                if genus_common_name:
+                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node.content = genus_common_name
+                    taxonomic_classification_node.add_child(common_name_node)
+                taxonomic_classification_parent_node = taxonomic_classification_node
+
+            if species_value:
+                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                taxon_rank_name_node.content = 'Species'
+                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
+                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                taxon_rank_value_node.content = species_value
+                if species_common_name:
+                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node.content = species_common_name
+                    taxonomic_classification_node.add_child(common_name_node)
+                taxonomic_classification_parent_node = taxonomic_classification_node
+
+        return taxonomic_coverage_node
 
     except Exception as e:
         logger.error(e)

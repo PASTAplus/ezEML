@@ -83,6 +83,28 @@ class ResponsiblePartyForm(FlaskForm):
     online_url = StringField('Online URL', validators=[])
 
 
+class TaxonomicCoverageSelectForm(FlaskForm):
+    pass
+
+
+class TaxonomicCoverageForm(FlaskForm):
+    general_taxonomic_coverage = StringField('General Taxonomic Coverage', validators=[])
+    kingdom_value = StringField('Kingdom', validators=[])
+    kingdom_common_name = StringField('Common Name', validators=[])
+    phylum_value =  StringField('Phylum', validators=[])
+    phylum_common_name = StringField('Common Name', validators=[])
+    class_value = StringField('Class', validators=[])
+    class_common_name = StringField('Common Name', validators=[])
+    order_value = StringField('Order', validators=[])
+    order_common_name = StringField('Common Name', validators=[])
+    family_value = StringField('Family', validators=[])
+    family_common_name = StringField('Common Name', validators=[])
+    genus_value = StringField('Genus', validators=[])
+    genus_common_name = StringField('Common Name', validators=[])
+    species_value = StringField('Species', validators=[])
+    species_common_name = StringField('Common Name', validators=[])       
+
+
 class TemporalCoverageSelectForm(FlaskForm):
     pass
 

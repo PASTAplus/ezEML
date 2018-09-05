@@ -24,16 +24,24 @@ from webapp.home.forms import (
     CreateEMLForm, TitleForm, ResponsiblePartyForm, AbstractForm, 
     KeywordsForm, MinimalEMLForm, ResponsiblePartySelectForm, PubDateForm,
     GeographicCoverageSelectForm, GeographicCoverageForm,
-    TemporalCoverageSelectForm, TemporalCoverageForm
+    TemporalCoverageSelectForm, TemporalCoverageForm,
+    TaxonomicCoverageSelectForm, TaxonomicCoverageForm
 )
 
 from webapp.home.metapype_client import ( 
-    load_eml, list_responsible_parties, save_both_formats, validate_tree,
-    add_child, remove_child, create_eml, create_title, create_pubdate,
-    create_abstract, add_keyword, remove_keyword, create_keywords,
-    create_responsible_party, validate_minimal, list_geographic_coverages,
-    create_geographic_coverage, create_temporal_coverage,
-    list_temporal_coverages, move_up, move_down, UP_ARROW, DOWN_ARROW
+    load_eml, list_responsible_parties, save_both_formats, 
+    validate_tree, add_child, remove_child, create_eml, 
+    create_title, create_pubdate, create_abstract, 
+    add_keyword, remove_keyword, create_keywords,
+    create_responsible_party, validate_minimal, 
+    list_geographic_coverages,
+    create_geographic_coverage, 
+    create_temporal_coverage,
+    list_temporal_coverages, 
+    create_taxonomic_coverage,
+    list_taxonomic_coverages, 
+    move_up, move_down, 
+    UP_ARROW, DOWN_ARROW
 )
 
 from metapype.eml2_1_1 import export
@@ -589,24 +597,6 @@ def populate_geographic_coverage_form(form:GeographicCoverageForm, node:Node):
         form.sbc.data = sbc_node.content
     
 
-@home.route('/temporal_coverage_select/<packageid>', methods=['GET', 'POST'])
-def temporal_coverage_select(packageid=None):
-    form = TemporalCoverageSelectForm(packageid=packageid)
-    
-    # Process POST
-    if request.method == 'POST':
-        form_value = request.form
-        form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict, 
-                          'POST', 'temporal_coverage_select',
-                          'geographic_coverage_select',
-                          'contact_select', 'temporal_coverage')
-        return redirect(url)
-
-    # Process GET
-    return temporal_coverage_select_get(packageid=packageid, form=form)
-
-
 def select_post(packageid=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
                 next_page=None, edit_page=None):
@@ -645,6 +635,24 @@ def select_post(packageid=None, form=None, form_dict=None,
 
     if form.validate_on_submit():   
         return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
+
+
+@home.route('/temporal_coverage_select/<packageid>', methods=['GET', 'POST'])
+def temporal_coverage_select(packageid=None):
+    form = TemporalCoverageSelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = select_post(packageid, form, form_dict, 
+                          'POST', 'temporal_coverage_select',
+                          'geographic_coverage_select',
+                          'taxonomic_coverage_select', 'temporal_coverage')
+        return redirect(url)
+
+    # Process GET
+    return temporal_coverage_select_get(packageid=packageid, form=form)
 
 
 def temporal_coverage_select_get(packageid=None, form=None):
@@ -740,6 +748,162 @@ def populate_temporal_coverage_form(form:TemporalCoverageForm, node:Node):
             form.begin_date.data = calendar_date_node.content
     
 
+@home.route('/taxonomic_coverage_select/<packageid>', methods=['GET', 'POST'])
+def taxonomic_coverage_select(packageid=None):
+    form = TemporalCoverageSelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = select_post(packageid, form, form_dict, 
+                          'POST', 'taxonomic_coverage_select',
+                          'temporal_coverage_select',
+                          'contact_select', 'taxonomic_coverage')
+        return redirect(url)
+
+    # Process GET
+    return taxonomic_coverage_select_get(packageid=packageid, form=form)
+
+
+def taxonomic_coverage_select_get(packageid=None, form=None):
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    txc_list = list_taxonomic_coverages(eml_node)
+    title = "Taxonomic Coverage"
+
+    return render_template('taxonomic_coverage_select.html', title=title,
+                            txc_list=txc_list, form=form)
+
+
+@home.route('/taxonomic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
+def taxonomic_coverage(packageid=None, node_id=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+        else:
+            submit_type = None
+    form = TaxonomicCoverageForm(packageid=packageid)
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if not coverage_node:
+                coverage_node = Node(names.COVERAGE, parent=dataset_node)
+                add_child(dataset_node, coverage_node)
+
+            txc_node = Node(names.TAXONOMICCOVERAGE, parent=coverage_node)
+
+            create_taxonomic_coverage(
+                txc_node, 
+                form.general_taxonomic_coverage.data,
+                form.kingdom_value.data,
+                form.kingdom_common_name.data,
+                form.phylum_value.data,
+                form.phylum_common_name.data,
+                form.class_value.data,
+                form.class_common_name.data,
+                form.order_value.data,
+                form.order_common_name.data,
+                form.family_value.data,
+                form.family_common_name.data,
+                form.genus_value.data,
+                form.genus_common_name.data,
+                form.species_value.data,
+                form.species_common_name.data)  
+
+            if node_id and len(node_id) != 1:
+                old_txc_node = Node.get_node_instance(node_id)
+                if old_txc_node:
+                    coverage_parent_node = old_txc_node.parent
+                    coverage_parent_node.replace_child(old_txc_node, txc_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(coverage_node, txc_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        return redirect(url_for('home.taxonomic_coverage_select', packageid=packageid))
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if coverage_node:
+                txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
+                if txc_nodes:
+                    for txc_node in txc_nodes:
+                        if node_id == txc_node.id:
+                            populate_taxonomic_coverage_form(form, txc_node)
+    
+    return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form)
+
+
+def populate_taxonomic_coverage_form(form:TaxonomicCoverageForm, node:Node):
+    general_taxonomic_coverage_node = node.find_child(names.GENERALTAXONOMICCOVERAGE)
+    if general_taxonomic_coverage_node:
+        form.general_taxonomic_coverage.data = general_taxonomic_coverage_node.content
+    
+    taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
+    populate_taxonomic_coverage_form_aux(form, taxonomic_classification_node)
+
+
+def populate_taxonomic_coverage_form_aux(form:TaxonomicCoverageForm, node:Node=None):
+    if node:
+        taxon_rank_name_node = node.find_child(names.TAXONRANKNAME)
+        taxon_rank_value_node = node.find_child(names.TAXONRANKVALUE)
+        taxon_common_name_node = node.find_child(names.COMMONNAME)
+
+        if taxon_rank_name_node.content == 'Kingdom':
+            form.kingdom_value.data = taxon_rank_value_node.content 
+            if taxon_common_name_node:
+                form.kingdom_common_name.data = taxon_common_name_node.content 
+        elif taxon_rank_name_node.content == 'Phylum':
+            form.phylum_value.data = taxon_rank_value_node.content 
+            if taxon_common_name_node:
+                form.phylum_common_name.data = taxon_common_name_node.content 
+        elif taxon_rank_name_node.content == 'Class':
+            form.class_value.data = taxon_rank_value_node.content 
+            if taxon_common_name_node:
+                form.class_common_name.data = taxon_common_name_node.content 
+        elif taxon_rank_name_node.content == 'Order':
+            form.order_value.data = taxon_rank_value_node.content 
+            if taxon_common_name_node:
+                form.order_common_name.data = taxon_common_name_node.content 
+        elif taxon_rank_name_node.content == 'Family':
+            form.family_value.data = taxon_rank_value_node.content 
+            if taxon_common_name_node:
+                form.family_common_name.data = taxon_common_name_node.content 
+        elif taxon_rank_name_node.content == 'Genus':
+            form.genus_value.data = taxon_rank_value_node.content 
+            if taxon_common_name_node:
+                form.genus_common_name.data = taxon_common_name_node.content 
+        elif taxon_rank_name_node.content == 'Species':
+            form.species_value.data = taxon_rank_value_node.content 
+            if taxon_common_name_node:
+                form.species_common_name.data = taxon_common_name_node.content 
+
+        taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
+        if taxonomic_classification_node:
+            populate_taxonomic_coverage_form_aux(form, taxonomic_classification_node)
+        
+
 @home.route('/contact_select/<packageid>', methods=['GET', 'POST'])
 def contact_select(packageid=None):
     form = ResponsiblePartySelectForm(packageid=packageid)
@@ -749,7 +913,7 @@ def contact_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
-                             'POST', 'contact_select', 'temporal_coverage_select', 
+                             'POST', 'contact_select', 'taxonomic_coverage_select', 
                              'title', 'contact')
         return redirect(url)
 

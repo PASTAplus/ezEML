@@ -32,6 +32,14 @@ class CreateEMLForm(FlaskForm):
     packageid = StringField('Package ID', validators=[DataRequired()])
 
 
+class DataTableSelectForm(FlaskForm):
+    pass
+
+
+class DataTableForm(FlaskForm):
+    pass
+
+
 class GeographicCoverageSelectForm(FlaskForm):
     pass
 

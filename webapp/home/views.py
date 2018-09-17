@@ -25,7 +25,8 @@ from webapp.home.forms import (
     KeywordsForm, MinimalEMLForm, ResponsiblePartySelectForm, PubDateForm,
     GeographicCoverageSelectForm, GeographicCoverageForm,
     TemporalCoverageSelectForm, TemporalCoverageForm,
-    TaxonomicCoverageSelectForm, TaxonomicCoverageForm
+    TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
+    DataTableSelectForm, DataTableForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -34,12 +35,10 @@ from webapp.home.metapype_client import (
     create_title, create_pubdate, create_abstract, 
     add_keyword, remove_keyword, create_keywords,
     create_responsible_party, validate_minimal, 
-    list_geographic_coverages,
-    create_geographic_coverage, 
-    create_temporal_coverage,
-    list_temporal_coverages, 
-    create_taxonomic_coverage,
-    list_taxonomic_coverages, 
+    list_geographic_coverages, create_geographic_coverage, 
+    create_temporal_coverage, list_temporal_coverages, 
+    create_taxonomic_coverage, list_taxonomic_coverages,
+    create_data_table, list_data_tables,
     move_up, move_down, 
     UP_ARROW, DOWN_ARROW
 )
@@ -78,11 +77,99 @@ def create():
     if form.validate_on_submit():
         packageid = form.packageid.data
         create_eml(packageid=packageid)
-        new_page = 'title' if (submit_type == 'Next') else 'create'
+        new_page = 'data_table_select' if (submit_type == 'Next') else 'create'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     return render_template('create_eml.html', title='Create New EML', 
                            form=form)
+
+
+@home.route('/data_table_select/<packageid>', methods=['GET', 'POST'])
+def data_table_select(packageid=None):
+    form = DataTableSelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = select_post(packageid, form, form_dict, 
+                             'POST', 'data_table_select', 'create', 
+                             'title', 'data_table')
+        return redirect(url)
+
+    # Process GET
+    return data_table_select_get(packageid=packageid, form=form)
+
+
+def data_table_select_get(packageid=None, form=None):
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    dt_list = list_data_tables(eml_node)
+    title = 'Data Tables'
+
+    return render_template('data_table_select.html', title=title,
+                            dt_list=dt_list, form=form)
+
+
+@home.route('/data_table/<packageid>/<node_id>', methods=['GET', 'POST'])
+def data_table(packageid=None, node_id=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+        else:
+            submit_type = None
+    form = DataTableForm(packageid=packageid)
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+
+            dt_node = Node(names.DATATABLE, parent=dataset_node)
+
+            create_data_table(
+                dt_node)
+
+            if node_id and len(node_id) != 1:
+                old_dt_node = Node.get_node_instance(node_id)
+                if old_dt_node:
+                    dataset_parent_node = old_dt_node.parent
+                    dataset_parent_node.replace_child(old_dt_node, dt_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(dataset_node, dt_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        return redirect(url_for('home.data_table_select', packageid=packageid))
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if coverage_node:
+                gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
+                if gc_nodes:
+                    for gc_node in gc_nodes:
+                        if node_id == gc_node.id:
+                            populate_geographic_coverage_form(form, gc_node)
+    
+    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form)
+
+
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])
@@ -99,7 +186,7 @@ def title(packageid=None):
     # Process POST
     if form.validate_on_submit():
         create_title(title=form.title.data, packageid=packageid)
-        new_page = 'creator_select' if (submit_type == 'Next') else 'title'
+        new_page = 'creator_select' if (submit_type == 'Next') else 'data_table_select'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)

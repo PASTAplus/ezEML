@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Data Tables</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table class="table table-striped">
+                    <tr>
+                        <th>Entity Name</th>
+                        <th>Object Name</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    {% for dt_entry in dt_list %}
+                    <tr>
+                        <td>{{ dt_entry.entity_name }}</td>
+                        <td>{{ dt_entry.object_name }}</td>
+                        <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="{{ dt_entry.upval }}"/></td>
+                        <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="{{ dt_entry.downval }}"/></td>
+                        <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>
+                        <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Data Table"/><br/><br/><br/>
+                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

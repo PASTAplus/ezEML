@@ -27,6 +27,33 @@ logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
 
+
+def create_data_table(data_table_node:Node=None):
+    pass
+
+
+def list_data_tables(eml_node:Node=None):
+    dt_list = []
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            DT_Entry = collections.namedtuple(
+                'DT_Entry', 
+                ["entity_name", "object_name", "upval", "downval"],
+                verbose=False, rename=False)
+            for i, dt_node in enumerate(dt_nodes):
+                id = dt_node.id
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(dt_nodes))
+                dt_entry = DT_Entry(id=id,
+                                    entity_name=None,
+                                    object_name=None,
+                                    upval=upval, downval=downval)
+                dt_list.append(dt_entry)
+    return dt_list
+
+
 def list_responsible_parties(eml_node:Node=None, node_name:str=None):
     rp_list = []
     if eml_node:
@@ -176,7 +203,7 @@ def compose_taxonomic_label(txc_node:Node=None, label:str=''):
         if tc_node:
             trv_node = tc_node.find_child(names.TAXONRANKVALUE)
             val = trv_node.content 
-            new_label = label + ' ' + val
+            new_label = label + ' ' + val if label else val
             return compose_taxonomic_label(tc_node, new_label)
         else:
             return label

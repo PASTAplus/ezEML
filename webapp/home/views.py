@@ -134,8 +134,7 @@ def data_table(packageid=None, node_id=None):
 
             dt_node = Node(names.DATATABLE, parent=dataset_node)
 
-            create_data_table(
-                dt_node)
+            create_data_table(dt_node)
 
             if node_id and len(node_id) != 1:
                 old_dt_node = Node.get_node_instance(node_id)
@@ -159,17 +158,77 @@ def data_table(packageid=None, node_id=None):
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            coverage_node = dataset_node.find_child(names.COVERAGE)
-            if coverage_node:
-                gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
-                if gc_nodes:
-                    for gc_node in gc_nodes:
-                        if node_id == gc_node.id:
-                            populate_geographic_coverage_form(form, gc_node)
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if node_id == dt_node.id:
+                        populate_data_table_form(form, dt_node)
     
-    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form)
+    return render_template('data_table.html', title='Data Table', form=form)
 
 
+def populate_data_table_form(form:DataTableForm, node:Node):    
+    entity_name_node = node.find_child(names.ENTITYNAME)
+    if entity_name_node:
+        form.entity_name.data = entity_name_node.content
+    
+    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
+    if entity_description_node:
+        form.entity_description.data = entity_description_node.content  
+
+    physical_node = node.find_child(names.PHYSICAL)
+    if physical_node:
+
+        object_name_node = physical_node.find_child(names.OBJECTNAME)
+        if object_name_node:
+            form.object_name.data = object_name_node.content
+
+        size_node = physical_node.find_child(names.SIZE)
+        if size_node:
+            form.size.data = size_node.content
+        
+        data_format_node = physical_node.find_child(names.DATAFORMAT)
+        if data_format_node:
+
+            text_format_node = data_format_node.find_child(names.TEXTFORMAT)
+            if text_format_node:
+
+                num_header_lines_node = text_format_node.find_child(names.NUMHEADERLINES)
+                if num_header_lines_node:
+                    form.num_header_lines.data = num_header_lines_node.content
+
+                record_delimiter_node = text_format_node.find_child(names.RECORDDELIMITER)
+                if record_delimiter_node:
+                    form.record_delimiter.data = record_delimiter_node.content 
+
+                attribute_orientation_node = text_format_node.find_child(names.ATTRIBUTEORIENTATION)
+                if attribute_orientation_node:
+                    form.attribute_orientation.data = attribute_orientation_node.content 
+
+                simple_delimited_node = text_format_node.find_child(names.SIMPLEDELIMITED)
+                if simple_delimited_node:
+                    
+                    field_delimiter_node = simple_delimited_node.find_child(names.FIELDDELIMITER)
+                    if field_delimiter_node:
+                        form.field_delimiter.data = field_delimiter_node.content 
+
+        distribution_node = physical_node.find_child(names.DISTRIBUTION)
+        if distribution_node:
+
+            online_node = distribution_node.find_child(names.ONLINE)
+            if online_node:
+
+                url_node = online_node.find_child(names.URL)
+                if url_node:
+                    form.online_url.data = url_node.content 
+
+    case_sensitive_node = node.find_child(names.CASESENSITIVE)
+    if case_sensitive_node:
+        form.case_sensitive.data = case_sensitive_node.content
+
+    number_of_records_node = node.find_child(names.NUMBEROFRECORDS)
+    if number_of_records_node:
+        form.number_of_records.data = number_of_records_node.content
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])

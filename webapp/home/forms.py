@@ -17,7 +17,7 @@ from flask_wtf import FlaskForm
 
 from wtforms import (
     StringField, PasswordField, BooleanField, SubmitField, SelectField,
-    FloatField
+    FloatField, IntegerField
 )
 
 from wtforms.validators import DataRequired, Email, URL
@@ -37,7 +37,17 @@ class DataTableSelectForm(FlaskForm):
 
 
 class DataTableForm(FlaskForm):
-    pass
+    entity_name = StringField('Name', validators=[])
+    entity_description = StringField('Description (Optional)', validators=[])
+    object_name = StringField('Object Name', validators=[])
+    size = StringField('Size (Optional)', validators=[])
+    num_header_lines = StringField('Number of Header Lines (Optional)', validators=[])
+    record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
+    attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
+    field_delimiter = SelectField('Simple Delimited: Field Delimiter', choices=[("comma", "comma"), ("space", "space"), ("tab", "tab")])
+    case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
+    number_of_records = StringField('Number of Records (Optional)', validators=[])
+    online_url = StringField('Online Distribution URL', validators=[])
 
 
 class GeographicCoverageSelectForm(FlaskForm):

@@ -2,17 +2,23 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Geographic Coverage</h1>
+    <h1>Data Table</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please enter the geographic description and bounding coordinates below:</h5>
-                {{ wtf.form_field(form.geographic_description) }}
-                {{ wtf.form_field(form.wbc) }}
-                {{ wtf.form_field(form.ebc) }}
-                {{ wtf.form_field(form.nbc) }}
-                {{ wtf.form_field(form.sbc) }}
+                <h5>Please enter information about the data table object:</h5>
+                {{ wtf.form_field(form.entity_name) }}
+                {{ wtf.form_field(form.entity_description) }}
+                {{ wtf.form_field(form.object_name) }}
+                {{ wtf.form_field(form.size) }}
+                {{ wtf.form_field(form.num_header_lines) }}
+                {{ wtf.form_field(form.record_delimiter) }}
+                {{ wtf.form_field(form.attribute_orientation) }}
+                {{ wtf.form_field(form.field_delimiter) }}
+                {{ wtf.form_field(form.case_sensitive) }}
+                {{ wtf.form_field(form.number_of_records) }}
+                {{ wtf.form_field(form.online_url) }}
                 <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Clear" type="reset" value="Clear"/>

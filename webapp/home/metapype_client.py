@@ -28,10 +28,6 @@ UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
 
 
-def create_data_table(data_table_node:Node=None):
-    pass
-
-
 def list_data_tables(eml_node:Node=None):
     dt_list = []
     if eml_node:
@@ -40,18 +36,28 @@ def list_data_tables(eml_node:Node=None):
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             DT_Entry = collections.namedtuple(
                 'DT_Entry', 
-                ["entity_name", "object_name", "upval", "downval"],
+                ["id", "label", "upval", "downval"],
                 verbose=False, rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
+                label = compose_data_table_label(dt_node)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
                 dt_entry = DT_Entry(id=id,
-                                    entity_name=None,
-                                    object_name=None,
-                                    upval=upval, downval=downval)
+                                    label=label,
+                                    upval=upval, 
+                                    downval=downval)
                 dt_list.append(dt_entry)
     return dt_list
+
+
+def compose_data_table_label(dt_node:Node=None):
+    label = ''
+    if dt_node:
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        entity_name = entity_name_node.content 
+        label = entity_name
+    return label
 
 
 def list_responsible_parties(eml_node:Node=None, node_name:str=None):
@@ -374,6 +380,111 @@ def create_eml(packageid=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
         except Exception as e:
             logger.error(e)
+
+
+def create_data_table(
+    data_table_node:Node=None, 
+    entity_name:str=None,
+    entity_description:str=None,
+    object_name:str=None,
+    size:str=None,
+    num_header_lines:str=None,
+    record_delimiter:str=None,
+    attribute_orientation:str=None,
+    field_delimiter:str=None,
+    case_sensitive:str=None,
+    number_of_records:str=None,
+    online_url:str=None):
+
+    try:
+
+        if not data_table_node:
+            data_table_node = Node(names.DATATABLE)
+
+        if entity_name:
+            entity_name_node = Node(names.ENTITYNAME, parent=data_table_node)
+            entity_name_node.content = entity_name
+            data_table_node.add_child(entity_name_node)
+
+        if entity_description:
+            entity_description_node = Node(names.ENTITYDESCRIPTION, parent=data_table_node)
+            entity_description_node.content = entity_description
+            data_table_node.add_child(entity_description_node)
+
+        if object_name or size or num_header_lines or \
+           record_delimiter or attribute_orientation or \
+           field_delimiter or online_url:
+
+            physical_node = Node(names.PHYSICAL, parent=data_table_node)
+            data_table_node.add_child(physical_node)
+
+            if object_name:
+                object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+                object_name_node.content = object_name
+                physical_node.add_child(object_name_node)
+
+            if size:
+                size_node = Node(names.SIZE, parent=physical_node)
+                size_node.content = size
+                physical_node.add_child(size_node)
+
+            if num_header_lines or record_delimiter or \
+               attribute_orientation or field_delimiter:
+
+                data_format_node = Node(names.DATAFORMAT, parent=physical_node)
+                physical_node.add_child(data_format_node)
+    
+                text_format_node = Node(names.TEXTFORMAT, parent=data_format_node)
+                data_format_node.add_child(text_format_node)
+
+                if num_header_lines:
+                    num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
+                    num_header_lines_node.content = num_header_lines
+                    text_format_node.add_child(num_header_lines_node)
+                
+                if record_delimiter:
+                    record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
+                    record_delimiter_node.content = record_delimiter
+                    text_format_node.add_child(record_delimiter_node)
+
+                if attribute_orientation:
+                    attribute_orientation_node = Node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
+                    attribute_orientation_node.content = attribute_orientation
+                    text_format_node.add_child(attribute_orientation_node)
+
+                if field_delimiter:
+                    simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
+                    text_format_node.add_child(simple_delimited_node)
+
+                    field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
+                    field_delimiter_node.content = field_delimiter
+                    simple_delimited_node.add_child(field_delimiter_node)
+
+            if online_url:
+                distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
+                physical_node.add_child(distribution_node)
+
+                online_node = Node(names.ONLINE, parent=distribution_node)
+                distribution_node.add_child(online_node)
+
+                url_node = Node(names.URL, parent=online_node)
+                url_node.content = online_url
+                online_node.add_child(url_node)
+
+        if case_sensitive:
+            case_sensitive_node = Node(names.CASESENSITIVE, parent=data_table_node)
+            case_sensitive_node.content = case_sensitive
+            data_table_node.add_child(case_sensitive_node)
+
+        if number_of_records:
+            number_of_records_node = Node(names.NUMBEROFRECORDS, parent=data_table_node)
+            number_of_records_node.content = number_of_records
+            data_table_node.add_child(number_of_records_node)
+
+        return data_table_node
+
+    except Exception as e:
+        logger.error(e)
 
 
 def create_title(title=None, packageid=None):

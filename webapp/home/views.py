@@ -132,9 +132,33 @@ def data_table(packageid=None, node_id=None):
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
 
+            entity_name = form.entity_name.data
+            entity_description = form.entity_description.data
+            object_name = form.object_name.data
+            size = form.size.data
+            num_header_lines = form.num_header_lines.data
+            record_delimiter = form.record_delimiter.data
+            attribute_orientation = form.attribute_orientation.data
+            field_delimiter = form.field_delimiter.data
+            case_sensitive = form.case_sensitive.data
+            number_of_records = form.number_of_records.data
+            online_url = form.online_url.data
+
             dt_node = Node(names.DATATABLE, parent=dataset_node)
 
-            create_data_table(dt_node)
+            create_data_table(
+                dt_node, 
+                entity_name,
+                entity_description,
+                object_name,
+                size,
+                num_header_lines,
+                record_delimiter,
+                attribute_orientation,
+                field_delimiter,
+                case_sensitive,
+                number_of_records,
+                online_url)
 
             if node_id and len(node_id) != 1:
                 old_dt_node = Node.get_node_instance(node_id)

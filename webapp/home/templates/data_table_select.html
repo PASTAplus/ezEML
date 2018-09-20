@@ -10,7 +10,6 @@
                 <table class="table table-striped">
                     <tr>
                         <th>Entity Name</th>
-                        <th>Object Name</th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -18,8 +17,7 @@
                     </tr>
                     {% for dt_entry in dt_list %}
                     <tr>
-                        <td>{{ dt_entry.entity_name }}</td>
-                        <td>{{ dt_entry.object_name }}</td>
+                        <td>{{ dt_entry.label }}</td>
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="{{ dt_entry.upval }}"/></td>
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="{{ dt_entry.downval }}"/></td>
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>

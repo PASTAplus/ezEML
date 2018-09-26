@@ -28,6 +28,16 @@ class AbstractForm(FlaskForm):
     abstract = StringField('Abstract', widget=TextArea(), validators=[])
 
 
+class AttributeSelectForm(FlaskForm):
+    pass
+
+
+class AttributeForm(FlaskForm):
+    attribute_name = StringField('Name', validators=[])
+    attribute_label = StringField('Label (Optional)', validators=[])
+    attribute_definition = StringField('Definition', validators=[])
+
+
 class CreateEMLForm(FlaskForm):
     packageid = StringField('Package ID', validators=[DataRequired()])
 

@@ -26,7 +26,8 @@ from webapp.home.forms import (
     GeographicCoverageSelectForm, GeographicCoverageForm,
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
-    DataTableSelectForm, DataTableForm
+    DataTableSelectForm, DataTableForm,
+    AttributeSelectForm, AttributeForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -38,7 +39,8 @@ from webapp.home.metapype_client import (
     list_geographic_coverages, create_geographic_coverage, 
     create_temporal_coverage, list_temporal_coverages, 
     create_taxonomic_coverage, list_taxonomic_coverages,
-    create_data_table, list_data_tables,
+    create_data_table, list_data_tables, 
+    create_attribute, list_attributes,
     move_up, move_down, 
     UP_ARROW, DOWN_ARROW
 )
@@ -117,6 +119,8 @@ def data_table(packageid=None, node_id=None):
     if request.method == 'POST':
         if 'Save Changes' in request.form:
             submit_type = 'Save Changes'
+        elif 'Attributes' in request.form:
+            submit_type = 'Attributes'
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
@@ -125,9 +129,10 @@ def data_table(packageid=None, node_id=None):
 
     # Process POST
     if form.validate_on_submit():
+        eml_node = load_eml(packageid=packageid)
+        next_page = 'home.data_table_select'
+        
         if submit_type == 'Save Changes':
-            eml_node = load_eml(packageid=packageid)
-
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
@@ -172,8 +177,11 @@ def data_table(packageid=None, node_id=None):
                 add_child(dataset_node, dt_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
+        elif submit_type == 'Attributes':
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            next_page = 'home.attribute_select'
 
-        return redirect(url_for('home.data_table_select', packageid=packageid))
+        return redirect(url_for(next_page, packageid=packageid, node_id=node_id))
 
     # Process GET
     if node_id == '1':
@@ -253,6 +261,185 @@ def populate_data_table_form(form:DataTableForm, node:Node):
     number_of_records_node = node.find_child(names.NUMBEROFRECORDS)
     if number_of_records_node:
         form.number_of_records.data = number_of_records_node.content
+
+
+@home.route('/attribute_select/<packageid>/<node_id>', methods=['GET', 'POST'])
+def attribute_select(packageid=None, node_id=None):
+    form = AttributeSelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = attribute_select_post(packageid, form, form_dict, 
+                             'POST', 'attribute_select', 'data_table', 
+                             'data_table', 'attribute', dt_node_id=node_id)
+        return redirect(url)
+
+    # Process GET
+    return attribute_select_get(packageid=packageid, form=form, node_id=node_id)
+
+
+def attribute_select_get(packageid=None, form=None, node_id=None):
+    # Process GET
+    att_list = []
+    title = 'Attributes'
+
+    data_table_node = Node.get_node_instance(node_id)
+    if data_table_node:
+        att_list = list_attributes(data_table_node)
+    return render_template('attribute_select.html', title=title, att_list=att_list, form=form)
+
+
+def attribute_select_post(packageid=None, form=None, form_dict=None,
+                          method=None, this_page=None, back_page=None, 
+                          next_page=None, edit_page=None,
+                          dt_node_id=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == UP_ARROW:
+                new_page = this_page
+                node_id = key
+                process_up_button(packageid, node_id)
+            elif val == DOWN_ARROW:
+                new_page = this_page
+                node_id = key
+                process_down_button(packageid, node_id)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+            elif val == '[  ]':
+                new_page = this_page
+                node_id = key
+
+    if form.validate_on_submit():  
+        if new_page == edit_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id, 
+                            node_id=node_id)
+        else:
+            return url_for(f'home.{new_page}', 
+                           packageid=packageid,
+                           node_id=dt_node_id)
+
+
+@home.route('/attribute/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def attribute(packageid=None, dt_node_id=None, node_id=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+        else:
+            submit_type = None
+    form = AttributeForm(packageid=packageid, node_id=node_id)
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            dt_node = None
+            attribute_list_node = None
+            eml_node = load_eml(packageid=packageid)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if dt_node:
+                attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            else:
+                dt_node = Node(names.DATATABLE, parent=dataset_node)
+
+            if not attribute_list_node:
+                attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
+                dt_node.add_child(attribute_list_node)
+
+            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
+            attribute_name = form.attribute_name.data
+            attribute_label = form.attribute_label.data
+            attribute_definition = form.attribute_definition.data
+
+            create_attribute(att_node, 
+                             attribute_name,
+                             attribute_label,
+                             attribute_definition)
+
+            if node_id and len(node_id) != 1:
+                old_att_node = Node.get_node_instance(node_id)
+                if old_att_node:
+                    att_parent_node = old_att_node.parent
+                    att_parent_node.replace_child(old_att_node, att_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(attribute_list_node, att_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        next_page = 'home.attribute_select'
+
+        url = url_for(next_page, packageid=packageid, node_id=dt_node_id)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        if attribute_list_node:
+                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
+                            if att_nodes:
+                                for att_node in att_nodes:
+                                    if node_id == att_node.id:
+                                        populate_attribute_form(form, att_node)
+    
+    return render_template('attribute.html', title='Attribute', form=form)
+
+
+def populate_attribute_form(form:AttributeForm, node:Node):    
+    attribute_name_node = node.find_child(names.ATTRIBUTENAME)
+    if attribute_name_node:
+        form.attribute_name.data = attribute_name_node.content
+    
+    attribute_label_node = node.find_child(names.ATTRIBUTELABEL)
+    if attribute_label_node:
+        form.attribute_label.data = attribute_label_node.content
+
+    attribute_definition_node = node.find_child(names.ATTRIBUTEDEFINITION)
+    if attribute_definition_node:
+        form.attribute_definition.data = attribute_definition_node.content
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])
@@ -804,7 +991,7 @@ def select_post(packageid=None, form=None, form_dict=None,
                 node_id = key
 
     if form.validate_on_submit():   
-        return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
+       return url_for(f'home.{new_page}', packageid=packageid, node_id=node_id)
 
 
 @home.route('/temporal_coverage_select/<packageid>', methods=['GET', 'POST'])

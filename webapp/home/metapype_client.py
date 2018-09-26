@@ -60,6 +60,39 @@ def compose_data_table_label(dt_node:Node=None):
     return label
 
 
+def list_attributes(data_table_node:Node=None):
+    att_list = []
+    if data_table_node:
+        attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
+        if attribute_list_node:
+            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
+            ATT_Entry = collections.namedtuple(
+                'ATT_Entry', 
+                ["id", "label", "upval", "downval"],
+                verbose=False, rename=False)
+            for i, att_node in enumerate(att_nodes):
+                id = att_node.id
+                label = compose_attribute_label(att_node)
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(att_nodes))
+                att_entry = ATT_Entry(id=id,
+                                      label=label,
+                                      upval=upval, 
+                                      downval=downval)
+                att_list.append(att_entry)
+    return att_list
+
+
+def compose_attribute_label(att_node:Node=None):
+    label = ''
+    if att_node:
+        attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+        if attribute_name_node:
+            attribute_name = attribute_name_node.content 
+            label = attribute_name
+    return label
+
+
 def list_responsible_parties(eml_node:Node=None, node_name:str=None):
     rp_list = []
     if eml_node:
@@ -485,6 +518,27 @@ def create_data_table(
 
     except Exception as e:
         logger.error(e)
+
+
+def create_attribute(attribute_node:Node=None, 
+                     attribute_name:str=None,
+                     attribute_label:str=None,
+                     attribute_definition:str=None):
+    if attribute_node:
+        try:
+            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
+            attribute_name_node.content = attribute_name
+            attribute_node.add_child(attribute_name_node)
+            
+            attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
+            attribute_label_node.content = attribute_label
+            attribute_node.add_child(attribute_label_node)
+            
+            attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+            attribute_definition_node.content = attribute_definition
+            attribute_node.add_child(attribute_definition_node)
+        except Exception as e:
+            logger.error(e)
 
 
 def create_title(title=None, packageid=None):

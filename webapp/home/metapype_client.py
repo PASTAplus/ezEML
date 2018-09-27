@@ -60,6 +60,17 @@ def compose_data_table_label(dt_node:Node=None):
     return label
 
 
+def entity_name_from_data_table(dt_node:Node=None):
+    entity_name = ''
+
+    if dt_node:
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            entity_name = entity_name_node.content
+
+    return entity_name
+    
+
 def list_attributes(data_table_node:Node=None):
     att_list = []
     if data_table_node:

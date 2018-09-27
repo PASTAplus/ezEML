@@ -41,6 +41,7 @@ from webapp.home.metapype_client import (
     create_taxonomic_coverage, list_taxonomic_coverages,
     create_data_table, list_data_tables, 
     create_attribute, list_attributes,
+    entity_name_from_data_table,
     move_up, move_down, 
     UP_ARROW, DOWN_ARROW
 )
@@ -115,6 +116,7 @@ def data_table_select_get(packageid=None, form=None):
 
 @home.route('/data_table/<packageid>/<node_id>', methods=['GET', 'POST'])
 def data_table(packageid=None, node_id=None):
+    dt_node_id = node_id
     # Determine POST type
     if request.method == 'POST':
         if 'Save Changes' in request.form:
@@ -165,13 +167,13 @@ def data_table(packageid=None, node_id=None):
                 number_of_records,
                 online_url)
 
-            if node_id and len(node_id) != 1:
-                old_dt_node = Node.get_node_instance(node_id)
+            if dt_node_id and len(dt_node_id) != 1:
+                old_dt_node = Node.get_node_instance(dt_node_id)
                 if old_dt_node:
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
                 else:
-                    msg = f"No node found in the node store with node id {node_id}"
+                    msg = f"No node found in the node store with node id {dt_node_id}"
                     raise Exception(msg)
             else:
                 add_child(dataset_node, dt_node)
@@ -181,10 +183,10 @@ def data_table(packageid=None, node_id=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
             next_page = 'home.attribute_select'
 
-        return redirect(url_for(next_page, packageid=packageid, node_id=node_id))
+        return redirect(url_for(next_page, packageid=packageid, dt_node_id=dt_node_id))
 
     # Process GET
-    if node_id == '1':
+    if dt_node_id == '1':
         pass
     else:
         eml_node = load_eml(packageid=packageid)
@@ -193,7 +195,7 @@ def data_table(packageid=None, node_id=None):
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             if dt_nodes:
                 for dt_node in dt_nodes:
-                    if node_id == dt_node.id:
+                    if dt_node_id == dt_node.id:
                         populate_data_table_form(form, dt_node)
     
     return render_template('data_table.html', title='Data Table', form=form)
@@ -263,8 +265,11 @@ def populate_data_table_form(form:DataTableForm, node:Node):
         form.number_of_records.data = number_of_records_node.content
 
 
-@home.route('/attribute_select/<packageid>/<node_id>', methods=['GET', 'POST'])
-def attribute_select(packageid=None, node_id=None):
+# <dt_node_id> identifies the dataTable node that this attribute
+# is a part of (within its attributeList)
+#
+@home.route('/attribute_select/<packageid>/<dt_node_id>', methods=['GET', 'POST'])
+def attribute_select(packageid=None, dt_node_id=None):
     form = AttributeSelectForm(packageid=packageid)
     
     # Process POST
@@ -273,22 +278,24 @@ def attribute_select(packageid=None, node_id=None):
         form_dict = form_value.to_dict(flat=False)
         url = attribute_select_post(packageid, form, form_dict, 
                              'POST', 'attribute_select', 'data_table', 
-                             'data_table', 'attribute', dt_node_id=node_id)
+                             'data_table', 'attribute', dt_node_id=dt_node_id)
         return redirect(url)
 
     # Process GET
-    return attribute_select_get(packageid=packageid, form=form, node_id=node_id)
+    return attribute_select_get(packageid=packageid, form=form, dt_node_id=dt_node_id)
 
 
-def attribute_select_get(packageid=None, form=None, node_id=None):
+def attribute_select_get(packageid=None, form=None, dt_node_id=None):
     # Process GET
     att_list = []
     title = 'Attributes'
+    entity_name = ''
 
-    data_table_node = Node.get_node_instance(node_id)
+    data_table_node = Node.get_node_instance(dt_node_id)
     if data_table_node:
+        entity_name = entity_name_from_data_table(data_table_node)
         att_list = list_attributes(data_table_node)
-    return render_template('attribute_select.html', title=title, att_list=att_list, form=form)
+    return render_template('attribute_select.html', title=title, entity_name=entity_name, att_list=att_list, form=form)
 
 
 def attribute_select_post(packageid=None, form=None, form_dict=None,
@@ -334,6 +341,10 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                             packageid=packageid, 
                             dt_node_id=dt_node_id, 
                             node_id=node_id)
+        elif new_page == this_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id)
         else:
             return url_for(f'home.{new_page}', 
                            packageid=packageid,
@@ -403,7 +414,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
 
         next_page = 'home.attribute_select'
 
-        url = url_for(next_page, packageid=packageid, node_id=dt_node_id)
+        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id)
         return redirect(url)
 
     # Process GET

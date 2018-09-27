@@ -2,7 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Attributes for ENTITY_NAME</h1>
+    <h1>Attributes for {{ entity_name }}</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
@@ -26,9 +26,8 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Attribute"/><br/><br/><br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Attribute"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
-                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
             </form>
         </div>
     </div>

@@ -393,11 +393,15 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             attribute_name = form.attribute_name.data
             attribute_label = form.attribute_label.data
             attribute_definition = form.attribute_definition.data
+            storage_type = form.storage_type.data
+            storage_type_system = form.storage_type_system.data
 
             create_attribute(att_node, 
                              attribute_name,
                              attribute_label,
-                             attribute_definition)
+                             attribute_definition,
+                             storage_type,
+                             storage_type_system)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(node_id)
@@ -451,6 +455,13 @@ def populate_attribute_form(form:AttributeForm, node:Node):
     attribute_definition_node = node.find_child(names.ATTRIBUTEDEFINITION)
     if attribute_definition_node:
         form.attribute_definition.data = attribute_definition_node.content
+
+    storage_type_node = node.find_child(names.STORAGETYPE)
+    if storage_type_node:
+        form.storage_type.data = storage_type_node.content
+        storage_type_system_att = storage_type_node.attribute_value('typeSystem')
+        if storage_type_system_att:
+            form.storage_type_system.data = storage_type_system_att
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])

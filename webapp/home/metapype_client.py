@@ -534,7 +534,9 @@ def create_data_table(
 def create_attribute(attribute_node:Node=None, 
                      attribute_name:str=None,
                      attribute_label:str=None,
-                     attribute_definition:str=None):
+                     attribute_definition:str=None,
+                     storage_type:str=None,
+                     storage_type_system:str=None):
     if attribute_node:
         try:
             attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
@@ -548,6 +550,13 @@ def create_attribute(attribute_node:Node=None,
             attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             attribute_definition_node.content = attribute_definition
             attribute_node.add_child(attribute_definition_node)
+
+            storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
+            storage_type_node.content = storage_type
+            if storage_type_system:
+                storage_type_node.add_attribute('typeSystem', storage_type_system)
+            attribute_node.add_child(storage_type_node)
+
         except Exception as e:
             logger.error(e)
 

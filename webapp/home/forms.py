@@ -36,6 +36,8 @@ class AttributeForm(FlaskForm):
     attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])
+    storage_type = StringField('Storage Type (Optional)', validators=[])
+    storage_type_system = StringField('Storage Type System (Optional)', validators=[])
 
 
 class CreateEMLForm(FlaskForm):

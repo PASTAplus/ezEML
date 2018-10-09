@@ -268,10 +268,11 @@ def populate_data_table_form(form:DataTableForm, node:Node):
 # <dt_node_id> identifies the dataTable node that this attribute
 # is a part of (within its attributeList)
 #
-@home.route('/attribute_select/<packageid>/<dt_node_id>', methods=['GET', 'POST'])
-def attribute_select(packageid=None, dt_node_id=None):
+@home.route('/attribute_select/<packageid>', methods=['GET', 'POST'])
+def attribute_select(packageid=None):
     form = AttributeSelectForm(packageid=packageid)
-    
+    dt_node_id = request.args.get('dt_node_id')
+
     # Process POST
     if request.method == 'POST':
         form_value = request.form

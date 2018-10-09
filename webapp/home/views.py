@@ -291,6 +291,7 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
     att_list = []
     title = 'Attributes'
     entity_name = ''
+    eml_node = load_eml(packageid=packageid)
 
     data_table_node = Node.get_node_instance(dt_node_id)
     if data_table_node:

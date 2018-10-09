@@ -448,82 +448,82 @@ def create_data_table(
         if entity_name:
             entity_name_node = Node(names.ENTITYNAME, parent=data_table_node)
             entity_name_node.content = entity_name
-            data_table_node.add_child(entity_name_node)
+            add_child(data_table_node, entity_name_node)
 
         if entity_description:
             entity_description_node = Node(names.ENTITYDESCRIPTION, parent=data_table_node)
             entity_description_node.content = entity_description
-            data_table_node.add_child(entity_description_node)
+            add_child(data_table_node, entity_description_node)
 
         if object_name or size or num_header_lines or \
            record_delimiter or attribute_orientation or \
            field_delimiter or online_url:
 
             physical_node = Node(names.PHYSICAL, parent=data_table_node)
-            data_table_node.add_child(physical_node)
+            add_child(data_table_node, physical_node)
 
             if object_name:
                 object_name_node = Node(names.OBJECTNAME, parent=physical_node)
                 object_name_node.content = object_name
-                physical_node.add_child(object_name_node)
+                add_child(physical_node, object_name_node)
 
             if size:
                 size_node = Node(names.SIZE, parent=physical_node)
                 size_node.content = size
-                physical_node.add_child(size_node)
+                add_child(physical_node, size_node)
 
             if num_header_lines or record_delimiter or \
                attribute_orientation or field_delimiter:
 
                 data_format_node = Node(names.DATAFORMAT, parent=physical_node)
-                physical_node.add_child(data_format_node)
+                add_child(physical_node, data_format_node)
     
                 text_format_node = Node(names.TEXTFORMAT, parent=data_format_node)
-                data_format_node.add_child(text_format_node)
+                add_child(data_format_node, text_format_node)
 
                 if num_header_lines:
                     num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
                     num_header_lines_node.content = num_header_lines
-                    text_format_node.add_child(num_header_lines_node)
+                    add_child(text_format_node, num_header_lines_node)
                 
                 if record_delimiter:
                     record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
                     record_delimiter_node.content = record_delimiter
-                    text_format_node.add_child(record_delimiter_node)
+                    add_child(text_format_node, record_delimiter_node)
 
                 if attribute_orientation:
                     attribute_orientation_node = Node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
                     attribute_orientation_node.content = attribute_orientation
-                    text_format_node.add_child(attribute_orientation_node)
+                    add_child(text_format_node, attribute_orientation_node)
 
                 if field_delimiter:
                     simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
-                    text_format_node.add_child(simple_delimited_node)
+                    add_child(text_format_node, simple_delimited_node)
 
                     field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
                     field_delimiter_node.content = field_delimiter
-                    simple_delimited_node.add_child(field_delimiter_node)
+                    add_child(simple_delimited_node, field_delimiter_node)
 
             if online_url:
                 distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
-                physical_node.add_child(distribution_node)
+                add_child(physical_node, distribution_node)
 
                 online_node = Node(names.ONLINE, parent=distribution_node)
-                distribution_node.add_child(online_node)
+                add_child(distribution_node, online_node)
 
                 url_node = Node(names.URL, parent=online_node)
                 url_node.content = online_url
-                online_node.add_child(url_node)
+                add_child(online_node, url_node)
 
         if case_sensitive:
             case_sensitive_node = Node(names.CASESENSITIVE, parent=data_table_node)
             case_sensitive_node.content = case_sensitive
-            data_table_node.add_child(case_sensitive_node)
+            add_child(data_table_node, case_sensitive_node)
 
         if number_of_records:
             number_of_records_node = Node(names.NUMBEROFRECORDS, parent=data_table_node)
             number_of_records_node.content = number_of_records
-            data_table_node.add_child(number_of_records_node)
+            add_child(data_table_node, number_of_records_node)
 
         return data_table_node
 
@@ -541,21 +541,21 @@ def create_attribute(attribute_node:Node=None,
         try:
             attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
             attribute_name_node.content = attribute_name
-            attribute_node.add_child(attribute_name_node)
+            add_child(attribute_node, attribute_name_node)
             
             attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
             attribute_label_node.content = attribute_label
-            attribute_node.add_child(attribute_label_node)
+            add_child(attribute_node, attribute_label_node)
             
             attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             attribute_definition_node.content = attribute_definition
-            attribute_node.add_child(attribute_definition_node)
+            add_child(attribute_node, attribute_definition_node)
 
             storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
             storage_type_node.content = storage_type
             if storage_type_system:
                 storage_type_node.add_attribute('typeSystem', storage_type_system)
-            attribute_node.add_child(storage_type_node)
+            add_child(attribute_node, storage_type_node)
 
         except Exception as e:
             logger.error(e)
@@ -811,107 +811,107 @@ def create_taxonomic_coverage(
             
             if kingdom_value:
                 taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
                 taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                add_child(taxonomic_classification_node, taxon_rank_name_node)
                 taxon_rank_name_node.content = 'Kingdom'
                 taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                add_child(taxonomic_classification_node, taxon_rank_value_node)
                 taxon_rank_value_node.content = kingdom_value
                 if kingdom_common_name:
                     common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content=kingdom_common_name
-                    taxonomic_classification_node.add_child(common_name_node)
+                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if phylum_value:
                 taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
                 taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                add_child(taxonomic_classification_node, taxon_rank_name_node)
                 taxon_rank_name_node.content = 'Phylum'
                 taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                add_child(taxonomic_classification_node, taxon_rank_value_node)
                 taxon_rank_value_node.content = phylum_value
                 if phylum_common_name:
                     common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = phylum_common_name
-                    taxonomic_classification_node.add_child(common_name_node)
+                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if class_value:
                 taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
                 taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                add_child(taxonomic_classification_node, taxon_rank_name_node)
                 taxon_rank_name_node.content = 'Class'
                 taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                add_child(taxonomic_classification_node, taxon_rank_value_node)
                 taxon_rank_value_node.content = class_value
                 if class_common_name:
                     common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = class_common_name
-                    taxonomic_classification_node.add_child(common_name_node)
+                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if order_value:
                 taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
                 taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                add_child(taxonomic_classification_node, taxon_rank_name_node)
                 taxon_rank_name_node.content = 'Order'
                 taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                add_child(taxonomic_classification_node, taxon_rank_value_node)
                 taxon_rank_value_node.content = order_value
                 if order_common_name:
                     common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = order_common_name
-                    taxonomic_classification_node.add_child(common_name_node)
+                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if family_value:
                 taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
                 taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                add_child(taxonomic_classification_node, taxon_rank_name_node)
                 taxon_rank_name_node.content = 'Family'
                 taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                add_child(taxonomic_classification_node, taxon_rank_value_node)
                 taxon_rank_value_node.content = family_value
                 if family_common_name:
                     common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = family_common_name
-                    taxonomic_classification_node.add_child(common_name_node)
+                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if genus_value:
                 taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
                 taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                add_child(taxonomic_classification_node, taxon_rank_name_node)
                 taxon_rank_name_node.content = 'Genus'
                 taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                add_child(taxonomic_classification_node, taxon_rank_value_node)
                 taxon_rank_value_node.content = genus_value
                 if genus_common_name:
                     common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = genus_common_name
-                    taxonomic_classification_node.add_child(common_name_node)
+                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if species_value:
                 taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxonomic_classification_parent_node.add_child(taxonomic_classification_node)
+                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
                 taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_name_node)
+                add_child(taxonomic_classification_node, taxon_rank_name_node)
                 taxon_rank_name_node.content = 'Species'
                 taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxonomic_classification_node.add_child(taxon_rank_value_node)
+                add_child(taxonomic_classification_node, taxon_rank_value_node)
                 taxon_rank_value_node.content = species_value
                 if species_common_name:
                     common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = species_common_name
-                    taxonomic_classification_node.add_child(common_name_node)
+                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
         return taxonomic_coverage_node

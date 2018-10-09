@@ -389,7 +389,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
 
             if not attribute_list_node:
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
-                dt_node.add_child(attribute_list_node)
+                add_child(dt_node, attribute_list_node)
 
             att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
             attribute_name = form.attribute_name.data

@@ -7,7 +7,7 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h4>Current Keywords:</h4>
+                <h4>Keywords:</h4>
                 <table class="table table-striped">
                     <th>Keyword</th><th>Keyword Type</th>
                     {% for keyword in keyword_dict %}

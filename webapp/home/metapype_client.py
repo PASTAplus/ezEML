@@ -536,7 +536,8 @@ def create_attribute(attribute_node:Node=None,
                      attribute_label:str=None,
                      attribute_definition:str=None,
                      storage_type:str=None,
-                     storage_type_system:str=None):
+                     storage_type_system:str=None,
+                     code_dict:dict=None):
     if attribute_node:
         try:
             attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
@@ -556,6 +557,21 @@ def create_attribute(attribute_node:Node=None,
             if storage_type_system:
                 storage_type_node.add_attribute('typeSystem', storage_type_system)
             add_child(attribute_node, storage_type_node)
+
+            if code_dict:
+                for key in code_dict:
+                    if code_dict[key]:
+                        code = key
+                        code_explanation = code_dict[key]
+                        if code and code_explanation:
+                            mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
+                            add_child(attribute_node, mvc_node)
+                            code_node = Node(names.CODE, parent=mvc_node)
+                            code_node.content = code
+                            add_child(mvc_node, code_node)
+                            code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
+                            code_explanation_node.content = code_explanation
+                            add_child(mvc_node, code_explanation_node)
 
         except Exception as e:
             logger.error(e)

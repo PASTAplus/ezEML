@@ -13,6 +13,12 @@
                 {{ wtf.form_field(form.attribute_definition) }}
                 {{ wtf.form_field(form.storage_type) }}
                 {{ wtf.form_field(form.storage_type_system) }}
+                <h5>Optionally, enter up to 3 missing value codes with accompanying explanations:</h5>
+                <table>
+                    <tr><td>{{ wtf.form_field(form.code_1) }}</td><td>&nbsp;</td><td>{{ wtf.form_field(form.code_explanation_1) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.code_2) }}</td><td>&nbsp;</td><td>{{ wtf.form_field(form.code_explanation_2) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.code_3) }}</td><td>&nbsp;</td><td>{{ wtf.form_field(form.code_explanation_3) }}</td></tr>
+                </table>
                 <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Clear" type="reset" value="Clear"/>

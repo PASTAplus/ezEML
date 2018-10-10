@@ -291,7 +291,7 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
     att_list = []
     title = 'Attributes'
     entity_name = ''
-    eml_node = load_eml(packageid=packageid)
+    load_eml(packageid=packageid)
 
     data_table_node = Node.get_node_instance(dt_node_id)
     if data_table_node:
@@ -398,12 +398,31 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             storage_type = form.storage_type.data
             storage_type_system = form.storage_type_system.data
 
+            code_dict = {}
+
+            code_1 = form.code_1.data
+            code_explanation_1 = form.code_explanation_1.data
+            if code_1:
+                code_dict[code_1] = code_explanation_1
+
+            code_2 = form.code_2.data
+            code_explanation_2 = form.code_explanation_2.data
+            if code_2:
+                code_dict[code_2] = code_explanation_2
+
+            code_3 = form.code_3.data
+            code_explanation_3 = form.code_explanation_3.data
+            if code_3:
+                code_dict[code_3] = code_explanation_3
+
+
             create_attribute(att_node, 
                              attribute_name,
                              attribute_label,
                              attribute_definition,
                              storage_type,
-                             storage_type_system)
+                             storage_type_system,
+                             code_dict)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(node_id)
@@ -464,7 +483,30 @@ def populate_attribute_form(form:AttributeForm, node:Node):
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
         if storage_type_system_att:
             form.storage_type_system.data = storage_type_system_att
-
+    
+    mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
+    if mvc_nodes and len(mvc_nodes) > 0:
+        i = 1
+        for mvc_node in mvc_nodes:
+            code = ''
+            code_explanation = ''
+            code_node = mvc_node.find_child(names.CODE)
+            code_explanation_node = mvc_node.find_child(names.CODEEXPLANATION)
+            if code_node:
+                code = code_node.content
+            if code_explanation_node:
+                code_explanation = code_explanation_node.content
+            if i == 1:
+                form.code_1.data = code
+                form.code_explanation_1.data = code_explanation
+            elif i == 2:
+                form.code_2.data = code
+                form.code_explanation_2.data = code_explanation
+            elif i == 3:
+                form.code_3.data = code
+                form.code_explanation_3.data = code_explanation
+            i = i + 1
+            
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])
 def title(packageid=None):

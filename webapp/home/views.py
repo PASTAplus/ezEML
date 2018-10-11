@@ -26,8 +26,8 @@ from webapp.home.forms import (
     GeographicCoverageSelectForm, GeographicCoverageForm,
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
-    DataTableSelectForm, DataTableForm,
-    AttributeSelectForm, AttributeForm
+    DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
+    MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -268,10 +268,10 @@ def populate_data_table_form(form:DataTableForm, node:Node):
 # <dt_node_id> identifies the dataTable node that this attribute
 # is a part of (within its attributeList)
 #
-@home.route('/attribute_select/<packageid>', methods=['GET', 'POST'])
-def attribute_select(packageid=None):
+@home.route('/attribute_select/<packageid>/<dt_node_id>', methods=['GET', 'POST'])
+def attribute_select(packageid=None, dt_node_id=None):
     form = AttributeSelectForm(packageid=packageid)
-    dt_node_id = request.args.get('dt_node_id')
+    #dt_node_id = request.args.get('dt_node_id')
 
     # Process POST
     if request.method == 'POST':
@@ -355,18 +355,21 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
 
 @home.route('/attribute/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
 def attribute(packageid=None, dt_node_id=None, node_id=None):
+    form = AttributeForm(packageid=packageid, node_id=node_id)
+
     # Determine POST type
     if request.method == 'POST':
+        next_page = 'home.attribute_select' # Save or Back sends us back to the list of attributes
+
         if 'Save Changes' in request.form:
             submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
-            submit_type = None
-    form = AttributeForm(packageid=packageid, node_id=node_id)
+            submit_type = 'mscale'
+            next_page = 'home.mscaleNominalOrdinal'
 
     # Process POST
-    if form.validate_on_submit():
         if submit_type == 'Save Changes':
             dt_node = None
             attribute_list_node = None
@@ -437,9 +440,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        next_page = 'home.attribute_select'
-
-        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id)
+        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
         return redirect(url)
 
     # Process GET
@@ -507,6 +508,93 @@ def populate_attribute_form(form:AttributeForm, node:Node):
                 form.code_explanation_3.data = code_explanation
             i = i + 1
             
+
+@home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
+    form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        if attribute_list_node:
+                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
+                            if att_nodes:
+                                for att_node in att_nodes:
+                                    if node_id == att_node.id:
+                                        populate_nominal_ordinal(form, att_node)
+    
+    return render_template('mscale_nominal_ordinal.html', 
+                           title='Measurement Scale', 
+                           form=form,
+                           nominal_or_ordinal='Nominal',
+                           attribute_name = 'Sample Nominal Attribute')
+
+
+@home.route('/mscaleIntervalRation/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
+    form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+
+
+@home.route('/mscaleDateTime/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
+    form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+
+
+def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):    
+    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    if mscale_node:
+        node = mscale_node.find_child(names.NOMINAL)
+        if not node:
+            node = mscale_node.find_child(names.ORDINAL)
+
+        if node:
+            enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
+
+            if enumerated_domain_node:
+                enforced_bool = True
+                enforced = enumerated_domain_node.attribute_value('enforced')
+                if enforced and enforced.upper() == 'NO':
+                    enforced_bool = False
+
+                if enforced_bool:
+                    form.enforced.data = 'Yes'
+                else:
+                    form.enforced.data = 'No'
+    
+                cd_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
+                if cd_nodes and len(cd_nodes) > 0:
+                    for code_definition_node in cd_nodes:
+
+                        code = ''
+                        code_node = code_definition_node.find_child(names.CODE)
+                        if code_node:
+                            code = code_node.content
+
+                        definition = ''
+                        definition_node = code_definition_node.find_child(names.DEFINITION)               
+                        if definition_node:
+                            definition = definition_node.content
+
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])
 def title(packageid=None):

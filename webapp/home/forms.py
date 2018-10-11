@@ -38,8 +38,14 @@ class AttributeForm(FlaskForm):
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
+    mscale = SelectField('Measurement Scale', choices=[("nominal", "nominal"), 
+                                                       ("ordinal", "ordinal"), 
+                                                       ("interval", "interval"), 
+                                                       ("ratio", "ratio"), 
+                                                       ("dateTime", "dateTime")
+                                                      ])
     code_1 = StringField('1. Code', validators=[])
-    code_explanation_1 = StringField('Explanation', validators=[])
+    code_explanation_1 = StringField('Explanation', validators=[]) 
     code_2 = StringField('2. Code', validators=[])
     code_explanation_2 = StringField('Explanation', validators=[])
     code_3 = StringField('3. Code', validators=[])
@@ -92,6 +98,20 @@ class KeywordsForm(FlaskForm):
                                         ("temporal", "temporal"), 
                                         ("theme", "theme")])
 
+class MscaleNominalOrdinalForm(FlaskForm):
+    enforced = SelectField('Values listed below are the only allowable values for the domain', 
+                            choices=[("Yes", "Yes, enforce the set of values I specify below"), 
+                                     ("No", "No, allow other values")
+                                    ])
+
+
+class MscaleIntervalRatioForm(FlaskForm):
+    pass
+    
+
+class MscaleDateTimeForm(FlaskForm):
+    pass
+    
 
 class PubDateForm(FlaskForm):
     pubdate = StringField('Publication Date', validators=[])

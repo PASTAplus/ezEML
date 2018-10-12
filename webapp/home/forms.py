@@ -52,6 +52,15 @@ class AttributeForm(FlaskForm):
     code_explanation_3 = StringField('Explanation', validators=[])
 
 
+class CodeDefinitionSelectForm(FlaskForm):
+    pass
+
+
+class CodeDefinitionForm(FlaskForm):
+    code = StringField('Code', validators=[])
+    definition = StringField('Definition', validators=[])
+
+
 class CreateEMLForm(FlaskForm):
     packageid = StringField('Package ID', validators=[DataRequired()])
 
@@ -99,9 +108,9 @@ class KeywordsForm(FlaskForm):
                                         ("theme", "theme")])
 
 class MscaleNominalOrdinalForm(FlaskForm):
-    enforced = SelectField('Values listed below are the only allowable values for the domain', 
-                            choices=[("Yes", "Yes, enforce the set of values I specify below"), 
-                                     ("No", "No, allow other values")
+    enforced = SelectField('Codes listed are the only allowable code values for the domain', 
+                            choices=[("Yes", "Yes, enforce the code values I've listed here"), 
+                                     ("No", "No, other code values are allowed")
                                     ])
 
 

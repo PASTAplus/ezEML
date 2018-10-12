@@ -60,6 +60,61 @@ def compose_data_table_label(dt_node:Node=None):
     return label
 
 
+def list_codes_and_definitions(att_node:Node=None):
+    codes_list = []
+    if att_node:
+        measurement_scale_node = att_node.find_child(names.MEASUREMENTSCALE)
+        if measurement_scale_node:
+            nominal_ordinal_node = None
+            nominal_node = measurement_scale_node.find_child(names.NOMINAL)
+            if nominal_node:
+                nominal_ordinal_node = nominal_node
+            else:
+                nominal_ordinal_node = measurement_scale_node.find_child(names.ORDINAL)
+
+            if nominal_ordinal_node:
+                non_number_domain_node = nominal_ordinal_node.find_child(names.NONNUMERICDOMAIN)
+                if non_number_domain_node:
+                    enumerated_domain_node = non_number_domain_node.find_child(names.ENUMERATEDDOMAIN)
+                    if enumerated_domain_node:
+                        code_definition_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
+
+                        Code_Definition_Entry = collections.namedtuple(
+                                        'Code_Definition_Entry', 
+                                        ["id", "code", "definition", "upval", "downval"],
+                                        verbose=False, 
+                                        rename=False)
+            
+                        for i, cd_node in enumerate(code_definition_nodes):
+                            id = cd_node.id
+                            code, definition = compose_code_definition(cd_node)
+                            upval = get_upval(i)
+                            downval = get_downval(i+1, len(code_definition_nodes))
+                            cd_entry = Code_Definition_Entry(
+                                            id=id,
+                                            code=code,
+                                            definition=definition,
+                                            upval=upval, 
+                                            downval=downval)
+                            codes_list.append(cd_entry)
+    return codes_list
+
+
+def compose_code_definition(code_definition_node:Node=None):
+    code = ''
+    definition = ''
+
+    if code_definition_node:
+        code_node = code_definition_node.find_child(names.CODE)
+        if code_node:
+            code = code_node.content
+        definition_node = code_definition_node.find_child(names.DEFINITION)
+        if definition_node:
+            definition = definition_node.content
+
+    return code, definition
+
+
 def entity_name_from_data_table(dt_node:Node=None):
     entity_name = ''
 
@@ -69,6 +124,34 @@ def entity_name_from_data_table(dt_node:Node=None):
             entity_name = entity_name_node.content
 
     return entity_name
+    
+
+def attribute_name_from_attribute(att_node:Node=None):
+    attribute_name = ''
+
+    if att_node:
+        attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+        if attribute_name_node:
+            attribute_name = attribute_name_node.content
+
+    return attribute_name
+
+
+def enumerated_domain_from_attribute(att_node:Node=None):
+    enumerated_domain_node = None
+
+    if att_node:
+        nominal_or_ordinal_node = att_node.find_child(names.NOMINAL)
+        if not nominal_or_ordinal_node:
+            nominal_or_ordinal_node = att_node.find_child(names.ORDINAL)
+        
+        if nominal_or_ordinal_node:
+            non_numeric_domain_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
+
+            if non_numeric_domain_node:
+                enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
+
+    return enumerated_domain_node
     
 
 def list_attributes(data_table_node:Node=None):
@@ -575,6 +658,18 @@ def create_attribute(attribute_node:Node=None,
 
         except Exception as e:
             logger.error(e)
+
+
+def create_code_definition(code_definition_node:Node=None,
+                           code:str='',
+                           definition:str=''):
+    if code_definition_node:
+        code_node = Node(names.CODE, parent=code_definition_node)
+        code_node.content = code_node
+        add_child(code_definition_node, code_node)
+        definition_node = Node(names.DEFINITION, parent=code_definition_node)
+        definition_node.content = definition
+        add_child(code_definition_node, definition_node)
 
 
 def create_title(title=None, packageid=None):

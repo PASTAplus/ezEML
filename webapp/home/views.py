@@ -27,7 +27,8 @@ from webapp.home.forms import (
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
     DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
-    MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm
+    MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm,
+    CodeDefinitionSelectForm, CodeDefinitionForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -41,9 +42,10 @@ from webapp.home.metapype_client import (
     create_taxonomic_coverage, list_taxonomic_coverages,
     create_data_table, list_data_tables, 
     create_attribute, list_attributes,
-    entity_name_from_data_table,
-    move_up, move_down, 
-    UP_ARROW, DOWN_ARROW
+    entity_name_from_data_table, attribute_name_from_attribute,
+    list_codes_and_definitions, enumerated_domain_from_attribute,
+    create_code_definition,
+    move_up, move_down, UP_ARROW, DOWN_ARROW
 )
 
 from metapype.eml2_1_1 import export
@@ -271,7 +273,7 @@ def populate_data_table_form(form:DataTableForm, node:Node):
 @home.route('/attribute_select/<packageid>/<dt_node_id>', methods=['GET', 'POST'])
 def attribute_select(packageid=None, dt_node_id=None):
     form = AttributeSelectForm(packageid=packageid)
-    #dt_node_id = request.args.get('dt_node_id')
+    #dt_node_id = request.args.get('dt_node_id')  # alternate way to get the id
 
     # Process POST
     if request.method == 'POST':
@@ -516,7 +518,10 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
     if request.method == 'POST':
         next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
 
-        if 'Save Changes' in request.form:
+        if 'Edit' in request.form:
+            submit_type = 'Edit'
+            next_page = 'home.code_definition_select'
+        elif 'Save Changes' in request.form:
             submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
@@ -594,6 +599,188 @@ def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
                         definition_node = code_definition_node.find_child(names.DEFINITION)               
                         if definition_node:
                             definition = definition_node.content
+
+
+# <node_id> identifies the attribute node that this code definition
+# is a part of (within its measurementScale)
+#
+@home.route('/code_definition_select/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def code_definition_select(packageid=None, dt_node_id=None, node_id=None):
+    form = CodeDefinitionSelectForm(packageid=packageid)
+    #dt_node_id = request.args.get('dt_node_id')  # alternate way to get the id
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = code_definition_select_post(packageid, form, form_dict, 
+                             'POST', 'code_definition_select', 'mscaleNominalOrdinal', 
+                             'mscaleNominalOrdinal', 'code_definition', dt_node_id, node_id)
+        return redirect(url)
+
+    # Process GET
+    return code_definition_select_get(packageid=packageid, form=form, att_node_id=node_id)
+
+
+def code_definition_select_get(packageid=None, form=None, att_node_id=None):
+    # Process GET
+    codes_list = []
+    title = 'Code Definitions'
+    attribute_name = ''
+    load_eml(packageid=packageid)
+
+    att_node = Node.get_node_instance(att_node_id)
+    if att_node:
+        attribute_name = attribute_name_from_attribute(att_node)
+        codes_list = list_codes_and_definitions(att_node)
+    return render_template('code_definition_select.html', title=title, 
+                           attribute_name=attribute_name, codes_list=codes_list, 
+                           form=form)
+
+
+def code_definition_select_post(packageid=None, form=None, form_dict=None,
+                          method=None, this_page=None, back_page=None, 
+                          next_page=None, edit_page=None, dt_node_id=None,
+                          att_node_id=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == UP_ARROW:
+                new_page = this_page
+                node_id = key
+                process_up_button(packageid, node_id)
+            elif val == DOWN_ARROW:
+                new_page = this_page
+                node_id = key
+                process_down_button(packageid, node_id)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+            elif val == '[  ]':
+                new_page = this_page
+                node_id = key
+
+    if form.validate_on_submit():  
+        if new_page == edit_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id,
+                            att_node_id=att_node_id,
+                            node_id=node_id)
+        elif new_page == this_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id)
+        else:
+            return url_for(f'home.{new_page}', 
+                           packageid=packageid,
+                           node_id=dt_node_id)
+
+
+# node_id is the id of the codeDefinition node being edited. If the value
+# '1', it means we are adding a new codeDefinition node, otherwise we are
+# editing an existing one.
+#
+@home.route('/code_definition/<packageid>/<dt_node_id>/<att_node_id>/<node_id>', methods=['GET', 'POST'])
+def code_definition(packageid=None, dt_node_id=None, att_node_id=None, node_id=None):
+    eml_node = load_eml(packageid=packageid)
+    att_node = Node.get_node_instance(att_node_id)
+    attribute_name = 'Attribute Name'
+    if att_node:
+        attribute_name = attribute_name_from_attribute(att_node)
+    form = CodeDefinitionForm(packageid=packageid, node_id=node_id, attribute_name=attribute_name)
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.code_definition_select' # Save or Back sends us back to the list of attributes
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+        if submit_type == 'Save Changes':
+            if att_node:
+                enumerated_domain_node = enumerated_domain_from_attribute(att_node)
+
+                if not enumerated_domain_node:
+                    measurement_scale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
+                    add_child(att_node, measurement_scale_node)
+                    nominal_node = Node(names.NOMINAL, parent=measurement_scale_node)
+                    add_child(measurement_scale_node, nominal_node)
+                    non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
+                    add_child(nominal_node, non_numeric_domain_node)
+                    enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
+                    add_child(non_numeric_domain_node, enumerated_domain_node)
+
+                code = form.code.data
+                definition = form.definition.data
+                code_definition_node = Node(names.CODEDEFINITION, parent=enumerated_domain_node)
+                create_code_definition(code_definition_node, code, definition)
+
+                if node_id and len(node_id) != 1:
+                    old_code_definition_node = Node.get_node_instance(node_id)
+
+                    if old_code_definition_node:
+                        code_definition_parent_node = old_code_definition_node.parent
+                        code_definition_parent_node.replace_child(old_code_definition_node, 
+                                                                    code_definition_node)
+                    else:
+                        msg = f"No codeDefinition node found in the node store with node id {node_id}"
+                        raise Exception(msg)
+                else:
+                    add_child(enumerated_domain_node, code_definition_node)
+
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        enumerated_domain_node = enumerated_domain_from_attribute(att_node)
+        if enumerated_domain_node:
+            cd_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
+            if cd_nodes:
+                for cd_node in cd_nodes:
+                    if node_id == cd_node.id:
+                        populate_code_definition_form(form, cd_node)
+                        break
+    
+    return render_template('code_definition.html', title='Code Definition', form=form, attribute_name=attribute_name)
+
+
+def populate_code_definition_form(form:CodeDefinitionForm, cd_node:Node):  
+    code = ''
+    definition = ''
+    
+    if cd_node:  
+        code_node = cd_node.find_child(names.CODE)
+        if code_node:
+            code = code_node.content
+        definition_node = cd_node.find_child(names.DEFINITION)
+        if definition_node: 
+            definition = definition_node.content
+        form.code.data = code
+        form.definition.data = definition
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])

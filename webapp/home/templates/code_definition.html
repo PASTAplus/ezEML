@@ -2,16 +2,17 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Measurement Scale: {{ nominal_or_ordinal }}</h1>
+    <h1>Code Definition for {{ attribute_name }}</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please enter measurement scale information about the {{ nominal_or_ordinal }} data table attribute {{ attribute_name }} :</h5>
-                <input class="btn btn-primary" name="Edit" type="submit" value="Edit Codes and Definitions"/>
-                {{ wtf.form_field(form.enforced) }}
+                <h5>Please enter a code and its definition:</h5>
+                {{ wtf.form_field(form.code) }}
+                {{ wtf.form_field(form.definition) }}
                 <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Clear" type="reset" value="Clear"/>
             </form>
         </div>
     </div>

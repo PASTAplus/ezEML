@@ -665,7 +665,7 @@ def create_code_definition(code_definition_node:Node=None,
                            definition:str=''):
     if code_definition_node:
         code_node = Node(names.CODE, parent=code_definition_node)
-        code_node.content = code_node
+        code_node.content = code
         add_child(code_definition_node, code_node)
         definition_node = Node(names.DEFINITION, parent=code_definition_node)
         definition_node.content = definition

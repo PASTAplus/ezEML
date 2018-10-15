@@ -685,11 +685,13 @@ def code_definition_select_post(packageid=None, form=None, form_dict=None,
         elif new_page == this_page: 
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
-                            dt_node_id=dt_node_id)
-        else:
+                            dt_node_id=dt_node_id,
+                            node_id=att_node_id)
+        elif new_page == back_page:
             return url_for(f'home.{new_page}', 
                            packageid=packageid,
-                           node_id=dt_node_id)
+                           dt_node_id=dt_node_id,
+                           node_id=att_node_id)
 
 
 # node_id is the id of the codeDefinition node being edited. If the value

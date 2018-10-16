@@ -63,14 +63,14 @@ def compose_data_table_label(dt_node:Node=None):
 def list_codes_and_definitions(att_node:Node=None):
     codes_list = []
     if att_node:
-        measurement_scale_node = att_node.find_child(names.MEASUREMENTSCALE)
-        if measurement_scale_node:
+        mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+        if mscale_node:
             nominal_ordinal_node = None
-            nominal_node = measurement_scale_node.find_child(names.NOMINAL)
+            nominal_node = mscale_node.find_child(names.NOMINAL)
             if nominal_node:
                 nominal_ordinal_node = nominal_node
             else:
-                nominal_ordinal_node = measurement_scale_node.find_child(names.ORDINAL)
+                nominal_ordinal_node = mscale_node.find_child(names.ORDINAL)
 
             if nominal_ordinal_node:
                 non_number_domain_node = nominal_ordinal_node.find_child(names.NONNUMERICDOMAIN)
@@ -152,6 +152,37 @@ def enumerated_domain_from_attribute(att_node:Node=None):
                 enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
 
     return enumerated_domain_node
+    
+
+def mscale_from_attribute(att_node:Node=None):
+    mscale = ''
+
+    if att_node:
+        mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+
+        if mscale_node:
+        
+            nominal_node = mscale_node.find_child(names.NOMINAL)
+            if nominal_node:
+                return names.NOMINAL
+
+            ordinal_node = mscale_node.find_child(names.ORDINAL)
+            if ordinal_node:
+                return names.ORDINAL
+
+            interval_node = mscale_node.find_child(names.INTERVAL)
+            if interval_node:
+                return names.INTERVAL
+
+            ratio_node = mscale_node.find_child(names.RATIO)
+            if ratio_node:
+                return names.RATIO
+
+            datetime_node = mscale_node.find_child(names.DATETIME)
+            if datetime_node:
+                return names.DATETIME
+
+    return mscale
     
 
 def list_attributes(data_table_node:Node=None):

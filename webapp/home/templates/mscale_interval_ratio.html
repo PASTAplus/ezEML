@@ -9,9 +9,7 @@
                 {{ form.csrf_token }}
                 <h5>Please enter measurement scale information about the {{ mscale }} data table attribute {{ attribute_name }} :</h5>
                 <input class="btn btn-primary" name="Edit" type="submit" value="Edit Codes and Definitions"/>
-                <br/><br/><br/>
-                {{ wtf.form_field(form.enforced) }}
-                <br/>
+                <br/><br/>
                 <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
             </form>

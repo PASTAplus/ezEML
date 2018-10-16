@@ -44,7 +44,7 @@ from webapp.home.metapype_client import (
     create_attribute, list_attributes,
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
-    create_code_definition,
+    create_code_definition, mscale_from_attribute,
     move_up, move_down, UP_ARROW, DOWN_ARROW
 )
 
@@ -369,7 +369,17 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             submit_type = 'Back'
         else:
             submit_type = 'mscale'
-            next_page = 'home.mscaleNominalOrdinal'
+            mscale = form.mscale.data
+
+            if mscale == 'nominal' or mscale == 'ordinal':
+                next_page = 'home.mscaleNominalOrdinal'
+            elif mscale == 'interval' or mscale == 'ratio':
+                next_page = 'home.mscaleIntervalRatio'
+            elif mscale == 'dateTime':
+                next_page = 'home.mscaleDateTime'
+
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
+            return redirect(url)
 
     # Process POST
         if submit_type == 'Save Changes':
@@ -486,6 +496,10 @@ def populate_attribute_form(form:AttributeForm, node:Node):
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
         if storage_type_system_att:
             form.storage_type_system.data = storage_type_system_att
+
+    mscale = mscale_from_attribute(att_node=node)
+    if mscale:
+        form.mscale.data = mscale
     
     mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
@@ -511,15 +525,14 @@ def populate_attribute_form(form:AttributeForm, node:Node):
             i = i + 1
             
 
-@home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
-    form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+@home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None, mscale=None):
+    form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
     # Determine POST type
     if request.method == 'POST':
         next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
 
         if 'Edit' in request.form:
-            submit_type = 'Edit'
             next_page = 'home.code_definition_select'
         elif 'Save Changes' in request.form:
             submit_type = 'Save Changes'
@@ -551,19 +564,30 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
     return render_template('mscale_nominal_ordinal.html', 
                            title='Measurement Scale', 
                            form=form,
-                           nominal_or_ordinal='Nominal',
+                           mscale=mscale,
+                           attribute_name = 'Sample Nominal-Ordinal Attribute')
+
+
+@home.route('/mscaleIntervalRatio/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None, mscale=None):
+    form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
+
+    return render_template('mscale_interval_ratio.html', 
+                           title='Measurement Scale', 
+                           form=form,
+                           mscale=mscale,
                            attribute_name = 'Sample Nominal Attribute')
 
 
-@home.route('/mscaleIntervalRation/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
-    form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+@home.route('/mscaleDateTime/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None, mscale=None):
+    form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
 
-
-@home.route('/mscaleDateTime/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
-    form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-
+    return render_template('mscale_dateTime.html', 
+                           title='Measurement Scale', 
+                           form=form,
+                           mscale=mscale,
+                           attribute_name = 'Sample Nominal Attribute')
 
 def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):    
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
@@ -688,10 +712,13 @@ def code_definition_select_post(packageid=None, form=None, form_dict=None,
                             dt_node_id=dt_node_id,
                             node_id=att_node_id)
         elif new_page == back_page:
+            att_node = Node.get_node_instance(att_node_id)
+            mscale = mscale_from_attribute(att_node)
             return url_for(f'home.{new_page}', 
                            packageid=packageid,
                            dt_node_id=dt_node_id,
-                           node_id=att_node_id)
+                           node_id=att_node_id,
+                           mscale=mscale)
 
 
 # node_id is the id of the codeDefinition node being edited. If the value
@@ -722,10 +749,10 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, node_id=N
                 enumerated_domain_node = enumerated_domain_from_attribute(att_node)
 
                 if not enumerated_domain_node:
-                    measurement_scale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
-                    add_child(att_node, measurement_scale_node)
-                    nominal_node = Node(names.NOMINAL, parent=measurement_scale_node)
-                    add_child(measurement_scale_node, nominal_node)
+                    mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
+                    add_child(att_node, mscale_node)
+                    nominal_node = Node(names.NOMINAL, parent=mscale_node)
+                    add_child(mscale_node, nominal_node)
                     non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
                     add_child(nominal_node, non_numeric_domain_node)
                     enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)

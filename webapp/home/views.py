@@ -371,14 +371,14 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             submit_type = 'mscale'
             mscale = form.mscale.data
 
-            if mscale == 'nominal' or mscale == 'ordinal':
+            if mscale == 'nominal or ordinal':
                 next_page = 'home.mscaleNominalOrdinal'
-            elif mscale == 'interval' or mscale == 'ratio':
+            elif mscale == 'interval or ratio':
                 next_page = 'home.mscaleIntervalRatio'
             elif mscale == 'dateTime':
                 next_page = 'home.mscaleDateTime'
 
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
             return redirect(url)
 
     # Process POST
@@ -497,9 +497,14 @@ def populate_attribute_form(form:AttributeForm, node:Node):
         if storage_type_system_att:
             form.storage_type_system.data = storage_type_system_att
 
-    mscale = mscale_from_attribute(att_node=node)
+    mscale = mscale_from_attribute(node)
     if mscale:
-        form.mscale.data = mscale
+        if mscale == 'nominal' or mscale == 'ordinal':
+            form.mscale.data = 'nominal or ordinal'
+        elif mscale == 'interval' or mscale == 'ratio':
+            form.mscale.data = 'interval or ratio'
+        elif mscale == 'dateTime':
+            form.mscale.date == 'dateTime'
     
     mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
@@ -525,22 +530,60 @@ def populate_attribute_form(form:AttributeForm, node:Node):
             i = i + 1
             
 
-@home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None, mscale=None):
-    form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
+@home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
+    form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+
     # Determine POST type
     if request.method == 'POST':
         next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
 
         if 'Edit' in request.form:
+            # Edit codes and definitions
             next_page = 'home.code_definition_select'
+            submit_type = 'Edit'
         elif 'Save Changes' in request.form:
             submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
 
-        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-        return redirect(url)
+        if submit_type == 'Edit':
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            return redirect(url)
+
+        elif submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+            att_node = Node.get_node_instance(node_id)
+            mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+            if mscale_node:
+                current_mscale = mscale_from_attribute(att_node)
+                new_mscale =form.mscale.data
+                if current_mscale == 'nominal' and new_mscale == 'ordinal':
+                    nominal_node = mscale_node.find_child(names.NOMINAL)
+                    if nominal_node:
+                        ordinal_node = Node(names.ORDINAL, parent=mscale_node)
+                        add_child(mscale_node, ordinal_node)
+                        nnd_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
+                        if nnd_node:
+                            add_child(ordinal_node, nnd_node)
+                        mscale_node.remove_child(nominal_node)
+                elif current_mscale == 'ordinal' and new_mscale == 'nominal':
+                    ordinal_node = mscale_node.find_child(names.ORDINAL)
+                    if ordinal_node:
+                        nominal_node = Node(names.NOMINAL, parent=mscale_node)
+                        add_child(mscale_node, nominal_node)
+                        nnd_node = ordinal_node.find_child(names.NONNUMERICDOMAIN)
+                        if nnd_node:
+                            add_child(nominal_node, nnd_node)
+                        mscale_node.remove_child(ordinal_node)
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+ 
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            return redirect(url)
+
+        elif submit_type == 'Back':
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -564,37 +607,38 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None, mscale=N
     return render_template('mscale_nominal_ordinal.html', 
                            title='Measurement Scale', 
                            form=form,
-                           mscale=mscale,
                            attribute_name = 'Sample Nominal-Ordinal Attribute')
 
 
-@home.route('/mscaleIntervalRatio/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None, mscale=None):
-    form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
+@home.route('/mscaleIntervalRatio/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
+    form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
 
     return render_template('mscale_interval_ratio.html', 
                            title='Measurement Scale', 
                            form=form,
-                           mscale=mscale,
                            attribute_name = 'Sample Nominal Attribute')
 
 
-@home.route('/mscaleDateTime/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None, mscale=None):
-    form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id, mscale=mscale)
+@home.route('/mscaleDateTime/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
+    form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
 
     return render_template('mscale_dateTime.html', 
                            title='Measurement Scale', 
                            form=form,
-                           mscale=mscale,
                            attribute_name = 'Sample Nominal Attribute')
 
-def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):    
+def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
+    mscale = 'nominal' 
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
     if mscale_node:
         node = mscale_node.find_child(names.NOMINAL)
         if not node:
             node = mscale_node.find_child(names.ORDINAL)
+            if node:
+                mscale = 'ordinal'
+                form.mscale.data = mscale
 
         if node:
             enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)

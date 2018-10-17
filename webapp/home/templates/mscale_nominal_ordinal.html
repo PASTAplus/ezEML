@@ -2,12 +2,14 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Measurement Scale: {{ mscale }}</h1>
+    <h1>Measurement Scale: Nominal or Ordinal</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please enter measurement scale information about the {{ mscale }} data table attribute {{ attribute_name }} :</h5>
+                <h5>Please enter measurement scale information about the data table attribute {{ attribute_name }} :</h5>
+                {{ wtf.form_field(form.mscale) }}
+                <br/><br/><br/>
                 <input class="btn btn-primary" name="Edit" type="submit" value="Edit Codes and Definitions"/>
                 <br/><br/><br/>
                 {{ wtf.form_field(form.enforced) }}

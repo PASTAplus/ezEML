@@ -38,10 +38,8 @@ class AttributeForm(FlaskForm):
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    mscale = SelectField('Measurement Scale', choices=[("nominal", "nominal"), 
-                                                       ("ordinal", "ordinal"), 
-                                                       ("interval", "interval"), 
-                                                       ("ratio", "ratio"), 
+    mscale = SelectField('Measurement Scale', choices=[("nominal or ordinal", "nominal or ordinal"), 
+                                                       ("interval or ratio", "interval or ratio"), 
                                                        ("dateTime", "dateTime")
                                                       ])
     code_1 = StringField('1. Missing Value Code', validators=[])
@@ -108,6 +106,10 @@ class KeywordsForm(FlaskForm):
                                         ("theme", "theme")])
 
 class MscaleNominalOrdinalForm(FlaskForm):
+    mscale = SelectField("Choose between nominal (e.g. 'Female', 'Male') or ordinal (e.g. 'low', 'medium', 'high')", 
+                            choices=[("nominal", "nominal"), 
+                                     ("ordinal", "ordinal")
+                                    ])
     enforced = SelectField('Codes listed are the only allowable code values for the domain', 
                             choices=[("Yes", "Yes, enforce the code values I've listed here"), 
                                      ("No", "No, other code values are allowed")

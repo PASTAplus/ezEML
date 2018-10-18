@@ -57,6 +57,7 @@ class CodeDefinitionSelectForm(FlaskForm):
 class CodeDefinitionForm(FlaskForm):
     code = StringField('Code', validators=[])
     definition = StringField('Definition', validators=[])
+    order = StringField('Order', validators=[])
 
 
 class CreateEMLForm(FlaskForm):
@@ -106,18 +107,34 @@ class KeywordsForm(FlaskForm):
                                         ("theme", "theme")])
 
 class MscaleNominalOrdinalForm(FlaskForm):
-    mscale = SelectField("Choose between nominal (e.g. 'Female', 'Male') or ordinal (e.g. 'low', 'medium', 'high')", 
+    mscale = SelectField("Choose nominal (e.g. 'Female', 'Male') or ordinal (e.g. 'low', 'medium', 'high')", 
                             choices=[("nominal", "nominal"), 
                                      ("ordinal", "ordinal")
                                     ])
-    enforced = SelectField('Codes listed are the only allowable code values for the domain', 
-                            choices=[("Yes", "Yes, enforce the code values I've listed here"), 
+    enforced = SelectField('Enforce codes', 
+                            choices=[("Yes", "Yes, enforce the code values I've documented"), 
                                      ("No", "No, other code values are allowed")
                                     ])
 
 
 class MscaleIntervalRatioForm(FlaskForm):
-    pass
+    mscale = SelectField("Choose between interval (e.g.) or ratio (e.g.)", 
+                            choices=[("interval", "interval"), 
+                                     ("ratio", "ratio")
+                                    ])
+    standard_unit = StringField('Standard Unit', validators=[])
+    custom_unit = StringField('Custom Unit', validators=[])
+    precision = StringField('Precision (Optional)', validators=[])
+    number_type = SelectField('Number Type', 
+                               choices=[("", ""), 
+                                        ("integer", "integer"), 
+                                        ("real", "real"), 
+                                        ("natural", "natural"), 
+                                        ("whole", "whole")])
+    bounds_minimum = StringField('Bounds Minimum', validators=[])
+    bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
+    bounds_maximum = StringField('Bounds Maximum', validators=[])
+    bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
     
 
 class MscaleDateTimeForm(FlaskForm):

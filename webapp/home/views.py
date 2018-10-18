@@ -586,6 +586,7 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
             return redirect(url)
 
     # Process GET
+    attribute_name = 'Nominal/Ordinal Attribute'
     if node_id == '1':
         pass
     else:
@@ -603,21 +604,99 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
                                         populate_nominal_ordinal(form, att_node)
+                                        attribute_name = attribute_name_from_attribute(att_node)
     
     return render_template('mscale_nominal_ordinal.html', 
                            title='Measurement Scale', 
                            form=form,
-                           attribute_name = 'Sample Nominal-Ordinal Attribute')
+                           attribute_name=attribute_name)
 
 
 @home.route('/mscaleIntervalRatio/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
 def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
     form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
 
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+        if submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+            att_node = Node.get_node_instance(node_id)
+            mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+            if mscale_node:
+                current_mscale = mscale_from_attribute(att_node)
+                new_mscale =form.mscale.data
+                if current_mscale == 'interval' and new_mscale == 'ratio':
+                    interval_node = mscale_node.find_child(names.INTERVAL)
+                    if interval_node:
+                        ratio_node = Node(names.RATIO, parent=mscale_node)
+                        add_child(mscale_node, ratio_node)
+                        unit_node = interval_node.find_child(names.UNIT)
+                        if unit_node:
+                            add_child(ratio_node, unit_node)
+                        precision_node = interval_node.find_child(names.PRECISION)
+                        if precision_node:
+                            add_child(ratio_node, precision_node)
+                        numeric_domain_node = interval_node.find_child(names.NUMERICDOMAIN)
+                        if numeric_domain_node:
+                            add_child(ratio_node, numeric_domain_node)
+                        mscale_node.remove_child(interval_node)
+                elif current_mscale == 'ratio' and new_mscale == 'interval':
+                    ratio_node = mscale_node.find_child(names.RATIO)
+                    if ratio_node:
+                        interval_node = Node(names.INTERVAL, parent=mscale_node)
+                        add_child(mscale_node, interval_node)
+                        unit_node = ratio_node.find_child(names.UNIT)
+                        if unit_node:
+                            add_child(interval_node, unit_node)
+                        precision_node = ratio_node.find_child(names.PRECISION)
+                        if precision_node:
+                            add_child(interval_node, precision_node)
+                        numeric_domain_node = ratio_node.find_child(names.NUMERICDOMAIN)
+                        if numeric_domain_node:
+                            add_child(interval_node, numeric_domain_node)
+                        mscale_node.remove_child(interval_node)
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+ 
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            return redirect(url)
+
+        elif submit_type == 'Back':
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            return redirect(url)
+
+    # Process GET
+    attribute_name = 'Interval/Ratio Attribute'
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        if attribute_list_node:
+                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
+                            if att_nodes:
+                                for att_node in att_nodes:
+                                    if node_id == att_node.id:
+                                        populate_interval_ratio(form, att_node)
+                                        attribute_name = attribute_name_from_attribute(att_node)
+    
     return render_template('mscale_interval_ratio.html', 
                            title='Measurement Scale', 
                            form=form,
-                           attribute_name = 'Sample Nominal Attribute')
+                           attribute_name=attribute_name)
+
 
 
 @home.route('/mscaleDateTime/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
@@ -628,6 +707,7 @@ def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
                            title='Measurement Scale', 
                            form=form,
                            attribute_name = 'Sample Nominal Attribute')
+
 
 def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
     mscale = 'nominal' 
@@ -654,19 +734,62 @@ def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
                 else:
                     form.enforced.data = 'No'
     
-                cd_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
-                if cd_nodes and len(cd_nodes) > 0:
-                    for code_definition_node in cd_nodes:
 
-                        code = ''
-                        code_node = code_definition_node.find_child(names.CODE)
-                        if code_node:
-                            code = code_node.content
+def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
+    mscale = 'interval' 
+    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    if mscale_node:
+        node = mscale_node.find_child(names.INTERVAL)
+        if not node:
+            node = mscale_node.find_child(names.RATIO)
+            if node:
+                mscale = 'ratio'
+                form.mscale.data = mscale
 
-                        definition = ''
-                        definition_node = code_definition_node.find_child(names.DEFINITION)               
-                        if definition_node:
-                            definition = definition_node.content
+        if node:
+            unit_node = node.find_child(names.UNIT)
+
+            if unit_node:
+                standard_unit_node = unit_node.find_child(names.STANDARDUNIT)
+                if standard_unit_node:
+                    form.standard_unit.data = standard_unit_node.content 
+                custom_unit_node = unit_node.find_child(names.CUSTOMUNIT)
+                if custom_unit_node:
+                    form.custom_unit.data = custom_unit_node.content
+
+            precision_node = node.find_child(names.PRECISION)
+            if precision_node:
+                form.precision.data = precision_node.content
+
+            numeric_domain_node = node.find_child(names.NUMERICDOMAIN)
+            if numeric_domain_node:
+                number_type_node = numeric_domain_node.find_child(names.NUMBERTYPE)
+                if number_type_node:
+                    form.number_type.data = number_type_node.content 
+                bounds_node = numeric_domain_node.find_child(names.BOUNDS)
+                if bounds_node:
+                    minimum_node = bounds_node.find_child(names.MINIMUM)
+                    if minimum_node:
+                        form.bounds_minimum.data = minimum_node.content
+                        exclusive = minimum_node.attribute_value('exclusive')
+                        if exclusive:
+                            if exclusive.lower() == 'true':
+                                form.bounds_minimum_exclusive.data = True
+                            else:
+                                form.bounds_minimum_exclusive.data = False
+                        else:
+                            form.bounds_minimum_exclusive.data = False
+                    maximum_node = bounds_node.find_child(names.MAXIMUM)
+                    if maximum_node:
+                        form.bounds_maximum.data = maximum_node.content
+                        exclusive = maximum_node.attribute_value('exclusive')
+                        if exclusive:
+                            if exclusive.lower() == 'true':
+                                form.bounds_maximum_exclusive.data = True
+                            else:
+                                form.bounds_maximum_exclusive.data = False
+                        else:
+                            form.bounds_maximum_exclusive.data = False
 
 
 # <node_id> identifies the attribute node that this code definition
@@ -804,8 +927,9 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, node_id=N
 
                 code = form.code.data
                 definition = form.definition.data
+                order = form.order.data
                 code_definition_node = Node(names.CODEDEFINITION, parent=enumerated_domain_node)
-                create_code_definition(code_definition_node, code, definition)
+                create_code_definition(code_definition_node, code, definition, order)
 
                 if node_id and len(node_id) != 1:
                     old_code_definition_node = Node.get_node_instance(node_id)
@@ -852,8 +976,11 @@ def populate_code_definition_form(form:CodeDefinitionForm, cd_node:Node):
         definition_node = cd_node.find_child(names.DEFINITION)
         if definition_node: 
             definition = definition_node.content
+        order = cd_node.attribute_value('order')
         form.code.data = code
         form.definition.data = definition
+        if order:
+            form.order.data = order
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])

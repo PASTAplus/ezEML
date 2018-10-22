@@ -45,6 +45,7 @@ from webapp.home.metapype_client import (
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
+    create_interval_ratio,
     move_up, move_down, UP_ARROW, DOWN_ARROW
 )
 
@@ -373,7 +374,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
 
             if mscale == 'nominal or ordinal':
                 next_page = 'home.mscaleNominalOrdinal'
-            elif mscale == 'interval or ratio':
+            elif mscale == 'ratio or interval':
                 next_page = 'home.mscaleIntervalRatio'
             elif mscale == 'dateTime':
                 next_page = 'home.mscaleDateTime'
@@ -502,7 +503,7 @@ def populate_attribute_form(form:AttributeForm, node:Node):
         if mscale == 'nominal' or mscale == 'ordinal':
             form.mscale.data = 'nominal or ordinal'
         elif mscale == 'interval' or mscale == 'ratio':
-            form.mscale.data = 'interval or ratio'
+            form.mscale.data = 'ratio or interval'
         elif mscale == 'dateTime':
             form.mscale.date == 'dateTime'
     
@@ -630,38 +631,28 @@ def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
             att_node = Node.get_node_instance(node_id)
             mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
             if mscale_node:
-                current_mscale = mscale_from_attribute(att_node)
-                new_mscale =form.mscale.data
-                if current_mscale == 'interval' and new_mscale == 'ratio':
-                    interval_node = mscale_node.find_child(names.INTERVAL)
-                    if interval_node:
-                        ratio_node = Node(names.RATIO, parent=mscale_node)
-                        add_child(mscale_node, ratio_node)
-                        unit_node = interval_node.find_child(names.UNIT)
-                        if unit_node:
-                            add_child(ratio_node, unit_node)
-                        precision_node = interval_node.find_child(names.PRECISION)
-                        if precision_node:
-                            add_child(ratio_node, precision_node)
-                        numeric_domain_node = interval_node.find_child(names.NUMERICDOMAIN)
-                        if numeric_domain_node:
-                            add_child(ratio_node, numeric_domain_node)
-                        mscale_node.remove_child(interval_node)
-                elif current_mscale == 'ratio' and new_mscale == 'interval':
-                    ratio_node = mscale_node.find_child(names.RATIO)
-                    if ratio_node:
-                        interval_node = Node(names.INTERVAL, parent=mscale_node)
-                        add_child(mscale_node, interval_node)
-                        unit_node = ratio_node.find_child(names.UNIT)
-                        if unit_node:
-                            add_child(interval_node, unit_node)
-                        precision_node = ratio_node.find_child(names.PRECISION)
-                        if precision_node:
-                            add_child(interval_node, precision_node)
-                        numeric_domain_node = ratio_node.find_child(names.NUMERICDOMAIN)
-                        if numeric_domain_node:
-                            add_child(interval_node, numeric_domain_node)
-                        mscale_node.remove_child(interval_node)
+                att_node.remove_child(mscale_node)
+            mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
+            add_child(att_node, mscale_node)
+            mscale = form.mscale.data
+            interval_ratio_node = None
+            if mscale == 'interval':
+                interval_ratio_node = Node(names.INTERVAL, parent=mscale_node)
+            else:
+                interval_ratio_node = Node(names.RATIO, parent=mscale_node)
+            add_child(mscale_node, interval_ratio_node)
+            standard_unit = form.standard_unit.data
+            cusmtom_unit = form.custom_unit.data
+            precision = form.precision.data
+            number_type = form.number_type.data
+            bounds_minimum = form.bounds_minimum.data
+            bounds_minimum_exclusive = form.bounds_minimum_exclusive.data
+            bounds_maximum = form.bounds_maximum.data
+            bounds_maximum_exclusive = form.bounds_maximum_exclusive.data
+            create_interval_ratio(interval_ratio_node, standard_unit, cusmtom_unit, 
+                                  precision, number_type, bounds_minimum,
+                                  bounds_minimum_exclusive, bounds_maximum,
+                                  bounds_maximum_exclusive)
             save_both_formats(packageid=packageid, eml_node=eml_node)
  
             url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)

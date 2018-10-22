@@ -706,6 +706,54 @@ def create_code_definition(code_definition_node:Node=None,
             code_definition_node.add_attribute('order', order)
 
 
+# node is either the interval or ratio node to be constructed under
+# the measurementScale node
+def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
+                        precision:str, number_type:str, bounds_minimum:str,
+                        bounds_minimum_exclusive:str, bounds_maximum:str,
+                        bounds_maximum_exclusive:str):
+    if node:
+        unit_node = Node(names.UNIT, parent=node)
+        add_child(node, unit_node)
+        if custom_unit:
+            custom_unit_node = Node(names.CUSTOMUNIT, parent=unit_node)
+            custom_unit_node.content = custom_unit
+            add_child(unit_node, custom_unit_node)
+        else:
+            standard_unit_node = Node(names.STANDARDUNIT, parent=unit_node)
+            standard_unit_node.content = standard_unit
+            add_child(unit_node, standard_unit_node)
+        if precision:
+            precision_node = Node(names.PRECISION, parent=node)
+            precision_node.content = precision
+            add_child(node, precision_node)
+        numeric_domain_node = Node(names.NUMERICDOMAIN, parent=node)
+        add_child(node, numeric_domain_node)
+        number_type_node = Node(names.NUMBERTYPE, parent=numeric_domain_node)
+        add_child(numeric_domain_node, number_type_node)
+        number_type_node.content = number_type
+        if bounds_minimum or bounds_maximum:
+            bounds_node = Node(names.BOUNDS, parent=numeric_domain_node)
+            add_child(numeric_domain_node, bounds_node)
+            if bounds_minimum:
+                bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
+                bounds_minimum_node.content = bounds_minimum
+                if bounds_minimum_exclusive:
+                    bounds_minimum_node.add_attribute('exclusive', 'true')
+                else:
+                    bounds_minimum_node.add_attribute('exclusive', 'false')
+                add_child(bounds_node, bounds_minimum_node)
+            if bounds_maximum:
+                bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
+                bounds_maximum_node.content = bounds_maximum
+                if bounds_maximum_exclusive:
+                    bounds_maximum_node.add_attribute('exclusive', 'true')
+                else:
+                    bounds_maximum_node.add_attribute('exclusive', 'false')
+                add_child(bounds_node, bounds_maximum_node)
+
+
+
 def create_title(title=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
 

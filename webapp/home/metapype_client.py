@@ -658,9 +658,10 @@ def create_attribute(attribute_node:Node=None,
             attribute_name_node.content = attribute_name
             add_child(attribute_node, attribute_name_node)
             
-            attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
-            attribute_label_node.content = attribute_label
-            add_child(attribute_node, attribute_label_node)
+            if attribute_label:
+                attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
+                attribute_label_node.content = attribute_label
+                add_child(attribute_node, attribute_label_node)
             
             attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             attribute_definition_node.content = attribute_definition
@@ -752,6 +753,41 @@ def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
                     bounds_maximum_node.add_attribute('exclusive', 'false')
                 add_child(bounds_node, bounds_maximum_node)
 
+
+# node is the datetime node to be constructed under
+# the measurementScale node
+def create_datetime(node:Node, format_string:str, datetime_precision:str,
+                    bounds_minimum:str, bounds_minimum_exclusive:str, 
+                    bounds_maximum:str, bounds_maximum_exclusive:str):
+    if node:
+        format_string_node = Node(names.FORMATSTRING, parent=node)
+        format_string_node.content = format_string
+        add_child(node, format_string_node)
+        if datetime_precision:
+            datetime_precision_node = Node(names.DATETIMEPRECISION, parent=node)
+            datetime_precision_node.content = datetime_precision
+            add_child(node, datetime_precision_node)
+        datetime_domain_node = Node(names.DATETIMEDOMAIN, parent=node)
+        add_child(node, datetime_domain_node)
+        if bounds_minimum or bounds_maximum:
+            bounds_node = Node(names.BOUNDS, parent=datetime_domain_node)
+            add_child(datetime_domain_node, bounds_node)
+            if bounds_minimum:
+                bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
+                bounds_minimum_node.content = bounds_minimum
+                if bounds_minimum_exclusive:
+                    bounds_minimum_node.add_attribute('exclusive', 'true')
+                else:
+                    bounds_minimum_node.add_attribute('exclusive', 'false')
+                add_child(bounds_node, bounds_minimum_node)
+            if bounds_maximum:
+                bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
+                bounds_maximum_node.content = bounds_maximum
+                if bounds_maximum_exclusive:
+                    bounds_maximum_node.add_attribute('exclusive', 'true')
+                else:
+                    bounds_maximum_node.add_attribute('exclusive', 'false')
+                add_child(bounds_node, bounds_maximum_node)
 
 
 def create_title(title=None, packageid=None):

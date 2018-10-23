@@ -45,7 +45,7 @@ from webapp.home.metapype_client import (
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
-    create_interval_ratio,
+    create_interval_ratio, create_datetime,
     move_up, move_down, UP_ARROW, DOWN_ARROW
 )
 
@@ -474,6 +474,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
                                         populate_attribute_form(form, att_node)
+                                        break
     
     return render_template('attribute.html', title='Attribute', form=form)
 
@@ -505,7 +506,7 @@ def populate_attribute_form(form:AttributeForm, node:Node):
         elif mscale == 'interval' or mscale == 'ratio':
             form.mscale.data = 'ratio or interval'
         elif mscale == 'dateTime':
-            form.mscale.date == 'dateTime'
+            form.mscale.data = 'dateTime'
     
     mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
@@ -694,10 +695,68 @@ def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
 def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
     form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
 
-    return render_template('mscale_dateTime.html', 
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+        if submit_type == 'Save Changes':
+            eml_node = load_eml(packageid=packageid)
+            att_node = Node.get_node_instance(node_id)
+            mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+            if mscale_node:
+                att_node.remove_child(mscale_node)
+            mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
+            add_child(att_node, mscale_node)
+            datetime_node = Node(names.DATETIME, parent=mscale_node)
+            add_child(mscale_node, datetime_node)
+            format_string = form.format_string.data
+            datetime_precision = form.datetime_precision.data
+            bounds_minimum = form.bounds_minimum.data
+            bounds_minimum_exclusive = form.bounds_minimum_exclusive.data
+            bounds_maximum = form.bounds_maximum.data
+            bounds_maximum_exclusive = form.bounds_maximum_exclusive.data
+            create_datetime(datetime_node, format_string, datetime_precision, 
+                            bounds_minimum, bounds_minimum_exclusive, 
+                            bounds_maximum, bounds_maximum_exclusive)
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+ 
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            return redirect(url)
+
+        elif submit_type == 'Back':
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            return redirect(url)
+
+    # Process GET
+    attribute_name = 'DateTime Attribute'
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        if attribute_list_node:
+                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
+                            if att_nodes:
+                                for att_node in att_nodes:
+                                    if node_id == att_node.id:
+                                        populate_datetime(form, att_node)
+                                        attribute_name = attribute_name_from_attribute(att_node)
+    
+    return render_template('mscale_datetime.html', 
                            title='Measurement Scale', 
                            form=form,
-                           attribute_name = 'Sample Nominal Attribute')
+                           attribute_name=attribute_name)
 
 
 def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
@@ -758,6 +817,49 @@ def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
                 if number_type_node:
                     form.number_type.data = number_type_node.content 
                 bounds_node = numeric_domain_node.find_child(names.BOUNDS)
+                if bounds_node:
+                    minimum_node = bounds_node.find_child(names.MINIMUM)
+                    if minimum_node:
+                        form.bounds_minimum.data = minimum_node.content
+                        exclusive = minimum_node.attribute_value('exclusive')
+                        if exclusive:
+                            if exclusive.lower() == 'true':
+                                form.bounds_minimum_exclusive.data = True
+                            else:
+                                form.bounds_minimum_exclusive.data = False
+                        else:
+                            form.bounds_minimum_exclusive.data = False
+                    maximum_node = bounds_node.find_child(names.MAXIMUM)
+                    if maximum_node:
+                        form.bounds_maximum.data = maximum_node.content
+                        exclusive = maximum_node.attribute_value('exclusive')
+                        if exclusive:
+                            if exclusive.lower() == 'true':
+                                form.bounds_maximum_exclusive.data = True
+                            else:
+                                form.bounds_maximum_exclusive.data = False
+                        else:
+                            form.bounds_maximum_exclusive.data = False
+
+
+def populate_datetime(form:MscaleDateTimeForm, att_node):
+    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    if mscale_node:
+        node = mscale_node.find_child(names.DATETIME)
+
+        if node:
+            format_string_node = node.find_child(names.FORMATSTRING)
+
+            if format_string_node:
+                form.format_string.data = format_string_node.content
+
+            datetime_precision_node = node.find_child(names.DATETIMEPRECISION)
+            if datetime_precision_node:
+                form.datetime_precision.data = datetime_precision_node.content
+
+            datetime_domain_node = node.find_child(names.DATETIMEDOMAIN)
+            if datetime_domain_node:
+                bounds_node = datetime_domain_node.find_child(names.BOUNDS)
                 if bounds_node:
                     minimum_node = bounds_node.find_child(names.MINIMUM)
                     if minimum_node:

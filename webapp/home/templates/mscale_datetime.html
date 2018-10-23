@@ -2,13 +2,24 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Measurement Scale: {{ mscale }}</h1>
+    <h1>Measurement Scale: Interval or Ratio: {{ attribute_name }}</h1>
     <div class="row">
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please enter measurement scale information about the {{ mscale }} data table attribute {{ attribute_name }} :</h5>
-                <input class="btn btn-primary" name="Edit" type="submit" value="Edit Codes and Definitions"/>
+                <h4>Please enter measurement scale information about the dateTime attribute <strong>{{ attribute_name }}</strong> :</h4>
+                <br/>
+                <h4>Enter a dateTime format string (e.g. YYYY-MM-DD):</h4>
+                {{ wtf.form_field(form.format_string) }}
+                <br/>
+                {{ wtf.form_field(form.datetime_precision) }}
+                <br/>
+                <h4>Bounds (Optional):</h4>
+                {{ wtf.form_field(form.bounds_minimum) }}
+                {{ wtf.form_field(form.bounds_minimum_exclusive) }}
+                <br/>
+                {{ wtf.form_field(form.bounds_maximum) }}
+                {{ wtf.form_field(form.bounds_maximum_exclusive) }}
                 <br/><br/>
                 <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>

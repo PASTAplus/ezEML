@@ -140,7 +140,13 @@ class MscaleIntervalRatioForm(FlaskForm):
     
 
 class MscaleDateTimeForm(FlaskForm):
-    pass
+    format_string = StringField('Format String', validators=[])
+    datetime_precision = StringField('DateTime Precision (Optional)', validators=[])
+    bounds_minimum = StringField('Bounds Minimum', validators=[])
+    bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
+    bounds_maximum = StringField('Bounds Maximum', validators=[])
+    bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
+    
     
 
 class PubDateForm(FlaskForm):

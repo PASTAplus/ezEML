@@ -112,8 +112,8 @@ class MscaleNominalOrdinalForm(FlaskForm):
                                      ("ordinal", "ordinal")
                                     ])
     enforced = SelectField('Enforce codes', 
-                            choices=[("Yes", "Yes, enforce the code values I've documented"), 
-                                     ("No", "No, other code values are allowed")
+                            choices=[("yes", "Yes, enforce the code values I've documented"), 
+                                     ("no", "No, other code values are allowed")
                                     ])
 
 
@@ -128,10 +128,9 @@ class MscaleIntervalRatioForm(FlaskForm):
     custom_unit = StringField('Custom Unit', validators=[])
     precision = StringField('Precision (Optional)', validators=[])
     number_type = SelectField('Number Type', 
-                               choices=[("", ""), 
-                                        ("integer", "integer"), 
-                                        ("real", "real"), 
-                                        ("natural", "natural"), 
+                               choices=[("real", "real"),
+                                        ("integer", "integer"),
+                                        ("natural", "natural"),
                                         ("whole", "whole")])
     bounds_minimum = StringField('Bounds Minimum', validators=[])
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])

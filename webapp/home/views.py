@@ -559,22 +559,31 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
             mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
             if mscale_node:
                 current_mscale = mscale_from_attribute(att_node)
-                new_mscale =form.mscale.data
+                new_mscale = form.mscale.data
+                enforced = form.enforced.data
+                nominal_node = mscale_node.find_child(names.NOMINAL)
+                ordinal_node = mscale_node.find_child(names.ORDINAL)
+                nnd_node = None
+                if nominal_node:
+                    nnd_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
+                elif ordinal_node:
+                    nnd_node = ordinal_node.find_child(names.NONNUMERICDOMAIN)
+                if nnd_node:
+                    enumerated_domain_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
+                    if enumerated_domain_node:
+                        if enforced:
+                            enumerated_domain_node.add_attribute('enforced', enforced)
                 if current_mscale == 'nominal' and new_mscale == 'ordinal':
-                    nominal_node = mscale_node.find_child(names.NOMINAL)
                     if nominal_node:
                         ordinal_node = Node(names.ORDINAL, parent=mscale_node)
                         add_child(mscale_node, ordinal_node)
-                        nnd_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
                         if nnd_node:
                             add_child(ordinal_node, nnd_node)
                         mscale_node.remove_child(nominal_node)
                 elif current_mscale == 'ordinal' and new_mscale == 'nominal':
-                    ordinal_node = mscale_node.find_child(names.ORDINAL)
                     if ordinal_node:
                         nominal_node = Node(names.NOMINAL, parent=mscale_node)
                         add_child(mscale_node, nominal_node)
-                        nnd_node = ordinal_node.find_child(names.NONNUMERICDOMAIN)
                         if nnd_node:
                             add_child(nominal_node, nnd_node)
                         mscale_node.remove_child(ordinal_node)
@@ -774,29 +783,27 @@ def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
             enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
 
             if enumerated_domain_node:
-                enforced_bool = True
                 enforced = enumerated_domain_node.attribute_value('enforced')
                 if enforced and enforced.upper() == 'NO':
-                    enforced_bool = False
-
-                if enforced_bool:
-                    form.enforced.data = 'Yes'
+                    form.enforced.data = 'no'
                 else:
-                    form.enforced.data = 'No'
+                    form.enforced.data = 'yes'
     
 
 def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
-    mscale = 'interval' 
+    mscale = 'ratio' 
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
     if mscale_node:
-        node = mscale_node.find_child(names.INTERVAL)
+        ratio_node = mscale_node.find_child(names.RATIO)
+        interval_node = mscale_node.find_child(names.INTERVAL)
+
+        node = ratio_node
         if not node:
-            node = mscale_node.find_child(names.RATIO)
-            if node:
-                mscale = 'ratio'
-                form.mscale.data = mscale
+            node = interval_node
+            mscale = 'interval'
 
         if node:
+            form.mscale.data = mscale
             unit_node = node.find_child(names.UNIT)
 
             if unit_node:
@@ -1016,6 +1023,7 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, node_id=N
                     non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
                     add_child(nominal_node, non_numeric_domain_node)
                     enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
+                    enumerated_domain_node.add_attribute('enforced', 'yes')  # 'yes' is default value
                     add_child(non_numeric_domain_node, enumerated_domain_node)
 
                 code = form.code.data

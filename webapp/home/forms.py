@@ -82,6 +82,10 @@ class DataTableForm(FlaskForm):
     online_url = StringField('Online Distribution URL', validators=[])
 
 
+class DownloadEMLForm(FlaskForm):
+    packageid = StringField('Package ID', validators=[DataRequired()])
+
+
 class GeographicCoverageSelectForm(FlaskForm):
     pass
 

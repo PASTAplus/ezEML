@@ -23,8 +23,19 @@
                 <li>
                     <a href="{{ url_for('home.minimal') }}" title="Create Minimal EML">Create Minimal EML</a>
                 </li>
-                <li>
-                    <a href="{{ url_for('home.create') }}" title="EML Wizard">EML Wizard</a>
+                <li class="dropdown">
+                    <a aria-expanded="false" aria-haspopup="true"
+                       class="dropdown-toggle" data-toggle="dropdown" href="#"
+                       role="button">EML Wizard<span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{ url_for('home.create') }}" title="Create EML">Create EML</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.download') }}" title="Download EML">Download EML</a>
+                        </li>
+                    </ul>
                 </li>
                 <li>
                     <a href="{{ url_for('home.about') }}" title="About">About</a>

@@ -15,9 +15,11 @@
 import daiquiri
 import html
 import json
+import os.path
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for
+    Blueprint, flash, render_template, redirect, request, 
+    send_file, url_for
 )
 
 from webapp.home.forms import ( 
@@ -28,7 +30,7 @@ from webapp.home.forms import (
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
     DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
     MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm,
-    CodeDefinitionSelectForm, CodeDefinitionForm
+    CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -68,6 +70,47 @@ def about():
     return render_template('about.html')
 
 
+@home.route('/download', methods=['GET', 'POST'])
+def download():
+    form = DownloadEMLForm()
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        return_value = download_eml(packageid=packageid)
+        if isinstance(return_value, str):
+            flash(return_value)
+        else:
+            return return_value    # Return the Response object
+    # Process GET
+    return render_template('download_eml.html', title='Download EML', 
+                           form=form)
+
+
+def download_eml(packageid:str=''):
+    if packageid:
+        filename = f'{packageid}.xml'
+        if os.path.exists(filename):
+            pathname = '../' + filename
+            mimetype = 'application/xml'
+            try: 
+                return send_file(pathname, 
+                    mimetype=mimetype, 
+                    as_attachment=True, 
+                    attachment_filename=filename, 
+                    add_etags=True, 
+                    cache_timeout=None, 
+                    conditional=False, 
+                    last_modified=None)
+            except Exception as e:
+                return str(e)
+        else:
+            msg = f'Data package not found: {packageid}'
+            return msg
+    else:
+        msg = f'No package ID was specified'
+        return msg
+
+
 @home.route('/create', methods=['GET', 'POST'])
 def create():
     # Determine POST type
@@ -83,7 +126,7 @@ def create():
     if form.validate_on_submit():
         packageid = form.packageid.data
         create_eml(packageid=packageid)
-        new_page = 'data_table_select' if (submit_type == 'Next') else 'create'
+        new_page = 'data_table_select' if (submit_type == 'Back') else 'title'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     return render_template('create_eml.html', title='Create New EML', 
@@ -99,7 +142,7 @@ def data_table_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
-                             'POST', 'data_table_select', 'create', 
+                             'POST', 'data_table_select', 'contact_select', 
                              'title', 'data_table')
         return redirect(url)
 
@@ -1913,7 +1956,7 @@ def contact_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
                              'POST', 'contact_select', 'taxonomic_coverage_select', 
-                             'title', 'contact')
+                             'data_table_select', 'contact')
         return redirect(url)
 
     # Process GET

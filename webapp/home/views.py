@@ -402,6 +402,7 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
 @home.route('/attribute/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
 def attribute(packageid=None, dt_node_id=None, node_id=None):
     form = AttributeForm(packageid=packageid, node_id=node_id)
+    att_node_id = node_id
 
     # Determine POST type
     if request.method == 'POST':
@@ -412,7 +413,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
-            submit_type = 'mscale'
+            submit_type = 'Save Changes'
             mscale = form.mscale.data
 
             if mscale == 'nominal or ordinal':
@@ -422,8 +423,8 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             elif mscale == 'dateTime':
                 next_page = 'home.mscaleDateTime'
 
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
+            #url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+            #return redirect(url)
 
     # Process POST
         if submit_type == 'Save Changes':
@@ -488,6 +489,9 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                 if old_att_node:
                     att_parent_node = old_att_node.parent
                     att_parent_node.replace_child(old_att_node, att_node)
+                    mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
+                    if mscale_node:
+                        add_child(att_node, mscale_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     raise Exception(msg)
@@ -495,8 +499,9 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                 add_child(attribute_list_node, att_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
+            att_node_id = att_node.id
 
-        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
     # Process GET

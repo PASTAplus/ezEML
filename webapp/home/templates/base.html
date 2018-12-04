@@ -58,8 +58,24 @@
                         </li>
                     </ul>
                 </li>
-          </ul>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if current_user.is_anonymous %}
+                <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                {% else %}
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                {% endif %}
+            </ul>
         </div>
+        {% if current_user.is_authenticated %}
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+            <ul class="nav navbar-nav">
+                <li>
+                    <strong>Active user: {{ current_user.get_username() }}</strong>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
     </div>
 </nav>
 {% endblock %}

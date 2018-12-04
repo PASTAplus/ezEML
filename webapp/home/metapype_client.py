@@ -37,7 +37,7 @@ def list_data_tables(eml_node:Node=None):
             DT_Entry = collections.namedtuple(
                 'DT_Entry', 
                 ["id", "label", "upval", "downval"],
-                verbose=False, rename=False)
+                 rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
                 label = compose_data_table_label(dt_node)
@@ -82,7 +82,7 @@ def list_codes_and_definitions(att_node:Node=None):
                         Code_Definition_Entry = collections.namedtuple(
                                         'Code_Definition_Entry', 
                                         ["id", "code", "definition", "upval", "downval"],
-                                        verbose=False, 
+                                         
                                         rename=False)
             
                         for i, cd_node in enumerate(code_definition_nodes):
@@ -194,7 +194,7 @@ def list_attributes(data_table_node:Node=None):
             ATT_Entry = collections.namedtuple(
                 'ATT_Entry', 
                 ["id", "label", "upval", "downval"],
-                verbose=False, rename=False)
+                 rename=False)
             for i, att_node in enumerate(att_nodes):
                 id = att_node.id
                 label = compose_attribute_label(att_node)
@@ -226,7 +226,7 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
             rp_nodes = dataset_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
                 'RP_Entry', ["id", "label", "upval", "downval"], 
-                verbose=False, rename=False)
+                 rename=False)
             for i, rp_node in enumerate(rp_nodes):
                 label = compose_rp_label(rp_node)
                 id = rp_node.id
@@ -249,7 +249,7 @@ def list_geographic_coverages(eml_node:Node=None):
                 GC_Entry = collections.namedtuple(
                     'GC_Entry', 
                     ["id", "geographic_description", "label", "upval", "downval"],
-                    verbose=False, rename=False)
+                     rename=False)
                 for i, gc_node in enumerate(gc_nodes):
                     id = gc_node.id
                     upval = get_upval(i)
@@ -307,7 +307,7 @@ def list_temporal_coverages(eml_node:Node=None):
                 tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
                 TC_Entry = collections.namedtuple(
                     'TC_Entry', ["id", "begin_date", "end_date", "upval", "downval"],
-                    verbose=False, rename=False)
+                     rename=False)
                 for i, tc_node in enumerate(tc_nodes):
                     id = tc_node.id
                     upval = get_upval(i)
@@ -349,7 +349,7 @@ def list_taxonomic_coverages(eml_node:Node=None):
                 txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
                 TXC_Entry = collections.namedtuple(
                     'TXC_Entry', ["id", "label", "upval", "downval"],
-                    verbose=False, rename=False)
+                     rename=False)
                 for i, txc_node in enumerate(txc_nodes):
                     id = txc_node.id
                     upval = get_upval(i)

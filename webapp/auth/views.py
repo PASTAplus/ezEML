@@ -19,10 +19,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 
 from werkzeug.urls import url_parse
 
-from webapp.auth import token_uid
 from webapp.auth.forms import LoginForm
-from webapp.auth.ldap_user import LdapUser
-from webapp.auth.ldap_user import AttributeError, UidError
 from webapp.auth.user import User
 from webapp.config import Config
 
@@ -61,9 +58,3 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home.index'))
-
-
-@auth.route('/welcome_user/<uid>')
-def welcome_user(uid=None):
-    ldap_user = LdapUser(uid=uid)
-    return render_template('welcome_user.html', ldap_user=ldap_user)

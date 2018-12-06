@@ -19,7 +19,11 @@ import os.path
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, 
-    send_file, url_for
+    url_for
+)
+
+from flask_login import (
+    current_user, login_required
 )
 
 from webapp.home.forms import ( 
@@ -48,7 +52,7 @@ from webapp.home.metapype_client import (
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
     create_interval_ratio, create_datetime,
-    move_up, move_down, UP_ARROW, DOWN_ARROW
+    move_up, move_down, UP_ARROW, DOWN_ARROW, download_eml
 )
 
 from metapype.eml2_1_1 import export
@@ -71,6 +75,7 @@ def about():
 
 
 @home.route('/download', methods=['GET', 'POST'])
+@login_required
 def download():
     form = DownloadEMLForm()
     # Process POST
@@ -86,32 +91,8 @@ def download():
                            form=form)
 
 
-def download_eml(packageid:str=''):
-    if packageid:
-        filename = f'{packageid}.xml'
-        if os.path.exists(filename):
-            pathname = '../' + filename
-            mimetype = 'application/xml'
-            try: 
-                return send_file(pathname, 
-                    mimetype=mimetype, 
-                    as_attachment=True, 
-                    attachment_filename=filename, 
-                    add_etags=True, 
-                    cache_timeout=None, 
-                    conditional=False, 
-                    last_modified=None)
-            except Exception as e:
-                return str(e)
-        else:
-            msg = f'Data package not found: {packageid}'
-            return msg
-    else:
-        msg = f'No package ID was specified'
-        return msg
-
-
 @home.route('/create', methods=['GET', 'POST'])
+@login_required
 def create():
     # Determine POST type
     if request.method == 'POST':
@@ -1978,6 +1959,7 @@ def contact(packageid=None, node_id=None):
 
 
 @home.route('/minimal', methods=['GET', 'POST'])
+@login_required
 def minimal():
     # Process POST
     form = MinimalEMLForm()

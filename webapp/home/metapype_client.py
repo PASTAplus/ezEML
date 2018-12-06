@@ -17,6 +17,14 @@ import html
 import json
 import os.path
 
+from flask import (
+    send_file
+)
+
+from flask_login import (
+    current_user
+)
+
 from metapype.eml2_1_1 import export, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import io
@@ -26,6 +34,7 @@ logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 
 UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
+USER_DATA_DIR = 'user-data'
 
 
 def list_data_tables(eml_node:Node=None):
@@ -449,7 +458,10 @@ def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
 
 def load_eml(packageid:str=None):
     eml_node = None
-    filename = f"{packageid}.json"
+    user_folder = get_user_folder_name()
+    if not user_folder:
+        user_folder = '.'
+    filename = f"{user_folder}/{packageid}.json"
     if os.path.isfile(filename):
         with open(filename, "r") as json_file:
             json_obj = json.load(json_file)
@@ -464,20 +476,6 @@ def remove_child(node_id:str=None):
             parent_node = child_node.parent
             if parent_node:
                 parent_node.remove_child(child_node)
-
-
-def store_eml(packageid:str=None, eml_node:Node=None):
-    if packageid and eml_node:
-        pass
-        #session[packageid] = eml_node
-
-
-def retrieve_eml(packageid:str=None):
-    eml_node = None
-    if packageid:
-        pass
-        #eml_node = session[packageid]
-    return eml_node
 
 
 def log_as_xml(node: Node):
@@ -503,7 +501,10 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                 metadata_str = xml_declaration + xml_str
             
             if metadata_str:
-                filename = f"{packageid}.{format}"
+                user_folder = get_user_folder_name()
+                if not user_folder:
+                    user_folder = '.'
+                filename = f'{user_folder}/{packageid}.{format}'
                 with open(filename, "w") as fh:
                     fh.write(metadata_str)
         else:
@@ -1317,3 +1318,40 @@ def validate_minimal(packageid=None, title=None, contact_gn=None,
         msg = validate_tree(eml)
 
     return msg
+
+
+def get_user_folder_name():
+    user_folder_name = '.'
+    try:
+        username = current_user.get_username()
+        organization = current_user.get_organization()
+        user_folder_name = f'{USER_DATA_DIR}/{username}-{organization}'
+    except AttributeError:
+        pass
+    return user_folder_name
+
+
+def download_eml(packageid:str=''):
+    if packageid:
+        user_folder = get_user_folder_name()
+        filename = f'{user_folder}/{packageid}.xml'
+        if os.path.exists(filename):
+            pathname = '../' + filename
+            mimetype = 'application/xml'
+            try: 
+                return send_file(pathname, 
+                    mimetype=mimetype, 
+                    as_attachment=True, 
+                    attachment_filename=filename, 
+                    add_etags=True, 
+                    cache_timeout=None, 
+                    conditional=False, 
+                    last_modified=None)
+            except Exception as e:
+                return str(e)
+        else:
+            msg = f'Data package not found: {packageid}'
+            return msg
+    else:
+        msg = f'No package ID was specified'
+        return msg

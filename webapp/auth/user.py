@@ -44,6 +44,12 @@ class User(UserMixin):
         dn = token.split('*')[0]
         return dn
 
+    def get_organization(self):
+        dn = self.get_dn()
+        o = dn.split(',')[1]
+        organization = o.split('=')[1]
+        return organization
+
     def get_uid(self):
         dn = self.get_dn()
         uid = dn.split(',')[0]

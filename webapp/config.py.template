@@ -17,3 +17,8 @@ class Config(object):
     # Flask app configuration
     SECRET_KEY = 'SECRET KEY'
     DEBUG = False
+    
+    PASTA_URL = 'https://pasta.lternet.edu/package'
+
+    DOMAINS = {'edi': 'o=EDI,dc=edirepository,dc=org',
+               'lter':'o=LTER,dc=ecoinformatics,dc=org',}

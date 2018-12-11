@@ -15,7 +15,7 @@ import collections
 import daiquiri
 import html
 import json
-import os.path
+import os
 
 from flask import (
     send_file
@@ -1320,14 +1320,30 @@ def validate_minimal(packageid=None, title=None, contact_gn=None,
     return msg
 
 
+def get_user_document_list():
+    packageids = []
+    user_folder = get_user_folder_name()
+    try:
+        folder_contents = os.listdir(user_folder)
+        onlyfiles = [f for f in folder_contents if os.path.isfile(os.path.join(user_folder, f))]
+        if onlyfiles:
+            for filename in onlyfiles:
+                if filename and filename.endswith('.json'):
+                    packageid = os.path.splitext(filename)[0]
+                    packageids.append(packageid)
+    except:
+        pass
+    return packageids
+
+
 def get_user_folder_name():
-    user_folder_name = '.'
+    user_folder_name = None
     try:
         username = current_user.get_username()
         organization = current_user.get_organization()
         user_folder_name = f'{USER_DATA_DIR}/{username}-{organization}'
     except AttributeError:
-        pass
+        user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
     return user_folder_name
 
 

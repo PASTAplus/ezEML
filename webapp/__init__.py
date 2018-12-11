@@ -33,6 +33,11 @@ bootstrap = Bootstrap(app)
 login = LoginManager(app)
 login.login_view = 'auth.login'
 
+# Importing these modules causes the routes and error handlers to be associated
+# with the blueprint. It is important to note that the modules are imported at
+# the bottom of the webapp/__init__.py script to avoid errors due to circular 
+# dependencies.
+
 from webapp.auth.views import auth
 app.register_blueprint(auth, url_prefix='/eml/auth')
 

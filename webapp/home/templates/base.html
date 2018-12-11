@@ -20,20 +20,20 @@
         </div>
         <div class="navbar-collapse collapse" id="top-navbar">
             <ul class="nav navbar-nav">
-                <li>
-                    <a href="{{ url_for('home.minimal') }}" title="Create Minimal EML">Create Minimal EML</a>
-                </li>
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">EML Wizard<span class="caret"></span>
+                       role="button">EML Document<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a href="{{ url_for('home.create') }}" title="Create EML">Create EML</a>
+                            <a href="{{ url_for('home.create') }}" title="New">New</a>
                         </li>
                         <li>
-                            <a href="{{ url_for('home.download') }}" title="Download EML">Download EML</a>
+                            <a href="{{ url_for('home.open') }}" title="Open">Open...</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.download') }}" title="Download">Download...</a>
                         </li>
                     </ul>
                 </li>

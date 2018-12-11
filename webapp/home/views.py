@@ -34,7 +34,8 @@ from webapp.home.forms import (
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
     DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
     MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm,
-    CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm
+    CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
+    OpenEMLDocumentForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -52,7 +53,8 @@ from webapp.home.metapype_client import (
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
     create_interval_ratio, create_datetime,
-    move_up, move_down, UP_ARROW, DOWN_ARROW, download_eml
+    move_up, move_down, UP_ARROW, DOWN_ARROW, download_eml,
+    get_user_document_list
 )
 
 from metapype.eml2_1_1 import export
@@ -78,6 +80,12 @@ def about():
 @login_required
 def download():
     form = DownloadEMLForm()
+    choices = []
+    packageids = get_user_document_list()
+    for packageid in packageids:
+        pid_tuple = (packageid, packageid)
+        choices.append(pid_tuple)
+    form.packageid.choices = choices
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
@@ -112,6 +120,29 @@ def create():
     # Process GET
     return render_template('create_eml.html', title='Create New EML', 
                            form=form)
+
+@home.route('/open', methods=['GET', 'POST'])
+@login_required
+def open():
+    form = OpenEMLDocumentForm()
+    choices = []
+    packageids = get_user_document_list()
+    for packageid in packageids:
+        pid_tuple = (packageid, packageid)
+        choices.append(pid_tuple)
+    form.packageid.choices = choices
+
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        create_eml(packageid=packageid)
+        new_page = 'title'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+    
+    # Process GET
+    return render_template('open_eml_document.html', title='Open EML Document', 
+                           form=form)
+
 
 
 @home.route('/data_table_select/<packageid>', methods=['GET', 'POST'])
@@ -1956,24 +1987,6 @@ def contact(packageid=None, node_id=None):
     return responsible_party(packageid=packageid, node_id=node_id, 
                              method=method, node_name=names.CONTACT, 
                              new_page='contact_select', title='Contact')
-
-
-@home.route('/minimal', methods=['GET', 'POST'])
-@login_required
-def minimal():
-    # Process POST
-    form = MinimalEMLForm()
-    if form.validate_on_submit():
-        msg = validate_minimal(packageid=form.packageid.data,
-                         title=form.title.data, 
-                         creator_gn=form.creator_gn.data, 
-                         creator_sn=form.creator_sn.data,
-                         contact_gn=form.contact_gn.data, 
-                         contact_sn=form.contact_sn.data)
-        if msg:
-            flash(msg)
-    # Process GET
-    return render_template('minimal_eml.html', title='Minimal EML', form=form)
 
 
 def process_up_button(packageid:str=None, node_id:str=None):

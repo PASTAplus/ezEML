@@ -23,6 +23,10 @@ from webapp.auth.forms import LoginForm
 from webapp.auth.user import User
 from webapp.config import Config
 
+from webapp.home.metapype_client import (
+    initialize_user_data
+)
+
 
 logger = daiquiri.getLogger('views: ' + __name__)
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -44,6 +48,7 @@ def login():
         if auth_token is not None:
             user = User(auth_token=auth_token)
             login_user(user)
+            initialize_user_data()
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 next_page = url_for('home.index')

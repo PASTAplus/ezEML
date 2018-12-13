@@ -19,11 +19,15 @@ import os.path
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, 
-    url_for
+    url_for, session
 )
 
 from flask_login import (
     current_user, login_required
+)
+
+from webapp import (
+    current_packageids
 )
 
 from webapp.home.forms import ( 
@@ -35,7 +39,7 @@ from webapp.home.forms import (
     DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
     MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm,
     CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
-    OpenEMLDocumentForm
+    OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -54,7 +58,8 @@ from webapp.home.metapype_client import (
     create_code_definition, mscale_from_attribute,
     create_interval_ratio, create_datetime,
     move_up, move_down, UP_ARROW, DOWN_ARROW, download_eml,
-    get_user_document_list
+    get_user_document_list, delete_eml, save_as,
+    get_user_org
 )
 
 from metapype.eml2_1_1 import export
@@ -76,6 +81,64 @@ def about():
     return render_template('about.html')
 
 
+@home.route('/delete', methods=['GET', 'POST'])
+@login_required
+def delete():
+    form = DeleteEMLForm()
+    choices = []
+    packageids = get_user_document_list()
+    for packageid in packageids:
+        pid_tuple = (packageid, packageid)
+        choices.append(pid_tuple)
+    form.packageid.choices = choices
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        return_value = delete_eml(packageid=packageid)
+        if isinstance(return_value, str):
+            flash(return_value)
+        else:
+            flash(f'Deleted {packageid}')
+        new_page = 'delete'   # Return the Response object
+        return redirect(url_for(f'home.{new_page}'))
+    # Process GET
+    return render_template('delete_eml.html', title='Delete EML', 
+                           form=form)
+
+
+@home.route('/save_as', methods=['GET', 'POST'])
+@login_required
+def save_as():
+    form = SaveAsForm()
+    choices = []
+    choices.append(('', ''))
+    packageid = 'dcosta.1.3'
+    packageids = get_user_document_list()
+    for pid in packageids:
+        pid_tuple = (pid, pid)
+        if pid != packageid:
+            choices.append(pid_tuple) 
+    form.packageid.choices = choices
+    # Process POST
+    if form.validate_on_submit():
+        eml_node = load_eml(packageid=packageid)
+        new_packageid = form.packageid.data
+        return_value = save_as(old_packageid=packageid, 
+                               new_packageid=new_packageid,
+                               eml_node=eml_node)
+        if isinstance(return_value, str):
+            flash(return_value)
+        else:
+           flash(f'Saved as {new_packageid}')
+        new_page = 'title'   # Return the Response object
+        return redirect(url_for(f'home.{new_page}', packageid=new_packageid))
+     # Process GET
+    return render_template('save_as.html',
+                           package_id=packageid, 
+                           title='Save As', 
+                           form=form)
+
+
 @home.route('/download', methods=['GET', 'POST'])
 @login_required
 def download():
@@ -93,7 +156,7 @@ def download():
         if isinstance(return_value, str):
             flash(return_value)
         else:
-            return return_value    # Return the Response object
+            return return_value
     # Process GET
     return render_template('download_eml.html', title='Download EML', 
                            form=form)
@@ -124,10 +187,20 @@ def create():
 @home.route('/open', methods=['GET', 'POST'])
 @login_required
 def open():
+    global current_packageids
+    current_packageid = None
+    user_org = get_user_org()
+    
+    # Lookup the user's current data package id
+    if (current_packageids and 
+        user_org and 
+        user_org in current_packageids):
+        current_packageid = current_packageids[user_org]
+
     form = OpenEMLDocumentForm()
     choices = []
-    packageids = get_user_document_list()
-    for packageid in packageids:
+    user_packageids = get_user_document_list()
+    for packageid in user_packageids:
         pid_tuple = (packageid, packageid)
         choices.append(pid_tuple)
     form.packageid.choices = choices
@@ -135,9 +208,16 @@ def open():
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
-        create_eml(packageid=packageid)
-        new_page = 'title'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+        if current_packageid and packageid == current_packageid:
+            flash(f'Data package {packageid} is already open')
+            return render_template('open_eml_document.html', 
+                                   title='Open EML Document', 
+                                   form=form)
+        else:
+            current_packageids[user_org] = packageid
+            create_eml(packageid=packageid)
+            new_page = 'title'
+            return redirect(url_for(f'home.{new_page}', packageid=packageid))
     
     # Process GET
     return render_template('open_eml_document.html', title='Open EML Document', 

@@ -82,6 +82,10 @@ class DataTableForm(FlaskForm):
     online_url = StringField('Online Distribution URL', validators=[])
 
 
+class DeleteEMLForm(FlaskForm):
+    packageid = SelectField('Data Package Identifier', choices=[])
+
+
 class DownloadEMLForm(FlaskForm):
     packageid = SelectField('Data Package Identifier', choices=[])
 
@@ -179,6 +183,10 @@ class ResponsiblePartyForm(FlaskForm):
     fax = StringField('Fax', validators=[])
     email = StringField('Email', validators=[])
     online_url = StringField('Online URL', validators=[])
+
+
+class SaveAsForm(FlaskForm):
+    packageid = SelectField('Data Package Identifier', choices=[])
 
 
 class TaxonomicCoverageSelectForm(FlaskForm):

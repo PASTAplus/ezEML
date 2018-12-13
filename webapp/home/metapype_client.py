@@ -483,6 +483,16 @@ def log_as_xml(node: Node):
     logger.info("\n\n" + xml_str)
 
 
+def save_as(old_packageid:str=None, new_packageid:str=None, eml_node:Node=None):
+    if (old_packageid and 
+        new_packageid and 
+        eml_node and 
+        new_packageid != old_packageid):
+        eml_node.add_attribute('packageId', new_packageid)
+        save_eml(packageid=new_packageid, eml_node=eml_node, format='json')
+        save_both_formats(packageid=new_packageid, eml_node=eml_node)
+
+
 def save_both_formats(packageid:str=None, eml_node:Node=None):
     save_eml(packageid=packageid, eml_node=eml_node, format='json')
     save_eml(packageid=packageid, eml_node=eml_node, format='xml')
@@ -1320,6 +1330,27 @@ def validate_minimal(packageid=None, title=None, contact_gn=None,
     return msg
 
 
+def get_user_org():
+    user_org = None
+    try:
+        username = current_user.get_username()
+        organization = current_user.get_organization()
+        user_org = f'{username}-{organization}'
+    except AttributeError:
+        pass
+    return user_org
+    
+
+def get_user_folder_name():
+    user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
+    
+    user_org = get_user_org()
+    if user_org:
+        user_folder_name = f'{USER_DATA_DIR}/{user_org}'
+
+    return user_folder_name
+
+
 def get_user_document_list():
     packageids = []
     user_folder = get_user_folder_name()
@@ -1336,15 +1367,33 @@ def get_user_document_list():
     return packageids
 
 
-def get_user_folder_name():
-    user_folder_name = None
-    try:
-        username = current_user.get_username()
-        organization = current_user.get_organization()
-        user_folder_name = f'{USER_DATA_DIR}/{username}-{organization}'
-    except AttributeError:
-        user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
-    return user_folder_name
+def initialize_user_data():
+    user_folder_name = get_user_folder_name()
+    if user_folder_name:
+        os.mkdir(user_folder_name)
+
+
+def delete_eml(packageid:str=''):
+    if packageid:
+        user_folder = get_user_folder_name()
+        json_filename = f'{user_folder}/{packageid}.json'
+        xml_filename = f'{user_folder}/{packageid}.xml'
+        if os.path.exists(json_filename):
+            try:
+                os.remove(json_filename)
+                try:
+                    os.remove(xml_filename)
+                except Exception as e:
+                    pass
+                return None
+            except Exception as e:
+                return str(e)
+        else:
+            msg = f'Data package not found: {packageid}'
+            return msg
+    else:
+        msg = f'No package ID was specified'
+        return msg
 
 
 def download_eml(packageid:str=''):

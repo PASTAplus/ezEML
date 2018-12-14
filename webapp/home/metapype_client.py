@@ -483,14 +483,18 @@ def log_as_xml(node: Node):
     logger.info("\n\n" + xml_str)
 
 
-def save_as(old_packageid:str=None, new_packageid:str=None, eml_node:Node=None):
-    if (old_packageid and 
-        new_packageid and 
-        eml_node and 
-        new_packageid != old_packageid):
+def save_old_to_new(old_packageid:str=None, new_packageid:str=None, eml_node:Node=None):
+    msg = None
+    if new_packageid and eml_node and new_packageid != old_packageid:
         eml_node.add_attribute('packageId', new_packageid)
         save_eml(packageid=new_packageid, eml_node=eml_node, format='json')
         save_both_formats(packageid=new_packageid, eml_node=eml_node)
+    elif new_packageid == old_packageid:
+        msg = 'New package id and old package id are the same'
+    else:
+        msg = 'Not saved'
+
+    return msg
 
 
 def save_both_formats(packageid:str=None, eml_node:Node=None):
@@ -1369,7 +1373,7 @@ def get_user_document_list():
 
 def initialize_user_data():
     user_folder_name = get_user_folder_name()
-    if user_folder_name:
+    if user_folder_name and not os.path.exists(user_folder_name):
         os.mkdir(user_folder_name)
 
 

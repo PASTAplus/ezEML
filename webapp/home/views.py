@@ -58,7 +58,7 @@ from webapp.home.metapype_client import (
     create_code_definition, mscale_from_attribute,
     create_interval_ratio, create_datetime,
     move_up, move_down, UP_ARROW, DOWN_ARROW, download_eml,
-    get_user_document_list, delete_eml, save_as,
+    get_user_document_list, delete_eml, save_old_to_new,
     get_user_org
 )
 
@@ -109,34 +109,74 @@ def delete():
 @home.route('/save_as', methods=['GET', 'POST'])
 @login_required
 def save_as():
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Save' in request.form:
+            submit_type = 'Save'
+        elif 'Cancel' in request.form:
+            submit_type = 'Cancel'
+        else:
+            submit_type = None
     form = SaveAsForm()
-    choices = []
-    choices.append(('', ''))
-    packageid = 'dcosta.1.3'
-    packageids = get_user_document_list()
-    for pid in packageids:
-        pid_tuple = (pid, pid)
-        if pid != packageid:
-            choices.append(pid_tuple) 
-    form.packageid.choices = choices
+    global current_packageids
+    current_packageid = None
+    user_org = get_user_org()
+    
+    # Lookup the user's current data package id
+    if (current_packageids and 
+        user_org and 
+        user_org in current_packageids):
+        current_packageid = current_packageids[user_org]
+
     # Process POST
     if form.validate_on_submit():
-        eml_node = load_eml(packageid=packageid)
-        new_packageid = form.packageid.data
-        return_value = save_as(old_packageid=packageid, 
-                               new_packageid=new_packageid,
-                               eml_node=eml_node)
-        if isinstance(return_value, str):
-            flash(return_value)
-        else:
-           flash(f'Saved as {new_packageid}')
-        new_page = 'title'   # Return the Response object
+        if submit_type == 'Cancel':
+            if current_packageid:
+                new_page = 'title'
+            else:
+                return render_template('index.html')
+        elif submit_type == 'Save':
+            eml_node = load_eml(packageid=current_packageid)
+            new_packageid = form.packageid.data
+            return_value = save_old_to_new(
+                            old_packageid=current_packageid, 
+                            new_packageid=new_packageid,
+                            eml_node=eml_node)
+            if isinstance(return_value, str):
+                flash(return_value)
+                new_packageid = current_packageid  # Revert back to the old packageid
+            else:
+                current_packageids[user_org] = new_packageid
+                flash(f'Saved as {new_packageid}')
+            new_page = 'title'   # Return the Response object
+        
         return redirect(url_for(f'home.{new_page}', packageid=new_packageid))
+
      # Process GET
+    if current_packageid:
+        form.packageid.data = current_packageid
     return render_template('save_as.html',
-                           package_id=packageid, 
+                           packageid=current_packageid, 
                            title='Save As', 
                            form=form)
+
+
+    form = TitleForm()
+    # Process POST
+    if form.validate_on_submit():
+        create_title(title=form.title.data, packageid=packageid)
+        new_page = 'creator_select' if (submit_type == 'Next') else 'data_table_select'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    title_node = eml_node.find_child(child_name='title')
+    if title_node:
+        form.title.data = title_node.content
+    return render_template('title.html', title='Title', form=form)
+
+
+
+
 
 
 @home.route('/download', methods=['GET', 'POST'])
@@ -223,6 +263,26 @@ def open():
     return render_template('open_eml_document.html', title='Open EML Document', 
                            form=form)
 
+
+
+@home.route('/close', methods=['GET', 'POST'])
+@login_required
+def close():
+    global current_packageids
+    current_packageid = None
+    user_org = get_user_org()
+    
+    # Lookup the user's current data package id
+    if (current_packageids and 
+        user_org and 
+        user_org in current_packageids):
+        current_packageid = current_packageids[user_org]
+
+        if current_packageid:
+            current_packageids[user_org] = None
+            flash(f'Closed {current_packageid}')
+        
+    return render_template('index.html')
 
 
 @home.route('/data_table_select/<packageid>', methods=['GET', 'POST'])

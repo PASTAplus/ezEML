@@ -1373,6 +1373,8 @@ def get_user_document_list():
 
 def initialize_user_data():
     user_folder_name = get_user_folder_name()
+    if not os.path.exists(USER_DATA_DIR):
+        os.mkdir(USER_DATA_DIR)
     if user_folder_name and not os.path.exists(user_folder_name):
         os.mkdir(user_folder_name)
 

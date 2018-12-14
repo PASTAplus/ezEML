@@ -161,24 +161,6 @@ def save_as():
                            form=form)
 
 
-    form = TitleForm()
-    # Process POST
-    if form.validate_on_submit():
-        create_title(title=form.title.data, packageid=packageid)
-        new_page = 'creator_select' if (submit_type == 'Next') else 'data_table_select'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
-    # Process GET
-    eml_node = load_eml(packageid=packageid)
-    title_node = eml_node.find_child(child_name='title')
-    if title_node:
-        form.title.data = title_node.content
-    return render_template('title.html', title='Title', form=form)
-
-
-
-
-
-
 @home.route('/download', methods=['GET', 'POST'])
 @login_required
 def download():

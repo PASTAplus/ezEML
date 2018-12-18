@@ -252,16 +252,10 @@ def open():
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
-        if current_packageid and packageid == current_packageid:
-            flash(f'Data package {packageid} is already open')
-            return render_template('open_eml_document.html', 
-                                   title='Open EML Document', 
-                                   form=form)
-        else:
-            current_user.set_packageid(packageid)
-            create_eml(packageid=packageid)
-            new_page = 'title'
-            return redirect(url_for(f'home.{new_page}', packageid=packageid))
+        current_user.set_packageid(packageid)
+        create_eml(packageid=packageid)
+        new_page = 'title'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
     
     # Process GET
     return render_template('open_eml_document.html', title='Open EML Document', 

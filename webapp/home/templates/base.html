@@ -4,6 +4,7 @@
 {% if title %}{{ title }} - Metadata EML{% endif %}
 {% endblock %}
 
+
 {% block navbar %}
 <nav class="navbar navbar-default">
     <div class="container-fluid">
@@ -37,6 +38,9 @@
                         </li>
                         <li>
                             <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>
                         </li>
                         <li>
                             <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
@@ -80,7 +84,10 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
             <ul class="nav navbar-nav">
                 <li>
-                    <strong>Active user: {{ current_user.get_username() }}</strong>
+                    Active user: <strong>{{ current_user.get_username() }}</strong>
+                    {% if current_user.get_packageid() %}
+                    &nbsp;&nbsp;Data Package: <strong>{{ current_user.get_packageid() }}</strong>
+                    {% endif %}
                 </li>
             </ul>
         </div>

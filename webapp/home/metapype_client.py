@@ -25,6 +25,10 @@ from flask_login import (
     current_user
 )
 
+from webapp.auth.user_data import (
+    get_user_folder_name
+)
+
 from metapype.eml2_1_1 import export, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import io
@@ -34,7 +38,6 @@ logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 
 UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
-USER_DATA_DIR = 'user-data'
 
 
 def list_data_tables(eml_node:Node=None):
@@ -1332,97 +1335,3 @@ def validate_minimal(packageid=None, title=None, contact_gn=None,
         msg = validate_tree(eml)
 
     return msg
-
-
-def get_user_org():
-    user_org = None
-    try:
-        username = current_user.get_username()
-        organization = current_user.get_organization()
-        user_org = f'{username}-{organization}'
-    except AttributeError:
-        pass
-    return user_org
-    
-
-def get_user_folder_name():
-    user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
-    
-    user_org = get_user_org()
-    if user_org:
-        user_folder_name = f'{USER_DATA_DIR}/{user_org}'
-
-    return user_folder_name
-
-
-def get_user_document_list():
-    packageids = []
-    user_folder = get_user_folder_name()
-    try:
-        folder_contents = os.listdir(user_folder)
-        onlyfiles = [f for f in folder_contents if os.path.isfile(os.path.join(user_folder, f))]
-        if onlyfiles:
-            for filename in onlyfiles:
-                if filename and filename.endswith('.json'):
-                    packageid = os.path.splitext(filename)[0]
-                    packageids.append(packageid)
-    except:
-        pass
-    return packageids
-
-
-def initialize_user_data():
-    user_folder_name = get_user_folder_name()
-    if not os.path.exists(USER_DATA_DIR):
-        os.mkdir(USER_DATA_DIR)
-    if user_folder_name and not os.path.exists(user_folder_name):
-        os.mkdir(user_folder_name)
-
-
-def delete_eml(packageid:str=''):
-    if packageid:
-        user_folder = get_user_folder_name()
-        json_filename = f'{user_folder}/{packageid}.json'
-        xml_filename = f'{user_folder}/{packageid}.xml'
-        if os.path.exists(json_filename):
-            try:
-                os.remove(json_filename)
-                try:
-                    os.remove(xml_filename)
-                except Exception as e:
-                    pass
-                return None
-            except Exception as e:
-                return str(e)
-        else:
-            msg = f'Data package not found: {packageid}'
-            return msg
-    else:
-        msg = f'No package ID was specified'
-        return msg
-
-
-def download_eml(packageid:str=''):
-    if packageid:
-        user_folder = get_user_folder_name()
-        filename = f'{user_folder}/{packageid}.xml'
-        if os.path.exists(filename):
-            pathname = '../' + filename
-            mimetype = 'application/xml'
-            try: 
-                return send_file(pathname, 
-                    mimetype=mimetype, 
-                    as_attachment=True, 
-                    attachment_filename=filename, 
-                    add_etags=True, 
-                    cache_timeout=None, 
-                    conditional=False, 
-                    last_modified=None)
-            except Exception as e:
-                return str(e)
-        else:
-            msg = f'Data package not found: {packageid}'
-            return msg
-    else:
-        msg = f'No package ID was specified'
-        return msg

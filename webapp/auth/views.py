@@ -23,7 +23,7 @@ from webapp.auth.forms import LoginForm
 from webapp.auth.user import User
 from webapp.config import Config
 
-from webapp.home.metapype_client import (
+from webapp.auth.user_data import (
     initialize_user_data
 )
 

@@ -17,7 +17,10 @@ import daiquiri
 from flask_login import UserMixin
 import requests
 
-from webapp import login
+from webapp import (
+    login, current_packageids
+)
+
 from webapp.config import Config
 
 logger = daiquiri.getLogger('user.py: ' + __name__)
@@ -59,6 +62,30 @@ class User(UserMixin):
         uid = self.get_uid()
         username = uid.split('=')[1]
         return username
+
+    def get_user_org(self):
+        user_org = None
+        try:
+            username = self.get_username()
+            organization = self.get_organization()
+            user_org = f'{username}-{organization}'
+        except AttributeError:
+            pass
+        return user_org
+    
+    def get_packageid(self):
+        global current_packageids
+        packageid = None
+        user_org = self.get_user_org()
+        if user_org in current_packageids:
+            packageid = current_packageids[user_org]
+        return packageid
+
+
+    def set_packageid(self, packageid:str=None):
+        global current_packageids
+        user_org = self.get_user_org()
+        current_packageids[user_org] = packageid
 
 
 @login.user_loader

@@ -26,8 +26,8 @@ from flask_login import (
     current_user, login_required
 )
 
-from webapp import (
-    current_packageids
+from webapp.auth.user_data import (
+    delete_eml, download_eml, get_user_document_list
 )
 
 from webapp.home.forms import ( 
@@ -57,9 +57,8 @@ from webapp.home.metapype_client import (
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
     create_interval_ratio, create_datetime,
-    move_up, move_down, UP_ARROW, DOWN_ARROW, download_eml,
-    get_user_document_list, delete_eml, save_old_to_new,
-    get_user_org
+    move_up, move_down, UP_ARROW, DOWN_ARROW,
+    save_old_to_new
 )
 
 from metapype.eml2_1_1 import export
@@ -106,6 +105,22 @@ def delete():
                            form=form)
 
 
+@home.route('/save', methods=['GET', 'POST'])
+@login_required
+def save():
+    current_packageid = current_user.get_packageid()
+    
+    if not current_packageid:
+        flash('No document currently open')
+        return render_template('index.html')
+
+    eml_node = load_eml(packageid=current_packageid)
+    save_both_formats(packageid=current_packageid, eml_node=eml_node)
+    flash(f'Saved {current_packageid}')
+         
+    return redirect(url_for(f'home.title', packageid=current_packageid))
+
+
 @home.route('/save_as', methods=['GET', 'POST'])
 @login_required
 def save_as():
@@ -118,15 +133,7 @@ def save_as():
         else:
             submit_type = None
     form = SaveAsForm()
-    global current_packageids
-    current_packageid = None
-    user_org = get_user_org()
-    
-    # Lookup the user's current data package id
-    if (current_packageids and 
-        user_org and 
-        user_org in current_packageids):
-        current_packageid = current_packageids[user_org]
+    current_packageid = current_user.get_packageid()
 
     # Process POST
     if form.validate_on_submit():
@@ -136,6 +143,9 @@ def save_as():
             else:
                 return render_template('index.html')
         elif submit_type == 'Save':
+            if not current_packageid:
+                flash('No document currently open')
+                return render_template('index.html')
             eml_node = load_eml(packageid=current_packageid)
             new_packageid = form.packageid.data
             return_value = save_old_to_new(
@@ -146,7 +156,7 @@ def save_as():
                 flash(return_value)
                 new_packageid = current_packageid  # Revert back to the old packageid
             else:
-                current_packageids[user_org] = new_packageid
+                current_user.set_packageid(packageid=new_packageid)
                 flash(f'Saved as {new_packageid}')
             new_page = 'title'   # Return the Response object
         
@@ -155,10 +165,14 @@ def save_as():
      # Process GET
     if current_packageid:
         form.packageid.data = current_packageid
-    return render_template('save_as.html',
+        return render_template('save_as.html',
                            packageid=current_packageid, 
                            title='Save As', 
                            form=form)
+    else:
+        flash("No document currently open")
+        return render_template('index.html')
+
 
 
 @home.route('/download', methods=['GET', 'POST'])
@@ -209,15 +223,7 @@ def create():
 @home.route('/open', methods=['GET', 'POST'])
 @login_required
 def open():
-    global current_packageids
-    current_packageid = None
-    user_org = get_user_org()
-    
-    # Lookup the user's current data package id
-    if (current_packageids and 
-        user_org and 
-        user_org in current_packageids):
-        current_packageid = current_packageids[user_org]
+    current_packageid = current_user.get_packageid()
 
     form = OpenEMLDocumentForm()
     choices = []
@@ -236,7 +242,8 @@ def open():
                                    title='Open EML Document', 
                                    form=form)
         else:
-            current_packageids[user_org] = packageid
+            current_user.set_packageid(packageid)
+            opened_packageid = current_user.get_packageid()
             create_eml(packageid=packageid)
             new_page = 'title'
             return redirect(url_for(f'home.{new_page}', packageid=packageid))
@@ -250,19 +257,13 @@ def open():
 @home.route('/close', methods=['GET', 'POST'])
 @login_required
 def close():
-    global current_packageids
-    current_packageid = None
-    user_org = get_user_org()
+    current_packageid = current_user.get_packageid()
     
-    # Lookup the user's current data package id
-    if (current_packageids and 
-        user_org and 
-        user_org in current_packageids):
-        current_packageid = current_packageids[user_org]
-
-        if current_packageid:
-            current_packageids[user_org] = None
-            flash(f'Closed {current_packageid}')
+    if current_packageid:
+        current_user.set_packageid(None)
+        flash(f'Closed {current_packageid}')
+    else:
+        flash("There was no package open")
         
     return render_template('index.html')
 

@@ -115,6 +115,10 @@ def save():
         return render_template('index.html')
 
     eml_node = load_eml(packageid=current_packageid)
+    if not eml_node:
+        flash(f'Unable to open {current_packageid}')
+        return render_template('index.html')
+
     save_both_formats(packageid=current_packageid, eml_node=eml_node)
     flash(f'Saved {current_packageid}')
          
@@ -146,7 +150,12 @@ def save_as():
             if not current_packageid:
                 flash('No document currently open')
                 return render_template('index.html')
+
             eml_node = load_eml(packageid=current_packageid)
+            if not eml_node:
+                flash(f'Unable to open {current_packageid}')
+                return render_template('index.html')
+
             new_packageid = form.packageid.data
             return_value = save_old_to_new(
                             old_packageid=current_packageid, 
@@ -213,12 +222,18 @@ def create():
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
+        user_packageids = get_user_document_list()
+        if user_packageids and packageid and packageid in user_packageids:
+            flash(f'{packageid} already exists')
+            return render_template('create_eml.html', title='Create New EML', 
+                            form=form)
         create_eml(packageid=packageid)
-        new_page = 'data_table_select' if (submit_type == 'Back') else 'title'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+        current_user.set_packageid(packageid)
+        return redirect(url_for(f'home.title', packageid=packageid))
     # Process GET
     return render_template('create_eml.html', title='Create New EML', 
                            form=form)
+
 
 @home.route('/open', methods=['GET', 'POST'])
 @login_required
@@ -243,7 +258,6 @@ def open():
                                    form=form)
         else:
             current_user.set_packageid(packageid)
-            opened_packageid = current_user.get_packageid()
             create_eml(packageid=packageid)
             new_page = 'title'
             return redirect(url_for(f'home.{new_page}', packageid=packageid))

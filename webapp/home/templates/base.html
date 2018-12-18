@@ -27,6 +27,17 @@
                        role="button">EML Document<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
+                    {% if current_user.get_packageid() %}
+                        <li>
+                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
+                        </li>
+                    {% else %}
                         <li>
                             <a href="{{ url_for('home.create') }}" title="New">New</a>
                         </li>
@@ -39,19 +50,8 @@
                         <li>
                             <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>
                         </li>
-                        <li>
-                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
-                        </li>
+                    {% endif %}
                     </ul>
-                </li>
-                <li>
-                    <a href="{{ url_for('home.about') }}" title="About">About</a>
                 </li>
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
@@ -70,6 +70,9 @@
                             <a href="https://portal-d.edirepository.org/nis">Development</a>
                         </li>
                     </ul>
+                </li>
+                <li>
+                    <a href="{{ url_for('home.about') }}" title="About">About</a>
                 </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">

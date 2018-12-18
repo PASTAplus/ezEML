@@ -143,6 +143,7 @@ def save_as():
     if form.validate_on_submit():
         if submit_type == 'Cancel':
             if current_packageid:
+                new_packageid = current_packageid  # Revert back to the old packageid
                 new_page = 'title'
             else:
                 return render_template('index.html')

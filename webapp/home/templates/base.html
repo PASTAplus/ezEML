@@ -21,6 +21,7 @@
         </div>
         <div class="navbar-collapse collapse" id="top-navbar">
             <ul class="nav navbar-nav">
+            {% if current_user.is_authenticated %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
@@ -53,6 +54,7 @@
                     {% endif %}
                     </ul>
                 </li>
+            {% endif %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"

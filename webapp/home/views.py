@@ -211,15 +211,8 @@ def download():
 @home.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Back' in request.form:
-            submit_type = 'Back'
-        elif 'Next' in request.form:
-            submit_type = 'Next'
-        else:
-            submit_type = None
     form = CreateEMLForm()
+
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
@@ -239,9 +232,8 @@ def create():
 @home.route('/open', methods=['GET', 'POST'])
 @login_required
 def open():
-    current_packageid = current_user.get_packageid()
-
     form = OpenEMLDocumentForm()
+
     choices = []
     user_packageids = get_user_document_list()
     for packageid in user_packageids:

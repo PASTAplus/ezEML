@@ -32,7 +32,6 @@ app.config.from_object(Config)
 bootstrap = Bootstrap(app)
 login = LoginManager(app)
 login.login_view = 'auth.login'
-current_packageids = {}
 
 # Importing these modules causes the routes and error handlers to be associated
 # with the blueprint. It is important to note that the modules are imported at

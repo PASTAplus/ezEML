@@ -21,9 +21,14 @@ from webapp import (
     login, current_packageids
 )
 
+from webapp.auth.user_data import (
+    set_active_packageid, get_active_packageid, remove_active_packageid,
+)
+
 from webapp.config import Config
 
 logger = daiquiri.getLogger('user.py: ' + __name__)
+
 
 class User(UserMixin):
 
@@ -74,18 +79,11 @@ class User(UserMixin):
         return user_org
     
     def get_packageid(self):
-        global current_packageids
-        packageid = None
-        user_org = self.get_user_org()
-        if user_org in current_packageids:
-            packageid = current_packageids[user_org]
+        packageid = get_active_packageid()
         return packageid
 
-
     def set_packageid(self, packageid:str=None):
-        global current_packageids
-        user_org = self.get_user_org()
-        current_packageids[user_org] = packageid
+        set_active_packageid(packageid)
 
 
 @login.user_loader

@@ -22,6 +22,8 @@ from flask_login import (
     current_user
 )
 
+from webapp.config import Config
+
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
 
@@ -118,3 +120,31 @@ def download_eml(packageid:str=''):
     else:
         msg = f'No package ID was specified'
         return msg
+
+
+def set_active_packageid(packageid: str):
+    if packageid is not None:
+        user_folder = get_user_folder_name()
+        active_packageid_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
+        with open(active_packageid_file, 'w') as f:
+            f.write(packageid)
+    else:
+        remove_active_packageid()
+
+
+def get_active_packageid() -> str:
+    package_id = None
+    user_folder = get_user_folder_name()
+    active_packageid_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
+    if os.path.exists(active_packageid_file):
+        with open(active_packageid_file, 'r') as f:
+            package_id = f.readline().strip()
+    return package_id
+
+
+def remove_active_packageid():
+    user_folder = get_user_folder_name()
+    active_packageid_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
+    if os.path.exists(active_packageid_file):
+        os.remove(active_packageid_file)
+

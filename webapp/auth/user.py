@@ -18,11 +18,11 @@ from flask_login import UserMixin
 import requests
 
 from webapp import (
-    login, current_packageids
+    login
 )
 
 from webapp.auth.user_data import (
-    set_active_packageid, get_active_packageid, remove_active_packageid,
+    set_active_packageid, get_active_packageid
 )
 
 from webapp.config import Config

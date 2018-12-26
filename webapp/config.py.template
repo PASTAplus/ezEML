@@ -22,3 +22,5 @@ class Config(object):
 
     DOMAINS = {'edi': 'o=EDI,dc=edirepository,dc=org',
                'lter':'o=LTER,dc=ecoinformatics,dc=org',}
+
+    ACTIVE_PACKAGE = 'active.txt'

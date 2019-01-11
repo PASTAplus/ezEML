@@ -1346,9 +1346,9 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
         method_step_node.add_child(description_node)
         
         if description:
-            section_node = Node(names.SECTION, parent=description_node)
-            description_node.add_child(section_node)
-            section_node.content = description
+            para_node = Node(names.PARA, parent=description_node)
+            description_node.add_child(para_node)
+            para_node.content = description
 
         instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
         method_step_node.add_child(instrumentation_node)

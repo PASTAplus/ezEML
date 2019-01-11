@@ -2232,13 +2232,13 @@ def method_step(packageid=None, node_id=None):
     dataset_node = eml_node.find_child(names.DATASET)
 
     if dataset_node:
-        methods_node = eml_node.find_child(names.METHODS)
+        methods_node = dataset_node.find_child(names.METHODS)
     else:
-        dataset_node = Node(names.dataset, parent=eml_node)
+        dataset_node = Node(names.DATASET, parent=eml_node)
         eml_node.add_child(dataset_node)
 
     if not methods_node:
-        methods_node = Node(names.METHODS)
+        methods_node = Node(names.METHODS, parent=dataset_node)
         dataset_node.add_child(methods_node)
 
     form = MethodStepForm(packageid=packageid, node_id=node_id)

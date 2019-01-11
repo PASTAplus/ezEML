@@ -39,7 +39,7 @@ class User(UserMixin):
     def authenticate(user_dn=None, password=None):
         auth_token = None
         r = requests.get(Config.PASTA_URL, auth=(user_dn, password))
-        if r.status_code == requests.codes.ok:
+        if r.status_code == 200:
             auth_token = r.cookies['auth-token']
         return auth_token
 

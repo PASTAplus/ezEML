@@ -21,6 +21,7 @@ from werkzeug.urls import url_parse
 
 from webapp.auth.forms import LoginForm
 from webapp.auth.user import User
+from webapp.auth.user_data import get_active_packageid
 from webapp.config import Config
 
 from webapp.auth.user_data import (
@@ -51,7 +52,11 @@ def login():
             initialize_user_data()
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
-                next_page = url_for('home.index')
+                current_packageid = get_active_packageid()
+                if current_packageid:
+                    next_page = url_for('home.title', packageid=current_packageid)
+                else:
+                    next_page = url_for('home.index')
             return redirect(next_page)
         flash('Invalid username or password')
         return redirect(url_for('auth.login'))

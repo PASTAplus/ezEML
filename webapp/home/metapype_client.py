@@ -1285,6 +1285,77 @@ def create_responsible_party(
         logger.error(e)
 
 
+def list_method_steps(eml_node:Node=None):
+    ms_list = []
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            methods_node = dataset_node.find_child(names.METHODS)
+            if methods_node:
+                method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
+                MS_Entry = collections.namedtuple(
+                    'MS_Entry', 
+                    ["id", "description", "instrumentation", "upval", "downval"],
+                    rename=False)
+                for i, method_step_node in enumerate(method_step_nodes):
+                    id = method_step_node.id
+                    method_step_description = compose_method_step_description(method_step_node)
+                    method_step_instrumentation = compose_method_step_instrumentation(method_step_node)
+                    upval = get_upval(i)
+                    downval = get_downval(i+1, len(method_step_nodes))
+                    ms_entry = MS_Entry(id=id,
+                                        description=method_step_description,
+                                        instrumentation=method_step_instrumentation,
+                                        upval=upval, 
+                                        downval=downval)
+                    ms_list.append(ms_entry)
+    return ms_list
+
+
+def compose_method_step_description(method_step_node:Node=None):
+    description = ''
+
+    if method_step_node:
+        description_node = method_step_node.find_child(names.DESCRIPTION)
+        if description_node:
+            section_node = description_node.find_child(names.SECTION)
+            if section_node:
+                description = section_node.content 
+            else:
+                para_node = description_node.find_child(names.PARA)
+                if para_node:
+                    description = para_node.content 
+
+    return description
+
+
+def compose_method_step_instrumentation(method_step_node:Node=None):
+    instrumentation = ''
+
+    if method_step_node:
+        instrumentation_node = method_step_node.find_child(names.INSTRUMENTATION)
+        if instrumentation_node:
+            instrumentation = instrumentation_node.content 
+
+    return instrumentation
+
+
+def create_method_step(method_step_node:Node=None, description:str=None, instrumentation:str=None):
+    if method_step_node:
+        description_node = Node(names.DESCRIPTION, parent=method_step_node)
+        method_step_node.add_child(description_node)
+        
+        if description:
+            section_node = Node(names.SECTION, parent=description_node)
+            description_node.add_child(section_node)
+            section_node.content = description
+
+        instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
+        method_step_node.add_child(instrumentation_node)
+        if instrumentation:
+            instrumentation_node.content = instrumentation
+
+
 def validate_minimal(packageid=None, title=None, contact_gn=None, 
                      contact_sn=None, creator_gn=None, creator_sn=None):
     msg = ''

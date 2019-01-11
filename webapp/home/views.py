@@ -27,7 +27,7 @@ from flask_login import (
 )
 
 from webapp.auth.user_data import (
-    delete_eml, download_eml, get_user_document_list
+    delete_eml, download_eml, get_active_packageid, get_user_document_list
 )
 
 from webapp.home.forms import ( 
@@ -39,7 +39,8 @@ from webapp.home.forms import (
     DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
     MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm,
     CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
-    OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm
+    OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
+    MethodStepSelectForm, MethodStepForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -47,7 +48,8 @@ from webapp.home.metapype_client import (
     validate_tree, add_child, remove_child, create_eml, 
     create_title, create_pubdate, create_abstract, 
     add_keyword, remove_keyword, create_keywords,
-    create_responsible_party, validate_minimal, 
+    create_responsible_party, create_method_step,
+    validate_minimal, list_method_steps,
     list_geographic_coverages, create_geographic_coverage, 
     create_temporal_coverage, list_temporal_coverages, 
     create_taxonomic_coverage, list_taxonomic_coverages,
@@ -72,6 +74,12 @@ home = Blueprint('home', __name__, template_folder='templates')
 
 @home.route('/')
 def index():
+    if current_user.is_authenticated:
+        current_packageid = get_active_packageid()
+        if current_packageid:
+            #next_page = url_for('home.title', packageid=current_packageid)
+            next_page = url_for('home.method_step_select', packageid=current_packageid)
+            return redirect(next_page)
     return render_template('index.html')
 
 
@@ -278,7 +286,7 @@ def data_table_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
-                             'POST', 'data_table_select', 'contact_select', 
+                             'POST', 'data_table_select', 'method_step_select', 
                              'title', 'data_table')
         return redirect(url)
 
@@ -2097,7 +2105,7 @@ def contact_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
                              'POST', 'contact_select', 'taxonomic_coverage_select', 
-                             'data_table_select', 'contact')
+                             'method_step_select', 'contact')
         return redirect(url)
 
     # Process GET
@@ -2130,3 +2138,177 @@ def process_updown_button(packageid:str=None, node_id:str=None, move_function=No
             if parent_node:
                 move_function(parent_node, child_node)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+
+
+@home.route('/method_step_select/<packageid>', methods=['GET', 'POST'])
+def method_step_select(packageid=None, node_id=None):
+    form = MethodStepSelectForm(packageid=packageid)
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = method_step_select_post(packageid, form, form_dict, 
+                                      'POST', 'method_step_select', 'contact_select', 
+                                      'data_table_select', 'method_step')
+        return redirect(url)
+
+    # Process GET
+    return method_step_select_get(packageid=packageid, form=form)
+
+
+def method_step_select_get(packageid=None, form=None):
+    # Process GET
+    method_step_list = []
+    title = 'Method Steps'
+    eml_node = load_eml(packageid=packageid)
+
+    if eml_node:
+        method_step_list = list_method_steps(eml_node)
+    
+    return render_template('method_step_select.html', title=title,
+                           packageid=packageid,
+                           method_step_list=method_step_list, 
+                           form=form)
+
+
+def method_step_select_post(packageid=None, form=None, form_dict=None,
+                          method=None, this_page=None, back_page=None, 
+                          next_page=None, edit_page=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == UP_ARROW:
+                new_page = this_page
+                node_id = key
+                process_up_button(packageid, node_id)
+            elif val == DOWN_ARROW:
+                new_page = this_page
+                node_id = key
+                process_down_button(packageid, node_id)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+            elif val == '[  ]':
+                new_page = this_page
+                node_id = key
+
+    if form.validate_on_submit():  
+        if new_page == edit_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            node_id=node_id)
+        elif new_page == this_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            node_id=node_id)
+        elif new_page == back_page or new_page == next_page:
+            return url_for(f'home.{new_page}', 
+                           packageid=packageid)
+
+
+# node_id is the id of the methodStep node being edited. If the value is
+# '1', it means we are adding a new methodStep node, otherwise we are
+# editing an existing one.
+#
+@home.route('/method_step/<packageid>/<node_id>', methods=['GET', 'POST'])
+def method_step(packageid=None, node_id=None):
+    eml_node = load_eml(packageid=packageid)
+    dataset_node = eml_node.find_child(names.DATASET)
+
+    if dataset_node:
+        methods_node = eml_node.find_child(names.METHODS)
+    else:
+        dataset_node = Node(names.dataset, parent=eml_node)
+        eml_node.add_child(dataset_node)
+
+    if not methods_node:
+        methods_node = Node(names.METHODS)
+        dataset_node.add_child(methods_node)
+
+    form = MethodStepForm(packageid=packageid, node_id=node_id)
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.method_step_select' # Save or Back sends us back to the list of method steps
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+        if submit_type == 'Save Changes':
+            description = form.description.data
+            instrumentation = form.instrumentation.data
+            method_step_node = Node(names.METHODSTEP, parent=methods_node)
+            create_method_step(method_step_node, description, instrumentation)
+
+            if node_id and len(node_id) != 1:
+                old_method_step_node = Node.get_node_instance(node_id)
+
+                if old_method_step_node:
+                    method_step_parent_node = old_method_step_node.parent
+                    method_step_parent_node.replace_child(old_method_step_node, 
+                                                          method_step_node)
+                else:
+                    msg = f"No methodStep node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(methods_node, method_step_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        url = url_for(next_page, packageid=packageid)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
+        if method_step_nodes:
+            for ms_node in method_step_nodes:
+                if node_id == ms_node.id:
+                    populate_method_step_form(form, ms_node)
+                    break
+    
+    return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)
+
+
+def populate_method_step_form(form:MethodStepForm, ms_node:Node):  
+    description = ''
+    instrumentation = ''
+    
+    if ms_node:  
+        description_node = ms_node.find_child(names.DESCRIPTION)
+        if description_node:
+            section_node = description_node.find_child(names.SECTION)
+            if section_node:
+                description = section_node.content 
+            else:
+                para_node = description_node.find_child(names.PARA)
+                if para_node:
+                    description = para_node.content
+        
+        instrumentation_node = ms_node.find_child(names.INSTRUMENTATION)
+        if instrumentation_node: 
+            description = instrumentation_node.content
+
+        form.description.data = description
+        form.instrumentation.data = instrumentation

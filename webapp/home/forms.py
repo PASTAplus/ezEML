@@ -155,10 +155,19 @@ class MscaleDateTimeForm(FlaskForm):
     bounds_maximum = StringField('Bounds Maximum', validators=[])
     bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
     
-    
+
+class MethodStepSelectForm(FlaskForm):
+    pass
+
+
+class MethodStepForm(FlaskForm):
+    description = StringField('Description', widget=TextArea(), validators=[])
+    instrumentation = StringField('Instrumentation', widget=TextArea(), validators=[])
+
 
 class OpenEMLDocumentForm(FlaskForm):
     packageid = SelectField('Data Package Identifier', choices=[])
+
 
 class PubDateForm(FlaskForm):
     pubdate = StringField('Publication Date', validators=[])

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Method Step</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <h5>Please enter the method step description and (optionally) instrumentation below:</h5>
+                {{ wtf.form_field(form.description) }}
+                {{ wtf.form_field(form.instrumentation) }}
+                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
+                <input class="btn btn-primary" name="Clear" type="reset" value="Clear"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

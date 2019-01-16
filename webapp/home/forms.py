@@ -169,6 +169,12 @@ class OpenEMLDocumentForm(FlaskForm):
     packageid = SelectField('Data Package Identifier', choices=[])
 
 
+class ProjectForm(FlaskForm):
+    title = StringField('Project Title', validators=[])
+    abstract = StringField('Project Abstract (Optional)', widget=TextArea(), validators=[])
+    funding = StringField('Project Funding (Optional)', validators=[])
+
+
 class PubDateForm(FlaskForm):
     pubdate = StringField('Publication Date', validators=[])
 

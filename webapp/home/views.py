@@ -40,14 +40,14 @@ from webapp.home.forms import (
     MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm,
     CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
-    MethodStepSelectForm, MethodStepForm
+    MethodStepSelectForm, MethodStepForm, ProjectForm
 )
 
 from webapp.home.metapype_client import ( 
     load_eml, list_responsible_parties, save_both_formats, 
     validate_tree, add_child, remove_child, create_eml, 
     create_title, create_pubdate, create_abstract, 
-    add_keyword, remove_keyword, create_keywords,
+    add_keyword, remove_keyword, create_keywords, create_project,
     create_responsible_party, create_method_step,
     validate_minimal, list_method_steps,
     list_geographic_coverages, create_geographic_coverage, 
@@ -286,7 +286,7 @@ def data_table_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
-                             'POST', 'data_table_select', 'method_step_select', 
+                             'POST', 'data_table_select', 'project', 
                              'title', 'data_table')
         return redirect(url)
 
@@ -2150,7 +2150,7 @@ def method_step_select(packageid=None, node_id=None):
         form_dict = form_value.to_dict(flat=False)
         url = method_step_select_post(packageid, form, form_dict, 
                                       'POST', 'method_step_select', 'contact_select', 
-                                      'data_table_select', 'method_step')
+                                      'project', 'method_step')
         return redirect(url)
 
     # Process GET
@@ -2312,3 +2312,87 @@ def populate_method_step_form(form:MethodStepForm, ms_node:Node):
 
         form.description.data = description
         form.instrumentation.data = instrumentation
+
+
+@home.route('/project/<packageid>', methods=['GET', 'POST'])
+def project(packageid=None):
+    form = ProjectForm(packageid=packageid)
+    eml_node = load_eml(packageid=packageid)
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            project_node = dataset_node.find_child(names.PROJECT)
+        else:
+            dataset_node = Node(names.DATASET, parent=eml_node)
+            eml_node.add_child(dataset_node)
+
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Back' in request.form:
+            new_page = 'method_step_select'
+        elif 'Next' in request.form:
+            new_page = 'data_table_select'
+
+    # Process POST
+    if form.validate_on_submit():
+        title = form.title.data
+        abstract = form.abstract.data
+        funding = form.funding.data
+        new_project_node = Node(names.PROJECT)
+        create_project(new_project_node, title, abstract, funding)
+
+        if project_node:
+            dataset_node.replace_child(project_node, new_project_node)
+        else:
+            add_child(dataset_node, new_project_node)
+
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
+    # Process GET
+    if project_node:
+        populate_project_form(form, project_node)
+
+    return render_template('project.html', 
+                        title='Project', 
+                        packageid=packageid, 
+                        form=form)
+
+
+def populate_project_form(form:ProjectForm, project_node:Node):  
+    title = ''
+    abstract = ''
+    funding = ''
+    
+    if project_node:  
+        title_node = project_node.find_child(names.TITLE)
+        if title_node:
+            title = title_node.content 
+        
+        abstract_node = project_node.find_child(names.ABSTRACT)
+        if abstract_node:
+            abstract = abstract_node.content
+            if not abstract:
+                para_node = abstract_node.find_child(names.PARA)
+                if para_node:
+                    abstract = para_node.content
+                else:
+                    section_node = abstract_node.find_child(names.SECTION)
+                    if section_node:
+                        abstract = section_node.content
+        
+        funding_node = project_node.find_child(names.FUNDING)
+        if funding_node:
+            funding = funding_node.content 
+            if not funding:
+                para_node = funding_node.find_child(names.PARA)
+                if para_node:
+                    funding = para_node.content
+                else:
+                    section_node = funding_node.find_child(names.SECTION)
+                    if section_node:
+                        funding = section_node.content
+
+        form.title.data = title
+        form.abstract.data = abstract
+        form.funding.data = funding

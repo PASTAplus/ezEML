@@ -877,6 +877,33 @@ def create_abstract(packageid=None, abstract=None):
         logger.error(e)
 
 
+def create_project(project_node:Node=None, title:str=None, abstract:str=None, funding:str=None):
+    try:
+
+        if not project_node:
+            project_node = Node(names.PROJECT)
+
+        if title:
+            title_node = Node(names.TITLE, parent=project_node)
+            title_node.content = title
+            add_child(project_node, title_node)
+
+        if abstract:
+            abstract_node = Node(names.ABSTRACT, parent=project_node)
+            abstract_node.content = abstract
+            add_child(project_node, abstract_node)
+
+        if funding:
+            funding_node = Node(names.FUNDING, parent=project_node)
+            funding_node.content = funding
+            add_child(project_node, funding_node)
+
+        return project_node
+
+    except Exception as e:
+        logger.error(e)
+
+
 def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
     if keyword:
         eml_node = load_eml(packageid=packageid)

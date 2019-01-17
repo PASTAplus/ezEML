@@ -199,6 +199,7 @@ class ResponsiblePartyForm(FlaskForm):
     fax = StringField('Fax', validators=[])
     email = StringField('Email', validators=[])
     online_url = StringField('Online URL', validators=[])
+    role = StringField('Role', validators=[])
 
 
 class SaveAsForm(FlaskForm):

@@ -235,7 +235,13 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            rp_nodes = dataset_node.find_all_children(node_name)
+            parent_node = dataset_node
+            if node_name == 'personnel':
+                project_node = dataset_node.find_child(names.PROJECT)
+                if project_node:
+                    parent_node = project_node
+
+            rp_nodes = parent_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
                 'RP_Entry', ["id", "label", "upval", "downval"], 
                  rename=False)
@@ -877,28 +883,35 @@ def create_abstract(packageid=None, abstract=None):
         logger.error(e)
 
 
-def create_project(project_node:Node=None, title:str=None, abstract:str=None, funding:str=None):
+def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, funding:str=None):
     try:
 
-        if not project_node:
-            project_node = Node(names.PROJECT)
+        if dataset_node:
+            project_node = dataset_node.find_child(names.DATASET)
+            if not project_node:
+                project_node = Node(names.PROJECT, parent=dataset_node)
+                dataset_node.add_child(project_node)
 
         if title:
-            title_node = Node(names.TITLE, parent=project_node)
+            title_node = project_node.find_child(names.TITLE)
+            if not title_node:
+                title_node = Node(names.TITLE, parent=project_node)
+                add_child(project_node, title_node)
             title_node.content = title
-            add_child(project_node, title_node)
 
         if abstract:
-            abstract_node = Node(names.ABSTRACT, parent=project_node)
+            abstract_node = project_node.find_child(names.ABSTRACT)
+            if not abstract_node:
+                abstract_node = Node(names.ABSTRACT, parent=project_node)
+                add_child(project_node, abstract_node)
             abstract_node.content = abstract
-            add_child(project_node, abstract_node)
 
         if funding:
-            funding_node = Node(names.FUNDING, parent=project_node)
+            funding_node = project_node.find_child(names.FUNDING)
+            if not funding_node:
+                funding_node = Node(names.FUNDING, parent=project_node)
+                add_child(project_node, funding_node)
             funding_node.content = funding
-            add_child(project_node, funding_node)
-
-        return project_node
 
     except Exception as e:
         logger.error(e)
@@ -1195,7 +1208,6 @@ def create_taxonomic_coverage(
 
 
 def create_responsible_party(
-                   parent_node:Node=None,
                    responsible_party_node:Node=None,
                    packageid:str=None, 
                    salutation:str=None,
@@ -1212,17 +1224,9 @@ def create_responsible_party(
                    phone:str=None,
                    fax:str=None,
                    email:str=None,
-                   online_url:str=None):
+                   online_url:str=None,
+                   role:str=None):
     try:
-        node_name = responsible_party_node.name
-
-        if parent_node:
-            old_responsible_party_node = parent_node.find_child(node_name)
-            if old_responsible_party_node:
-                pass
-                # Get rid of the old node if it exists
-                #dataset_node.remove_child(old_responsible_party_node)
-
         if salutation or gn or sn:
             individual_name_node = Node(names.INDIVIDUALNAME)
             if salutation:
@@ -1305,6 +1309,11 @@ def create_responsible_party(
             online_url_node = Node(names.ONLINEURL)
             online_url_node.content = online_url
             add_child(responsible_party_node, online_url_node)
+
+        if role:
+            role_node = Node(names.ROLE)
+            role_node.content = role
+            add_child(responsible_party_node, role_node)
              
         return responsible_party_node
 

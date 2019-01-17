@@ -1340,6 +1340,22 @@ def rp_select_get(packageid=None, form=None, rp_name=None,
 
 def responsible_party(packageid=None, node_id=None, method=None, 
                       node_name=None, new_page=None, title=None):
+    eml_node = load_eml(packageid=packageid)
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        eml_node.add_child(dataset_node)
+    parent_node = dataset_node
+
+    # If this is a project personnel party, place it under the
+    # project node, not under the dataset node
+    if node_name == names.PERSONNEL:
+        project_node = dataset_node.find_child(names.PROJECT)
+        if not project_node:
+            project_node = Node(names.PROJECT, parent=dataset_node)
+            dataset_node.add_child(project_node)
+        parent_node = project_node
+
     # Determine POST type
     if request.method == 'POST':
         if 'Save Changes' in request.form:
@@ -1353,12 +1369,6 @@ def responsible_party(packageid=None, node_id=None, method=None,
     # Process POST
     if form.validate_on_submit():
         if submit_type == 'Save Changes':
-            eml_node = load_eml(packageid=packageid)
-
-            dataset_node = eml_node.find_child(names.DATASET)
-            if not dataset_node:
-                dataset_node = Node(names.DATASET)
-
             salutation = form.salutation.data
             gn = form.gn.data
             sn = form.sn.data
@@ -1374,11 +1384,11 @@ def responsible_party(packageid=None, node_id=None, method=None,
             fax = form.fax.data
             email = form.email.data
             online_url = form.online_url.data
+            role = form.role.data
 
-            rp_node = Node(node_name, parent=dataset_node)
+            rp_node = Node(node_name, parent=parent_node)
 
             create_responsible_party(
-                dataset_node,
                 rp_node,
                 packageid,   
                 salutation,
@@ -1395,18 +1405,19 @@ def responsible_party(packageid=None, node_id=None, method=None,
                 phone,
                 fax,
                 email,
-                online_url)
+                online_url,
+                role)
 
             if node_id and len(node_id) != 1:
                 old_rp_node = Node.get_node_instance(node_id)
                 if old_rp_node:
-                    dataset_parent_node = old_rp_node.parent
-                    dataset_parent_node.replace_child(old_rp_node, rp_node)
+                    old_rp_parent_node = old_rp_node.parent
+                    old_rp_parent_node.replace_child(old_rp_node, rp_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     raise Exception(msg)
             else:
-                add_child(dataset_node, rp_node)
+                add_child(parent_node, rp_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
@@ -1416,17 +1427,14 @@ def responsible_party(packageid=None, node_id=None, method=None,
     if node_id == '1':
         pass
     else:
-        eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            rp_nodes = dataset_node.find_all_children(child_name=node_name)
+        if parent_node:
+            rp_nodes = parent_node.find_all_children(child_name=node_name)
             if rp_nodes:
                 for rp_node in rp_nodes:
                     if node_id == rp_node.id:
                         populate_responsible_party_form(form, rp_node)
     
     return render_template('responsible_party.html', title=title, form=form)
-
 
 
 @home.route('/metadata_provider_select/<packageid>', methods=['GET', 'POST'])
@@ -2320,9 +2328,7 @@ def project(packageid=None):
     eml_node = load_eml(packageid=packageid)
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            project_node = dataset_node.find_child(names.PROJECT)
-        else:
+        if not dataset_node:
             dataset_node = Node(names.DATASET, parent=eml_node)
             eml_node.add_child(dataset_node)
 
@@ -2332,26 +2338,24 @@ def project(packageid=None):
             new_page = 'method_step_select'
         elif 'Next' in request.form:
             new_page = 'data_table_select'
-
+        elif 'Edit Project Personnel' in request.form:
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            new_page = 'project_personnel_select'
+            
     # Process POST
     if form.validate_on_submit():
         title = form.title.data
         abstract = form.abstract.data
         funding = form.funding.data
-        new_project_node = Node(names.PROJECT)
-        create_project(new_project_node, title, abstract, funding)
-
-        if project_node:
-            dataset_node.replace_child(project_node, new_project_node)
-        else:
-            add_child(dataset_node, new_project_node)
-
+        create_project(dataset_node, title, abstract, funding)
         save_both_formats(packageid=packageid, eml_node=eml_node)
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
     # Process GET
-    if project_node:
-        populate_project_form(form, project_node)
+    if dataset_node:
+        project_node = dataset_node.find_child(names.PROJECT)
+        if project_node:
+            populate_project_form(form, project_node)
 
     return render_template('project.html', 
                         title='Project', 
@@ -2396,3 +2400,29 @@ def populate_project_form(form:ProjectForm, project_node:Node):
         form.title.data = title
         form.abstract.data = abstract
         form.funding.data = funding
+
+
+@home.route('/project_personnel_select/<packageid>', methods=['GET', 'POST'])
+def project_personnel_select(packageid=None):
+    form = ResponsiblePartySelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = select_post(packageid, form, form_dict, 
+                             'POST', 'project_personnel_select', 'project', 
+                             'project', 'project_personnel')
+        return redirect(url)
+
+    # Process GET
+    return rp_select_get(packageid=packageid, form=form, rp_name='personnel',
+                         rp_singular='Project Personnel', rp_plural='Project Personnel')
+
+
+@home.route('/project_personnel/<packageid>/<node_id>', methods=['GET', 'POST'])
+def project_personnel(packageid=None, node_id=None):
+    method = request.method
+    return responsible_party(packageid=packageid, node_id=node_id, 
+                             method=method, node_name=names.PERSONNEL, 
+                             new_page='project_personnel_select', title='Project Personnel')

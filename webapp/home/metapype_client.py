@@ -887,7 +887,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
     try:
 
         if dataset_node:
-            project_node = dataset_node.find_child(names.DATASET)
+            project_node = dataset_node.find_child(names.PROJECT)
             if not project_node:
                 project_node = Node(names.PROJECT, parent=dataset_node)
                 dataset_node.add_child(project_node)

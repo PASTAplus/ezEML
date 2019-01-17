@@ -1346,6 +1346,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
         dataset_node = Node(names.DATASET, parent=eml_node)
         eml_node.add_child(dataset_node)
     parent_node = dataset_node
+    role = False
 
     # If this is a project personnel party, place it under the
     # project node, not under the dataset node
@@ -1355,6 +1356,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
             project_node = Node(names.PROJECT, parent=dataset_node)
             dataset_node.add_child(project_node)
         parent_node = project_node
+        role = True
 
     # Determine POST type
     if request.method == 'POST':
@@ -1434,7 +1436,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
                     if node_id == rp_node.id:
                         populate_responsible_party_form(form, rp_node)
     
-    return render_template('responsible_party.html', title=title, form=form)
+    return render_template('responsible_party.html', title=title, form=form, role=role)
 
 
 @home.route('/metadata_provider_select/<packageid>', methods=['GET', 'POST'])
@@ -1566,6 +1568,10 @@ def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):
     online_url_node = node.find_child(names.ONLINEURL)
     if online_url_node:
         form.online_url.data = online_url_node.content
+
+    role_node = node.find_child(names.ROLE)
+    if role_node:
+        form.role.data = role_node.content
 
 
 @home.route('/pubdate/<packageid>', methods=['GET', 'POST'])

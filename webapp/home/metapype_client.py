@@ -472,9 +472,12 @@ def load_eml(packageid:str=None):
         user_folder = '.'
     filename = f"{user_folder}/{packageid}.json"
     if os.path.isfile(filename):
-        with open(filename, "r") as json_file:
-            json_obj = json.load(json_file)
-            eml_node = io.from_json(json_obj)
+        try:
+            with open(filename, "r") as json_file:
+                json_obj = json.load(json_file)
+                eml_node = io.from_json(json_obj)
+        except Exception as e:
+            logger.error(e)
     return eml_node
 
 

@@ -77,15 +77,23 @@ def index():
     if current_user.is_authenticated:
         current_packageid = get_active_packageid()
         if current_packageid:
-            #next_page = url_for('home.title', packageid=current_packageid)
-            next_page = url_for('home.method_step_select', packageid=current_packageid)
-            return redirect(next_page)
+            eml_node = load_eml(packageid=current_packageid)
+            if eml_node:
+                new_page = 'title'
+            else:
+                new_page = 'file_error'
+            return redirect(url_for(f'home.{new_page}', packageid=current_packageid))
     return render_template('index.html')
 
 
 @home.route('/about')
 def about():
     return render_template('about.html')
+
+
+@home.route('/file_error/<packageid>')
+def file_error(packageid=None):
+    return render_template('file_error.html', packageid=packageid)
 
 
 @home.route('/delete', methods=['GET', 'POST'])
@@ -252,9 +260,13 @@ def open():
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
-        current_user.set_packageid(packageid)
-        create_eml(packageid=packageid)
-        new_page = 'title'
+        eml_node = load_eml(packageid)
+        if eml_node:
+            current_user.set_packageid(packageid)
+            create_eml(packageid=packageid)
+            new_page = 'title'
+        else:
+            new_page = 'file_error'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     
     # Process GET

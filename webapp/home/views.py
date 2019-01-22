@@ -2353,7 +2353,7 @@ def populate_method_step_form(form:MethodStepForm, ms_node:Node):
         
         instrumentation_node = ms_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node: 
-            description = instrumentation_node.content
+            instrumentation = instrumentation_node.content
 
         form.description.data = description
         form.instrumentation.data = instrumentation

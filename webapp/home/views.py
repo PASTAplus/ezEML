@@ -86,6 +86,25 @@ def index():
     return render_template('index.html')
 
 
+@home.route('/edit/<page>')
+def edit(page:str=None):
+    '''
+    The edit page allows for direct editing of a top-level element such as
+    title, abstract, creators, etc. This function simply redirects to the
+    specified page, passing the packageid as the only parameter.
+    '''
+    if current_user.is_authenticated and page:
+        current_packageid = get_active_packageid()
+        if current_packageid:
+            eml_node = load_eml(packageid=current_packageid)
+            if eml_node:
+                new_page = page
+            else:
+                new_page = 'file_error'
+            return redirect(url_for(f'home.{new_page}', packageid=current_packageid))
+    return render_template('index.html')
+
+
 @home.route('/about')
 def about():
     return render_template('about.html')

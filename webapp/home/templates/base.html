@@ -55,6 +55,56 @@
                     </ul>
                 </li>
             {% endif %}
+            {% if current_user.is_authenticated and current_user.get_packageid() %}
+                <li class="dropdown">
+                    <a aria-expanded="false" aria-haspopup="true"
+                       class="dropdown-toggle" data-toggle="dropdown" href="#"
+                       role="button">Edit
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{ url_for('home.edit', page='title') }}" title="Edit">Title</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='creator_select') }}" title="Edit">Creators</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='metadata_provider_select') }}" title="Edit">Metadata Providers</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='pubdate') }}" title="Edit">Publication Date</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='abstract') }}" title="Edit">Abstract</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='keywords') }}" title="Edit">Keywords</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='geographic_coverage_select') }}" title="Edit">Geographic Coverage</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='temporal_coverage_select') }}" title="Edit">Temporal Coverage</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='contact_select') }}" title="Edit">Contacts</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='method_step_select') }}" title="Edit">Methods</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='project') }}" title="Edit">Project</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.edit', page='data_table_select') }}" title="Edit">Data Tables</a>
+                        </li>
+                    </ul>
+                </li>
+            {% endif %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"

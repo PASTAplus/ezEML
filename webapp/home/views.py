@@ -1375,7 +1375,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
         dataset_node = Node(names.DATASET, parent=eml_node)
-        eml_node.add_child(dataset_node)
+        add_child(eml_node, dataset_node)
     parent_node = dataset_node
     role = False
 
@@ -1390,7 +1390,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
         project_node = dataset_node.find_child(names.PROJECT)
         if not project_node:
             project_node = Node(names.PROJECT, parent=dataset_node)
-            dataset_node.add_child(project_node)
+            add_child(dataset_node, project_node)
         parent_node = project_node
 
     # Determine POST type
@@ -2285,11 +2285,11 @@ def method_step(packageid=None, node_id=None):
         methods_node = dataset_node.find_child(names.METHODS)
     else:
         dataset_node = Node(names.DATASET, parent=eml_node)
-        eml_node.add_child(dataset_node)
+        add_child(eml_node, dataset_node)
 
     if not methods_node:
         methods_node = Node(names.METHODS, parent=dataset_node)
-        dataset_node.add_child(methods_node)
+        add_child(dataset_node, methods_node)
 
     form = MethodStepForm(packageid=packageid, node_id=node_id)
 
@@ -2372,7 +2372,7 @@ def project(packageid=None):
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
             dataset_node = Node(names.DATASET, parent=eml_node)
-            eml_node.add_child(dataset_node)
+            add_child(eml_node, dataset_node)
 
     # Determine POST type
     if request.method == 'POST':

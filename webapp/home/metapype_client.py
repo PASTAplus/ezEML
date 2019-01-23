@@ -893,7 +893,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
             project_node = dataset_node.find_child(names.PROJECT)
             if not project_node:
                 project_node = Node(names.PROJECT, parent=dataset_node)
-                dataset_node.add_child(project_node)
+                add_child(dataset_node, project_node)
 
         if title:
             title_node = project_node.find_child(names.TITLE)
@@ -1382,15 +1382,15 @@ def compose_method_step_instrumentation(method_step_node:Node=None):
 def create_method_step(method_step_node:Node=None, description:str=None, instrumentation:str=None):
     if method_step_node:
         description_node = Node(names.DESCRIPTION, parent=method_step_node)
-        method_step_node.add_child(description_node)
+        add_child(method_step_node, description_node)
         
         if description:
             para_node = Node(names.PARA, parent=description_node)
-            description_node.add_child(para_node)
+            add_child(description_node, para_node)
             para_node.content = description
 
         instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
-        method_step_node.add_child(instrumentation_node)
+        add_child(method_step_node, instrumentation_node)
         if instrumentation:
             instrumentation_node.content = instrumentation
 

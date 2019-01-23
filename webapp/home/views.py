@@ -1379,6 +1379,11 @@ def responsible_party(packageid=None, node_id=None, method=None,
     parent_node = dataset_node
     role = False
 
+    # If this is an associatedParty or a project personnel element, 
+    # set role to True so it will appear as a form field.
+    if node_name == names.ASSOCIATEDPARTY or node_name == names.PERSONNEL:
+        role = True
+
     # If this is a project personnel party, place it under the
     # project node, not under the dataset node
     if node_name == names.PERSONNEL:
@@ -1387,7 +1392,6 @@ def responsible_party(packageid=None, node_id=None, method=None,
             project_node = Node(names.PROJECT, parent=dataset_node)
             dataset_node.add_child(project_node)
         parent_node = project_node
-        role = True
 
     # Determine POST type
     if request.method == 'POST':
@@ -1481,7 +1485,7 @@ def metadata_provider_select(packageid=None):
         url = select_post(packageid, form, form_dict, 
                              'POST', 'metadata_provider_select', 
                              'creator_select', 
-                             'pubdate', 
+                             'associated_party_select', 
                              'metadata_provider')
         return redirect(url)
 
@@ -1512,7 +1516,8 @@ def associated_party_select(packageid=None):
         url = select_post(packageid, form, form_dict, 
                              'POST', 'associated_party_select', 
                              'metadata_provider_select', 
-                             'pubdate', 'associated_party')
+                             'pubdate', 
+                             'associated_party')
         return redirect(url)
 
     # Process GET
@@ -1620,7 +1625,7 @@ def pubdate(packageid=None):
     if form.validate_on_submit():
         pubdate = form.pubdate.data
         create_pubdate(packageid=packageid, pubdate=pubdate)
-        new_page = 'metadata_provider_select' if (submit_type == 'Back') else 'abstract'
+        new_page = 'associated_party_select' if (submit_type == 'Back') else 'abstract'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)

@@ -29,6 +29,8 @@ from webapp.auth.user_data import (
     get_user_folder_name
 )
 
+from webapp.config import Config
+
 from metapype.eml2_1_1 import export, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import io
@@ -557,7 +559,17 @@ def create_eml(packageid=None):
     if not eml_node:
         eml_node = Node(names.EML)
         eml_node.add_attribute('packageId', packageid)
-        eml_node.add_attribute('system', 'https://pasta.edirepository.org')
+        eml_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
+
+        access_node = Node(names.ACCESS, parent=eml_node)
+        access_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
+        access_node.add_attribute('scope', Config.SCOPE_ATTRIBUTE_VALUE)
+        access_node.add_attribute('order', Config.ORDER_ATTRIBUTE_VALUE)
+        access_node.add_attribute('authSystem', Config.AUTH_SYSTEM_ATTRIBUTE_VALUE)
+        add_child(eml_node, access_node)
+
+        initialize_access_rules(access_node)
+
         dataset_node = Node(names.DATASET, parent=eml_node)
         add_child(eml_node, dataset_node)
 
@@ -565,6 +577,35 @@ def create_eml(packageid=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
         except Exception as e:
             logger.error(e)
+
+
+def initialize_access_rules(access_node:Node):
+    ''' 
+    Initialize the access element with default access rules for user and public
+    '''
+    if current_user.is_authenticated:
+        user_allow_node = Node(names.ALLOW, parent=access_node)
+        add_child(access_node, user_allow_node)
+
+        user_principal_node = Node(names.PRINCIPAL, parent=user_allow_node)
+        userid = current_user.get_dn()
+        user_principal_node.content = userid
+        add_child(user_allow_node, user_principal_node)
+
+        user_permission_node = Node(names.PERMISSION, parent=user_allow_node)
+        user_permission_node.content = 'all'
+        add_child(user_allow_node, user_permission_node)
+
+    public_allow_node = Node(names.ALLOW, parent=access_node)
+    add_child(access_node, public_allow_node)
+
+    public_principal_node = Node(names.PRINCIPAL, parent=public_allow_node)
+    public_principal_node.content = 'public'
+    add_child(public_allow_node, public_principal_node)
+
+    public_permission_node = Node(names.PERMISSION, parent=public_allow_node)
+    public_permission_node.content = 'read'
+    add_child(public_allow_node, public_permission_node)
 
 
 def create_data_table(
@@ -1351,6 +1392,42 @@ def list_method_steps(eml_node:Node=None):
     return ms_list
 
 
+def list_access_rules(eml_node:Node=None):
+    ar_list = []
+    if eml_node:
+        access_node = eml_node.find_child(names.ACCESS)
+        if access_node:
+            allow_nodes = access_node.find_all_children(names.ALLOW)
+            AR_Entry = collections.namedtuple(
+                    'AR_Entry', 
+                    ["id", "userid", "permission", "upval", "downval"],
+                    rename=False)
+            for i, allow_node in enumerate(allow_nodes):
+                id = allow_node.id
+                userid = get_child_content(allow_node, names.PRINCIPAL)
+                permission = get_child_content(allow_node, names.PERMISSION)
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(allow_nodes))
+                ar_entry = AR_Entry(id=id,
+                                    userid=userid,
+                                    permission=permission,
+                                    upval=upval, 
+                                    downval=downval)
+                ar_list.append(ar_entry)
+    return ar_list
+
+
+def get_child_content(parent_node:Node=None, child_name:str=None):
+    content = ''
+
+    if parent_node and child_name:
+        child_node = parent_node.find_child(child_name)
+        if child_node:
+            content = child_node.content 
+
+    return content
+
+
 def compose_method_step_description(method_step_node:Node=None):
     description = ''
 
@@ -1395,53 +1472,14 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
             instrumentation_node.content = instrumentation
 
 
-def validate_minimal(packageid=None, title=None, contact_gn=None, 
-                     contact_sn=None, creator_gn=None, creator_sn=None):
-    msg = ''
-    eml = Node(names.EML)
-
-    eml.add_attribute('packageId', packageid)
-    eml.add_attribute('system', 'https://pasta.edirepository.org')
-
-    dataset = Node(names.DATASET, parent=eml)
-    add_child(eml, dataset)
-
-    title_node = Node(names.TITLE)
-    title_node.content = title
-    add_child(dataset, title_node)
-    
-    creator_node = Node(names.CREATOR, parent=dataset)
-    add_child(dataset, creator_node)
-
-    individualName_creator = Node(names.INDIVIDUALNAME, parent=creator_node)
-    add_child(creator_node, individualName_creator)
-
-    givenName_creator = Node(names.GIVENNAME, parent=individualName_creator)
-    givenName_creator.content = creator_gn
-    add_child(individualName_creator, givenName_creator)
-
-    surName_creator = Node(names.SURNAME, parent=individualName_creator)
-    surName_creator.content = creator_sn
-    add_child(individualName_creator, surName_creator)
-
-    contact_node = Node(names.CONTACT, parent=dataset)
-    add_child(dataset, contact_node)
-
-    individualName_contact = Node(names.INDIVIDUALNAME, parent=contact_node)
-    add_child(contact_node, individualName_contact)
-
-    givenName_contact = Node(names.GIVENNAME, parent=individualName_contact)
-    givenName_contact.content = contact_gn
-    add_child(individualName_contact, givenName_contact)
-
-    surName_contact = Node(names.SURNAME, parent=individualName_contact)
-    surName_contact.content = contact_sn
-    add_child(individualName_contact, surName_contact)
-
-    xml_str =  export.to_xml(eml)
-    print(xml_str)
-
-    if eml:
-        msg = validate_tree(eml)
-
-    return msg
+def create_access_rule(allow_node:Node=None, userid:str=None, permission:str=None):
+    if allow_node:
+        if userid:
+            principal_node = Node(names.PRINCIPAL, parent=allow_node)
+            add_child(allow_node, principal_node)
+            principal_node.content = userid
+        
+        if permission:
+            permission_node = Node(names.PERMISSION, parent=allow_node)
+            add_child(allow_node, permission_node)
+            permission_node.content = permission

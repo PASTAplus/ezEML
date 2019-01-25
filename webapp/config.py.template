@@ -24,3 +24,8 @@ class Config(object):
                'lter':'o=LTER,dc=ecoinformatics,dc=org',}
 
     ACTIVE_PACKAGE = 'active.txt'
+
+    AUTH_SYSTEM_ATTRIBUTE_VALUE = 'https://pasta.edirepository.org/authentication'
+    ORDER_ATTRIBUTE_VALUE = 'allowFirst' 
+    SCOPE_ATTRIBUTE_VALUE = 'document' 
+    SYSTEM_ATTRIBUTE_VALUE = 'https://pasta.edirepository.org'

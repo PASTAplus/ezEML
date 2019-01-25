@@ -28,6 +28,15 @@ class AbstractForm(FlaskForm):
     abstract = StringField('Abstract', widget=TextArea(), validators=[])
 
 
+class AccessSelectForm(FlaskForm):
+    pass
+
+
+class AccessForm(FlaskForm):
+    userid = StringField('User ID', validators=[])
+    permission = SelectField('Permission', choices=[("all", "all"), ("changePermission", "changePermission"), ("read", "read"), ("write", "write")])
+
+
 class AttributeSelectForm(FlaskForm):
     pass
 

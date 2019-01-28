@@ -243,6 +243,18 @@ def download():
                            form=form)
 
 
+@home.route('/download_current', methods=['GET', 'POST'])
+@login_required
+def download_current():
+    current_packageid = get_active_packageid()
+    if current_packageid:
+        return_value = download_eml(packageid=current_packageid)
+        if isinstance(return_value, str):
+            flash(return_value)
+        else:
+            return return_value
+
+
 @home.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():

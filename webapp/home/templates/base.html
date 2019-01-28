@@ -36,6 +36,9 @@
                             <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
                         </li>
                         <li>
+                            <a href="{{ url_for('home.download_current') }}" title="Download">Download {{ current_user.get_packageid() }}</a>
+                        </li>
+                        <li>
                             <a href="{{ url_for('home.close') }}" title="Close">Close</a>
                         </li>
                     {% else %}

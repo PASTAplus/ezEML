@@ -41,13 +41,13 @@ from webapp.home.forms import (
     CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     MethodStepSelectForm, MethodStepForm, ProjectForm,
-    AccessSelectForm, AccessForm
+    AccessSelectForm, AccessForm, IntellectualRightsForm
 )
 
 from webapp.home.metapype_client import ( 
     load_eml, list_responsible_parties, save_both_formats, 
     validate_tree, add_child, remove_child, create_eml, 
-    create_title, create_pubdate, create_abstract, 
+    create_title, create_pubdate, create_abstract, create_intellectual_rights,
     add_keyword, remove_keyword, create_keywords, create_project,
     create_responsible_party, create_method_step, list_method_steps,
     list_geographic_coverages, create_geographic_coverage, 
@@ -1696,7 +1696,7 @@ def keywords(packageid=None):
         elif submit_type == 'Back':
             new_page = 'abstract'
         elif submit_type == 'Next':
-            new_page = 'geographic_coverage_select'
+            new_page = 'intellectual_rights'
 
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
@@ -1719,6 +1719,33 @@ def keywords(packageid=None):
                             keyword_dict=keyword_dict)
 
 
+@home.route('/intellectual_rights/<packageid>', methods=['GET', 'POST'])
+def intellectual_rights(packageid=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Back' in request.form:
+            submit_type = 'Back'
+        elif 'Next' in request.form:
+            submit_type = 'Next'
+        else:
+            submit_type = None
+    # Process POST
+    form = IntellectualRightsForm(packageid=packageid)
+    if form.validate_on_submit():
+        intellectual_rights = form.intellectual_rights.data
+        create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
+        new_page = 'keywords' if (submit_type == 'Back') else 'geographic_coverage_select'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    intellectual_rights_node = eml_node.find_child(child_name=names.INTELLECTUALRIGHTS)
+    if intellectual_rights_node:
+        form.intellectual_rights.data = intellectual_rights_node.content
+    return render_template('intellectual_rights.html', 
+                           title='Intellectual Rights', 
+                           packageid=packageid, form=form)
+
+
 @home.route('/geographic_coverage_select/<packageid>', methods=['GET', 'POST'])
 def geographic_coverage_select(packageid=None):
     form = GeographicCoverageSelectForm(packageid=packageid)
@@ -1729,7 +1756,7 @@ def geographic_coverage_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
                           'POST', 'geographic_coverage_select',
-                          'keywords',
+                          'intellectual_rights',
                           'temporal_coverage_select', 'geographic_coverage')
         return redirect(url)
 

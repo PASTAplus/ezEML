@@ -113,6 +113,10 @@ class GeographicCoverageForm(FlaskForm):
     sbc = FloatField('South Bounding Coordinate', validators=[])
 
 
+class IntellectualRightsForm(FlaskForm):
+    intellectual_rights = StringField('Intellectual Rights', widget=TextArea(), validators=[])
+
+
 class KeywordsForm(FlaskForm):
     keyword = StringField('Keyword', validators=[])
     keyword_type = SelectField('Keyword Type (Optional)', 

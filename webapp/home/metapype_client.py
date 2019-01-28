@@ -904,7 +904,7 @@ def create_pubdate(pubdate=None, packageid=None):
         logger.error(e)
 
 
-def create_abstract(packageid=None, abstract=None):
+def create_abstract(packageid:str=None, abstract:str=None):
     eml_node = load_eml(packageid=packageid)
 
     dataset_node = eml_node.find_child(names.DATASET)
@@ -920,6 +920,29 @@ def create_abstract(packageid=None, abstract=None):
         add_child(dataset_node, abstract_node)
 
     abstract_node.content = abstract
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+
+def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None):
+    eml_node = load_eml(packageid=packageid)
+
+    dataset_node = eml_node.find_child(names.DATASET)
+    if dataset_node:
+        intellectual_rights_node = dataset_node.find_child(names.INTELLECTUALRIGHTS)
+        if not intellectual_rights_node:
+            intellectual_rights_node = Node(names.INTELLECTUALRIGHTS, parent=dataset_node)
+            add_child(dataset_node, intellectual_rights_node)
+    else:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        add_child(eml_node, dataset_node)
+        intellectual_rights_node = Node(names.INTELLECTUALRIGHTS, parent=dataset_node)
+        add_child(dataset_node, intellectual_rights_node)
+
+    intellectual_rights_node.content = intellectual_rights
 
     try:
         save_both_formats(packageid=packageid, eml_node=eml_node)

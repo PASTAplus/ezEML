@@ -14,8 +14,10 @@
                         <tr><td>{{ keyword }}</td><td>{{ keyword_dict[keyword] }}</td></tr>
                     {% endfor %}
                 </table>
-                <br/><br/>
+                <br/>
+                <h5>You may add additional keywords or remove existing keywords by entering them below:</h5>
                 {{ wtf.form_field(form.keyword) }} {{ wtf.form_field(form.keyword_type) }}
+                <br/>
                 <input class="btn btn-primary" name="Add" type="submit" value="Add"/>
                 <input class="btn btn-primary" name="Remove" type="submit" value="Remove"/>
                 <input class="btn btn-primary" name="Clear" type="reset" value="Clear"/>

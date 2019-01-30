@@ -17,10 +17,10 @@ from flask_wtf import FlaskForm
 
 from wtforms import (
     StringField, PasswordField, BooleanField, SubmitField, SelectField,
-    FloatField, IntegerField
+    FloatField, IntegerField, DateField, DateTimeField
 )
 
-from wtforms.validators import DataRequired, Email, URL
+from wtforms.validators import DataRequired, Email, URL, Optional
 from wtforms.widgets import TextArea
 
 
@@ -66,7 +66,7 @@ class CodeDefinitionSelectForm(FlaskForm):
 class CodeDefinitionForm(FlaskForm):
     code = StringField('Code', validators=[])
     definition = StringField('Definition', validators=[])
-    order = StringField('Order', validators=[])
+    order = IntegerField('Order (Optional)', validators=[Optional()])
 
 
 class CreateEMLForm(FlaskForm):
@@ -81,14 +81,14 @@ class DataTableForm(FlaskForm):
     entity_name = StringField('Name', validators=[])
     entity_description = StringField('Description (Optional)', validators=[])
     object_name = StringField('Object Name', validators=[])
-    size = StringField('Size (Optional)', validators=[])
-    num_header_lines = StringField('Number of Header Lines (Optional)', validators=[])
+    size = IntegerField('Size (Optional)', validators=[Optional()])
+    num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
     record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
     attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
     field_delimiter = SelectField('Simple Delimited: Field Delimiter', choices=[("comma", "comma"), ("space", "space"), ("tab", "tab")])
     case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
-    number_of_records = StringField('Number of Records (Optional)', validators=[])
-    online_url = StringField('Online Distribution URL', validators=[])
+    number_of_records = IntegerField('Number of Records (Optional)', validators=[Optional()])
+    online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
 
 
 class DeleteEMLForm(FlaskForm):
@@ -107,10 +107,10 @@ class GeographicCoverageForm(FlaskForm):
     geographic_description = StringField('Geographic Description', widget=TextArea(), validators=[])
     # Declaring these as FloatField forces the user to input a floating point value,
     # preventing the user from leaving the field empty when they leave the form.
-    wbc = FloatField('West Bounding Coordinate', validators=[])
-    ebc = FloatField('East Bounding Coordinate', validators=[])
-    nbc = FloatField('North Bounding Coordinate', validators=[])
-    sbc = FloatField('South Bounding Coordinate', validators=[])
+    wbc = FloatField('West Bounding Coordinate', validators=[Optional()])
+    ebc = FloatField('East Bounding Coordinate', validators=[Optional()])
+    nbc = FloatField('North Bounding Coordinate', validators=[Optional()])
+    sbc = FloatField('South Bounding Coordinate', validators=[Optional()])
 
 
 class IntellectualRightsForm(FlaskForm):
@@ -148,21 +148,21 @@ class MscaleIntervalRatioForm(FlaskForm):
     standard_unit = SelectField('Standard Unit', 
                                 choices=[(unit, unit) for unit in standard_units])
     custom_unit = StringField('Custom Unit', validators=[])
-    precision = StringField('Precision (Optional)', validators=[])
+    precision = FloatField('Precision (Optional)', validators=[Optional()])
     number_type = SelectField('Number Type', 
                                choices=[("real", "real"),
                                         ("integer", "integer"),
                                         ("natural", "natural"),
                                         ("whole", "whole")])
-    bounds_minimum = StringField('Bounds Minimum', validators=[])
+    bounds_minimum = FloatField('Bounds Minimum', validators=[Optional()])
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
-    bounds_maximum = StringField('Bounds Maximum', validators=[])
+    bounds_maximum = FloatField('Bounds Maximum', validators=[Optional()])
     bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
     
 
 class MscaleDateTimeForm(FlaskForm):
     format_string = StringField('Format String', validators=[])
-    datetime_precision = StringField('DateTime Precision (Optional)', validators=[])
+    datetime_precision = FloatField('DateTime Precision (Optional)', validators=[Optional()])
     bounds_minimum = StringField('Bounds Minimum', validators=[])
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
     bounds_maximum = StringField('Bounds Maximum', validators=[])
@@ -210,8 +210,8 @@ class ResponsiblePartyForm(FlaskForm):
     country = StringField('Country', validators=[])
     phone = StringField('Phone', validators=[])
     fax = StringField('Fax', validators=[])
-    email = StringField('Email', validators=[])
-    online_url = StringField('Online URL', validators=[])
+    email = StringField('Email', validators=[Optional(), Email()])
+    online_url = StringField('Online URL', validators=[Optional(), URL()])
     role = StringField('Role', validators=[])
 
 
@@ -252,12 +252,3 @@ class TemporalCoverageForm(FlaskForm):
 
 class TitleForm(FlaskForm):
     title = StringField('Title', validators=[])
-
-
-class MinimalEMLForm(FlaskForm):
-    packageid = StringField('Package ID', validators=[DataRequired()])
-    title = StringField('Title', validators=[DataRequired()])
-    creator_gn = StringField('Creator given name', validators=[DataRequired()])
-    creator_sn = StringField('Creator surname', validators=[DataRequired()])
-    contact_gn = StringField('Contact given name', validators=[DataRequired()])
-    contact_sn = StringField('Contact surname', validators=[DataRequired()])

@@ -32,7 +32,7 @@ from webapp.auth.user_data import (
 
 from webapp.home.forms import ( 
     CreateEMLForm, TitleForm, ResponsiblePartyForm, AbstractForm, 
-    KeywordsForm, MinimalEMLForm, ResponsiblePartySelectForm, PubDateForm,
+    KeywordsForm, ResponsiblePartySelectForm, PubDateForm,
     GeographicCoverageSelectForm, GeographicCoverageForm,
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,

@@ -69,8 +69,9 @@ def compose_data_table_label(dt_node:Node=None):
     label = ''
     if dt_node:
         entity_name_node = dt_node.find_child(names.ENTITYNAME)
-        entity_name = entity_name_node.content 
-        label = entity_name
+        if entity_name_node:
+            entity_name = entity_name_node.content 
+            label = entity_name
     return label
 
 
@@ -271,17 +272,19 @@ def list_geographic_coverages(eml_node:Node=None):
                     ["id", "geographic_description", "label", "upval", "downval"],
                      rename=False)
                 for i, gc_node in enumerate(gc_nodes):
+                    geographic_description = ''
                     id = gc_node.id
                     upval = get_upval(i)
                     downval = get_downval(i+1, len(gc_nodes))
                     geographic_description_node = \
                         gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
-                    geographic_description = geographic_description_node.content
+                    if geographic_description_node:
+                        geographic_description = geographic_description_node.content
                     label = compose_gc_label(gc_node)
                     gc_entry = GC_Entry(id=id,
-                                        geographic_description=geographic_description,
-                                        label=label,
-                                        upval=upval, downval=downval)
+                                geographic_description=geographic_description,
+                                label=label,
+                                upval=upval, downval=downval)
                     gc_list.append(gc_entry)
     return gc_list
 
@@ -346,14 +349,18 @@ def list_temporal_coverages(eml_node:Node=None):
                     range_of_dates_nodes = tc_node.find_all_children(names.RANGEOFDATES)
                     if range_of_dates_nodes:
                         for rod_node in range_of_dates_nodes:
+                            begin_date = ''
+                            end_date = ''
                             begin_date_node = rod_node.find_child(names.BEGINDATE)
                             if begin_date_node:
                                 calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
-                                begin_date = calendar_date_node.content
+                                if calendar_date_node:
+                                    begin_date = calendar_date_node.content
                             end_date_node = rod_node.find_child(names.ENDDATE)
                             if end_date_node:
                                 calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
-                                end_date = calendar_date_node.content
+                                if calendar_date_node:
+                                    end_date = calendar_date_node.content
                             tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
                             tc_list.append(tc_entry)
     return tc_list
@@ -385,8 +392,10 @@ def compose_taxonomic_label(txc_node:Node=None, label:str=''):
     if txc_node:
         tc_node = txc_node.find_child(names.TAXONOMICCLASSIFICATION)
         if tc_node:
+            val = ''
             trv_node = tc_node.find_child(names.TAXONRANKVALUE)
-            val = trv_node.content 
+            if trv_node:
+                val = trv_node.content 
             new_label = label + ' ' + val if label else val
             return compose_taxonomic_label(tc_node, new_label)
         else:

@@ -526,11 +526,19 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
     entity_name = ''
     load_eml(packageid=packageid)
 
-    data_table_node = Node.get_node_instance(dt_node_id)
-    if data_table_node:
-        entity_name = entity_name_from_data_table(data_table_node)
-        att_list = list_attributes(data_table_node)
-    return render_template('attribute_select.html', title=title, entity_name=entity_name, att_list=att_list, form=form)
+    if dt_node_id == '1':
+        pass
+    else:
+        data_table_node = Node.get_node_instance(dt_node_id)
+        if data_table_node:
+            entity_name = entity_name_from_data_table(data_table_node)
+            att_list = list_attributes(data_table_node)
+
+    return render_template('attribute_select.html', 
+                           title=title, 
+                           entity_name=entity_name, 
+                           att_list=att_list, 
+                           form=form)
 
 
 def attribute_select_post(packageid=None, form=None, form_dict=None,

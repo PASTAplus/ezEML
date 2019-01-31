@@ -968,26 +968,23 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
                 project_node = Node(names.PROJECT, parent=dataset_node)
                 add_child(dataset_node, project_node)
 
-        if title:
-            title_node = project_node.find_child(names.TITLE)
-            if not title_node:
-                title_node = Node(names.TITLE, parent=project_node)
-                add_child(project_node, title_node)
-            title_node.content = title
+        title_node = project_node.find_child(names.TITLE)
+        if not title_node:
+            title_node = Node(names.TITLE, parent=project_node)
+            add_child(project_node, title_node)
+        title_node.content = title
 
-        if abstract:
-            abstract_node = project_node.find_child(names.ABSTRACT)
-            if not abstract_node:
-                abstract_node = Node(names.ABSTRACT, parent=project_node)
-                add_child(project_node, abstract_node)
-            abstract_node.content = abstract
+        abstract_node = project_node.find_child(names.ABSTRACT)
+        if not abstract_node:
+            abstract_node = Node(names.ABSTRACT, parent=project_node)
+            add_child(project_node, abstract_node)
+        abstract_node.content = abstract
 
-        if funding:
-            funding_node = project_node.find_child(names.FUNDING)
-            if not funding_node:
-                funding_node = Node(names.FUNDING, parent=project_node)
-                add_child(project_node, funding_node)
-            funding_node.content = funding
+        funding_node = project_node.find_child(names.FUNDING)
+        if not funding_node:
+            funding_node = Node(names.FUNDING, parent=project_node)
+            add_child(project_node, funding_node)
+        funding_node.content = funding
 
     except Exception as e:
         logger.error(e)

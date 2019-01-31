@@ -2423,21 +2423,26 @@ def project(packageid=None):
 
     # Determine POST type
     if request.method == 'POST':
+        save = False
         if 'Back' in request.form:
             new_page = 'method_step_select'
         elif 'Next' in request.form:
             new_page = 'data_table_select'
+        elif 'Save Changes' in request.form:
+            new_page = 'project'
+            save = True
         elif 'Edit Project Personnel' in request.form:
-            save_both_formats(packageid=packageid, eml_node=eml_node)
             new_page = 'project_personnel_select'
+            save = True
             
     # Process POST
     if form.validate_on_submit():
-        title = form.title.data
-        abstract = form.abstract.data
-        funding = form.funding.data
-        create_project(dataset_node, title, abstract, funding)
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        if save:
+            title = form.title.data
+            abstract = form.abstract.data
+            funding = form.funding.data
+            create_project(dataset_node, title, abstract, funding)
+            save_both_formats(packageid=packageid, eml_node=eml_node)
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
     # Process GET

@@ -46,7 +46,7 @@ from webapp.home.forms import (
 
 from webapp.home.metapype_client import ( 
     load_eml, list_responsible_parties, save_both_formats, 
-    validate_tree, add_child, remove_child, create_eml, 
+    evaluate_node, validate_tree, add_child, remove_child, create_eml, 
     create_title, create_pubdate, create_abstract, create_intellectual_rights,
     add_keyword, remove_keyword, create_keywords, create_project,
     create_responsible_party, create_method_step, list_method_steps,
@@ -1331,17 +1331,21 @@ def populate_code_definition_form(form:CodeDefinitionForm, cd_node:Node):
 def title(packageid=None):
     # Determine POST type
     if request.method == 'POST':
-        if 'Back' in request.form:
-            submit_type = 'Back'
-        elif 'Next' in request.form:
+        if 'Next' in request.form:
             submit_type = 'Next'
+        elif 'Evaluate' in request.form:
+            submit_type = 'Evaluate'
         else:
             submit_type = None
     form = TitleForm()
     # Process POST
     if form.validate_on_submit():
-        create_title(title=form.title.data, packageid=packageid)
-        new_page = 'access_select' if (submit_type == 'Next') else 'data_table_select'
+        title_node = create_title(title=form.title.data, packageid=packageid)
+        if submit_type == 'Evaluate':
+            evaluate_text = evaluate_node(title_node)
+            if evaluate_text:
+                flash(evaluate_text)
+        new_page = 'access_select' if (submit_type == 'Next') else 'title'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)

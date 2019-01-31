@@ -31,7 +31,7 @@ from webapp.auth.user_data import (
 
 from webapp.config import Config
 
-from metapype.eml2_1_1 import export, validate, names, rule
+from metapype.eml2_1_1 import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import io
 
@@ -550,6 +550,13 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
         raise Exception(f"No packageid value was supplied for saving EML.")
 
 
+def evaluate_node(node:Node):
+    msg = 'pass'
+    if node:
+        msg = evaluate.node(node)
+    return msg
+
+
 def validate_tree(node:Node):
     msg = ''
     if node:
@@ -869,6 +876,7 @@ def create_datetime(node:Node, format_string:str, datetime_precision:str,
 
 def create_title(title=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
+    title_node = None
 
     dataset_node = eml_node.find_child('dataset')
     if dataset_node:
@@ -888,6 +896,8 @@ def create_title(title=None, packageid=None):
         save_both_formats(packageid=packageid, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
+
+    return title_node
 
 
 def create_pubdate(pubdate=None, packageid=None):

@@ -99,12 +99,13 @@ def delete_eml(packageid:str=''):
 def download_eml(packageid:str=''):
     if packageid:
         user_folder = get_user_folder_name()
-        filename = f'{user_folder}/{packageid}.xml'
-        if os.path.exists(filename):
-            pathname = '../' + filename
+        filename = f'{packageid}.xml'
+        pathname = f'{user_folder}/{filename}'
+        if os.path.exists(pathname):
+            relative_pathname = '../' + pathname
             mimetype = 'application/xml'
             try: 
-                return send_file(pathname, 
+                return send_file(relative_pathname, 
                     mimetype=mimetype, 
                     as_attachment=True, 
                     attachment_filename=filename, 

@@ -419,6 +419,8 @@ def data_table(packageid=None, node_id=None):
         return redirect(url_for(next_page, packageid=packageid, dt_node_id=dt_node_id))
 
     # Process GET
+    atts = 'No data table attributes have been added'
+
     if dt_node_id == '1':
         pass
     else:
@@ -429,9 +431,25 @@ def data_table(packageid=None, node_id=None):
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
+                        att_list = list_attributes(dt_node)
+                        if att_list:
+                            atts = compose_atts(att_list)
                         populate_data_table_form(form, dt_node)
     
-    return render_template('data_table.html', title='Data Table', form=form)
+    return render_template('data_table.html', title='Data Table', form=form,
+                           atts=atts)
+
+
+def compose_atts(att_list:list=[]):
+    atts = ''
+    if att_list:
+        atts = ''
+        for att_entry in att_list:
+            att_name = att_entry.label
+            atts = atts + att_name + ', '
+        atts = atts[:-2]
+    
+    return atts
 
 
 def populate_data_table_form(form:DataTableForm, node:Node):    

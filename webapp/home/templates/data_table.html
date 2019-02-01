@@ -20,8 +20,12 @@
                 {{ wtf.form_field(form.number_of_records) }}
                 {{ wtf.form_field(form.online_url) }}
                 <br/>
-                <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
+                <h4>Attributes:</h4>
+                {{ atts }}
+                <br/><br/>
                 <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Attributes"/>
+                <br/><br/><br/>
+                <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <br/><br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>

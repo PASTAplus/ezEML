@@ -32,7 +32,7 @@ from webapp.auth.user_data import (
 
 from webapp.home.forms import ( 
     CreateEMLForm, TitleForm, ResponsiblePartyForm, AbstractForm, 
-    KeywordsForm, ResponsiblePartySelectForm, PubDateForm,
+    KeywordsForm, KeywordSelectForm, KeywordForm, ResponsiblePartySelectForm, PubDateForm,
     GeographicCoverageSelectForm, GeographicCoverageForm,
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
@@ -48,13 +48,13 @@ from webapp.home.metapype_client import (
     load_eml, list_responsible_parties, save_both_formats, 
     evaluate_node, validate_tree, add_child, remove_child, create_eml, 
     create_title, create_pubdate, create_abstract, create_intellectual_rights,
-    add_keyword, remove_keyword, create_keywords, create_project,
+    add_keyword, remove_keyword, create_keywords, create_project, create_keyword,
     create_responsible_party, create_method_step, list_method_steps,
     list_geographic_coverages, create_geographic_coverage, 
     create_temporal_coverage, list_temporal_coverages, 
     create_taxonomic_coverage, list_taxonomic_coverages,
     create_data_table, list_data_tables, 
-    create_attribute, list_attributes,
+    create_attribute, list_attributes, list_keywords,
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
@@ -1676,7 +1676,7 @@ def abstract(packageid=None):
     if form.validate_on_submit():
         abstract = form.abstract.data
         create_abstract(packageid=packageid, abstract=abstract)
-        new_page = 'pubdate' if (submit_type == 'Back') else 'keywords'
+        new_page = 'pubdate' if (submit_type == 'Back') else 'keyword_select'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)
@@ -1758,7 +1758,7 @@ def intellectual_rights(packageid=None):
     if form.validate_on_submit():
         intellectual_rights = form.intellectual_rights.data
         create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
-        new_page = 'keywords' if (submit_type == 'Back') else 'geographic_coverage_select'
+        new_page = 'keyword_select' if (submit_type == 'Back') else 'geographic_coverage_select'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)
@@ -2690,3 +2690,167 @@ def populate_access_rule_form(form:AccessForm, allow_node:Node):
          
         form.userid.data = userid
         form.permission.data = permission
+
+
+@home.route('/keyword_select/<packageid>', methods=['GET', 'POST'])
+def keyword_select(packageid=None, node_id=None):
+    form = KeywordSelectForm(packageid=packageid)
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = keyword_select_post(packageid, form, form_dict, 
+                                      'POST', 'keyword_select', 'abstract', 
+                                      'intellectual_rights', 'keyword')
+        return redirect(url)
+
+    # Process GET
+    return keyword_select_get(packageid=packageid, form=form)
+
+
+def keyword_select_get(packageid=None, form=None):
+    # Process GET
+    kw_list = []
+    title = 'Keywords'
+    eml_node = load_eml(packageid=packageid)
+
+    if eml_node:
+        kw_list = list_keywords(eml_node)
+    
+    return render_template('keyword_select.html', title=title,
+                           packageid=packageid,
+                           kw_list=kw_list, 
+                           form=form)
+
+
+def keyword_select_post(packageid=None, form=None, form_dict=None,
+                          method=None, this_page=None, back_page=None, 
+                          next_page=None, edit_page=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == UP_ARROW:
+                new_page = this_page
+                node_id = key
+                process_up_button(packageid, node_id)
+            elif val == DOWN_ARROW:
+                new_page = this_page
+                node_id = key
+                process_down_button(packageid, node_id)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+            elif val == '[  ]':
+                new_page = this_page
+                node_id = key
+
+    if form.validate_on_submit():  
+        if new_page == edit_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            node_id=node_id)
+        elif new_page == this_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            node_id=node_id)
+        elif new_page == back_page or new_page == next_page:
+            return url_for(f'home.{new_page}', 
+                           packageid=packageid)
+
+
+# node_id is the id of the keyword node being edited. If the value is
+# '1', it means we are adding a new keyword node, otherwise we are
+# editing an existing one.
+#
+@home.route('/keyword/<packageid>/<node_id>', methods=['GET', 'POST'])
+def keyword(packageid=None, node_id=None):
+    eml_node = load_eml(packageid=packageid)
+    dataset_node = eml_node.find_child(names.DATASET)
+
+    if dataset_node:
+        keyword_set_node = dataset_node.find_child(names.KEYWORDSET)
+    else:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        add_child(eml_node, dataset_node)
+
+    if not keyword_set_node:
+        keyword_set_node = Node(names.KEYWORDSET, parent=dataset_node)
+        add_child(dataset_node, keyword_set_node)
+
+    form = KeywordForm(packageid=packageid, node_id=node_id)
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.keyword_select' # Save or Back sends us back to the list of keywords
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+        if submit_type == 'Save Changes':
+            keyword = form.keyword.data
+            keyword_type = form.keyword_type.data
+            keyword_node = Node(names.KEYWORD, parent=keyword_set_node)
+            create_keyword(keyword_node, keyword, keyword_type)
+
+            if node_id and len(node_id) != 1:
+                old_keyword_node = Node.get_node_instance(node_id)
+
+                if old_keyword_node:
+                    keyword_parent_node = old_keyword_node.parent
+                    keyword_parent_node.replace_child(old_keyword_node, 
+                                                          keyword_node)
+                else:
+                    msg = f"No keyword node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(keyword_set_node, keyword_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        url = url_for(next_page, packageid=packageid)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        keyword_nodes = keyword_set_node.find_all_children(names.KEYWORD)
+        if keyword_nodes:
+            for kw_node in keyword_nodes:
+                if node_id == kw_node.id:
+                    populate_keyword_form(form, kw_node)
+                    break
+    
+    return render_template('keyword.html', title='Keyword', form=form, packageid=packageid)
+
+
+def populate_keyword_form(form:KeywordForm, kw_node:Node):  
+    keyword = ''
+    keyword_type = ''
+    
+    if kw_node:  
+        keyword = kw_node.content if kw_node.content else ''
+        kw_type = kw_node.attribute_value('keywordType')
+        keyword_type = kw_type if kw_type else ''
+
+    form.keyword.data = keyword
+    form.keyword_type.data = keyword_type

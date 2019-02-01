@@ -1431,6 +1431,34 @@ def list_method_steps(eml_node:Node=None):
     return ms_list
 
 
+def list_keywords(eml_node:Node=None):
+    kw_list = []
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            keyword_set_node = dataset_node.find_child(names.KEYWORDSET)
+            if keyword_set_node:
+                kw_nodes = keyword_set_node.find_all_children(names.KEYWORD)
+                KW_Entry = collections.namedtuple(
+                    'KW_Entry', 
+                    ["id", "keyword", "keyword_type", "upval", "downval"],
+                    rename=False)
+                for i, kw_node in enumerate(kw_nodes):
+                    id = kw_node.id
+                    keyword = kw_node.content
+                    kt = kw_node.attribute_value('keywordType')
+                    keyword_type = kt if kt else ''
+                    upval = get_upval(i)
+                    downval = get_downval(i+1, len(kw_nodes))
+                    kw_entry = KW_Entry(id=id,
+                                        keyword=keyword,
+                                        keyword_type=keyword_type,
+                                        upval=upval, 
+                                        downval=downval)
+                    kw_list.append(kw_entry)
+    return kw_list
+
+
 def list_access_rules(eml_node:Node=None):
     ar_list = []
     if eml_node:
@@ -1509,6 +1537,13 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
         add_child(method_step_node, instrumentation_node)
         if instrumentation:
             instrumentation_node.content = instrumentation
+
+
+def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=None):
+    if keyword_node:
+        keyword_node.content = keyword
+        if keyword_type:
+            keyword_node.add_attribute(name='keywordType', value=keyword_type)
 
 
 def create_access_rule(allow_node:Node=None, userid:str=None, permission:str=None):

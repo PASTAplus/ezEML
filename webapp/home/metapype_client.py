@@ -794,8 +794,8 @@ def create_code_definition(code_definition_node:Node=None,
 # node is either the interval or ratio node to be constructed under
 # the measurementScale node
 def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
-                        precision:str, number_type:str, bounds_minimum:str,
-                        bounds_minimum_exclusive:str, bounds_maximum:str,
+                        precision:str, number_type:str, bounds_minimum,
+                        bounds_minimum_exclusive:str, bounds_maximum,
                         bounds_maximum_exclusive:str):
     if node:
         unit_node = Node(names.UNIT, parent=node)
@@ -817,10 +817,10 @@ def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
         number_type_node = Node(names.NUMBERTYPE, parent=numeric_domain_node)
         add_child(numeric_domain_node, number_type_node)
         number_type_node.content = number_type
-        if bounds_minimum or bounds_maximum:
+        if is_non_empty_bounds(bounds_minimum) or is_non_empty_bounds(bounds_maximum):
             bounds_node = Node(names.BOUNDS, parent=numeric_domain_node)
             add_child(numeric_domain_node, bounds_node)
-            if bounds_minimum:
+            if is_non_empty_bounds(bounds_minimum):
                 bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
                 bounds_minimum_node.content = bounds_minimum
                 if bounds_minimum_exclusive:
@@ -828,7 +828,7 @@ def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
                 else:
                     bounds_minimum_node.add_attribute('exclusive', 'false')
                 add_child(bounds_node, bounds_minimum_node)
-            if bounds_maximum:
+            if is_non_empty_bounds(bounds_maximum):
                 bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
                 bounds_maximum_node.content = bounds_maximum
                 if bounds_maximum_exclusive:
@@ -836,6 +836,17 @@ def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
                 else:
                     bounds_maximum_node.add_attribute('exclusive', 'false')
                 add_child(bounds_node, bounds_maximum_node)
+
+
+def is_non_empty_bounds(bounds=None):
+    if bounds:
+        return bounds
+    elif type(bounds) is str:
+        return bounds == "0.0" or bounds == "0"
+    elif type(bounds) is float:
+        return bounds == 0.0
+    elif type(bounds) is int:
+        return bounds == 0
 
 
 # node is the datetime node to be constructed under

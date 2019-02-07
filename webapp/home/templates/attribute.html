@@ -16,12 +16,11 @@
                 <h5>Select the measurement scale for this attribute and then enter additional Measurement Scale Settings by selecting the button:</h5>
                 {{ wtf.form_field(form.mscale) }}
                 <input class="btn btn-primary" name="mscale" type="submit" value="Measurement Scale Settings"/>
+                <br/><br/>
                 <h5>Optionally, enter up to 3 missing value codes with accompanying explanations:</h5>
-                <table>
-                    <tr><td>{{ wtf.form_field(form.code_1) }}</td><td>&nbsp;</td><td>{{ wtf.form_field(form.code_explanation_1) }}</td></tr>
-                    <tr><td>{{ wtf.form_field(form.code_2) }}</td><td>&nbsp;</td><td>{{ wtf.form_field(form.code_explanation_2) }}</td></tr>
-                    <tr><td>{{ wtf.form_field(form.code_3) }}</td><td>&nbsp;</td><td>{{ wtf.form_field(form.code_explanation_3) }}</td></tr>
-                </table>
+                {{ wtf.form_field(form.code_1) }} {{ wtf.form_field(form.code_explanation_1) }}<br/>
+                {{ wtf.form_field(form.code_2) }} {{ wtf.form_field(form.code_explanation_2) }}<br/>
+                {{ wtf.form_field(form.code_3) }} {{ wtf.form_field(form.code_explanation_3) }}<br/>
                 <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>

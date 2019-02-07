@@ -352,10 +352,13 @@ def data_table(packageid=None, node_id=None):
     dt_node_id = node_id
     # Determine POST type
     if request.method == 'POST':
+        next_page = 'home.data_table_select'
+
         if 'Save Changes' in request.form:
             submit_type = 'Save Changes'
         elif 'Attributes' in request.form:
-            submit_type = 'Attributes'
+            next_page = 'home.attribute_select'
+            submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
@@ -365,7 +368,6 @@ def data_table(packageid=None, node_id=None):
     # Process POST
     if form.validate_on_submit():
         eml_node = load_eml(packageid=packageid)
-        next_page = 'home.data_table_select'
         
         if submit_type == 'Save Changes':
             dataset_node = eml_node.find_child(names.DATASET)
@@ -403,8 +405,13 @@ def data_table(packageid=None, node_id=None):
             if dt_node_id and len(dt_node_id) != 1:
                 old_dt_node = Node.get_node_instance(dt_node_id)
                 if old_dt_node:
+                    attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
+                    if attribute_list_node:
+                        old_dt_node.remove_child(attribute_list_node)
+                        add_child(dt_node, attribute_list_node)
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
+                    dt_node_id = dt_node.id
                 else:
                     msg = f"No node found in the node store with node id {dt_node_id}"
                     raise Exception(msg)
@@ -412,9 +419,6 @@ def data_table(packageid=None, node_id=None):
                 add_child(dataset_node, dt_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
-        elif submit_type == 'Attributes':
-            save_both_formats(packageid=packageid, eml_node=eml_node)
-            next_page = 'home.attribute_select'
 
         return redirect(url_for(next_page, packageid=packageid, dt_node_id=dt_node_id))
 

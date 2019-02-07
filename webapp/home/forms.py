@@ -51,11 +51,11 @@ class AttributeForm(FlaskForm):
                                                        ("ratio or interval", "ratio or interval"), 
                                                        ("dateTime", "dateTime")
                                                       ])
-    code_1 = StringField('1. Missing Value Code', validators=[])
+    code_1 = StringField('Missing Value Code', validators=[])
     code_explanation_1 = StringField('Explanation', validators=[]) 
-    code_2 = StringField('2. Missing Value Code', validators=[])
+    code_2 = StringField('Missing Value Code', validators=[])
     code_explanation_2 = StringField('Explanation', validators=[])
-    code_3 = StringField('3. Missing Value Code', validators=[])
+    code_3 = StringField('Missing Value Code', validators=[])
     code_explanation_3 = StringField('Explanation', validators=[])
 
 

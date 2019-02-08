@@ -260,6 +260,7 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
 
 def list_geographic_coverages(eml_node:Node=None):
     gc_list = []
+    max_len = 40
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -279,10 +280,12 @@ def list_geographic_coverages(eml_node:Node=None):
                     geographic_description_node = \
                         gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
                     if geographic_description_node:
-                        geographic_description = geographic_description_node.content
+                        description = geographic_description_node.content
+                        if description and len(description) > max_len:
+                            description = description[0:max_len]
                     label = compose_gc_label(gc_node)
                     gc_entry = GC_Entry(id=id,
-                                geographic_description=geographic_description,
+                                geographic_description=description,
                                 label=label,
                                 upval=upval, downval=downval)
                     gc_list.append(gc_entry)

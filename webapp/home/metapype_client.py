@@ -54,7 +54,7 @@ def list_data_tables(eml_node:Node=None):
                  rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
-                label = compose_data_table_label(dt_node)
+                label = compose_entity_label(dt_node)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
                 dt_entry = DT_Entry(id=id,
@@ -65,10 +65,33 @@ def list_data_tables(eml_node:Node=None):
     return dt_list
 
 
-def compose_data_table_label(dt_node:Node=None):
+def list_other_entities(eml_node:Node=None):
+    oe_list = []
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            oe_nodes = dataset_node.find_all_children(names.OTHERENTITY)
+            OE_Entry = collections.namedtuple(
+                'OE_Entry', 
+                ["id", "label", "upval", "downval"],
+                 rename=False)
+            for i, oe_node in enumerate(oe_nodes):
+                id = oe_node.id
+                label = compose_entity_label(oe_node)
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(oe_nodes))
+                oe_entry = OE_Entry(id=id,
+                                    label=label,
+                                    upval=upval, 
+                                    downval=downval)
+                oe_list.append(oe_entry)
+    return oe_list
+
+
+def compose_entity_label(entity_node:Node=None):
     label = ''
-    if dt_node:
-        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+    if entity_node:
+        entity_name_node = entity_node.find_child(names.ENTITYNAME)
         if entity_name_node:
             entity_name = entity_name_node.content 
             label = entity_name
@@ -273,7 +296,7 @@ def list_geographic_coverages(eml_node:Node=None):
                     ["id", "geographic_description", "label", "upval", "downval"],
                      rename=False)
                 for i, gc_node in enumerate(gc_nodes):
-                    geographic_description = ''
+                    description = ''
                     id = gc_node.id
                     upval = get_upval(i)
                     downval = get_downval(i+1, len(gc_nodes))
@@ -912,6 +935,105 @@ def create_title(title=None, packageid=None):
         logger.error(e)
 
     return title_node
+
+
+def create_other_entity(
+    entity_node:Node=None, 
+    entity_name:str=None,
+    entity_type:str=None,
+    entity_description:str=None,
+    object_name:str=None,
+    size:str=None,
+    num_header_lines:str=None,
+    record_delimiter:str=None,
+    attribute_orientation:str=None,
+    field_delimiter:str=None,
+    online_url:str=None):
+
+    try:
+
+        if not entity_node:
+            entity_node = Node(names.OTHERENTITY)
+
+        if entity_name:
+            entity_name_node = Node(names.ENTITYNAME, parent=entity_node)
+            entity_name_node.content = entity_name
+            add_child(entity_node, entity_name_node)
+
+        if entity_type:
+            entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
+            entity_type_node.content = entity_type
+            add_child(entity_node, entity_type_node)
+
+        if entity_description:
+            entity_description_node = Node(names.ENTITYDESCRIPTION, parent=entity_node)
+            entity_description_node.content = entity_description
+            add_child(entity_node, entity_description_node)
+
+        if object_name or size or num_header_lines or \
+           record_delimiter or attribute_orientation or \
+           field_delimiter or online_url:
+
+            physical_node = Node(names.PHYSICAL, parent=entity_node)
+            add_child(entity_node, physical_node)
+
+            if object_name:
+                object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+                object_name_node.content = object_name
+                add_child(physical_node, object_name_node)
+
+            if size:
+                size_node = Node(names.SIZE, parent=physical_node)
+                size_node.content = size
+                add_child(physical_node, size_node)
+
+            if num_header_lines or record_delimiter or \
+               attribute_orientation or field_delimiter:
+
+                data_format_node = Node(names.DATAFORMAT, parent=physical_node)
+                add_child(physical_node, data_format_node)
+    
+                text_format_node = Node(names.TEXTFORMAT, parent=data_format_node)
+                add_child(data_format_node, text_format_node)
+
+                if num_header_lines:
+                    num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
+                    num_header_lines_node.content = num_header_lines
+                    add_child(text_format_node, num_header_lines_node)
+                
+                if record_delimiter:
+                    record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
+                    record_delimiter_node.content = record_delimiter
+                    add_child(text_format_node, record_delimiter_node)
+
+                if attribute_orientation:
+                    attribute_orientation_node = Node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
+                    attribute_orientation_node.content = attribute_orientation
+                    add_child(text_format_node, attribute_orientation_node)
+
+                if field_delimiter:
+                    simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
+                    add_child(text_format_node, simple_delimited_node)
+
+                    field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
+                    field_delimiter_node.content = field_delimiter
+                    add_child(simple_delimited_node, field_delimiter_node)
+
+            if online_url:
+                distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
+                add_child(physical_node, distribution_node)
+
+                online_node = Node(names.ONLINE, parent=distribution_node)
+                add_child(distribution_node, online_node)
+
+                url_node = Node(names.URL, parent=online_node)
+                url_node.content = online_url
+                add_child(online_node, url_node)
+
+        return entity_node
+
+    except Exception as e:
+        logger.error(e)
 
 
 def create_pubdate(pubdate=None, packageid=None):

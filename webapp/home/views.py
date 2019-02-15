@@ -41,7 +41,8 @@ from webapp.home.forms import (
     CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     MethodStepSelectForm, MethodStepForm, ProjectForm,
-    AccessSelectForm, AccessForm, IntellectualRightsForm
+    AccessSelectForm, AccessForm, IntellectualRightsForm,
+    OtherEntitySelectForm, OtherEntityForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -60,7 +61,8 @@ from webapp.home.metapype_client import (
     create_code_definition, mscale_from_attribute,
     create_interval_ratio, create_datetime,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
-    save_old_to_new, list_access_rules, create_access_rule
+    save_old_to_new, list_access_rules, create_access_rule,
+    list_other_entities, create_other_entity
 )
 
 from metapype.eml2_1_1 import export
@@ -330,7 +332,7 @@ def data_table_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
                              'POST', 'data_table_select', 'project', 
-                             'title', 'data_table')
+                             'other_entity_select', 'data_table')
         return redirect(url)
 
     # Process GET
@@ -2876,3 +2878,172 @@ def populate_keyword_form(form:KeywordForm, kw_node:Node):
 
     form.keyword.data = keyword
     form.keyword_type.data = keyword_type
+
+
+@home.route('/other_entity_select/<packageid>', methods=['GET', 'POST'])
+def other_entity_select(packageid=None):
+    form = OtherEntitySelectForm(packageid=packageid)
+    
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = select_post(packageid, form, form_dict, 
+                             'POST', 'other_entity_select', 'data_table_select', 
+                             'title', 'other_entity')
+        return redirect(url)
+
+    # Process GET
+    return other_entity_select_get(packageid=packageid, form=form)
+
+
+def other_entity_select_get(packageid=None, form=None):
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    oe_list = list_other_entities(eml_node)
+    title = 'Other Entities'
+
+    return render_template('other_entity_select.html', title=title,
+                            oe_list=oe_list, form=form)
+
+
+@home.route('/other_entity/<packageid>/<node_id>', methods=['GET', 'POST'])
+def other_entity(packageid=None, node_id=None):
+    dt_node_id = node_id
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.other_entity_select'
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+        else:
+            submit_type = None
+    form = OtherEntityForm(packageid=packageid)
+
+    # Process POST
+    if form.validate_on_submit():
+        eml_node = load_eml(packageid=packageid)
+        
+        if submit_type == 'Save Changes':
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+
+            entity_name = form.entity_name.data
+            entity_type = form.entity_type.data
+            entity_description = form.entity_description.data
+            object_name = form.object_name.data
+            size = form.size.data
+            num_header_lines = form.num_header_lines.data
+            record_delimiter = form.record_delimiter.data
+            attribute_orientation = form.attribute_orientation.data
+            field_delimiter = form.field_delimiter.data
+            online_url = form.online_url.data
+
+            dt_node = Node(names.OTHERENTITY, parent=dataset_node)
+
+            create_other_entity(
+                dt_node, 
+                entity_name,
+                entity_type,
+                entity_description,
+                object_name,
+                size,
+                num_header_lines,
+                record_delimiter,
+                attribute_orientation,
+                field_delimiter,
+                online_url)
+
+            if dt_node_id and len(dt_node_id) != 1:
+                old_dt_node = Node.get_node_instance(dt_node_id)
+                if old_dt_node:
+                    dataset_parent_node = old_dt_node.parent
+                    dataset_parent_node.replace_child(old_dt_node, dt_node)
+                    dt_node_id = dt_node.id
+                else:
+                    msg = f"No node found in the node store with node id {dt_node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(dataset_node, dt_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+
+        return redirect(url_for(next_page, packageid=packageid, dt_node_id=dt_node_id))
+
+    # Process GET
+    if dt_node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        populate_other_entity_form(form, dt_node)
+    
+    return render_template('other_entity.html', title='Other Entity', form=form)
+
+
+def populate_other_entity_form(form:OtherEntityForm, node:Node):    
+    entity_name_node = node.find_child(names.ENTITYNAME)
+    if entity_name_node:
+        form.entity_name.data = entity_name_node.content
+    
+    entity_type_node = node.find_child(names.ENTITYTYPE)
+    if entity_type_node:
+        form.entity_type.data = entity_type_node.content
+    
+    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
+    if entity_description_node:
+        form.entity_description.data = entity_description_node.content  
+
+    physical_node = node.find_child(names.PHYSICAL)
+    if physical_node:
+
+        object_name_node = physical_node.find_child(names.OBJECTNAME)
+        if object_name_node:
+            form.object_name.data = object_name_node.content
+
+        size_node = physical_node.find_child(names.SIZE)
+        if size_node:
+            form.size.data = size_node.content
+        
+        data_format_node = physical_node.find_child(names.DATAFORMAT)
+        if data_format_node:
+
+            text_format_node = data_format_node.find_child(names.TEXTFORMAT)
+            if text_format_node:
+
+                num_header_lines_node = text_format_node.find_child(names.NUMHEADERLINES)
+                if num_header_lines_node:
+                    form.num_header_lines.data = num_header_lines_node.content
+
+                record_delimiter_node = text_format_node.find_child(names.RECORDDELIMITER)
+                if record_delimiter_node:
+                    form.record_delimiter.data = record_delimiter_node.content 
+
+                attribute_orientation_node = text_format_node.find_child(names.ATTRIBUTEORIENTATION)
+                if attribute_orientation_node:
+                    form.attribute_orientation.data = attribute_orientation_node.content 
+
+                simple_delimited_node = text_format_node.find_child(names.SIMPLEDELIMITED)
+                if simple_delimited_node:
+                    
+                    field_delimiter_node = simple_delimited_node.find_child(names.FIELDDELIMITER)
+                    if field_delimiter_node:
+                        form.field_delimiter.data = field_delimiter_node.content 
+
+        distribution_node = physical_node.find_child(names.DISTRIBUTION)
+        if distribution_node:
+
+            online_node = distribution_node.find_child(names.ONLINE)
+            if online_node:
+
+                url_node = online_node.find_child(names.URL)
+                if url_node:
+                    form.online_url.data = url_node.content 

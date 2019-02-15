@@ -197,6 +197,23 @@ class OpenEMLDocumentForm(FlaskForm):
     packageid = SelectField('Data Package Identifier', choices=[])
 
 
+class OtherEntitySelectForm(FlaskForm):
+    pass
+
+
+class OtherEntityForm(FlaskForm):
+    entity_name = StringField('Name', validators=[])
+    entity_type = StringField('Entity Type', validators=[])
+    entity_description = StringField('Description (Optional)', validators=[])
+    object_name = StringField('Object Name', validators=[])
+    size = IntegerField('Size (Optional)', validators=[Optional()])
+    num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
+    record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
+    attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
+    field_delimiter = SelectField('Simple Delimited: Field Delimiter', choices=[("comma", "comma"), ("space", "space"), ("tab", "tab")])
+    online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
+
+
 class ProjectForm(FlaskForm):
     title = StringField('Project Title', validators=[])
     abstract = StringField('Project Abstract (Optional)', widget=TextArea(), validators=[])

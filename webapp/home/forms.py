@@ -224,6 +224,10 @@ class PubDateForm(FlaskForm):
     pubdate = StringField('Publication Date', validators=[])
 
 
+class PublicationPlaceForm(FlaskForm):
+    pubplace = StringField('Publication Place', validators=[])
+
+
 class ResponsiblePartySelectForm(FlaskForm):
     pass
 

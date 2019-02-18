@@ -937,6 +937,32 @@ def create_title(title=None, packageid=None):
     return title_node
 
 
+def create_pubplace(pubplace=None, packageid=None):
+    eml_node = load_eml(packageid=packageid)
+    pubplace_node = None
+
+    dataset_node = eml_node.find_child('dataset')
+    if dataset_node:
+        pubplace_node = dataset_node.find_child('pubPlace')
+        if not pubplace_node:
+            pubplace_node = Node(names.PUBPLACE, parent=dataset_node)
+            add_child(dataset_node, pubplace_node)
+    else:
+        dataset_node = Node(names.DATASET, parent=eml_node)
+        add_child(eml_node, dataset_node)
+        pubplace_node = Node(names.PUBPLACE, parent=dataset_node)
+        add_child(dataset_node, pubplace_node)
+
+    pubplace_node.content = pubplace
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+    return pubplace_node
+
+
 def create_other_entity(
     entity_node:Node=None, 
     entity_name:str=None,

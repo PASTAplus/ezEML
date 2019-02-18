@@ -42,7 +42,7 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     MethodStepSelectForm, MethodStepForm, ProjectForm,
     AccessSelectForm, AccessForm, IntellectualRightsForm,
-    OtherEntitySelectForm, OtherEntityForm
+    OtherEntitySelectForm, OtherEntityForm, PublicationPlaceForm
 )
 
 from webapp.home.metapype_client import ( 
@@ -62,7 +62,7 @@ from webapp.home.metapype_client import (
     create_interval_ratio, create_datetime,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
     save_old_to_new, list_access_rules, create_access_rule,
-    list_other_entities, create_other_entity
+    list_other_entities, create_other_entity, create_pubplace
 )
 
 from metapype.eml2_1_1 import export
@@ -1379,6 +1379,28 @@ def title(packageid=None):
     return render_template('title.html', title='Title', form=form)
 
 
+@home.route('/publication_place/<packageid>', methods=['GET', 'POST'])
+def publication_place(packageid=None):
+    # Determine POST type
+    if request.method == 'POST':
+        if 'Next' in request.form:
+            submit_type = 'Next'
+        else:
+            submit_type = None
+    form = PublicationPlaceForm()
+    # Process POST
+    if form.validate_on_submit():
+        pubplace_node = create_pubplace(pubplace=form.pubplace.data, packageid=packageid)
+        new_page = 'method_step_select' if (submit_type == 'Next') else 'contact_select'
+        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+    # Process GET
+    eml_node = load_eml(packageid=packageid)
+    pubplace_node = eml_node.find_child(child_name='pubPlace')
+    if pubplace_node:
+        form.pubplace.data = pubplace_node.content
+    return render_template('publication_place.html', title='Publication Place', form=form)
+
+
 @home.route('/creator_select/<packageid>', methods=['GET', 'POST'])
 def creator_select(packageid=None):
     form = ResponsiblePartySelectForm(packageid=packageid)
@@ -2230,7 +2252,7 @@ def contact_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
                              'POST', 'contact_select', 'taxonomic_coverage_select', 
-                             'method_step_select', 'contact')
+                             'publication_place', 'contact')
         return redirect(url)
 
     # Process GET
@@ -2274,7 +2296,7 @@ def method_step_select(packageid=None, node_id=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = method_step_select_post(packageid, form, form_dict, 
-                                      'POST', 'method_step_select', 'contact_select', 
+                                      'POST', 'method_step_select', 'publication_place', 
                                       'project', 'method_step')
         return redirect(url)
 

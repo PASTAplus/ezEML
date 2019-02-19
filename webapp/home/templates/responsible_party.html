@@ -29,6 +29,9 @@
                 {% endif %}
                 <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                {% if next_page %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                {% endif %}
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
             </form>
         </div>

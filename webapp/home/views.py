@@ -1391,7 +1391,7 @@ def publication_place(packageid=None):
     # Process POST
     if form.validate_on_submit():
         pubplace_node = create_pubplace(pubplace=form.pubplace.data, packageid=packageid)
-        new_page = 'method_step_select' if (submit_type == 'Next') else 'contact_select'
+        new_page = 'method_step_select' if (submit_type == 'Next') else 'publisher'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
     # Process GET
     eml_node = load_eml(packageid=packageid)
@@ -1424,7 +1424,7 @@ def creator(packageid=None, node_id=None):
     method = request.method
     return responsible_party(packageid=packageid, node_id=node_id, 
                              method=method, node_name=names.CREATOR, 
-                             new_page='creator_select', title='Creator')
+                             back_page='creator_select', title='Creator')
 
 
 def rp_select_get(packageid=None, form=None, rp_name=None, 
@@ -1440,7 +1440,8 @@ def rp_select_get(packageid=None, form=None, rp_name=None,
 
 
 def responsible_party(packageid=None, node_id=None, method=None, 
-                      node_name=None, new_page=None, title=None):
+                      node_name=None, back_page=None, title=None,
+                      next_page=None):
     eml_node = load_eml(packageid=packageid)
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
@@ -1448,6 +1449,8 @@ def responsible_party(packageid=None, node_id=None, method=None,
         add_child(eml_node, dataset_node)
     parent_node = dataset_node
     role = False
+    submit_type = 'Navigate'  # Two of three cases: Back and Next
+    new_page = back_page      # Two of three cases: Back and Save Changes
 
     # If this is an associatedParty or a project personnel element, 
     # set role to True so it will appear as a form field.
@@ -1467,10 +1470,8 @@ def responsible_party(packageid=None, node_id=None, method=None,
     if request.method == 'POST':
         if 'Save Changes' in request.form:
             submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-        else:
-            submit_type = None
+        elif 'Next' in request.form:
+            new_page = next_page
     form = ResponsiblePartyForm(packageid=packageid)
 
     # Process POST
@@ -1528,6 +1529,12 @@ def responsible_party(packageid=None, node_id=None, method=None,
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
+            # There is at most only one publisher element, so we don't have a 
+            # list of publishers to navigate back to. Stay on this page after
+            # saving changes.
+            if node_name == names.PUBLISHER:
+                new_page = 'publisher'
+
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
     # Process GET
@@ -1541,7 +1548,8 @@ def responsible_party(packageid=None, node_id=None, method=None,
                     if node_id == rp_node.id:
                         populate_responsible_party_form(form, rp_node)
     
-    return render_template('responsible_party.html', title=title, form=form, role=role)
+    return render_template('responsible_party.html', title=title, 
+                           form=form, role=role, next_page=next_page)
 
 
 @home.route('/metadata_provider_select/<packageid>', methods=['GET', 'POST'])
@@ -1571,7 +1579,7 @@ def metadata_provider(packageid=None, node_id=None):
     method = request.method
     return responsible_party(packageid=packageid, node_id=node_id, 
                              method=method, node_name=names.METADATAPROVIDER, 
-                             new_page='metadata_provider_select', 
+                             back_page='metadata_provider_select', 
                              title='Metadata Provider')
 
 
@@ -1602,7 +1610,7 @@ def associated_party(packageid=None, node_id=None):
     method = request.method
     return responsible_party(packageid=packageid, node_id=node_id, 
                              method=method, node_name=names.ASSOCIATEDPARTY, 
-                             new_page='associated_party_select', 
+                             back_page='associated_party_select', 
                              title='Associated Party')
 
 
@@ -2252,7 +2260,7 @@ def contact_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict, 
                              'POST', 'contact_select', 'taxonomic_coverage_select', 
-                             'publication_place', 'contact')
+                             'publisher', 'contact')
         return redirect(url)
 
     # Process GET
@@ -2265,7 +2273,24 @@ def contact(packageid=None, node_id=None):
     method = request.method
     return responsible_party(packageid=packageid, node_id=node_id, 
                              method=method, node_name=names.CONTACT, 
-                             new_page='contact_select', title='Contact')
+                             back_page='contact_select', title='Contact')
+
+
+@home.route('/publisher/<packageid>', methods=['GET', 'POST'])
+def publisher(packageid=None):
+    method = request.method
+    node_id = '1'
+    if packageid:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            publisher_node = dataset_node.find_child(names.PUBLISHER)
+            if publisher_node:
+                node_id = publisher_node.id
+    return responsible_party(packageid=packageid, node_id=node_id, 
+                             method=method, node_name=names.PUBLISHER, 
+                             back_page='contact_select', title='Publisher',
+                             next_page='publication_place')
 
 
 def process_up_button(packageid:str=None, node_id:str=None):
@@ -2569,7 +2594,7 @@ def project_personnel(packageid=None, node_id=None):
     method = request.method
     return responsible_party(packageid=packageid, node_id=node_id, 
                              method=method, node_name=names.PERSONNEL, 
-                             new_page='project_personnel_select', title='Project Personnel')
+                             back_page='project_personnel_select', title='Project Personnel')
 
 
 @home.route('/access_select/<packageid>', methods=['GET', 'POST'])

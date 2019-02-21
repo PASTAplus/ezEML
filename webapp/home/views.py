@@ -62,7 +62,8 @@ from webapp.home.metapype_client import (
     create_interval_ratio, create_datetime,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
     save_old_to_new, list_access_rules, create_access_rule,
-    list_other_entities, create_other_entity, create_pubplace
+    list_other_entities, create_other_entity, create_pubplace,
+    create_access
 )
 
 from metapype.eml2_1_1 import export
@@ -361,6 +362,9 @@ def data_table(packageid=None, node_id=None):
         elif 'Attributes' in request.form:
             next_page = 'home.attribute_select'
             submit_type = 'Save Changes'
+        elif 'Access' in request.form:
+            next_page = 'home.entity_access_select'
+            submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
@@ -407,10 +411,25 @@ def data_table(packageid=None, node_id=None):
             if dt_node_id and len(dt_node_id) != 1:
                 old_dt_node = Node.get_node_instance(dt_node_id)
                 if old_dt_node:
+
                     attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
                     if attribute_list_node:
                         old_dt_node.remove_child(attribute_list_node)
                         add_child(dt_node, attribute_list_node)
+
+                    old_physical_node = old_dt_node.find_child(names.PHYSICAL)
+                    if old_physical_node:
+                        old_distribution_node = old_physical_node.find_child(names.DISTRIBUTION)
+                        if old_distribution_node:
+                            access_node = old_distribution_node.find_child(names.ACCESS)
+                            if access_node:
+                                physical_node = dt_node.find_child(names.PHYSICAL)
+                                if physical_node:
+                                    distribution_node = dt_node.find_child(names.DISTRIBUTION)
+                                    if distribution_node:
+                                        old_distribution_node.remove_child(access_node)
+                                        add_child(distribution_node, access_node)
+
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
                     dt_node_id = dt_node.id
@@ -720,7 +739,8 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
     # Process GET
@@ -3095,3 +3115,204 @@ def populate_other_entity_form(form:OtherEntityForm, node:Node):
                 url_node = online_node.find_child(names.URL)
                 if url_node:
                     form.online_url.data = url_node.content 
+
+
+@home.route('/entity_access_select/<packageid>/<dt_node_id>', methods=['GET', 'POST'])
+def entity_access_select(packageid:str=None, dt_node_id:str=None):
+    form = AccessSelectForm(packageid=packageid)
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = entity_access_select_post(packageid, form, form_dict, 
+                                'POST', 'entity_access_select', 'data_table', 
+                                'data_table', 'entity_access', dt_node_id=dt_node_id)
+        return redirect(url)
+
+    # Process GET
+    return entity_access_select_get(packageid=packageid, form=form, dt_node_id=dt_node_id)
+
+
+def entity_access_select_get(packageid=None, form=None, dt_node_id=None):
+    # Process GET
+    access_rules_list = []
+    title = 'Access Rules'
+    entity_name = ''
+    load_eml(packageid=packageid)
+
+    if dt_node_id == '1':
+        pass
+    else:
+        data_table_node = Node.get_node_instance(dt_node_id)
+        if data_table_node:
+            entity_name = entity_name_from_data_table(data_table_node)
+            physical_node = data_table_node.find_child(names.PHYSICAL)
+            if physical_node:
+                distribution_node = physical_node.find_child(names.DISTRIBUTION)
+                if distribution_node:
+                    access_rules_list = list_access_rules(distribution_node)
+
+    return render_template('access_select.html', 
+                           title=title,
+                           entity_name=entity_name, 
+                           ar_list=access_rules_list, 
+                           form=form)
+
+
+def entity_access_select_post(packageid=None, form=None, form_dict=None,
+                          method=None, this_page=None, back_page=None, 
+                          next_page=None, edit_page=None, 
+                          dt_node_id=None):
+    node_id = ''
+    new_page = ''
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == UP_ARROW:
+                new_page = this_page
+                node_id = key
+                process_up_button(packageid, node_id)
+            elif val == DOWN_ARROW:
+                new_page = this_page
+                node_id = key
+                process_down_button(packageid, node_id)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+            elif val == '[  ]':
+                new_page = this_page
+                node_id = key
+
+    if form.validate_on_submit():  
+        if new_page == edit_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id, 
+                            node_id=node_id)
+        elif new_page == this_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id)
+        else:
+            return url_for(f'home.{new_page}', 
+                           packageid=packageid,
+                           node_id=dt_node_id)
+
+
+
+# node_id is the id of the access allow node being edited. If the value is
+# '1', it means we are adding a new access node, otherwise we are
+# editing an existing access node.
+#
+@home.route('/entity_access/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def entity_access(packageid=None, dt_node_id=None, node_id=None):
+    form = AccessForm(packageid=packageid, node_id=node_id)
+    allow_node_id = node_id
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.entity_access_select' # Save or Back sends us back to the list of access rules
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+        if submit_type == 'Save Changes':
+            dt_node = None
+            distribution_node = None
+            eml_node = load_eml(packageid=packageid)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(names.DATATABLE, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            physical_node = dt_node.find_child(names.PHYSICAL)
+            if not physical_node:
+                physical_node = Node(names.PHYSICAL, parent=dt_node)
+                add_child(dt_node, physical_node)
+
+            distribution_node = physical_node.find_child(names.DISTRIBUTION)
+            if not distribution_node:
+                distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
+                add_child(physical_node, distribution_node)
+
+            access_node = distribution_node.find_child(names.ACCESS)
+            if not access_node:
+                access_node = create_access(parent_node=distribution_node)
+
+            userid = form.userid.data
+            permission = form.permission.data
+            allow_node = Node(names.ALLOW, parent=access_node)
+            create_access_rule(allow_node, userid, permission)
+
+            if node_id and len(node_id) != 1:
+                old_allow_node = Node.get_node_instance(node_id)
+
+                if old_allow_node:
+                    access_parent_node = old_allow_node.parent
+                    access_parent_node.replace_child(old_allow_node, 
+                                                     allow_node)
+                else:
+                    msg = f"No 'allow' node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(access_node, allow_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            allow_node_id = allow_node.id
+
+        url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, node_id=allow_node_id)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        physical_node = dt_node.find_child(names.PHYSICAL)
+                        if physical_node:
+                            distribution_node = physical_node.find_child(names.DISTRIBUTION)
+                            if distribution_node:
+                                access_node = distribution_node.find_child(names.ACCESS)
+                                if access_node:
+                                    allow_nodes = access_node.find_all_children(names.ALLOW)
+                                    if allow_nodes:
+                                        for allow_node in allow_nodes:
+                                            if node_id == allow_node.id:
+                                                populate_access_rule_form(form, allow_node)
+                                                break
+    
+    return render_template('access.html', title='Access Rule', form=form, packageid=packageid)

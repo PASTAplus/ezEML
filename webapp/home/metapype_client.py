@@ -595,6 +595,16 @@ def validate_tree(node:Node):
     return msg
 
 
+def create_access(parent_node:Node=None):
+    access_node = Node(names.ACCESS, parent=parent_node)
+    add_child(parent_node, access_node)
+    access_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
+    access_node.add_attribute('scope', Config.SCOPE_ATTRIBUTE_VALUE)
+    access_node.add_attribute('order', Config.ORDER_ATTRIBUTE_VALUE)
+    access_node.add_attribute('authSystem', Config.AUTH_SYSTEM_ATTRIBUTE_VALUE)
+    return access_node
+
+
 def create_eml(packageid=None):
     eml_node = load_eml(packageid=packageid)
 
@@ -603,13 +613,7 @@ def create_eml(packageid=None):
         eml_node.add_attribute('packageId', packageid)
         eml_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
 
-        access_node = Node(names.ACCESS, parent=eml_node)
-        access_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
-        access_node.add_attribute('scope', Config.SCOPE_ATTRIBUTE_VALUE)
-        access_node.add_attribute('order', Config.ORDER_ATTRIBUTE_VALUE)
-        access_node.add_attribute('authSystem', Config.AUTH_SYSTEM_ATTRIBUTE_VALUE)
-        add_child(eml_node, access_node)
-
+        access_node = create_access(parent_node=eml_node)
         initialize_access_rules(access_node)
 
         dataset_node = Node(names.DATASET, parent=eml_node)
@@ -1621,10 +1625,10 @@ def list_keywords(eml_node:Node=None):
     return kw_list
 
 
-def list_access_rules(eml_node:Node=None):
+def list_access_rules(parent_node:Node=None):
     ar_list = []
-    if eml_node:
-        access_node = eml_node.find_child(names.ACCESS)
+    if parent_node:
+        access_node = parent_node.find_child(names.ACCESS)
         if access_node:
             allow_nodes = access_node.find_all_children(names.ALLOW)
             AR_Entry = collections.namedtuple(

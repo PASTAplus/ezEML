@@ -1663,6 +1663,7 @@ def get_child_content(parent_node:Node=None, child_name:str=None):
 
 def compose_method_step_description(method_step_node:Node=None):
     description = ''
+    MAX_LEN = 40
 
     if method_step_node:
         description_node = method_step_node.find_child(names.DESCRIPTION)
@@ -1675,16 +1676,21 @@ def compose_method_step_description(method_step_node:Node=None):
                 if para_node:
                     description = para_node.content 
 
+            if description and len(description) > MAX_LEN:
+                description = description[0:MAX_LEN]
     return description
 
 
 def compose_method_step_instrumentation(method_step_node:Node=None):
     instrumentation = ''
+    MAX_LEN = 40
 
     if method_step_node:
         instrumentation_node = method_step_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node:
             instrumentation = instrumentation_node.content 
+            if instrumentation and len(instrumentation) > MAX_LEN:
+                instrumentation = instrumentation[0:MAX_LEN]
 
     return instrumentation
 

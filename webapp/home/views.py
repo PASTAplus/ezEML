@@ -2342,23 +2342,66 @@ def process_updown_button(packageid:str=None, node_id:str=None, move_function=No
 
 
 @home.route('/method_step_select/<packageid>', methods=['GET', 'POST'])
-def method_step_select(packageid=None, node_id=None):
+def method_step_select(packageid=None):
     form = MethodStepSelectForm(packageid=packageid)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = method_step_select_post(packageid, form, form_dict, 
-                                      'POST', 'method_step_select', 'publication_place', 
-                                      'project', 'method_step')
-        return redirect(url)
+        node_id = ''
+        new_page = ''
+        url = ''
+        this_page = 'method_step_select'
+        edit_page = 'method_step'
+        back_page = 'publication_place'
+        next_page = 'project'
 
-    # Process GET
-    return method_step_select_get(packageid=packageid, form=form)
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+                if val == 'Back':
+                    new_page = back_page
+                elif val == 'Next':
+                    new_page = next_page
+                elif val == 'Edit':
+                    new_page = edit_page
+                    node_id = key
+                elif val == 'Remove':
+                    new_page = this_page
+                    node_id = key
+                    eml_node = load_eml(packageid=packageid)
+                    remove_child(node_id=node_id)
+                    save_both_formats(packageid=packageid, eml_node=eml_node)
+                elif val == UP_ARROW:
+                    new_page = this_page
+                    node_id = key
+                    process_up_button(packageid, node_id)
+                elif val == DOWN_ARROW:
+                    new_page = this_page
+                    node_id = key
+                    process_down_button(packageid, node_id)
+                elif val[0:3] == 'Add':
+                    new_page = edit_page
+                    node_id = '1'
+                elif val == '[  ]':
+                    new_page = this_page
+                    node_id = key
 
+        if form.validate_on_submit():  
+            if new_page == edit_page: 
+                url = url_for(f'home.{new_page}', 
+                                packageid=packageid, 
+                                node_id=node_id)
+            elif new_page == this_page: 
+                url = url_for(f'home.{new_page}', 
+                                packageid=packageid, 
+                                node_id=node_id)
+            elif new_page == back_page or new_page == next_page:
+                url = url_for(f'home.{new_page}', 
+                            packageid=packageid)
+            return redirect(url)
 
-def method_step_select_get(packageid=None, form=None):
     # Process GET
     method_step_list = []
     title = 'Method Steps'
@@ -2371,56 +2414,6 @@ def method_step_select_get(packageid=None, form=None):
                            packageid=packageid,
                            method_step_list=method_step_list, 
                            form=form)
-
-
-def method_step_select_post(packageid=None, form=None, form_dict=None,
-                          method=None, this_page=None, back_page=None, 
-                          next_page=None, edit_page=None):
-    node_id = ''
-    new_page = ''
-    if form_dict:
-        for key in form_dict:
-            val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
-                new_page = back_page
-            elif val == 'Next':
-                new_page = next_page
-            elif val == 'Edit':
-                new_page = edit_page
-                node_id = key
-            elif val == 'Remove':
-                new_page = this_page
-                node_id = key
-                eml_node = load_eml(packageid=packageid)
-                remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
-            elif val == UP_ARROW:
-                new_page = this_page
-                node_id = key
-                process_up_button(packageid, node_id)
-            elif val == DOWN_ARROW:
-                new_page = this_page
-                node_id = key
-                process_down_button(packageid, node_id)
-            elif val[0:3] == 'Add':
-                new_page = edit_page
-                node_id = '1'
-            elif val == '[  ]':
-                new_page = this_page
-                node_id = key
-
-    if form.validate_on_submit():  
-        if new_page == edit_page: 
-            return url_for(f'home.{new_page}', 
-                            packageid=packageid, 
-                            node_id=node_id)
-        elif new_page == this_page: 
-            return url_for(f'home.{new_page}', 
-                            packageid=packageid, 
-                            node_id=node_id)
-        elif new_page == back_page or new_page == next_page:
-            return url_for(f'home.{new_page}', 
-                           packageid=packageid)
 
 
 # node_id is the id of the methodStep node being edited. If the value is

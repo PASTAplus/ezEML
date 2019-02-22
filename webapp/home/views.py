@@ -441,7 +441,15 @@ def data_table(packageid=None, node_id=None):
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        return redirect(url_for(next_page, packageid=packageid, dt_node_id=dt_node_id))
+        if (next_page == 'home.entity_access_select'):
+            return redirect(url_for(next_page, 
+                                    packageid=packageid,
+                                    dt_element_name=names.DATATABLE,
+                                    dt_node_id=dt_node_id))
+        else:
+            return redirect(url_for(next_page, 
+                                    packageid=packageid, 
+                                    dt_node_id=dt_node_id))
 
     # Process GET
     atts = 'No data table attributes have been added'
@@ -2984,6 +2992,9 @@ def other_entity(packageid=None, node_id=None):
 
         if 'Save Changes' in request.form:
             submit_type = 'Save Changes'
+        elif 'Access' in request.form:
+            next_page = 'home.entity_access_select'
+            submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
@@ -3028,6 +3039,20 @@ def other_entity(packageid=None, node_id=None):
             if dt_node_id and len(dt_node_id) != 1:
                 old_dt_node = Node.get_node_instance(dt_node_id)
                 if old_dt_node:
+ 
+                    old_physical_node = old_dt_node.find_child(names.PHYSICAL)
+                    if old_physical_node:
+                        old_distribution_node = old_physical_node.find_child(names.DISTRIBUTION)
+                        if old_distribution_node:
+                            access_node = old_distribution_node.find_child(names.ACCESS)
+                            if access_node:
+                                physical_node = dt_node.find_child(names.PHYSICAL)
+                                if physical_node:
+                                    distribution_node = dt_node.find_child(names.DISTRIBUTION)
+                                    if distribution_node:
+                                        old_distribution_node.remove_child(access_node)
+                                        add_child(distribution_node, access_node)
+
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
                     dt_node_id = dt_node.id
@@ -3039,7 +3064,15 @@ def other_entity(packageid=None, node_id=None):
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        return redirect(url_for(next_page, packageid=packageid, dt_node_id=dt_node_id))
+        if (next_page == 'home.entity_access_select'):
+            return redirect(url_for(next_page, 
+                                    packageid=packageid,
+                                    dt_element_name=names.OTHERENTITY,
+                                    dt_node_id=dt_node_id))
+        else:
+            return redirect(url_for(next_page, 
+                                    packageid=packageid, 
+                                    dt_node_id=dt_node_id))
 
     # Process GET
     if dt_node_id == '1':
@@ -3117,17 +3150,24 @@ def populate_other_entity_form(form:OtherEntityForm, node:Node):
                     form.online_url.data = url_node.content 
 
 
-@home.route('/entity_access_select/<packageid>/<dt_node_id>', methods=['GET', 'POST'])
-def entity_access_select(packageid:str=None, dt_node_id:str=None):
+@home.route('/entity_access_select/<packageid>/<dt_element_name>/<dt_node_id>', 
+            methods=['GET', 'POST'])
+def entity_access_select(packageid:str=None, dt_element_name:str=None, dt_node_id:str=None):
     form = AccessSelectForm(packageid=packageid)
+
+    parent_page = 'data_table'
+    if dt_element_name == names.OTHERENTITY:
+        parent_page = 'other_entity'
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = entity_access_select_post(packageid, form, form_dict, 
-                                'POST', 'entity_access_select', 'data_table', 
-                                'data_table', 'entity_access', dt_node_id=dt_node_id)
+                                'POST', 'entity_access_select', parent_page, 
+                                parent_page, 'entity_access',
+                                dt_element_name=dt_element_name,
+                                dt_node_id=dt_node_id)
         return redirect(url)
 
     # Process GET
@@ -3163,7 +3203,7 @@ def entity_access_select_get(packageid=None, form=None, dt_node_id=None):
 def entity_access_select_post(packageid=None, form=None, form_dict=None,
                           method=None, this_page=None, back_page=None, 
                           next_page=None, edit_page=None, 
-                          dt_node_id=None):
+                          dt_element_name=None, dt_node_id=None):
     node_id = ''
     new_page = ''
     if form_dict:
@@ -3200,12 +3240,14 @@ def entity_access_select_post(packageid=None, form=None, form_dict=None,
     if form.validate_on_submit():  
         if new_page == edit_page: 
             return url_for(f'home.{new_page}', 
-                            packageid=packageid, 
+                            packageid=packageid,
+                            dt_element_name=dt_element_name,
                             dt_node_id=dt_node_id, 
                             node_id=node_id)
         elif new_page == this_page: 
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
+                            dt_element_name=dt_element_name,
                             dt_node_id=dt_node_id)
         else:
             return url_for(f'home.{new_page}', 
@@ -3218,8 +3260,10 @@ def entity_access_select_post(packageid=None, form=None, form_dict=None,
 # '1', it means we are adding a new access node, otherwise we are
 # editing an existing access node.
 #
-@home.route('/entity_access/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def entity_access(packageid=None, dt_node_id=None, node_id=None):
+# dt_element_name will be either names.DATATABLE or names.OTHERENTITY
+#
+@home.route('/entity_access/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = AccessForm(packageid=packageid, node_id=node_id)
     allow_node_id = node_id
 
@@ -3241,7 +3285,7 @@ def entity_access(packageid=None, dt_node_id=None, node_id=None):
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
             else:
-                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                data_table_nodes = dataset_node.find_all_children(dt_element_name)
                 if data_table_nodes:
                     for data_table_node in data_table_nodes:
                         if data_table_node.id == dt_node_id:
@@ -3249,7 +3293,7 @@ def entity_access(packageid=None, dt_node_id=None, node_id=None):
                             break
 
             if not dt_node:
-                dt_node = Node(names.DATATABLE, parent=dataset_node)
+                dt_node = Node(dt_element_name, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
             physical_node = dt_node.find_child(names.PHYSICAL)
@@ -3287,8 +3331,11 @@ def entity_access(packageid=None, dt_node_id=None, node_id=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
             allow_node_id = allow_node.id
 
-        url = url_for(next_page, packageid=packageid, 
-                      dt_node_id=dt_node_id, node_id=allow_node_id)
+        url = url_for(next_page, 
+                      packageid=packageid, 
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id, 
+                      node_id=allow_node_id)
         return redirect(url)
 
     # Process GET
@@ -3298,7 +3345,7 @@ def entity_access(packageid=None, dt_node_id=None, node_id=None):
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            dt_nodes = dataset_node.find_all_children(dt_element_name)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:

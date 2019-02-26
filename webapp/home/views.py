@@ -365,6 +365,9 @@ def data_table(packageid=None, node_id=None):
         elif 'Access' in request.form:
             next_page = 'home.entity_access_select'
             submit_type = 'Save Changes'
+        elif 'Methods' in request.form:
+            next_page = 'home.entity_method_step_select'
+            submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
@@ -430,6 +433,11 @@ def data_table(packageid=None, node_id=None):
                                         old_distribution_node.remove_child(access_node)
                                         add_child(distribution_node, access_node)
 
+                    methods_node = old_dt_node.find_child(names.METHODS)
+                    if methods_node:
+                        old_dt_node.remove_child(methods_node)
+                        add_child(dt_node, methods_node)
+
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
                     dt_node_id = dt_node.id
@@ -441,7 +449,8 @@ def data_table(packageid=None, node_id=None):
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        if (next_page == 'home.entity_access_select'):
+        if (next_page == 'home.entity_access_select' or 
+            next_page == 'home.entity_method_step_select'):
             return redirect(url_for(next_page, 
                                     packageid=packageid,
                                     dt_element_name=names.DATATABLE,
@@ -2408,7 +2417,9 @@ def method_step_select(packageid=None):
     eml_node = load_eml(packageid=packageid)
 
     if eml_node:
-        method_step_list = list_method_steps(eml_node)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            method_step_list = list_method_steps(dataset_node)
     
     return render_template('method_step_select.html', title=title,
                            packageid=packageid,
@@ -2988,6 +2999,9 @@ def other_entity(packageid=None, node_id=None):
         elif 'Access' in request.form:
             next_page = 'home.entity_access_select'
             submit_type = 'Save Changes'
+        elif 'Methods' in request.form:
+            next_page = 'home.entity_method_step_select'
+            submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
         else:
@@ -3046,6 +3060,11 @@ def other_entity(packageid=None, node_id=None):
                                         old_distribution_node.remove_child(access_node)
                                         add_child(distribution_node, access_node)
 
+                    methods_node = old_dt_node.find_child(names.METHODS)
+                    if methods_node:
+                        old_dt_node.remove_child(methods_node)
+                        add_child(dt_node, methods_node)
+
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
                     dt_node_id = dt_node.id
@@ -3057,7 +3076,8 @@ def other_entity(packageid=None, node_id=None):
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        if (next_page == 'home.entity_access_select'):
+        if (next_page == 'home.entity_access_select' or 
+            next_page == 'home.entity_method_step_select'):
             return redirect(url_for(next_page, 
                                     packageid=packageid,
                                     dt_element_name=names.OTHERENTITY,
@@ -3356,3 +3376,191 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
                                                 break
     
     return render_template('access.html', title='Access Rule', form=form, packageid=packageid)
+
+
+@home.route('/entity_method_step_select/<packageid>/<dt_element_name>/<dt_node_id>', 
+            methods=['GET', 'POST'])
+def entity_method_step_select(packageid=None, dt_element_name:str=None, dt_node_id:str=None):
+    form = MethodStepSelectForm(packageid=packageid)
+
+    parent_page = 'data_table'
+    if dt_element_name == names.OTHERENTITY:
+        parent_page = 'other_entity'
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        node_id = ''
+        new_page = ''
+        url = ''
+        this_page = 'entity_method_step_select'
+        edit_page = 'entity_method_step'
+        back_page = parent_page
+        next_page = parent_page
+
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+                if val == 'Back':
+                    new_page = back_page
+                elif val == 'Next':
+                    new_page = next_page
+                elif val == 'Edit':
+                    new_page = edit_page
+                    node_id = key
+                elif val == 'Remove':
+                    new_page = this_page
+                    node_id = key
+                    eml_node = load_eml(packageid=packageid)
+                    remove_child(node_id=node_id)
+                    save_both_formats(packageid=packageid, eml_node=eml_node)
+                elif val == UP_ARROW:
+                    new_page = this_page
+                    node_id = key
+                    process_up_button(packageid, node_id)
+                elif val == DOWN_ARROW:
+                    new_page = this_page
+                    node_id = key
+                    process_down_button(packageid, node_id)
+                elif val[0:3] == 'Add':
+                    new_page = edit_page
+                    node_id = '1'
+                elif val == '[  ]':
+                    new_page = this_page
+                    node_id = key
+
+    if form.validate_on_submit():  
+        if new_page == edit_page: 
+            url = url_for(f'home.{new_page}', 
+                          packageid=packageid,
+                          dt_element_name=dt_element_name,
+                          dt_node_id=dt_node_id, 
+                          node_id=node_id)
+        elif new_page == this_page: 
+            url = url_for(f'home.{new_page}', 
+                          packageid=packageid, 
+                          dt_element_name=dt_element_name,
+                          dt_node_id=dt_node_id)
+        else:
+            url = url_for(f'home.{new_page}', 
+                          packageid=packageid,
+                          node_id=dt_node_id)
+        return redirect(url)
+
+    # Process GET
+    method_step_list = []
+    title = 'Method Steps'
+    entity_name = ''
+    load_eml(packageid=packageid)
+
+    if dt_node_id == '1':
+        pass
+    else:
+        data_table_node = Node.get_node_instance(dt_node_id)
+        if data_table_node:
+            entity_name = entity_name_from_data_table(data_table_node)
+            method_step_list = list_method_steps(data_table_node)
+    
+    return render_template('method_step_select.html', 
+                           title=title,
+                           entity_name=entity_name,
+                           method_step_list=method_step_list, 
+                           form=form)
+
+
+# node_id is the id of the methodStep node being edited. If the value is
+# '1', it means we are adding a new methodStep node, otherwise we are
+# editing an existing one.
+#
+# dt_element_name will be either names.DATATABLE or names.OTHERENTITY
+#
+@home.route('/entity_method_step/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>', 
+            methods=['GET', 'POST'])
+def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = MethodStepForm(packageid=packageid, node_id=node_id)
+    ms_node_id = node_id
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.entity_method_step_select' # Save or Back sends us back to the list of method steps
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+        if submit_type == 'Save Changes':
+            dt_node = None
+            eml_node = load_eml(packageid=packageid)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(dt_element_name)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(dt_element_name, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            methods_node = dt_node.find_child(names.METHODS)
+            if not methods_node:
+                methods_node = Node(names.METHODS, parent=dt_node)
+                add_child(dt_node, methods_node)
+
+            description = form.description.data
+            instrumentation = form.instrumentation.data
+            method_step_node = Node(names.METHODSTEP, parent=methods_node)
+            create_method_step(method_step_node, description, instrumentation)
+
+            if node_id and len(node_id) != 1:
+                old_method_step_node = Node.get_node_instance(node_id)
+
+                if old_method_step_node:
+                    method_step_parent_node = old_method_step_node.parent
+                    method_step_parent_node.replace_child(old_method_step_node, 
+                                                          method_step_node)
+                else:
+                    msg = f"No 'methodStep' node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(methods_node, method_step_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            ms_node_id = method_step_node.id
+
+        url = url_for(next_page, 
+                      packageid=packageid, 
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id, 
+                      node_id=ms_node_id)
+        return redirect(url)
+
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(dt_element_name)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        methods_node = dt_node.find_child(names.METHODS)
+                        if methods_node:
+                            method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
+                            if method_step_nodes:
+                                for ms_node in method_step_nodes:
+                                    if node_id == ms_node.id:
+                                        populate_method_step_form(form, ms_node)
+                                        break
+    
+    return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)

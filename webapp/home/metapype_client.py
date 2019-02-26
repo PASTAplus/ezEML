@@ -1570,30 +1570,28 @@ def create_responsible_party(
         logger.error(e)
 
 
-def list_method_steps(eml_node:Node=None):
+def list_method_steps(parent_node:Node=None):
     ms_list = []
-    if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            methods_node = dataset_node.find_child(names.METHODS)
-            if methods_node:
-                method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
-                MS_Entry = collections.namedtuple(
-                    'MS_Entry', 
-                    ["id", "description", "instrumentation", "upval", "downval"],
-                    rename=False)
-                for i, method_step_node in enumerate(method_step_nodes):
-                    id = method_step_node.id
-                    method_step_description = compose_method_step_description(method_step_node)
-                    method_step_instrumentation = compose_method_step_instrumentation(method_step_node)
-                    upval = get_upval(i)
-                    downval = get_downval(i+1, len(method_step_nodes))
-                    ms_entry = MS_Entry(id=id,
-                                        description=method_step_description,
-                                        instrumentation=method_step_instrumentation,
-                                        upval=upval, 
-                                        downval=downval)
-                    ms_list.append(ms_entry)
+    if parent_node:
+        methods_node = parent_node.find_child(names.METHODS)
+        if methods_node:
+            method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
+            MS_Entry = collections.namedtuple(
+                'MS_Entry', 
+                ["id", "description", "instrumentation", "upval", "downval"],
+                rename=False)
+            for i, method_step_node in enumerate(method_step_nodes):
+                id = method_step_node.id
+                method_step_description = compose_method_step_description(method_step_node)
+                method_step_instrumentation = compose_method_step_instrumentation(method_step_node)
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(method_step_nodes))
+                ms_entry = MS_Entry(id=id,
+                                    description=method_step_description,
+                                    instrumentation=method_step_instrumentation,
+                                    upval=upval, 
+                                    downval=downval)
+                ms_list.append(ms_entry)
     return ms_list
 
 

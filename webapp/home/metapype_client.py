@@ -281,37 +281,35 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
     return rp_list
 
 
-def list_geographic_coverages(eml_node:Node=None):
+def list_geographic_coverages(parent_node:Node=None):
     gc_list = []
     max_len = 40
-    if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            coverage_node = eml_node.find_child(names.COVERAGE)
-            if coverage_node:
-                gc_nodes = \
-                    coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
-                GC_Entry = collections.namedtuple(
-                    'GC_Entry', 
-                    ["id", "geographic_description", "label", "upval", "downval"],
-                     rename=False)
-                for i, gc_node in enumerate(gc_nodes):
-                    description = ''
-                    id = gc_node.id
-                    upval = get_upval(i)
-                    downval = get_downval(i+1, len(gc_nodes))
-                    geographic_description_node = \
-                        gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
-                    if geographic_description_node:
-                        description = geographic_description_node.content
-                        if description and len(description) > max_len:
-                            description = description[0:max_len]
-                    label = compose_gc_label(gc_node)
-                    gc_entry = GC_Entry(id=id,
-                                geographic_description=description,
-                                label=label,
-                                upval=upval, downval=downval)
-                    gc_list.append(gc_entry)
+    if parent_node:
+        coverage_node = parent_node.find_child(names.COVERAGE)
+        if coverage_node:
+            gc_nodes = \
+                coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
+            GC_Entry = collections.namedtuple(
+                'GC_Entry', 
+                ["id", "geographic_description", "label", "upval", "downval"],
+                rename=False)
+            for i, gc_node in enumerate(gc_nodes):
+                description = ''
+                id = gc_node.id
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(gc_nodes))
+                geographic_description_node = \
+                    gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
+                if geographic_description_node:
+                    description = geographic_description_node.content
+                    if description and len(description) > max_len:
+                        description = description[0:max_len]
+                label = compose_gc_label(gc_node)
+                gc_entry = GC_Entry(id=id,
+                            geographic_description=description,
+                            label=label,
+                            upval=upval, downval=downval)
+                gc_list.append(gc_entry)
     return gc_list
 
 
@@ -346,70 +344,68 @@ def compose_gc_label(gc_node:Node=None):
     return label
 
 
-def list_temporal_coverages(eml_node:Node=None):
+def list_temporal_coverages(parent_node:Node=None):
     tc_list = []
-    if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            coverage_node = eml_node.find_child(names.COVERAGE)
-            if coverage_node:
-                tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
-                TC_Entry = collections.namedtuple(
-                    'TC_Entry', ["id", "begin_date", "end_date", "upval", "downval"],
-                     rename=False)
-                for i, tc_node in enumerate(tc_nodes):
-                    id = tc_node.id
-                    upval = get_upval(i)
-                    downval = get_downval(i+1, len(tc_nodes))
+    if parent_node:
+        coverage_node = parent_node.find_child(names.COVERAGE)
+        if coverage_node:
+            tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
+            TC_Entry = collections.namedtuple(
+                'TC_Entry', ["id", "begin_date", "end_date", "upval", "downval"],
+                    rename=False)
+            for i, tc_node in enumerate(tc_nodes):
+                id = tc_node.id
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(tc_nodes))
 
-                    single_datetime_nodes = tc_node.find_all_children(names.SINGLEDATETIME)
-                    if single_datetime_nodes:
-                        for sd_node in single_datetime_nodes:
-                            calendar_date_node = sd_node.find_child(names.CALENDARDATE)
-                            if calendar_date_node:
-                                begin_date = calendar_date_node.content
-                                end_date = ''
-                                tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
-                                tc_list.append(tc_entry)
-
-                    range_of_dates_nodes = tc_node.find_all_children(names.RANGEOFDATES)
-                    if range_of_dates_nodes:
-                        for rod_node in range_of_dates_nodes:
-                            begin_date = ''
+                single_datetime_nodes = tc_node.find_all_children(names.SINGLEDATETIME)
+                if single_datetime_nodes:
+                    for sd_node in single_datetime_nodes:
+                        calendar_date_node = sd_node.find_child(names.CALENDARDATE)
+                        if calendar_date_node:
+                            begin_date = calendar_date_node.content
                             end_date = ''
-                            begin_date_node = rod_node.find_child(names.BEGINDATE)
-                            if begin_date_node:
-                                calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
-                                if calendar_date_node:
-                                    begin_date = calendar_date_node.content
-                            end_date_node = rod_node.find_child(names.ENDDATE)
-                            if end_date_node:
-                                calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
-                                if calendar_date_node:
-                                    end_date = calendar_date_node.content
                             tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
                             tc_list.append(tc_entry)
+
+                range_of_dates_nodes = tc_node.find_all_children(names.RANGEOFDATES)
+                if range_of_dates_nodes:
+                    for rod_node in range_of_dates_nodes:
+                        begin_date = ''
+                        end_date = ''
+                        begin_date_node = rod_node.find_child(names.BEGINDATE)
+                        if begin_date_node:
+                            calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
+                            if calendar_date_node:
+                                begin_date = calendar_date_node.content
+                        end_date_node = rod_node.find_child(names.ENDDATE)
+                        if end_date_node:
+                            calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
+                            if calendar_date_node:
+                                end_date = calendar_date_node.content
+                        tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
+                        tc_list.append(tc_entry)
     return tc_list
 
 
-def list_taxonomic_coverages(eml_node:Node=None):
+def list_taxonomic_coverages(parent_node:Node=None):
     txc_list = []
-    if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            coverage_node = eml_node.find_child(names.COVERAGE)
-            if coverage_node:
-                txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
-                TXC_Entry = collections.namedtuple(
-                    'TXC_Entry', ["id", "label", "upval", "downval"],
-                     rename=False)
-                for i, txc_node in enumerate(txc_nodes):
-                    id = txc_node.id
-                    upval = get_upval(i)
-                    downval = get_downval(i+1, len(txc_nodes))
-                    label = compose_taxonomic_label(txc_node, label='')
-                    txc_entry = TXC_Entry(id=id, label=label, upval=upval, downval=downval)
-                    txc_list.append(txc_entry)
+    if parent_node:
+        coverage_node = parent_node.find_child(names.COVERAGE)
+        if coverage_node:
+            txc_nodes = coverage_node.find_all_children(
+                names.TAXONOMICCOVERAGE)
+            TXC_Entry = collections.namedtuple(
+                'TXC_Entry', ["id", "label", "upval", "downval"],
+                rename=False)
+            for i, txc_node in enumerate(txc_nodes):
+                id = txc_node.id
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(txc_nodes))
+                label = compose_taxonomic_label(txc_node, label='')
+                txc_entry = TXC_Entry(
+                    id=id, label=label, upval=upval, downval=downval)
+                txc_list.append(txc_entry)
 
     return txc_list
 

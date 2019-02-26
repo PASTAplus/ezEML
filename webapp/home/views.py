@@ -1882,9 +1882,14 @@ def geographic_coverage_select(packageid=None):
 
 def geographic_coverage_select_get(packageid=None, form=None):
     # Process GET
-    eml_node = load_eml(packageid=packageid)
-    gc_list = list_geographic_coverages(eml_node)
+    gc_list = []
     title = "Geographic Coverage"
+
+    eml_node = load_eml(packageid=packageid)
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            gc_list = list_geographic_coverages(dataset_node)
 
     return render_template('geographic_coverage_select.html', title=title,
                             gc_list=gc_list, form=form)
@@ -2041,9 +2046,14 @@ def temporal_coverage_select(packageid=None):
 
 def temporal_coverage_select_get(packageid=None, form=None):
     # Process GET
-    eml_node = load_eml(packageid=packageid)
-    tc_list = list_temporal_coverages(eml_node)
     title = "Temporal Coverage"
+    tc_list = []
+
+    eml_node = load_eml(packageid=packageid)
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            tc_list = list_temporal_coverages(dataset_node)
 
     return render_template('temporal_coverage_select.html', title=title,
                             tc_list=tc_list, form=form)
@@ -2152,9 +2162,14 @@ def taxonomic_coverage_select(packageid=None):
 
 def taxonomic_coverage_select_get(packageid=None, form=None):
     # Process GET
-    eml_node = load_eml(packageid=packageid)
-    txc_list = list_taxonomic_coverages(eml_node)
     title = "Taxonomic Coverage"
+    txc_list = []
+
+    eml_node = load_eml(packageid=packageid)
+    if eml_node:
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            txc_list = list_taxonomic_coverages(dataset_node)
 
     return render_template('taxonomic_coverage_select.html', title=title,
                             txc_list=txc_list, form=form)

@@ -7,7 +7,7 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please enter information about the data table object:</h5>
+                <h5>Please enter information about the data entity object:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.entity_description) }}
@@ -18,6 +18,13 @@
                 {{ wtf.form_field(form.attribute_orientation) }}
                 {{ wtf.form_field(form.field_delimiter) }}
                 {{ wtf.form_field(form.online_url) }}
+                <br/><br/>
+                <h4>Other Entity Coverage (Optional):</h4>
+                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="Temporal" type="submit" value="Edit Temporal Coverage"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="Taxonomic" type="submit" value="Edit Taxonomic Coverage"/>
                 <br/><br/><br/>
                 <h4>Other Entity Methods (Optional):</h4>
                 <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>

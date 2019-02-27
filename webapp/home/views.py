@@ -337,11 +337,6 @@ def data_table_select(packageid=None):
         return redirect(url)
 
     # Process GET
-    return data_table_select_get(packageid=packageid, form=form)
-
-
-def data_table_select_get(packageid=None, form=None):
-    # Process GET
     eml_node = load_eml(packageid=packageid)
     dt_list = list_data_tables(eml_node)
     title = 'Data Tables'
@@ -367,6 +362,15 @@ def data_table(packageid=None, node_id=None):
             submit_type = 'Save Changes'
         elif 'Methods' in request.form:
             next_page = 'home.entity_method_step_select'
+            submit_type = 'Save Changes'
+        elif 'Geographic' in request.form:
+            next_page = 'home.entity_geographic_coverage_select'
+            submit_type = 'Save Changes'
+        elif 'Temporal' in request.form:
+            next_page = 'home.entity_temporal_coverage_select'
+            submit_type = 'Save Changes'
+        elif 'Taxonomic' in request.form:
+            next_page = 'home.entity_taxonomic_coverage_select'
             submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
@@ -438,6 +442,11 @@ def data_table(packageid=None, node_id=None):
                         old_dt_node.remove_child(methods_node)
                         add_child(dt_node, methods_node)
 
+                    coverage_node = old_dt_node.find_child(names.COVERAGE)
+                    if coverage_node:
+                        old_dt_node.remove_child(coverage_node)
+                        add_child(dt_node, coverage_node)
+
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
                     dt_node_id = dt_node.id
@@ -450,7 +459,11 @@ def data_table(packageid=None, node_id=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
         if (next_page == 'home.entity_access_select' or 
-            next_page == 'home.entity_method_step_select'):
+            next_page == 'home.entity_method_step_select' or
+            next_page == 'home.entity_geographic_coverage_select' or
+            next_page == 'home.entity_temporal_coverage_select' or
+            next_page == 'home.entity_taxonomic_coverage_select'
+            ):
             return redirect(url_for(next_page, 
                                     packageid=packageid,
                                     dt_element_name=names.DATATABLE,
@@ -1877,11 +1890,6 @@ def geographic_coverage_select(packageid=None):
         return redirect(url)
 
     # Process GET
-    return geographic_coverage_select_get(packageid=packageid, form=form)
-
-
-def geographic_coverage_select_get(packageid=None, form=None):
-    # Process GET
     gc_list = []
     title = "Geographic Coverage"
 
@@ -2041,11 +2049,6 @@ def temporal_coverage_select(packageid=None):
         return redirect(url)
 
     # Process GET
-    return temporal_coverage_select_get(packageid=packageid, form=form)
-
-
-def temporal_coverage_select_get(packageid=None, form=None):
-    # Process GET
     title = "Temporal Coverage"
     tc_list = []
 
@@ -2144,7 +2147,7 @@ def populate_temporal_coverage_form(form:TemporalCoverageForm, node:Node):
 
 @home.route('/taxonomic_coverage_select/<packageid>', methods=['GET', 'POST'])
 def taxonomic_coverage_select(packageid=None):
-    form = TemporalCoverageSelectForm(packageid=packageid)
+    form = TaxonomicCoverageSelectForm(packageid=packageid)
     
     # Process POST
     if request.method == 'POST':
@@ -2156,11 +2159,6 @@ def taxonomic_coverage_select(packageid=None):
                           'contact_select', 'taxonomic_coverage')
         return redirect(url)
 
-    # Process GET
-    return taxonomic_coverage_select_get(packageid=packageid, form=form)
-
-
-def taxonomic_coverage_select_get(packageid=None, form=None):
     # Process GET
     title = "Taxonomic Coverage"
     txc_list = []
@@ -2989,11 +2987,6 @@ def other_entity_select(packageid=None):
         return redirect(url)
 
     # Process GET
-    return other_entity_select_get(packageid=packageid, form=form)
-
-
-def other_entity_select_get(packageid=None, form=None):
-    # Process GET
     eml_node = load_eml(packageid=packageid)
     oe_list = list_other_entities(eml_node)
     title = 'Other Entities'
@@ -3016,6 +3009,15 @@ def other_entity(packageid=None, node_id=None):
             submit_type = 'Save Changes'
         elif 'Methods' in request.form:
             next_page = 'home.entity_method_step_select'
+            submit_type = 'Save Changes'
+        elif 'Geographic' in request.form:
+            next_page = 'home.entity_geographic_coverage_select'
+            submit_type = 'Save Changes'
+        elif 'Temporal' in request.form:
+            next_page = 'home.entity_temporal_coverage_select'
+            submit_type = 'Save Changes'
+        elif 'Taxonomic' in request.form:
+            next_page = 'home.entity_taxonomic_coverage_select'
             submit_type = 'Save Changes'
         elif 'Back' in request.form:
             submit_type = 'Back'
@@ -3080,6 +3082,11 @@ def other_entity(packageid=None, node_id=None):
                         old_dt_node.remove_child(methods_node)
                         add_child(dt_node, methods_node)
 
+                    coverage_node = old_dt_node.find_child(names.COVERAGE)
+                    if coverage_node:
+                        old_dt_node.remove_child(coverage_node)
+                        add_child(dt_node, coverage_node)
+
                     dataset_parent_node = old_dt_node.parent
                     dataset_parent_node.replace_child(old_dt_node, dt_node)
                     dt_node_id = dt_node.id
@@ -3092,7 +3099,11 @@ def other_entity(packageid=None, node_id=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
         if (next_page == 'home.entity_access_select' or 
-            next_page == 'home.entity_method_step_select'):
+            next_page == 'home.entity_method_step_select' or
+            next_page == 'home.entity_geographic_coverage_select' or
+            next_page == 'home.entity_temporal_coverage_select' or
+            next_page == 'home.entity_taxonomic_coverage_select'
+            ):
             return redirect(url_for(next_page, 
                                     packageid=packageid,
                                     dt_element_name=names.OTHERENTITY,
@@ -3406,61 +3417,11 @@ def entity_method_step_select(packageid=None, dt_element_name:str=None, dt_node_
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        node_id = ''
-        new_page = ''
-        url = ''
-        this_page = 'entity_method_step_select'
-        edit_page = 'entity_method_step'
-        back_page = parent_page
-        next_page = parent_page
 
-        if form_dict:
-            for key in form_dict:
-                val = form_dict[key][0]  # value is the first list element
-                if val == 'Back':
-                    new_page = back_page
-                elif val == 'Next':
-                    new_page = next_page
-                elif val == 'Edit':
-                    new_page = edit_page
-                    node_id = key
-                elif val == 'Remove':
-                    new_page = this_page
-                    node_id = key
-                    eml_node = load_eml(packageid=packageid)
-                    remove_child(node_id=node_id)
-                    save_both_formats(packageid=packageid, eml_node=eml_node)
-                elif val == UP_ARROW:
-                    new_page = this_page
-                    node_id = key
-                    process_up_button(packageid, node_id)
-                elif val == DOWN_ARROW:
-                    new_page = this_page
-                    node_id = key
-                    process_down_button(packageid, node_id)
-                elif val[0:3] == 'Add':
-                    new_page = edit_page
-                    node_id = '1'
-                elif val == '[  ]':
-                    new_page = this_page
-                    node_id = key
-
-    if form.validate_on_submit():  
-        if new_page == edit_page: 
-            url = url_for(f'home.{new_page}', 
-                          packageid=packageid,
-                          dt_element_name=dt_element_name,
-                          dt_node_id=dt_node_id, 
-                          node_id=node_id)
-        elif new_page == this_page: 
-            url = url_for(f'home.{new_page}', 
-                          packageid=packageid, 
-                          dt_element_name=dt_element_name,
-                          dt_node_id=dt_node_id)
-        else:
-            url = url_for(f'home.{new_page}', 
-                          packageid=packageid,
-                          node_id=dt_node_id)
+        url = entity_select_post(packageid, form, form_dict, 
+                          'POST', 'entity_method_step_select',
+                          parent_page, parent_page, 'entity_method_step',
+                          dt_element_name, dt_node_id)
         return redirect(url)
 
     # Process GET
@@ -3506,12 +3467,14 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
             submit_type = 'Back'
 
     # Process POST
+    if form.validate_on_submit():
         if submit_type == 'Save Changes':
             dt_node = None
             eml_node = load_eml(packageid=packageid)
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
+                add_child(eml_node, dataset_node)
             else:
                 data_table_nodes = dataset_node.find_all_children(dt_element_name)
                 if data_table_nodes:
@@ -3579,3 +3542,481 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
                                         break
     
     return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)
+
+
+@home.route('/entity_geographic_coverage_select/<packageid>/<dt_element_name>/<dt_node_id>',
+            methods=['GET', 'POST'])
+def entity_geographic_coverage_select(packageid=None, dt_element_name:str=None, dt_node_id:str=None):
+    form = GeographicCoverageSelectForm(packageid=packageid)
+    
+    parent_page = 'data_table'
+    if dt_element_name == names.OTHERENTITY:
+        parent_page = 'other_entity'
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = entity_select_post(packageid, form, form_dict, 
+                          'POST', 'entity_geographic_coverage_select',
+                          parent_page, parent_page, 'entity_geographic_coverage',
+                          dt_element_name, dt_node_id)
+        return redirect(url)
+
+    # Process GET
+    gc_list = []
+    title = "Geographic Coverage"
+    entity_name = ''
+    load_eml(packageid=packageid)
+
+    if dt_node_id == '1':
+        pass
+    else:
+        data_table_node = Node.get_node_instance(dt_node_id)
+        if data_table_node:
+            entity_name = entity_name_from_data_table(data_table_node)
+            gc_list = list_geographic_coverages(data_table_node)
+
+    return render_template('geographic_coverage_select.html', 
+                            title=title,
+                            entity_name=entity_name,
+                            gc_list=gc_list, 
+                            form=form)
+
+
+@home.route('/entity_geographic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>', 
+            methods=['GET', 'POST'])
+def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = GeographicCoverageForm(packageid=packageid)
+    gc_node_id = node_id
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.entity_geographic_coverage_select' # Save or Back sends us back to the list of method steps
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            dt_node = None
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+                add_child(eml_node, dataset_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(dt_element_name)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(dt_element_name, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            coverage_node = dt_node.find_child(names.COVERAGE)
+            if not coverage_node:
+                coverage_node = Node(names.COVERAGE, parent=dt_node)
+                add_child(dt_node, coverage_node)
+
+            geographic_description = form.geographic_description.data
+            wbc = form.wbc.data
+            ebc = form.ebc.data
+            nbc = form.nbc.data
+            sbc = form.sbc.data
+
+            gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
+
+            create_geographic_coverage(
+                gc_node,
+                geographic_description,
+                wbc, ebc, nbc, sbc)
+
+            if node_id and len(node_id) != 1:
+                old_gc_node = Node.get_node_instance(node_id)
+
+                if old_gc_node:
+                    coverage_parent_node = old_gc_node.parent
+                    coverage_parent_node.replace_child(old_gc_node, gc_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(coverage_node, gc_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            gc_node_id = gc_node.id
+
+        url = url_for(next_page, 
+                      packageid=packageid, 
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id, 
+                      node_id=gc_node_id)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(dt_element_name)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        coverage_node = dt_node.find_child(names.COVERAGE)
+                        if coverage_node:
+                            gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
+                            if gc_nodes:
+                                for gc_node in gc_nodes:
+                                    if node_id == gc_node.id:
+                                        populate_geographic_coverage_form(form, gc_node)
+                                        break
+    
+    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, packageid=packageid)
+
+
+def entity_select_post(packageid=None, form=None, form_dict=None,
+                method=None, this_page=None, back_page=None, 
+                next_page=None, edit_page=None, 
+                dt_element_name:str=None, dt_node_id:str=None,):
+    node_id = ''
+    new_page = ''
+
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+            if val == 'Back':
+                new_page = back_page
+            elif val == 'Next':
+                new_page = next_page
+            elif val == 'Edit':
+                new_page = edit_page
+                node_id = key
+            elif val == 'Remove':
+                new_page = this_page
+                node_id = key
+                eml_node = load_eml(packageid=packageid)
+                remove_child(node_id=node_id)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == UP_ARROW:
+                new_page = this_page
+                node_id = key
+                process_up_button(packageid, node_id)
+            elif val == DOWN_ARROW:
+                new_page = this_page
+                node_id = key
+                process_down_button(packageid, node_id)
+            elif val[0:3] == 'Add':
+                new_page = edit_page
+                node_id = '1'
+            elif val == '[  ]':
+                new_page = this_page
+                node_id = key
+
+    if form.validate_on_submit():  
+        if new_page == edit_page: 
+            url = url_for(f'home.{new_page}', 
+                          packageid=packageid,
+                          dt_element_name=dt_element_name,
+                          dt_node_id=dt_node_id, 
+                          node_id=node_id)
+        elif new_page == this_page: 
+            url = url_for(f'home.{new_page}', 
+                          packageid=packageid, 
+                          dt_element_name=dt_element_name,
+                          dt_node_id=dt_node_id)
+        else:
+            url = url_for(f'home.{new_page}', 
+                          packageid=packageid,
+                          node_id=dt_node_id)
+        return url
+
+
+@home.route('/entity_temporal_coverage_select/<packageid>/<dt_element_name>/<dt_node_id>', 
+            methods=['GET', 'POST'])
+def entity_temporal_coverage_select(packageid=None, dt_element_name:str=None, dt_node_id:str=None):
+    form = TemporalCoverageSelectForm(packageid=packageid)
+    
+    parent_page = 'data_table'
+    if dt_element_name == names.OTHERENTITY:
+        parent_page = 'other_entity'
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = entity_select_post(packageid, form, form_dict, 
+                          'POST', 'entity_temporal_coverage_select',
+                          parent_page, parent_page, 'entity_temporal_coverage',
+                          dt_element_name, dt_node_id)
+        return redirect(url)
+
+    # Process GET
+    tc_list = []
+    title = "Temporal Coverage"
+    entity_name = ''
+    load_eml(packageid=packageid)
+
+    if dt_node_id == '1':
+        pass
+    else:
+        data_table_node = Node.get_node_instance(dt_node_id)
+        if data_table_node:
+            entity_name = entity_name_from_data_table(data_table_node)
+            tc_list = list_temporal_coverages(data_table_node)
+
+    return render_template('temporal_coverage_select.html', 
+                            title=title,
+                            entity_name=entity_name,
+                            tc_list=tc_list, 
+                            form=form)
+
+
+@home.route('/entity_temporal_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
+            methods=['GET', 'POST'])
+def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = TemporalCoverageForm(packageid=packageid)
+    tc_node_id = node_id
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.entity_temporal_coverage_select' # Save or Back sends us back to the list of method steps
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            dt_node = None
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+                add_child(eml_node, dataset_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(dt_element_name)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(dt_element_name, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            coverage_node = dt_node.find_child(names.COVERAGE)
+            if not coverage_node:
+                coverage_node = Node(names.COVERAGE, parent=dt_node)
+                add_child(dt_node, coverage_node)
+
+            tc_node = Node(names.TEMPORALCOVERAGE, parent=coverage_node)
+
+            create_temporal_coverage(
+                tc_node, 
+                form.begin_date.data,
+                form.end_date.data)
+
+            if node_id and len(node_id) != 1:
+                old_tc_node = Node.get_node_instance(node_id)
+
+                if old_tc_node:
+                    coverage_parent_node = old_tc_node.parent
+                    coverage_parent_node.replace_child(old_tc_node, tc_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(coverage_node, tc_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            tc_node_id = tc_node.id
+
+        url = url_for(next_page, 
+                      packageid=packageid, 
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id, 
+                      node_id=tc_node_id)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(dt_element_name)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        coverage_node = dt_node.find_child(names.COVERAGE)
+                        if coverage_node:
+                            tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
+                            if tc_nodes:
+                                for tc_node in tc_nodes:
+                                    if node_id == tc_node.id:
+                                        populate_temporal_coverage_form(form, tc_node)
+                                        break
+    
+    return render_template('temporal_coverage.html', title='Temporal Coverage', form=form, packageid=packageid)
+
+
+@home.route('/entity_taxonomic_coverage_select/<packageid>/<dt_element_name>/<dt_node_id>', 
+            methods=['GET', 'POST'])
+def entity_taxonomic_coverage_select(packageid=None, dt_element_name:str=None, dt_node_id:str=None):
+    form = TaxonomicCoverageSelectForm(packageid=packageid)
+    
+    parent_page = 'data_table'
+    if dt_element_name == names.OTHERENTITY:
+        parent_page = 'other_entity'
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        url = entity_select_post(packageid, form, form_dict, 
+                          'POST', 'entity_taxonomic_coverage_select',
+                          parent_page, parent_page, 'entity_taxonomic_coverage',
+                          dt_element_name, dt_node_id)
+        return redirect(url)
+
+    # Process GET
+    txc_list = []
+    title = "Taxonomic Coverage"
+    entity_name = ''
+    load_eml(packageid=packageid)
+
+    if dt_node_id == '1':
+        pass
+    else:
+        data_table_node = Node.get_node_instance(dt_node_id)
+        if data_table_node:
+            entity_name = entity_name_from_data_table(data_table_node)
+            txc_list = list_taxonomic_coverages(data_table_node)
+
+    return render_template('taxonomic_coverage_select.html', 
+                            title=title,
+                            entity_name=entity_name,
+                            txc_list=txc_list, 
+                            form=form)
+
+
+@home.route('/entity_taxonomic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
+            methods=['GET', 'POST'])
+def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = TaxonomicCoverageForm(packageid=packageid)
+    txc_node_id = node_id
+
+    # Determine POST type
+    if request.method == 'POST':
+        next_page = 'home.entity_taxonomic_coverage_select' # Save or Back sends us back to the list of method steps
+
+        if 'Save Changes' in request.form:
+            submit_type = 'Save Changes'
+        elif 'Back' in request.form:
+            submit_type = 'Back'
+
+    # Process POST
+    if form.validate_on_submit():
+        if submit_type == 'Save Changes':
+            dt_node = None
+            eml_node = load_eml(packageid=packageid)
+
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+                add_child(eml_node, dataset_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(dt_element_name)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(dt_element_name, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            coverage_node = dt_node.find_child(names.COVERAGE)
+            if not coverage_node:
+                coverage_node = Node(names.COVERAGE, parent=dt_node)
+                add_child(dt_node, coverage_node)
+
+            txc_node = Node(names.TAXONOMICCOVERAGE, parent=coverage_node)
+
+            create_taxonomic_coverage(
+                txc_node, 
+                form.general_taxonomic_coverage.data,
+                form.kingdom_value.data,
+                form.kingdom_common_name.data,
+                form.phylum_value.data,
+                form.phylum_common_name.data,
+                form.class_value.data,
+                form.class_common_name.data,
+                form.order_value.data,
+                form.order_common_name.data,
+                form.family_value.data,
+                form.family_common_name.data,
+                form.genus_value.data,
+                form.genus_common_name.data,
+                form.species_value.data,
+                form.species_common_name.data)  
+
+            if node_id and len(node_id) != 1:
+                old_txc_node = Node.get_node_instance(node_id)
+
+                if old_txc_node:
+                    coverage_parent_node = old_txc_node.parent
+                    coverage_parent_node.replace_child(old_txc_node, txc_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(coverage_node, txc_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            txc_node_id = txc_node.id
+
+        url = url_for(next_page, 
+                      packageid=packageid, 
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id, 
+                      node_id=txc_node_id)
+        return redirect(url)
+
+    # Process GET
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(dt_element_name)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        coverage_node = dt_node.find_child(names.COVERAGE)
+                        if coverage_node:
+                            txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
+                            if txc_nodes:
+                                for txc_node in txc_nodes:
+                                    if node_id == txc_node.id:
+                                        populate_temporal_coverage_form(form, txc_node)
+                                        break
+    
+    return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, packageid=packageid)

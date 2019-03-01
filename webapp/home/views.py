@@ -45,6 +45,11 @@ from webapp.home.forms import (
     OtherEntitySelectForm, OtherEntityForm, PublicationPlaceForm
 )
 
+from webapp.home.intellectual_rights import (
+    INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
+)
+
+
 from webapp.home.metapype_client import ( 
     load_eml, list_responsible_parties, save_both_formats, 
     evaluate_node, validate_tree, add_child, remove_child, create_eml, 
@@ -714,6 +719,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                 attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
             else:
                 dt_node = Node(names.DATATABLE, parent=dataset_node)
+                add_child(dataset_node, dt_node)
 
             if not attribute_list_node:
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
@@ -1861,15 +1867,32 @@ def intellectual_rights(packageid=None):
     # Process POST
     form = IntellectualRightsForm(packageid=packageid)
     if form.validate_on_submit():
-        intellectual_rights = form.intellectual_rights.data
+        if form.intellectual_rights_radio.data == 'CC0':
+            intellectual_rights = INTELLECTUAL_RIGHTS_CC0
+        elif form.intellectual_rights_radio.data == 'CCBY':
+            intellectual_rights = INTELLECTUAL_RIGHTS_CC_BY
+        else:
+            intellectual_rights = form.intellectual_rights.data
+
         create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
+
         new_page = 'keyword_select' if (submit_type == 'Back') else 'geographic_coverage_select'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
     # Process GET
     eml_node = load_eml(packageid=packageid)
     intellectual_rights_node = eml_node.find_child(child_name=names.INTELLECTUALRIGHTS)
     if intellectual_rights_node:
-        form.intellectual_rights.data = intellectual_rights_node.content
+        ir_content = intellectual_rights_node.content
+        if ir_content == INTELLECTUAL_RIGHTS_CC0:
+            form.intellectual_rights_radio.data = 'CC0'
+            form.intellectual_rights.data = ''
+        elif ir_content ==  INTELLECTUAL_RIGHTS_CC_BY:
+            form.intellectual_rights_radio.data = 'CCBY'
+            form.intellectual_rights.data = ''
+        else:
+            form.intellectual_rights_radio.data = "Other"
+            form.intellectual_rights.data = intellectual_rights_node.content
     return render_template('intellectual_rights.html', 
                            title='Intellectual Rights', 
                            packageid=packageid, form=form)

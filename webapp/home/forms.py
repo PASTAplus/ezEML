@@ -17,11 +17,15 @@ from flask_wtf import FlaskForm
 
 from wtforms import (
     StringField, PasswordField, BooleanField, SubmitField, SelectField,
-    FloatField, IntegerField, DateField, DateTimeField
+    FloatField, IntegerField, DateField, DateTimeField, RadioField
 )
 
-from wtforms.validators import DataRequired, Email, URL, Optional
+from wtforms.validators import DataRequired, Email, InputRequired, URL, Optional
 from wtforms.widgets import TextArea
+
+from webapp.home.intellectual_rights import (
+    INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
+)
 
 
 class AbstractForm(FlaskForm):
@@ -114,7 +118,12 @@ class GeographicCoverageForm(FlaskForm):
 
 
 class IntellectualRightsForm(FlaskForm):
-    intellectual_rights = StringField('Intellectual Rights', widget=TextArea(), validators=[])
+    intellectual_rights_radio = RadioField('Intellectual Rights', 
+                                choices=[("CC0", INTELLECTUAL_RIGHTS_CC0), 
+                                         ("CCBY", INTELLECTUAL_RIGHTS_CC_BY), 
+                                         ("Other", "Other (Enter text below)")
+                                        ], validators=[InputRequired()])
+    intellectual_rights = StringField('', widget=TextArea(), validators=[])
 
 
 class KeywordSelectForm(FlaskForm):

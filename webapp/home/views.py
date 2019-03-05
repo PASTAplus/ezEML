@@ -32,7 +32,7 @@ from webapp.auth.user_data import (
 
 from webapp.home.forms import ( 
     CreateEMLForm, TitleForm, ResponsiblePartyForm, AbstractForm, 
-    KeywordsForm, KeywordSelectForm, KeywordForm, ResponsiblePartySelectForm, PubDateForm,
+    KeywordSelectForm, KeywordForm, ResponsiblePartySelectForm, PubDateForm,
     GeographicCoverageSelectForm, GeographicCoverageForm,
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
@@ -1799,61 +1799,6 @@ def abstract(packageid=None):
                            packageid=packageid, form=form)
 
 
-@home.route('/keywords/<packageid>', methods=['GET', 'POST'])
-def keywords(packageid=None):
-    # Determine POST type
-    submit_type = None
-    if request.method == 'POST':
-        if 'Back' in request.form:
-            submit_type = 'Back'
-        elif 'Next' in request.form:
-            submit_type = 'Next'
-        elif 'Add' in request.form:
-            submit_type = 'Add'
-        elif 'Remove' in request.form:
-            submit_type = 'Remove'
-
-    form = KeywordsForm(packageid=packageid)
-
-    # Process POST
-    if form.validate_on_submit():
-        new_page = 'keywords'
-        user_keyword = form.keyword.data
-        user_keyword = user_keyword.strip()
-        user_keyword_type = form.keyword_type.data
-
-        if submit_type == 'Add':
-            add_keyword(packageid=packageid, 
-                        keyword=user_keyword, 
-                        keyword_type=user_keyword_type)
-        elif submit_type == 'Remove':
-            remove_keyword(packageid=packageid, keyword=user_keyword)
-        elif submit_type == 'Back':
-            new_page = 'abstract'
-        elif submit_type == 'Next':
-            new_page = 'intellectual_rights'
-
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
-
-    # Process GET
-    eml_node = load_eml(packageid=packageid)
-    keywordset_node = eml_node.find_child(child_name=names.KEYWORDSET)
-    keyword_dict = {}
-    if keywordset_node:
-        for keyword_node in \
-                keywordset_node.find_all_children(child_name=names.KEYWORD):
-            keyword = keyword_node.content
-            if keyword:
-                keyword_type = keyword_node.attribute_value('keywordType')
-                if keyword_type is None:
-                    keyword_type = ''
-                keyword_dict[keyword] = keyword_type
-    return render_template('keywords.html', 
-                            title='Keywords', 
-                            packageid=packageid, form=form, 
-                            keyword_dict=keyword_dict)
-
-
 @home.route('/intellectual_rights/<packageid>', methods=['GET', 'POST'])
 def intellectual_rights(packageid=None):
     # Determine POST type
@@ -1957,6 +1902,14 @@ def geographic_coverage(packageid=None, node_id=None):
             ebc = form.ebc.data
             nbc = form.nbc.data
             sbc = form.sbc.data
+
+            if nbc and sbc and nbc < sbc:
+                flash('North should be greater than or equal to South')
+                return redirect(url_for('home.geographic_coverage', packageid=packageid, node_id=node_id))
+
+            if ebc and wbc and ebc < wbc:
+                flash('East should be greater than or equal to West')
+                return redirect(url_for('home.geographic_coverage', packageid=packageid, node_id=node_id))
 
             gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
 
@@ -3654,6 +3607,14 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
             ebc = form.ebc.data
             nbc = form.nbc.data
             sbc = form.sbc.data
+
+            if nbc and sbc and nbc < sbc:
+                flash('North should be greater than or equal to South')
+                return redirect(url_for('home.entity_geographic_coverage', packageid=packageid, dt_element_name=dt_element_name, dt_node_id=dt_node_id, node_id=node_id))
+
+            if ebc and wbc and ebc < wbc:
+                flash('East should be greater than or equal to West')
+                return redirect(url_for('home.entity_geographic_coverage', packageid=packageid, dt_element_name=dt_element_name, dt_node_id=dt_node_id, node_id=node_id))
 
             gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
 

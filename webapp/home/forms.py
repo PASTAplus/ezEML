@@ -20,8 +20,15 @@ from wtforms import (
     FloatField, IntegerField, DateField, DateTimeField, RadioField
 )
 
-from wtforms.validators import DataRequired, Email, InputRequired, URL, Optional
+from wtforms.validators import (
+    DataRequired, Email, InputRequired, URL, Optional, Regexp
+)
+
 from wtforms.widgets import TextArea
+
+from webapp.home.custom_validators import (
+    valid_length, valid_min_length, valid_latitude, valid_longitude
+)
 
 from webapp.home.intellectual_rights import (
     INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
@@ -29,7 +36,8 @@ from webapp.home.intellectual_rights import (
 
 
 class AbstractForm(FlaskForm):
-    abstract = StringField('Abstract', widget=TextArea(), validators=[])
+    abstract = StringField('Abstract', widget=TextArea(), 
+                           validators=[Optional(), valid_min_length(min=20)])
 
 
 class AccessSelectForm(FlaskForm):
@@ -74,7 +82,8 @@ class CodeDefinitionForm(FlaskForm):
 
 
 class CreateEMLForm(FlaskForm):
-    packageid = StringField('Package ID', validators=[DataRequired()])
+    packageid = StringField('Package ID', 
+                            validators=[DataRequired(), Regexp(r'^[a-z][a-z\-]+\.\d+\.\d+$', message='Invalid package ID value')])
 
 
 class DataTableSelectForm(FlaskForm):
@@ -108,13 +117,14 @@ class GeographicCoverageSelectForm(FlaskForm):
 
 
 class GeographicCoverageForm(FlaskForm):
-    geographic_description = StringField('Geographic Description', widget=TextArea(), validators=[])
+    geographic_description = StringField('Geographic Description', widget=TextArea(), 
+                                         validators=[valid_min_length(min=20)])
     # Declaring these as FloatField forces the user to input a floating point value,
     # preventing the user from leaving the field empty when they leave the form.
-    wbc = FloatField('West Bounding Coordinate', validators=[Optional()])
-    ebc = FloatField('East Bounding Coordinate', validators=[Optional()])
-    nbc = FloatField('North Bounding Coordinate', validators=[Optional()])
-    sbc = FloatField('South Bounding Coordinate', validators=[Optional()])
+    wbc = FloatField('West Bounding Coordinate', validators=[valid_longitude()])
+    ebc = FloatField('East Bounding Coordinate', validators=[valid_longitude()])
+    nbc = FloatField('North Bounding Coordinate', validators=[valid_latitude()])
+    sbc = FloatField('South Bounding Coordinate', validators=[valid_latitude()])
 
 
 class IntellectualRightsForm(FlaskForm):
@@ -140,16 +150,6 @@ class KeywordForm(FlaskForm):
                                         ("temporal", "temporal"), 
                                         ("theme", "theme")])
 
-
-class KeywordsForm(FlaskForm):
-    keyword = StringField('Keyword', validators=[])
-    keyword_type = SelectField('Keyword Type (Optional)', 
-                               choices=[("", ""), 
-                                        ("place", "place"), 
-                                        ("stratum", "stratum"), 
-                                        ("taxonomic", "taxonomic"), 
-                                        ("temporal", "temporal"), 
-                                        ("theme", "theme")])
 
 class MscaleNominalOrdinalForm(FlaskForm):
     mscale = SelectField("Choose nominal (e.g. 'Female', 'Male') or ordinal (e.g. 'low', 'medium', 'high')", 
@@ -230,7 +230,8 @@ class ProjectForm(FlaskForm):
 
 
 class PubDateForm(FlaskForm):
-    pubdate = StringField('Publication Date', validators=[])
+    pubdate = StringField('Publication Date', 
+                          validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
 
 
 class PublicationPlaceForm(FlaskForm):
@@ -291,8 +292,8 @@ class TemporalCoverageSelectForm(FlaskForm):
 
 
 class TemporalCoverageForm(FlaskForm):
-    begin_date = StringField('Begin Date', validators=[])
-    end_date = StringField('End Date', validators=[])
+    begin_date = StringField('Begin Date', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
+    end_date = StringField('End Date', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
 
 
 class TitleForm(FlaskForm):

@@ -42,7 +42,7 @@ def valid_latitude(min:float=-90.0, max:float=90.0):
     message = f'Latitude must be between {min} and {max}'
 
     def _valid_latitude(form, field):
-        if field.data:
+        if field.data is not None:
             l = float(field.data)
             if l < min or l > max:
                 raise ValidationError(message)
@@ -57,7 +57,7 @@ def valid_longitude(min:float=-180.0, max:float=180.0):
     message = f'Longitude must be between {min} and {max}'
 
     def _valid_longitude(form, field):
-        if field.data:
+        if field.data is not None:
             l = float(field.data)
             if l < min or l > max:
                 raise ValidationError(message)

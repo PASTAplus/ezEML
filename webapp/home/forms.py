@@ -297,4 +297,4 @@ class TemporalCoverageForm(FlaskForm):
 
 
 class TitleForm(FlaskForm):
-    title = StringField('Title', validators=[])
+    title = StringField('Title', validators=[valid_min_length(min=20)])

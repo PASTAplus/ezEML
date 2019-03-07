@@ -16,6 +16,7 @@ import daiquiri
 import html
 import json
 import os.path
+from datetime import date
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, 
@@ -1885,6 +1886,8 @@ def geographic_coverage(packageid=None, node_id=None):
 
     # Process POST
     if form.validate_on_submit():
+        url = url_for('home.geographic_coverage_select', packageid=packageid)
+
         if submit_type == 'Save Changes':
             eml_node = load_eml(packageid=packageid)
 
@@ -1902,14 +1905,6 @@ def geographic_coverage(packageid=None, node_id=None):
             ebc = form.ebc.data
             nbc = form.nbc.data
             sbc = form.sbc.data
-
-            if nbc and sbc and nbc < sbc:
-                flash('North should be greater than or equal to South')
-                return redirect(url_for('home.geographic_coverage', packageid=packageid, node_id=node_id))
-
-            if ebc and wbc and ebc < wbc:
-                flash('East should be greater than or equal to West')
-                return redirect(url_for('home.geographic_coverage', packageid=packageid, node_id=node_id))
 
             gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
 
@@ -1929,9 +1924,17 @@ def geographic_coverage(packageid=None, node_id=None):
             else:
                 add_child(coverage_node, gc_node)
 
+            if nbc and sbc and nbc < sbc:
+                flash('North should be greater than or equal to South')
+                url = (url_for('home.geographic_coverage', packageid=packageid, node_id=gc_node.id))
+
+            if ebc and wbc and ebc < wbc:
+                flash('East should be greater than or equal to West')
+                url = (url_for('home.geographic_coverage', packageid=packageid, node_id=gc_node.id))
+
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        return redirect(url_for('home.geographic_coverage_select', packageid=packageid))
+        return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -2040,6 +2043,8 @@ def temporal_coverage_select(packageid=None):
 
 @home.route('/temporal_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
 def temporal_coverage(packageid=None, node_id=None):
+    tc_node_id = node_id
+
     # Determine POST type
     if request.method == 'POST':
         if 'Save Changes' in request.form:
@@ -2052,6 +2057,8 @@ def temporal_coverage(packageid=None, node_id=None):
 
     # Process POST
     if form.validate_on_submit():
+        url = url_for('home.temporal_coverage_select', packageid=packageid)
+
         if submit_type == 'Save Changes':
             eml_node = load_eml(packageid=packageid)
 
@@ -2066,10 +2073,9 @@ def temporal_coverage(packageid=None, node_id=None):
 
             tc_node = Node(names.TEMPORALCOVERAGE, parent=coverage_node)
 
-            create_temporal_coverage(
-                tc_node, 
-                form.begin_date.data,
-                form.end_date.data)
+            begin_date_str = form.begin_date.data
+            end_date_str = form.end_date.data
+            create_temporal_coverage(tc_node, begin_date_str, end_date_str)
 
             if node_id and len(node_id) != 1:
                 old_tc_node = Node.get_node_instance(node_id)
@@ -2082,9 +2088,16 @@ def temporal_coverage(packageid=None, node_id=None):
             else:
                 add_child(coverage_node, tc_node)
 
+            tc_node_id = tc_node.id
+
+            flash_msg = compare_begin_end_dates(begin_date_str, end_date_str)
+            if flash_msg:
+                flash(flash_msg)
+                url = (url_for('home.temporal_coverage', packageid=packageid, node_id=tc_node_id))
+
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        return redirect(url_for('home.temporal_coverage_select', packageid=packageid))
+        return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -3610,11 +3623,11 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
 
             if nbc and sbc and nbc < sbc:
                 flash('North should be greater than or equal to South')
-                return redirect(url_for('home.entity_geographic_coverage', packageid=packageid, dt_element_name=dt_element_name, dt_node_id=dt_node_id, node_id=node_id))
+                next_page = 'home.entity_geographic_coverage'
 
             if ebc and wbc and ebc < wbc:
                 flash('East should be greater than or equal to West')
-                return redirect(url_for('home.entity_geographic_coverage', packageid=packageid, dt_element_name=dt_element_name, dt_node_id=dt_node_id, node_id=node_id))
+                next_page = 'home.entity_geographic_coverage'
 
             gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
 
@@ -3643,6 +3656,7 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id, 
                       node_id=gc_node_id)
+
         return redirect(url)
 
     # Process GET
@@ -3807,12 +3821,10 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
                 coverage_node = Node(names.COVERAGE, parent=dt_node)
                 add_child(dt_node, coverage_node)
 
+            begin_date_str = form.begin_date.data
+            end_date_str = form.end_date.data
             tc_node = Node(names.TEMPORALCOVERAGE, parent=coverage_node)
-
-            create_temporal_coverage(
-                tc_node, 
-                form.begin_date.data,
-                form.end_date.data)
+            create_temporal_coverage(tc_node, begin_date_str, end_date_str)
 
             if node_id and len(node_id) != 1:
                 old_tc_node = Node.get_node_instance(node_id)
@@ -3826,8 +3838,14 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
             else:
                 add_child(coverage_node, tc_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
             tc_node_id = tc_node.id
+
+            flash_msg = compare_begin_end_dates(begin_date_str, end_date_str)
+            if flash_msg:
+                flash(flash_msg)
+                next_page = 'home.entity_temporal_coverage'
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
 
         url = url_for(next_page, 
                       packageid=packageid, 
@@ -4004,3 +4022,24 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
                                         break
     
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, packageid=packageid)
+
+
+def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
+    begin_date = None
+    end_date = None
+    flash_msg = None
+
+    if len(begin_date_str) == 4:
+        begin_date_str += '-01-01'
+
+    if len(end_date_str) == 4:
+        end_date_str += '-01-01'
+
+    if begin_date_str and end_date_str:
+        begin_date = date.fromisoformat(begin_date_str)
+        end_date = date.fromisoformat(end_date_str)
+
+    if begin_date and end_date and begin_date > end_date:
+        flash_msg = 'Begin date should be less than or equal to end date'
+
+    return flash_msg

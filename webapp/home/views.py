@@ -4042,4 +4042,13 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
     if begin_date and end_date and begin_date > end_date:
         flash_msg = 'Begin date should be less than or equal to end date'
 
+    if end_date:
+        today_date = date.today()
+        if end_date > today_date:
+            msg = "End date should not be greater than today's date"
+            if flash_msg:
+                flash_msg += ";  " + msg
+            else:
+                flash_msg = msg 
+
     return flash_msg

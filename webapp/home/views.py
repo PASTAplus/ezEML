@@ -4035,9 +4035,10 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
     if len(end_date_str) == 4:
         end_date_str += '-01-01'
 
-    if begin_date_str and end_date_str:
-        begin_date = date.fromisoformat(begin_date_str)
-        end_date = date.fromisoformat(end_date_str)
+    # date.fromisoformat() is a Python 3.7 feature
+    #if begin_date_str and end_date_str:
+        #begin_date = date.fromisoformat(begin_date_str)
+        #end_date = date.fromisoformat(end_date_str)
 
     if begin_date and end_date and begin_date > end_date:
         flash_msg = 'Begin date should be less than or equal to end date'

@@ -9,6 +9,7 @@
                 {{ form.csrf_token }}
                 <h5>Please enter the data package title:</h5>
                 {{ wtf.form_field(form.title) }}
+                {{ wtf.form_field(form.md5) }}
                 <br/>
                 <input class="btn btn-primary" name="Evaluate" type="submit" value="Evaluate"/>
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>

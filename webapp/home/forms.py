@@ -13,11 +13,13 @@
     7/20/18
 """
 
+import hashlib
 from flask_wtf import FlaskForm
 
 from wtforms import (
     StringField, PasswordField, BooleanField, SubmitField, SelectField,
-    FloatField, IntegerField, DateField, DateTimeField, RadioField
+    FloatField, IntegerField, DateField, DateTimeField, RadioField,
+    HiddenField
 )
 
 from wtforms.validators import (
@@ -35,9 +37,40 @@ from webapp.home.intellectual_rights import (
 )
 
 
+def concat_str(form):
+    concat_str = ''
+    if form:
+        field_data = form.field_data()
+        for val in field_data:
+            if val:
+                concat_str += str(val)
+
+    print(f"concat_str: {concat_str}")
+    return concat_str
+
+
+def form_md5(form):
+    form_str = concat_str(form)
+    md5 = hashlib.md5(form_str.encode('utf-8')).hexdigest()
+    return md5
+
+
+def is_dirty_form(form):
+    is_dirty = False
+    if form:
+        md5 = form_md5(form)
+        hidden_md5 = form.md5.data 
+        is_dirty = (md5 != hidden_md5)
+    return is_dirty
+
+
 class AbstractForm(FlaskForm):
     abstract = StringField('Abstract', widget=TextArea(), 
                            validators=[Optional(), valid_min_length(min=20)])
+    md5 = HiddenField('')
+
+    def field_data(self)->set:
+        return {self.abstract.data}
 
 
 class AccessSelectForm(FlaskForm):
@@ -46,7 +79,12 @@ class AccessSelectForm(FlaskForm):
 
 class AccessForm(FlaskForm):
     userid = StringField('User ID', validators=[])
-    permission = SelectField('Permission', choices=[("all", "all"), ("changePermission", "changePermission"), ("read", "read"), ("write", "write")])
+    permission = SelectField('Permission', 
+                             choices=[("all", "all"), ("changePermission", "changePermission"), ("read", "read"), ("write", "write")])
+    md5 = HiddenField('')
+
+    def field_data(self)->set:
+        return {self.userid.data, self.permission.data}
 
 
 class AttributeSelectForm(FlaskForm):
@@ -69,6 +107,21 @@ class AttributeForm(FlaskForm):
     code_explanation_2 = StringField('Explanation', validators=[])
     code_3 = StringField('Missing Value Code', validators=[])
     code_explanation_3 = StringField('Explanation', validators=[])
+    md5 = HiddenField('')
+
+    def field_data(self)->set:
+        return {self.attribute_name.data, 
+                self.attribute_label.data,
+                self.attribute_definition.data,
+                self.storage_type.data,
+                self.storage_type_system.data,
+                self.mscale.data,
+                self.code_1.data,
+                self.code_explanation_1.data,
+                self.code_2.data,
+                self.code_explanation_2.data,
+                self.code_3.data,
+                self.code_explanation_3.data}
 
 
 class CodeDefinitionSelectForm(FlaskForm):
@@ -79,6 +132,7 @@ class CodeDefinitionForm(FlaskForm):
     code = StringField('Code', validators=[])
     definition = StringField('Definition', validators=[])
     order = IntegerField('Order (Optional)', validators=[Optional()])
+    md5 = HiddenField('')
 
 
 class CreateEMLForm(FlaskForm):
@@ -102,6 +156,7 @@ class DataTableForm(FlaskForm):
     case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
     number_of_records = IntegerField('Number of Records (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
+    md5 = HiddenField('')
 
 
 class DeleteEMLForm(FlaskForm):
@@ -125,6 +180,7 @@ class GeographicCoverageForm(FlaskForm):
     ebc = FloatField('East Bounding Coordinate', validators=[valid_longitude()])
     nbc = FloatField('North Bounding Coordinate', validators=[valid_latitude()])
     sbc = FloatField('South Bounding Coordinate', validators=[valid_latitude()])
+    md5 = HiddenField('')
 
 
 class IntellectualRightsForm(FlaskForm):
@@ -134,6 +190,7 @@ class IntellectualRightsForm(FlaskForm):
                                          ("Other", "Other (Enter text below)")
                                         ], validators=[InputRequired()])
     intellectual_rights = StringField('', widget=TextArea(), validators=[])
+    md5 = HiddenField('')
 
 
 class KeywordSelectForm(FlaskForm):
@@ -149,6 +206,7 @@ class KeywordForm(FlaskForm):
                                         ("taxonomic", "taxonomic"), 
                                         ("temporal", "temporal"), 
                                         ("theme", "theme")])
+    md5 = HiddenField('')
 
 
 class MscaleNominalOrdinalForm(FlaskForm):
@@ -160,6 +218,7 @@ class MscaleNominalOrdinalForm(FlaskForm):
                             choices=[("yes", "Yes, enforce the code values I've documented"), 
                                      ("no", "No, other code values are allowed")
                                     ])
+    md5 = HiddenField('')
 
 
 class MscaleIntervalRatioForm(FlaskForm):
@@ -182,6 +241,7 @@ class MscaleIntervalRatioForm(FlaskForm):
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
     bounds_maximum = FloatField('Bounds Maximum', validators=[Optional()])
     bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
+    md5 = HiddenField('')
     
 
 class MscaleDateTimeForm(FlaskForm):
@@ -191,6 +251,7 @@ class MscaleDateTimeForm(FlaskForm):
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
     bounds_maximum = StringField('Bounds Maximum', validators=[])
     bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
+    md5 = HiddenField('')
     
 
 class MethodStepSelectForm(FlaskForm):
@@ -200,6 +261,7 @@ class MethodStepSelectForm(FlaskForm):
 class MethodStepForm(FlaskForm):
     description = StringField('Description', widget=TextArea(), validators=[])
     instrumentation = StringField('Instrumentation', widget=TextArea(), validators=[])
+    md5 = HiddenField('')
 
 
 class OpenEMLDocumentForm(FlaskForm):
@@ -221,21 +283,25 @@ class OtherEntityForm(FlaskForm):
     attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
     field_delimiter = SelectField('Simple Delimited: Field Delimiter', choices=[("comma", "comma"), ("space", "space"), ("tab", "tab")])
     online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
+    md5 = HiddenField('')
 
 
 class ProjectForm(FlaskForm):
     title = StringField('Project Title', validators=[])
     abstract = StringField('Project Abstract (Optional)', widget=TextArea(), validators=[])
     funding = StringField('Project Funding (Optional)', validators=[])
+    md5 = HiddenField('')
 
 
 class PubDateForm(FlaskForm):
     pubdate = StringField('Publication Date', 
                           validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
+    md5 = HiddenField('')
 
 
 class PublicationPlaceForm(FlaskForm):
     pubplace = StringField('Publication Place', validators=[])
+    md5 = HiddenField('')
 
 
 class ResponsiblePartySelectForm(FlaskForm):
@@ -259,6 +325,7 @@ class ResponsiblePartyForm(FlaskForm):
     email = StringField('Email', validators=[Optional(), Email()])
     online_url = StringField('Online URL', validators=[Optional(), URL()])
     role = StringField('Role', validators=[])
+    md5 = HiddenField('')
 
 
 class SaveAsForm(FlaskForm):
@@ -285,6 +352,7 @@ class TaxonomicCoverageForm(FlaskForm):
     genus_common_name = StringField('Common Name', validators=[])
     species_value = StringField('Species', validators=[])
     species_common_name = StringField('Common Name', validators=[])       
+    md5 = HiddenField('')
 
 
 class TemporalCoverageSelectForm(FlaskForm):
@@ -294,7 +362,9 @@ class TemporalCoverageSelectForm(FlaskForm):
 class TemporalCoverageForm(FlaskForm):
     begin_date = StringField('Begin Date', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
     end_date = StringField('End Date', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
+    md5 = HiddenField('')
 
 
 class TitleForm(FlaskForm):
     title = StringField('Title', validators=[valid_min_length(min=20)])
+    md5 = HiddenField('')

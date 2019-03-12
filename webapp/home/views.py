@@ -15,6 +15,7 @@
 import daiquiri
 import html
 import json
+import hashlib
 import os.path
 from datetime import date
 
@@ -43,7 +44,8 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     MethodStepSelectForm, MethodStepForm, ProjectForm,
     AccessSelectForm, AccessForm, IntellectualRightsForm,
-    OtherEntitySelectForm, OtherEntityForm, PublicationPlaceForm
+    OtherEntitySelectForm, OtherEntityForm, PublicationPlaceForm,
+    form_md5, is_dirty_form
 )
 
 from webapp.home.intellectual_rights import (
@@ -680,16 +682,19 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
 
     # Determine POST type
     if request.method == 'POST':
-        next_page = 'home.attribute_select' # Save or Back sends us back to the list of attributes
 
-        if 'Save Changes' in request.form:
+        if is_dirty_form(form):
             submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
+            flash(f"is_dirty_form: True")
         else:
-            submit_type = 'Save Changes'
-            mscale = form.mscale.data
+            submit_type = 'Back'
+            flash(f"is_dirty_form: False")
 
+        if 'Back' in request.form:
+            next_page = 'home.attribute_select' # Back sends us back to the list of attributes
+        else:
+            mscale = form.mscale.data
+            # Go to the appropriate measuement scale page
             if mscale == 'nominal or ordinal':
                 next_page = 'home.mscaleNominalOrdinal'
             elif mscale == 'ratio or interval':
@@ -697,61 +702,58 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             elif mscale == 'dateTime':
                 next_page = 'home.mscaleDateTime'
 
-            #url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            #return redirect(url)
+        if form.validate_on_submit():
+            if submit_type == 'Save Changes':
+                dt_node = None
+                attribute_list_node = None
+                eml_node = load_eml(packageid=packageid)
+                dataset_node = eml_node.find_child(names.DATASET)
+                if not dataset_node:
+                    dataset_node = Node(names.DATASET, parent=eml_node)
+                else:
+                    data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                    if data_table_nodes:
+                        for data_table_node in data_table_nodes:
+                            if data_table_node.id == dt_node_id:
+                                dt_node = data_table_node
+                                break
 
-    # Process POST
-        if submit_type == 'Save Changes':
-            dt_node = None
-            attribute_list_node = None
-            eml_node = load_eml(packageid=packageid)
-            dataset_node = eml_node.find_child(names.DATASET)
-            if not dataset_node:
-                dataset_node = Node(names.DATASET, parent=eml_node)
-            else:
-                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
-                if data_table_nodes:
-                    for data_table_node in data_table_nodes:
-                        if data_table_node.id == dt_node_id:
-                            dt_node = data_table_node
-                            break
+                if dt_node:
+                    attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                else:
+                    dt_node = Node(names.DATATABLE, parent=dataset_node)
+                    add_child(dataset_node, dt_node)
 
-            if dt_node:
-                attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
-            else:
-                dt_node = Node(names.DATATABLE, parent=dataset_node)
-                add_child(dataset_node, dt_node)
+                if not attribute_list_node:
+                    attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
+                    add_child(dt_node, attribute_list_node)
 
-            if not attribute_list_node:
-                attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
-                add_child(dt_node, attribute_list_node)
+                att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
+                attribute_name = form.attribute_name.data
+                attribute_label = form.attribute_label.data
+                attribute_definition = form.attribute_definition.data
+                storage_type = form.storage_type.data
+                storage_type_system = form.storage_type_system.data
 
-            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
-            attribute_name = form.attribute_name.data
-            attribute_label = form.attribute_label.data
-            attribute_definition = form.attribute_definition.data
-            storage_type = form.storage_type.data
-            storage_type_system = form.storage_type_system.data
+                code_dict = {}
 
-            code_dict = {}
+                code_1 = form.code_1.data
+                code_explanation_1 = form.code_explanation_1.data
+                if code_1:
+                    code_dict[code_1] = code_explanation_1
 
-            code_1 = form.code_1.data
-            code_explanation_1 = form.code_explanation_1.data
-            if code_1:
-                code_dict[code_1] = code_explanation_1
+                code_2 = form.code_2.data
+                code_explanation_2 = form.code_explanation_2.data
+                if code_2:
+                    code_dict[code_2] = code_explanation_2
 
-            code_2 = form.code_2.data
-            code_explanation_2 = form.code_explanation_2.data
-            if code_2:
-                code_dict[code_2] = code_explanation_2
-
-            code_3 = form.code_3.data
-            code_explanation_3 = form.code_explanation_3.data
-            if code_3:
-                code_dict[code_3] = code_explanation_3
+                code_3 = form.code_3.data
+                code_explanation_3 = form.code_explanation_3.data
+                if code_3:
+                    code_dict[code_3] = code_explanation_3
 
 
-            create_attribute(att_node, 
+                create_attribute(att_node, 
                              attribute_name,
                              attribute_label,
                              attribute_definition,
@@ -759,26 +761,27 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                              storage_type_system,
                              code_dict)
 
-            if node_id and len(node_id) != 1:
-                old_att_node = Node.get_node_instance(node_id)
-                if old_att_node:
-                    att_parent_node = old_att_node.parent
-                    att_parent_node.replace_child(old_att_node, att_node)
-                    mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
-                    if mscale_node:
-                        add_child(att_node, mscale_node)
+                if node_id and len(node_id) != 1:
+                    old_att_node = Node.get_node_instance(node_id)
+                    if old_att_node:
+                        att_parent_node = old_att_node.parent
+                        att_parent_node.replace_child(old_att_node, att_node)
+                        mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
+                        if mscale_node:
+                            add_child(att_node, mscale_node)
+                    else:
+                        msg = f"No node found in the node store with node id {node_id}"
+                        raise Exception(msg)
                 else:
-                    msg = f"No node found in the node store with node id {node_id}"
-                    raise Exception(msg)
-            else:
-                add_child(attribute_list_node, att_node)
+                    add_child(attribute_list_node, att_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
-            att_node_id = att_node.id
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+                att_node_id = att_node.id
 
-        url = url_for(next_page, packageid=packageid, 
-                      dt_node_id=dt_node_id, node_id=att_node_id)
-        return redirect(url)
+            url = url_for(next_page, packageid=packageid, 
+                        dt_node_id=dt_node_id, node_id=att_node_id)
+
+            return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -854,6 +857,7 @@ def populate_attribute_form(form:AttributeForm, node:Node):
                 form.code_3.data = code
                 form.code_explanation_3.data = code_explanation
             i = i + 1
+    form.md5.data = form_md5(form)
             
 
 @home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
@@ -1775,7 +1779,9 @@ def pubdate(packageid=None):
 
 @home.route('/abstract/<packageid>', methods=['GET', 'POST'])
 def abstract(packageid=None):
-    # Determine POST type
+    form = AbstractForm(packageid=packageid)
+
+    # Process POST
     if request.method == 'POST':
         if 'Back' in request.form:
             submit_type = 'Back'
@@ -1783,18 +1789,23 @@ def abstract(packageid=None):
             submit_type = 'Next'
         else:
             submit_type = None
-    # Process POST
-    form = AbstractForm(packageid=packageid)
-    if form.validate_on_submit():
-        abstract = form.abstract.data
-        create_abstract(packageid=packageid, abstract=abstract)
-        new_page = 'pubdate' if (submit_type == 'Back') else 'keyword_select'
-        return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
+        if form.validate_on_submit():
+            if is_dirty_form(form):
+                abstract = form.abstract.data
+                create_abstract(packageid=packageid, abstract=abstract)
+                flash(f"is_dirty_form: True")
+            else:
+                flash(f"is_dirty_form: False")
+            new_page = 'pubdate' if (submit_type == 'Back') else 'keyword_select'
+            return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
     # Process GET
     eml_node = load_eml(packageid=packageid)
     abstract_node = eml_node.find_child(child_name=names.ABSTRACT)
     if abstract_node:
         form.abstract.data = abstract_node.content
+    form.md5.data = form_md5(form)
     return render_template('abstract.html', 
                            title='Abstract', 
                            packageid=packageid, form=form)
@@ -2733,16 +2744,16 @@ def access(packageid=None, node_id=None):
 
     form = AccessForm(packageid=packageid, node_id=node_id)
 
-    # Determine POST type
+    # Process POST
     if request.method == 'POST':
         next_page = 'home.access_select' # Save or Back sends us back to the list of access rules
 
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
+        if 'Back' in request.form:
+            if is_dirty_form(form):
+                submit_type = 'Save Changes'
+            else:
+                submit_type = 'Back'
 
-    # Process POST
         if submit_type == 'Save Changes':
             userid = form.userid.data
             permission = form.permission.data
@@ -2764,6 +2775,7 @@ def access(packageid=None, node_id=None):
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
+        flash(f"submit_type: {submit_type}")
         url = url_for(next_page, packageid=packageid)
         return redirect(url)
 
@@ -2796,6 +2808,7 @@ def populate_access_rule_form(form:AccessForm, allow_node:Node):
          
         form.userid.data = userid
         form.permission.data = permission
+        form.md5.data = form_md5(form)
 
 
 @home.route('/keyword_select/<packageid>', methods=['GET', 'POST'])

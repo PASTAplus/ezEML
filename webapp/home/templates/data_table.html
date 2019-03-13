@@ -7,6 +7,7 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
                 <h5>Please enter information about the data table object:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_description) }}
@@ -19,7 +20,6 @@
                 {{ wtf.form_field(form.case_sensitive) }}
                 {{ wtf.form_field(form.number_of_records) }}
                 {{ wtf.form_field(form.online_url) }}
-                {{ wtf.form_field(form.md5) }}
                 <br/>
                 <h4>Attributes:</h4>
                 {{ atts }}
@@ -38,8 +38,6 @@
                 <br/><br/><br/>
                 <h4>Data Table Access Rules (Optional):</h4>
                 <input class="btn btn-primary" name="Access" type="submit" value="Edit Access Rules"/>
-                <br/><br/><br/>
-                <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <br/><br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>

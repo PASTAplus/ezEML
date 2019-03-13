@@ -355,38 +355,29 @@ def data_table_select(packageid=None):
 
 @home.route('/data_table/<packageid>/<node_id>', methods=['GET', 'POST'])
 def data_table(packageid=None, node_id=None):
-    dt_node_id = node_id
-    # Determine POST type
-    if request.method == 'POST':
-        next_page = 'home.data_table_select'
-
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Attributes' in request.form:
-            next_page = 'home.attribute_select'
-            submit_type = 'Save Changes'
-        elif 'Access' in request.form:
-            next_page = 'home.entity_access_select'
-            submit_type = 'Save Changes'
-        elif 'Methods' in request.form:
-            next_page = 'home.entity_method_step_select'
-            submit_type = 'Save Changes'
-        elif 'Geographic' in request.form:
-            next_page = 'home.entity_geographic_coverage_select'
-            submit_type = 'Save Changes'
-        elif 'Temporal' in request.form:
-            next_page = 'home.entity_temporal_coverage_select'
-            submit_type = 'Save Changes'
-        elif 'Taxonomic' in request.form:
-            next_page = 'home.entity_taxonomic_coverage_select'
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-        else:
-            submit_type = None
     form = DataTableForm(packageid=packageid)
+    dt_node_id = node_id
 
     # Process POST
+    if request.method == 'POST':
+        next_page = 'home.data_table_select'
+        submit_type = None
+        if is_dirty_form(form):
+            submit_type = 'Save Changes'
+
+        if 'Attributes' in request.form:
+            next_page = 'home.attribute_select'
+        elif 'Access' in request.form:
+            next_page = 'home.entity_access_select'
+        elif 'Methods' in request.form:
+            next_page = 'home.entity_method_step_select'
+        elif 'Geographic' in request.form:
+            next_page = 'home.entity_geographic_coverage_select'
+        elif 'Temporal' in request.form:
+            next_page = 'home.entity_temporal_coverage_select'
+        elif 'Taxonomic' in request.form:
+            next_page = 'home.entity_taxonomic_coverage_select'
+ 
     if form.validate_on_submit():
         eml_node = load_eml(packageid=packageid)
         
@@ -577,6 +568,8 @@ def populate_data_table_form(form:DataTableForm, node:Node):
     number_of_records_node = node.find_child(names.NUMBEROFRECORDS)
     if number_of_records_node:
         form.number_of_records.data = number_of_records_node.content
+
+    form.md5.data = form_md5(form)
 
 
 # <dt_node_id> identifies the dataTable node that this attribute
@@ -1329,54 +1322,60 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, node_id=N
         attribute_name = attribute_name_from_attribute(att_node)
     form = CodeDefinitionForm(packageid=packageid, node_id=node_id, attribute_name=attribute_name)
 
-    # Determine POST type
-    if request.method == 'POST':
-        next_page = 'home.code_definition_select' # Save or Back sends us back to the list of attributes
-
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-
     # Process POST
-        if submit_type == 'Save Changes':
-            if att_node:
-                enumerated_domain_node = enumerated_domain_from_attribute(att_node)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            next_page = 'home.code_definition_select' # Save or Back sends us back to the list of attributes
 
-                if not enumerated_domain_node:
-                    mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
-                    add_child(att_node, mscale_node)
-                    nominal_node = Node(names.NOMINAL, parent=mscale_node)
-                    add_child(mscale_node, nominal_node)
-                    non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
-                    add_child(nominal_node, non_numeric_domain_node)
-                    enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
-                    enumerated_domain_node.add_attribute('enforced', 'yes')  # 'yes' is default value
-                    add_child(non_numeric_domain_node, enumerated_domain_node)
-
-                code = form.code.data
-                definition = form.definition.data
-                order = form.order.data
-                code_definition_node = Node(names.CODEDEFINITION, parent=enumerated_domain_node)
-                create_code_definition(code_definition_node, code, definition, order)
-
-                if node_id and len(node_id) != 1:
-                    old_code_definition_node = Node.get_node_instance(node_id)
-
-                    if old_code_definition_node:
-                        code_definition_parent_node = old_code_definition_node.parent
-                        code_definition_parent_node.replace_child(old_code_definition_node, 
-                                                                    code_definition_node)
-                    else:
-                        msg = f"No codeDefinition node found in the node store with node id {node_id}"
-                        raise Exception(msg)
+            if 'Back' in request.form:
+                if is_dirty_form(form):
+                    submit_type = 'Save Changes'
                 else:
-                    add_child(enumerated_domain_node, code_definition_node)
+                    submit_type = 'Back'
+                flash(f'submit_type: {submit_type}')
 
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+            if submit_type == 'Save Changes':
+                if att_node:
+                    enumerated_domain_node = enumerated_domain_from_attribute(att_node)
 
-        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
-        return redirect(url)
+                    if not enumerated_domain_node:
+                        mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
+                        add_child(att_node, mscale_node)
+                        nominal_node = Node(names.NOMINAL, parent=mscale_node)
+                        add_child(mscale_node, nominal_node)
+                        non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, 
+                                                       parent=nominal_node)
+                        add_child(nominal_node, non_numeric_domain_node)
+                        enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, 
+                                                      parent=non_numeric_domain_node)
+                        enumerated_domain_node.add_attribute('enforced', 'yes')  # 'yes' is default value
+                        add_child(non_numeric_domain_node, enumerated_domain_node)
+
+                    code = form.code.data
+                    definition = form.definition.data
+                    order = form.order.data
+                    code_definition_node = Node(names.CODEDEFINITION, 
+                                                parent=enumerated_domain_node)
+                    create_code_definition(code_definition_node, code, definition, order)
+
+                    if node_id and len(node_id) != 1:
+                        old_code_definition_node = Node.get_node_instance(node_id)
+
+                        if old_code_definition_node:
+                            code_definition_parent_node = old_code_definition_node.parent
+                            code_definition_parent_node.replace_child(old_code_definition_node, 
+                                                                    code_definition_node)
+                        else:
+                            msg = f"No codeDefinition node found in the node store with node id {node_id}"
+                            raise Exception(msg)
+                    else:
+                        add_child(enumerated_domain_node, code_definition_node)
+
+                    save_both_formats(packageid=packageid, eml_node=eml_node)
+
+            url = url_for(next_page, packageid=packageid, 
+                          dt_node_id=dt_node_id, node_id=att_node_id)
+            return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -1410,6 +1409,8 @@ def populate_code_definition_form(form:CodeDefinitionForm, cd_node:Node):
         form.definition.data = definition
         if order:
             form.order.data = order
+
+    form.md5.data = form_md5(form)
 
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])
@@ -1813,27 +1814,25 @@ def abstract(packageid=None):
 
 @home.route('/intellectual_rights/<packageid>', methods=['GET', 'POST'])
 def intellectual_rights(packageid=None):
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Back' in request.form:
-            submit_type = 'Back'
-        elif 'Next' in request.form:
-            submit_type = 'Next'
-        else:
-            submit_type = None
-    # Process POST
     form = IntellectualRightsForm(packageid=packageid)
-    if form.validate_on_submit():
-        if form.intellectual_rights_radio.data == 'CC0':
-            intellectual_rights = INTELLECTUAL_RIGHTS_CC0
-        elif form.intellectual_rights_radio.data == 'CCBY':
-            intellectual_rights = INTELLECTUAL_RIGHTS_CC_BY
-        else:
-            intellectual_rights = form.intellectual_rights.data
 
-        create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
+        submit_type = None
+        if is_dirty_form(form):
+            submit_type = 'Save Changes'
 
-        new_page = 'keyword_select' if (submit_type == 'Back') else 'geographic_coverage_select'
+        if submit_type == 'Save Changes':
+            if form.intellectual_rights_radio.data == 'CC0':
+                intellectual_rights = INTELLECTUAL_RIGHTS_CC0
+            elif form.intellectual_rights_radio.data == 'CCBY':
+                intellectual_rights = INTELLECTUAL_RIGHTS_CC_BY
+            else:
+                intellectual_rights = form.intellectual_rights.data
+
+            create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
+
+        new_page = 'keyword_select' if ('Back' in request.form) else 'geographic_coverage_select'
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
     # Process GET
@@ -1850,6 +1849,9 @@ def intellectual_rights(packageid=None):
         else:
             form.intellectual_rights_radio.data = "Other"
             form.intellectual_rights.data = intellectual_rights_node.content
+
+    form.md5.data = form_md5(form)
+
     return render_template('intellectual_rights.html', 
                            title='Intellectual Rights', 
                            packageid=packageid, form=form)
@@ -1885,18 +1887,14 @@ def geographic_coverage_select(packageid=None):
 
 @home.route('/geographic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
 def geographic_coverage(packageid=None, node_id=None):
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-        else:
-            submit_type = None
     form = GeographicCoverageForm(packageid=packageid)
 
     # Process POST
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
+        submit_type = None
+        if is_dirty_form(form):
+            submit_type = 'Save Changes'
+
         url = url_for('home.geographic_coverage_select', packageid=packageid)
 
         if submit_type == 'Save Changes':
@@ -1982,6 +1980,8 @@ def populate_geographic_coverage_form(form:GeographicCoverageForm, node:Node):
     sbc_node = node.find_child(names.SOUTHBOUNDINGCOORDINATE)
     if sbc_node:
         form.sbc.data = sbc_node.content
+
+    form.md5.data = form_md5(form)
     
 
 def select_post(packageid=None, form=None, form_dict=None,
@@ -2461,16 +2461,15 @@ def method_step(packageid=None, node_id=None):
 
     form = MethodStepForm(packageid=packageid, node_id=node_id)
 
-    # Determine POST type
-    if request.method == 'POST':
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
         next_page = 'home.method_step_select' # Save or Back sends us back to the list of method steps
 
-        if 'Save Changes' in request.form:
+        submit_type = None
+        if is_dirty_form(form):
             submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
+        flash(f'submit_type: {submit_type}')
 
-    # Process POST
         if submit_type == 'Save Changes':
             description = form.description.data
             instrumentation = form.instrumentation.data
@@ -2530,6 +2529,7 @@ def populate_method_step_form(form:MethodStepForm, ms_node:Node):
 
         form.description.data = description
         form.instrumentation.data = instrumentation
+    form.md5.data = form_md5(form)
 
 
 @home.route('/project/<packageid>', methods=['GET', 'POST'])
@@ -2748,36 +2748,37 @@ def access(packageid=None, node_id=None):
     if request.method == 'POST':
         next_page = 'home.access_select' # Save or Back sends us back to the list of access rules
 
-        if 'Back' in request.form:
-            if is_dirty_form(form):
-                submit_type = 'Save Changes'
-            else:
-                submit_type = 'Back'
-
-        if submit_type == 'Save Changes':
-            userid = form.userid.data
-            permission = form.permission.data
-            allow_node = Node(names.ALLOW, parent=access_node)
-            create_access_rule(allow_node, userid, permission)
-
-            if node_id and len(node_id) != 1:
-                old_allow_node = Node.get_node_instance(node_id)
-
-                if old_allow_node:
-                    access_parent_node = old_allow_node.parent
-                    access_parent_node.replace_child(old_allow_node, 
-                                                     allow_node)
+        if form.validate_on_submit():
+            if 'Back' in request.form:
+                if is_dirty_form(form):
+                    submit_type = 'Save Changes'
                 else:
-                    msg = f"No 'allow' node found in the node store with node id {node_id}"
-                    raise Exception(msg)
-            else:
-                add_child(access_node, allow_node)
+                    submit_type = 'Back'
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            if submit_type == 'Save Changes':
+                userid = form.userid.data
+                permission = form.permission.data
+                allow_node = Node(names.ALLOW, parent=access_node)
+                create_access_rule(allow_node, userid, permission)
 
-        flash(f"submit_type: {submit_type}")
-        url = url_for(next_page, packageid=packageid)
-        return redirect(url)
+                if node_id and len(node_id) != 1:
+                    old_allow_node = Node.get_node_instance(node_id)
+
+                    if old_allow_node:
+                        access_parent_node = old_allow_node.parent
+                        access_parent_node.replace_child(old_allow_node, 
+                                                     allow_node)
+                    else:
+                        msg = f"No 'allow' node found in the node store with node id {node_id}"
+                        raise Exception(msg)
+                else:
+                    add_child(access_node, allow_node)
+
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+
+            flash(f"submit_type: {submit_type}")
+            url = url_for(next_page, packageid=packageid)
+            return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -2914,16 +2915,15 @@ def keyword(packageid=None, node_id=None):
 
     form = KeywordForm(packageid=packageid, node_id=node_id)
 
-    # Determine POST type
-    if request.method == 'POST':
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
         next_page = 'home.keyword_select' # Save or Back sends us back to the list of keywords
 
-        if 'Save Changes' in request.form:
+        submit_type = None
+        if is_dirty_form(form):
             submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
+        flash(f'submit_type: {submit_type}')
 
-    # Process POST
         if submit_type == 'Save Changes':
             keyword = form.keyword.data
             keyword_type = form.keyword_type.data
@@ -2973,6 +2973,7 @@ def populate_keyword_form(form:KeywordForm, kw_node:Node):
 
     form.keyword.data = keyword
     form.keyword_type.data = keyword_type
+    form.md5.data = form_md5(form)
 
 
 @home.route('/other_entity_select/<packageid>', methods=['GET', 'POST'])

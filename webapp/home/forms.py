@@ -134,6 +134,9 @@ class CodeDefinitionForm(FlaskForm):
     order = IntegerField('Order (Optional)', validators=[Optional()])
     md5 = HiddenField('')
 
+    def field_data(self)->set:
+        return {self.code.data, self.definition.data, self.order.data}
+
 
 class CreateEMLForm(FlaskForm):
     packageid = StringField('Package ID', 
@@ -157,6 +160,19 @@ class DataTableForm(FlaskForm):
     number_of_records = IntegerField('Number of Records (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
     md5 = HiddenField('')
+
+    def field_data(self)->set:
+        return {self.entity_name.data, 
+                self.entity_description.data, 
+                self.object_name.data, 
+                self.size.data, 
+                self.num_header_lines.data, 
+                self.record_delimiter.data, 
+                self.attribute_orientation.data, 
+                self.field_delimiter.data, 
+                self.case_sensitive.data, 
+                self.number_of_records.data, 
+                self.online_url.data}
 
 
 class DeleteEMLForm(FlaskForm):
@@ -182,6 +198,13 @@ class GeographicCoverageForm(FlaskForm):
     sbc = FloatField('South Bounding Coordinate', validators=[valid_latitude()])
     md5 = HiddenField('')
 
+    def field_data(self)->set:
+        return {self.geographic_description.data,
+                self.wbc.data, 
+                self.ebc.data, 
+                self.nbc.data, 
+                self.sbc.data}
+
 
 class IntellectualRightsForm(FlaskForm):
     intellectual_rights_radio = RadioField('Intellectual Rights', 
@@ -191,6 +214,10 @@ class IntellectualRightsForm(FlaskForm):
                                         ], validators=[InputRequired()])
     intellectual_rights = StringField('', widget=TextArea(), validators=[])
     md5 = HiddenField('')
+
+    def field_data(self)->set:
+        return {self.intellectual_rights_radio.data,
+                self.intellectual_rights.data}
 
 
 class KeywordSelectForm(FlaskForm):
@@ -207,6 +234,10 @@ class KeywordForm(FlaskForm):
                                         ("temporal", "temporal"), 
                                         ("theme", "theme")])
     md5 = HiddenField('')
+ 
+    def field_data(self)->set:
+        return {self.keyword.data,
+                self.keyword_type.data}
 
 
 class MscaleNominalOrdinalForm(FlaskForm):
@@ -262,6 +293,10 @@ class MethodStepForm(FlaskForm):
     description = StringField('Description', widget=TextArea(), validators=[])
     instrumentation = StringField('Instrumentation', widget=TextArea(), validators=[])
     md5 = HiddenField('')
+ 
+    def field_data(self)->set:
+        return {self.description.data,
+                self.instrumentation.data}
 
 
 class OpenEMLDocumentForm(FlaskForm):

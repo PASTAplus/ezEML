@@ -7,11 +7,10 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
                 <h5>Please enter the method step description and (optionally) instrumentation below:</h5>
                 {{ wtf.form_field(form.description) }}
                 {{ wtf.form_field(form.instrumentation) }}
-                {{ wtf.form_field(form.md5) }}
-                <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
             </form>

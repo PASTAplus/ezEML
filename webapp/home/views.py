@@ -857,24 +857,18 @@ def populate_attribute_form(form:AttributeForm, node:Node):
 def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
     form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
 
-    # Determine POST type
-    if request.method == 'POST':
-        next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
-
-        if 'Edit' in request.form:
-            # Edit codes and definitions
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
+        next_page = 'home.attribute' # Back sends us back to the list of attributes
+        if 'Edit' in request.form:   # Edit codes and definitions
             next_page = 'home.code_definition_select'
-            submit_type = 'Edit'
-        elif 'Save Changes' in request.form:
+
+        submit_type = None
+        if is_dirty_form(form):
             submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
+        flash(f'submit_type: {submit_type}')
 
-        if submit_type == 'Edit':
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
-
-        elif submit_type == 'Save Changes':
+        if submit_type == 'Save Changes':
             eml_node = load_eml(packageid=packageid)
             att_node = Node.get_node_instance(node_id)
             mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
@@ -910,12 +904,8 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
                         mscale_node.remove_child(ordinal_node)
             save_both_formats(packageid=packageid, eml_node=eml_node)
  
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
-
-        elif submit_type == 'Back':
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
+        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+        return redirect(url)
 
     # Process GET
     attribute_name = 'Nominal/Ordinal Attribute'
@@ -948,14 +938,14 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
 def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
     form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
 
-    # Determine POST type
-    if request.method == 'POST':
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
         next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
 
-        if 'Save Changes' in request.form:
+        submit_type = None
+        if is_dirty_form(form):
             submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
+        flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             eml_node = load_eml(packageid=packageid)
@@ -989,7 +979,7 @@ def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
             url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
             return redirect(url)
 
-        elif submit_type == 'Back':
+        else:
             url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
             return redirect(url)
 
@@ -1025,14 +1015,14 @@ def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
 def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
     form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
 
-    # Determine POST type
-    if request.method == 'POST':
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
         next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
 
-        if 'Save Changes' in request.form:
+        submit_type = None
+        if is_dirty_form(form):
             submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
+        flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             eml_node = load_eml(packageid=packageid)
@@ -1058,7 +1048,7 @@ def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
             url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
             return redirect(url)
 
-        elif submit_type == 'Back':
+        else:
             url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
             return redirect(url)
 
@@ -1109,6 +1099,7 @@ def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
                     form.enforced.data = 'no'
                 else:
                     form.enforced.data = 'yes'
+    form.md5.data = form_md5(form)
     
 
 def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
@@ -1168,6 +1159,7 @@ def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
                                 form.bounds_maximum_exclusive.data = False
                         else:
                             form.bounds_maximum_exclusive.data = False
+    form.md5.data = form_md5(form)
 
 
 def populate_datetime(form:MscaleDateTimeForm, att_node):
@@ -1211,6 +1203,7 @@ def populate_datetime(form:MscaleDateTimeForm, att_node):
                                 form.bounds_maximum_exclusive.data = False
                         else:
                             form.bounds_maximum_exclusive.data = False
+    form.md5.data = form_md5(form)
 
 
 # <node_id> identifies the attribute node that this code definition
@@ -1443,23 +1436,32 @@ def title(packageid=None):
 
 @home.route('/publication_place/<packageid>', methods=['GET', 'POST'])
 def publication_place(packageid=None):
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Next' in request.form:
-            submit_type = 'Next'
-        else:
-            submit_type = None
     form = PublicationPlaceForm()
+
     # Process POST
-    if form.validate_on_submit():
-        pubplace_node = create_pubplace(pubplace=form.pubplace.data, packageid=packageid)
-        new_page = 'method_step_select' if (submit_type == 'Next') else 'publisher'
+    if request.method == 'POST' and form.validate_on_submit():
+        if 'Next' in request.form:
+            new_page = 'method_step_select'
+        else:
+            new_page = 'publisher'
+
+        save = False
+        if is_dirty_form(form):
+            save = True
+        flash(f'save: {save}')
+
+        if save:
+            pubplace = form.pubplace.data
+            pubplace_node = create_pubplace(pubplace=pubplace, packageid=packageid)
+        
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
     # Process GET
     eml_node = load_eml(packageid=packageid)
     pubplace_node = eml_node.find_child(child_name='pubPlace')
     if pubplace_node:
         form.pubplace.data = pubplace_node.content
+    form.md5.data = form_md5(form)
     return render_template('publication_place.html', title='Publication Place', form=form)
 
 
@@ -1753,26 +1755,33 @@ def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):
 
 @home.route('/pubdate/<packageid>', methods=['GET', 'POST'])
 def pubdate(packageid=None):
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Back' in request.form:
-            submit_type = 'Back'
-        elif 'Next' in request.form:
-            submit_type = 'Next'
-        else:
-            submit_type = None
-    # Process POST
     form = PubDateForm(packageid=packageid)
-    if form.validate_on_submit():
-        pubdate = form.pubdate.data
-        create_pubdate(packageid=packageid, pubdate=pubdate)
-        new_page = 'associated_party_select' if (submit_type == 'Back') else 'abstract'
+
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
+        if 'Back' in request.form:
+            new_page = 'associated_party_select'
+        elif 'Next' in request.form:
+            new_page = 'abstract'
+
+        save = False
+        if is_dirty_form(form):
+            save = True
+        flash(f'save: {save}')
+
+        if save:
+            pubdate = form.pubdate.data
+            create_pubdate(packageid=packageid, pubdate=pubdate)
+        
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
     # Process GET
     eml_node = load_eml(packageid=packageid)
     pubdate_node = eml_node.find_child(child_name=names.PUBDATE)
     if pubdate_node:
         form.pubdate.data = pubdate_node.content
+    form.md5.data = form_md5(form)
+
     return render_template('pubdate.html', 
                            title='Publication Date', 
                            packageid=packageid, form=form)
@@ -2542,28 +2551,27 @@ def project(packageid=None):
             dataset_node = Node(names.DATASET, parent=eml_node)
             add_child(eml_node, dataset_node)
 
-    # Determine POST type
-    if request.method == 'POST':
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
         save = False
+        if is_dirty_form(form):
+            save = True
+        flash(f'save: {save}')
+
         if 'Back' in request.form:
             new_page = 'method_step_select'
         elif 'Next' in request.form:
             new_page = 'data_table_select'
-        elif 'Save Changes' in request.form:
-            new_page = 'project'
-            save = True
         elif 'Edit Project Personnel' in request.form:
             new_page = 'project_personnel_select'
-            save = True
             
-    # Process POST
-    if form.validate_on_submit():
         if save:
             title = form.title.data
             abstract = form.abstract.data
             funding = form.funding.data
             create_project(dataset_node, title, abstract, funding)
             save_both_formats(packageid=packageid, eml_node=eml_node)
+
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
 
     # Process GET
@@ -2615,6 +2623,7 @@ def populate_project_form(form:ProjectForm, project_node:Node):
         form.title.data = title
         form.abstract.data = abstract
         form.funding.data = funding
+    form.md5.data = form_md5(form)
 
 
 @home.route('/project_personnel_select/<packageid>', methods=['GET', 'POST'])
@@ -3001,35 +3010,28 @@ def other_entity_select(packageid=None):
 @home.route('/other_entity/<packageid>/<node_id>', methods=['GET', 'POST'])
 def other_entity(packageid=None, node_id=None):
     dt_node_id = node_id
-    # Determine POST type
-    if request.method == 'POST':
-        next_page = 'home.other_entity_select'
-
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Access' in request.form:
-            next_page = 'home.entity_access_select'
-            submit_type = 'Save Changes'
-        elif 'Methods' in request.form:
-            next_page = 'home.entity_method_step_select'
-            submit_type = 'Save Changes'
-        elif 'Geographic' in request.form:
-            next_page = 'home.entity_geographic_coverage_select'
-            submit_type = 'Save Changes'
-        elif 'Temporal' in request.form:
-            next_page = 'home.entity_temporal_coverage_select'
-            submit_type = 'Save Changes'
-        elif 'Taxonomic' in request.form:
-            next_page = 'home.entity_taxonomic_coverage_select'
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-        else:
-            submit_type = None
     form = OtherEntityForm(packageid=packageid)
 
     # Process POST
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
+        next_page = 'home.other_entity_select'
+
+        submit_type = None
+        if is_dirty_form(form):
+            submit_type = 'Save Changes'
+        flash(f'submit_type: {submit_type}')
+
+        if 'Access' in request.form:
+            next_page = 'home.entity_access_select'
+        elif 'Methods' in request.form:
+            next_page = 'home.entity_method_step_select'
+        elif 'Geographic' in request.form:
+            next_page = 'home.entity_geographic_coverage_select'
+        elif 'Temporal' in request.form:
+            next_page = 'home.entity_temporal_coverage_select'
+        elif 'Taxonomic' in request.form:
+            next_page = 'home.entity_taxonomic_coverage_select'
+
         eml_node = load_eml(packageid=packageid)
         
         if submit_type == 'Save Changes':
@@ -3190,6 +3192,7 @@ def populate_other_entity_form(form:OtherEntityForm, node:Node):
                 url_node = online_node.find_child(names.URL)
                 if url_node:
                     form.online_url.data = url_node.content 
+    form.md5.data = form_md5(form)
 
 
 @home.route('/entity_access_select/<packageid>/<dt_element_name>/<dt_node_id>', 

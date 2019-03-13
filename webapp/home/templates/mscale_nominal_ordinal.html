@@ -7,6 +7,7 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
                 <h4>Please enter measurement scale information about the attribute <strong>{{ attribute_name }}</strong> :</h4>
                 <br/>
                 {{ wtf.form_field(form.mscale) }}
@@ -15,9 +16,7 @@
                 <br/><br/>
                 <h4>Are documented codes the only allowable code values for the domain?</h4>
                 {{ wtf.form_field(form.enforced) }}
-                {{ wtf.form_field(form.md5) }}
                 <br/>
-                <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
             </form>
         </div>

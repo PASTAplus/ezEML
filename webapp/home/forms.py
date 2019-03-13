@@ -69,8 +69,8 @@ class AbstractForm(FlaskForm):
                            validators=[Optional(), valid_min_length(min=20)])
     md5 = HiddenField('')
 
-    def field_data(self)->set:
-        return {self.abstract.data}
+    def field_data(self)->tuple:
+        return (self.abstract.data)
 
 
 class AccessSelectForm(FlaskForm):
@@ -83,8 +83,8 @@ class AccessForm(FlaskForm):
                              choices=[("all", "all"), ("changePermission", "changePermission"), ("read", "read"), ("write", "write")])
     md5 = HiddenField('')
 
-    def field_data(self)->set:
-        return {self.userid.data, self.permission.data}
+    def field_data(self)->tuple:
+        return (self.userid.data, self.permission.data)
 
 
 class AttributeSelectForm(FlaskForm):
@@ -109,8 +109,8 @@ class AttributeForm(FlaskForm):
     code_explanation_3 = StringField('Explanation', validators=[])
     md5 = HiddenField('')
 
-    def field_data(self)->set:
-        return {self.attribute_name.data, 
+    def field_data(self)->tuple:
+        return (self.attribute_name.data, 
                 self.attribute_label.data,
                 self.attribute_definition.data,
                 self.storage_type.data,
@@ -121,7 +121,7 @@ class AttributeForm(FlaskForm):
                 self.code_2.data,
                 self.code_explanation_2.data,
                 self.code_3.data,
-                self.code_explanation_3.data}
+                self.code_explanation_3.data)
 
 
 class CodeDefinitionSelectForm(FlaskForm):
@@ -134,8 +134,8 @@ class CodeDefinitionForm(FlaskForm):
     order = IntegerField('Order (Optional)', validators=[Optional()])
     md5 = HiddenField('')
 
-    def field_data(self)->set:
-        return {self.code.data, self.definition.data, self.order.data}
+    def field_data(self)->tuple:
+        return (self.code.data, self.definition.data, self.order.data)
 
 
 class CreateEMLForm(FlaskForm):
@@ -161,8 +161,8 @@ class DataTableForm(FlaskForm):
     online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
     md5 = HiddenField('')
 
-    def field_data(self)->set:
-        return {self.entity_name.data, 
+    def field_data(self)->tuple:
+        return (self.entity_name.data, 
                 self.entity_description.data, 
                 self.object_name.data, 
                 self.size.data, 
@@ -172,7 +172,7 @@ class DataTableForm(FlaskForm):
                 self.field_delimiter.data, 
                 self.case_sensitive.data, 
                 self.number_of_records.data, 
-                self.online_url.data}
+                self.online_url.data)
 
 
 class DeleteEMLForm(FlaskForm):
@@ -198,12 +198,12 @@ class GeographicCoverageForm(FlaskForm):
     sbc = FloatField('South Bounding Coordinate', validators=[valid_latitude()])
     md5 = HiddenField('')
 
-    def field_data(self)->set:
-        return {self.geographic_description.data,
+    def field_data(self)->tuple:
+        return (self.geographic_description.data,
                 self.wbc.data, 
                 self.ebc.data, 
                 self.nbc.data, 
-                self.sbc.data}
+                self.sbc.data)
 
 
 class IntellectualRightsForm(FlaskForm):
@@ -215,9 +215,9 @@ class IntellectualRightsForm(FlaskForm):
     intellectual_rights = StringField('', widget=TextArea(), validators=[])
     md5 = HiddenField('')
 
-    def field_data(self)->set:
-        return {self.intellectual_rights_radio.data,
-                self.intellectual_rights.data}
+    def field_data(self)->tuple:
+        return (self.intellectual_rights_radio.data,
+                self.intellectual_rights.data)
 
 
 class KeywordSelectForm(FlaskForm):
@@ -235,9 +235,9 @@ class KeywordForm(FlaskForm):
                                         ("theme", "theme")])
     md5 = HiddenField('')
  
-    def field_data(self)->set:
-        return {self.keyword.data,
-                self.keyword_type.data}
+    def field_data(self)->tuple:
+        return (self.keyword.data,
+                self.keyword_type.data)
 
 
 class MscaleNominalOrdinalForm(FlaskForm):
@@ -251,6 +251,10 @@ class MscaleNominalOrdinalForm(FlaskForm):
                                     ])
     md5 = HiddenField('')
 
+    def field_data(self)->tuple:
+        return (self.mscale.data,
+                self.enforced.data)
+    
 
 class MscaleIntervalRatioForm(FlaskForm):
     mscale = SelectField("Choose between ratio (e.g.) or interval (e.g.)", 
@@ -274,6 +278,22 @@ class MscaleIntervalRatioForm(FlaskForm):
     bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
     md5 = HiddenField('')
     
+    def field_data(self)->tuple:
+        # Need special handling for standard unit to avoid 'None' string
+        standard_unit = self.standard_unit.data
+        if standard_unit == 'None':
+            standard_unit = ''
+
+        return (self.mscale.data,
+                standard_unit,
+                self.custom_unit.data,
+                self.precision.data,
+                self.number_type.data,
+                self.bounds_minimum.data,
+                self.bounds_minimum_exclusive.data,
+                self.bounds_maximum.data,
+                self.bounds_maximum_exclusive.data)
+    
 
 class MscaleDateTimeForm(FlaskForm):
     format_string = StringField('Format String', validators=[])
@@ -283,6 +303,14 @@ class MscaleDateTimeForm(FlaskForm):
     bounds_maximum = StringField('Bounds Maximum', validators=[])
     bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
     md5 = HiddenField('')
+ 
+    def field_data(self)->tuple:
+        return (self.format_string.data,
+                self.datetime_precision.data,
+                self.bounds_minimum.data,
+                self.bounds_minimum_exclusive.data,
+                self.bounds_maximum.data,
+                self.bounds_maximum_exclusive.data)
     
 
 class MethodStepSelectForm(FlaskForm):
@@ -294,9 +322,9 @@ class MethodStepForm(FlaskForm):
     instrumentation = StringField('Instrumentation', widget=TextArea(), validators=[])
     md5 = HiddenField('')
  
-    def field_data(self)->set:
-        return {self.description.data,
-                self.instrumentation.data}
+    def field_data(self)->tuple:
+        return (self.description.data,
+                self.instrumentation.data)
 
 
 class OpenEMLDocumentForm(FlaskForm):
@@ -320,6 +348,18 @@ class OtherEntityForm(FlaskForm):
     online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
     md5 = HiddenField('')
 
+    def field_data(self)->tuple:
+        return (self.entity_name.data,
+                self.entity_type.data,
+                self.entity_description.data,
+                self.object_name.data,
+                self.size.data,
+                self.num_header_lines.data,
+                self.record_delimiter.data,
+                self.attribute_orientation.data,
+                self.field_delimiter.data,
+                self.online_url.data)
+
 
 class ProjectForm(FlaskForm):
     title = StringField('Project Title', validators=[])
@@ -327,16 +367,27 @@ class ProjectForm(FlaskForm):
     funding = StringField('Project Funding (Optional)', validators=[])
     md5 = HiddenField('')
 
+    def field_data(self)->tuple:
+        return (self.title.data,
+                self.abstract.data,
+                self.funding.data)
+
 
 class PubDateForm(FlaskForm):
     pubdate = StringField('Publication Date', 
                           validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
     md5 = HiddenField('')
 
+    def field_data(self)->tuple:
+        return (self.pubdate.data)
+
 
 class PublicationPlaceForm(FlaskForm):
     pubplace = StringField('Publication Place', validators=[])
     md5 = HiddenField('')
+
+    def field_data(self)->tuple:
+        return (self.pubplace.data)
 
 
 class ResponsiblePartySelectForm(FlaskForm):

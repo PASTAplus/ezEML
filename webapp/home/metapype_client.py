@@ -830,7 +830,7 @@ def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
             custom_unit_node = Node(names.CUSTOMUNIT, parent=unit_node)
             custom_unit_node.content = custom_unit
             add_child(unit_node, custom_unit_node)
-        else:
+        elif standard_unit:
             standard_unit_node = Node(names.STANDARDUNIT, parent=unit_node)
             standard_unit_node.content = standard_unit
             add_child(unit_node, standard_unit_node)

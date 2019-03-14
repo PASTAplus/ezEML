@@ -1408,29 +1408,30 @@ def populate_code_definition_form(form:CodeDefinitionForm, cd_node:Node):
 
 @home.route('/title/<packageid>', methods=['GET', 'POST'])
 def title(packageid=None):
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Next' in request.form:
-            submit_type = 'Next'
-        elif 'Evaluate' in request.form:
-            submit_type = 'Evaluate'
-        else:
-            submit_type = None
     form = TitleForm()
+
     # Process POST
-    if form.validate_on_submit():
-        title_node = create_title(title=form.title.data, packageid=packageid)
-        if submit_type == 'Evaluate':
-            evaluate_text = evaluate_node(title_node)
-            if evaluate_text:
-                flash(evaluate_text)
-        new_page = 'access_select' if (submit_type == 'Next') else 'title'
+    if request.method == 'POST' and form.validate_on_submit():
+        submit_type = 'Next'
+        new_page = 'access_select'
+
+        save = False
+        if is_dirty_form(form):
+            save = True
+        flash(f'save: {save}')
+
+        if save:
+            title_node = create_title(title=form.title.data, packageid=packageid)
+
         return redirect(url_for(f'home.{new_page}', packageid=packageid))
+
     # Process GET
     eml_node = load_eml(packageid=packageid)
     title_node = eml_node.find_child(child_name='title')
     if title_node:
         form.title.data = title_node.content
+    form.md5.data = form_md5(form)
+
     return render_template('title.html', title='Title', form=form)
 
 
@@ -1506,6 +1507,7 @@ def rp_select_get(packageid=None, form=None, rp_name=None,
 def responsible_party(packageid=None, node_id=None, method=None, 
                       node_name=None, back_page=None, title=None,
                       next_page=None):
+    form = ResponsiblePartyForm(packageid=packageid)
     eml_node = load_eml(packageid=packageid)
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
@@ -1513,7 +1515,6 @@ def responsible_party(packageid=None, node_id=None, method=None,
         add_child(eml_node, dataset_node)
     parent_node = dataset_node
     role = False
-    submit_type = 'Navigate'  # Two of three cases: Back and Next
     new_page = back_page      # Two of three cases: Back and Save Changes
 
     # If this is an associatedParty or a project personnel element, 
@@ -1530,17 +1531,14 @@ def responsible_party(packageid=None, node_id=None, method=None,
             add_child(dataset_node, project_node)
         parent_node = project_node
 
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Next' in request.form:
-            new_page = next_page
-    form = ResponsiblePartyForm(packageid=packageid)
-
     # Process POST
+    save = False
+    if is_dirty_form(form):
+            save = True
+    flash(f'save: {save}')
+
     if form.validate_on_submit():
-        if submit_type == 'Save Changes':
+        if save:
             salutation = form.salutation.data
             gn = form.gn.data
             sn = form.sn.data
@@ -1751,6 +1749,8 @@ def populate_responsible_party_form(form:ResponsiblePartyForm, node:Node):
     role_node = node.find_child(names.ROLE)
     if role_node:
         form.role.data = role_node.content
+
+    form.md5.data = form_md5(form)
 
 
 @home.route('/pubdate/<packageid>', methods=['GET', 'POST'])
@@ -2063,23 +2063,19 @@ def temporal_coverage_select(packageid=None):
 
 @home.route('/temporal_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
 def temporal_coverage(packageid=None, node_id=None):
+    form = TemporalCoverageForm(packageid=packageid)
     tc_node_id = node_id
 
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-        else:
-            submit_type = None
-    form = TemporalCoverageForm(packageid=packageid)
-
     # Process POST
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
+        save = False
+        if is_dirty_form(form):
+            save = True
+        flash(f'save: {save}')
+
         url = url_for('home.temporal_coverage_select', packageid=packageid)
 
-        if submit_type == 'Save Changes':
+        if save:
             eml_node = load_eml(packageid=packageid)
 
             dataset_node = eml_node.find_child(names.DATASET)
@@ -2152,6 +2148,8 @@ def populate_temporal_coverage_form(form:TemporalCoverageForm, node:Node):
         if single_date_time_node:
             calendar_date_node = single_date_time_node.find_child(names.CALENDARDATE)
             form.begin_date.data = calendar_date_node.content
+
+    form.md5.data = form_md5(form)
     
 
 @home.route('/taxonomic_coverage_select/<packageid>', methods=['GET', 'POST'])
@@ -2184,19 +2182,16 @@ def taxonomic_coverage_select(packageid=None):
 
 @home.route('/taxonomic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
 def taxonomic_coverage(packageid=None, node_id=None):
-    # Determine POST type
-    if request.method == 'POST':
-        if 'Save Changes' in request.form:
-            submit_type = 'Save Changes'
-        elif 'Back' in request.form:
-            submit_type = 'Back'
-        else:
-            submit_type = None
     form = TaxonomicCoverageForm(packageid=packageid)
 
     # Process POST
-    if form.validate_on_submit():
-        if submit_type == 'Save Changes':
+    if request.method == 'POST' and form.validate_on_submit():
+        save = False
+        if is_dirty_form(form):
+            save = True
+        flash(f'save: {save}')
+
+        if save:
             eml_node = load_eml(packageid=packageid)
 
             dataset_node = eml_node.find_child(names.DATASET)
@@ -2268,6 +2263,8 @@ def populate_taxonomic_coverage_form(form:TaxonomicCoverageForm, node:Node):
     
     taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
     populate_taxonomic_coverage_form_aux(form, taxonomic_classification_node)
+
+    form.md5.data = form_md5(form)
 
 
 def populate_taxonomic_coverage_form_aux(form:TaxonomicCoverageForm, node:Node=None):

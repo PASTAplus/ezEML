@@ -7,6 +7,7 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
                 <h5>Please document the metadata {{ rp_lower }} in the fields below:</h5>
                 {{ wtf.form_field(form.salutation) }}
                 {{ wtf.form_field(form.gn) }}
@@ -26,9 +27,7 @@
                 {{ wtf.form_field(form.online_url) }}
                 {% if role %}
                 {{ wtf.form_field(form.role) }}
-                {{ wtf.form_field(form.md5) }}
                 {% endif %}
-                <input class="btn btn-primary" name="Save Changes" type="submit" value="Save Changes"/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
                 {% if next_page %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>

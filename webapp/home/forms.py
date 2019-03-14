@@ -413,6 +413,24 @@ class ResponsiblePartyForm(FlaskForm):
     role = StringField('Role', validators=[])
     md5 = HiddenField('')
 
+    def field_data(self)->tuple:
+        return (self.salutation.data,
+                self.gn.data,
+                self.sn.data,
+                self.organization.data,
+                self.position_name.data,
+                self.address_1.data,
+                self.address_2.data,
+                self.city.data,
+                self.state.data,
+                self.postal_code.data,
+                self.country.data,
+                self.phone.data,
+                self.fax.data,
+                self.email.data,
+                self.online_url.data,
+                self.role.data)
+
 
 class SaveAsForm(FlaskForm):
     packageid = StringField('Package ID', validators=[DataRequired()])
@@ -440,6 +458,23 @@ class TaxonomicCoverageForm(FlaskForm):
     species_common_name = StringField('Common Name', validators=[])       
     md5 = HiddenField('')
 
+    def field_data(self)->tuple:
+        return (self.general_taxonomic_coverage.data,
+                self.kingdom_value.data,
+                self.kingdom_common_name.data,
+                self.phylum_value.data,
+                self.phylum_common_name.data,
+                self.class_value.data,
+                self.class_common_name.data,
+                self.order_value.data,
+                self.order_common_name.data,
+                self.family_value.data,
+                self.family_common_name.data,
+                self.genus_value.data,
+                self.genus_common_name.data,
+                self.species_value.data,
+                self.species_common_name.data)
+
 
 class TemporalCoverageSelectForm(FlaskForm):
     pass
@@ -450,7 +485,14 @@ class TemporalCoverageForm(FlaskForm):
     end_date = StringField('End Date', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
     md5 = HiddenField('')
 
+    def field_data(self)->tuple:
+        return (self.begin_date.data,
+                self.end_date.data)
+
 
 class TitleForm(FlaskForm):
     title = StringField('Title', validators=[valid_min_length(min=20)])
     md5 = HiddenField('')
+
+    def field_data(self)->tuple:
+        return (self.title.data)

@@ -674,7 +674,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
     att_node_id = node_id
 
     # Determine POST type
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate_on_submit():
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -683,70 +683,69 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             submit_type = 'Back'
             flash(f"is_dirty_form: False")
 
+        mscale = form.mscale.data
+
+        # Go back to data table or go to the appropriate measuement scale page
         if 'Back' in request.form:
-            next_page = 'home.attribute_select' # Back sends us back to the list of attributes
-        else:
-            mscale = form.mscale.data
-            # Go to the appropriate measuement scale page
-            if mscale == 'nominal or ordinal':
-                next_page = 'home.mscaleNominalOrdinal'
-            elif mscale == 'ratio or interval':
-                next_page = 'home.mscaleIntervalRatio'
-            elif mscale == 'dateTime':
-                next_page = 'home.mscaleDateTime'
+            next_page = 'home.attribute_select'
+        elif mscale == 'nominal or ordinal':
+            next_page = 'home.mscaleNominalOrdinal'
+        elif mscale == 'ratio or interval':
+            next_page = 'home.mscaleIntervalRatio'
+        elif mscale == 'dateTime':
+            next_page = 'home.mscaleDateTime'
 
-        if form.validate_on_submit():
-            if submit_type == 'Save Changes':
-                dt_node = None
-                attribute_list_node = None
-                eml_node = load_eml(packageid=packageid)
-                dataset_node = eml_node.find_child(names.DATASET)
-                if not dataset_node:
-                    dataset_node = Node(names.DATASET, parent=eml_node)
-                else:
-                    data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
-                    if data_table_nodes:
-                        for data_table_node in data_table_nodes:
-                            if data_table_node.id == dt_node_id:
-                                dt_node = data_table_node
-                                break
+        if submit_type == 'Save Changes':
+            dt_node = None
+            attribute_list_node = None
+            eml_node = load_eml(packageid=packageid)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
 
-                if dt_node:
-                    attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
-                else:
-                    dt_node = Node(names.DATATABLE, parent=dataset_node)
-                    add_child(dataset_node, dt_node)
+            if dt_node:
+                attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            else:
+                dt_node = Node(names.DATATABLE, parent=dataset_node)
+                add_child(dataset_node, dt_node)
 
-                if not attribute_list_node:
-                    attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
-                    add_child(dt_node, attribute_list_node)
+            if not attribute_list_node:
+                attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
+                add_child(dt_node, attribute_list_node)
 
-                att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
-                attribute_name = form.attribute_name.data
-                attribute_label = form.attribute_label.data
-                attribute_definition = form.attribute_definition.data
-                storage_type = form.storage_type.data
-                storage_type_system = form.storage_type_system.data
+            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
+            attribute_name = form.attribute_name.data
+            attribute_label = form.attribute_label.data
+            attribute_definition = form.attribute_definition.data
+            storage_type = form.storage_type.data
+            storage_type_system = form.storage_type_system.data
 
-                code_dict = {}
+            code_dict = {}
 
-                code_1 = form.code_1.data
-                code_explanation_1 = form.code_explanation_1.data
-                if code_1:
-                    code_dict[code_1] = code_explanation_1
+            code_1 = form.code_1.data
+            code_explanation_1 = form.code_explanation_1.data
+            if code_1:
+                code_dict[code_1] = code_explanation_1
 
-                code_2 = form.code_2.data
-                code_explanation_2 = form.code_explanation_2.data
-                if code_2:
-                    code_dict[code_2] = code_explanation_2
+            code_2 = form.code_2.data
+            code_explanation_2 = form.code_explanation_2.data
+            if code_2:
+                code_dict[code_2] = code_explanation_2
 
-                code_3 = form.code_3.data
-                code_explanation_3 = form.code_explanation_3.data
-                if code_3:
-                    code_dict[code_3] = code_explanation_3
+            code_3 = form.code_3.data
+            code_explanation_3 = form.code_explanation_3.data
+            if code_3:
+                code_dict[code_3] = code_explanation_3
 
 
-                create_attribute(att_node, 
+            create_attribute(att_node, 
                              attribute_name,
                              attribute_label,
                              attribute_definition,
@@ -754,27 +753,30 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                              storage_type_system,
                              code_dict)
 
-                if node_id and len(node_id) != 1:
-                    old_att_node = Node.get_node_instance(node_id)
-                    if old_att_node:
-                        att_parent_node = old_att_node.parent
-                        att_parent_node.replace_child(old_att_node, att_node)
+            if node_id and len(node_id) != 1:
+                old_att_node = Node.get_node_instance(node_id)
+                if old_att_node:
+                    att_parent_node = old_att_node.parent
+                    att_parent_node.replace_child(old_att_node, att_node)
+
+                    old_mscale = mscale_from_attribute(old_att_node)
+                    if old_mscale == mscale:
                         mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
                         if mscale_node:
                             add_child(att_node, mscale_node)
-                    else:
-                        msg = f"No node found in the node store with node id {node_id}"
-                        raise Exception(msg)
                 else:
-                    add_child(attribute_list_node, att_node)
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(attribute_list_node, att_node)
 
-                save_both_formats(packageid=packageid, eml_node=eml_node)
-                att_node_id = att_node.id
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            att_node_id = att_node.id
 
-            url = url_for(next_page, packageid=packageid, 
-                        dt_node_id=dt_node_id, node_id=att_node_id)
+        url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, node_id=att_node_id)
 
-            return redirect(url)
+        return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -1412,7 +1414,6 @@ def title(packageid=None):
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
-        submit_type = 'Next'
         new_page = 'access_select'
 
         save = False

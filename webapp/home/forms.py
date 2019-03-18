@@ -97,16 +97,13 @@ class AttributeForm(FlaskForm):
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    mscale = SelectField('Measurement Scale', choices=[("nominal or ordinal", "nominal or ordinal"), 
-                                                       ("ratio or interval", "ratio or interval"), 
-                                                       ("dateTime", "dateTime")
-                                                      ])
     code_1 = StringField('Missing Value Code', validators=[])
     code_explanation_1 = StringField('Explanation', validators=[]) 
     code_2 = StringField('Missing Value Code', validators=[])
     code_explanation_2 = StringField('Explanation', validators=[])
     code_3 = StringField('Missing Value Code', validators=[])
     code_explanation_3 = StringField('Explanation', validators=[])
+    mscale = HiddenField('')
     md5 = HiddenField('')
 
     def field_data(self)->tuple:
@@ -115,7 +112,6 @@ class AttributeForm(FlaskForm):
                 self.attribute_definition.data,
                 self.storage_type.data,
                 self.storage_type_system.data,
-                self.mscale.data,
                 self.code_1.data,
                 self.code_explanation_1.data,
                 self.code_2.data,

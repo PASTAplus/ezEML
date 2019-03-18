@@ -71,7 +71,7 @@ from webapp.home.metapype_client import (
     move_up, move_down, UP_ARROW, DOWN_ARROW,
     save_old_to_new, list_access_rules, create_access_rule,
     list_other_entities, create_other_entity, create_pubplace,
-    create_access
+    create_access, non_numeric_domain_from_measurement_scale
 )
 
 from metapype.eml2_1_1 import export
@@ -621,6 +621,7 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                           dt_node_id=None):
     node_id = ''
     new_page = ''
+    mscale_type = 'tbd'
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
@@ -645,8 +646,14 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
-            elif val[0:3] == 'Add':
+            elif val.startswith('Add Attribute'):
                 new_page = edit_page
+                if 'Ratio' in val:
+                    mscale_type = 'ratioInterval'
+                elif 'Nominal' in val:
+                    mscale_type = 'nominalOrdinal'
+                elif 'Datetime' in val:
+                    mscale_type = 'dateTime'
                 node_id = '1'
             elif val == '[  ]':
                 new_page = this_page
@@ -657,7 +664,8 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
                             dt_node_id=dt_node_id, 
-                            node_id=node_id)
+                            node_id=node_id,
+                            mscale_type=mscale_type)
         elif new_page == this_page: 
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
@@ -668,8 +676,8 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                            node_id=dt_node_id)
 
 
-@home.route('/attribute/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def attribute(packageid=None, dt_node_id=None, node_id=None):
+@home.route('/attribute/<packageid>/<dt_node_id>/<node_id>/<mscale_type>', methods=['GET', 'POST'])
+def attribute(packageid=None, dt_node_id=None, node_id=None, mscale_type=None):
     form = AttributeForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
@@ -688,12 +696,19 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
         # Go back to data table or go to the appropriate measuement scale page
         if 'Back' in request.form:
             next_page = 'home.attribute_select'
-        elif mscale == 'nominal or ordinal':
+        elif mscale_type == 'nominalOrdinal':
             next_page = 'home.mscaleNominalOrdinal'
-        elif mscale == 'ratio or interval':
+        elif mscale_type == 'ratioInterval':
             next_page = 'home.mscaleIntervalRatio'
-        elif mscale == 'dateTime':
+        elif mscale_type == 'dateTime':
             next_page = 'home.mscaleDateTime'
+        else:
+            if mscale == 'nominal' or mscale == 'ordinal':
+                next_page = 'home.mscaleNominalOrdinal'
+            elif mscale == 'interval' or mscale == 'ratio':
+                next_page = 'home.mscaleIntervalRatio'
+            elif mscale == 'dateTime':
+                next_page = 'home.mscaleDateTime'
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -710,17 +725,15 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                             dt_node = data_table_node
                             break
 
-            if dt_node:
-                attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
-            else:
+            if not dt_node:
                 dt_node = Node(names.DATATABLE, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
+            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
             if not attribute_list_node:
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
                 add_child(dt_node, attribute_list_node)
 
-            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
             attribute_name = form.attribute_name.data
             attribute_label = form.attribute_label.data
             attribute_definition = form.attribute_definition.data
@@ -744,7 +757,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
             if code_3:
                 code_dict[code_3] = code_explanation_3
 
-
+            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
             create_attribute(att_node, 
                              attribute_name,
                              attribute_label,
@@ -754,7 +767,7 @@ def attribute(packageid=None, dt_node_id=None, node_id=None):
                              code_dict)
 
             if node_id and len(node_id) != 1:
-                old_att_node = Node.get_node_instance(node_id)
+                old_att_node = Node.get_node_instance(att_node_id)
                 if old_att_node:
                     att_parent_node = old_att_node.parent
                     att_parent_node.replace_child(old_att_node, att_node)
@@ -823,12 +836,7 @@ def populate_attribute_form(form:AttributeForm, node:Node):
 
     mscale = mscale_from_attribute(node)
     if mscale:
-        if mscale == 'nominal' or mscale == 'ordinal':
-            form.mscale.data = 'nominal or ordinal'
-        elif mscale == 'interval' or mscale == 'ratio':
-            form.mscale.data = 'ratio or interval'
-        elif mscale == 'dateTime':
-            form.mscale.data = 'dateTime'
+        form.mscale.data = mscale
     
     mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
@@ -858,16 +866,21 @@ def populate_attribute_form(form:AttributeForm, node:Node):
 @home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
 def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
     form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+    att_node_id = node_id
+    mscale = form.mscale.data 
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
         next_page = 'home.attribute' # Back sends us back to the list of attributes
-        if 'Edit' in request.form:   # Edit codes and definitions
-            next_page = 'home.code_definition_select'
 
         submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
+
+        if 'Edit' in request.form:   # Edit codes and definitions
+            next_page = 'home.code_definition_select'
+            submit_type = 'Save Changes'
+
         flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
@@ -875,38 +888,44 @@ def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
             att_node = Node.get_node_instance(node_id)
             mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
             if mscale_node:
-                current_mscale = mscale_from_attribute(att_node)
-                new_mscale = form.mscale.data
-                enforced = form.enforced.data
-                nominal_node = mscale_node.find_child(names.NOMINAL)
-                ordinal_node = mscale_node.find_child(names.ORDINAL)
-                nnd_node = None
-                if nominal_node:
-                    nnd_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
-                elif ordinal_node:
-                    nnd_node = ordinal_node.find_child(names.NONNUMERICDOMAIN)
-                if nnd_node:
-                    enumerated_domain_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
-                    if enumerated_domain_node:
-                        if enforced:
-                            enumerated_domain_node.add_attribute('enforced', enforced)
-                if current_mscale == 'nominal' and new_mscale == 'ordinal':
-                    if nominal_node:
-                        ordinal_node = Node(names.ORDINAL, parent=mscale_node)
-                        add_child(mscale_node, ordinal_node)
-                        if nnd_node:
-                            add_child(ordinal_node, nnd_node)
-                        mscale_node.remove_child(nominal_node)
-                elif current_mscale == 'ordinal' and new_mscale == 'nominal':
-                    if ordinal_node:
-                        nominal_node = Node(names.NOMINAL, parent=mscale_node)
-                        add_child(mscale_node, nominal_node)
-                        if nnd_node:
-                            add_child(nominal_node, nnd_node)
-                        mscale_node.remove_child(ordinal_node)
+                nnd_node = non_numeric_domain_from_measurement_scale(mscale_node)
+                att_node.remove_child(mscale_node)
+            mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
+            add_child(att_node, mscale_node)
+            nominal_ordinal_node = None 
+            if mscale == 'nominal':
+                nominal_ordinal_node = Node(names.NOMINAL, parent=mscale_node)
+            else:
+                nominal_ordinal_node = Node(names.ORDINAL, parent=mscale_node)
+            add_child(mscale_node, nominal_ordinal_node)
+            if nnd_node: # Hook up the existing non-numeric domain node
+                add_child(nominal_ordinal_node, nnd_node)
+            enforced = form.enforced.data
+
+            nnd_node = nominal_ordinal_node.find_child(names.NONNUMERICDOMAIN)
+            if not nnd_node:
+                nnd_node = Node(names.NONNUMERICDOMAIN, parent=nominal_ordinal_node)
+                add_child(nominal_ordinal_node, nnd_node)
+
+            enumerated_domain_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
+            if not enumerated_domain_node:
+                enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=nnd_node)
+                add_child(nnd_node, enumerated_domain_node)
+
+            if enforced:
+                enumerated_domain_node.add_attribute('enforced', enforced)
+
             save_both_formats(packageid=packageid, eml_node=eml_node)
  
-        url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+        if next_page == 'home.attribute':
+            url = url_for(next_page, packageid=packageid, 
+                          dt_node_id=dt_node_id, node_id=node_id, 
+                          mscale_type='nominalOrdinal')
+        else: # home.code_definition_select
+            url = url_for(next_page, packageid=packageid, 
+                          dt_node_id=dt_node_id, att_node_id=att_node_id, 
+                          node_id=nominal_ordinal_node.id, mscale=mscale)
+
         return redirect(url)
 
     # Process GET
@@ -978,12 +997,15 @@ def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
                                   bounds_maximum_exclusive)
             save_both_formats(packageid=packageid, eml_node=eml_node)
  
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
-
+        if next_page == 'home.attribute':
+            url = url_for(next_page, packageid=packageid, 
+                          dt_node_id=dt_node_id, node_id=node_id, 
+                          mscale_type='intervalRatio')
         else:
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
+            url = url_for(next_page, packageid=packageid, 
+                          dt_node_id=dt_node_id, node_id=node_id)
+
+        return redirect(url)
 
     # Process GET
     attribute_name = 'Interval/Ratio Attribute'
@@ -1047,12 +1069,15 @@ def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
                             bounds_maximum, bounds_maximum_exclusive)
             save_both_formats(packageid=packageid, eml_node=eml_node)
  
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
-
+        if next_page == 'home.attribute':
+            url = url_for(next_page, packageid=packageid, 
+                          dt_node_id=dt_node_id, node_id=node_id, 
+                          mscale_type='dateTime')
         else:
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-            return redirect(url)
+            url = url_for(next_page, packageid=packageid, 
+                          dt_node_id=dt_node_id, node_id=node_id)
+
+        return redirect(url)
 
     # Process GET
     attribute_name = 'DateTime Attribute'
@@ -1211,8 +1236,9 @@ def populate_datetime(form:MscaleDateTimeForm, att_node):
 # <node_id> identifies the attribute node that this code definition
 # is a part of (within its measurementScale)
 #
-@home.route('/code_definition_select/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def code_definition_select(packageid=None, dt_node_id=None, node_id=None):
+@home.route('/code_definition_select/<packageid>/<dt_node_id>/<att_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, node_id=None, mscale=None):
+    nom_ord_node_id = node_id
     form = CodeDefinitionSelectForm(packageid=packageid)
     #dt_node_id = request.args.get('dt_node_id')  # alternate way to get the id
 
@@ -1220,16 +1246,19 @@ def code_definition_select(packageid=None, dt_node_id=None, node_id=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = code_definition_select_post(packageid, form, form_dict, 
-                             'POST', 'code_definition_select', 'mscaleNominalOrdinal', 
-                             'mscaleNominalOrdinal', 'code_definition', dt_node_id, node_id)
+        url = code_definition_select_post(packageid=packageid, 
+                                          form=form, 
+                                          form_dict=form_dict, 
+                                          method='POST', 
+                                          this_page='code_definition_select', 
+                                          back_page='mscaleNominalOrdinal', 
+                                          edit_page='code_definition', 
+                                          dt_node_id=dt_node_id, 
+                                          att_node_id=att_node_id, 
+                                          nom_ord_node_id=nom_ord_node_id,
+                                          mscale=mscale)
         return redirect(url)
 
-    # Process GET
-    return code_definition_select_get(packageid=packageid, form=form, att_node_id=node_id)
-
-
-def code_definition_select_get(packageid=None, form=None, att_node_id=None):
     # Process GET
     codes_list = []
     title = 'Code Definitions'
@@ -1247,17 +1276,21 @@ def code_definition_select_get(packageid=None, form=None, att_node_id=None):
 
 def code_definition_select_post(packageid=None, form=None, form_dict=None,
                           method=None, this_page=None, back_page=None, 
-                          next_page=None, edit_page=None, dt_node_id=None,
-                          att_node_id=None):
+                          edit_page=None, dt_node_id=None, att_node_id=None,
+                          nom_ord_node_id=None, mscale=None):
     node_id = ''
     new_page = ''
+
+    if not mscale:
+        att_node = Node.get_node_instance(att_node_id)
+        if att_node:
+            mscale = mscale_from_attribute(att_node)
+
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
             if val == 'Back':
                 new_page = back_page
-            elif val == 'Next':
-                new_page = next_page
             elif val == 'Edit':
                 new_page = edit_page
                 node_id = key
@@ -1283,94 +1316,111 @@ def code_definition_select_post(packageid=None, form=None, form_dict=None,
                 node_id = key
 
     if form.validate_on_submit():  
-        if new_page == edit_page: 
+        if new_page == back_page: # mscaleNominalOrdinal
+            return url_for(f'home.{new_page}', 
+                           packageid=packageid,
+                           dt_node_id=dt_node_id,
+                           node_id=att_node_id)
+
+        elif new_page == this_page: # code_definition_select_post
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
                             dt_node_id=dt_node_id,
                             att_node_id=att_node_id,
-                            node_id=node_id)
-        elif new_page == this_page: 
+                            node_id=node_id,
+                            mscale=mscale)
+        elif new_page == edit_page: # code_definition
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
                             dt_node_id=dt_node_id,
-                            node_id=att_node_id)
-        elif new_page == back_page:
-            att_node = Node.get_node_instance(att_node_id)
-            mscale = mscale_from_attribute(att_node)
-            return url_for(f'home.{new_page}', 
-                           packageid=packageid,
-                           dt_node_id=dt_node_id,
-                           node_id=att_node_id,
-                           mscale=mscale)
-
+                            att_node_id=att_node_id,
+                            nom_ord_node_id=nom_ord_node_id,
+                            node_id=node_id,
+                            mscale=mscale)
 
 # node_id is the id of the codeDefinition node being edited. If the value
 # '1', it means we are adding a new codeDefinition node, otherwise we are
 # editing an existing one.
 #
-@home.route('/code_definition/<packageid>/<dt_node_id>/<att_node_id>/<node_id>', methods=['GET', 'POST'])
-def code_definition(packageid=None, dt_node_id=None, att_node_id=None, node_id=None):
+@home.route('/code_definition/<packageid>/<dt_node_id>/<att_node_id>/<nom_ord_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_node_id=None, node_id=None, mscale=None):
     eml_node = load_eml(packageid=packageid)
     att_node = Node.get_node_instance(att_node_id)
+    cd_node_id = node_id
     attribute_name = 'Attribute Name'
     if att_node:
         attribute_name = attribute_name_from_attribute(att_node)
+        if not mscale:
+            mscale = mscale_from_attribute(att_node)
     form = CodeDefinitionForm(packageid=packageid, node_id=node_id, attribute_name=attribute_name)
 
     # Process POST
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            next_page = 'home.code_definition_select' # Save or Back sends us back to the list of attributes
+    if request.method == 'POST' and form.validate_on_submit():
+        next_page = 'home.code_definition_select' # Save or Back sends us back to the list of attributes
 
-            if 'Back' in request.form:
-                if is_dirty_form(form):
-                    submit_type = 'Save Changes'
-                else:
-                    submit_type = 'Back'
-                flash(f'submit_type: {submit_type}')
+        if 'Back' in request.form:
+            if is_dirty_form(form):
+                submit_type = 'Save Changes'
+            else:
+                submit_type = 'Back'
+            flash(f'submit_type: {submit_type}')
 
-            if submit_type == 'Save Changes':
-                if att_node:
-                    enumerated_domain_node = enumerated_domain_from_attribute(att_node)
+        if submit_type == 'Save Changes':
+            if att_node:
 
-                    if not enumerated_domain_node:
-                        mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
-                        add_child(att_node, mscale_node)
-                        nominal_node = Node(names.NOMINAL, parent=mscale_node)
-                        add_child(mscale_node, nominal_node)
-                        non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, 
-                                                       parent=nominal_node)
-                        add_child(nominal_node, non_numeric_domain_node)
-                        enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, 
-                                                      parent=non_numeric_domain_node)
-                        enumerated_domain_node.add_attribute('enforced', 'yes')  # 'yes' is default value
-                        add_child(non_numeric_domain_node, enumerated_domain_node)
+                measurement_scale_node = att_node.find_child(names.MEASUREMENTSCALE)
+                if not measurement_scale_node:
+                    measurement_scale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
+                    add_child(att_node, measurement_scale_node)
+ 
+                nominal_ordinal_node = measurement_scale_node.find_child(names.NOMINAL)
+                if not nominal_ordinal_node:
+                    nominal_ordinal_node = measurement_scale_node.find_child(names.ORDINAL)
+                    if not nominal_ordinal_node:
+                        if mscale == names.NOMINAL:
+                            nominal_ordinal_node = Node(names.NOMINAL, parent=measurement_scale_node)
+                            add_child(measurement_scale_node, nominal_ordinal_node)
+                        elif mscale == names.ORDINAL:
+                            nominal_ordinal_node = Node(names.ORDINAL, parent=measurement_scale_node)
+                            add_child(measurement_scale_node, nominal_ordinal_node)
 
-                    code = form.code.data
-                    definition = form.definition.data
-                    order = form.order.data
-                    code_definition_node = Node(names.CODEDEFINITION, 
-                                                parent=enumerated_domain_node)
-                    create_code_definition(code_definition_node, code, definition, order)
+                nnd_node = nominal_ordinal_node.find_child(names.NONNUMERICDOMAIN)
+                if not nnd_node:
+                    nnd_node = Node(names.NONNUMERICDOMAIN, parent=nominal_ordinal_node)
+                    add_child(nominal_ordinal_node, nnd_node)
 
-                    if node_id and len(node_id) != 1:
-                        old_code_definition_node = Node.get_node_instance(node_id)
+                ed_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
+                if not ed_node:
+                    ed_node = Node(names.ENUMERATEDDOMAIN, parent=nnd_node)
+                    add_child(nnd_node, ed_node)
+                
+                code = form.code.data
+                definition = form.definition.data
+                order = form.order.data
+                code_definition_node = Node(names.CODEDEFINITION, parent=ed_node)
+                create_code_definition(code_definition_node, code, definition, order)
 
-                        if old_code_definition_node:
-                            code_definition_parent_node = old_code_definition_node.parent
-                            code_definition_parent_node.replace_child(old_code_definition_node, 
-                                                                    code_definition_node)
-                        else:
-                            msg = f"No codeDefinition node found in the node store with node id {node_id}"
-                            raise Exception(msg)
+                if cd_node_id and len(cd_node_id) != 1:
+                    old_code_definition_node = Node.get_node_instance(cd_node_id)
+
+                    if old_code_definition_node:
+                        code_definition_parent_node = old_code_definition_node.parent
+                        code_definition_parent_node.replace_child(old_code_definition_node, 
+                                                                  code_definition_node)
                     else:
-                        add_child(enumerated_domain_node, code_definition_node)
+                        msg = f"No codeDefinition node found in the node store with node id {node_id}"
+                        raise Exception(msg)
+                else:
+                    add_child(ed_node, code_definition_node)
+                    cd_node_id = code_definition_node.id
 
-                    save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
 
-            url = url_for(next_page, packageid=packageid, 
-                          dt_node_id=dt_node_id, node_id=att_node_id)
-            return redirect(url)
+        url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, att_node_id=att_node_id,
+                      nom_ord_node_id=nom_ord_node_id,
+                      node_id=cd_node_id, mscale=mscale)
+        return redirect(url)
 
     # Process GET
     if node_id == '1':

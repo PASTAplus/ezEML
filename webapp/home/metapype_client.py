@@ -192,6 +192,20 @@ def enumerated_domain_from_attribute(att_node:Node=None):
     return enumerated_domain_node
     
 
+def non_numeric_domain_from_measurement_scale(ms_node:Node=None):
+    nnd_node = None
+
+    if ms_node:
+        nominal_or_ordinal_node = ms_node.find_child(names.NOMINAL)
+        if not nominal_or_ordinal_node:
+            nominal_or_ordinal_node = ms_node.find_child(names.ORDINAL)
+        
+        if nominal_or_ordinal_node:
+            nnd_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
+
+    return nnd_node
+    
+
 def mscale_from_attribute(att_node:Node=None):
     mscale = ''
 
@@ -231,15 +245,17 @@ def list_attributes(data_table_node:Node=None):
             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
             ATT_Entry = collections.namedtuple(
                 'ATT_Entry', 
-                ["id", "label", "upval", "downval"],
+                ["id", "label", "mscale", "upval", "downval"],
                  rename=False)
             for i, att_node in enumerate(att_nodes):
                 id = att_node.id
                 label = compose_attribute_label(att_node)
+                mscale = compose_attribute_mscale(att_node)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(att_nodes))
                 att_entry = ATT_Entry(id=id,
                                       label=label,
+                                      mscale=mscale,
                                       upval=upval, 
                                       downval=downval)
                 att_list.append(att_entry)
@@ -254,6 +270,13 @@ def compose_attribute_label(att_node:Node=None):
             attribute_name = attribute_name_node.content 
             label = attribute_name
     return label
+
+
+def compose_attribute_mscale(att_node:Node=None):
+    mscale = ''
+    if att_node:
+        mscale = mscale_from_attribute(att_node)
+    return mscale
 
 
 def list_responsible_parties(eml_node:Node=None, node_name:str=None):

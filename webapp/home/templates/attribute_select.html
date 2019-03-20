@@ -21,15 +21,17 @@
                         <td>{{ att_entry.mscale }}</td>
                         <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="{{ att_entry.upval }}"/></td>
                         <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="{{ att_entry.downval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Edit"/></td>
+                        <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Edit {{ att_entry.mscale }}"/></td>
                         <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="ratioInterval" type="submit" value="Add Attribute - Ratio or Interval"/>
-                <input class="btn btn-primary" name="nominalOrdinal" type="submit" value="Add Attribute - Nominal or Ordinal"/>
-                <input class="btn btn-primary" name="dateTime" type="submit" value="Add Attribute - Datetime"/>
+                <input class="btn btn-primary" name="ratio" type="submit" value="Add Attribute - Ratio"/><br/><br/>
+                <input class="btn btn-primary" name="interval" type="submit" value="Add Attribute - Interval"/><br/><br/>
+                <input class="btn btn-primary" name="nominal" type="submit" value="Add Attribute - Nominal"/><br/><br/>
+                <input class="btn btn-primary" name="ordinal" type="submit" value="Add Attribute - Ordinal"/><br/><br/>
+                <input class="btn btn-primary" name="dateTime" type="submit" value="Add Attribute - Datetime"/><br/><br/><br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
             </form>
         </div>

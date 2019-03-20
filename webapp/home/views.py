@@ -39,13 +39,14 @@ from webapp.home.forms import (
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
     DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
-    MscaleNominalOrdinalForm, MscaleIntervalRatioForm, MscaleDateTimeForm,
     CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     MethodStepSelectForm, MethodStepForm, ProjectForm,
     AccessSelectForm, AccessForm, IntellectualRightsForm,
     OtherEntitySelectForm, OtherEntityForm, PublicationPlaceForm,
-    form_md5, is_dirty_form
+    form_md5, is_dirty_form,
+    AttributeDateTimeForm, AttributeIntervalRatioForm, 
+    AttributeNominalOrdinalForm
 )
 
 from webapp.home.intellectual_rights import (
@@ -67,7 +68,8 @@ from webapp.home.metapype_client import (
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
-    create_interval_ratio, create_datetime,
+    create_datetime_attribute, create_interval_ratio_attribute,
+    create_nominal_ordinal_attribute,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
     save_old_to_new, list_access_rules, create_access_rule,
     list_other_entities, create_other_entity, create_pubplace,
@@ -586,7 +588,7 @@ def attribute_select(packageid=None, dt_node_id=None):
         form_dict = form_value.to_dict(flat=False)
         url = attribute_select_post(packageid, form, form_dict, 
                              'POST', 'attribute_select', 'data_table', 
-                             'data_table', 'attribute', dt_node_id=dt_node_id)
+                             dt_node_id=dt_node_id)
         return redirect(url)
 
     # Process GET
@@ -617,20 +619,31 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
 
 def attribute_select_post(packageid=None, form=None, form_dict=None,
                           method=None, this_page=None, back_page=None, 
-                          next_page=None, edit_page=None,
                           dt_node_id=None):
     node_id = ''
     new_page = ''
-    mscale_type = 'tbd'
+    mscale = ''
+
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
             if val == 'Back':
                 new_page = back_page
-            elif val == 'Next':
-                new_page = next_page
-            elif val == 'Edit':
-                new_page = edit_page
+            elif val.startswith('Edit'):
+                if 'date' in val:
+                    new_page = 'attribute_dateTime'
+                elif 'interval' in val or 'ratio' in val:
+                    new_page = 'attribute_interval_ratio'
+                    if 'interval' in val:
+                        mscale = 'interval'
+                    else:
+                        mscale = 'ratio'
+                elif 'nominal' in val or 'ordinal' in val:
+                    new_page = 'attribute_nominal_ordinal'
+                    if 'nominal' in val:
+                        mscale = 'nominal'
+                    else:
+                        mscale = 'ordinal'
                 node_id = key
             elif val == 'Remove':
                 new_page = this_page
@@ -647,37 +660,45 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 node_id = key
                 process_down_button(packageid, node_id)
             elif val.startswith('Add Attribute'):
-                new_page = edit_page
                 if 'Ratio' in val:
-                    mscale_type = 'ratioInterval'
+                    mscale = 'ratio'
+                    new_page = 'attribute_interval_ratio'
+                elif 'Interval' in val:
+                    mscale = 'interval'
+                    new_page = 'attribute_interval_ratio'
                 elif 'Nominal' in val:
-                    mscale_type = 'nominalOrdinal'
+                    mscale = 'nominal'
+                    new_page = 'attribute_nominal_ordinal'
+                elif 'Ordinal' in val:
+                    mscale = 'ordinal'
+                    new_page = 'attribute_nominal_ordinal'
                 elif 'Datetime' in val:
-                    mscale_type = 'dateTime'
+                    new_page = 'attribute_dateTime'
                 node_id = '1'
             elif val == '[  ]':
                 new_page = this_page
                 node_id = key
 
     if form.validate_on_submit():  
-        if new_page == edit_page: 
+        if new_page == this_page: 
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id)
+        elif new_page == 'attribute_dateTime':
+            return url_for(f'home.{new_page}',
+                            packageid=packageid,
+                            dt_node_id=dt_node_id,
+                            node_id=node_id)
+        else: # other attribute measurement scales need to pass mscale value
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
                             dt_node_id=dt_node_id, 
                             node_id=node_id,
-                            mscale_type=mscale_type)
-        elif new_page == this_page: 
-            return url_for(f'home.{new_page}', 
-                            packageid=packageid, 
-                            dt_node_id=dt_node_id)
-        else:
-            return url_for(f'home.{new_page}', 
-                           packageid=packageid,
-                           node_id=dt_node_id)
+                            mscale=mscale)
 
 
-@home.route('/attribute/<packageid>/<dt_node_id>/<node_id>/<mscale_type>', methods=['GET', 'POST'])
-def attribute(packageid=None, dt_node_id=None, node_id=None, mscale_type=None):
+@home.route('/attribute/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute(packageid=None, dt_node_id=None, node_id=None, mscale:str=None):
     form = AttributeForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
@@ -692,23 +713,16 @@ def attribute(packageid=None, dt_node_id=None, node_id=None, mscale_type=None):
             flash(f"is_dirty_form: False")
 
         mscale = form.mscale.data
-
+    
         # Go back to data table or go to the appropriate measuement scale page
         if 'Back' in request.form:
             next_page = 'home.attribute_select'
-        elif mscale_type == 'nominalOrdinal':
+        elif mscale == 'nominal' or mscale == 'ordinal':
             next_page = 'home.mscaleNominalOrdinal'
-        elif mscale_type == 'ratioInterval':
+        elif mscale == 'interval' or mscale == 'ratio':
             next_page = 'home.mscaleIntervalRatio'
-        elif mscale_type == 'dateTime':
+        elif mscale == 'dateTime':
             next_page = 'home.mscaleDateTime'
-        else:
-            if mscale == 'nominal' or mscale == 'ordinal':
-                next_page = 'home.mscaleNominalOrdinal'
-            elif mscale == 'interval' or mscale == 'ratio':
-                next_page = 'home.mscaleIntervalRatio'
-            elif mscale == 'dateTime':
-                next_page = 'home.mscaleDateTime'
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -764,7 +778,8 @@ def attribute(packageid=None, dt_node_id=None, node_id=None, mscale_type=None):
                              attribute_definition,
                              storage_type,
                              storage_type_system,
-                             code_dict)
+                             code_dict,
+                             mscale)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
@@ -772,11 +787,9 @@ def attribute(packageid=None, dt_node_id=None, node_id=None, mscale_type=None):
                     att_parent_node = old_att_node.parent
                     att_parent_node.replace_child(old_att_node, att_node)
 
-                    old_mscale = mscale_from_attribute(old_att_node)
-                    if old_mscale == mscale:
-                        mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
-                        if mscale_node:
-                            add_child(att_node, mscale_node)
+                    mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
+                    if mscale_node:
+                        add_child(att_node, mscale_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     raise Exception(msg)
@@ -786,12 +799,18 @@ def attribute(packageid=None, dt_node_id=None, node_id=None, mscale_type=None):
             save_both_formats(packageid=packageid, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, packageid=packageid, 
+        if next_page == 'home.attribute_select':
+            url = url_for(next_page, packageid=packageid, 
                       dt_node_id=dt_node_id, node_id=att_node_id)
+        else:
+            url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, node_id=att_node_id,
+                      mscale=mscale)
 
         return redirect(url)
 
     # Process GET
+    form.mscale.data = mscale
     if node_id == '1':
         pass
     else:
@@ -835,6 +854,7 @@ def populate_attribute_form(form:AttributeForm, node:Node):
             form.storage_type_system.data = storage_type_system_att
 
     mscale = mscale_from_attribute(node)
+
     if mscale:
         form.mscale.data = mscale
     
@@ -860,227 +880,123 @@ def populate_attribute_form(form:AttributeForm, node:Node):
                 form.code_3.data = code
                 form.code_explanation_3.data = code_explanation
             i = i + 1
+
     form.md5.data = form_md5(form)
             
 
-@home.route('/mscaleNominalOrdinal/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def mscaleNominalOrdinal(packageid=None, dt_node_id=None, node_id=None):
-    form = MscaleNominalOrdinalForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
+@home.route('/attribute_dateTime/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
+    form = AttributeDateTimeForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
-    mscale = form.mscale.data 
 
-    # Process POST
+    # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
-        next_page = 'home.attribute' # Back sends us back to the list of attributes
 
-        submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-
-        if 'Edit' in request.form:   # Edit codes and definitions
-            next_page = 'home.code_definition_select'
-            submit_type = 'Save Changes'
-
-        flash(f'submit_type: {submit_type}')
-
-        if submit_type == 'Save Changes':
-            eml_node = load_eml(packageid=packageid)
-            att_node = Node.get_node_instance(node_id)
-            mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
-            if mscale_node:
-                nnd_node = non_numeric_domain_from_measurement_scale(mscale_node)
-                att_node.remove_child(mscale_node)
-            mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
-            add_child(att_node, mscale_node)
-            nominal_ordinal_node = None 
-            if mscale == 'nominal':
-                nominal_ordinal_node = Node(names.NOMINAL, parent=mscale_node)
-            else:
-                nominal_ordinal_node = Node(names.ORDINAL, parent=mscale_node)
-            add_child(mscale_node, nominal_ordinal_node)
-            if nnd_node: # Hook up the existing non-numeric domain node
-                add_child(nominal_ordinal_node, nnd_node)
-            enforced = form.enforced.data
-
-            nnd_node = nominal_ordinal_node.find_child(names.NONNUMERICDOMAIN)
-            if not nnd_node:
-                nnd_node = Node(names.NONNUMERICDOMAIN, parent=nominal_ordinal_node)
-                add_child(nominal_ordinal_node, nnd_node)
-
-            enumerated_domain_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
-            if not enumerated_domain_node:
-                enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=nnd_node)
-                add_child(nnd_node, enumerated_domain_node)
-
-            if enforced:
-                enumerated_domain_node.add_attribute('enforced', enforced)
-
-            save_both_formats(packageid=packageid, eml_node=eml_node)
- 
-        if next_page == 'home.attribute':
-            url = url_for(next_page, packageid=packageid, 
-                          dt_node_id=dt_node_id, node_id=node_id, 
-                          mscale_type='nominalOrdinal')
-        else: # home.code_definition_select
-            url = url_for(next_page, packageid=packageid, 
-                          dt_node_id=dt_node_id, att_node_id=att_node_id, 
-                          node_id=nominal_ordinal_node.id, mscale=mscale)
-
-        return redirect(url)
-
-    # Process GET
-    attribute_name = 'Nominal/Ordinal Attribute'
-    if node_id == '1':
-        pass
-    else:
-        eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
-            if dt_nodes:
-                for dt_node in dt_nodes:
-                    if dt_node_id == dt_node.id:
-                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
-                        if attribute_list_node:
-                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
-                            if att_nodes:
-                                for att_node in att_nodes:
-                                    if node_id == att_node.id:
-                                        populate_nominal_ordinal(form, att_node)
-                                        attribute_name = attribute_name_from_attribute(att_node)
-    
-    return render_template('mscale_nominal_ordinal.html', 
-                           title='Measurement Scale', 
-                           form=form,
-                           attribute_name=attribute_name)
-
-
-@home.route('/mscaleIntervalRatio/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def mscaleIntervalRatio(packageid=None, dt_node_id=None, node_id=None):
-    form = MscaleIntervalRatioForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-
-    # Process POST
-    if request.method == 'POST' and form.validate_on_submit():
-        next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
-
-        submit_type = None
-        if is_dirty_form(form):
-            submit_type = 'Save Changes'
-        flash(f'submit_type: {submit_type}')
-
-        if submit_type == 'Save Changes':
-            eml_node = load_eml(packageid=packageid)
-            att_node = Node.get_node_instance(node_id)
-            mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
-            if mscale_node:
-                att_node.remove_child(mscale_node)
-            mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
-            add_child(att_node, mscale_node)
-            mscale = form.mscale.data
-            interval_ratio_node = None
-            if mscale == 'interval':
-                interval_ratio_node = Node(names.INTERVAL, parent=mscale_node)
-            else:
-                interval_ratio_node = Node(names.RATIO, parent=mscale_node)
-            add_child(mscale_node, interval_ratio_node)
-            standard_unit = form.standard_unit.data
-            cusmtom_unit = form.custom_unit.data
-            precision = form.precision.data
-            number_type = form.number_type.data
-            bounds_minimum = form.bounds_minimum.data
-            bounds_minimum_exclusive = form.bounds_minimum_exclusive.data
-            bounds_maximum = form.bounds_maximum.data
-            bounds_maximum_exclusive = form.bounds_maximum_exclusive.data
-            create_interval_ratio(interval_ratio_node, standard_unit, cusmtom_unit, 
-                                  precision, number_type, bounds_minimum,
-                                  bounds_minimum_exclusive, bounds_maximum,
-                                  bounds_maximum_exclusive)
-            save_both_formats(packageid=packageid, eml_node=eml_node)
- 
-        if next_page == 'home.attribute':
-            url = url_for(next_page, packageid=packageid, 
-                          dt_node_id=dt_node_id, node_id=node_id, 
-                          mscale_type='intervalRatio')
+            flash(f"is_dirty_form: True")
         else:
-            url = url_for(next_page, packageid=packageid, 
-                          dt_node_id=dt_node_id, node_id=node_id)
+            submit_type = 'Back'
+            flash(f"is_dirty_form: False")
 
-        return redirect(url)
-
-    # Process GET
-    attribute_name = 'Interval/Ratio Attribute'
-    if node_id == '1':
-        pass
-    else:
-        eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
-            if dt_nodes:
-                for dt_node in dt_nodes:
-                    if dt_node_id == dt_node.id:
-                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
-                        if attribute_list_node:
-                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
-                            if att_nodes:
-                                for att_node in att_nodes:
-                                    if node_id == att_node.id:
-                                        populate_interval_ratio(form, att_node)
-                                        attribute_name = attribute_name_from_attribute(att_node)
-    
-    return render_template('mscale_interval_ratio.html', 
-                           title='Measurement Scale', 
-                           form=form,
-                           attribute_name=attribute_name)
-
-
-
-@home.route('/mscaleDateTime/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
-    form = MscaleDateTimeForm(packageid=packageid, dt_node_id=dt_node_id, node_id=node_id)
-
-    # Process POST
-    if request.method == 'POST' and form.validate_on_submit():
-        next_page = 'home.attribute' # Save or Back sends us back to the list of attributes
-
-        submit_type = None
-        if is_dirty_form(form):
-            submit_type = 'Save Changes'
-        flash(f'submit_type: {submit_type}')
+        # Go back to data table or go to the appropriate measuement scale page
+        if 'Back' in request.form:
+            next_page = 'home.attribute_select'
 
         if submit_type == 'Save Changes':
+            dt_node = None
+            attribute_list_node = None
             eml_node = load_eml(packageid=packageid)
-            att_node = Node.get_node_instance(node_id)
-            mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
-            if mscale_node:
-                att_node.remove_child(mscale_node)
-            mscale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
-            add_child(att_node, mscale_node)
-            datetime_node = Node(names.DATETIME, parent=mscale_node)
-            add_child(mscale_node, datetime_node)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(names.DATATABLE, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            if not attribute_list_node:
+                attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
+                add_child(dt_node, attribute_list_node)
+
+            attribute_name = form.attribute_name.data
+            attribute_label = form.attribute_label.data
+            attribute_definition = form.attribute_definition.data
+            storage_type = form.storage_type.data
+            storage_type_system = form.storage_type_system.data
             format_string = form.format_string.data
             datetime_precision = form.datetime_precision.data
             bounds_minimum = form.bounds_minimum.data
             bounds_minimum_exclusive = form.bounds_minimum_exclusive.data
             bounds_maximum = form.bounds_maximum.data
             bounds_maximum_exclusive = form.bounds_maximum_exclusive.data
-            create_datetime(datetime_node, format_string, datetime_precision, 
-                            bounds_minimum, bounds_minimum_exclusive, 
-                            bounds_maximum, bounds_maximum_exclusive)
+
+            code_dict = {}
+
+            code_1 = form.code_1.data
+            code_explanation_1 = form.code_explanation_1.data
+            if code_1:
+                code_dict[code_1] = code_explanation_1
+
+            code_2 = form.code_2.data
+            code_explanation_2 = form.code_explanation_2.data
+            if code_2:
+                code_dict[code_2] = code_explanation_2
+
+            code_3 = form.code_3.data
+            code_explanation_3 = form.code_explanation_3.data
+            if code_3:
+                code_dict[code_3] = code_explanation_3
+
+            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
+
+            create_datetime_attribute(
+                            att_node, 
+                            attribute_name,
+                            attribute_label,
+                            attribute_definition,
+                            storage_type,
+                            storage_type_system,
+                            format_string,
+                            datetime_precision,
+                            bounds_minimum,
+                            bounds_minimum_exclusive,
+                            bounds_maximum,
+                            bounds_maximum_exclusive,
+                            code_dict)
+
+            if node_id and len(node_id) != 1:
+                old_att_node = Node.get_node_instance(att_node_id)
+                if old_att_node:
+                    att_parent_node = old_att_node.parent
+                    att_parent_node.replace_child(old_att_node, att_node)
+
+                    mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
+                    if mscale_node:
+                        add_child(att_node, mscale_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(attribute_list_node, att_node)
+
             save_both_formats(packageid=packageid, eml_node=eml_node)
- 
-        if next_page == 'home.attribute':
-            url = url_for(next_page, packageid=packageid, 
-                          dt_node_id=dt_node_id, node_id=node_id, 
-                          mscale_type='dateTime')
-        else:
-            url = url_for(next_page, packageid=packageid, 
-                          dt_node_id=dt_node_id, node_id=node_id)
+            att_node_id = att_node.id
+
+        url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, node_id=att_node_id)
 
         return redirect(url)
 
     # Process GET
-    attribute_name = 'DateTime Attribute'
     if node_id == '1':
         pass
     else:
@@ -1097,53 +1013,282 @@ def mscaleDateTime(packageid=None, dt_node_id=None, node_id=None):
                             if att_nodes:
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
-                                        populate_datetime(form, att_node)
-                                        attribute_name = attribute_name_from_attribute(att_node)
+                                        populate_attribute_datetime_form(form, att_node)
+                                        break
     
-    return render_template('mscale_datetime.html', 
-                           title='Measurement Scale', 
-                           form=form,
-                           attribute_name=attribute_name)
+    return render_template('attribute_datetime.html', title='Attribute', form=form)
 
 
-def populate_nominal_ordinal(form:MscaleNominalOrdinalForm, att_node):
-    mscale = 'nominal' 
+def populate_attribute_datetime_form(form:AttributeDateTimeForm, node:Node):
+    att_node = node
+
+    attribute_name_node = node.find_child(names.ATTRIBUTENAME)
+    if attribute_name_node:
+        form.attribute_name.data = attribute_name_node.content
+    
+    attribute_label_node = node.find_child(names.ATTRIBUTELABEL)
+    if attribute_label_node:
+        form.attribute_label.data = attribute_label_node.content
+
+    attribute_definition_node = node.find_child(names.ATTRIBUTEDEFINITION)
+    if attribute_definition_node:
+        form.attribute_definition.data = attribute_definition_node.content
+
+    storage_type_node = node.find_child(names.STORAGETYPE)
+    if storage_type_node:
+        form.storage_type.data = storage_type_node.content
+        storage_type_system_att = storage_type_node.attribute_value('typeSystem')
+        if storage_type_system_att:
+            form.storage_type_system.data = storage_type_system_att
+
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+
     if mscale_node:
-        node = mscale_node.find_child(names.NOMINAL)
-        if not node:
-            node = mscale_node.find_child(names.ORDINAL)
-            if node:
-                mscale = 'ordinal'
-                form.mscale.data = mscale
+        datetime_node = mscale_node.find_child(names.DATETIME)
 
-        if node:
-            enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
+        if datetime_node:
+            format_string_node = datetime_node.find_child(names.FORMATSTRING)
 
-            if enumerated_domain_node:
-                enforced = enumerated_domain_node.attribute_value('enforced')
-                if enforced and enforced.upper() == 'NO':
-                    form.enforced.data = 'no'
-                else:
-                    form.enforced.data = 'yes'
+            if format_string_node:
+                form.format_string.data = format_string_node.content
+
+            datetime_precision_node = datetime_node.find_child(names.DATETIMEPRECISION)
+            if datetime_precision_node:
+                form.datetime_precision.data = datetime_precision_node.content
+
+            datetime_domain_node = datetime_node.find_child(names.DATETIMEDOMAIN)
+            if datetime_domain_node:
+                bounds_node = datetime_domain_node.find_child(names.BOUNDS)
+                if bounds_node:
+                    minimum_node = bounds_node.find_child(names.MINIMUM)
+                    if minimum_node:
+                        form.bounds_minimum.data = minimum_node.content
+                        exclusive = minimum_node.attribute_value('exclusive')
+                        if exclusive:
+                            if exclusive.lower() == 'true':
+                                form.bounds_minimum_exclusive.data = True
+                            else:
+                                form.bounds_minimum_exclusive.data = False
+                        else:
+                            form.bounds_minimum_exclusive.data = False
+                    maximum_node = bounds_node.find_child(names.MAXIMUM)
+                    if maximum_node:
+                        form.bounds_maximum.data = maximum_node.content
+                        exclusive = maximum_node.attribute_value('exclusive')
+                        if exclusive:
+                            if exclusive.lower() == 'true':
+                                form.bounds_maximum_exclusive.data = True
+                            else:
+                                form.bounds_maximum_exclusive.data = False
+                        else:
+                            form.bounds_maximum_exclusive.data = False
+
+    mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
+    if mvc_nodes and len(mvc_nodes) > 0:
+        i = 1
+        for mvc_node in mvc_nodes:
+            code = ''
+            code_explanation = ''
+            code_node = mvc_node.find_child(names.CODE)
+            code_explanation_node = mvc_node.find_child(names.CODEEXPLANATION)
+            if code_node:
+                code = code_node.content
+            if code_explanation_node:
+                code_explanation = code_explanation_node.content
+            if i == 1:
+                form.code_1.data = code
+                form.code_explanation_1.data = code_explanation
+            elif i == 2:
+                form.code_2.data = code
+                form.code_explanation_2.data = code_explanation
+            elif i == 3:
+                form.code_3.data = code
+                form.code_explanation_3.data = code_explanation
+            i = i + 1
+
     form.md5.data = form_md5(form)
-    
+            
 
-def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
-    mscale = 'ratio' 
+@home.route('/attribute_interval_ratio/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_interval_ratio(packageid:str=None, dt_node_id:str=None, node_id:str=None, mscale:str=None):
+    form = AttributeIntervalRatioForm(packageid=packageid, node_id=node_id)
+    att_node_id = node_id
+
+    # Determine POST type
+    if request.method == 'POST' and form.validate_on_submit():
+
+        if is_dirty_form(form):
+            submit_type = 'Save Changes'
+            flash(f"is_dirty_form: True")
+        else:
+            submit_type = 'Back'
+            flash(f"is_dirty_form: False")
+
+        # Go back to data table or go to the appropriate measuement scale page
+        if 'Back' in request.form:
+            next_page = 'home.attribute_select'
+
+        if submit_type == 'Save Changes':
+            dt_node = None
+            attribute_list_node = None
+            eml_node = load_eml(packageid=packageid)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(names.DATATABLE, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            if not attribute_list_node:
+                attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
+                add_child(dt_node, attribute_list_node)
+
+            attribute_name = form.attribute_name.data
+            attribute_label = form.attribute_label.data
+            attribute_definition = form.attribute_definition.data
+            storage_type = form.storage_type.data
+            storage_type_system = form.storage_type_system.data
+            standard_unit = form.standard_unit.data
+            custom_unit = form.custom_unit.data
+            precision = form.precision.data
+            number_type = form.number_type.data
+            bounds_minimum = form.bounds_minimum.data
+            bounds_minimum_exclusive = form.bounds_minimum_exclusive.data
+            bounds_maximum = form.bounds_maximum.data
+            bounds_maximum_exclusive = form.bounds_maximum_exclusive.data
+
+            code_dict = {}
+
+            code_1 = form.code_1.data
+            code_explanation_1 = form.code_explanation_1.data
+            if code_1:
+                code_dict[code_1] = code_explanation_1
+
+            code_2 = form.code_2.data
+            code_explanation_2 = form.code_explanation_2.data
+            if code_2:
+                code_dict[code_2] = code_explanation_2
+
+            code_3 = form.code_3.data
+            code_explanation_3 = form.code_explanation_3.data
+            if code_3:
+                code_dict[code_3] = code_explanation_3
+
+            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
+
+            create_interval_ratio_attribute(
+                            att_node, 
+                            attribute_name,
+                            attribute_label,
+                            attribute_definition,
+                            storage_type,
+                            storage_type_system,
+                            standard_unit,
+                            custom_unit,
+                            precision,
+                            number_type,
+                            bounds_minimum,
+                            bounds_minimum_exclusive,
+                            bounds_maximum,
+                            bounds_maximum_exclusive,
+                            code_dict,
+                            mscale)
+
+            if node_id and len(node_id) != 1:
+                old_att_node = Node.get_node_instance(att_node_id)
+                if old_att_node:
+                    att_parent_node = old_att_node.parent
+                    att_parent_node.replace_child(old_att_node, att_node)
+
+                    mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
+                    if mscale_node:
+                        add_child(att_node, mscale_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(attribute_list_node, att_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            att_node_id = att_node.id
+
+        url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, node_id=att_node_id)
+
+        return redirect(url)
+
+    # Process GET
+    attribute_name = ''
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        if attribute_list_node:
+                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
+                            if att_nodes:
+                                for att_node in att_nodes:
+                                    if node_id == att_node.id:
+                                        populate_attribute_interval_ratio_form(form, att_node)
+                                        attribute_name = attribute_name_from_attribute(att_node)
+                                        break
+    
+    return render_template('attribute_interval_ratio.html', 
+                           title='Attribute: Interval or Ratio', 
+                           form=form,
+                           attribute_name=attribute_name,
+                           mscale=mscale)
+
+
+def populate_attribute_interval_ratio_form(form:AttributeIntervalRatioForm=None, att_node:Node=None, mscale:str=None):
+    attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+    if attribute_name_node:
+        form.attribute_name.data = attribute_name_node.content
+    
+    attribute_label_node = att_node.find_child(names.ATTRIBUTELABEL)
+    if attribute_label_node:
+        form.attribute_label.data = attribute_label_node.content
+
+    attribute_definition_node = att_node.find_child(names.ATTRIBUTEDEFINITION)
+    if attribute_definition_node:
+        form.attribute_definition.data = attribute_definition_node.content
+
+    storage_type_node = att_node.find_child(names.STORAGETYPE)
+    if storage_type_node:
+        form.storage_type.data = storage_type_node.content
+        storage_type_system_att = storage_type_node.attribute_value('typeSystem')
+        if storage_type_system_att:
+            form.storage_type_system.data = storage_type_system_att
+
+    if mscale:
+        form.mscale.data = mscale
+    
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
     if mscale_node:
         ratio_node = mscale_node.find_child(names.RATIO)
         interval_node = mscale_node.find_child(names.INTERVAL)
 
-        node = ratio_node
-        if not node:
-            node = interval_node
-            mscale = 'interval'
+        ir_node = ratio_node
+        if not ir_node:
+            ir_node = interval_node
 
-        if node:
-            form.mscale.data = mscale
-            unit_node = node.find_child(names.UNIT)
+        if ir_node:
+            unit_node = ir_node.find_child(names.UNIT)
 
             if unit_node:
                 standard_unit_node = unit_node.find_child(names.STANDARDUNIT)
@@ -1153,11 +1298,11 @@ def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
                 if custom_unit_node:
                     form.custom_unit.data = custom_unit_node.content
 
-            precision_node = node.find_child(names.PRECISION)
+            precision_node = ir_node.find_child(names.PRECISION)
             if precision_node:
                 form.precision.data = precision_node.content
 
-            numeric_domain_node = node.find_child(names.NUMERICDOMAIN)
+            numeric_domain_node = ir_node.find_child(names.NUMERICDOMAIN)
             if numeric_domain_node:
                 number_type_node = numeric_domain_node.find_child(names.NUMBERTYPE)
                 if number_type_node:
@@ -1186,50 +1331,228 @@ def populate_interval_ratio(form:MscaleIntervalRatioForm, att_node):
                                 form.bounds_maximum_exclusive.data = False
                         else:
                             form.bounds_maximum_exclusive.data = False
+
+    mvc_nodes = att_node.find_all_children(names.MISSINGVALUECODE)
+    if mvc_nodes and len(mvc_nodes) > 0:
+        i = 1
+        for mvc_node in mvc_nodes:
+            code = ''
+            code_explanation = ''
+            code_node = mvc_node.find_child(names.CODE)
+            code_explanation_node = mvc_node.find_child(names.CODEEXPLANATION)
+            if code_node:
+                code = code_node.content
+            if code_explanation_node:
+                code_explanation = code_explanation_node.content
+            if i == 1:
+                form.code_1.data = code
+                form.code_explanation_1.data = code_explanation
+            elif i == 2:
+                form.code_2.data = code
+                form.code_explanation_2.data = code_explanation
+            elif i == 3:
+                form.code_3.data = code
+                form.code_explanation_3.data = code_explanation
+            i = i + 1
+
     form.md5.data = form_md5(form)
 
 
-def populate_datetime(form:MscaleDateTimeForm, att_node):
+@home.route('/attribute_nominal_ordinal/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:str=None, mscale:str=None):
+    form = AttributeNominalOrdinalForm(packageid=packageid, node_id=node_id)
+    att_node_id = node_id
+
+    # Determine POST type
+    if request.method == 'POST' and form.validate_on_submit():
+
+        if is_dirty_form(form):
+            submit_type = 'Save Changes'
+            flash(f"is_dirty_form: True")
+        else:
+            submit_type = 'Back'
+            flash(f"is_dirty_form: False")
+
+        # Go back to data table or go to the appropriate measuement scale page
+        if 'Back' in request.form:
+            next_page = 'home.attribute_select'
+
+        if submit_type == 'Save Changes':
+            dt_node = None
+            attribute_list_node = None
+            eml_node = load_eml(packageid=packageid)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET, parent=eml_node)
+            else:
+                data_table_nodes = dataset_node.find_all_children(names.DATATABLE)
+                if data_table_nodes:
+                    for data_table_node in data_table_nodes:
+                        if data_table_node.id == dt_node_id:
+                            dt_node = data_table_node
+                            break
+
+            if not dt_node:
+                dt_node = Node(names.DATATABLE, parent=dataset_node)
+                add_child(dataset_node, dt_node)
+
+            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            if not attribute_list_node:
+                attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
+                add_child(dt_node, attribute_list_node)
+
+            attribute_name = form.attribute_name.data
+            attribute_label = form.attribute_label.data
+            attribute_definition = form.attribute_definition.data
+            storage_type = form.storage_type.data
+            storage_type_system = form.storage_type_system.data
+            enforced = form.enforced.data
+
+            code_dict = {}
+
+            code_1 = form.code_1.data
+            code_explanation_1 = form.code_explanation_1.data
+            if code_1:
+                code_dict[code_1] = code_explanation_1
+
+            code_2 = form.code_2.data
+            code_explanation_2 = form.code_explanation_2.data
+            if code_2:
+                code_dict[code_2] = code_explanation_2
+
+            code_3 = form.code_3.data
+            code_explanation_3 = form.code_explanation_3.data
+            if code_3:
+                code_dict[code_3] = code_explanation_3
+
+            att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
+
+            create_nominal_ordinal_attribute(
+                            att_node, 
+                            attribute_name,
+                            attribute_label,
+                            attribute_definition,
+                            storage_type,
+                            storage_type_system,
+                            enforced,
+                            code_dict,
+                            mscale)
+
+            if node_id and len(node_id) != 1:
+                old_att_node = Node.get_node_instance(att_node_id)
+                if old_att_node:
+                    att_parent_node = old_att_node.parent
+                    att_parent_node.replace_child(old_att_node, att_node)
+
+                    mscale_node = old_att_node.find_child(names.MEASUREMENTSCALE)
+                    if mscale_node:
+                        add_child(att_node, mscale_node)
+                else:
+                    msg = f"No node found in the node store with node id {node_id}"
+                    raise Exception(msg)
+            else:
+                add_child(attribute_list_node, att_node)
+
+            save_both_formats(packageid=packageid, eml_node=eml_node)
+            att_node_id = att_node.id
+
+        url = url_for(next_page, packageid=packageid, 
+                      dt_node_id=dt_node_id, node_id=att_node_id)
+
+        return redirect(url)
+
+    # Process GET
+    attribute_name = ''
+    if node_id == '1':
+        pass
+    else:
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+            if dt_nodes:
+                for dt_node in dt_nodes:
+                    if dt_node_id == dt_node.id:
+                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        if attribute_list_node:
+                            att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
+                            if att_nodes:
+                                for att_node in att_nodes:
+                                    if node_id == att_node.id:
+                                        populate_attribute_nominal_ordinal_form(form, att_node, mscale)
+                                        attribute_name = attribute_name_from_attribute(att_node)
+                                        break
+    
+    return render_template('attribute_nominal_ordinal.html', 
+                           title='Attribute: Nominal or Ordinal', 
+                           form=form,
+                           attribute_name=attribute_name,
+                           mscale=mscale)
+
+
+def populate_attribute_nominal_ordinal_form(form:AttributeNominalOrdinalForm, att_node:Node=None, mscale:str=None):
+    attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+    if attribute_name_node:
+        form.attribute_name.data = attribute_name_node.content
+    
+    attribute_label_node = att_node.find_child(names.ATTRIBUTELABEL)
+    if attribute_label_node:
+        form.attribute_label.data = attribute_label_node.content
+
+    attribute_definition_node = att_node.find_child(names.ATTRIBUTEDEFINITION)
+    if attribute_definition_node:
+        form.attribute_definition.data = attribute_definition_node.content
+
+    storage_type_node = att_node.find_child(names.STORAGETYPE)
+    if storage_type_node:
+        form.storage_type.data = storage_type_node.content
+        storage_type_system_att = storage_type_node.attribute_value('typeSystem')
+        if storage_type_system_att:
+            form.storage_type_system.data = storage_type_system_att
+
+    if mscale:
+        form.mscale.data = mscale
+    
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+
     if mscale_node:
-        node = mscale_node.find_child(names.DATETIME)
+        node = mscale_node.find_child(names.NOMINAL)
+        if not node:
+            node = mscale_node.find_child(names.ORDINAL)
 
         if node:
-            format_string_node = node.find_child(names.FORMATSTRING)
+            enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
 
-            if format_string_node:
-                form.format_string.data = format_string_node.content
+            if enumerated_domain_node:
+                enforced = enumerated_domain_node.attribute_value('enforced')
+                if enforced and enforced.upper() == 'NO':
+                    form.enforced.data = 'no'
+                else:
+                    form.enforced.data = 'yes'
 
-            datetime_precision_node = node.find_child(names.DATETIMEPRECISION)
-            if datetime_precision_node:
-                form.datetime_precision.data = datetime_precision_node.content
+    mvc_nodes = att_node.find_all_children(names.MISSINGVALUECODE)
+    if mvc_nodes and len(mvc_nodes) > 0:
+        i = 1
+        for mvc_node in mvc_nodes:
+            code = ''
+            code_explanation = ''
+            code_node = mvc_node.find_child(names.CODE)
+            code_explanation_node = mvc_node.find_child(names.CODEEXPLANATION)
+            if code_node:
+                code = code_node.content
+            if code_explanation_node:
+                code_explanation = code_explanation_node.content
+            if i == 1:
+                form.code_1.data = code
+                form.code_explanation_1.data = code_explanation
+            elif i == 2:
+                form.code_2.data = code
+                form.code_explanation_2.data = code_explanation
+            elif i == 3:
+                form.code_3.data = code
+                form.code_explanation_3.data = code_explanation
+            i = i + 1
 
-            datetime_domain_node = node.find_child(names.DATETIMEDOMAIN)
-            if datetime_domain_node:
-                bounds_node = datetime_domain_node.find_child(names.BOUNDS)
-                if bounds_node:
-                    minimum_node = bounds_node.find_child(names.MINIMUM)
-                    if minimum_node:
-                        form.bounds_minimum.data = minimum_node.content
-                        exclusive = minimum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_minimum_exclusive.data = True
-                            else:
-                                form.bounds_minimum_exclusive.data = False
-                        else:
-                            form.bounds_minimum_exclusive.data = False
-                    maximum_node = bounds_node.find_child(names.MAXIMUM)
-                    if maximum_node:
-                        form.bounds_maximum.data = maximum_node.content
-                        exclusive = maximum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_maximum_exclusive.data = True
-                            else:
-                                form.bounds_maximum_exclusive.data = False
-                        else:
-                            form.bounds_maximum_exclusive.data = False
     form.md5.data = form_md5(form)
 
 
@@ -1320,7 +1643,8 @@ def code_definition_select_post(packageid=None, form=None, form_dict=None,
             return url_for(f'home.{new_page}', 
                            packageid=packageid,
                            dt_node_id=dt_node_id,
-                           node_id=att_node_id)
+                           node_id=att_node_id,
+                           mscale=mscale)
 
         elif new_page == this_page: # code_definition_select_post
             return url_for(f'home.{new_page}', 

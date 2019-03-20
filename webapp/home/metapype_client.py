@@ -784,7 +784,8 @@ def create_attribute(attribute_node:Node=None,
                      attribute_definition:str=None,
                      storage_type:str=None,
                      storage_type_system:str=None,
-                     code_dict:dict=None):
+                     code_dict:dict=None,
+                     mscale:str=None):
     if attribute_node:
         try:
             attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
@@ -821,6 +822,300 @@ def create_attribute(attribute_node:Node=None,
                             code_explanation_node.content = code_explanation
                             add_child(mvc_node, code_explanation_node)
 
+            if mscale:
+                mscale_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
+                add_child(attribute_node, mscale_node)
+                if mscale == 'interval':
+                    interval_node = Node(names.INTERVAL, parent=mscale_node)
+                    add_child(mscale_node, interval_node)
+                elif mscale == 'ratio':
+                    ratio_node = Node(names.RATIO, parent=mscale_node)
+                    add_child(mscale_node, ratio_node)
+                elif mscale == 'nominal':
+                    nominal_node = Node(names.NOMINAL, parent=mscale_node)
+                    add_child(mscale_node, nominal_node)
+                elif mscale == 'ordinal':
+                    ordinal_node = Node(names.ORDINAL, parent=mscale_node)
+                    add_child(mscale_node, ordinal_node)
+                elif mscale == 'dateTime':
+                    datetime_node = Node(names.DATETIME, parent=mscale_node)
+                    add_child(mscale_node, datetime_node)
+
+        except Exception as e:
+            logger.error(e)
+
+
+def create_datetime_attribute(
+                    attribute_node:Node=None, 
+                    attribute_name:str=None,
+                    attribute_label:str=None,
+                    attribute_definition:str=None,
+                    storage_type:str=None,
+                    storage_type_system:str=None,
+                    format_string:str=None, 
+                    datetime_precision:str=None,
+                    bounds_minimum:str=None, 
+                    bounds_minimum_exclusive:str=None, 
+                    bounds_maximum:str=None, 
+                    bounds_maximum_exclusive:str=None,
+                    code_dict:dict=None):
+    if attribute_node:
+        try:
+            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
+            attribute_name_node.content = attribute_name
+            add_child(attribute_node, attribute_name_node)
+            
+            if attribute_label:
+                attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
+                attribute_label_node.content = attribute_label
+                add_child(attribute_node, attribute_label_node)
+            
+            attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+            attribute_definition_node.content = attribute_definition
+            add_child(attribute_node, attribute_definition_node)
+
+            storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
+            storage_type_node.content = storage_type
+            if storage_type_system:
+                storage_type_node.add_attribute('typeSystem', storage_type_system)
+            add_child(attribute_node, storage_type_node)
+
+            ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
+            add_child(attribute_node, ms_node)
+
+            datetime_node = Node(names.DATETIME, parent=ms_node)
+            add_child(ms_node, datetime_node)
+
+            format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
+            format_string_node.content = format_string
+            add_child(datetime_node, format_string_node)
+        
+            if datetime_precision:
+                datetime_precision_node = Node(names.DATETIMEPRECISION, parent=datetime_node)
+                datetime_precision_node.content = datetime_precision
+                add_child(datetime_node, datetime_precision_node)
+            
+            datetime_domain_node = Node(names.DATETIMEDOMAIN, parent=datetime_node)
+            add_child(datetime_node, datetime_domain_node)
+            if bounds_minimum or bounds_maximum:
+                bounds_node = Node(names.BOUNDS, parent=datetime_domain_node)
+                add_child(datetime_domain_node, bounds_node)
+                if bounds_minimum:
+                    bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
+                    bounds_minimum_node.content = bounds_minimum
+                    if bounds_minimum_exclusive:
+                        bounds_minimum_node.add_attribute('exclusive', 'true')
+                    else:
+                        bounds_minimum_node.add_attribute('exclusive', 'false')
+                    add_child(bounds_node, bounds_minimum_node)
+                if bounds_maximum:
+                    bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
+                    bounds_maximum_node.content = bounds_maximum
+                    if bounds_maximum_exclusive:
+                        bounds_maximum_node.add_attribute('exclusive', 'true')
+                    else:
+                        bounds_maximum_node.add_attribute('exclusive', 'false')
+                    add_child(bounds_node, bounds_maximum_node)
+
+            if code_dict:
+                for key in code_dict:
+                    if code_dict[key]:
+                        code = key
+                        code_explanation = code_dict[key]
+                        if code and code_explanation:
+                            mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
+                            add_child(attribute_node, mvc_node)
+                            code_node = Node(names.CODE, parent=mvc_node)
+                            code_node.content = code
+                            add_child(mvc_node, code_node)
+                            code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
+                            code_explanation_node.content = code_explanation
+                            add_child(mvc_node, code_explanation_node)
+
+        except Exception as e:
+            logger.error(e)
+
+
+def create_interval_ratio_attribute(
+                    attribute_node:Node=None, 
+                    attribute_name:str=None,
+                    attribute_label:str=None,
+                    attribute_definition:str=None,
+                    storage_type:str=None,
+                    storage_type_system:str=None,
+                    standard_unit:str=None, 
+                    custom_unit:str=None,
+                    precision:str=None, 
+                    number_type:str=None, 
+                    bounds_minimum=None,
+                    bounds_minimum_exclusive:str=None, 
+                    bounds_maximum=None,
+                    bounds_maximum_exclusive:str=None,
+                    code_dict:dict=None,
+                    mscale:str=None):
+    if attribute_node:
+        try:
+            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
+            attribute_name_node.content = attribute_name
+            add_child(attribute_node, attribute_name_node)
+            
+            if attribute_label:
+                attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
+                attribute_label_node.content = attribute_label
+                add_child(attribute_node, attribute_label_node)
+            
+            attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+            attribute_definition_node.content = attribute_definition
+            add_child(attribute_node, attribute_definition_node)
+
+            storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
+            storage_type_node.content = storage_type
+            if storage_type_system:
+                storage_type_node.add_attribute('typeSystem', storage_type_system)
+            add_child(attribute_node, storage_type_node)
+
+            mscale_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
+            add_child(attribute_node, mscale_node)
+
+            ir_node = None  # this will be either a ratio or an interval node
+            if mscale == 'interval':
+                ir_node = Node(names.INTERVAL, parent=mscale_node)
+                add_child(mscale_node, ir_node)
+            elif mscale == 'ratio':
+                ir_node = Node(names.RATIO, parent=mscale_node)
+                add_child(mscale_node, ir_node)
+
+            unit_node = Node(names.UNIT, parent=ir_node)
+            add_child(ir_node, unit_node)
+        
+            if custom_unit:
+                custom_unit_node = Node(names.CUSTOMUNIT, parent=unit_node)
+                custom_unit_node.content = custom_unit
+                add_child(unit_node, custom_unit_node)
+            elif standard_unit:
+                standard_unit_node = Node(names.STANDARDUNIT, parent=unit_node)
+                standard_unit_node.content = standard_unit
+                add_child(unit_node, standard_unit_node)
+        
+            if precision:
+                precision_node = Node(names.PRECISION, parent=ir_node)
+                precision_node.content = precision
+                add_child(ir_node, precision_node)
+        
+            numeric_domain_node = Node(names.NUMERICDOMAIN, parent=ir_node)
+            add_child(ir_node, numeric_domain_node)
+        
+            number_type_node = Node(names.NUMBERTYPE, parent=numeric_domain_node)
+            add_child(numeric_domain_node, number_type_node)
+        
+            number_type_node.content = number_type
+            if is_non_empty_bounds(bounds_minimum) or is_non_empty_bounds(bounds_maximum):
+                bounds_node = Node(names.BOUNDS, parent=numeric_domain_node)
+                add_child(numeric_domain_node, bounds_node)
+            
+            if is_non_empty_bounds(bounds_minimum):
+                bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
+                bounds_minimum_node.content = bounds_minimum
+                if bounds_minimum_exclusive:
+                    bounds_minimum_node.add_attribute('exclusive', 'true')
+                else:
+                    bounds_minimum_node.add_attribute('exclusive', 'false')
+                add_child(bounds_node, bounds_minimum_node)
+            
+            if is_non_empty_bounds(bounds_maximum):
+                bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
+                bounds_maximum_node.content = bounds_maximum
+                if bounds_maximum_exclusive:
+                    bounds_maximum_node.add_attribute('exclusive', 'true')
+                else:
+                    bounds_maximum_node.add_attribute('exclusive', 'false')
+                add_child(bounds_node, bounds_maximum_node)
+
+            if code_dict:
+                for key in code_dict:
+                    if code_dict[key]:
+                        code = key
+                        code_explanation = code_dict[key]
+                        if code and code_explanation:
+                            mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
+                            add_child(attribute_node, mvc_node)
+                            code_node = Node(names.CODE, parent=mvc_node)
+                            code_node.content = code
+                            add_child(mvc_node, code_node)
+                            code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
+                            code_explanation_node.content = code_explanation
+                            add_child(mvc_node, code_explanation_node)
+
+        except Exception as e:
+            logger.error(e)
+
+
+def create_nominal_ordinal_attribute(
+                    attribute_node:Node=None, 
+                    attribute_name:str=None,
+                    attribute_label:str=None,
+                    attribute_definition:str=None,
+                    storage_type:str=None,
+                    storage_type_system:str=None,
+                    enforced:str=None, 
+                    code_dict:dict=None,
+                    mscale:str=None):
+    if attribute_node:
+        try:
+            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
+            attribute_name_node.content = attribute_name
+            add_child(attribute_node, attribute_name_node)
+            
+            if attribute_label:
+                attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
+                attribute_label_node.content = attribute_label
+                add_child(attribute_node, attribute_label_node)
+            
+            attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+            attribute_definition_node.content = attribute_definition
+            add_child(attribute_node, attribute_definition_node)
+
+            storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
+            storage_type_node.content = storage_type
+            if storage_type_system:
+                storage_type_node.add_attribute('typeSystem', storage_type_system)
+            add_child(attribute_node, storage_type_node)
+
+            mscale_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
+            add_child(attribute_node, mscale_node)
+
+            no_node = None  # this will be either a nominal or an ordinal node
+            if mscale == 'nominal':
+                no_node = Node(names.NOMINAL, parent=mscale_node)
+                add_child(mscale_node, no_node)
+            elif mscale == 'ordinal':
+                no_node = Node(names.ORDINAL, parent=mscale_node)
+                add_child(mscale_node, no_node)
+
+            non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=no_node)
+            add_child(no_node, non_numeric_domain_node)
+
+            enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
+            add_child(non_numeric_domain_node, enumerated_domain_node)
+
+            if enforced:
+                pass # create the enforced attribute
+        
+            if code_dict:
+                for key in code_dict:
+                    if code_dict[key]:
+                        code = key
+                        code_explanation = code_dict[key]
+                        if code and code_explanation:
+                            mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
+                            add_child(attribute_node, mvc_node)
+                            code_node = Node(names.CODE, parent=mvc_node)
+                            code_node.content = code
+                            add_child(mvc_node, code_node)
+                            code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
+                            code_explanation_node.content = code_explanation
+                            add_child(mvc_node, code_explanation_node)
+
         except Exception as e:
             logger.error(e)
 
@@ -840,53 +1135,6 @@ def create_code_definition(code_definition_node:Node=None,
             code_definition_node.add_attribute('order', order)
 
 
-# node is either the interval or ratio node to be constructed under
-# the measurementScale node
-def create_interval_ratio(node:Node, standard_unit:str, custom_unit:str,
-                        precision:str, number_type:str, bounds_minimum,
-                        bounds_minimum_exclusive:str, bounds_maximum,
-                        bounds_maximum_exclusive:str):
-    if node:
-        unit_node = Node(names.UNIT, parent=node)
-        add_child(node, unit_node)
-        if custom_unit:
-            custom_unit_node = Node(names.CUSTOMUNIT, parent=unit_node)
-            custom_unit_node.content = custom_unit
-            add_child(unit_node, custom_unit_node)
-        elif standard_unit:
-            standard_unit_node = Node(names.STANDARDUNIT, parent=unit_node)
-            standard_unit_node.content = standard_unit
-            add_child(unit_node, standard_unit_node)
-        if precision:
-            precision_node = Node(names.PRECISION, parent=node)
-            precision_node.content = precision
-            add_child(node, precision_node)
-        numeric_domain_node = Node(names.NUMERICDOMAIN, parent=node)
-        add_child(node, numeric_domain_node)
-        number_type_node = Node(names.NUMBERTYPE, parent=numeric_domain_node)
-        add_child(numeric_domain_node, number_type_node)
-        number_type_node.content = number_type
-        if is_non_empty_bounds(bounds_minimum) or is_non_empty_bounds(bounds_maximum):
-            bounds_node = Node(names.BOUNDS, parent=numeric_domain_node)
-            add_child(numeric_domain_node, bounds_node)
-            if is_non_empty_bounds(bounds_minimum):
-                bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
-                bounds_minimum_node.content = bounds_minimum
-                if bounds_minimum_exclusive:
-                    bounds_minimum_node.add_attribute('exclusive', 'true')
-                else:
-                    bounds_minimum_node.add_attribute('exclusive', 'false')
-                add_child(bounds_node, bounds_minimum_node)
-            if is_non_empty_bounds(bounds_maximum):
-                bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
-                bounds_maximum_node.content = bounds_maximum
-                if bounds_maximum_exclusive:
-                    bounds_maximum_node.add_attribute('exclusive', 'true')
-                else:
-                    bounds_maximum_node.add_attribute('exclusive', 'false')
-                add_child(bounds_node, bounds_maximum_node)
-
-
 def is_non_empty_bounds(bounds=None):
     if bounds:
         return bounds
@@ -896,42 +1144,6 @@ def is_non_empty_bounds(bounds=None):
         return bounds == 0.0
     elif type(bounds) is int:
         return bounds == 0
-
-
-# node is the datetime node to be constructed under
-# the measurementScale node
-def create_datetime(node:Node, format_string:str, datetime_precision:str,
-                    bounds_minimum:str, bounds_minimum_exclusive:str, 
-                    bounds_maximum:str, bounds_maximum_exclusive:str):
-    if node:
-        format_string_node = Node(names.FORMATSTRING, parent=node)
-        format_string_node.content = format_string
-        add_child(node, format_string_node)
-        if datetime_precision:
-            datetime_precision_node = Node(names.DATETIMEPRECISION, parent=node)
-            datetime_precision_node.content = datetime_precision
-            add_child(node, datetime_precision_node)
-        datetime_domain_node = Node(names.DATETIMEDOMAIN, parent=node)
-        add_child(node, datetime_domain_node)
-        if bounds_minimum or bounds_maximum:
-            bounds_node = Node(names.BOUNDS, parent=datetime_domain_node)
-            add_child(datetime_domain_node, bounds_node)
-            if bounds_minimum:
-                bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
-                bounds_minimum_node.content = bounds_minimum
-                if bounds_minimum_exclusive:
-                    bounds_minimum_node.add_attribute('exclusive', 'true')
-                else:
-                    bounds_minimum_node.add_attribute('exclusive', 'false')
-                add_child(bounds_node, bounds_minimum_node)
-            if bounds_maximum:
-                bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
-                bounds_maximum_node.content = bounds_maximum
-                if bounds_maximum_exclusive:
-                    bounds_maximum_node.add_attribute('exclusive', 'true')
-                else:
-                    bounds_maximum_node.add_attribute('exclusive', 'false')
-                add_child(bounds_node, bounds_maximum_node)
 
 
 def create_title(title=None, packageid=None):

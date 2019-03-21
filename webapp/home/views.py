@@ -73,7 +73,8 @@ from webapp.home.metapype_client import (
     move_up, move_down, UP_ARROW, DOWN_ARROW,
     save_old_to_new, list_access_rules, create_access_rule,
     list_other_entities, create_other_entity, create_pubplace,
-    create_access, non_numeric_domain_from_measurement_scale
+    create_access, non_numeric_domain_from_measurement_scale,
+    code_definition_from_attribute
 )
 
 from metapype.eml2_1_1 import export
@@ -680,21 +681,28 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 node_id = key
 
     if form.validate_on_submit():  
-        if new_page == this_page: 
-            return url_for(f'home.{new_page}', 
-                            packageid=packageid, 
-                            dt_node_id=dt_node_id)
+        if new_page == back_page:
+            return url_for(f'home.{new_page}',
+                            packageid=packageid,
+                            node_id=dt_node_id)
         elif new_page == 'attribute_dateTime':
+            # dateTime doesn't need to pass mscale value
             return url_for(f'home.{new_page}',
                             packageid=packageid,
                             dt_node_id=dt_node_id,
                             node_id=node_id)
-        else: # other attribute measurement scales need to pass mscale value
+        elif new_page.startswith('attribute_'): 
+            # other attribute measurement scales need to pass mscale value
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
                             dt_node_id=dt_node_id, 
                             node_id=node_id,
                             mscale=mscale)
+        else: 
+            # this_page
+            return url_for(f'home.{new_page}', 
+                            packageid=packageid, 
+                            dt_node_id=dt_node_id)
 
 
 @home.route('/attribute/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
@@ -1362,6 +1370,7 @@ def populate_attribute_interval_ratio_form(form:AttributeIntervalRatioForm=None,
 def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:str=None, mscale:str=None):
     form = AttributeNominalOrdinalForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
+    att_node = Node.get_node_instance(node_id)
 
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
@@ -1376,6 +1385,8 @@ def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:s
         # Go back to data table or go to the appropriate measuement scale page
         if 'Back' in request.form:
             next_page = 'home.attribute_select'
+        elif 'Codes'in request.form:
+            next_page = 'home.code_definition_select'
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1455,9 +1466,16 @@ def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:s
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
             att_node_id = att_node.id
+        
 
-        url = url_for(next_page, packageid=packageid, 
-                      dt_node_id=dt_node_id, node_id=att_node_id)
+        if next_page == 'home.code_definition_select':
+            cd_node = code_definition_from_attribute(att_node)
+            if not cd_node:
+                cd_node = Node(names.CODEDEFINITION, parent=None)
+            cd_node_id = cd_node.id
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, att_node_id=att_node_id, node_id=cd_node_id, mscale=mscale)
+        else:
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
 
         return redirect(url)
 
@@ -1574,7 +1592,7 @@ def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, no
                                           form_dict=form_dict, 
                                           method='POST', 
                                           this_page='code_definition_select', 
-                                          back_page='mscaleNominalOrdinal', 
+                                          back_page='attribute_nominal_ordinal', 
                                           edit_page='code_definition', 
                                           dt_node_id=dt_node_id, 
                                           att_node_id=att_node_id, 
@@ -1597,10 +1615,17 @@ def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, no
                            form=form)
 
 
-def code_definition_select_post(packageid=None, form=None, form_dict=None,
-                          method=None, this_page=None, back_page=None, 
-                          edit_page=None, dt_node_id=None, att_node_id=None,
-                          nom_ord_node_id=None, mscale=None):
+def code_definition_select_post(packageid=None,
+                                form=None,
+                                form_dict=None,
+                                method=None,
+                                this_page=None,
+                                back_page=None,
+                                edit_page=None,
+                                dt_node_id=None,
+                                att_node_id=None,
+                                nom_ord_node_id=None, 
+                                mscale=None):
     node_id = ''
     new_page = ''
 
@@ -1639,13 +1664,8 @@ def code_definition_select_post(packageid=None, form=None, form_dict=None,
                 node_id = key
 
     if form.validate_on_submit():  
-        if new_page == back_page: # mscaleNominalOrdinal
-            return url_for(f'home.{new_page}', 
-                           packageid=packageid,
-                           dt_node_id=dt_node_id,
-                           node_id=att_node_id,
-                           mscale=mscale)
-
+        if new_page == back_page: # attribute_nominal_ordinal
+            return url_for(f'home.{new_page}', packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
         elif new_page == this_page: # code_definition_select_post
             return url_for(f'home.{new_page}', 
                             packageid=packageid, 
@@ -1661,6 +1681,7 @@ def code_definition_select_post(packageid=None, form=None, form_dict=None,
                             nom_ord_node_id=nom_ord_node_id,
                             node_id=node_id,
                             mscale=mscale)
+
 
 # node_id is the id of the codeDefinition node being edited. If the value
 # '1', it means we are adding a new codeDefinition node, otherwise we are

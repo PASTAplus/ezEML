@@ -175,6 +175,25 @@ def attribute_name_from_attribute(att_node:Node=None):
     return attribute_name
 
 
+def code_definition_from_attribute(att_node:Node=None):
+    cd_node = None
+
+    if att_node:
+        ms_node = att_node.find_child(names.MEASUREMENTSCALE)
+        if ms_node:
+            no_node = ms_node.find_child(names.NOMINAL)
+            if not no_node:
+                no_node = ms_node.find_child(names.ORDINAL)
+            if no_node:
+                nnd_node = no_node.find_child(names.NONNUMERICDOMAIN)
+                if nnd_node:
+                    ed_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
+                    if ed_node:
+                        cd_node = ed_node.find_child(names.CODEDEFINITION)
+
+    return cd_node
+
+
 def enumerated_domain_from_attribute(att_node:Node=None):
     enumerated_domain_node = None
 
@@ -812,7 +831,7 @@ def create_attribute(attribute_node:Node=None,
                     if code_dict[key]:
                         code = key
                         code_explanation = code_dict[key]
-                        if code and code_explanation:
+                        if code is not None:
                             mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
                             add_child(attribute_node, mvc_node)
                             code_node = Node(names.CODE, parent=mvc_node)
@@ -922,7 +941,7 @@ def create_datetime_attribute(
                     if code_dict[key]:
                         code = key
                         code_explanation = code_dict[key]
-                        if code and code_explanation:
+                        if code is not None:
                             mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
                             add_child(attribute_node, mvc_node)
                             code_node = Node(names.CODE, parent=mvc_node)
@@ -1036,7 +1055,7 @@ def create_interval_ratio_attribute(
                     if code_dict[key]:
                         code = key
                         code_explanation = code_dict[key]
-                        if code and code_explanation:
+                        if code is not None:
                             mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
                             add_child(attribute_node, mvc_node)
                             code_node = Node(names.CODE, parent=mvc_node)
@@ -1106,7 +1125,7 @@ def create_nominal_ordinal_attribute(
                     if code_dict[key]:
                         code = key
                         code_explanation = code_dict[key]
-                        if code and code_explanation:
+                        if code is not None:
                             mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
                             add_child(attribute_node, mvc_node)
                             code_node = Node(names.CODE, parent=mvc_node)

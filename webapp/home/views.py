@@ -38,7 +38,7 @@ from webapp.home.forms import (
     GeographicCoverageSelectForm, GeographicCoverageForm,
     TemporalCoverageSelectForm, TemporalCoverageForm,
     TaxonomicCoverageSelectForm, TaxonomicCoverageForm,
-    DataTableSelectForm, DataTableForm, AttributeSelectForm, AttributeForm,
+    DataTableSelectForm, DataTableForm, AttributeSelectForm,
     CodeDefinitionSelectForm, CodeDefinitionForm, DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     MethodStepSelectForm, MethodStepForm, ProjectForm,
@@ -631,21 +631,15 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
             if val == 'Back':
                 new_page = back_page
             elif val.startswith('Edit'):
-                if 'date' in val:
-                    new_page = 'attribute_dateTime'
-                elif 'interval' in val or 'ratio' in val:
-                    new_page = 'attribute_interval_ratio'
-                    if 'interval' in val:
-                        mscale = 'interval'
-                    else:
-                        mscale = 'ratio'
-                elif 'nominal' in val or 'ordinal' in val:
-                    new_page = 'attribute_nominal_ordinal'
-                    if 'nominal' in val:
-                        mscale = 'nominal'
-                    else:
-                        mscale = 'ordinal'
                 node_id = key
+                attribute_node = Node.get_node_instance(node_id)
+                mscale = mscale_from_attribute(attribute_node)
+                if mscale.startswith('date'):
+                    new_page = 'attribute_dateTime'
+                elif mscale == 'interval' or mscale == 'ratio':
+                    new_page = 'attribute_interval_ratio'
+                elif mscale == 'nominal' or mscale == 'ordinal':
+                    new_page = 'attribute_nominal_ordinal'
             elif val == 'Remove':
                 new_page = this_page
                 node_id = key
@@ -816,7 +810,7 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
 
     # Process GET
     if node_id == '1':
-        pass
+        form.md5.data = form_md5(form)
     else:
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)
@@ -1043,7 +1037,8 @@ def attribute_interval_ratio(packageid:str=None, dt_node_id:str=None, node_id:st
     # Process GET
     attribute_name = ''
     if node_id == '1':
-        pass
+        form_str = 'real'
+        form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
     else:
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)
@@ -1287,7 +1282,8 @@ def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:s
     # Process GET
     attribute_name = ''
     if node_id == '1':
-        pass
+        form_str = 'yes'
+        form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
     else:
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)

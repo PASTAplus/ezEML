@@ -91,37 +91,8 @@ class AttributeSelectForm(FlaskForm):
     pass
 
 
-class AttributeForm(FlaskForm):
-    attribute_name = StringField('Name', validators=[DataRequired()])
-    attribute_label = StringField('Label (Optional)', validators=[])
-    attribute_definition = StringField('Definition', validators=[])
-    storage_type = StringField('Storage Type (Optional)', validators=[])
-    storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    code_1 = StringField('Missing Value Code', validators=[])
-    code_explanation_1 = StringField('Explanation', validators=[]) 
-    code_2 = StringField('Missing Value Code', validators=[])
-    code_explanation_2 = StringField('Explanation', validators=[])
-    code_3 = StringField('Missing Value Code', validators=[])
-    code_explanation_3 = StringField('Explanation', validators=[])
-    mscale = HiddenField('')
-    md5 = HiddenField('')
-
-    def field_data(self)->tuple:
-        return (self.attribute_name.data, 
-                self.attribute_label.data,
-                self.attribute_definition.data,
-                self.storage_type.data,
-                self.storage_type_system.data,
-                self.code_1.data,
-                self.code_explanation_1.data,
-                self.code_2.data,
-                self.code_explanation_2.data,
-                self.code_3.data,
-                self.code_explanation_3.data)
-
-
 class AttributeDateTimeForm(FlaskForm):
-    attribute_name = StringField('Name', validators=[DataRequired()])
+    attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
@@ -161,7 +132,7 @@ class AttributeDateTimeForm(FlaskForm):
 
 
 class AttributeNominalOrdinalForm(FlaskForm):
-    attribute_name = StringField('Name', validators=[DataRequired()])
+    attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
@@ -196,7 +167,7 @@ class AttributeNominalOrdinalForm(FlaskForm):
 
 
 class AttributeIntervalRatioForm(FlaskForm):
-    attribute_name = StringField('Name', validators=[DataRequired()])
+    attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])

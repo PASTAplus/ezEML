@@ -41,9 +41,10 @@ def concat_str(form):
     concat_str = ''
     if form:
         field_data = form.field_data()
-        for val in field_data:
-            if val:
-                concat_str += str(val)
+        if field_data:
+            for val in field_data:
+                if val:
+                    concat_str += str(val)
 
     print(f"concat_str: {concat_str}")
     return concat_str

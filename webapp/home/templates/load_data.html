@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Load Data</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <h5>Please select the data file to load:</h5>
+                {{ wtf.form_field(form.data_file) }}
+                <input class="btn btn-primary" name="Load" type="submit" value="Load"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

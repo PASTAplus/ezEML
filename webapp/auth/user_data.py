@@ -49,6 +49,13 @@ def get_user_folder_name():
     return user_folder_name
 
 
+def get_user_uploads_folder_name():
+    user_folder_name = get_user_folder_name()
+    user_uploads_folder_name = f'{user_folder_name}/uploads'
+
+    return user_uploads_folder_name
+
+
 def get_user_document_list():
     packageids = []
     user_folder = get_user_folder_name()
@@ -65,12 +72,33 @@ def get_user_document_list():
     return packageids
 
 
+def get_user_uploads():
+    data_files = []
+    user_uploads_folder = get_user_uploads_folder_name()
+    try:
+        folder_contents = os.listdir(user_uploads_folder)
+        onlyfiles = [f for f in folder_contents if os.path.isfile(os.path.join(user_uploads_folder, f))]
+        if onlyfiles:
+            for filename in onlyfiles:
+                data_files.append(filename)
+    except:
+        pass
+        
+    return data_files
+
+
 def initialize_user_data():
     user_folder_name = get_user_folder_name()
+    user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(USER_DATA_DIR):
         os.mkdir(USER_DATA_DIR)
     if user_folder_name and not os.path.exists(user_folder_name):
         os.mkdir(user_folder_name)
+    if (user_uploads_folder_name and 
+        os.path.exists(user_folder_name) and not 
+        os.path.exists(user_uploads_folder_name)
+       ):
+        os.mkdir(user_uploads_folder_name)
 
 
 def delete_eml(packageid:str=''):

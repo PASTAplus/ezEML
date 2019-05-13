@@ -126,6 +126,24 @@
                      </ul>
                 </li>
             {% endif %}
+            {% if current_user.is_authenticated %}
+                <li class="dropdown">
+                    <a aria-expanded="false" aria-haspopup="true"
+                       class="dropdown-toggle" data-toggle="dropdown" href="#"
+                       role="button">Data<span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{ url_for('home.upload_data_file') }}" title="Upload Data File">Upload Data File...</a>
+                        </li>
+                    {% if current_user.get_packageid() %}
+                        <li>
+                            <a href="{{ url_for('home.load_data') }}" title="Load Data">Load Data into {{ current_user.get_packageid() }}...</a>
+                        </li>
+                    {% endif %}
+                    </ul>
+                </li>
+            {% endif %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"

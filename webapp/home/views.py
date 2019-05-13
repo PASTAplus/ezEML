@@ -29,7 +29,8 @@ from flask_login import (
 )
 
 from webapp.auth.user_data import (
-    delete_eml, download_eml, get_active_packageid, get_user_document_list
+    delete_eml, download_eml, get_active_packageid, get_user_document_list,
+    get_user_uploads_folder_name, get_user_uploads
 )
 
 from webapp.home.forms import ( 
@@ -46,11 +47,16 @@ from webapp.home.forms import (
     OtherEntitySelectForm, OtherEntityForm, PublicationPlaceForm,
     form_md5, is_dirty_form,
     AttributeDateTimeForm, AttributeIntervalRatioForm, 
-    AttributeNominalOrdinalForm
+    AttributeNominalOrdinalForm, UploadDataFileForm, LoadDataForm
 )
 
 from webapp.home.intellectual_rights import (
     INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
+)
+
+
+from webapp.home.load_data_table import (
+    load_data_table
 )
 
 
@@ -80,6 +86,7 @@ from webapp.home.metapype_client import (
 from metapype.eml2_1_1 import export
 from metapype.eml2_1_1 import names
 from metapype.model.node import Node
+from werkzeug.utils import secure_filename
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -269,6 +276,44 @@ def download_current():
             return return_value
 
 
+def allowed_data_file(filename):
+    ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'txt', 'xml'])    
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@home.route('/upload_data_file', methods=['GET', 'POST'])
+@login_required
+def upload_data_file():
+    uploads_folder = get_user_uploads_folder_name()
+    form = UploadDataFileForm()
+
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+            
+            if filename is None or filename == '':
+                flash('No selected file')           
+            elif allowed_data_file(filename):
+                file.save(os.path.join(uploads_folder, filename))
+                flash(f'{filename} uploaded')
+            else:
+                flash(f'{filename} is not a supported data file type')
+            
+        return redirect(request.url)
+
+    # Process GET
+    return render_template('upload_data_file.html', title='Upload Data File', 
+                           form=form)
+
+
 @home.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
@@ -318,6 +363,35 @@ def open():
     return render_template('open_eml_document.html', title='Open EML Document', 
                            form=form)
 
+
+@home.route('/load_data', methods=['GET', 'POST'])
+@login_required
+def load_data():
+    form = LoadDataForm()
+    packageid = current_user.get_packageid()
+    uploads_folder = get_user_uploads_folder_name()
+
+    choices = []
+    user_uploads = get_user_uploads()
+    for filename in user_uploads:
+        filename_tuple = (filename, filename)
+        choices.append(filename_tuple)
+    form.data_file.choices = choices
+
+    # Process POST
+    if form.validate_on_submit():
+        data_file = form.data_file.data
+        data_file_path = f'{uploads_folder}/{data_file}'
+        flash(f'Loaded {data_file_path}')
+        eml_node = load_eml(packageid=packageid)
+        dataset_node = eml_node.find_child(names.DATASET)
+        dt_node = load_data_table(dataset_node, uploads_folder, data_file)
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+        return redirect(url_for('home.data_table', packageid=packageid, node_id=dt_node.id))
+    
+    # Process GET
+    return render_template('load_data.html', title='Load Data', 
+                           form=form)
 
 
 @home.route('/close', methods=['GET', 'POST'])
@@ -2221,6 +2295,9 @@ def select_post(packageid=None, form=None, form_dict=None,
                 process_down_button(packageid, node_id)
             elif val[0:3] == 'Add':
                 new_page = edit_page
+                node_id = '1'
+            elif val[0:4] == 'Load':
+                new_page = 'load_data'
                 node_id = '1'
             elif val == '[  ]':
                 new_page = this_page

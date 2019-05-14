@@ -1910,3 +1910,43 @@ def create_access_rule(allow_node:Node=None, userid:str=None, permission:str=Non
             permission_node = Node(names.PERMISSION, parent=allow_node)
             add_child(allow_node, permission_node)
             permission_node.content = permission
+
+
+def nominal_to_ordinal(nominal_node:Node=None):
+    if nominal_node:
+        if nominal_node.name == names.NOMINAL:
+            nominal_node.name = names.ORDINAL
+        else:
+            raise Exception(f"Expected nominal node object but a {nominal_node.name} node was passed.")
+    else:
+        raise Exception("Expected nominal node object but a None value was passed.")
+
+
+def ordinal_to_nominal(ordinal_node:Node=None):
+    if ordinal_node:
+        if ordinal_node.name == names.ORDINAL:
+            ordinal_node.name = names.NOMINAL
+        else:
+            raise Exception(f"Expected ordinal node object but a {ordinal_node.name} node was passed.")
+    else:
+        raise Exception("Expected ordinal node object but a None value was passed.")
+
+
+def inteval_to_ratio(interval_node:Node=None):
+    if interval_node:
+        if interval_node.name == names.INTERVAL:
+            interval_node.name = names.RATIO
+        else:
+            raise Exception(f"Expected interval node object but a {interval_node.name} node was passed.")
+    else:
+        raise Exception("Expected interval node object but a None value was passed.")
+
+
+def ratio_to_interval(ratio_node:Node=None):
+    if ratio_node:
+        if ratio_node.name == names.RATIO:
+            ratio_node.name = names.INTERVAL
+        else:
+            raise Exception(f"Expected ratio node object but a {ratio_node.name} node was passed.")
+    else:
+        raise Exception("Expected ratio node object but a None value was passed.")

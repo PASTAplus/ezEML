@@ -1038,6 +1038,7 @@ def attribute_interval_ratio(packageid:str=None, dt_node_id:str=None, node_id:st
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
                 add_child(dt_node, attribute_list_node)
 
+            mscale_choice = form.mscale_choice.data
             attribute_name = form.attribute_name.data
             attribute_label = form.attribute_label.data
             attribute_definition = form.attribute_definition.data
@@ -1087,7 +1088,7 @@ def attribute_interval_ratio(packageid:str=None, dt_node_id:str=None, node_id:st
                             bounds_maximum,
                             bounds_maximum_exclusive,
                             code_dict,
-                            mscale)
+                            mscale_choice)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
@@ -1113,6 +1114,7 @@ def attribute_interval_ratio(packageid:str=None, dt_node_id:str=None, node_id:st
     if node_id == '1':
         form_str = 'real'
         form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
+        form.mscale_choice.data = mscale
     else:
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)
@@ -1127,7 +1129,7 @@ def attribute_interval_ratio(packageid:str=None, dt_node_id:str=None, node_id:st
                             if att_nodes:
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
-                                        populate_attribute_interval_ratio_form(form, att_node)
+                                        populate_attribute_interval_ratio_form(form, att_node, mscale)
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
     
@@ -1139,6 +1141,12 @@ def attribute_interval_ratio(packageid:str=None, dt_node_id:str=None, node_id:st
 
 
 def populate_attribute_interval_ratio_form(form:AttributeIntervalRatioForm=None, att_node:Node=None, mscale:str=None):
+    if mscale is not None:
+        if mscale == names.INTERVAL:
+            form.mscale_choice.data = names.INTERVAL
+        elif mscale == names.RATIO:
+            form.mscale_choice.data = names.RATIO
+
     attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         form.attribute_name.data = attribute_name_node.content
@@ -1286,6 +1294,7 @@ def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:s
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
                 add_child(dt_node, attribute_list_node)
 
+            mscale_choice = form.mscale_choice.data
             attribute_name = form.attribute_name.data
             attribute_label = form.attribute_label.data
             attribute_definition = form.attribute_definition.data
@@ -1321,7 +1330,7 @@ def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:s
                             storage_type_system,
                             enforced,
                             code_dict,
-                            mscale)
+                            mscale_choice)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
@@ -1358,6 +1367,7 @@ def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:s
     if node_id == '1':
         form_str = 'yes'
         form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
+        form.mscale_choice.data = mscale
     else:
         eml_node = load_eml(packageid=packageid)
         dataset_node = eml_node.find_child(names.DATASET)
@@ -1384,6 +1394,12 @@ def attribute_nominal_ordinal(packageid:str=None, dt_node_id:str=None, node_id:s
 
 
 def populate_attribute_nominal_ordinal_form(form:AttributeNominalOrdinalForm, att_node:Node=None, mscale:str=None):
+    if mscale is not None:
+        if mscale == names.NOMINAL:
+            form.mscale_choice.data = names.NOMINAL
+        elif mscale == names.ORDINAL:
+            form.mscale_choice.data = names.ORDINAL
+
     attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         form.attribute_name.data = attribute_name_node.content

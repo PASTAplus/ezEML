@@ -133,6 +133,8 @@ class AttributeDateTimeForm(FlaskForm):
 
 
 class AttributeNominalOrdinalForm(FlaskForm):
+    mscale_choice = SelectField('Measurement Scale', 
+                                choices=[("nominal", "nominal"), ("ordinal", "ordinal")])
     attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])
@@ -152,7 +154,8 @@ class AttributeNominalOrdinalForm(FlaskForm):
     mscale = HiddenField('')
 
     def field_data(self)->tuple:
-        return (self.attribute_name.data, 
+        return (self.mscale_choice.data, 
+                self.attribute_name.data, 
                 self.attribute_label.data,
                 self.attribute_definition.data,
                 self.storage_type.data,
@@ -168,6 +171,8 @@ class AttributeNominalOrdinalForm(FlaskForm):
 
 
 class AttributeIntervalRatioForm(FlaskForm):
+    mscale_choice = SelectField('Measurement Scale', 
+                                choices=[("interval", "interval"), ("ratio", "ratio")])
     attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])
@@ -197,7 +202,8 @@ class AttributeIntervalRatioForm(FlaskForm):
     mscale = HiddenField('')
 
     def field_data(self)->tuple:
-        return (self.attribute_name.data, 
+        return (self.mscale_choice.data,
+                self.attribute_name.data, 
                 self.attribute_label.data,
                 self.attribute_definition.data,
                 self.storage_type.data,

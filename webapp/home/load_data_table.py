@@ -47,8 +47,11 @@ def entity_name_from_data_file(filename:str=''):
 def is_datetime_column(col:str=None):
     is_datetime = False
 
-    if col and re.search('datetime', col, flags=re.IGNORECASE):
-        is_datetime = True
+    if col:
+        if re.search('datetime', col, flags=re.IGNORECASE):
+            is_datetime = True
+        elif re.search('^date$', col, flags=re.IGNORECASE):
+            is_datetime = True
 
     return is_datetime
 

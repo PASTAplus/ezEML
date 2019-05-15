@@ -9,7 +9,8 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th>Attribute</th>
+                        <th>Column #</th>
+                        <th>Attribute Name</th>
                         <th>Measurement Scale</th>
                         <th></th>
                         <th></th>
@@ -17,6 +18,7 @@
                     </tr>
                     {% for att_entry in att_list %}
                     <tr>
+                        <td>{{ att_entry.column_number }}</td>
                         <td>{{ att_entry.label }}</td>
                         <td>{{ att_entry.mscale }}</td>
                         <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="{{ att_entry.upval }}"/></td>

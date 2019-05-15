@@ -264,15 +264,17 @@ def list_attributes(data_table_node:Node=None):
             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
             ATT_Entry = collections.namedtuple(
                 'ATT_Entry', 
-                ["id", "label", "mscale", "upval", "downval"],
+                ["id", "column_number", "label", "mscale", "upval", "downval"],
                  rename=False)
             for i, att_node in enumerate(att_nodes):
                 id = att_node.id
+                column_number = str(i+1)
                 label = compose_attribute_label(att_node)
                 mscale = compose_attribute_mscale(att_node)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(att_nodes))
                 att_entry = ATT_Entry(id=id,
+                                      column_number=column_number,
                                       label=label,
                                       mscale=mscale,
                                       upval=upval, 

@@ -2,14 +2,16 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Load Data</h1>
+    <h1>Load Data Table</h1>
     <div class="row">
         <div class="col-md-4">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 {{ form.csrf_token }}
-                <h5>Please select the data file to load:</h5>
-                {{ wtf.form_field(form.data_file) }}
-                <input class="btn btn-primary" name="Load" type="submit" value="Load"/>
+                <h4>Please select the data file to upload:</h4>
+                <input type=file name=file>
+                <br/>
+                <input class="btn btn-primary" name="Upload" type="submit" value="Upload"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
             </form>
         </div>
     </div>

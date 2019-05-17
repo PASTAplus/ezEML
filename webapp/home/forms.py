@@ -342,7 +342,7 @@ class KeywordForm(FlaskForm):
 
 
 class LoadDataForm(FlaskForm):
-    data_file = SelectField('Data File', choices=[])
+    pass
 
 
 class MethodStepSelectForm(FlaskForm):
@@ -528,7 +528,3 @@ class TitleForm(FlaskForm):
 
     def field_data(self)->tuple:
         return (self.title.data)
-
-
-class UploadDataFileForm(FlaskForm):
-    pass

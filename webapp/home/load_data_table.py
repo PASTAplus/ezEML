@@ -172,4 +172,17 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                 add_child(numeric_domain_ratio_node, number_type_ratio_node)
                 number_type_ratio_node.content = number_type
 
+    delete_data_files(uploads_path)
+
     return datatable_node
+
+
+def delete_data_files(data_folder:str=None):
+    if data_folder:
+        for data_file in os.listdir(data_folder):
+            file_path = os.path.join(data_folder, data_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(e)

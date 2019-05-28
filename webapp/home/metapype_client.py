@@ -33,7 +33,7 @@ from webapp.config import Config
 
 from metapype.eml2_1_1 import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
-from metapype.model import io
+from metapype.model import mp_io
 
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
@@ -552,7 +552,7 @@ def load_eml(packageid:str=None):
         try:
             with open(filename, "r") as json_file:
                 json_obj = json.load(json_file)
-                eml_node = io.from_json(json_obj)
+                eml_node = mp_io.from_json(json_obj)
         except Exception as e:
             logger.error(e)
     return eml_node
@@ -597,7 +597,7 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
             metadata_str = None
 
             if format == 'json':
-                metadata_str = io.to_json(eml_node)
+                metadata_str = mp_io.to_json(eml_node)
             elif format == 'xml':
                 xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
                 xml_str = export.to_xml(eml_node)

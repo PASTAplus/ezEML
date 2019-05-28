@@ -22,7 +22,7 @@ from metapype.eml2_1_1 import evaluate
 from metapype.eml2_1_1 import names
 from metapype.eml2_1_1 import rule
 from metapype.eml2_1_1 import validate
-from metapype.model import io
+from metapype.model import mp_io
 from metapype.model.node import Node
 
 from webapp.home.metapype_client import ( 

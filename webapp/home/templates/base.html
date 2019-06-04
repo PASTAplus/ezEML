@@ -46,10 +46,13 @@
                             <a href="{{ url_for('home.create') }}" title="New">New</a>
                         </li>
                         <li>
-                            <a href="{{ url_for('home.open') }}" title="Open">Open...</a>
+                            <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
                         </li>
                         <li>
-                            <a href="{{ url_for('home.download') }}" title="Download">Download...</a>
+                            <a href="{{ url_for('home.download') }}" title="Download">Download Data Package as XML...</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.load_metadata') }}" title="Upload">Upload Data Package from XML...</a>
                         </li>
                         <li>
                             <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>

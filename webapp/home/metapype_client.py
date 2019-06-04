@@ -1952,3 +1952,17 @@ def ratio_to_interval(ratio_node:Node=None):
             raise Exception(f"Expected ratio node object but a {ratio_node.name} node was passed.")
     else:
         raise Exception("Expected ratio node object but a None value was passed.")
+
+
+def read_xml(xml:str=None):
+    eml_node = None
+    if xml:
+        try:
+            eml_node = mp_io.from_xml(xml)
+        except Exception as e:
+            logger.error(e)
+            raise Exception(f"Error parsing XML: {e}")
+    else:
+        raise Exception("No XML string provided")
+
+    return eml_node

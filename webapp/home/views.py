@@ -47,7 +47,7 @@ from webapp.home.forms import (
     OtherEntitySelectForm, OtherEntityForm, PublicationPlaceForm,
     form_md5, is_dirty_form,
     AttributeDateTimeForm, AttributeIntervalRatioForm, 
-    AttributeNominalOrdinalForm, LoadDataForm
+    AttributeNominalOrdinalForm, LoadDataForm, LoadMetadataForm
 )
 
 from webapp.home.intellectual_rights import (
@@ -80,7 +80,7 @@ from webapp.home.metapype_client import (
     save_old_to_new, list_access_rules, create_access_rule,
     list_other_entities, create_other_entity, create_pubplace,
     create_access, non_numeric_domain_from_measurement_scale,
-    code_definition_from_attribute
+    code_definition_from_attribute, read_xml
 )
 
 from metapype.eml2_1_1 import export
@@ -281,6 +281,13 @@ def allowed_data_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+def allowed_metadata_file(filename):
+    ALLOWED_EXTENSIONS = set(['xml'])    
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 '''
 This function is deprecated. It was originally used as a first 
 step in a two-step process for data table upload, but that process 
@@ -340,9 +347,9 @@ def create():
                            form=form)
 
 
-@home.route('/open', methods=['GET', 'POST'])
+@home.route('/open_eml_document', methods=['GET', 'POST'])
 @login_required
-def open():
+def open_eml_document():
     form = OpenEMLDocumentForm()
 
     choices = []
@@ -404,6 +411,54 @@ def load_data():
                 return redirect(request.url)
     # Process GET
     return render_template('load_data.html', title='Load Data', 
+                           form=form)
+
+
+@home.route('/load_metadata', methods=['GET', 'POST'])
+@login_required
+def load_metadata():
+    form = LoadMetadataForm()
+    packageid = current_user.get_packageid()
+    uploads_folder = get_user_uploads_folder_name()
+
+    # Process POST
+    if  request.method == 'POST' and form.validate_on_submit():
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+            
+            if filename is None or filename == '':
+                flash('No selected file')           
+            elif allowed_metadata_file(filename):
+                file.save(os.path.join(uploads_folder, filename))
+                metadata_file = filename
+                metadata_file_path = f'{uploads_folder}/{metadata_file}'
+                with open(metadata_file_path, 'r') as file:
+                    metadata_str = file.read()
+                    try:
+                        eml_node = read_xml(metadata_str)
+                    except Exception as e:
+                        flash(e)
+                    if eml_node:
+                        packageid = eml_node.attribute_value('packageId')
+                        if packageid:
+                            current_user.set_packageid(packageid)
+                            save_both_formats(packageid=packageid, eml_node=eml_node)
+                            return redirect(url_for('home.title', packageid=packageid))
+                        else:
+                            flash(f'Unable to determine packageid from file {filename}')
+                    else:
+                        flash(f'Unable to load metadata from file {filename}')
+            else:
+                flash(f'{filename} is not a supported data file type')
+                return redirect(request.url)
+    # Process GET
+    return render_template('load_metadata.html', title='Load Metadata', 
                            form=form)
 
 
@@ -590,6 +645,8 @@ def compose_atts(att_list:list=[]):
         atts = ''
         for att_entry in att_list:
             att_name = att_entry.label
+            if att_name is None:
+                att_name = ''
             atts = atts + att_name + ', '
         atts = atts[:-2]
     

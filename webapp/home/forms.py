@@ -345,6 +345,10 @@ class LoadDataForm(FlaskForm):
     pass
 
 
+class LoadMetadataForm(FlaskForm):
+    pass
+
+
 class MethodStepSelectForm(FlaskForm):
     pass
 

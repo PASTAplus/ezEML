@@ -83,8 +83,8 @@ from webapp.home.metapype_client import (
     code_definition_from_attribute, read_xml
 )
 
-from metapype.eml2_1_1 import export
-from metapype.eml2_1_1 import names
+from metapype.eml_2_2_0 import export
+from metapype.eml_2_2_0 import names
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 

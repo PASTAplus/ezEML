@@ -31,7 +31,7 @@ from webapp.auth.user_data import (
 
 from webapp.config import Config
 
-from metapype.eml2_1_1 import export, evaluate, validate, names, rule
+from metapype.eml_2_2_0 import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io
 

@@ -16,12 +16,12 @@ import os
 import re
 import pandas as pd
 
-from metapype.eml2_1_1.exceptions import MetapypeRuleError
-from metapype.eml2_1_1 import export
-from metapype.eml2_1_1 import evaluate
-from metapype.eml2_1_1 import names
-from metapype.eml2_1_1 import rule
-from metapype.eml2_1_1 import validate
+from metapype.eml_2_2_0.exceptions import MetapypeRuleError
+from metapype.eml_2_2_0 import export
+from metapype.eml_2_2_0 import evaluate
+from metapype.eml_2_2_0 import names
+from metapype.eml_2_2_0 import rule
+from metapype.eml_2_2_0 import validate
 from metapype.model import mp_io
 from metapype.model.node import Node
 

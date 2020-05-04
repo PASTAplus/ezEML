@@ -9,8 +9,8 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th>Method Step Description</th>
-                        <th>Method Step Instrumentation</th>
+                        <th>Method&nbsp;Step Description</th>
+                        <th>Method&nbsp;Step Instrumentation</th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -20,8 +20,8 @@
                     <tr>
                         <td>{{ ms_entry.description }}</td>
                         <td>{{ ms_entry.instrumentation }}</td>
-                        <td><input class="btn btn-primary" name="{{ ms_entry.id }}" type="submit" value="{{ ms_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ ms_entry.id }}" type="submit" value="{{ ms_entry.downval }}"/></td>
+                        {{ macros.up_down_arrow(ms_entry.id, ms_entry.upval) }}
+                        {{ macros.up_down_arrow(ms_entry.id, ms_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ ms_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ ms_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

@@ -9,8 +9,8 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th>Geographic Description</th>
-                        <th>Bounding Coordinates</th>
+                        <th>Geographic&nbsp;Description</th>
+                        <th>Bounding&nbsp;Coordinates</th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -20,8 +20,8 @@
                     <tr>
                         <td>{{ gc_entry.geographic_description }}</td>
                         <td>{{ gc_entry.label }}</td>
-                        <td><input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="{{ gc_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="{{ gc_entry.downval }}"/></td>
+                        {{ macros.up_down_arrow(gc_entry.id, gc_entry.upval) }}
+                        {{ macros.up_down_arrow(gc_entry.id, gc_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

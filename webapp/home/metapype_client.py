@@ -38,6 +38,7 @@ from metapype.model import mp_io
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 
+NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
 
@@ -358,12 +359,12 @@ def list_geographic_coverages(parent_node:Node=None):
 
 
 def get_upval(i:int):
-    upval = '[  ]' if i == 0 else UP_ARROW
+    upval = NO_OP if i == 0 else UP_ARROW
     return upval
 
 
 def get_downval(i:int, n:int):
-    downval = '[  ]' if i >= n else DOWN_ARROW
+    downval = NO_OP if i >= n else DOWN_ARROW
     return downval
 
 

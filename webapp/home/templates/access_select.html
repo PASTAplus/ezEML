@@ -20,8 +20,8 @@
                     <tr>
                         <td>{{ access_entry.userid }}</td>
                         <td>{{ access_entry.permission }}</td>
-                        <td><input class="btn btn-primary" name="{{ access_entry.id }}" type="submit" value="{{ access_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ access_entry.id }}" type="submit" value="{{ access_entry.downval }}"/></td>
+                        {{ macros.up_down_arrow(access_entry.id, access_entry.upval) }}
+                        {{ macros.up_down_arrow(access_entry.id, access_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ access_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ access_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

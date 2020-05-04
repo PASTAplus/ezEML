@@ -20,8 +20,8 @@
                     <tr>
                         <td>{{ tc_entry.begin_date }}</td>
                         <td>{{ tc_entry.end_date }}</td>
-                        <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="{{ tc_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="{{ tc_entry.downval }}"/></td>
+                        {{ macros.up_down_arrow(tc_entry.id, tc_entry.upval) }}
+                        {{ macros.up_down_arrow(tc_entry.id, tc_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

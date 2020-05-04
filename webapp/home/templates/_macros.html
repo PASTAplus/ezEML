@@ -1,0 +1,7 @@
+{% macro up_down_arrow(id, val) %}
+    {% if val == '' %}
+    <td></td>
+    {% else %}
+    <td><input class="btn btn-primary" name="{{ id }}" type="submit" value="{{ val }}"/></td>
+    {% endif %}
+{% endmacro %}

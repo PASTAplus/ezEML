@@ -9,7 +9,7 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th>Taxonomic Classification</th>
+                        <th>Taxonomic&nbsp;Classification</th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -18,8 +18,8 @@
                     {% for txc_entry in txc_list %}
                     <tr>
                         <td>{{ txc_entry.label }}</td>
-                        <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="{{ txc_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="{{ txc_entry.downval }}"/></td>
+                        {{ macros.up_down_arrow(txc_entry.id, txc_entry.upval) }}
+                        {{ macros.up_down_arrow(txc_entry.id, txc_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

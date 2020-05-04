@@ -10,7 +10,7 @@
                 <table class="table table-striped">
                     <tr>
                         <th>Keyword</th>
-                        <th>Keyword Type</th>
+                        <th>Keyword&nbsp;Type</th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -20,8 +20,8 @@
                     <tr>
                         <td>{{ kw_entry.keyword }}</td>
                         <td>{{ kw_entry.keyword_type }}</td>
-                        <td><input class="btn btn-primary" name="{{ kw_entry.id }}" type="submit" value="{{ kw_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ kw_entry.id }}" type="submit" value="{{ kw_entry.downval }}"/></td>
+                        {{ macros.up_down_arrow(kw_entry.id, kw_entry.upval) }}
+                        {{ macros.up_down_arrow(kw_entry.id, kw_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ kw_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ kw_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

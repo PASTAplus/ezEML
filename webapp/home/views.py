@@ -20,7 +20,7 @@ import os.path
 from datetime import date
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, 
+    Flask, Blueprint, flash, render_template, redirect, request,
     url_for, session
 )
 
@@ -91,6 +91,10 @@ from werkzeug.utils import secure_filename
 
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
+
+
+def non_breaking(_str):
+    return _str.replace(' ', html.unescape('&nbsp;'))
 
 
 @home.route('/')
@@ -1990,8 +1994,8 @@ def metadata_provider_select(packageid=None):
     # Process GET
     return rp_select_get(packageid=packageid, form=form, 
                          rp_name=names.METADATAPROVIDER,
-                         rp_singular='Metadata Provider', 
-                         rp_plural='Metadata Providers')
+                         rp_singular=non_breaking('Metadata Provider'),
+                         rp_plural=non_breaking('Metadata Providers'))
 
 
 @home.route('/metadata_provider/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -2021,8 +2025,8 @@ def associated_party_select(packageid=None):
     # Process GET
     return rp_select_get(packageid=packageid, form=form, 
                          rp_name=names.ASSOCIATEDPARTY,
-                         rp_singular='Associated Party', 
-                         rp_plural='Associated Parties')
+                         rp_singular=non_breaking('Associated Party'),
+                         rp_plural=non_breaking('Associated Parties'))
 
 
 @home.route('/associated_party/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -2998,7 +3002,7 @@ def project_personnel_select(packageid=None):
 
     # Process GET
     return rp_select_get(packageid=packageid, form=form, rp_name='personnel',
-                         rp_singular='Project Personnel', rp_plural='Project Personnel')
+                         rp_singular=non_breaking('Project Personnel'), rp_plural=non_breaking('Project Personnel'))
 
 
 @home.route('/project_personnel/<packageid>/<node_id>', methods=['GET', 'POST'])

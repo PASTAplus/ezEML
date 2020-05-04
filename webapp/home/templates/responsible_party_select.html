@@ -16,8 +16,8 @@
                     {% for rp_entry in rp_list %}
                     <tr>
                         <td>{{ rp_entry.label }}</td>
-                        <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="{{ rp_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="{{ rp_entry.downval }}"/></td>
+                        {{ macros.up_down_arrow(rp_entry.id, rp_entry.upval) }}
+                        {{ macros.up_down_arrow(rp_entry.id, rp_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>

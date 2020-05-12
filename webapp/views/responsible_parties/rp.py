@@ -18,6 +18,7 @@ from webapp.home.metapype_client import (
 from metapype.eml_2_2_0 import names
 from metapype.model.node import Node
 
+from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking
@@ -71,10 +72,10 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
+            if val == BTN_BACK:
                 new_page = back_page
                 break
-            elif val == 'Next':
+            elif val == BTN_NEXT:
                 new_page = next_page
                 break
     return new_page
@@ -83,6 +84,11 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
 def responsible_party(packageid=None, node_id=None, method=None,
                       node_name=None, back_page=None, title=None,
                       next_page=None):
+
+    if BTN_CANCEL in request.form:
+        url = url_for(back_page, packageid=packageid)
+        return redirect(url)
+
     form = ResponsiblePartyForm(packageid=packageid)
     eml_node = load_eml(packageid=packageid)
     dataset_node = eml_node.find_child(names.DATASET)

@@ -49,6 +49,7 @@ from webapp.home.metapype_client import (
     save_old_to_new, read_xml
 )
 
+from webapp.buttons import *
 from webapp.pages import *
 
 from metapype.eml_2_2_0 import names
@@ -454,14 +455,14 @@ def select_post(packageid=None, form=None, form_dict=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
+            if val in (BTN_BACK, BTN_DONE):
                 new_page = back_page
-            elif val == 'Next':
+            elif val == BTN_NEXT:
                 new_page = next_page
-            elif val == 'Edit':
+            elif val == BTN_EDIT:
                 new_page = edit_page
                 node_id = key
-            elif val == 'Remove':
+            elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
                 eml_node = load_eml(packageid=packageid)
@@ -475,15 +476,12 @@ def select_post(packageid=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
-            elif val[0:3] == 'Add':
+            elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'
-            elif val[0:4] == 'Load':
+            elif val[0:4] == BTN_LOAD:
                 new_page = 'load_data'
                 node_id = '1'
-            elif val == '[  ]':
-                new_page = this_page
-                node_id = key
 
     if form.validate_on_submit():   
        return url_for(new_page, packageid=packageid, node_id=node_id)

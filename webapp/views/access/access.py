@@ -13,6 +13,7 @@ from metapype.eml_2_2_0 import names
 from metapype.model.node import Node
 
 from webapp.home.views import process_up_button, process_down_button
+from webapp.buttons import *
 from webapp.pages import *
 
 acc_bp = Blueprint('acc', __name__, template_folder='templates')
@@ -119,14 +120,17 @@ def access(packageid=None, node_id=None):
 
     # Process POST
     if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            url = url_for(PAGE_ACCESS_SELECT, packageid=packageid)
+            return redirect(url)
+
         next_page = PAGE_ACCESS_SELECT  # Save or Back sends us back to the list of access rules
 
         if form.validate_on_submit():
-            if 'Back' in request.form:
-                if is_dirty_form(form):
-                    submit_type = 'Save Changes'
-                else:
-                    submit_type = 'Back'
+            if is_dirty_form(form):
+                submit_type = 'Save Changes'
+            else:
+                submit_type = 'Back'
 
             if submit_type == 'Save Changes':
                 userid = form.userid.data

@@ -14,10 +14,11 @@
 """
 import daiquiri
 from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask import abort
-from flask_login import current_user, login_user, logout_user, login_required
+from flask_login import current_user, login_user, logout_user
 
 from werkzeug.urls import url_parse
+
+from webapp.pages import *
 
 from webapp.auth.forms import LoginForm
 from webapp.auth.user import User
@@ -37,7 +38,7 @@ auth = Blueprint('auth', __name__, template_folder='templates')
 def login():
     if current_user.is_authenticated:
         flash(current_user.get_username() + ', you are already logged in...')
-        return redirect(url_for('home.index'))
+        return redirect(url_for(PAGE_INDEX))
     # Process POST
     form = LoginForm()
     if form.validate_on_submit():
@@ -54,12 +55,12 @@ def login():
             if not next_page or url_parse(next_page).netloc != '':
                 current_packageid = get_active_packageid()
                 if current_packageid:
-                    next_page = url_for('home.title', packageid=current_packageid)
+                    next_page = url_for(PAGE_TITLE, packageid=current_packageid)
                 else:
-                    next_page = url_for('home.index')
+                    next_page = url_for(PAGE_INDEX)
             return redirect(next_page)
         flash('Invalid username or password')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for(PAGE_LOGIN))
     # Process GET
     return render_template('login.html', title='Sign In', form=form)
 
@@ -67,4 +68,4 @@ def login():
 @auth.route('/logout', methods=['GET'])
 def logout():
     logout_user()
-    return redirect(url_for('home.index'))
+    return redirect(url_for(PAGE_INDEX))

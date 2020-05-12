@@ -17,10 +17,6 @@ import html
 import json
 import os
 
-from flask import (
-    send_file
-)
-
 from flask_login import (
     current_user
 )

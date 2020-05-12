@@ -41,8 +41,32 @@ login.login_view = 'auth.login'
 from webapp.auth.views import auth
 app.register_blueprint(auth, url_prefix='/eml/auth')
 
+from webapp.errors.handler import errors
+app.register_blueprint(errors, url_prefix='/eml/error')
+
 from webapp.home.views import home
 app.register_blueprint(home, url_prefix='/eml')
 
-from webapp.errors.handler import errors
-app.register_blueprint(errors, url_prefix='/eml/error')
+from webapp.views.access.access import acc_bp
+app.register_blueprint(acc_bp, url_prefix='/eml')
+
+from webapp.views.coverage.coverage import cov_bp
+app.register_blueprint(cov_bp, url_prefix='/eml')
+
+from webapp.views.data_tables.dt import dt_bp
+app.register_blueprint(dt_bp, url_prefix='/eml')
+
+from webapp.views.entities.entities import ent_bp
+app.register_blueprint(ent_bp, url_prefix='/eml')
+
+from webapp.views.method_steps.md import md_bp
+app.register_blueprint(md_bp, url_prefix='/eml')
+
+from webapp.views.project.project import proj_bp
+app.register_blueprint(proj_bp, url_prefix='/eml')
+
+from webapp.views.resources.resources import res_bp
+app.register_blueprint(res_bp, url_prefix='/eml')
+
+from webapp.views.responsible_parties.rp import rp_bp
+app.register_blueprint(rp_bp, url_prefix='/eml')

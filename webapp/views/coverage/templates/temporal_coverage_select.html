@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Temporal Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table class="table table-striped">
+                    <tr>
+                        <th>Begin&nbsp;Date&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th>End&nbsp;Date&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    {% for tc_entry in tc_list %}
+                    <tr>
+                        <td>{{ tc_entry.begin_date }}</td>
+                        <td>{{ tc_entry.end_date }}</td>
+                        {{ macros.up_down_arrow(tc_entry.id, tc_entry.upval) }}
+                        {{ macros.up_down_arrow(tc_entry.id, tc_entry.downval) }}
+                        <td><input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ tc_entry.id }}" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Temporal Coverage"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

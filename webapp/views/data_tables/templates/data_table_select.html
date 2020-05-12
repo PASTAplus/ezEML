@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Data Tables</h1>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table class="table table-striped">
+                    <tr>
+                        <th colspan="5">Entity Name</th>
+                    </tr>
+                    {% for dt_entry in dt_list %}
+                    <tr>
+                        <td width="80%">{{ dt_entry.label }}</td>
+                        {{ macros.up_down_arrow(dt_entry.id, dt_entry.upval) }}
+                        {{ macros.up_down_arrow(dt_entry.id, dt_entry.downval) }}
+                        <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>
+                        <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Data Table"/>
+                <input class="btn btn-primary" name="1" type="submit" value="Load Data Table"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

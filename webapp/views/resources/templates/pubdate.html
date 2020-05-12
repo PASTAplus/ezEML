@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Publication Date</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the data package publication year or date (valid examples are '2018' or '2018-10-05'):</h5>
+                {{ wtf.form_field(form.pubdate) }}
+                <br/>
+                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

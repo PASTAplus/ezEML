@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Taxonomic Coverage</h1>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Enter a description of the range of taxa addressed in the data set or collection. 
+                    For example, "All vascular plants were identified to family or species, mosses and lichens 
+                    were identified as moss or lichen.":</h5>
+                {{ wtf.form_field(form.general_taxonomic_coverage) }}
+                <h5>Enter the taxonomic hierarchy (fill in any fields that apply):</h5>
+                <table>
+                    <tr><td>{{ wtf.form_field(form.kingdom_value) }}</td><td>&nbsp;&nbsp;</td><td>{{ wtf.form_field(form.kingdom_common_name) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.phylum_value) }}</td><td></td><td>{{ wtf.form_field(form.phylum_common_name) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.class_value) }}</td><td></td><td>{{ wtf.form_field(form.class_common_name) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.order_value) }}</td><td></td><td>{{ wtf.form_field(form.order_common_name) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.family_value) }}</td><td></td><td>{{ wtf.form_field(form.family_common_name) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.genus_value) }}</td><td></td><td>{{ wtf.form_field(form.genus_common_name) }}</td></tr>
+                    <tr><td>{{ wtf.form_field(form.species_value) }}</td><td></td><td>{{ wtf.form_field(form.species_common_name) }}</td></tr>
+                </table>        
+                <br/>
+                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Keyword</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the keyword and (optionally) the keyword type:</h5>
+                {{ wtf.form_field(form.keyword) }}
+                {{ wtf.form_field(form.keyword_type) }}
+                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

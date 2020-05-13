@@ -15,7 +15,7 @@ from webapp.home.metapype_client import (
     add_child, create_responsible_party
 )
 
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 
 from webapp.buttons import *

@@ -9,7 +9,7 @@ from webapp.home.metapype_client import (
 from webapp.home.forms import is_dirty_form, form_md5
 from webapp.views.access.forms import AccessForm, AccessSelectForm
 
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 
 from webapp.home.views import process_up_button, process_down_button

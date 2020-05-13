@@ -19,7 +19,7 @@ from webapp.views.method_steps.forms import (
 )
 
 from webapp.pages import *
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 from webapp.home.metapype_client import (
     create_method_step,

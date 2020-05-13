@@ -19,7 +19,7 @@ from webapp.views.responsible_parties.forms import ResponsiblePartySelectForm
 
 from webapp.pages import *
 from webapp.home.views import select_post
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 
 

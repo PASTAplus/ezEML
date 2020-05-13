@@ -28,7 +28,7 @@ from webapp.home.metapype_client import (
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute
 )
 
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 
 from webapp.pages import *

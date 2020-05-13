@@ -52,7 +52,7 @@ from webapp.home.metapype_client import (
 from webapp.buttons import *
 from webapp.pages import *
 
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 

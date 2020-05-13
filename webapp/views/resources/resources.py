@@ -20,7 +20,7 @@ from webapp.views.resources.forms import (
 
 from webapp.pages import *
 from webapp.home.views import process_up_button, process_down_button
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 
 from webapp.home.intellectual_rights import (

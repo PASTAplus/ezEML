@@ -21,7 +21,7 @@ from webapp.views.coverage.forms import (
 
 from webapp.pages import *
 from webapp.home.views import (select_post, compare_begin_end_dates)
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 
 

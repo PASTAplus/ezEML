@@ -51,7 +51,7 @@ from webapp.home.metapype_client import (
     create_access
 )
 
-from metapype.eml_2_2_0 import names
+from metapype.eml import names
 from metapype.model.node import Node
 
 from webapp.pages import *

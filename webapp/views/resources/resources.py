@@ -18,7 +18,9 @@ from webapp.views.resources.forms import (
     TitleForm
 )
 
+from webapp.buttons import *
 from webapp.pages import *
+
 from webapp.home.views import process_up_button, process_down_button
 from metapype.eml import names
 from metapype.model.node import Node
@@ -256,14 +258,14 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
+            if val == BTN_BACK:
                 new_page = back_page
-            elif val == 'Next':
+            elif val == BTN_NEXT:
                 new_page = next_page
-            elif val == 'Edit':
+            elif val == BTN_EDIT:
                 new_page = edit_page
                 node_id = key
-            elif val == 'Remove':
+            elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
                 eml_node = load_eml(packageid=packageid)
@@ -277,7 +279,7 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
-            elif val[0:3] == 'Add':
+            elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'
 
@@ -317,6 +319,10 @@ def keyword(packageid=None, node_id=None):
     form = KeywordForm(packageid=packageid, node_id=node_id)
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_KEYWORD_SELECT, packageid=packageid)
+            return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_KEYWORD_SELECT  # Save or Back sends us back to the list of keywords
 

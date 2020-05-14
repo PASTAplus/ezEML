@@ -31,6 +31,7 @@ from webapp.home.metapype_client import (
 from metapype.eml import names
 from metapype.model.node import Node
 
+from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking
@@ -70,8 +71,13 @@ def data_table(packageid=None, node_id=None):
     dt_node_id = node_id
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_DATA_TABLE_SELECT, packageid=packageid)
+            return redirect(url)
+
     if request.method == 'POST':
         next_page = PAGE_DATA_TABLE_SELECT
+
         submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -338,9 +344,9 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
+            if val == BTN_BACK:
                 new_page = back_page
-            elif val.startswith('Edit'):
+            elif val.startswith(BTN_EDIT):
                 node_id = key
                 attribute_node = Node.get_node_instance(node_id)
                 mscale = mscale_from_attribute(attribute_node)
@@ -350,7 +356,7 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                     new_page = PAGE_ATTRIBUTE_INTERVAL_RATIO
                 elif mscale == 'nominal' or mscale == 'ordinal':
                     new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
-            elif val == 'Remove':
+            elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
                 eml_node = load_eml(packageid=packageid)
@@ -420,6 +426,10 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
     form = AttributeDateTimeForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+            return redirect(url)
+
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -431,7 +441,7 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
             flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measurement scale page
-        if 'Back' in request.form:
+        if BTN_DONE in request.form:
             next_page = PAGE_ATTRIBUTE_SELECT
 
         if submit_type == 'Save Changes':
@@ -641,6 +651,10 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
     form = AttributeIntervalRatioForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+            return redirect(url)
+
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -652,7 +666,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
             flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measuement scale page
-        if 'Back' in request.form:
+        if BTN_DONE in request.form:  # FIXME
             next_page = PAGE_ATTRIBUTE_SELECT
 
         if submit_type == 'Save Changes':
@@ -895,6 +909,10 @@ def attribute_nominal_ordinal(packageid :str =None, dt_node_id :str =None, node_
     form = AttributeNominalOrdinalForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+            return redirect(url)
+
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -906,8 +924,8 @@ def attribute_nominal_ordinal(packageid :str =None, dt_node_id :str =None, node_
             flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measuement scale page
-        if 'Back' in request.form:
-            next_page = PAGE_ATTRIBUTE_SELECT
+        if BTN_DONE in request.form:
+            next_page = PAGE_ATTRIBUTE_SELECT  # FIXME
         elif 'Codes' in request.form:
             next_page = PAGE_CODE_DEFINITION_SELECT
 
@@ -1233,6 +1251,10 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
     form = CodeDefinitionForm(packageid=packageid, node_id=node_id, attribute_name=attribute_name)
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_CODE_DEFINITION_SELECT, packageid=packageid)
+            return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_CODE_DEFINITION_SELECT  # Save or Back sends us back to the list of attributes
 

@@ -28,11 +28,11 @@
                 {% if role %}
                 {{ wtf.form_field(form.role) }}
                 {% endif %}
-                <input class="btn btn-primary" name="Done" type="submit" value="Done"/>
+                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {% if next_page %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
                 {% endif %}
-                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
             </form>
         </div>
     </div>

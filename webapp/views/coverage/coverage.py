@@ -19,7 +19,9 @@ from webapp.views.coverage.forms import (
     TaxonomicCoverageSelectForm
 )
 
+from webapp.buttons import *
 from webapp.pages import *
+
 from webapp.home.views import (select_post, compare_begin_end_dates)
 from metapype.eml import names
 from metapype.model.node import Node
@@ -62,6 +64,10 @@ def geographic_coverage(packageid=None, node_id=None):
     form = GeographicCoverageForm(packageid=packageid)
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, packageid=packageid)
+        return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
         submit_type = None
         if is_dirty_form(form):
@@ -191,6 +197,10 @@ def temporal_coverage(packageid=None, node_id=None):
     tc_node_id = node_id
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, packageid=packageid)
+        return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
         save = False
         if is_dirty_form(form):
@@ -309,6 +319,10 @@ def taxonomic_coverage(packageid=None, node_id=None):
     form = TaxonomicCoverageForm(packageid=packageid)
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, packageid=packageid)
+        return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
         save = False
         if is_dirty_form(form):

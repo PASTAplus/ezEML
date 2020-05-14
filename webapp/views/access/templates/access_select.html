@@ -31,7 +31,9 @@
                 <br/>
                 <br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                {% if not suppress_next_btn %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                {% endif %}
             </form>
         </div>
     </div>

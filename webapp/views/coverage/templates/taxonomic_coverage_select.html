@@ -9,7 +9,7 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th width="60%">Taxonomic&nbsp;Classification</th>
+                        <th width="40%">Taxonomic&nbsp;Classification</th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -28,7 +28,9 @@
                 <input class="btn btn-primary" name="1" type="submit" value="Add Taxonomic Coverage"/>
                 <br/><br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                {% if not suppress_next_btn %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                {%  endif %}
             </form>
         </div>
     </div>

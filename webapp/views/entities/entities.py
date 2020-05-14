@@ -54,6 +54,7 @@ from webapp.home.metapype_client import (
 from metapype.eml import names
 from metapype.model.node import Node
 
+from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking
@@ -88,6 +89,10 @@ def other_entity_select(packageid=None):
 def other_entity(packageid=None, node_id=None):
     dt_node_id = node_id
     form = OtherEntityForm(packageid=packageid)
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_OTHER_ENTITY_SELECT, packageid=packageid, dt_node_id=dt_node_id)
+            return redirect(url)
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
@@ -319,7 +324,8 @@ def entity_access_select_get(packageid=None, form=None, dt_node_id=None):
                            title=title,
                            entity_name=entity_name,
                            ar_list=access_rules_list,
-                           form=form)
+                           form=form,
+                           suppress_next_btn=True)
 
 
 def entity_access_select_post(packageid=None, form=None, form_dict=None,
@@ -387,6 +393,14 @@ def entity_access_select_post(packageid=None, form=None, form_dict=None,
 def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = AccessForm(packageid=packageid, node_id=node_id)
     allow_node_id = node_id
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ENTITY_ACCESS_SELECT,
+                      packageid=packageid,
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id,
+                      node_id=allow_node_id)
+            return redirect(url)
 
     # Determine POST type
     if request.method == 'POST':
@@ -524,7 +538,8 @@ def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_no
                            title=title,
                            entity_name=entity_name,
                            method_step_list=method_step_list,
-                           form=form)
+                           form=form,
+                           suppress_next_btn=True)
 
 
 # node_id is the id of the methodStep node being edited. If the value is
@@ -538,6 +553,14 @@ def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_no
 def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = MethodStepForm(packageid=packageid, node_id=node_id)
     ms_node_id = node_id
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ENTITY_METHOD_STEP_SELECT,
+                      packageid=packageid,
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id,
+                      node_id=ms_node_id)
+            return redirect(url)
 
     # Determine POST type
     if request.method == 'POST':
@@ -662,7 +685,8 @@ def entity_geographic_coverage_select(packageid=None, dt_element_name: str = Non
                            title=title,
                            entity_name=entity_name,
                            gc_list=gc_list,
-                           form=form)
+                           form=form,
+                           suppress_next_btn=True)
 
 
 @ent_bp.route('/entity_geographic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
@@ -670,6 +694,14 @@ def entity_geographic_coverage_select(packageid=None, dt_element_name: str = Non
 def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = GeographicCoverageForm(packageid=packageid)
     gc_node_id = node_id
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT,
+                      packageid=packageid,
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id,
+                      node_id=gc_node_id)
+            return redirect(url)
 
     # Determine POST type
     if request.method == 'POST':
@@ -868,7 +900,8 @@ def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None,
                            title=title,
                            entity_name=entity_name,
                            tc_list=tc_list,
-                           form=form)
+                           form=form,
+                           suppress_next_btn=True)
 
 
 @ent_bp.route('/entity_temporal_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
@@ -876,6 +909,14 @@ def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None,
 def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = TemporalCoverageForm(packageid=packageid)
     tc_node_id = node_id
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT,
+                      packageid=packageid,
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id,
+                      node_id=tc_node_id)
+            return redirect(url)
 
     # Determine POST type
     if request.method == 'POST':
@@ -1006,7 +1047,8 @@ def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None
                            title=title,
                            entity_name=entity_name,
                            txc_list=txc_list,
-                           form=form)
+                           form=form,
+                           suppress_next_btn=True)
 
 
 @ent_bp.route('/entity_taxonomic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
@@ -1014,6 +1056,14 @@ def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None
 def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = TaxonomicCoverageForm(packageid=packageid)
     txc_node_id = node_id
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT,
+                      packageid=packageid,
+                      dt_element_name=dt_element_name,
+                      dt_node_id=dt_node_id,
+                      node_id=txc_node_id)
+            return redirect(url)
 
     # Determine POST type
     if request.method == 'POST':

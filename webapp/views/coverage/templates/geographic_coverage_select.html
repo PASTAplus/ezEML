@@ -9,7 +9,7 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th width="50%">Geographic&nbsp;Description</th>
+                        <th width="40%">Geographic&nbsp;Description</th>
                         <th>Bounding&nbsp;Coordinates (N, S, E, W)</th>
                         <th></th>
                         <th></th>
@@ -30,7 +30,9 @@
                 <input class="btn btn-primary" name="1" type="submit" value="Add Geographic Coverage"/>
                 <br/><br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+                {% if not suppress_next_btn %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                {% endif %}
             </form>
         </div>
     </div>

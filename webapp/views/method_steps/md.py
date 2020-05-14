@@ -18,7 +18,9 @@ from webapp.views.method_steps.forms import (
     MethodStepForm, MethodStepSelectForm
 )
 
+from webapp.buttons import *
 from webapp.pages import *
+
 from metapype.eml import names
 from metapype.model.node import Node
 from webapp.home.metapype_client import (
@@ -129,6 +131,10 @@ def method_step(packageid=None, node_id=None):
     form = MethodStepForm(packageid=packageid, node_id=node_id)
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+            url = url_for(PAGE_METHOD_STEP_SELECT, packageid=packageid)
+            return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_METHOD_STEP_SELECT  # Save or Back sends us back to the list of method steps
 

@@ -150,7 +150,7 @@ def save():
     save_both_formats(packageid=current_packageid, eml_node=eml_node)
     flash(f'Saved {current_packageid}')
          
-    return redirect(url_for(f'home.title', packageid=current_packageid))
+    return redirect(url_for(PAGE_TITLE, packageid=current_packageid))
 
 
 @home.route('/save_as', methods=['GET', 'POST'])
@@ -158,9 +158,9 @@ def save():
 def save_as():
     # Determine POST type
     if request.method == 'POST':
-        if 'Save' in request.form:
+        if BTN_SAVE in request.form:
             submit_type = 'Save'
-        elif 'Cancel' in request.form:
+        elif BTN_CANCEL in request.form:
             submit_type = 'Cancel'
         else:
             submit_type = None
@@ -172,7 +172,7 @@ def save_as():
         if submit_type == 'Cancel':
             if current_packageid:
                 new_packageid = current_packageid  # Revert back to the old packageid
-                new_page = 'title'
+                new_page = PAGE_TITLE
             else:
                 return render_template('index.html')
         elif submit_type == 'Save':
@@ -196,7 +196,7 @@ def save_as():
             else:
                 current_user.set_packageid(packageid=new_packageid)
                 flash(f'Saved as {new_packageid}')
-            new_page = 'title'   # Return the Response object
+            new_page = PAGE_TITLE   # Return the Response object
         
         return redirect(url_for(new_page, packageid=new_packageid))
 
@@ -376,7 +376,7 @@ def load_data():
                 dataset_node = eml_node.find_child(names.DATASET)
                 dt_node = load_data_table(dataset_node, uploads_folder, data_file)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
-                return redirect(url_for('home.data_table', packageid=packageid, node_id=dt_node.id))
+                return redirect(url_for(PAGE_DATA_TABLE, packageid=packageid, node_id=dt_node.id))
             else:
                 flash(f'{filename} is not a supported data file type')
                 return redirect(request.url)
@@ -420,7 +420,7 @@ def load_metadata():
                         if packageid:
                             current_user.set_packageid(packageid)
                             save_both_formats(packageid=packageid, eml_node=eml_node)
-                            return redirect(url_for('home.title', packageid=packageid))
+                            return redirect(url_for(PAGE_TITLE, packageid=packageid))
                         else:
                             flash(f'Unable to determine packageid from file {filename}')
                     else:
@@ -480,7 +480,7 @@ def select_post(packageid=None, form=None, form_dict=None,
                 new_page = edit_page
                 node_id = '1'
             elif val[0:4] == BTN_LOAD:
-                new_page = 'load_data'
+                new_page = PAGE_LOAD_DATA
                 node_id = '1'
 
     if form.validate_on_submit():   

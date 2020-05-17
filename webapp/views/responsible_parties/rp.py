@@ -36,7 +36,7 @@ def creator_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
-                          'POST', PAGE_CREATOR_SELECT, PAGE_ACCESS_SELECT,
+                          'POST', PAGE_CREATOR_SELECT, PAGE_TITLE,
                           PAGE_METADATA_PROVIDER_SELECT, PAGE_CREATOR)
         return redirect(url)
 

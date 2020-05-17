@@ -38,7 +38,7 @@ def title(packageid=None):
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
-        new_page = PAGE_ACCESS_SELECT
+        new_page = PAGE_CREATOR_SELECT
         save = False
         if is_dirty_form(form):
             save = True

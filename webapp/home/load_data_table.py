@@ -104,7 +104,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     if md5_hash is not None:
         hash_node = Node(names.AUTHENTICATION, parent=physical_node)
         add_child(physical_node, hash_node)
-        hash_node.add_attribute('method', 'md5')
+        hash_node.add_attribute('method', 'MD5')
         hash_node.content = str(md5_hash)
 
     data_format_node = Node(names.DATAFORMAT, parent=physical_node)
@@ -233,7 +233,7 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     if md5_hash is not None:
         hash_node = Node(names.AUTHENTICATION, parent=physical_node)
         add_child(physical_node, hash_node)
-        hash_node.add_attribute('method', 'md5')
+        hash_node.add_attribute('method', 'MD5')
         hash_node.content = str(md5_hash)
 
     data_format_node = Node(names.DATAFORMAT, parent=physical_node)

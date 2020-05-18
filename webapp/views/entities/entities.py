@@ -125,11 +125,8 @@ def other_entity(packageid=None, node_id=None):
             entity_type = form.entity_type.data
             entity_description = form.entity_description.data
             object_name = form.object_name.data
-            size = form.size.data
-            num_header_lines = form.num_header_lines.data
-            record_delimiter = form.record_delimiter.data
-            attribute_orientation = form.attribute_orientation.data
-            field_delimiter = form.field_delimiter.data
+            format_name = form.format_name.data
+            # size = form.size.data
             online_url = form.online_url.data
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
@@ -140,11 +137,7 @@ def other_entity(packageid=None, node_id=None):
                 entity_type,
                 entity_description,
                 object_name,
-                size,
-                num_header_lines,
-                record_delimiter,
-                attribute_orientation,
-                field_delimiter,
+                format_name,
                 online_url)
 
             if dt_node_id and len(dt_node_id) != 1:
@@ -236,34 +229,19 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
         if object_name_node:
             form.object_name.data = object_name_node.content
 
-        size_node = physical_node.find_child(names.SIZE)
-        if size_node:
-            form.size.data = size_node.content
+        # size_node = physical_node.find_child(names.SIZE)
+        # if size_node:
+        #     form.size.data = size_node.content
 
         data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:
 
-            text_format_node = data_format_node.find_child(names.TEXTFORMAT)
-            if text_format_node:
+            externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
+            if externally_defined_format_node:
+                format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
 
-                num_header_lines_node = text_format_node.find_child(names.NUMHEADERLINES)
-                if num_header_lines_node:
-                    form.num_header_lines.data = num_header_lines_node.content
-
-                record_delimiter_node = text_format_node.find_child(names.RECORDDELIMITER)
-                if record_delimiter_node:
-                    form.record_delimiter.data = record_delimiter_node.content
-
-                attribute_orientation_node = text_format_node.find_child(names.ATTRIBUTEORIENTATION)
-                if attribute_orientation_node:
-                    form.attribute_orientation.data = attribute_orientation_node.content
-
-                simple_delimited_node = text_format_node.find_child(names.SIMPLEDELIMITED)
-                if simple_delimited_node:
-
-                    field_delimiter_node = simple_delimited_node.find_child(names.FIELDDELIMITER)
-                    if field_delimiter_node:
-                        form.field_delimiter.data = field_delimiter_node.content
+                if format_name_node:
+                    form.format_name.data = format_name_node.content
 
         distribution_node = physical_node.find_child(names.DISTRIBUTION)
         if distribution_node:

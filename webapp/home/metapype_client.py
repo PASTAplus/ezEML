@@ -1155,11 +1155,8 @@ def create_other_entity(
     entity_type:str=None,
     entity_description:str=None,
     object_name:str=None,
-    size:str=None,
-    num_header_lines:str=None,
-    record_delimiter:str=None,
-    attribute_orientation:str=None,
-    field_delimiter:str=None,
+    format_name:str=None,
+    # size:str=None,
     online_url:str=None):
 
     try:
@@ -1182,9 +1179,7 @@ def create_other_entity(
             entity_description_node.content = entity_description
             add_child(entity_node, entity_description_node)
 
-        if object_name or size or num_header_lines or \
-           record_delimiter or attribute_orientation or \
-           field_delimiter or online_url:
+        if object_name or format_name or online_url:
 
             physical_node = Node(names.PHYSICAL, parent=entity_node)
             add_child(entity_node, physical_node)
@@ -1194,42 +1189,19 @@ def create_other_entity(
                 object_name_node.content = object_name
                 add_child(physical_node, object_name_node)
 
-            if size:
-                size_node = Node(names.SIZE, parent=physical_node)
-                size_node.content = size
-                add_child(physical_node, size_node)
-
-            if num_header_lines or record_delimiter or \
-               attribute_orientation or field_delimiter:
-
+            if format_name:
                 data_format_node = Node(names.DATAFORMAT, parent=physical_node)
                 add_child(physical_node, data_format_node)
-    
-                text_format_node = Node(names.TEXTFORMAT, parent=data_format_node)
-                add_child(data_format_node, text_format_node)
+                externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+                add_child(data_format_node, externally_defined_format_node)
+                format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+                format_name_node.content = format_name
+                add_child(externally_defined_format_node, format_name_node)
 
-                if num_header_lines:
-                    num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
-                    num_header_lines_node.content = num_header_lines
-                    add_child(text_format_node, num_header_lines_node)
-                
-                if record_delimiter:
-                    record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
-                    record_delimiter_node.content = record_delimiter
-                    add_child(text_format_node, record_delimiter_node)
-
-                if attribute_orientation:
-                    attribute_orientation_node = Node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
-                    attribute_orientation_node.content = attribute_orientation
-                    add_child(text_format_node, attribute_orientation_node)
-
-                if field_delimiter:
-                    simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
-                    add_child(text_format_node, simple_delimited_node)
-
-                    field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
-                    field_delimiter_node.content = field_delimiter
-                    add_child(simple_delimited_node, field_delimiter_node)
+            # if size:
+            #     size_node = Node(names.SIZE, parent=physical_node)
+            #     size_node.content = size
+            #     add_child(physical_node, size_node)
 
             if online_url:
                 distribution_node = Node(names.DISTRIBUTION, parent=physical_node)

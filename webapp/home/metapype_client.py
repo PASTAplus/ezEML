@@ -1622,6 +1622,7 @@ def create_responsible_party(
                    salutation:str=None,
                    gn:str=None,
                    sn:str=None,
+                   user_id:str=None,
                    organization:str=None,
                    position_name:str=None,
                    address_1:str=None,
@@ -1651,6 +1652,11 @@ def create_responsible_party(
                 surname_node.content = sn
                 add_child(individual_name_node, surname_node)
             add_child(responsible_party_node, individual_name_node)
+
+        if user_id:
+            user_id_node = Node(names.USERID)
+            user_id_node.content = user_id
+            add_child(responsible_party_node, user_id_node)
 
         if organization:
             organization_name_node = Node(names.ORGANIZATIONNAME)

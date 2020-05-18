@@ -126,7 +126,8 @@ def other_entity(packageid=None, node_id=None):
             entity_description = form.entity_description.data
             object_name = form.object_name.data
             format_name = form.format_name.data
-            # size = form.size.data
+            size = form.size.data
+            md5_hash = form.md5_hash.data
             online_url = form.online_url.data
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
@@ -138,6 +139,8 @@ def other_entity(packageid=None, node_id=None):
                 entity_description,
                 object_name,
                 format_name,
+                size,
+                md5_hash,
                 online_url)
 
             if dt_node_id and len(dt_node_id) != 1:
@@ -229,9 +232,13 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
         if object_name_node:
             form.object_name.data = object_name_node.content
 
-        # size_node = physical_node.find_child(names.SIZE)
-        # if size_node:
-        #     form.size.data = size_node.content
+        size_node = physical_node.find_child(names.SIZE)
+        if size_node:
+            form.size.data = size_node.content
+
+        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
+        if md5_hash_node:
+            form.md5_hash.data = md5_hash_node.content
 
         data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:

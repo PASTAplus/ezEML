@@ -19,7 +19,8 @@ class OtherEntityForm(EDIForm):
     entity_description = StringField('Description (Optional)', validators=[])
     object_name = StringField('Object Name', validators=[])
     format_name = StringField('Format Name (e.g., PNG)', validators=[])
-    # size = IntegerField('Size (Optional)', validators=[Optional()])
+    size = IntegerField('Size (Optional)', validators=[Optional()])
+    md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
     md5 = HiddenField('')
 
@@ -29,5 +30,7 @@ class OtherEntityForm(EDIForm):
                 self.entity_description.data,
                 self.object_name.data,
                 self.format_name.data,
+                self.size.data,
+                self.md5_hash.data,
                 self.online_url.data)
 

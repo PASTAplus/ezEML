@@ -34,12 +34,12 @@ from webapp.home.forms import (
     CreateEMLForm,
     DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
-    LoadDataForm, LoadMetadataForm
+    LoadDataForm, LoadMetadataForm, LoadOtherEntityForm
 )
 
 
 from webapp.home.load_data_table import (
-    load_data_table
+    load_data_table, load_other_entity
 )
 
 
@@ -382,6 +382,42 @@ def load_data():
                 return redirect(request.url)
     # Process GET
     return render_template('load_data.html', title='Load Data', 
+                           form=form)
+
+
+@home.route('/load_other_entity', methods=['GET', 'POST'])
+@login_required
+def load_entity():
+    form = LoadOtherEntityForm()
+    packageid = current_user.get_packageid()
+    uploads_folder = get_user_uploads_folder_name()
+
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+
+            if filename is None or filename == '':
+                flash('No selected file')
+            else:
+                file.save(os.path.join(uploads_folder, filename))
+                data_file = filename
+                data_file_path = f'{uploads_folder}/{data_file}'
+                flash(f'Loaded {data_file_path}')
+                eml_node = load_eml(packageid=packageid)
+                dataset_node = eml_node.find_child(names.DATASET)
+                other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file)
+                save_both_formats(packageid=packageid, eml_node=eml_node)
+                return redirect(url_for(PAGE_OTHER_ENTITY, packageid=packageid, node_id=other_entity_node.id))
+
+    # Process GET
+    return render_template('load_other_entity.html', title='Load Other Entity',
                            form=form)
 
 

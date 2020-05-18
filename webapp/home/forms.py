@@ -89,6 +89,10 @@ class LoadDataForm(FlaskForm):
     pass
 
 
+class LoadOtherEntityForm(FlaskForm):
+    pass
+
+
 class LoadMetadataForm(FlaskForm):
     pass
 

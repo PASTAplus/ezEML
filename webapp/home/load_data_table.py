@@ -56,6 +56,13 @@ def entity_name_from_data_file(filename:str=''):
     return entity_name
 
 
+def format_name_from_data_file(filename:str=''):
+    format_name = ''
+    if filename:
+        format_name = filename.rsplit('.', 1)[1]
+    return format_name
+
+
 def is_datetime_column(col:str=None):
     is_datetime = False
 
@@ -194,6 +201,54 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     delete_data_files(uploads_path)
 
     return datatable_node
+
+
+def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_file: str = ''):
+    full_path = f'{uploads_path}/{data_file}'
+
+    other_entity_node = Node(names.OTHERENTITY, parent=dataset_node)
+    add_child(dataset_node, other_entity_node)
+
+    physical_node = Node(names.PHYSICAL, parent=other_entity_node)
+    add_child(other_entity_node, physical_node)
+    physical_node.add_attribute('system', 'EDI')
+
+    entity_name_node = Node(names.ENTITYNAME, parent=other_entity_node)
+    add_child(other_entity_node, entity_name_node)
+    entity_name = entity_name_from_data_file(data_file)
+    entity_name_node.content = entity_name
+
+    object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+    add_child(physical_node, object_name_node)
+    object_name_node.content = data_file
+
+    file_size = get_file_size(full_path)
+    if file_size is not None:
+        size_node = Node(names.SIZE, parent=physical_node)
+        add_child(physical_node, size_node)
+        size_node.add_attribute('unit', 'byte')
+        size_node.content = str(file_size)
+
+    md5_hash = get_md5_hash(full_path)
+    if md5_hash is not None:
+        hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+        add_child(physical_node, hash_node)
+        hash_node.add_attribute('method', 'md5')
+        hash_node.content = str(md5_hash)
+
+    data_format_node = Node(names.DATAFORMAT, parent=physical_node)
+    add_child(physical_node, data_format_node)
+
+    externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+    add_child(data_format_node, externally_defined_format_node)
+
+    format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+    add_child(externally_defined_format_node, format_name_node)
+    format_name_node.content = format_name_from_data_file(data_file)
+
+    delete_data_files(uploads_path)
+
+    return other_entity_node
 
 
 def delete_data_files(data_folder:str=None):

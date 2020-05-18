@@ -12,6 +12,7 @@
     5/9/19
 """
 
+import hashlib
 import os
 import re
 import pandas as pd
@@ -35,6 +36,17 @@ def get_file_size(full_path:str=''):
     if full_path:
         file_size = os.path.getsize(full_path)
     return file_size
+
+
+def get_md5_hash(full_path:str=''):
+    digest = None
+    if full_path:
+        with open(full_path, 'rb') as file:
+            content = file.read()
+            md5_hash = hashlib.md5()
+            md5_hash.update(content)
+            digest = md5_hash.hexdigest()
+    return digest
 
 
 def entity_name_from_data_file(filename:str=''):
@@ -80,6 +92,13 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         add_child(physical_node, size_node)
         size_node.add_attribute('unit', 'byte')
         size_node.content = str(file_size)
+
+    md5_hash = get_md5_hash(full_path)
+    if md5_hash is not None:
+        hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+        add_child(physical_node, hash_node)
+        hash_node.add_attribute('method', 'md5')
+        hash_node.content = str(md5_hash)
 
     data_format_node = Node(names.DATAFORMAT, parent=physical_node)
     add_child(physical_node, data_format_node)

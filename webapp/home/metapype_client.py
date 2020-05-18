@@ -697,6 +697,7 @@ def create_data_table(
     entity_description:str=None,
     object_name:str=None,
     size:str=None,
+    md5_hash:str=None,
     num_header_lines:str=None,
     record_delimiter:str=None,
     attribute_orientation:str=None,
@@ -720,7 +721,7 @@ def create_data_table(
             entity_description_node.content = entity_description
             add_child(data_table_node, entity_description_node)
 
-        if object_name or size or num_header_lines or \
+        if object_name or size or md5_hash or num_header_lines or \
            record_delimiter or attribute_orientation or \
            field_delimiter or online_url:
 
@@ -736,6 +737,11 @@ def create_data_table(
                 size_node = Node(names.SIZE, parent=physical_node)
                 size_node.content = size
                 add_child(physical_node, size_node)
+
+            if md5_hash:
+                md5_hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+                md5_hash_node.content = md5_hash
+                add_child(physical_node, md5_hash_node)
 
             if num_header_lines or record_delimiter or \
                attribute_orientation or field_delimiter:

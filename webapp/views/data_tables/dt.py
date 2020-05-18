@@ -107,6 +107,7 @@ def data_table(packageid=None, node_id=None):
             entity_description = form.entity_description.data
             object_name = form.object_name.data
             size = form.size.data
+            md5_hash = form.md5_hash.data
             num_header_lines = form.num_header_lines.data
             record_delimiter = form.record_delimiter.data
             attribute_orientation = form.attribute_orientation.data
@@ -123,6 +124,7 @@ def data_table(packageid=None, node_id=None):
                 entity_description,
                 object_name,
                 size,
+                md5_hash,
                 num_header_lines,
                 record_delimiter,
                 attribute_orientation,
@@ -244,6 +246,10 @@ def populate_data_table_form(form :DataTableForm, node :Node):
         size_node = physical_node.find_child(names.SIZE)
         if size_node:
             form.size.data = size_node.content
+
+        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
+        if md5_hash_node:
+            form.md5_hash.data = md5_hash_node.content
 
         data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:

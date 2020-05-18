@@ -159,6 +159,7 @@ class DataTableForm(EDIForm):
     entity_description = StringField('Description (Optional)', validators=[])
     object_name = StringField('Object Name', validators=[])
     size = IntegerField('Size (Optional)', validators=[Optional()])
+    md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
     record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
     attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
@@ -173,7 +174,8 @@ class DataTableForm(EDIForm):
         return (self.entity_name.data, 
                 self.entity_description.data, 
                 self.object_name.data, 
-                self.size.data, 
+                self.size.data,
+                self.md5_hash.data,
                 self.num_header_lines.data, 
                 self.record_delimiter.data, 
                 self.attribute_orientation.data, 

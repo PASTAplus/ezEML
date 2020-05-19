@@ -5,7 +5,6 @@
 {% if title %}{{ title }} - Metadata EML{% endif %}
 {% endblock %}
 
-
 {% block navbar %}
 <nav class="navbar navbar-default">
     <div class="container-fluid">
@@ -137,6 +136,9 @@
                     <ul class="dropdown-menu">
                         <li>
                             <a href="{{ url_for('home.load_data') }}" title="Load Data Table">Load Data Table into {{ current_user.get_packageid() }}...</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.load_entity') }}" title="Load Other Entity">Load Other Entity into {{ current_user.get_packageid() }}...</a>
                         </li>
                     </ul>
                 </li>

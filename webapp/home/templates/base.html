@@ -6,18 +6,26 @@
 {% endblock %}
 
 {% block navbar %}
+
 <nav class="navbar navbar-default">
     <div class="container-fluid">
         <div class="navbar-header">
-            <button aria-controls="navbar" aria-expanded="false"
-                    class="navbar-toggle collapsed" data-target="#top-navbar"
-                    data-toggle="collapse" type="button">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="{{ url_for('home.index') }}">Metadata EML</a>
+            <table>
+                <td width="5%"></td>
+                <td><a href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a></td>
+                <td width="5%"></td>
+                <td>
+                    <button aria-controls="navbar" aria-expanded="false"
+                            class="navbar-toggle collapsed" data-target="#top-navbar"
+                            data-toggle="collapse" type="button">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="{{ url_for('home.index') }}">Metadata EML</a>
+                </td>
+            </table>
         </div>
         <div class="navbar-collapse collapse" id="top-navbar">
             <ul class="nav navbar-nav">

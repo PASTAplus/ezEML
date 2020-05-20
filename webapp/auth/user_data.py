@@ -24,6 +24,7 @@ from flask_login import (
 
 from webapp.config import Config
 
+
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
 

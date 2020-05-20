@@ -220,7 +220,7 @@ def non_numeric_domain_from_measurement_scale(ms_node:Node=None):
             nnd_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
 
     return nnd_node
-    
+
 
 def mscale_from_attribute(att_node:Node=None):
     mscale = ''

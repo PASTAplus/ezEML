@@ -15,6 +15,17 @@ class AttributeSelectForm(EDIForm):
     pass
 
 
+class AttributeMeasurementScaleForm(EDIForm):
+    mscale_choice = SelectField('New Measurement Scale',
+                                choices=[("interval", "interval"), ("ratio", "ratio"),
+                                         ("nominal", "nominal"), ("ordinal", "ordinal"),
+                                         ("dateTime", "dateTime")])
+    md5 = HiddenField('')
+
+    def field_data(self)->tuple:
+        return (self.mscale_choice.data)
+
+
 class AttributeDateTimeForm(EDIForm):
     attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])

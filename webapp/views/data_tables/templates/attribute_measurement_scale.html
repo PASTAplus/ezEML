@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Measurement Scale for {{ entity_name }}</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.mscale_choice) }}<br/>
+                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ wtf.form_field(form.md5) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}

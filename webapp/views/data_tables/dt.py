@@ -8,6 +8,7 @@ from webapp.home.views import process_up_button, process_down_button
 
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
+    AttributeMeasurementScaleForm,
     AttributeNominalOrdinalForm, AttributeSelectForm,
     CodeDefinitionForm, CodeDefinitionSelectForm,
     DataTableForm, DataTableSelectForm
@@ -35,7 +36,6 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking
-
 
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
 
@@ -72,8 +72,8 @@ def data_table(packageid=None, node_id=None):
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_DATA_TABLE_SELECT, packageid=packageid)
-            return redirect(url)
+        url = url_for(PAGE_DATA_TABLE_SELECT, packageid=packageid)
+        return redirect(url)
 
     if request.method == 'POST':
         next_page = PAGE_DATA_TABLE_SELECT
@@ -213,7 +213,7 @@ def data_table(packageid=None, node_id=None):
                            atts=atts)
 
 
-def compose_atts(att_list :list =[]):
+def compose_atts(att_list: list = []):
     atts = ''
     if att_list:
         atts = ''
@@ -227,7 +227,7 @@ def compose_atts(att_list :list =[]):
     return atts
 
 
-def populate_data_table_form(form :DataTableForm, node :Node):
+def populate_data_table_form(form: DataTableForm, node: Node):
     entity_name_node = node.find_child(names.ENTITYNAME)
     if entity_name_node:
         form.entity_name.data = entity_name_node.content
@@ -340,6 +340,102 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
                            form=form)
 
 
+@dt_bp.route('/attribute_measurement_scale/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_measurement_scale(packageid=None, dt_node_id=None, node_id=None, mscale=None):
+    form = AttributeMeasurementScaleForm(packageid=packageid)
+    att_node_id = node_id
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        return attribute_measurement_scale_post(packageid, form, form_dict, dt_node_id, node_id, mscale)
+
+    # Process GET
+    return attribute_measurement_scale_get(packageid, form, att_node_id)
+
+
+def attribute_measurement_scale_post(packageid, form, form_dict, dt_node_id, att_node_id, mscale):
+    if BTN_OK in form_dict and 'mscale_choice' in form_dict:
+        eml_node = load_eml(packageid=packageid)
+        old_mscale = mscale
+        new_mscale = form_dict['mscale_choice'][0]
+        att_node = Node.get_node_instance(att_node_id)
+        change_measurement_scale(att_node, old_mscale, new_mscale)
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    url = url_for(PAGE_ATTRIBUTE_SELECT,
+                  packageid=packageid,
+                  dt_node_id=dt_node_id)
+    return redirect(url)
+
+
+def attribute_measurement_scale_get(packageid, form, att_node_id):
+    node_to_change = Node.get_node_instance(att_node_id)
+    name_child = node_to_change.find_child(names.ATTRIBUTENAME)
+    name = name_child.content
+    if not name:
+        name = 'Attribute'
+    mscale = mscale_from_attribute(node_to_change)
+    if mscale is not None:
+        form.mscale_choice.data = mscale
+
+    return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
+
+
+def change_measurement_scale(att_node, old_mscale, new_mscale):
+    if not att_node:
+        return
+    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    old_child = mscale_node.find_child(old_mscale)
+    children = None
+
+    # if we're changing interval <-> ratio or nominal <-> ordinal, the children of the
+    # measurementScale node can be reused
+    if old_mscale in ('interval', 'ratio') and new_mscale in ('interval', 'ratio') or \
+            old_mscale in ('nominal', 'ordinal') and new_mscale in ('nominal', 'ordinal'):
+        children = old_child.children
+
+    remove_child(old_child.id)
+    new_child = Node(new_mscale, parent=mscale_node)
+    add_child(mscale_node, new_child)
+    if children:
+        for child in children:
+            child.parent = new_child
+            add_child(new_child, child)
+        return
+
+    # otherwise, we need to construct new children
+    if new_mscale in ('interval', 'ratio'):
+
+        ratio_node = Node(names.RATIO, parent=mscale_node)
+        add_child(mscale_node, ratio_node)
+
+        numeric_domain_ratio_node = Node(names.NUMERICDOMAIN, parent=ratio_node)
+        add_child(ratio_node, numeric_domain_ratio_node)
+
+        number_type_ratio_node = Node(names.NUMBERTYPE, parent=numeric_domain_ratio_node)
+        add_child(numeric_domain_ratio_node, number_type_ratio_node)
+        number_type = 'real'
+        number_type_ratio_node.content = number_type
+
+    elif new_mscale in ('nominal', 'ordinal'):
+
+        nominal_node = Node(names.NOMINAL, parent=mscale_node)
+        add_child(mscale_node, nominal_node)
+
+        non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
+        add_child(nominal_node, non_numeric_domain_node)
+
+    elif new_mscale == 'dateTime':
+
+        datetime_node = Node(names.DATETIME, parent=mscale_node)
+        add_child(mscale_node, datetime_node)
+
+        format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
+        add_child(datetime_node, format_string_node)
+        format_string_node.content = ''
+
+
 def attribute_select_post(packageid=None, form=None, form_dict=None,
                           method=None, this_page=None, back_page=None,
                           dt_node_id=None):
@@ -368,6 +464,11 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == BTN_CHANGE_SCALE:
+                node_id = key
+                node_to_change = Node.get_node_instance(node_id)
+                mscale = mscale_from_attribute(node_to_change)
+                new_page = PAGE_ATTRIBUTE_MEASUREMENT_SCALE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
@@ -408,10 +509,11 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                            dt_node_id=dt_node_id,
                            node_id=node_id)
         elif new_page in (
-            PAGE_ATTRIBUTE_SELECT,
-            PAGE_ATTRIBUTE_DATETIME,
-            PAGE_ATTRIBUTE_INTERVAL_RATIO,
-            PAGE_ATTRIBUTE_NOMINAL_ORDINAL
+                PAGE_ATTRIBUTE_SELECT,
+                PAGE_ATTRIBUTE_DATETIME,
+                PAGE_ATTRIBUTE_INTERVAL_RATIO,
+                PAGE_ATTRIBUTE_NOMINAL_ORDINAL,
+                PAGE_ATTRIBUTE_MEASUREMENT_SCALE
         ):
             # other attribute measurement scales need to pass mscale value
             url = url_for(new_page,
@@ -433,8 +535,8 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
-            return redirect(url)
+        url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        return redirect(url)
 
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
@@ -562,7 +664,7 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
     return render_template('attribute_datetime.html', title='Attribute', form=form)
 
 
-def populate_attribute_datetime_form(form :AttributeDateTimeForm, node :Node):
+def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
     att_node = node
 
     attribute_name_node = node.find_child(names.ATTRIBUTENAME)
@@ -658,8 +760,8 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
-            return redirect(url)
+        url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        return redirect(url)
 
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
@@ -801,7 +903,8 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
                            mscale=mscale)
 
 
-def populate_attribute_interval_ratio_form(form :AttributeIntervalRatioForm =None, att_node :Node =None, mscale :str =None):
+def populate_attribute_interval_ratio_form(form: AttributeIntervalRatioForm = None, att_node: Node = None,
+                                           mscale: str = None):
     if mscale is not None:
         if mscale == names.INTERVAL:
             form.mscale_choice.data = names.INTERVAL
@@ -911,13 +1014,13 @@ def populate_attribute_interval_ratio_form(form :AttributeIntervalRatioForm =Non
 
 
 @dt_bp.route('/attribute_nominal_ordinal/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def attribute_nominal_ordinal(packageid :str =None, dt_node_id :str =None, node_id :str =None, mscale :str =None):
+def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
     form = AttributeNominalOrdinalForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
-            return redirect(url)
+        url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        return redirect(url)
 
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
@@ -1021,7 +1124,8 @@ def attribute_nominal_ordinal(packageid :str =None, dt_node_id :str =None, node_
                 cd_node = Node(names.CODEDEFINITION, parent=None)
 
             cd_node_id = cd_node.id
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, att_node_id=att_node_id, node_id=cd_node_id, mscale=mscale)
+            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, att_node_id=att_node_id,
+                          node_id=cd_node_id, mscale=mscale)
         else:
             url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
 
@@ -1058,7 +1162,8 @@ def attribute_nominal_ordinal(packageid :str =None, dt_node_id :str =None, node_
                            mscale=mscale)
 
 
-def populate_attribute_nominal_ordinal_form(form :AttributeNominalOrdinalForm, att_node :Node =None, mscale :str =None):
+def populate_attribute_nominal_ordinal_form(form: AttributeNominalOrdinalForm, att_node: Node = None,
+                                            mscale: str = None):
     if mscale is not None:
         if mscale == names.NOMINAL:
             form.mscale_choice.data = names.NOMINAL
@@ -1134,7 +1239,7 @@ def populate_attribute_nominal_ordinal_form(form :AttributeNominalOrdinalForm, a
 # is a part of
 #
 @dt_bp.route('/code_definition_select/<packageid>/<dt_node_id>/<att_node_id>/<node_id>/<mscale>',
-            methods=['GET', 'POST'])
+             methods=['GET', 'POST'])
 def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, node_id=None, mscale=None):
     nom_ord_node_id = node_id
     form = CodeDefinitionSelectForm(packageid=packageid)
@@ -1244,7 +1349,7 @@ def code_definition_select_post(packageid=None,
 # editing an existing one.
 #
 @dt_bp.route('/code_definition/<packageid>/<dt_node_id>/<att_node_id>/<nom_ord_node_id>/<node_id>/<mscale>',
-            methods=['GET', 'POST'])
+             methods=['GET', 'POST'])
 def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_node_id=None, node_id=None, mscale=None):
     eml_node = load_eml(packageid=packageid)
     att_node = Node.get_node_instance(att_node_id)
@@ -1258,8 +1363,8 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_CODE_DEFINITION_SELECT, packageid=packageid)
-            return redirect(url)
+        url = url_for(PAGE_CODE_DEFINITION_SELECT, packageid=packageid)
+        return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_CODE_DEFINITION_SELECT  # Save or Back sends us back to the list of attributes

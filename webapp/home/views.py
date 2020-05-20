@@ -126,7 +126,7 @@ def delete():
             flash(return_value)
         else:
             flash(f'Deleted {packageid}')
-        new_page = 'delete'   # Return the Response object
+        new_page = PAGE_DELETE   # Return the Response object
         return redirect(url_for(new_page))
     # Process GET
     return render_template('delete_eml.html', title='Delete EML', 

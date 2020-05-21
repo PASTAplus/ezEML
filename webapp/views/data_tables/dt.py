@@ -385,46 +385,55 @@ def attribute_measurement_scale_get(packageid, form, att_node_id):
 def change_measurement_scale(att_node, old_mscale, new_mscale):
     if not att_node:
         return
+    if old_mscale == new_mscale:
+        return
+    # flash(f'Changing from {old_mscale} to {new_mscale}')
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
-    old_child = mscale_node.find_child(old_mscale)
+    old_scale_node = mscale_node.find_child(old_mscale)
     children = None
 
     # if we're changing interval <-> ratio or nominal <-> ordinal, the children of the
     # measurementScale node can be reused
-    if old_mscale in ('interval', 'ratio') and new_mscale in ('interval', 'ratio') or \
-            old_mscale in ('nominal', 'ordinal') and new_mscale in ('nominal', 'ordinal'):
-        children = old_child.children
+    if (old_mscale in ('interval', 'ratio') and new_mscale in ('interval', 'ratio')) or \
+            (old_mscale in ('nominal', 'ordinal') and new_mscale in ('nominal', 'ordinal')):
+        children = old_scale_node.children
 
-    remove_child(old_child.id)
-    new_child = Node(new_mscale, parent=mscale_node)
-    add_child(mscale_node, new_child)
+    remove_child(old_scale_node.id)
     if children:
+        new_scale_node = Node(new_mscale, parent=mscale_node)
+        add_child(mscale_node, new_scale_node)
         for child in children:
-            child.parent = new_child
-            add_child(new_child, child)
+            child.parent = new_scale_node
+            add_child(new_scale_node, child)
         return
 
     # otherwise, we need to construct new children
     if new_mscale in ('interval', 'ratio'):
 
-        ratio_node = Node(names.RATIO, parent=mscale_node)
-        add_child(mscale_node, ratio_node)
+        if new_mscale == 'interval':
+            new_scale_node = Node(names.INTERVAL, parent=mscale_node)
+        else:
+            new_scale_node = Node(names.RATIO, parent=mscale_node)
+        add_child(mscale_node, new_scale_node)
 
-        numeric_domain_ratio_node = Node(names.NUMERICDOMAIN, parent=ratio_node)
-        add_child(ratio_node, numeric_domain_ratio_node)
+        numeric_domain_node = Node(names.NUMERICDOMAIN, parent=new_scale_node)
+        add_child(new_scale_node, numeric_domain_node)
 
-        number_type_ratio_node = Node(names.NUMBERTYPE, parent=numeric_domain_ratio_node)
-        add_child(numeric_domain_ratio_node, number_type_ratio_node)
+        number_type_ratio_node = Node(names.NUMBERTYPE, parent=numeric_domain_node)
+        add_child(numeric_domain_node, number_type_ratio_node)
         number_type = 'real'
         number_type_ratio_node.content = number_type
 
     elif new_mscale in ('nominal', 'ordinal'):
 
-        nominal_node = Node(names.NOMINAL, parent=mscale_node)
-        add_child(mscale_node, nominal_node)
+        if new_mscale == 'nominal':
+            new_scale_node = Node(names.NOMINAL, parent=mscale_node)
+        else:
+            new_scale_node = Node(names.ORDINAL, parent=mscale_node)
+        add_child(mscale_node, new_scale_node)
 
-        non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
-        add_child(nominal_node, non_numeric_domain_node)
+        non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=new_scale_node)
+        add_child(new_scale_node, non_numeric_domain_node)
 
     elif new_mscale == 'dateTime':
 

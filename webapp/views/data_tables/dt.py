@@ -370,6 +370,7 @@ def attribute_measurement_scale_post(packageid, form, form_dict, dt_node_id, att
 
 
 def attribute_measurement_scale_get(packageid, form, att_node_id):
+    load_eml(packageid)
     node_to_change = Node.get_node_instance(att_node_id)
     name_child = node_to_change.find_child(names.ATTRIBUTENAME)
     name = name_child.content

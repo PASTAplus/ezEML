@@ -17,6 +17,7 @@ import html
 import json
 import os
 
+from flask import flash
 from flask_login import (
     current_user
 )
@@ -547,6 +548,7 @@ def load_eml(packageid:str=None):
     filename = f"{user_folder}/{packageid}.json"
     if os.path.isfile(filename):
         try:
+            # flash(f'Loading eml from {filename}')
             with open(filename, "r") as json_file:
                 json_obj = json.load(json_file)
                 eml_node = mp_io.from_json(json_obj)
@@ -605,6 +607,7 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                 if not user_folder:
                     user_folder = '.'
                 filename = f'{user_folder}/{packageid}.{format}'
+                # flash(f'Saving {format} to {filename}')
                 with open(filename, "w") as fh:
                     fh.write(metadata_str)
         else:

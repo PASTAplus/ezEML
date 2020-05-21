@@ -1373,7 +1373,12 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_CODE_DEFINITION_SELECT, packageid=packageid)
+        url = url_for(PAGE_CODE_DEFINITION_SELECT,
+                      packageid=packageid,
+                      dt_node_id=dt_node_id,
+                      att_node_id=att_node_id,
+                      node_id=nom_ord_node_id,
+                      mscale=mscale)
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():

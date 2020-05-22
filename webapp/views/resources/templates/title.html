@@ -9,7 +9,10 @@
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
                 <h5>Please enter the data package title:</h5>
-                {{ wtf.form_field(form.title, size=100) }}
+                <table>
+                    <td>{{ wtf.form_field(form.title, size=100) }}</td>
+{#                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button("help_title") }}</td>#}
+                </table>
                 <br/>
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>

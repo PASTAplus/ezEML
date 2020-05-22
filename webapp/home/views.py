@@ -504,6 +504,10 @@ def select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == BTN_HIDDEN_SAVE:
+                new_page = this_page
+            elif val == BTN_HIDDEN_DOWNLOAD:
+                new_page = PAGE_DOWNLOAD
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key

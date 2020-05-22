@@ -37,15 +37,15 @@
                     </a>
                     <ul class="dropdown-menu">
                     {% if current_user.get_packageid() %}
-                        <li>
-                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>
-                        </li>
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>#}
+{#                        </li>#}
                         <li>
                             <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
                         </li>
-                        <li>
-                            <a href="{{ url_for('home.download_current') }}" title="Download">Download {{ current_user.get_packageid() }}</a>
-                        </li>
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.download_current') }}" title="Download">Download {{ current_user.get_packageid() }}</a>#}
+{#                        </li>#}
                         <li>
                             <a href="{{ url_for('home.close') }}" title="Close">Close</a>
                         </li>
@@ -56,9 +56,9 @@
                         <li>
                             <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
                         </li>
-                        <li>
-                            <a href="{{ url_for('home.download') }}" title="Download">Download Data Package as XML...</a>
-                        </li>
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.download') }}" title="Download">Download Data Package as XML...</a>#}
+{#                        </li>#}
                         <li>
                             <a href="{{ url_for('home.load_metadata') }}" title="Upload">Upload Data Package from XML...</a>
                         </li>
@@ -178,8 +178,30 @@
                 {% if current_user.is_anonymous %}
                 <li><a href="{{ url_for('auth.login') }}">Login</a></li>
                 {% else %}
-                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                <li>
+                    <table style="height: 50px;" valign="middle">
+                        <td>
+                            <input id="nav_save" class="btn btn-primary" name="Save" type="submit" value="Save Data Package"/>
+                        </td>
+                        <td width="5%"></td>
+                        <td>
+                            <input id="nav_download" class="btn btn-primary" name="Download" type="submit" value="Download EML"/>
+                        </td>
+                        <td width="5%"></td>
+                        <td>
+                            <ul class="nav navbar-nav">
+                            <li>
+                                <a class="nav navbar-nav" href="{{ url_for('auth.logout') }}">Logout</a>
+                            </li>
+                            </ul>
+                        </td>
+                    </table>
+                </li>
                 {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                </li>
             </ul>
         </div>
         {% if current_user.is_authenticated %}
@@ -200,17 +222,48 @@
 
 {% block content %}
 <div class="container">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-info" role="alert">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+{#    {% with messages = get_flashed_messages() %}#}
+{#    {% if messages %}#}
+{#    {% for message in messages %}#}
+{#    <div class="alert alert-info" role="alert">{{ message }}</div>#}
+{#    {% endfor %}#}
+{#    {% endif %}#}
+{#    {% endwith %}#}
 
     {# application content needs to be provided in the app_content block #}
     {% block app_content %}{% endblock %}
 
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+    {{  super() }}
+    <script>
+    $(function()
+    {
+        let nav_save = $("#nav_save")
+        let nav_download = $("#nav_download")
+        let hidden_save = $("#hidden_save")
+        let hidden_download = $("#hidden_download")
+        if (hidden_save.length === 0) {
+            nav_save.hide();
+        }
+        if (hidden_download.length === 0) {
+            nav_download.hide();
+        }
+        nav_save.on("click", function() {
+            if (hidden_save.length) {
+                //alert('clicking hidden_save');
+                hidden_save.click()
+            }
+        })
+        nav_download.on("click", function() {
+            if (hidden_download.length) {
+                //alert('clicking hidden_download');
+                hidden_download.click()
+            }
+        })
+     });
+    </script>
 {% endblock %}

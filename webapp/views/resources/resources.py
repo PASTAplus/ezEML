@@ -3,8 +3,11 @@ from flask import (
 )
 
 from webapp.home.metapype_client import (
-    add_child, create_abstract, create_intellectual_rights, create_keyword, create_pubdate, create_pubplace,
-    create_title, list_keywords, load_eml, remove_child, save_both_formats, DOWN_ARROW, UP_ARROW
+    add_child, create_abstract, create_intellectual_rights,
+    create_keyword, create_pubdate, create_pubplace,
+    create_title, list_keywords, load_eml, remove_child,
+    save_both_formats, DOWN_ARROW, UP_ARROW,
+    add_paragraph_tags, remove_paragraph_tags
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -46,6 +49,14 @@ def title(packageid=None):
 
         if save:
             title_node = create_title(title=form.title.data, packageid=packageid)
+            form.md5.data = form_md5(form)
+
+        if 'Next' in request.form:
+            new_page = PAGE_CREATOR_SELECT
+        elif 'Hidden_Save' in request.form:
+            new_page = PAGE_TITLE
+        elif 'Hidden_Download' in request.form:
+            new_page = PAGE_DOWNLOAD
 
         return redirect(url_for(new_page, packageid=packageid))
 
@@ -55,7 +66,6 @@ def title(packageid=None):
     if title_node:
         form.title.data = title_node.content
     form.md5.data = form_md5(form)
-    foo = form_md5(form)
 
     return render_template('title.html', title='Title', form=form)
 
@@ -68,6 +78,10 @@ def publication_place(packageid=None):
     if request.method == 'POST' and form.validate_on_submit():
         if 'Next' in request.form:
             new_page = PAGE_METHOD_STEP_SELECT
+        elif 'Hidden_Save' in request.form:
+            new_page = PAGE_PUBLICATION_PLACE
+        elif 'Hidden_Download' in request.form:
+            new_page = PAGE_DOWNLOAD
         else:
             new_page = PAGE_PUBLISHER
 
@@ -99,6 +113,10 @@ def pubdate(packageid=None):
     if request.method == 'POST' and form.validate_on_submit():
         if 'Back' in request.form:
             new_page = PAGE_ASSOCIATED_PARTY_SELECT
+        elif 'Hidden_Save' in request.form:
+            new_page = PAGE_PUBDATE
+        elif 'Hidden_Download' in request.form:
+            new_page = PAGE_DOWNLOAD
         elif 'Next' in request.form:
             new_page = PAGE_ABSTRACT
 
@@ -133,26 +151,35 @@ def abstract(packageid=None):
     if request.method == 'POST':
         if 'Back' in request.form:
             submit_type = 'Back'
+            new_page = PAGE_PUBDATE
         elif 'Next' in request.form:
             submit_type = 'Next'
+            new_page = PAGE_KEYWORD_SELECT
+        elif 'Hidden_Save' in request.form:
+            submit_type = 'Save'
+            new_page = PAGE_ABSTRACT
+        elif 'Hidden_Download' in request.form:
+            submit_type = 'Save'
+            new_page = PAGE_DOWNLOAD
         else:
             submit_type = None
+            new_page = PAGE_KEYWORD_SELECT
 
         if form.validate_on_submit():
             if is_dirty_form(form):
-                abstract = form.abstract.data
+                abstract = add_paragraph_tags(form.abstract.data)
                 create_abstract(packageid=packageid, abstract=abstract)
                 flash(f"is_dirty_form: True")
             else:
                 flash(f"is_dirty_form: False")
-            new_page = PAGE_PUBDATE if (submit_type == 'Back') else PAGE_KEYWORD_SELECT
+            # new_page = PAGE_PUBDATE if (submit_type == 'Back') else PAGE_KEYWORD_SELECT
             return redirect(url_for(new_page, packageid=packageid))
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
     abstract_node = eml_node.find_child(child_name=names.ABSTRACT)
     if abstract_node:
-        form.abstract.data = abstract_node.content
+        form.abstract.data = remove_paragraph_tags(abstract_node.content)
     form.md5.data = form_md5(form)
     return render_template('abstract.html',
                            title='Abstract',
@@ -179,7 +206,15 @@ def intellectual_rights(packageid=None):
 
             create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
 
-        new_page = PAGE_KEYWORD_SELECT if ('Back' in request.form) else PAGE_GEOGRAPHIC_COVERAGE_SELECT
+        if 'Back' in request.form:
+            new_page = PAGE_KEYWORD_SELECT
+        elif 'Hidden_Save' in request.form:
+            new_page = PAGE_PUBLICATION_PLACE
+        elif 'Hidden_Download' in request.form:
+            new_page = PAGE_DOWNLOAD
+        else:
+            new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
+
         return redirect(url_for(new_page, packageid=packageid))
 
     # Process GET
@@ -219,7 +254,7 @@ def populate_keyword_form(form: KeywordForm, kw_node: Node):
 
 
 @res_bp.route('/keyword_select/<packageid>', methods=['GET', 'POST'])
-def keyword_select(packageid=None, node_id=None):
+def keyword_select(packageid=None):
     form = KeywordSelectForm(packageid=packageid)
 
     # Process POST
@@ -271,6 +306,10 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == BTN_HIDDEN_SAVE:
+                new_page = this_page
+            elif val == BTN_HIDDEN_DOWNLOAD:
+                new_page = PAGE_DOWNLOAD
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
@@ -288,11 +327,7 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
             return url_for(new_page,
                            packageid=packageid,
                            node_id=node_id)
-        elif new_page == this_page:
-            return url_for(new_page,
-                           packageid=packageid,
-                           node_id=node_id)
-        elif new_page == back_page or new_page == next_page:
+        else:
             return url_for(new_page,
                            packageid=packageid)
 

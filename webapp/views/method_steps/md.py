@@ -193,13 +193,16 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
     if ms_node:
         description_node = ms_node.find_child(names.DESCRIPTION)
         if description_node:
-            section_node = description_node.find_child(names.SECTION)
-            if section_node:
-                description = remove_paragraph_tags(section_node.content)
+            if description_node.content:
+                description = description_node.content
             else:
-                para_node = description_node.find_child(names.PARA)
-                if para_node:
-                    description = para_node.content
+                section_node = description_node.find_child(names.SECTION)
+                if section_node:
+                    description = remove_paragraph_tags(section_node.content)
+                else:
+                    para_node = description_node.find_child(names.PARA)
+                    if para_node:
+                        description = para_node.content
 
         instrumentation_node = ms_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node:

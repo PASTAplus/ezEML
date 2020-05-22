@@ -121,6 +121,13 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     add_child(text_format_node, num_footer_lines_node)
     num_footer_lines_node.content = '0'
 
+    with open(full_path) as file:
+        next(file)
+        line_terminator = repr(file.newlines).replace("'", "")
+    record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
+    add_child(text_format_node, record_delimiter_node)
+    record_delimiter_node.content = line_terminator
+
     data_frame = pd.read_csv(full_path, comment='#')
 
     if data_frame is not None:

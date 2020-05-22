@@ -4,7 +4,8 @@ from flask import (
 
 from webapp.home.metapype_client import (
     add_child, create_project,
-    load_eml, save_both_formats
+    load_eml, save_both_formats,
+    add_paragraph_tags, remove_paragraph_tags
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -49,10 +50,14 @@ def project(packageid=None):
             new_page = PAGE_DATA_TABLE_SELECT
         elif 'Edit Project Personnel' in request.form:
             new_page = PAGE_PROJECT_PERSONNEL_SELECT
+        elif 'Hidden_Save' in request.form:
+            new_page = PAGE_PROJECT
+        elif 'Hidden_Download' in request.form:
+            new_page = PAGE_DOWNLOAD
 
         if save:
             title = form.title.data
-            abstract = form.abstract.data
+            abstract = add_paragraph_tags(form.abstract.data)
             funding = form.funding.data
             create_project(dataset_node, title, abstract, funding)
             save_both_formats(packageid=packageid, eml_node=eml_node)
@@ -92,6 +97,7 @@ def populate_project_form(form: ProjectForm, project_node: Node):
                     section_node = abstract_node.find_child(names.SECTION)
                     if section_node:
                         abstract = section_node.content
+            abstract = abstract
 
         funding_node = project_node.find_child(names.FUNDING)
         if funding_node:
@@ -106,7 +112,7 @@ def populate_project_form(form: ProjectForm, project_node: Node):
                         funding = section_node.content
 
         form.title.data = title
-        form.abstract.data = abstract
+        form.abstract.data = remove_paragraph_tags(abstract)
         form.funding.data = funding
     form.md5.data = form_md5(form)
 

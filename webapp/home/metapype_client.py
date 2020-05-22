@@ -40,6 +40,14 @@ UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
 
 
+def add_paragraph_tags(s):
+    return '\n<para>' + s.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
+
+
+def remove_paragraph_tags(s):
+    return s.strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
+
+
 def list_data_tables(eml_node:Node=None):
     dt_list = []
     if eml_node:
@@ -1835,14 +1843,18 @@ def compose_method_step_description(method_step_node:Node=None):
     if method_step_node:
         description_node = method_step_node.find_child(names.DESCRIPTION)
         if description_node:
-            section_node = description_node.find_child(names.SECTION)
-            if section_node:
-                description = section_node.content 
+            if description_node.content:
+                description = description_node.content
             else:
-                para_node = description_node.find_child(names.PARA)
-                if para_node:
-                    description = para_node.content 
+                section_node = description_node.find_child(names.SECTION)
+                if section_node:
+                    description = section_node.content
+                else:
+                    para_node = description_node.find_child(names.PARA)
+                    if para_node:
+                        description = para_node.content
 
+            description = remove_paragraph_tags(description)
             if description and len(description) > MAX_LEN:
                 description = description[0:MAX_LEN]
     return description
@@ -1868,14 +1880,17 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
         add_child(method_step_node, description_node)
         
         if description:
-            para_node = Node(names.PARA, parent=description_node)
-            add_child(description_node, para_node)
-            para_node.content = description
+            # para_node = Node(names.PARA, parent=description_node)
+            # add_child(description_node, para_node)
+            # para_node.content = description
+            # For now, we're assuming that the content already has para tags.
+            description_node.content = description
 
-        instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
-        add_child(method_step_node, instrumentation_node)
         if instrumentation:
-            instrumentation_node.content = instrumentation
+            instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
+            add_child(method_step_node, instrumentation_node)
+            if instrumentation:
+                instrumentation_node.content = instrumentation
 
 
 def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=None):

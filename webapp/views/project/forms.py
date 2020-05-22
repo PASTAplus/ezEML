@@ -1,5 +1,5 @@
 from wtforms import (
-    StringField, HiddenField
+    StringField, HiddenField, validators
 )
 
 from wtforms.widgets import TextArea
@@ -8,7 +8,7 @@ from webapp.home.forms import EDIForm
 
 
 class ProjectForm(EDIForm):
-    title = StringField('Project Title', validators=[])
+    title = StringField('Project Title', validators=[validators.DataRequired()])
     abstract = StringField('Project Abstract (Optional)', widget=TextArea(), validators=[])
     funding = StringField('Project Funding (Optional)', validators=[])
     md5 = HiddenField('')

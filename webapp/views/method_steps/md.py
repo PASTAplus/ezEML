@@ -12,6 +12,7 @@ from webapp.home.metapype_client import (
     load_eml, save_both_formats,
     add_child, remove_child,
     UP_ARROW, DOWN_ARROW,
+    add_paragraph_tags, remove_paragraph_tags
 )
 
 from webapp.views.method_steps.forms import (
@@ -64,6 +65,10 @@ def method_step_select(packageid=None):
                     eml_node = load_eml(packageid=packageid)
                     remove_child(node_id=node_id)
                     save_both_formats(packageid=packageid, eml_node=eml_node)
+                elif val == BTN_HIDDEN_SAVE:
+                    new_page = this_page
+                elif val == BTN_HIDDEN_DOWNLOAD:
+                    new_page = PAGE_DOWNLOAD
                 elif val == UP_ARROW:
                     new_page = this_page
                     node_id = key
@@ -88,7 +93,7 @@ def method_step_select(packageid=None):
                 url = url_for(new_page,
                               packageid=packageid,
                               node_id=node_id)
-            elif new_page == back_page or new_page == next_page:
+            else:
                 url = url_for(new_page,
                               packageid=packageid)
             return redirect(url)
@@ -144,7 +149,7 @@ def method_step(packageid=None, node_id=None):
         flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
-            description = form.description.data
+            description = add_paragraph_tags(form.description.data)
             instrumentation = form.instrumentation.data
             method_step_node = Node(names.METHODSTEP, parent=methods_node)
             create_method_step(method_step_node, description, instrumentation)
@@ -190,7 +195,7 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
         if description_node:
             section_node = description_node.find_child(names.SECTION)
             if section_node:
-                description = section_node.content
+                description = remove_paragraph_tags(section_node.content)
             else:
                 para_node = description_node.find_child(names.PARA)
                 if para_node:
@@ -200,7 +205,7 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
         if instrumentation_node:
             instrumentation = instrumentation_node.content
 
-        form.description.data = description
+        form.description.data = remove_paragraph_tags(description)
         form.instrumentation.data = instrumentation
     form.md5.data = form_md5(form)
 

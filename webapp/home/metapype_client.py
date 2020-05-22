@@ -1173,7 +1173,8 @@ def create_other_entity(
     entity_description:str=None,
     object_name:str=None,
     format_name:str=None,
-    # size:str=None,
+    size:str=None,
+    md5_hash:str=None,
     online_url:str=None):
 
     try:
@@ -1215,10 +1216,17 @@ def create_other_entity(
                 format_name_node.content = format_name
                 add_child(externally_defined_format_node, format_name_node)
 
-            # if size:
-            #     size_node = Node(names.SIZE, parent=physical_node)
-            #     size_node.content = size
-            #     add_child(physical_node, size_node)
+            if size:
+                size_node = Node(names.SIZE, parent=physical_node)
+                add_child(physical_node, size_node)
+                size_node.add_attribute('unit', 'byte')
+                size_node.content = size
+
+            if md5_hash:
+                hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+                add_child(physical_node, hash_node)
+                hash_node.add_attribute('method', 'MD5')
+                hash_node.content = str(md5_hash)
 
             if online_url:
                 distribution_node = Node(names.DISTRIBUTION, parent=physical_node)

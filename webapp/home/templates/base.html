@@ -172,7 +172,7 @@
 {#    {% endif %}#}
 {#    {% endwith %}#}
 
-    <div style="width: 20%; float: left;">
+    <div style="width: 18%; float: left;">
         <br>
         {% if current_user.is_authenticated %}
                 <table>
@@ -240,7 +240,7 @@
         <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
         {% endif %}
     </div>
-    <div style="margin-left: 20%;">
+    <div style="margin-left: 18%;">
         {# application content needs to be provided in the app_content block #}
         {% block app_content %}{% endblock %}
     </div>

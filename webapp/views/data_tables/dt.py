@@ -557,10 +557,10 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-            flash(f"is_dirty_form: True")
+            # flash(f"is_dirty_form: True")
         else:
             submit_type = 'Back'
-            flash(f"is_dirty_form: False")
+            # flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measurement scale page
         if BTN_DONE in request.form:
@@ -783,10 +783,10 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-            flash(f"is_dirty_form: True")
+            # flash(f"is_dirty_form: True")
         else:
             submit_type = 'Back'
-            flash(f"is_dirty_form: False")
+            # flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measuement scale page
         if BTN_DONE in request.form:  # FIXME
@@ -1043,10 +1043,10 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-            flash(f"is_dirty_form: True")
+            # flash(f"is_dirty_form: True")
         else:
             submit_type = 'Back'
-            flash(f"is_dirty_form: False")
+            # flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measuement scale page
         if BTN_DONE in request.form:
@@ -1397,7 +1397,7 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
                 submit_type = 'Save Changes'
             else:
                 submit_type = 'Back'
-            flash(f'submit_type: {submit_type}')
+            # flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             if att_node:

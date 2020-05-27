@@ -42,7 +42,7 @@ def project(packageid=None):
         save = False
         if is_dirty_form(form):
             save = True
-        flash(f'save: {save}')
+        # flash(f'save: {save}')
 
         if 'Back' in request.form:
             new_page = PAGE_METHOD_STEP_SELECT

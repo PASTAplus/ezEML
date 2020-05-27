@@ -153,7 +153,6 @@ def access(packageid=None, node_id=None):
 
                 save_both_formats(packageid=packageid, eml_node=eml_node)
 
-            flash(f"submit_type: {submit_type}")
             url = url_for(next_page, packageid=packageid)
             return redirect(url)
 

@@ -149,7 +149,6 @@ def method_step(packageid=None, node_id=None):
         submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-        flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             description = add_paragraph_tags(form.description.data)

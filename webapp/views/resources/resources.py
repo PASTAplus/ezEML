@@ -48,7 +48,7 @@ def title(packageid=None):
         save = False
         if is_dirty_form(form):
             save = True
-        flash(f'save: {save}')
+        # flash(f'save: {save}')
 
         if save:
             title_node = create_title(title=form.title.data, packageid=packageid)
@@ -95,7 +95,7 @@ def publication_place(packageid=None):
         save = False
         if is_dirty_form(form):
             save = True
-        flash(f'save: {save}')
+        # flash(f'save: {save}')
 
         if save:
             pubplace = form.pubplace.data
@@ -132,7 +132,7 @@ def pubdate(packageid=None):
         save = False
         if is_dirty_form(form):
             save = True
-        flash(f'save: {save}')
+        # flash(f'save: {save}')
 
         if save:
             pubdate = form.pubdate.data
@@ -180,9 +180,10 @@ def abstract(packageid=None):
             if is_dirty_form(form):
                 abstract = add_paragraph_tags(form.abstract.data)
                 create_abstract(packageid=packageid, abstract=abstract)
-                flash(f"is_dirty_form: True")
+                # flash(f"is_dirty_form: True")
             else:
-                flash(f"is_dirty_form: False")
+                # flash(f"is_dirty_form: False")
+                pass
             # new_page = PAGE_PUBDATE if (submit_type == 'Back') else PAGE_KEYWORD_SELECT
             return redirect(url_for(new_page, packageid=packageid))
 
@@ -381,7 +382,7 @@ def keyword(packageid=None, node_id=None):
         submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-        flash(f'submit_type: {submit_type}')
+        # flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             keyword = form.keyword.data

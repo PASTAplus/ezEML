@@ -211,7 +211,7 @@ def temporal_coverage(packageid=None, node_id=None):
         save = False
         if is_dirty_form(form):
             save = True
-        flash(f'save: {save}')
+        # flash(f'save: {save}')
 
         url = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, packageid=packageid)
 

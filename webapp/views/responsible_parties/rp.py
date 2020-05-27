@@ -134,7 +134,6 @@ def responsible_party(packageid=None, node_id=None, method=None,
     save = False
     if is_dirty_form(form):
         save = True
-    flash(f'save: {save}')
 
     if form.validate_on_submit():
         if save:
@@ -191,7 +190,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
                 add_child(parent_node, rp_node)
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
-            flash(f"Changes to the '{node_name}' element have been saved.")
+            # flash(f"Changes to the '{node_name}' element have been saved.")
 
             # There is at most only one publisher element, so we don't have a
             # list of publishers to navigate back to. Stay on this page after

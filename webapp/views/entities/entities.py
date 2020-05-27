@@ -2,7 +2,10 @@ from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 
-from webapp.home.views import process_up_button, process_down_button, set_current_page
+from webapp.home.views import (
+    process_up_button, process_down_button, set_current_page,
+    compare_begin_end_dates
+)
 
 from webapp.views.access.forms import (
     AccessForm, AccessSelectForm
@@ -102,7 +105,7 @@ def other_entity(packageid=None, node_id=None):
         submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-        flash(f'submit_type: {submit_type}')
+        # flash(f'submit_type: {submit_type}')
 
         if 'Access' in request.form:
             next_page = PAGE_ENTITY_ACCESS_SELECT

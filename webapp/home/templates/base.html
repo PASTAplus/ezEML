@@ -177,7 +177,7 @@
         {% if current_user.is_authenticated %}
                 <table>
                     <td><h4 class="nav_link">Contents</h4><p></p></td>
-                    <td valign="middle" style="padding-top: 7px;padding-left: 10px;">{{ macros.help_button('help_contents_btn', 'nav_link') }}</td>
+                    <td valign="middle" style="padding-top: 7px;padding-left: 10px;">{{ macros.help_button('__help__contents_btn', 'nav_link') }}</td>
                 </table>
             {% set title_style = '""' %}
             {% set creator_style = '""' %}
@@ -246,7 +246,7 @@
     </div>
 </div>
 
-    {{ macros.help_dialog('help_contents_dialog', session['help_contents'][0], session['help_contents'][1]) }}
+    {{ macros.help_dialog('__help__contents_dialog', session['__help__contents'][0], session['__help__contents'][1]) }}
 
 {% endblock %}
 
@@ -308,7 +308,7 @@
     <script>
     $(function()
     {
-        {{ macros.help_script('help_contents_dialog', 'help_contents_btn') }}
+        {{ macros.help_script('__help__contents_dialog', '__help__contents_btn') }}
     });
     </script>
     {% endblock %}

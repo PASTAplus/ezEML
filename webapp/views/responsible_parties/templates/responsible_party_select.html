@@ -2,11 +2,15 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    {% set rp_help_id = 'help_' ~ rp_plural %}
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
 
     <table>
         <td><h1>{{ rp_plural }}</h1></td>
-        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(rp_help_id ~ '_btn') }}</td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
     </table>
     <div class="row">
         <div class="col-md-10">
@@ -35,18 +39,22 @@
             </form>
         </div>
     </div>
-    {% if rp_help_id in session %}
-    {{ macros.help_dialog(rp_help_id ~ '_dialog', session[rp_help_id][0], session[rp_help_id][1]) }}
-    {%  endif %}
+
+    {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
 {% endblock %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set rp_help_id = 'help_' ~ rp_plural %}
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
+
     <script>
     $(function()
     {
-        {{ macros.help_script(rp_help_id ~ '_dialog', rp_help_id ~ '_btn') }}
+        {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
     });
     </script>
 {% endblock %}

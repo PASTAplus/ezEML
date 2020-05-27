@@ -2,13 +2,21 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% set help_abstract_id, help_abstract_title, help_abstract_content = help[0] %}
+    {% set help_abstract_btn = help_abstract_id ~ '_btn' %}
+    {% set help_abstract_dialog = help_abstract_id ~ '_dialog' %}
+
     <h1>Abstract</h1>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <h5>Please enter the abstract text below:</h5>
-                {{ wtf.form_field(form.abstract, rows=10, cols=100) }}
+                <table>
+                    <td>{{ wtf.form_field(form.abstract, rows=10, cols=100) }}</td>
+                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_abstract_btn) }}</td>
+                </table>
+                
                 {{ wtf.form_field(form.md5) }}
 {#                <br/>#}
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
@@ -18,4 +26,19 @@
             </form>
         </div>
     </div>
+
+    {{ macros.help_dialog(help_abstract_dialog, help_abstract_title, help_abstract_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_abstract_id, help_abstract_title, help_abstract_content = help[0] %}
+    {% set help_abstract_btn = help_abstract_id ~ '_btn' %}
+    {% set help_abstract_dialog = help_abstract_id ~ '_dialog' %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_abstract_dialog, help_abstract_btn) }}
+    });
+    </script>
 {% endblock %}

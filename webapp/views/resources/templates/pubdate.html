@@ -2,6 +2,10 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% set help_pubdate_id, help_pubdate_title, help_pubdate_content = help[0] %}
+    {% set help_pubdate_btn = help_pubdate_id ~ '_btn' %}
+    {% set help_pubdate_dialog = help_pubdate_id ~ '_dialog' %}
+    
     <h1>Publication Date</h1>
     <div class="row">
         <div class="col-md-6">
@@ -9,7 +13,10 @@
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
                 <h5>Please enter the data package publication year or date (valid examples are '2018' or '2018-10-05'):</h5>
-                {{ wtf.form_field(form.pubdate) }}
+                <table>
+                    <td>{{ wtf.form_field(form.pubdate, size=100) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_pubdate_btn) }}</td>
+                </table>
                 <br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
@@ -18,4 +25,19 @@
             </form>
         </div>
     </div>
+
+    {{ macros.help_dialog(help_pubdate_dialog, help_pubdate_title, help_pubdate_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_pubdate_id, help_pubdate_title, help_pubdate_content = help[0] %}
+    {% set help_pubdate_btn = help_pubdate_id ~ '_btn' %}
+    {% set help_pubdate_dialog = help_pubdate_id ~ '_dialog' %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_pubdate_dialog, help_pubdate_btn) }}
+    });
+    </script>
 {% endblock %}

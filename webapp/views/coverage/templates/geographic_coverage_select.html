@@ -2,7 +2,14 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Geographic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1>
+    {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
+    {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
+    {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    
+    <table>
+        <td><h1>Geographic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -37,4 +44,20 @@
             </form>
         </div>
     </div>
+
+    {{ macros.help_dialog(help_geographic_coverage_dialog, help_geographic_coverage_title, help_geographic_coverage_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
+    {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
+    {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_geographic_coverage_dialog, help_geographic_coverage_btn) }}
+    });
+    </script>
 {% endblock %}

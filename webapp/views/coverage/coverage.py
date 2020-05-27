@@ -22,7 +22,7 @@ from webapp.views.coverage.forms import (
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import (select_post, compare_begin_end_dates)
+from webapp.home.views import select_post, compare_begin_end_dates, get_help
 from metapype.eml import names
 from metapype.model.node import Node
 from webapp.home.views import set_current_page
@@ -57,8 +57,9 @@ def geographic_coverage_select(packageid=None):
             gc_list = list_geographic_coverages(dataset_node)
 
     set_current_page('geographic_coverage')
+    help = [get_help('geographic_coverages')]
     return render_template('geographic_coverage_select.html', title=title,
-                           gc_list=gc_list, form=form)
+                           gc_list=gc_list, form=form, help=help)
 
 
 @cov_bp.route('/geographic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -191,8 +192,9 @@ def temporal_coverage_select(packageid=None):
             tc_list = list_temporal_coverages(dataset_node)
 
     set_current_page('temporal_coverage')
+    help = [get_help('temporal_coverages')]
     return render_template('temporal_coverage_select.html', title=title,
-                           tc_list=tc_list, form=form)
+                           tc_list=tc_list, form=form, help=help)
 
 
 @cov_bp.route('/temporal_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -316,8 +318,9 @@ def taxonomic_coverage_select(packageid=None):
             txc_list = list_taxonomic_coverages(dataset_node)
 
     set_current_page('taxonomic_coverage')
+    help = [get_help('taxonomic_coverages')]
     return render_template('taxonomic_coverage_select.html', title=title,
-                           txc_list=txc_list, form=form)
+                           txc_list=txc_list, form=form, help=help)
 
 
 @cov_bp.route('/taxonomic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])

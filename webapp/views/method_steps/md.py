@@ -18,7 +18,7 @@ from webapp.home.metapype_client import (
 from webapp.views.method_steps.forms import (
     MethodStepForm, MethodStepSelectForm
 )
-from webapp.home.views import set_current_page
+from webapp.home.views import set_current_page, get_help
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -110,10 +110,11 @@ def method_step_select(packageid=None):
             method_step_list = list_method_steps(dataset_node)
 
     set_current_page('method_step')
+    help = [get_help('methods')]
     return render_template('method_step_select.html', title=title,
                            packageid=packageid,
                            method_step_list=method_step_list,
-                           form=form)
+                           form=form, help=help)
 
 
 # node_id is the id of the methodStep node being edited. If the value is

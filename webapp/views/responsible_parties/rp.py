@@ -21,7 +21,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, set_current_page
+from webapp.home.views import select_post, non_breaking, set_current_page, get_help
 
 
 rp_bp = Blueprint('rp', __name__, template_folder='templates')
@@ -42,8 +42,9 @@ def creator_select(packageid=None):
 
     # Process GET
     set_current_page('creator')
+    help = [get_help('creators')]
     return rp_select_get(packageid=packageid, form=form, rp_name=names.CREATOR,
-                         rp_singular='Creator', rp_plural='Creators')
+                         rp_singular='Creator', rp_plural='Creators', help=help)
 
 
 @rp_bp.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -56,7 +57,7 @@ def creator(packageid=None, node_id=None):
 
 
 def rp_select_get(packageid=None, form=None, rp_name=None,
-                  rp_singular=None, rp_plural=None):
+                  rp_singular=None, rp_plural=None, help=None):
     # Process GET
     eml_node = load_eml(packageid=packageid)
     rp_list = list_responsible_parties(eml_node, rp_name)
@@ -64,7 +65,7 @@ def rp_select_get(packageid=None, form=None, rp_name=None,
 
     return render_template('responsible_party_select.html', title=title,
                            rp_list=rp_list, form=form,
-                           rp_singular=rp_singular, rp_plural=rp_plural)
+                           rp_singular=rp_singular, rp_plural=rp_plural, help=help)
 
 
 def select_new_page(back_page=None, next_page=None, edit_page=None):
@@ -85,7 +86,7 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
 
 def responsible_party(packageid=None, node_id=None, method=None,
                       node_name=None, back_page=None, title=None,
-                      next_page=None, save_and_continue=False):
+                      next_page=None, save_and_continue=False, help=None):
 
     if BTN_CANCEL in request.form:
         url = url_for(back_page, packageid=packageid)
@@ -212,7 +213,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
                         populate_responsible_party_form(form, rp_node)
 
     return render_template('responsible_party.html', title=title,
-                           form=form, role=role, next_page=next_page, save_and_continue=save_and_continue)
+                           form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
 
 
 @rp_bp.route('/metadata_provider_select/<packageid>', methods=['GET', 'POST'])
@@ -231,10 +232,11 @@ def metadata_provider_select(packageid=None):
 
     # Process GET
     set_current_page('metadata_provider')
+    help = [get_help('metadata_providers')]
     return rp_select_get(packageid=packageid, form=form,
                          rp_name=names.METADATAPROVIDER,
                          rp_singular=non_breaking('Metadata Provider'),
-                         rp_plural=non_breaking('Metadata Providers'))
+                         rp_plural=non_breaking('Metadata Providers'), help=help)
 
 
 @rp_bp.route('/metadata_provider/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -264,10 +266,11 @@ def associated_party_select(packageid=None):
 
     # Process GET
     set_current_page('associated_party')
+    help = [get_help('associated_parties')]
     return rp_select_get(packageid=packageid, form=form,
                          rp_name=names.ASSOCIATEDPARTY,
                          rp_singular=non_breaking('Associated Party'),
-                         rp_plural=non_breaking('Associated Parties'))
+                         rp_plural=non_breaking('Associated Parties'), help=help)
 
 
 @rp_bp.route('/associated_party/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -295,8 +298,9 @@ def contact_select(packageid=None):
 
     # Process GET
     set_current_page('contact')
+    help = [get_help('contacts')]
     return rp_select_get(packageid=packageid, form=form, rp_name='contact',
-                         rp_singular='Contact', rp_plural='Contacts')
+                         rp_singular='Contact', rp_plural='Contacts', help=help)
 
 
 @rp_bp.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])
@@ -320,11 +324,12 @@ def publisher(packageid=None):
             if publisher_node:
                 node_id = publisher_node.id
     set_current_page('publisher')
+    help = [get_help('publisher')]
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.PUBLISHER,
                              back_page=PAGE_CONTACT_SELECT, title='Publisher',
                              next_page=PAGE_PUBLICATION_PLACE,
-                             save_and_continue=True)
+                             save_and_continue=True, help=help)
 
 
 def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):

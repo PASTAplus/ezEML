@@ -24,7 +24,7 @@ from webapp.views.resources.forms import (
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import process_up_button, process_down_button
+from webapp.home.views import process_up_button, process_down_button, get_help
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -73,7 +73,8 @@ def title(packageid=None):
     form.md5.data = form_md5(form)
 
     set_current_page('title')
-    return render_template('title.html', title='Title', form=form)
+    help = [get_help('title'), get_help('nav')]
+    return render_template('title.html', title='Title', form=form, help=help)
 
 
 @res_bp.route('/publication_place/<packageid>', methods=['GET', 'POST'])
@@ -109,7 +110,8 @@ def publication_place(packageid=None):
         form.pubplace.data = pubplace_node.content
     form.md5.data = form_md5(form)
     set_current_page('publication_place')
-    return render_template('publication_place.html', title='Publication Place', form=form)
+    help = [get_help('pubplace')]
+    return render_template('publication_place.html', title='Publication Place', form=form, help=help)
 
 
 @res_bp.route('/pubdate/<packageid>', methods=['GET', 'POST'])
@@ -146,9 +148,10 @@ def pubdate(packageid=None):
     form.md5.data = form_md5(form)
 
     set_current_page('pubdate')
+    help = [get_help('pubdate'), get_help('nav')]
     return render_template('pubdate.html',
                            title='Publication Date',
-                           packageid=packageid, form=form)
+                           packageid=packageid, form=form, help=help)
 
 
 @res_bp.route('/abstract/<packageid>', methods=['GET', 'POST'])
@@ -190,9 +193,10 @@ def abstract(packageid=None):
         form.abstract.data = remove_paragraph_tags(abstract_node.content)
     form.md5.data = form_md5(form)
     set_current_page('abstract')
+    help = [get_help('abstract'), get_help('nav')]
     return render_template('abstract.html',
                            title='Abstract',
-                           packageid=packageid, form=form)
+                           packageid=packageid, form=form, help=help)
 
 
 @res_bp.route('/intellectual_rights/<packageid>', methods=['GET', 'POST'])
@@ -244,9 +248,10 @@ def intellectual_rights(packageid=None):
     form.md5.data = form_md5(form)
 
     set_current_page('intellectual_rights')
+    help = [get_help('intellectual_rights')]
     return render_template('intellectual_rights.html',
                            title='Intellectual Rights',
-                           packageid=packageid, form=form)
+                           packageid=packageid, form=form, help=help)
 
 
 def populate_keyword_form(form: KeywordForm, kw_node: Node):
@@ -290,10 +295,11 @@ def keyword_select_get(packageid=None, form=None):
         kw_list = list_keywords(eml_node)
 
     set_current_page('keyword')
+    help = [get_help('keywords')]
     return render_template('keyword_select.html', title=title,
                            packageid=packageid,
                            kw_list=kw_list,
-                           form=form)
+                           form=form, help=help)
 
 
 def keyword_select_post(packageid=None, form=None, form_dict=None,

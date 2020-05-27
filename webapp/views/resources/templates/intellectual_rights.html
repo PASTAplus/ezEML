@@ -2,7 +2,14 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Intellectual Rights</h1>
+    {% set help_intellectual_rights_id, help_intellectual_rights_title, help_intellectual_rights_content = help[0] %}
+    {% set help_intellectual_rights_btn = help_intellectual_rights_id ~ '_btn' %}
+    {% set help_intellectual_rights_dialog = help_intellectual_rights_id ~ '_dialog' %}
+    
+    <table>
+        <td><h1>Intellectual Rights</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_intellectual_rights_btn) }}</td>
+    </table>
 {#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
@@ -19,4 +26,20 @@
             </form>
         </div>
 {#    </div>#}
+
+    {{ macros.help_dialog(help_intellectual_rights_dialog, help_intellectual_rights_title, help_intellectual_rights_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_intellectual_rights_id, help_intellectual_rights_title, help_intellectual_rights_content = help[0] %}
+    {% set help_intellectual_rights_btn = help_intellectual_rights_id ~ '_btn' %}
+    {% set help_intellectual_rights_dialog = help_intellectual_rights_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_intellectual_rights_dialog, help_intellectual_rights_btn) }}
+    });
+    </script>
 {% endblock %}

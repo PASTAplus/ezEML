@@ -69,19 +69,39 @@ def non_breaking(_str):
 @home.before_app_first_request
 def init_help():
     lines = []
-    with open('webapp/static/help.tsv') as help:
+    with open('webapp/static/help.txt') as help:
         lines = help.readlines()
-    for line in lines[1:]:  # skip the header
-        id, title, content = line.rstrip().split('\t')
+    index = 0
+
+    def get_help_item(lines, index):
+        id = lines[index].rstrip()
+        title = lines[index+1].rstrip()
+        content = '<p>'
+        index = index + 2
+        while index < len(lines):
+            line = lines[index].rstrip('\n')
+            index = index + 1
+            if line.startswith('--------------------'):
+                break
+            if index >= len(lines):
+                break
+            if len(line) == 0:
+                line = '</p><p>'
+            content = content + line
+        content = content + '</p>'
+        return (id, title, content), index
+
+    while index < len(lines):
+        (id, title, content), index = get_help_item(lines, index)
         help_dict[id] = (title, content)
-        session[f'help_{id}'] = (title, content)
+        if id == 'contents':
+            # special case for supporting base.html template
+            session[f'__help__{id}'] = (title, content)
 
 
 def get_help(id):
-    # if len(help_dict) == 0:
-    #     init_help()
-    init_help()  # FIXME - temporary - so we can update the help file frequently in development
-    return help_dict.get(id)
+    title, content = help_dict.get(id)
+    return f'__help__{id}', title, content
 
 
 @home.route('/')

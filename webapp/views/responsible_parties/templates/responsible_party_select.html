@@ -35,7 +35,9 @@
             </form>
         </div>
     </div>
+    {% if rp_help_id in session %}
     {{ macros.help_dialog(rp_help_id ~ '_dialog', session[rp_help_id][0], session[rp_help_id][1]) }}
+    {%  endif %}
 {% endblock %}
 
 {% block app_scripts %}

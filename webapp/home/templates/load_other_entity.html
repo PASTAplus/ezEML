@@ -4,7 +4,7 @@
 {% block app_content %}
     <h1>Load Other Entity</h1>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 {{ form.csrf_token }}
                 <h4>Please select the file to upload:</h4>
@@ -12,6 +12,7 @@
                 <br/>
                 <input class="btn btn-primary" name="Upload" type="submit" value="Upload"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                {{ macros.hidden_buttons() }}
             </form>
         </div>
     </div>

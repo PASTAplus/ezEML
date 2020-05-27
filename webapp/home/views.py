@@ -558,8 +558,11 @@ def select_post(packageid=None, form=None, form_dict=None,
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'
-            elif val[0:4] == BTN_LOAD:
+            elif val == BTN_LOAD_DATA_TABLE:
                 new_page = PAGE_LOAD_DATA
+                node_id = '1'
+            elif val== BTN_LOAD_OTHER_ENTITY:
+                new_page = PAGE_LOAD_OTHER_ENTITY
                 node_id = '1'
 
     if form.validate_on_submit():   

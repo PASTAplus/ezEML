@@ -4,7 +4,7 @@
 {% block app_content %}
     <h1>Other Entities</h1>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table class="table table-striped">
@@ -25,8 +25,8 @@
                 <input class="btn btn-primary" name="1" type="submit" value="Add Other Entity"/>
 {#                <input class="btn btn-primary" name="1" type="submit" value="Load Other Entity"/>#}
                 <br/><br/>
-                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
-                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

@@ -4,7 +4,7 @@
 {% block app_content %}
     <h1>{{ title }}</h1>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
@@ -29,12 +29,19 @@
                 {% if role %}
                 {{ wtf.form_field(form.role) }}
                 {% endif %}
+                {% if not save_and_continue %}
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {% if next_page %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
                 {% endif %}
+                {% else %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                {{ macros.hidden_buttons() }}
+                {% endif %}
             </form>
+            <p>&nbsp;</p>
         </div>
     </div>
 {% endblock %}

@@ -18,6 +18,7 @@ from webapp.home.metapype_client import (
 from webapp.views.method_steps.forms import (
     MethodStepForm, MethodStepSelectForm
 )
+from webapp.home.views import set_current_page
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -52,14 +53,14 @@ def method_step_select(packageid=None):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                if val == 'Back':
+                if val == BTN_BACK:
                     new_page = back_page
-                elif val == 'Next':
+                elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
                     new_page = next_page
-                elif val == 'Edit':
+                elif val == BTN_EDIT:
                     new_page = edit_page
                     node_id = key
-                elif val == 'Remove':
+                elif val == BTN_REMOVE:
                     new_page = this_page
                     node_id = key
                     eml_node = load_eml(packageid=packageid)
@@ -108,6 +109,7 @@ def method_step_select(packageid=None):
         if dataset_node:
             method_step_list = list_method_steps(dataset_node)
 
+    set_current_page('method_step')
     return render_template('method_step_select.html', title=title,
                            packageid=packageid,
                            method_step_list=method_step_list,
@@ -183,6 +185,7 @@ def method_step(packageid=None, node_id=None):
                     populate_method_step_form(form, ms_node)
                     break
 
+    set_current_page('method_step')
     return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)
 
 

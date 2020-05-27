@@ -17,8 +17,9 @@ import html
 import os.path
 from datetime import date
 
+
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for
+    Blueprint, flash, render_template, redirect, request, url_for, session
 )
 
 from flask_login import (
@@ -37,11 +38,9 @@ from webapp.home.forms import (
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm
 )
 
-
 from webapp.home.load_data_table import (
     load_data_table, load_other_entity
 )
-
 
 from webapp.home.metapype_client import ( 
     load_eml, save_both_formats, remove_child, create_eml,
@@ -59,10 +58,29 @@ from werkzeug.utils import secure_filename
 
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
+help_dict = {}
 
 
 def non_breaking(_str):
     return _str.replace(' ', html.unescape('&nbsp;'))
+
+
+@home.before_app_first_request
+def init_help():
+    lines = []
+    with open('webapp/static/help.tsv') as help:
+        lines = help.readlines()
+    for line in lines[1:]:  # skip the header
+        id, title, content = line.rstrip().split('\t')
+        help_dict[id] = (title, content)
+        session[f'help_{id}'] = (title, content)
+
+
+def get_help(id):
+    # if len(help_dict) == 0:
+    #     init_help()
+    init_help()  # FIXME - temporary - so we can update the help file frequently in development
+    return help_dict.get(id)
 
 
 @home.route('/')
@@ -493,7 +511,7 @@ def select_post(packageid=None, form=None, form_dict=None,
             val = form_dict[key][0]  # value is the first list element
             if val in (BTN_BACK, BTN_DONE):
                 new_page = back_page
-            elif val == BTN_NEXT:
+            elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
@@ -575,3 +593,7 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
                 flash_msg = msg 
 
     return flash_msg
+
+
+def set_current_page(page):
+    session['current_page'] = page

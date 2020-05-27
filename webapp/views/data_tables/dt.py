@@ -4,7 +4,7 @@ from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 
-from webapp.home.views import process_up_button, process_down_button
+from webapp.home.views import process_up_button, process_down_button, set_current_page
 
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
@@ -61,6 +61,7 @@ def data_table_select(packageid=None):
     dt_list = list_data_tables(eml_node)
     title = 'Data Tables'
 
+    set_current_page('data_table')
     return render_template('data_table_select.html', title=title,
                            dt_list=dt_list, form=form)
 
@@ -209,6 +210,7 @@ def data_table(packageid=None, node_id=None):
                             atts = compose_atts(att_list)
                         populate_data_table_form(form, dt_node)
 
+    set_current_page('data_table')
     return render_template('data_table.html', title='Data Table', form=form,
                            atts=atts)
 
@@ -333,6 +335,7 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
             entity_name = entity_name_from_data_table(data_table_node)
             att_list = list_attributes(data_table_node)
 
+    set_current_page('data_table')
     return render_template('attribute_select.html',
                            title=title,
                            entity_name=entity_name,
@@ -380,6 +383,7 @@ def attribute_measurement_scale_get(packageid, form, att_node_id):
     if mscale is not None:
         form.mscale_choice.data = mscale
 
+    set_current_page('data_table')
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
 
 
@@ -671,6 +675,7 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
                                         populate_attribute_datetime_form(form, att_node)
                                         break
 
+    set_current_page('data_table')
     return render_template('attribute_datetime.html', title='Attribute', form=form)
 
 
@@ -906,6 +911,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
+    set_current_page('data_table')
     return render_template('attribute_interval_ratio.html',
                            title='Attribute: Interval or Ratio',
                            form=form,
@@ -1165,6 +1171,7 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
+    set_current_page('data_table')
     return render_template('attribute_nominal_ordinal.html',
                            title='Attribute: Nominal or Ordinal',
                            form=form,
@@ -1281,6 +1288,7 @@ def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, no
     if att_node:
         attribute_name = attribute_name_from_attribute(att_node)
         codes_list = list_codes_and_definitions(att_node)
+    set_current_page('data_table')
     return render_template('code_definition_select.html', title=title,
                            attribute_name=attribute_name, codes_list=codes_list,
                            form=form)
@@ -1462,6 +1470,7 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
                         populate_code_definition_form(form, cd_node)
                         break
 
+    set_current_page('data_table')
     return render_template('code_definition.html', title='Code Definition', form=form, attribute_name=attribute_name)
 
 

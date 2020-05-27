@@ -3,7 +3,7 @@
 
 {% block app_content %}
     <h1>Intellectual Rights</h1>
-    <div class="row">
+{#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
@@ -12,11 +12,11 @@
                 {{ wtf.form_field(form.intellectual_rights_radio) }}
                 {{ wtf.form_field(form.intellectual_rights, rows=6) }}
                 <br/>
-                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
-                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
-    </div>
+{#    </div>#}
 {% endblock %}

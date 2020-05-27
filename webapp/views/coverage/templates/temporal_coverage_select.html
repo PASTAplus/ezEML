@@ -4,7 +4,7 @@
 {% block app_content %}
     <h1>Temporal Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table class="table table-striped">
@@ -29,9 +29,9 @@
                 <br/>
                 <input class="btn btn-primary" name="1" type="submit" value="Add Temporal Coverage"/>
                 <br/><br/>
-                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}
-                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 {% endif %}
                 {{ macros.hidden_buttons() }}
             </form>

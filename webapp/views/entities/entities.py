@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 
-from webapp.home.views import process_up_button, process_down_button
+from webapp.home.views import process_up_button, process_down_button, set_current_page
 
 from webapp.views.access.forms import (
     AccessForm, AccessSelectForm
@@ -81,6 +81,7 @@ def other_entity_select(packageid=None):
     oe_list = list_other_entities(eml_node)
     title = 'Other Entities'
 
+    set_current_page('other_entity')
     return render_template('other_entity_select.html', title=title,
                            oe_list=oe_list, form=form)
 
@@ -213,6 +214,7 @@ def other_entity(packageid=None, node_id=None):
                     if dt_node_id == dt_node.id:
                         populate_other_entity_form(form, dt_node)
 
+    set_current_page('other_entity')
     return render_template('other_entity.html', title='Other Entity', form=form)
 
 
@@ -309,6 +311,7 @@ def entity_access_select_get(packageid=None, form=None, dt_node_id=None):
                 if distribution_node:
                     access_rules_list = list_access_rules(distribution_node)
 
+    set_current_page('other_entity')
     return render_template('access_select.html',
                            title=title,
                            entity_name=entity_name,
@@ -486,6 +489,7 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
                                                 populate_access_rule_form(form, allow_node)
                                                 break
 
+    set_current_page('other_entity')
     return render_template('access.html', title='Access Rule', form=form, packageid=packageid)
 
 
@@ -523,6 +527,7 @@ def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_no
             entity_name = entity_name_from_data_table(data_table_node)
             method_step_list = list_method_steps(data_table_node)
 
+    set_current_page('other_entity')
     return render_template('method_step_select.html',
                            title=title,
                            entity_name=entity_name,
@@ -634,6 +639,7 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
                                         populate_method_step_form(form, ms_node)
                                         break
 
+    set_current_page('other_entity')
     return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)
 
 
@@ -670,6 +676,7 @@ def entity_geographic_coverage_select(packageid=None, dt_element_name: str = Non
             entity_name = entity_name_from_data_table(data_table_node)
             gc_list = list_geographic_coverages(data_table_node)
 
+    set_current_page('other_entity')
     return render_template('geographic_coverage_select.html',
                            title=title,
                            entity_name=entity_name,
@@ -792,6 +799,7 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
                                         populate_geographic_coverage_form(form, gc_node)
                                         break
 
+    set_current_page('other_entity')
     return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, packageid=packageid)
 
 
@@ -890,6 +898,7 @@ def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None,
             entity_name = entity_name_from_data_table(data_table_node)
             tc_list = list_temporal_coverages(data_table_node)
 
+    set_current_page('other_entity')
     return render_template('temporal_coverage_select.html',
                            title=title,
                            entity_name=entity_name,
@@ -1001,6 +1010,7 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
                                         populate_temporal_coverage_form(form, tc_node)
                                         break
 
+    set_current_page('other_entity')
     return render_template('temporal_coverage.html', title='Temporal Coverage', form=form, packageid=packageid)
 
 
@@ -1037,6 +1047,7 @@ def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None
             entity_name = entity_name_from_data_table(data_table_node)
             txc_list = list_taxonomic_coverages(data_table_node)
 
+    set_current_page('other_entity')
     return render_template('taxonomic_coverage_select.html',
                            title=title,
                            entity_name=entity_name,
@@ -1157,4 +1168,5 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
                                         populate_temporal_coverage_form(form, txc_node)
                                         break
 
+    set_current_page('other_entity')
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, packageid=packageid)

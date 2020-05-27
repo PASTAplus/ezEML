@@ -32,6 +32,9 @@ from webapp.home.intellectual_rights import (
     INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
 )
 
+from webapp.home.views import set_current_page
+
+
 res_bp = Blueprint('res', __name__, template_folder='templates')
 
 
@@ -51,8 +54,10 @@ def title(packageid=None):
             title_node = create_title(title=form.title.data, packageid=packageid)
             form.md5.data = form_md5(form)
 
+        current_page = 'title'
         if 'Next' in request.form:
             new_page = PAGE_CREATOR_SELECT
+            current_page = 'creators'
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_TITLE
         elif 'Hidden_Download' in request.form:
@@ -67,6 +72,7 @@ def title(packageid=None):
         form.title.data = title_node.content
     form.md5.data = form_md5(form)
 
+    set_current_page('title')
     return render_template('title.html', title='Title', form=form)
 
 
@@ -102,6 +108,7 @@ def publication_place(packageid=None):
     if pubplace_node:
         form.pubplace.data = pubplace_node.content
     form.md5.data = form_md5(form)
+    set_current_page('publication_place')
     return render_template('publication_place.html', title='Publication Place', form=form)
 
 
@@ -138,6 +145,7 @@ def pubdate(packageid=None):
         form.pubdate.data = pubdate_node.content
     form.md5.data = form_md5(form)
 
+    set_current_page('pubdate')
     return render_template('pubdate.html',
                            title='Publication Date',
                            packageid=packageid, form=form)
@@ -181,6 +189,7 @@ def abstract(packageid=None):
     if abstract_node:
         form.abstract.data = remove_paragraph_tags(abstract_node.content)
     form.md5.data = form_md5(form)
+    set_current_page('abstract')
     return render_template('abstract.html',
                            title='Abstract',
                            packageid=packageid, form=form)
@@ -234,6 +243,7 @@ def intellectual_rights(packageid=None):
 
     form.md5.data = form_md5(form)
 
+    set_current_page('intellectual_rights')
     return render_template('intellectual_rights.html',
                            title='Intellectual Rights',
                            packageid=packageid, form=form)
@@ -279,6 +289,7 @@ def keyword_select_get(packageid=None, form=None):
     if eml_node:
         kw_list = list_keywords(eml_node)
 
+    set_current_page('keyword')
     return render_template('keyword_select.html', title=title,
                            packageid=packageid,
                            kw_list=kw_list,
@@ -295,7 +306,7 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
             val = form_dict[key][0]  # value is the first list element
             if val == BTN_BACK:
                 new_page = back_page
-            elif val == BTN_NEXT:
+            elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
@@ -401,4 +412,5 @@ def keyword(packageid=None, node_id=None):
                     populate_keyword_form(form, kw_node)
                     break
 
+    set_current_page('keyword')
     return render_template('keyword.html', title='Keyword', form=form, packageid=packageid)

@@ -1,8 +1,15 @@
 {% extends 'bootstrap/base.html' %}
 {% import '_macros.html' as macros %}
 
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+{% endblock %}
+
 {% block title %}
-{% if title %}{{ title }} - Metadata EML{% endif %}
+{% if title %}{{ title }} - Metadata Editor{% endif %}
 {% endblock %}
 
 {% block navbar %}
@@ -12,7 +19,7 @@
         <div class="navbar-header">
             <table>
                 <td width="5%"></td>
-                <td><a href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a></td>
+                <td><a onclick="nav_save.click();" href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a></td>
                 <td width="5%"></td>
                 <td>
                     <button aria-controls="navbar" aria-expanded="false"
@@ -23,7 +30,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="{{ url_for('home.index') }}">Metadata EML</a>
+                    <a class="navbar-brand" onclick="nav_save.click();" href="{{ url_for('home.index') }}">Metadata Editor</a>
                 </td>
             </table>
         </div>
@@ -67,71 +74,6 @@
                         </li>
                     {% endif %}
                     </ul>
-                </li>
-            {% endif %}
-            {% if current_user.is_authenticated and current_user.get_packageid() %}
-                <li class="dropdown">
-                    <a aria-expanded="false" aria-haspopup="true"
-                       class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">Edit
-                        <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='res.pubdate') }}" title="Edit">Publication Date</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='res.intellectual_rights') }}" title="Edit">Intellectual Rights</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='res.publication_place') }}" title="Edit">Publication Place</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='md.method_step_select') }}" title="Edit">Methods</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a>
-                        </li>
-                     </ul>
                 </li>
             {% endif %}
             {% if current_user.is_authenticated %}
@@ -181,7 +123,7 @@
                 <li>
                     <table style="height: 50px;" valign="middle">
                         <td>
-                            <input id="nav_save" class="btn btn-primary" name="Save" type="submit" value="Save Data Package"/>
+                            <input id="nav_save" class="btn btn-primary" name="Save" type="submit" value="Save"/>
                         </td>
                         <td width="5%"></td>
                         <td>
@@ -199,10 +141,10 @@
                 </li>
                 {% endif %}
             </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li>
-                </li>
-            </ul>
+{#            <ul class="nav navbar-nav navbar-right">#}
+{#                <li>#}
+{#                </li>#}
+{#            </ul>#}
         </div>
         {% if current_user.is_authenticated %}
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
@@ -230,10 +172,81 @@
 {#    {% endif %}#}
 {#    {% endwith %}#}
 
-    {# application content needs to be provided in the app_content block #}
-    {% block app_content %}{% endblock %}
+    <div style="width: 20%; float: left;">
+        <br>
+        {% if current_user.is_authenticated %}
+                <table>
+                    <td><h4 class="nav_link">Contents</h4><p></p></td>
+                    <td valign="middle" style="padding-top: 7px;padding-left: 10px;">{{ macros.help_button('help_contents_btn', 'nav_link') }}</td>
+                </table>
+            {% set title_style = '""' %}
+            {% set creator_style = '""' %}
+            {% set metadata_provider_style = '""' %}
+            {% set associated_party_style = '""' %}
+            {% set pubdate_style = '""' %}
+            {% set abstract_style = '""' %}
+            {% set keyword_style = '""' %}
+            {% set intellectual_rights_style = '""' %}
+            {% set geographic_coverage_style = '""' %}
+            {% set temporal_coverage_style = '""' %}
+            {% set taxonomic_coverage_style = '""' %}
+            {% set contact_style = '""' %}
+            {% set publisher_style = '""' %}
+            {% set publication_place_style = '""' %}
+            {% set method_step_style = '""' %}
+            {% set project_style = '""' %}
+            {% set data_table_style = '""' %}
+            {% set other_entity_style = '""' %}
 
+            {% set page = session['current_page'] %}
+            {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
+
+            {% if page == 'title' %}{% set title_style = current %}{% endif %}
+            {% if page == 'creator' %}{% set creator_style = current %}{% endif %}
+            {% if page == 'metadata_provider' %}{% set metadata_provider_style = current %}{% endif %}
+            {% if page == 'associated_party' %}{% set associated_party_style = current %}{% endif %}
+            {% if page == 'pubdate' %}{% set pubdate_style = current %}{% endif %}
+            {% if page == 'abstract' %}{% set abstract_style = current %}{% endif %}
+            {% if page == 'keyword' %}{% set keyword_style = current %}{% endif %}
+            {% if page == 'intellectual_rights' %}{% set intellectual_rights_style = current %}{% endif %}
+            {% if page == 'geographic_coverage' %}{% set geographic_coverage_style = current %}{% endif %}
+            {% if page == 'temporal_coverage' %}{% set temporal_coverage_style = current %}{% endif %}
+            {% if page == 'taxonomic_coverage' %}{% set taxonomic_coverage_style = current %}{% endif %}
+            {% if page == 'contact' %}{% set contact_style = current %}{% endif %}
+            {% if page == 'publisher' %}{% set publisher_style = current %}{% endif %}
+            {% if page == 'publication_place' %}{% set publication_place_style = current %}{% endif %}
+            {% if page == 'method_step' %}{% set method_step_style = current %}{% endif %}
+            {% if page == 'project' %}{% set project_style = current %}{% endif %}
+            {% if page == 'data_table' %}{% set data_table_style = current %}{% endif %}
+            {% if page == 'other_entity' %}{% set other_entity_style = current %}{% endif %}
+
+        <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
+        <a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>
+        <a class="nav_link" style={{ metadata_provider_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
+        <a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>
+        <a class="nav_link" style={{ pubdate_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.pubdate') }}" title="Edit">Publication Date</a><br>
+        <a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>
+        <a class="nav_link" style={{ keyword_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>
+        <a class="nav_link" style={{ intellectual_rights_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.intellectual_rights') }}" title="Edit">Intellectual Rights</a><br>
+        <a class="nav_link" style={{ geographic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a><br>
+        <a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
+        <a class="nav_link" style={{ taxonomic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
+        <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
+        <a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>
+        <a class="nav_link" style={{ publication_place_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.publication_place') }}" title="Edit">Publication Place</a><br>
+        <a class="nav_link" style={{ method_step_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='md.method_step_select') }}" title="Edit">Methods</a><br>
+        <a class="nav_link" style={{ project_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
+        <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
+        <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
+        {% endif %}
+    </div>
+    <div style="margin-left: 20%;">
+        {# application content needs to be provided in the app_content block #}
+        {% block app_content %}{% endblock %}
+    </div>
 </div>
+
+    {{ macros.help_dialog('help_contents_dialog', session['help_contents'][0], session['help_contents'][1]) }}
 
 {% endblock %}
 
@@ -242,11 +255,13 @@
     <script>
     $(function()
     {
-        let nav_save = $("#nav_save")
-        let nav_download = $("#nav_download")
-        let hidden_save = $("#hidden_save")
-        let hidden_download = $("#hidden_download")
+        let nav_save = $("#nav_save");
+        let nav_download = $("#nav_download");
+        let hidden_save = $("#hidden_save");
+        let hidden_download = $("#hidden_download");
+        let nav_link = $('.nav_link');
         if (hidden_save.length === 0) {
+            nav_link.hide();
             nav_save.hide();
         }
         if (hidden_download.length === 0) {
@@ -254,16 +269,47 @@
         }
         nav_save.on("click", function() {
             if (hidden_save.length) {
-                //alert('clicking hidden_save');
-                hidden_save.click()
+                {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
+                {#alert($('form').serialize());#}
+                {#alert($('form').data('serialize'));#}
+                hidden_save.click();
             }
         })
         nav_download.on("click", function() {
             if (hidden_download.length) {
-                //alert('clicking hidden_download');
-                hidden_download.click()
+                {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
+                {#alert($('form').serialize());#}
+                {#alert($('form').data('serialize'));#}
+                hidden_download.click();
             }
         })
+
+        {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
+        {#alert($('form').serialize());#}
+        {#alert($('form').data('serialize'));#}
+        {##}
+        {#$(window).bind('beforeunload', function(e){#}
+        {#   // if form state change show warning box, else don't show it.#}
+        {#   if ($('form').serialize()!=$('form').data('serialize')) {#}
+                {#alert($('form').serialize());#}
+                {#alert($('form').data('serialize'));#}
+        {#       return true;#}
+        {#   }#}
+        {#   else {#}
+        {#       e = null;#}
+        {#   }#}
+        {#})#}
      });
     </script>
+
+    {% block app_scripts %}
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+    $(function()
+    {
+        {{ macros.help_script('help_contents_dialog', 'help_contents_btn') }}
+    });
+    </script>
+    {% endblock %}
 {% endblock %}

@@ -21,7 +21,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking
+from webapp.home.views import select_post, non_breaking, set_current_page
 
 
 rp_bp = Blueprint('rp', __name__, template_folder='templates')
@@ -41,6 +41,7 @@ def creator_select(packageid=None):
         return redirect(url)
 
     # Process GET
+    set_current_page('creator')
     return rp_select_get(packageid=packageid, form=form, rp_name=names.CREATOR,
                          rp_singular='Creator', rp_plural='Creators')
 
@@ -48,6 +49,7 @@ def creator_select(packageid=None):
 @rp_bp.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
 def creator(packageid=None, node_id=None):
     method = request.method
+    set_current_page('creator')
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.CREATOR,
                              back_page=PAGE_CREATOR_SELECT, title='Creator')
@@ -60,6 +62,7 @@ def rp_select_get(packageid=None, form=None, rp_name=None,
     rp_list = list_responsible_parties(eml_node, rp_name)
     title = rp_name.capitalize()
 
+    # set_current_page('creator')
     return render_template('responsible_party_select.html', title=title,
                            rp_list=rp_list, form=form,
                            rp_singular=rp_singular, rp_plural=rp_plural)
@@ -75,7 +78,7 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
             if val == BTN_BACK:
                 new_page = back_page
                 break
-            elif val == BTN_NEXT:
+            elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
                 new_page = next_page
                 break
     return new_page
@@ -83,7 +86,7 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
 
 def responsible_party(packageid=None, node_id=None, method=None,
                       node_name=None, back_page=None, title=None,
-                      next_page=None):
+                      next_page=None, save_and_continue=False):
 
     if BTN_CANCEL in request.form:
         url = url_for(back_page, packageid=packageid)
@@ -102,9 +105,16 @@ def responsible_party(packageid=None, node_id=None, method=None,
     form_value = request.form
     form_dict = form_value.to_dict(flat=False)
     url = select_post(packageid, form, form_dict,
-                      'POST', PAGE_METADATA_PROVIDER_SELECT,
-                      PAGE_CREATOR_SELECT, PAGE_ASSOCIATED_PARTY_SELECT,
-                      PAGE_METADATA_PROVIDER)
+                      'POST', PAGE_PUBLISHER,
+                      PAGE_CONTACT_SELECT, PAGE_PUBLICATION_PLACE,
+                      PAGE_PUBLISHER)
+    # url = select_post(packageid, form, form_dict,
+    #                   method, this_page, back_page,
+    #                   next_page, edit_page)
+
+    # def select_post(packageid=None, form=None, form_dict=None,
+    #                 method=None, this_page=None, back_page=None,
+    #                 next_page=None, edit_page=None):
 
     # If this is an associatedParty or a project personnel element,
     # set role to True so it will appear as a form field.
@@ -203,7 +213,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
                         populate_responsible_party_form(form, rp_node)
 
     return render_template('responsible_party.html', title=title,
-                           form=form, role=role, next_page=next_page)
+                           form=form, role=role, next_page=next_page, save_and_continue=save_and_continue)
 
 
 @rp_bp.route('/metadata_provider_select/<packageid>', methods=['GET', 'POST'])
@@ -221,6 +231,7 @@ def metadata_provider_select(packageid=None):
         return redirect(url)
 
     # Process GET
+    set_current_page('metadata_provider')
     return rp_select_get(packageid=packageid, form=form,
                          rp_name=names.METADATAPROVIDER,
                          rp_singular=non_breaking('Metadata Provider'),
@@ -230,6 +241,7 @@ def metadata_provider_select(packageid=None):
 @rp_bp.route('/metadata_provider/<packageid>/<node_id>', methods=['GET', 'POST'])
 def metadata_provider(packageid=None, node_id=None):
     method = request.method
+    set_current_page('metadata_provider')
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.METADATAPROVIDER,
                              back_page=PAGE_METADATA_PROVIDER_SELECT,
@@ -252,6 +264,7 @@ def associated_party_select(packageid=None):
         return redirect(url)
 
     # Process GET
+    set_current_page('associated_party')
     return rp_select_get(packageid=packageid, form=form,
                          rp_name=names.ASSOCIATEDPARTY,
                          rp_singular=non_breaking('Associated Party'),
@@ -261,6 +274,7 @@ def associated_party_select(packageid=None):
 @rp_bp.route('/associated_party/<packageid>/<node_id>', methods=['GET', 'POST'])
 def associated_party(packageid=None, node_id=None):
     method = request.method
+    set_current_page('associated_party')
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.ASSOCIATEDPARTY,
                              back_page=PAGE_ASSOCIATED_PARTY_SELECT,
@@ -281,6 +295,7 @@ def contact_select(packageid=None):
         return redirect(url)
 
     # Process GET
+    set_current_page('contact')
     return rp_select_get(packageid=packageid, form=form, rp_name='contact',
                          rp_singular='Contact', rp_plural='Contacts')
 
@@ -288,6 +303,7 @@ def contact_select(packageid=None):
 @rp_bp.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])
 def contact(packageid=None, node_id=None):
     method = request.method
+    set_current_page('contact')
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.CONTACT,
                              back_page=PAGE_CONTACT_SELECT, title='Contact')
@@ -304,10 +320,12 @@ def publisher(packageid=None):
             publisher_node = dataset_node.find_child(names.PUBLISHER)
             if publisher_node:
                 node_id = publisher_node.id
+    set_current_page('publisher')
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.PUBLISHER,
                              back_page=PAGE_CONTACT_SELECT, title='Publisher',
-                             next_page=PAGE_PUBLICATION_PLACE)
+                             next_page=PAGE_PUBLICATION_PLACE,
+                             save_and_continue=True)
 
 
 def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
@@ -393,6 +411,7 @@ def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
 @rp_bp.route('/project_personnel/<packageid>/<node_id>', methods=['GET', 'POST'])
 def project_personnel(packageid=None, node_id=None):
     method = request.method
+    set_current_page('project')
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.PERSONNEL,
                              back_page=PAGE_PROJECT_PERSONNEL_SELECT, title='Project Personnel')

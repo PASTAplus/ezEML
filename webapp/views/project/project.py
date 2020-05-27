@@ -19,7 +19,7 @@ from webapp.views.responsible_parties.rp import rp_select_get
 from webapp.views.responsible_parties.forms import ResponsiblePartySelectForm
 
 from webapp.pages import *
-from webapp.home.views import select_post
+from webapp.home.views import select_post, set_current_page
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -70,6 +70,7 @@ def project(packageid=None):
         if project_node:
             populate_project_form(form, project_node)
 
+    set_current_page('project')
     return render_template('project.html',
                            title='Project',
                            packageid=packageid,

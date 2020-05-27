@@ -25,6 +25,7 @@ from webapp.pages import *
 from webapp.home.views import (select_post, compare_begin_end_dates)
 from metapype.eml import names
 from metapype.model.node import Node
+from webapp.home.views import set_current_page
 
 
 cov_bp = Blueprint('cov', __name__, template_folder='templates')
@@ -55,6 +56,7 @@ def geographic_coverage_select(packageid=None):
         if dataset_node:
             gc_list = list_geographic_coverages(dataset_node)
 
+    set_current_page('geographic_coverage')
     return render_template('geographic_coverage_select.html', title=title,
                            gc_list=gc_list, form=form)
 
@@ -138,6 +140,7 @@ def geographic_coverage(packageid=None, node_id=None):
                         if node_id == gc_node.id:
                             populate_geographic_coverage_form(form, gc_node)
 
+    set_current_page('geographic_coverage')
     return render_template('geographic_coverage.html', title='Geographic Coverage', form=form)
 
 
@@ -187,6 +190,7 @@ def temporal_coverage_select(packageid=None):
         if dataset_node:
             tc_list = list_temporal_coverages(dataset_node)
 
+    set_current_page('temporal_coverage')
     return render_template('temporal_coverage_select.html', title=title,
                            tc_list=tc_list, form=form)
 
@@ -264,6 +268,7 @@ def temporal_coverage(packageid=None, node_id=None):
                         if node_id == tc_node.id:
                             populate_temporal_coverage_form(form, tc_node)
 
+    set_current_page('temporal_coverage')
     return render_template('temporal_coverage.html', title='Temporal Coverage', form=form)
 
 
@@ -310,6 +315,7 @@ def taxonomic_coverage_select(packageid=None):
         if dataset_node:
             txc_list = list_taxonomic_coverages(dataset_node)
 
+    set_current_page('taxonomic_coverage')
     return render_template('taxonomic_coverage_select.html', title=title,
                            txc_list=txc_list, form=form)
 
@@ -391,6 +397,7 @@ def taxonomic_coverage(packageid=None, node_id=None):
                         if node_id == txc_node.id:
                             populate_taxonomic_coverage_form(form, txc_node)
 
+    set_current_page('taxonomic_coverage')
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form)
 
 

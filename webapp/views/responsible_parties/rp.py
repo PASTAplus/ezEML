@@ -62,7 +62,6 @@ def rp_select_get(packageid=None, form=None, rp_name=None,
     rp_list = list_responsible_parties(eml_node, rp_name)
     title = rp_name.capitalize()
 
-    # set_current_page('creator')
     return render_template('responsible_party_select.html', title=title,
                            rp_list=rp_list, form=form,
                            rp_singular=rp_singular, rp_plural=rp_plural)

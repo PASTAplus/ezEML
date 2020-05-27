@@ -2,7 +2,12 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>{{ rp_plural }}</h1>
+    {% set rp_help_id = 'help_' ~ rp_plural %}
+
+    <table>
+        <td><h1>{{ rp_plural }}</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(rp_help_id ~ '_btn') }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -30,4 +35,16 @@
             </form>
         </div>
     </div>
+    {{ macros.help_dialog(rp_help_id ~ '_dialog', session[rp_help_id][0], session[rp_help_id][1]) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set rp_help_id = 'help_' ~ rp_plural %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(rp_help_id ~ '_dialog', rp_help_id ~ '_btn') }}
+    });
+    </script>
 {% endblock %}

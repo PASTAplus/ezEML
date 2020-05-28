@@ -461,7 +461,7 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            if val == BTN_BACK:
+            if val.startswith(BTN_BACK):
                 new_page = back_page
             elif val.startswith(BTN_EDIT):
                 node_id = key

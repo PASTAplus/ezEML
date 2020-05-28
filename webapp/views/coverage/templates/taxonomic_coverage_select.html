@@ -40,7 +40,13 @@
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
-                {%  endif %}
+                {% else %}
+                    {% if element_name == 'dataTable' %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Data Table"/>
+                    {% else %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Other Entity"/>
+                    {% endif %}
+                {% endif %}
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

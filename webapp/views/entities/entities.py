@@ -531,13 +531,19 @@ def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_no
             entity_name = entity_name_from_data_table(data_table_node)
             method_step_list = list_method_steps(data_table_node)
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
+    help = [get_help('methods')]
     return render_template('method_step_select.html',
                            title=title,
                            entity_name=entity_name,
                            method_step_list=method_step_list,
                            form=form,
-                           suppress_next_btn=True)
+                           suppress_next_btn=True,
+                           element_name=dt_element_name,
+                           help=help)
 
 
 # node_id is the id of the methodStep node being edited. If the value is
@@ -643,7 +649,10 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
                                         populate_method_step_form(form, ms_node)
                                         break
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
     return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)
 
 
@@ -680,13 +689,19 @@ def entity_geographic_coverage_select(packageid=None, dt_element_name: str = Non
             entity_name = entity_name_from_data_table(data_table_node)
             gc_list = list_geographic_coverages(data_table_node)
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
+    help = [get_help('geographic_coverages')]
     return render_template('geographic_coverage_select.html',
                            title=title,
                            entity_name=entity_name,
                            gc_list=gc_list,
                            form=form,
-                           suppress_next_btn=True)
+                           suppress_next_btn=True,
+                           element_name=dt_element_name,
+                           help=help)
 
 
 @ent_bp.route('/entity_geographic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
@@ -803,7 +818,10 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
                                         populate_geographic_coverage_form(form, gc_node)
                                         break
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
     return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, packageid=packageid)
 
 
@@ -817,14 +835,14 @@ def entity_select_post(packageid=None, form=None, form_dict=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
+            if val.startswith(BTN_BACK):
                 new_page = back_page
-            elif val == 'Next':
+            elif val == BTN_NEXT:
                 new_page = next_page
-            elif val == 'Edit':
+            elif val.startswith(BTN_EDIT):
                 new_page = edit_page
                 node_id = key
-            elif val == 'Remove':
+            elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
                 eml_node = load_eml(packageid=packageid)
@@ -902,13 +920,19 @@ def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None,
             entity_name = entity_name_from_data_table(data_table_node)
             tc_list = list_temporal_coverages(data_table_node)
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
+    help = [get_help('temporal_coverages')]
     return render_template('temporal_coverage_select.html',
                            title=title,
                            entity_name=entity_name,
                            tc_list=tc_list,
                            form=form,
-                           suppress_next_btn=True)
+                           suppress_next_btn=True,
+                           element_name=dt_element_name,
+                           help=help)
 
 
 @ent_bp.route('/entity_temporal_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
@@ -1014,7 +1038,10 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
                                         populate_temporal_coverage_form(form, tc_node)
                                         break
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
     return render_template('temporal_coverage.html', title='Temporal Coverage', form=form, packageid=packageid)
 
 
@@ -1051,13 +1078,19 @@ def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None
             entity_name = entity_name_from_data_table(data_table_node)
             txc_list = list_taxonomic_coverages(data_table_node)
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
+    help = [get_help('taxonomic_coverages')]
     return render_template('taxonomic_coverage_select.html',
                            title=title,
                            entity_name=entity_name,
                            txc_list=txc_list,
                            form=form,
-                           suppress_next_btn=True)
+                           suppress_next_btn=True,
+                           element_name=dt_element_name,
+                           help=help)
 
 
 @ent_bp.route('/entity_taxonomic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
@@ -1172,5 +1205,8 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
                                         populate_temporal_coverage_form(form, txc_node)
                                         break
 
-    set_current_page('other_entity')
+    if dt_element_name == 'dataTable':
+        set_current_page('data_table')
+    else:
+        set_current_page('other_entity')
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, packageid=packageid)

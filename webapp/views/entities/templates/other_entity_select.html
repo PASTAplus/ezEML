@@ -2,7 +2,17 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Other Entities</h1>
+    {% set help_other_entities_id, help_other_entities_title, help_other_entities_content = help[0] %}
+    {% set help_other_entities_btn = help_other_entities_id ~ '_btn' %}
+    {% set help_other_entities_dialog = help_other_entities_id ~ '_dialog' %}
+    {% set help_add_load_other_entities_id, help_add_load_other_entities_title, help_add_load_other_entities_content = help[1] %}
+    {% set help_add_load_other_entities_btn = help_add_load_other_entities_id ~ '_btn' %}
+    {% set help_add_load_other_entities_dialog = help_add_load_other_entities_id ~ '_dialog' %}
+
+    <table>
+        <td><h1>Other Entities</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entities_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -22,8 +32,12 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Other Entity"/>
-                <input class="btn btn-primary" name="1" type="submit" value="Load Other Entity"/>
+                <table>
+                    <td><input class="btn btn-primary" name="1" type="submit" value="Add Other Entity"/>
+                        <input class="btn btn-primary" name="1" type="submit" value="Load Other Entity"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_add_load_other_entities_btn) }}</td>
+                </table>
+            
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
@@ -31,4 +45,25 @@
             </form>
         </div>
     </div>
+
+    {{ macros.help_dialog(help_other_entities_dialog, help_other_entities_title, help_other_entities_content) }}
+    {{ macros.help_dialog(help_add_load_other_entities_dialog, help_add_load_other_entities_title, help_add_load_other_entities_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_other_entities_id, help_other_entities_title, help_other_entities_content = help[0] %}
+    {% set help_other_entities_btn = help_other_entities_id ~ '_btn' %}
+    {% set help_other_entities_dialog = help_other_entities_id ~ '_dialog' %}
+    {% set help_add_load_other_entities_id, help_add_load_other_entities_title, help_add_load_other_entities_content = help[1] %}
+    {% set help_add_load_other_entities_btn = help_add_load_other_entities_id ~ '_btn' %}
+    {% set help_add_load_other_entities_dialog = help_add_load_other_entities_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_other_entities_dialog, help_other_entities_btn) }}
+        {{ macros.help_script(help_add_load_other_entities_dialog, help_add_load_other_entities_btn) }}
+    });
+    </script>
 {% endblock %}

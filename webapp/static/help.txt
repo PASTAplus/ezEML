@@ -109,3 +109,39 @@ Method steps are descriptions of specific steps of the method employed when coll
 
 The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, relevant literature, software, instrumentation, source data and any quality control measures taken.
 --------------------
+project
+Project
+Documents the research context of a dataset or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
+
+To document methods specific to a dataset, use <b>Methods</b>.
+--------------------
+project_title
+Project Title
+A descriptive title for the research project.
+
+Example: Species diversity in Tennessee riparian habitats.
+--------------------
+data_tables
+Data Tables
+A data table is one tabular entity in the dataset, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+--------------------
+add_load_data_tables
+Add/Load Data Tables
+You can create a data table descriptor "from scratch" via <b>Add Data Table</b>, or you can load an existing data table CSV file via <b>Load Data Table</b>.
+
+In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but others will still need to be entered or modified manually.
+--------------------
+other_entities
+Other Entities
+Other Entities are descriptors of single data entities other than data tables. They are identitied by their names.
+
+The other entity descriptor can contain information about the entity's basic identity, its temporal, geographic and taxonomic coverage, and its type.
+
+Example: Photograph of rocky intertidal plot 12 from Santa Cruz
+--------------------
+add_load_other_entities
+Add/Load Other Entities
+You can create an other entity descriptor "from scratch" via <b>Add Other Entity</b>, or you can load an existing other entity file via <b>Load Other Entity</b>.
+
+In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but others will still need to be entered or modified manually.
+--------------------

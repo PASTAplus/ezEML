@@ -60,7 +60,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking
+from webapp.home.views import select_post, non_breaking, get_help
 
 
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
@@ -85,8 +85,9 @@ def other_entity_select(packageid=None):
     title = 'Other Entities'
 
     set_current_page('other_entity')
+    help = [get_help('other_entities'), get_help('add_load_other_entities')]
     return render_template('other_entity_select.html', title=title,
-                           oe_list=oe_list, form=form)
+                           oe_list=oe_list, form=form, help=help)
 
 
 @ent_bp.route('/other_entity/<packageid>/<node_id>', methods=['GET', 'POST'])

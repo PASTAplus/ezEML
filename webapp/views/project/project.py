@@ -19,7 +19,7 @@ from webapp.views.responsible_parties.rp import rp_select_get
 from webapp.views.responsible_parties.forms import ResponsiblePartySelectForm
 
 from webapp.pages import *
-from webapp.home.views import select_post, set_current_page
+from webapp.home.views import select_post, set_current_page, get_help
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -71,10 +71,12 @@ def project(packageid=None):
             populate_project_form(form, project_node)
 
     set_current_page('project')
+    help = [get_help('project'), get_help('project_title')]
     return render_template('project.html',
                            title='Project',
                            packageid=packageid,
-                           form=form)
+                           form=form,
+                           help=help)
 
 
 def populate_project_form(form: ProjectForm, project_node: Node):

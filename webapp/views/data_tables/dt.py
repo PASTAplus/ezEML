@@ -35,7 +35,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking
+from webapp.home.views import select_post, non_breaking, get_help
 
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
 
@@ -62,8 +62,9 @@ def data_table_select(packageid=None):
     title = 'Data Tables'
 
     set_current_page('data_table')
+    help = [get_help('data_tables'), get_help('add_load_data_tables')]
     return render_template('data_table_select.html', title=title,
-                           dt_list=dt_list, form=form)
+                           dt_list=dt_list, form=form, help=help)
 
 
 @dt_bp.route('/data_table/<packageid>/<node_id>', methods=['GET', 'POST'])

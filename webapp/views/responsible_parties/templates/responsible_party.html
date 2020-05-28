@@ -2,7 +2,16 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>{{ title }}</h1>
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h1>{{ title }}</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -44,4 +53,22 @@
             <p>&nbsp;</p>
         </div>
     </div>
+
+    {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
+    });
+    </script>
 {% endblock %}

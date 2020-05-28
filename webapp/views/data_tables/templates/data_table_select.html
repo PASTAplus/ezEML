@@ -2,7 +2,19 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Data Tables</h1>
+    {% if help %}
+    {% set help_data_tables_id, help_data_tables_title, help_data_tables_content = help[0] %}
+    {% set help_data_tables_btn = help_data_tables_id ~ '_btn' %}
+    {% set help_data_tables_dialog = help_data_tables_id ~ '_dialog' %}
+    {% set help_add_load_data_tables_id, help_add_load_data_tables_title, help_add_load_data_tables_content = help[1] %}
+    {% set help_add_load_data_tables_btn = help_add_load_data_tables_id ~ '_btn' %}
+    {% set help_add_load_data_tables_dialog = help_add_load_data_tables_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h1>Data Tables</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -22,8 +34,12 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Data Table"/>
-                <input class="btn btn-primary" name="1" type="submit" value="Load Data Table"/>
+                <table>
+                    <td><input class="btn btn-primary" name="1" type="submit" value="Add Data Table"/>
+                        <input class="btn btn-primary" name="1" type="submit" value="Load Data Table"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_add_load_data_tables_btn) }}</td>
+                </table>
+
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
@@ -31,4 +47,27 @@
             </form>
         </div>
     </div>
+
+    {{ macros.help_dialog(help_data_tables_dialog, help_data_tables_title, help_data_tables_content) }}
+    {{ macros.help_dialog(help_add_load_data_tables_dialog, help_add_load_data_tables_title, help_add_load_data_tables_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_data_tables_id, help_data_tables_title, help_data_tables_content = help[0] %}
+    {% set help_data_tables_btn = help_data_tables_id ~ '_btn' %}
+    {% set help_data_tables_dialog = help_data_tables_id ~ '_dialog' %}
+    {% set help_add_load_data_tables_id, help_add_load_data_tables_title, help_add_load_data_tables_content = help[1] %}
+    {% set help_add_load_data_tables_btn = help_add_load_data_tables_id ~ '_btn' %}
+    {% set help_add_load_data_tables_dialog = help_add_load_data_tables_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_data_tables_dialog, help_data_tables_btn) }}
+        {{ macros.help_script(help_add_load_data_tables_dialog, help_add_load_data_tables_btn) }}
+    });
+    </script>
 {% endblock %}

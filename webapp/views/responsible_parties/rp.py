@@ -211,6 +211,8 @@ def responsible_party(packageid=None, node_id=None, method=None,
                     if node_id == rp_node.id:
                         populate_responsible_party_form(form, rp_node)
 
+    if node_name == names.PUBLISHER:
+        help = [get_help('publisher')]
     return render_template('responsible_party.html', title=title,
                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
 

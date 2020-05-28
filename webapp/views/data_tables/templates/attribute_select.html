@@ -3,15 +3,15 @@
 
 {% block app_content %}
     <h1>Attributes for {{ entity_name }}</h1>
-    <div class="row">
-        <div class="col-md-10">
+{#    <div class="row">#}
+        <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
                         <th>Column #</th>
-                        <th>Attribute Name</th>
-                        <th>Measurement Scale</th>
+                        <th>Attribute<br>Name</th>
+                        <th>Measurement<br>Scale</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -38,5 +38,5 @@
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
-    </div>
+{#    </div>#}
 {% endblock %}

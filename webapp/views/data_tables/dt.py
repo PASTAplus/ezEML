@@ -1397,12 +1397,12 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_CODE_DEFINITION_SELECT  # Save or Back sends us back to the list of attributes
 
-        if 'Back' in request.form:
-            if is_dirty_form(form):
-                submit_type = 'Save Changes'
-            else:
-                submit_type = 'Back'
-            # flash(f'submit_type: {submit_type}')
+        # if 'Back' in request.form:
+        if is_dirty_form(form):
+            submit_type = 'Save Changes'
+        else:
+            submit_type = 'Back'
+        # flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             if att_node:

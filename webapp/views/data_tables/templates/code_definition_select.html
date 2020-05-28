@@ -20,10 +20,12 @@
                     <tr>
                         <td>{{ cd_entry.code }}</td>
                         <td>{{ cd_entry.definition }}</td>
-                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="{{ cd_entry.upval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="{{ cd_entry.downval }}"/></td>
-                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="Edit"/></td>
-                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="Remove"/></td>
+                        {{ macros.up_down_arrow(cd_entry.id, cd_entry.upval) }}
+                        {{ macros.up_down_arrow(cd_entry.id, cd_entry.downval) }}
+{#                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="{{ cd_entry.upval }}"/></td>#}
+{#                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="{{ cd_entry.downval }}"/></td>#}
+                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>

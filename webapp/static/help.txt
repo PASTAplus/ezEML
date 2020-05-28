@@ -133,9 +133,9 @@ In the latter case, many of the data table's characteristics will be automatical
 --------------------
 other_entities
 Other Entities
-Other Entities are descriptors of single data entities other than data tables. They are identitied by their names.
+<b>Other Entities</b> are data entities other than data tables. They are identitied by their names.
 
-The other entity descriptor can contain information about the entity's basic identity, its temporal, geographic and taxonomic coverage, and its type.
+<b>Other Entities</b> descriptors can contain information about an entity's basic identity, its temporal, geographic, and taxonomic coverage, and its type.
 
 Example: Photograph of rocky intertidal plot 12 from Santa Cruz
 --------------------

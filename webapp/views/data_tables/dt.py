@@ -120,6 +120,9 @@ def data_table(packageid=None, node_id=None):
 
             dt_node = Node(names.DATATABLE, parent=dataset_node)
 
+            if not entity_name:
+                entity_name = '- TO DO -'
+
             create_data_table(
                 dt_node,
                 entity_name,
@@ -175,6 +178,7 @@ def data_table(packageid=None, node_id=None):
                     raise Exception(msg)
             else:
                 add_child(dataset_node, dt_node)
+                dt_node_id = dt_node.id
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
@@ -789,7 +793,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
             submit_type = 'Back'
             # flash(f"is_dirty_form: False")
 
-        # Go back to data table or go to the appropriate measuement scale page
+        # Go back to data table or go to the appropriate measurement scale page
         if BTN_DONE in request.form:  # FIXME
             next_page = PAGE_ATTRIBUTE_SELECT
 

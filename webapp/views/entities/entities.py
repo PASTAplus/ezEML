@@ -103,27 +103,32 @@ def other_entity(packageid=None, node_id=None):
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_OTHER_ENTITY_SELECT
 
-        submit_type = None
-        if is_dirty_form(form):
-            submit_type = 'Save Changes'
-        # flash(f'submit_type: {submit_type}')
-
+        auto_save = False  # if user clicked to edit, we need to save other entity first
         if 'Access' in request.form:
             next_page = PAGE_ENTITY_ACCESS_SELECT
         elif 'Methods' in request.form:
             next_page = PAGE_ENTITY_METHOD_STEP_SELECT
+            auto_save = True
         elif 'Geographic' in request.form:
             next_page = PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT
+            auto_save = True
         elif 'Temporal' in request.form:
             next_page = PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT
+            auto_save = True
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
+            auto_save = True
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_OTHER_ENTITY
         elif 'Hidden_Download' in request.form:
             new_page = PAGE_DOWNLOAD
 
         eml_node = load_eml(packageid=packageid)
+
+        submit_type = None
+        if is_dirty_form(form) or auto_save:
+            submit_type = 'Save Changes'
+        # flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             dataset_node = eml_node.find_child(names.DATASET)
@@ -140,6 +145,9 @@ def other_entity(packageid=None, node_id=None):
             online_url = form.online_url.data
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
+
+            if not entity_name:
+                entity_name = '- TO DO -'
 
             create_other_entity(
                 dt_node,
@@ -187,6 +195,7 @@ def other_entity(packageid=None, node_id=None):
                     raise Exception(msg)
             else:
                 add_child(dataset_node, dt_node)
+                dt_node_id = dt_node.id
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 

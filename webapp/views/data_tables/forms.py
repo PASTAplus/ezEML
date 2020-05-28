@@ -167,7 +167,7 @@ class DataTableSelectForm(EDIForm):
 
 class DataTableForm(EDIForm):
     entity_name = StringField('Name', validators=[])
-    entity_description = StringField('Description (Optional)', validators=[])
+    entity_description = StringField('Description', validators=[])
     object_name = StringField('Object Name', validators=[])
     size = IntegerField('Size (Optional)', validators=[Optional()])
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])

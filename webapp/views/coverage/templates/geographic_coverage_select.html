@@ -2,10 +2,12 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% if help %}
     {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
     {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
     {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
-    
+    {% endif %}
+
     <table>
         <td><h1>Geographic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
         <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
@@ -50,9 +52,11 @@
 
 {% block app_scripts %}
     {{ super() }}
+    {% if help %}
     {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
     {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
     {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    {% endif %}
 
     <script>
     $(function()

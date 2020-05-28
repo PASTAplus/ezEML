@@ -2,9 +2,11 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% if help %}
     {% set help_temporal_coverage_id, help_temporal_coverage_title, help_temporal_coverage_content = help[0] %}
     {% set help_temporal_coverage_btn = help_temporal_coverage_id ~ '_btn' %}
     {% set help_temporal_coverage_dialog = help_temporal_coverage_id ~ '_dialog' %}
+    {% endif %}
     
     <table>
         <td><h1>Temporal Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
@@ -50,10 +52,12 @@
 
 {% block app_scripts %}
     {{ super() }}
+    {% if help %}
     {% set help_temporal_coverage_id, help_temporal_coverage_title, help_temporal_coverage_content = help[0] %}
     {% set help_temporal_coverage_btn = help_temporal_coverage_id ~ '_btn' %}
     {% set help_temporal_coverage_dialog = help_temporal_coverage_id ~ '_dialog' %}
-
+    {% endif %}
+    
     <script>
     $(function()
     {

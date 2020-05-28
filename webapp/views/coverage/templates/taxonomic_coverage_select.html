@@ -2,9 +2,11 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% if help %}
     {% set help_taxonomic_coverage_id, help_taxonomic_coverage_title, help_taxonomic_coverage_content = help[0] %}
     {% set help_taxonomic_coverage_btn = help_taxonomic_coverage_id ~ '_btn' %}
     {% set help_taxonomic_coverage_dialog = help_taxonomic_coverage_id ~ '_dialog' %}
+    {% endif %}
 
     <table>
         <td><h1>Taxonomic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
@@ -49,9 +51,11 @@
 
 {% block app_scripts %}
     {{ super() }}
+    {% if help %}
     {% set help_taxonomic_coverage_id, help_taxonomic_coverage_title, help_taxonomic_coverage_content = help[0] %}
     {% set help_taxonomic_coverage_btn = help_taxonomic_coverage_id ~ '_btn' %}
     {% set help_taxonomic_coverage_dialog = help_taxonomic_coverage_id ~ '_dialog' %}
+    {% endif %}
 
     <script>
     $(function()

@@ -7,9 +7,9 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>You may select either the interval or ratio measurement scale for this data table attribute:</h5>
-                {{ wtf.form_field(form.mscale_choice) }}<br/>
-                 <h5>Please enter additional information about the data table attribute:</h5>
+{#                <h5>You may select either the interval or ratio measurement scale for this data table attribute:</h5>#}
+{#                {{ wtf.form_field(form.mscale_choice) }}<br/>#}
+{#                 <h5>Please enter additional information about the data table attribute:</h5>#}
                 {{ wtf.form_field(form.attribute_name) }}
                 {{ wtf.form_field(form.attribute_label) }}
                 {{ wtf.form_field(form.attribute_definition) }}

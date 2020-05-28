@@ -10,7 +10,7 @@
         <td><h1>Geographic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
         <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
     </table>
-    <div class="row">
+{#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
@@ -43,7 +43,7 @@
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
-    </div>
+{#    </div>#}
 
     {{ macros.help_dialog(help_geographic_coverage_dialog, help_geographic_coverage_title, help_geographic_coverage_content) }}
 {% endblock %}

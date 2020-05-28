@@ -91,10 +91,10 @@ def geographic_coverage(packageid=None, node_id=None):
                 add_child(dataset_node, coverage_node)
 
             geographic_description = form.geographic_description.data
+            wbc = form.wbc.data
+            ebc = form.ebc.data
             nbc = form.nbc.data
             sbc = form.sbc.data
-            ebc = form.ebc.data
-            wbc = form.wbc.data
 
             gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
 

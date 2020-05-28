@@ -10,10 +10,10 @@
                 {{ wtf.form_field(form.md5) }}
                 <h5>Please enter the geographic description and bounding coordinates below:</h5>
                 {{ wtf.form_field(form.geographic_description) }}
+                {{ wtf.form_field(form.wbc) }}
+                {{ wtf.form_field(form.ebc) }}
                 {{ wtf.form_field(form.nbc) }}
                 {{ wtf.form_field(form.sbc) }}
-                {{ wtf.form_field(form.ebc) }}
-                {{ wtf.form_field(form.wbc) }}
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
             </form>

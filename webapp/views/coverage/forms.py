@@ -24,7 +24,7 @@ class GeographicCoverageSelectForm(EDIForm):
 
 class GeographicCoverageForm(EDIForm):
     geographic_description = StringField('Geographic Description', widget=TextArea(),
-                                         validators=[valid_min_length(min=20)])
+                                         validators=[])  # valid_min_length(min=20)])
     # Declaring these as FloatField forces the user to input a floating point value,
     # preventing the user from leaving the field empty when they leave the form.
     wbc = FloatField('West Bounding Coordinate', validators=[valid_longitude()])

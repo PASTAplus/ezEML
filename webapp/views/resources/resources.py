@@ -370,6 +370,7 @@ def keyword(packageid=None, node_id=None):
         add_child(dataset_node, keyword_set_node)
 
     form = KeywordForm(packageid=packageid, node_id=node_id)
+    form.init_keywords()
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:

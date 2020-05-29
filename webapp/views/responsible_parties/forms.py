@@ -28,7 +28,7 @@ class ResponsiblePartyForm(EDIForm):
     phone = StringField('Phone', validators=[])
     fax = StringField('Fax', validators=[])
     email = StringField('Email', validators=[Optional(), Email()])
-    user_id = StringField('User ID (e.g., ORCID ID)', validators=[])
+    user_id = StringField('ORCID ID', validators=[])
     online_url = StringField('Online URL', validators=[Optional(), URL()])
     role = StringField('Role', validators=[])
     md5 = HiddenField('')

@@ -15,6 +15,7 @@
 import daiquiri
 import html
 import os.path
+import pickle
 from datetime import date
 
 
@@ -59,10 +60,22 @@ from werkzeug.utils import secure_filename
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
+keywords = {}
 
 
 def non_breaking(_str):
     return _str.replace(' ', html.unescape('&nbsp;'))
+
+
+@home.before_app_request  # FIXME - temporary
+@home.before_app_first_request
+def init_keywords():
+    lter_keywords = pickle.load(open('webapp/static/lter_keywords.pkl', 'rb'))
+    keywords['LTER'] = lter_keywords
+
+
+def get_keywords(which):
+    return keywords.get(which, [])
 
 
 @home.before_app_request  # FIXME - temporary

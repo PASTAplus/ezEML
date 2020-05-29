@@ -24,6 +24,9 @@
                 {{ wtf.form_field(form.sn) }}
                 {{ wtf.form_field(form.organization) }}
                 {{ wtf.form_field(form.position_name) }}
+                {% if role %}
+                {{ wtf.form_field(form.role) }}
+                {% endif %}
                 {{ wtf.form_field(form.address_1) }}
                 {{ wtf.form_field(form.address_2) }}
                 {{ wtf.form_field(form.city) }}
@@ -35,9 +38,6 @@
                 {{ wtf.form_field(form.email) }}
                 {{ wtf.form_field(form.user_id) }}
                 {{ wtf.form_field(form.online_url) }}
-                {% if role %}
-                {{ wtf.form_field(form.role) }}
-                {% endif %}
                 {% if not save_and_continue %}
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>

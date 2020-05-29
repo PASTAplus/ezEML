@@ -17,6 +17,7 @@ from webapp.home.intellectual_rights import (
 )
 
 from webapp.home.forms import EDIForm
+from webapp.home.views import get_keywords
 
 
 class AbstractForm(EDIForm):
@@ -41,6 +42,9 @@ class KeywordSelectForm(EDIForm):
 
 class KeywordForm(EDIForm):
     keyword = StringField('Keyword', validators=[])
+
+    lter_keyword_select = SelectField('', choices=[])
+
     keyword_type = SelectField('Keyword Type (Optional)',
                                choices=[("", ""),
                                         ("place", "place"),
@@ -49,6 +53,13 @@ class KeywordForm(EDIForm):
                                         ("temporal", "temporal"),
                                         ("theme", "theme")])
     md5 = HiddenField('')
+
+    def init_keywords(self):
+        lter_keywords = get_keywords('LTER')
+        keyword_choices = [("", "")]
+        for keyword in lter_keywords:
+            keyword_choices.append((keyword, keyword))
+        self.lter_keyword_select.choices = keyword_choices
 
 
 class PubDateForm(EDIForm):

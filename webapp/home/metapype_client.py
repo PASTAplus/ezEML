@@ -1675,6 +1675,7 @@ def create_responsible_party(
         if user_id:
             user_id_node = Node(names.USERID)
             user_id_node.content = user_id
+            user_id_node.add_attribute('directory', 'https://orcid.org')  # FIXME - temporary
             add_child(responsible_party_node, user_id_node)
 
         if organization:

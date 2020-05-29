@@ -788,7 +788,8 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
         return redirect(url)
 
     # Determine POST type
-    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -874,7 +875,8 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
                 bounds_minimum_exclusive,
                 bounds_maximum,
                 bounds_maximum_exclusive,
-                code_dict)
+                code_dict,
+                mscale)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)

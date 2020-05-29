@@ -1345,7 +1345,9 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if not funding_node:
             funding_node = Node(names.FUNDING, parent=project_node)
             add_child(project_node, funding_node)
-        funding_node.content = funding
+        if funding:
+            funding_node.content = funding
+        project_node.remove_child(funding_node)
 
     except Exception as e:
         logger.error(e)

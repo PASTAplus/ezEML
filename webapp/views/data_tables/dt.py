@@ -496,6 +496,10 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
+            elif val == BTN_HIDDEN_SAVE:
+                new_page = this_page
+            elif val == BTN_HIDDEN_DOWNLOAD:
+                new_page = PAGE_DOWNLOAD
             elif val.startswith('Add Attribute'):
                 if 'Ratio' in val:
                     mscale = 'ratio'
@@ -1043,7 +1047,8 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
         return redirect(url)
 
     # Determine POST type
-    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -1052,7 +1057,7 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
             submit_type = 'Back'
             # flash(f"is_dirty_form: False")
 
-        # Go back to data table or go to the appropriate measuement scale page
+        # Go back to data table or go to the appropriate measurement scale page
         if BTN_DONE in request.form:
             next_page = PAGE_ATTRIBUTE_SELECT  # FIXME
         elif 'Codes' in request.form:

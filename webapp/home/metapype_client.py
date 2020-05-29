@@ -41,7 +41,10 @@ DOWN_ARROW = html.unescape('&#x25BC;')
 
 
 def add_paragraph_tags(s):
-    return '\n<para>' + s.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
+    if s:
+        return '\n<para>' + s.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
+    else:
+        return ''
 
 
 def remove_paragraph_tags(s):
@@ -1333,7 +1336,10 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if not abstract_node:
             abstract_node = Node(names.ABSTRACT, parent=project_node)
             add_child(project_node, abstract_node)
-        abstract_node.content = abstract
+        if abstract:
+            abstract_node.content = abstract
+        else:
+            project_node.remove_child(abstract_node)
 
         funding_node = project_node.find_child(names.FUNDING)
         if not funding_node:

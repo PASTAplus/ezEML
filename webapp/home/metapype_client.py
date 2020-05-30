@@ -1648,6 +1648,7 @@ def create_responsible_party(
                    packageid:str=None, 
                    salutation:str=None,
                    gn:str=None,
+                   mn:str=None,
                    sn:str=None,
                    user_id:str=None,
                    organization:str=None,
@@ -1673,6 +1674,10 @@ def create_responsible_party(
             if gn:
                 given_name_node = Node(names.GIVENNAME)
                 given_name_node.content = gn
+                add_child(individual_name_node, given_name_node)
+            if mn:
+                given_name_node = Node(names.GIVENNAME)
+                given_name_node.content = mn
                 add_child(individual_name_node, given_name_node)
             if sn:
                 surname_node = Node(names.SURNAME)

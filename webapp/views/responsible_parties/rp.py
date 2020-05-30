@@ -139,6 +139,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
         if save:
             salutation = form.salutation.data
             gn = form.gn.data
+            mn = form.mn.data
             sn = form.sn.data
             user_id = form.user_id.data
             organization = form.organization.data
@@ -162,6 +163,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
                 packageid,
                 salutation,
                 gn,
+                mn,
                 sn,
                 user_id,
                 organization,
@@ -338,9 +340,11 @@ def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
     if salutation_node:
         form.salutation.data = salutation_node.content
 
-    gn_node = node.find_child(names.GIVENNAME)
-    if gn_node:
-        form.gn.data = gn_node.content
+    gn_nodes = node.find_all_children(names.GIVENNAME)
+    if gn_nodes:
+        form.gn.data = gn_nodes[0].content
+        if len(gn_nodes) > 1:
+            form.mn.data = gn_nodes[1].content
 
     sn_node = node.find_child(names.SURNAME)
     if sn_node:

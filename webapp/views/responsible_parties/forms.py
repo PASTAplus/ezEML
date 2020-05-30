@@ -16,6 +16,7 @@ class ResponsiblePartySelectForm(EDIForm):
 class ResponsiblePartyForm(EDIForm):
     salutation = StringField('Salutation', validators=[])
     gn = StringField('First Name', validators=[])
+    mn = StringField('Middle Name/Initial', validators=[])
     sn = StringField('Last Name', validators=[])
     organization = StringField('Organization', validators=[])
     position_name = StringField('Position Name', validators=[])
@@ -36,6 +37,7 @@ class ResponsiblePartyForm(EDIForm):
     def field_data(self)->tuple:
         return (self.salutation.data,
                 self.gn.data,
+                self.mn.data,
                 self.sn.data,
                 self.user_id.data,
                 self.organization.data,

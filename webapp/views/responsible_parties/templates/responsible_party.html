@@ -18,15 +18,22 @@
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
                 <h5>Please document the metadata {{ rp_lower }} in the fields below:</h5>
+                {% if not role %}
+                <i><h6>(One of Last Name, Organization, or Position Name is required. ORCID ID is recommended. All other fields are optional.)</h6></i>
+                {% else %}
+                <i><h6>(One of Last Name, Organization, or Position Name is required. Role is required. ORCID ID is recommended. All other fields are optional.)</h6></i>
+                {% endif %}
                 {{ wtf.form_field(form.salutation) }}
                 {{ wtf.form_field(form.gn) }}
-                <h6>(One of Last Name, Organization, or Position Name is required):</h6>
+                {{ wtf.form_field(form.mn) }}
+{#                <h6>(One of Last Name, Organization, or Position Name is required):</h6>#}
                 {{ wtf.form_field(form.sn) }}
                 {{ wtf.form_field(form.organization) }}
                 {{ wtf.form_field(form.position_name) }}
                 {% if role %}
                 {{ wtf.form_field(form.role) }}
                 {% endif %}
+                {{ wtf.form_field(form.user_id) }}
                 {{ wtf.form_field(form.address_1) }}
                 {{ wtf.form_field(form.address_2) }}
                 {{ wtf.form_field(form.city) }}
@@ -36,7 +43,6 @@
                 {{ wtf.form_field(form.phone) }}
                 {{ wtf.form_field(form.fax) }}
                 {{ wtf.form_field(form.email) }}
-                {{ wtf.form_field(form.user_id) }}
                 {{ wtf.form_field(form.online_url) }}
                 {% if not save_and_continue %}
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>

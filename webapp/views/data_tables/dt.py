@@ -1124,7 +1124,8 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
                 storage_type,
                 storage_type_system,
                 enforced,
-                code_dict)
+                code_dict,
+                mscale)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
@@ -1326,7 +1327,7 @@ def code_definition_select_post(packageid=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            if val == 'Back':
+            if val[0:4] == 'Back':
                 new_page = back_page
             elif val == 'Edit':
                 new_page = edit_page
@@ -1345,6 +1346,10 @@ def code_definition_select_post(packageid=None,
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
+            elif val == BTN_HIDDEN_SAVE:
+                new_page = this_page
+            elif val == BTN_HIDDEN_DOWNLOAD:
+                new_page = PAGE_DOWNLOAD
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
@@ -1370,6 +1375,10 @@ def code_definition_select_post(packageid=None,
                            nom_ord_node_id=nom_ord_node_id,
                            node_id=node_id,
                            mscale=mscale)
+        else:
+            return url_for(new_page,
+                           packageid=packageid,
+                           dt_node_id=dt_node_id)
 
 
 # node_id is the id of the codeDefinition node being edited. If the value

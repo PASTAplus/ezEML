@@ -8,7 +8,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter the keyword below or select it from the list at the right:</h5>
+                <h5>Please enter the keyword below or select one from the list at the right:</h5>
                 <table border="0">
                 <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword, size="100") }}</td>
                 <td width="2%"></td>

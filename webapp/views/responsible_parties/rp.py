@@ -340,11 +340,13 @@ def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
     if salutation_node:
         form.salutation.data = salutation_node.content
 
-    gn_nodes = node.find_all_children(names.GIVENNAME)
-    if gn_nodes:
-        form.gn.data = gn_nodes[0].content
-        if len(gn_nodes) > 1:
-            form.mn.data = gn_nodes[1].content
+    in_node = node.find_child(names.INDIVIDUALNAME)
+    if in_node:
+        gn_nodes = in_node.find_all_children(names.GIVENNAME)
+        if gn_nodes:
+            form.gn.data = gn_nodes[0].content
+            if len(gn_nodes) > 1:
+                form.mn.data = gn_nodes[1].content
 
     sn_node = node.find_child(names.SURNAME)
     if sn_node:

@@ -17,3 +17,23 @@ class ProjectForm(EDIForm):
         return (self.title.data,
                 self.abstract.data,
                 self.funding.data)
+
+
+class AwardSelectForm(EDIForm):
+    pass
+
+
+class AwardForm(EDIForm):
+    funder_name = StringField('Funder Name', validators=[validators.DataRequired()])
+    award_title = StringField('Award Title', validators=[validators.DataRequired()])
+    funder_identifier = StringField('Funder Identifier(s) (Optional)', validators=[])
+    award_number = StringField('Award Number (Optional)', validators=[])
+    award_url = StringField('Award URL (Optional)', validators=[])
+    md5 = HiddenField('')
+
+    def field_data(self)->tuple:
+        return (self.funder_name.data,
+                self.award_title.data,
+                self.funder_identifier.data,
+                self.award_number.data,
+                self.award_url.data)

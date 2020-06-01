@@ -27,9 +27,10 @@
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_project_title_btn) }}</td>
                 </table>
                 {{ wtf.form_field(form.abstract, rows=10, cols=100) }}
-                {{ wtf.form_field(form.funding) }}
+{#                {{ wtf.form_field(form.funding) }}#}
                 <br/>
                 <input class="btn btn-primary" name="Edit Project Personnel" type="submit" value="Edit Project Personnel"/>
+                <input class="btn btn-primary" name="Edit Funding Awards" type="submit" value="Edit Funding Awards"/>
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>

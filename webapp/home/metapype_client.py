@@ -1319,7 +1319,6 @@ def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None)
 
 def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, funding:str=None):
     try:
-
         if dataset_node:
             project_node = dataset_node.find_child(names.PROJECT)
             if not project_node:
@@ -1348,6 +1347,44 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if funding:
             funding_node.content = funding
         project_node.remove_child(funding_node)
+
+    except Exception as e:
+        logger.error(e)
+
+
+def create_funding_award(
+        award_node:Node=None,
+        funder_name:str=None,
+        award_title:str=None,
+        funder_identifier:str=None,
+        award_number:str=None,
+        award_url:str=None):
+
+    try:
+        funder_name_node = Node(names.FUNDERNAME, parent=award_node)
+        add_child(award_node, funder_name_node)
+        funder_name_node.content = funder_name
+
+        if funder_identifier:
+            ids = funder_identifier.split(',')
+            for id in ids:
+                funder_identifier_node = Node(names.FUNDERIDENTIFIER, parent=award_node)
+                add_child(award_node, funder_identifier_node)
+                funder_identifier_node.content = id
+
+        if award_number:
+            award_number_node = Node(names.AWARDNUMBER, parent=award_node)
+            add_child(award_node, award_number_node)
+            award_number_node.content = award_number
+
+        award_title_node = Node(names.TITLE, parent=award_node)
+        add_child(award_node, award_title_node)
+        award_title_node.content = award_title
+
+        if award_url:
+            award_url_node = Node(names.AWARDURL, parent=award_node)
+            add_child(award_node, award_url_node)
+            award_url_node.content = award_url
 
     except Exception as e:
         logger.error(e)
@@ -1767,6 +1804,55 @@ def create_responsible_party(
 
     except Exception as e:
         logger.error(e)
+
+
+def list_funding_awards(eml_node:Node=None):
+    award_list = []
+    if eml_node:
+        project_node = eml_node.find_child(names.PROJECT)
+        if not project_node:
+            return []
+        award_nodes = project_node.find_all_children(names.AWARD)
+        if award_nodes:
+            for i, award_node in enumerate(award_nodes):
+                Awards_Entry = collections.namedtuple(
+                    "AwardEntry",
+                    ["id", "funder_name", "funder_identifier", "award_number", "award_title", "award_url", "upval", "downval"],
+                    rename=False)
+                id = award_node.id
+                funder_name = ''
+                funder_identifier = ''  # FIX ME - list of ids
+                award_number = ''
+                award_title = ''
+                award_url = ''
+                funder_name_node = award_node.find_child(names.FUNDERNAME)
+                if funder_name_node:
+                    funder_name = funder_name_node.content
+                funder_identifier_node = award_node.find_child(names.FUNDERIDENTIFIER)
+                if funder_identifier_node:
+                    funder_identifier = funder_identifier_node.content
+                award_number_node = award_node.find_child(names.AWARDNUMBER)
+                if award_number_node:
+                    award_number = award_number_node.content
+                award_title_node = award_node.find_child(names.TITLE)
+                if award_title_node:
+                    award_title = award_title_node.content
+                award_url_node = award_node.find_child(names.AWARDURL)
+                if award_url_node:
+                    award_url = award_url_node.content
+                upval = get_upval(i)
+                downval = get_downval(i + 1, len(award_nodes))
+                award_entry = Awards_Entry(id=id,
+                                        funder_name=funder_name,
+                                        funder_identifier=funder_identifier,
+                                        award_number=award_number,
+                                        award_title=award_title,
+                                        award_url=award_url,
+                                        upval=upval,
+                                        downval=downval)
+                award_list.append(award_entry)
+
+    return award_list
 
 
 def list_method_steps(parent_node:Node=None):

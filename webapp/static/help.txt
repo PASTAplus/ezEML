@@ -145,3 +145,50 @@ You can create an other entity's metadata "from scratch" via <b>Add Other Entity
 
 In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but others will still need to be entered or modified manually.
 --------------------
+awards
+Funding Awards
+The funding awards for the project.
+
+Each funding award is described by the name of the funding agency and the title of the award.
+
+Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
+--------------------
+award
+Funding Award
+Information on a funding award associated with the project.
+
+Required fields are provided for the name of the funding agency and the title of the award.
+
+Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
+--------------------
+funder_name
+Funder Name
+The name of the funding institution, with fully expanded acronyms to show the full, official name of the funding agency. This field is required.
+
+In general, this should match the official name of the funder as listed in an Authority such as the Open Funder Registry.
+--------------------
+award_title
+Award Title
+The title of the award or grant. This field is required.
+
+Example:  Scientia Arctica: A Knowledge Archive for Discovery and Reproducible Science in the Arctic
+--------------------
+funder_identifiers
+Funder Identifier(s)
+One or more canonical identifiers that reference the funder. If entering more than one identifier, separate them by commas.
+
+These identifiers should be globally unique. The most common form of a funder identifier is a DOI identifier of an institution or program drawn from the CrossRef Open Funder Registry (https://github.com/Crossref/open-funder-registry), which assigns DOIs to each funding agency and to their programs and links these together in a navigable hierarchy.
+--------------------
+award_number
+Award Number
+The unique identifier used by the funder to uniquely identify an award.
+
+These are typically alphanumeric values that are unique within the system used by a given funder. The number should be listed using the canonical form that each funder uses to express its award numbers and should not be prefixed or postfixed with extra text such as the acronym of the funder or the name of the funder, which is available instead in the Funder Name field.
+--------------------
+award_url
+Award URL
+The URL associated with award.
+
+Typically, the Award URL is use to find and locate the award, and it generally addresses the internet location to find out more information about the award.
+
+It should point to a funder site for the award, rather than a project site.

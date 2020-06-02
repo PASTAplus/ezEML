@@ -1,0 +1,25 @@
+server {
+	listen 80;
+	server_name ezeml.edirepository.org;
+	root /var/www/html;
+
+        location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+	        index index.html index.htm index.nginx-debian.html;
+                try_files $uri $uri/ =404;
+        }
+
+	location /static {
+		root /home/pasta/metadata-eml/webapp;
+	}
+
+	location /eml {
+		include uwsgi_params;
+		uwsgi_pass unix:///tmp/ezeml.sock;
+   		proxy_no_cache 1;
+    		proxy_cache_bypass 1;
+		client_max_body_size 500m;
+	}
+
+}

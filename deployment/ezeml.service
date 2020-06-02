@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve ezeml
+After=network.target
+
+[Service]
+User=pasta
+Group=www-data
+WorkingDirectory=/home/pasta/metadata-eml
+Environment="PATH=/home/pasta/anaconda3/envs/ezeml/bin"
+ExecStart=/home/pasta/anaconda3/envs/ezeml/bin/uwsgi --ini deployment/ezeml.ini
+
+[Install]
+WantedBy=multi-user.target

@@ -1,6 +1,6 @@
 server {
 	listen 80;
-	server_name metadata.edirepository.org;
+	server_name ezeml.edirepository.org;
 	root /var/www/html;
 
         location / {
@@ -16,7 +16,7 @@ server {
 
 	location /eml {
 		include uwsgi_params;
-		uwsgi_pass unix:///tmp/metadata-eml.sock;
+		uwsgi_pass unix:///tmp/ezeml.sock;
    		proxy_no_cache 1;
     		proxy_cache_bypass 1;
 		client_max_body_size 500m;

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_methods_id, help_methods_title, help_methods_content = help[0] %}
+    {% set help_methods_btn = help_methods_id ~ '_btn' %}
+    {% set help_methods_dialog = help_methods_id ~ '_dialog' %}
+    
+    <table>
+        <td><h1>Method Steps{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_methods_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table class="table table-striped">
+                    <tr>
+                        <th>Method&nbsp;Step Description</th>
+                        <th>Method&nbsp;Step Instrumentation</th>
+                        <th colspan="3"></th>
+                    </tr>
+                    {% for ms_entry in method_step_list %}
+                    <tr>
+                        <td>{{ ms_entry.description }}</td>
+                        <td>{{ ms_entry.instrumentation }}</td>
+                        {{ macros.up_down_arrow(ms_entry.id, ms_entry.upval) }}
+                        {{ macros.up_down_arrow(ms_entry.id, ms_entry.downval) }}
+                        <td><input class="btn btn-primary" name="{{ ms_entry.id }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ ms_entry.id }}" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Method Step"/>
+                <br/><br/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                {% if not suppress_next_btn %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                {% else %}
+                    {% if element_name == 'dataTable' %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Data Table"/>
+                    {% else %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Other Entity"/>
+                    {% endif %}
+                {% endif %}
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_methods_dialog, help_methods_title, help_methods_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_methods_id, help_methods_title, help_methods_content = help[0] %}
+    {% set help_methods_btn = help_methods_id ~ '_btn' %}
+    {% set help_methods_dialog = help_methods_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_methods_dialog, help_methods_btn) }}
+    });
+    </script>
+{% endblock %}

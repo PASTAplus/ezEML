@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_project_id, help_project_title, help_project_content = help[0] %}
+    {% set help_project_btn = help_project_id ~ '_btn' %}
+    {% set help_project_dialog = help_project_id ~ '_dialog' %}
+    {% set help_project_title_id, help_project_title_title, help_project_title_content = help[1] %}
+    {% set help_project_title_btn = help_project_title_id ~ '_btn' %}
+    {% set help_project_title_dialog = help_project_title_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h1>Project</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_project_btn) }}</td>
+    </table>
+    
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the project information below:</h5>
+                <table>
+                    <td>{{ wtf.form_field(form.title, size=100) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_project_title_btn) }}</td>
+                </table>
+                {{ wtf.form_field(form.abstract, rows=10, cols=100) }}
+{#                {{ wtf.form_field(form.funding) }}#}
+                <br/>
+                <input class="btn btn-primary" name="Edit Project Personnel" type="submit" value="Edit Project Personnel"/>
+                <input class="btn btn-primary" name="Edit Funding Awards" type="submit" value="Edit Funding Awards"/>
+                <br/><br/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_project_dialog, help_project_title, help_project_content) }}
+    {{ macros.help_dialog(help_project_title_dialog, help_project_title_title, help_project_title_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_project_id, help_project_title, help_project_content = help[0] %}
+    {% set help_project_btn = help_project_id ~ '_btn' %}
+    {% set help_project_dialog = help_project_id ~ '_dialog' %}
+    {% set help_project_title_id, help_project_title_title, help_project_title_content = help[1] %}
+    {% set help_project_title_btn = help_project_title_id ~ '_btn' %}
+    {% set help_project_title_dialog = help_project_title_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_project_dialog, help_project_btn) }}
+        {{ macros.help_script(help_project_title_dialog, help_project_title_btn) }}
+    });
+    </script>
+{% endblock %}

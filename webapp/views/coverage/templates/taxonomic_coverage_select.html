@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_taxonomic_coverage_id, help_taxonomic_coverage_title, help_taxonomic_coverage_content = help[0] %}
+    {% set help_taxonomic_coverage_btn = help_taxonomic_coverage_id ~ '_btn' %}
+    {% set help_taxonomic_coverage_dialog = help_taxonomic_coverage_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h1>Taxonomic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_taxonomic_coverage_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table class="table table-striped">
+                    <tr>
+                        <th>Taxonomic&nbsp;Classification</th>
+                        <th width="35%" colspan="3"></th>
+                    </tr>
+                    {% for txc_entry in txc_list %}
+                    <tr>
+                        <td>{{ txc_entry.label }}</td>
+                        {{ macros.up_down_arrow(txc_entry.id, txc_entry.upval) }}
+                        {{ macros.up_down_arrow(txc_entry.id, txc_entry.downval) }}
+                        <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Taxonomic Coverage"/>
+                <br/><br/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                {% if not suppress_next_btn %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                {% else %}
+                    {% if element_name == 'dataTable' %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Data Table"/>
+                    {% else %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Other Entity"/>
+                    {% endif %}
+                {% endif %}
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_taxonomic_coverage_dialog, help_taxonomic_coverage_title, help_taxonomic_coverage_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_taxonomic_coverage_id, help_taxonomic_coverage_title, help_taxonomic_coverage_content = help[0] %}
+    {% set help_taxonomic_coverage_btn = help_taxonomic_coverage_id ~ '_btn' %}
+    {% set help_taxonomic_coverage_dialog = help_taxonomic_coverage_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_taxonomic_coverage_dialog, help_taxonomic_coverage_btn) }}
+    });
+    </script>
+{% endblock %}

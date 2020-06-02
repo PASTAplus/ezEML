@@ -12,16 +12,17 @@
     5/9/19
 """
 
+import hashlib
 import os
 import re
 import pandas as pd
 
-from metapype.eml2_1_1.exceptions import MetapypeRuleError
-from metapype.eml2_1_1 import export
-from metapype.eml2_1_1 import evaluate
-from metapype.eml2_1_1 import names
-from metapype.eml2_1_1 import rule
-from metapype.eml2_1_1 import validate
+from metapype.eml.exceptions import MetapypeRuleError
+from metapype.eml import export
+from metapype.eml import evaluate
+from metapype.eml import names
+from metapype.eml import rule
+from metapype.eml import validate
 from metapype.model import mp_io
 from metapype.model.node import Node
 
@@ -37,11 +38,29 @@ def get_file_size(full_path:str=''):
     return file_size
 
 
+def get_md5_hash(full_path:str=''):
+    digest = None
+    if full_path:
+        with open(full_path, 'rb') as file:
+            content = file.read()
+            md5_hash = hashlib.md5()
+            md5_hash.update(content)
+            digest = md5_hash.hexdigest()
+    return digest
+
+
 def entity_name_from_data_file(filename:str=''):
     entity_name = ''
     if filename:
         entity_name = filename.rsplit('.', 1)[0]
     return entity_name
+
+
+def format_name_from_data_file(filename:str=''):
+    format_name = ''
+    if filename:
+        format_name = filename.rsplit('.', 1)[1]
+    return format_name
 
 
 def is_datetime_column(col:str=None):
@@ -81,6 +100,13 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         size_node.add_attribute('unit', 'byte')
         size_node.content = str(file_size)
 
+    md5_hash = get_md5_hash(full_path)
+    if md5_hash is not None:
+        hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+        add_child(physical_node, hash_node)
+        hash_node.add_attribute('method', 'MD5')
+        hash_node.content = str(md5_hash)
+
     data_format_node = Node(names.DATAFORMAT, parent=physical_node)
     add_child(physical_node, data_format_node)
 
@@ -94,6 +120,13 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     num_footer_lines_node = Node(names.NUMFOOTERLINES, parent=text_format_node)
     add_child(text_format_node, num_footer_lines_node)
     num_footer_lines_node.content = '0'
+
+    with open(full_path) as file:
+        next(file)
+        line_terminator = repr(file.newlines).replace("'", "")
+    record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
+    add_child(text_format_node, record_delimiter_node)
+    record_delimiter_node.content = line_terminator
 
     data_frame = pd.read_csv(full_path, comment='#')
 
@@ -175,6 +208,54 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     delete_data_files(uploads_path)
 
     return datatable_node
+
+
+def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_file: str = ''):
+    full_path = f'{uploads_path}/{data_file}'
+
+    other_entity_node = Node(names.OTHERENTITY, parent=dataset_node)
+    add_child(dataset_node, other_entity_node)
+
+    physical_node = Node(names.PHYSICAL, parent=other_entity_node)
+    add_child(other_entity_node, physical_node)
+    physical_node.add_attribute('system', 'EDI')
+
+    entity_name_node = Node(names.ENTITYNAME, parent=other_entity_node)
+    add_child(other_entity_node, entity_name_node)
+    entity_name = entity_name_from_data_file(data_file)
+    entity_name_node.content = entity_name
+
+    object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+    add_child(physical_node, object_name_node)
+    object_name_node.content = data_file
+
+    file_size = get_file_size(full_path)
+    if file_size is not None:
+        size_node = Node(names.SIZE, parent=physical_node)
+        add_child(physical_node, size_node)
+        size_node.add_attribute('unit', 'byte')
+        size_node.content = str(file_size)
+
+    md5_hash = get_md5_hash(full_path)
+    if md5_hash is not None:
+        hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+        add_child(physical_node, hash_node)
+        hash_node.add_attribute('method', 'MD5')
+        hash_node.content = str(md5_hash)
+
+    data_format_node = Node(names.DATAFORMAT, parent=physical_node)
+    add_child(physical_node, data_format_node)
+
+    externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+    add_child(data_format_node, externally_defined_format_node)
+
+    format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+    add_child(externally_defined_format_node, format_name_node)
+    format_name_node.content = format_name_from_data_file(data_file)
+
+    delete_data_files(uploads_path)
+
+    return other_entity_node
 
 
 def delete_data_files(data_folder:str=None):

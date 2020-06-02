@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_title_id, help_title_title, help_title_content = help[0] %}
+    {% set help_title_btn = help_title_id ~ '_btn' %}
+    {% set help_title_dialog = help_title_id ~ '_dialog' %}
+    {% set help_nav_id, help_nav_title, help_nav_content = help[1] %}
+    {% set help_nav_btn = help_nav_id ~ '_btn' %}
+    {% set help_nav_dialog = help_nav_id ~ '_dialog' %}
+
+    <h1>Title</h1>
+{#    <div class="row">#}
+        <div class="col-md-12">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the data package title:</h5>
+                <table>
+                    <td>{{ wtf.form_field(form.title, size=100) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_title_btn) }}</td>
+                </table>
+                <br/>
+                <table>
+                    <td><input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                        <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_nav_btn) }}</td>
+                </table>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+{#    </div>#}
+
+    {{ macros.help_dialog(help_title_dialog, help_title_title, help_title_content) }}
+    {{ macros.help_dialog(help_nav_dialog, help_nav_title, help_nav_content) }}
+
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_title_id, help_title_title, help_title_content = help[0] %}
+    {% set help_title_btn = help_title_id ~ '_btn' %}
+    {% set help_title_dialog = help_title_id ~ '_dialog' %}
+    {% set help_nav_id, help_nav_title, help_nav_content = help[1] %}
+    {% set help_nav_btn = help_nav_id ~ '_btn' %}
+    {% set help_nav_dialog = help_nav_id ~ '_dialog' %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_title_dialog, help_title_btn) }}
+        {{ macros.help_script(help_nav_dialog, help_nav_btn) }}
+    });
+    </script>
+{% endblock %}

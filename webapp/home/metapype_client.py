@@ -17,10 +17,7 @@ import html
 import json
 import os
 
-from flask import (
-    send_file
-)
-
+from flask import flash
 from flask_login import (
     current_user
 )
@@ -31,15 +28,27 @@ from webapp.auth.user_data import (
 
 from webapp.config import Config
 
-from metapype.eml2_1_1 import export, evaluate, validate, names, rule
+from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io
 
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 
+NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
+
+
+def add_paragraph_tags(s):
+    if s:
+        return '\n<para>' + s.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
+    else:
+        return ''
+
+
+def remove_paragraph_tags(s):
+    return s.strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
 
 
 def list_data_tables(eml_node:Node=None):
@@ -223,7 +232,7 @@ def non_numeric_domain_from_measurement_scale(ms_node:Node=None):
             nnd_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
 
     return nnd_node
-    
+
 
 def mscale_from_attribute(att_node:Node=None):
     mscale = ''
@@ -358,12 +367,12 @@ def list_geographic_coverages(parent_node:Node=None):
 
 
 def get_upval(i:int):
-    upval = '[  ]' if i == 0 else UP_ARROW
+    upval = NO_OP if i == 0 else UP_ARROW
     return upval
 
 
 def get_downval(i:int, n:int):
-    downval = '[  ]' if i >= n else DOWN_ARROW
+    downval = NO_OP if i >= n else DOWN_ARROW
     return downval
 
 
@@ -550,6 +559,7 @@ def load_eml(packageid:str=None):
     filename = f"{user_folder}/{packageid}.json"
     if os.path.isfile(filename):
         try:
+            # flash(f'Loading eml from {filename}')
             with open(filename, "r") as json_file:
                 json_obj = json.load(json_file)
                 eml_node = mp_io.from_json(json_obj)
@@ -608,6 +618,7 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                 if not user_folder:
                     user_folder = '.'
                 filename = f'{user_folder}/{packageid}.{format}'
+                # flash(f'Saving {format} to {filename}')
                 with open(filename, "w") as fh:
                     fh.write(metadata_str)
         else:
@@ -700,6 +711,7 @@ def create_data_table(
     entity_description:str=None,
     object_name:str=None,
     size:str=None,
+    md5_hash:str=None,
     num_header_lines:str=None,
     record_delimiter:str=None,
     attribute_orientation:str=None,
@@ -723,7 +735,7 @@ def create_data_table(
             entity_description_node.content = entity_description
             add_child(data_table_node, entity_description_node)
 
-        if object_name or size or num_header_lines or \
+        if object_name or size or md5_hash or num_header_lines or \
            record_delimiter or attribute_orientation or \
            field_delimiter or online_url:
 
@@ -739,6 +751,11 @@ def create_data_table(
                 size_node = Node(names.SIZE, parent=physical_node)
                 size_node.content = size
                 add_child(physical_node, size_node)
+
+            if md5_hash:
+                md5_hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+                md5_hash_node.content = md5_hash
+                add_child(physical_node, md5_hash_node)
 
             if num_header_lines or record_delimiter or \
                attribute_orientation or field_delimiter:
@@ -1158,11 +1175,9 @@ def create_other_entity(
     entity_type:str=None,
     entity_description:str=None,
     object_name:str=None,
+    format_name:str=None,
     size:str=None,
-    num_header_lines:str=None,
-    record_delimiter:str=None,
-    attribute_orientation:str=None,
-    field_delimiter:str=None,
+    md5_hash:str=None,
     online_url:str=None):
 
     try:
@@ -1185,9 +1200,7 @@ def create_other_entity(
             entity_description_node.content = entity_description
             add_child(entity_node, entity_description_node)
 
-        if object_name or size or num_header_lines or \
-           record_delimiter or attribute_orientation or \
-           field_delimiter or online_url:
+        if object_name or format_name or online_url:
 
             physical_node = Node(names.PHYSICAL, parent=entity_node)
             add_child(entity_node, physical_node)
@@ -1197,42 +1210,26 @@ def create_other_entity(
                 object_name_node.content = object_name
                 add_child(physical_node, object_name_node)
 
-            if size:
-                size_node = Node(names.SIZE, parent=physical_node)
-                size_node.content = size
-                add_child(physical_node, size_node)
-
-            if num_header_lines or record_delimiter or \
-               attribute_orientation or field_delimiter:
-
+            if format_name:
                 data_format_node = Node(names.DATAFORMAT, parent=physical_node)
                 add_child(physical_node, data_format_node)
-    
-                text_format_node = Node(names.TEXTFORMAT, parent=data_format_node)
-                add_child(data_format_node, text_format_node)
+                externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+                add_child(data_format_node, externally_defined_format_node)
+                format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+                format_name_node.content = format_name
+                add_child(externally_defined_format_node, format_name_node)
 
-                if num_header_lines:
-                    num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
-                    num_header_lines_node.content = num_header_lines
-                    add_child(text_format_node, num_header_lines_node)
-                
-                if record_delimiter:
-                    record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
-                    record_delimiter_node.content = record_delimiter
-                    add_child(text_format_node, record_delimiter_node)
+            if size:
+                size_node = Node(names.SIZE, parent=physical_node)
+                add_child(physical_node, size_node)
+                size_node.add_attribute('unit', 'byte')
+                size_node.content = size
 
-                if attribute_orientation:
-                    attribute_orientation_node = Node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
-                    attribute_orientation_node.content = attribute_orientation
-                    add_child(text_format_node, attribute_orientation_node)
-
-                if field_delimiter:
-                    simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
-                    add_child(text_format_node, simple_delimited_node)
-
-                    field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
-                    field_delimiter_node.content = field_delimiter
-                    add_child(simple_delimited_node, field_delimiter_node)
+            if md5_hash:
+                hash_node = Node(names.AUTHENTICATION, parent=physical_node)
+                add_child(physical_node, hash_node)
+                hash_node.add_attribute('method', 'MD5')
+                hash_node.content = str(md5_hash)
 
             if online_url:
                 distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
@@ -1322,7 +1319,6 @@ def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None)
 
 def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, funding:str=None):
     try:
-
         if dataset_node:
             project_node = dataset_node.find_child(names.PROJECT)
             if not project_node:
@@ -1339,13 +1335,56 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if not abstract_node:
             abstract_node = Node(names.ABSTRACT, parent=project_node)
             add_child(project_node, abstract_node)
-        abstract_node.content = abstract
+        if abstract:
+            abstract_node.content = abstract
+        else:
+            project_node.remove_child(abstract_node)
 
         funding_node = project_node.find_child(names.FUNDING)
         if not funding_node:
             funding_node = Node(names.FUNDING, parent=project_node)
             add_child(project_node, funding_node)
-        funding_node.content = funding
+        if funding:
+            funding_node.content = funding
+        project_node.remove_child(funding_node)
+
+    except Exception as e:
+        logger.error(e)
+
+
+def create_funding_award(
+        award_node:Node=None,
+        funder_name:str=None,
+        award_title:str=None,
+        funder_identifier:str=None,
+        award_number:str=None,
+        award_url:str=None):
+
+    try:
+        funder_name_node = Node(names.FUNDERNAME, parent=award_node)
+        add_child(award_node, funder_name_node)
+        funder_name_node.content = funder_name
+
+        if funder_identifier:
+            ids = funder_identifier.split(',')
+            for id in ids:
+                funder_identifier_node = Node(names.FUNDERIDENTIFIER, parent=award_node)
+                add_child(award_node, funder_identifier_node)
+                funder_identifier_node.content = id
+
+        if award_number:
+            award_number_node = Node(names.AWARDNUMBER, parent=award_node)
+            add_child(award_node, award_number_node)
+            award_number_node.content = award_number
+
+        award_title_node = Node(names.TITLE, parent=award_node)
+        add_child(award_node, award_title_node)
+        award_title_node.content = award_title
+
+        if award_url:
+            award_url_node = Node(names.AWARDURL, parent=award_node)
+            add_child(award_node, award_url_node)
+            award_url_node.content = award_url
 
     except Exception as e:
         logger.error(e)
@@ -1646,7 +1685,9 @@ def create_responsible_party(
                    packageid:str=None, 
                    salutation:str=None,
                    gn:str=None,
+                   mn:str=None,
                    sn:str=None,
+                   user_id:str=None,
                    organization:str=None,
                    position_name:str=None,
                    address_1:str=None,
@@ -1671,11 +1712,21 @@ def create_responsible_party(
                 given_name_node = Node(names.GIVENNAME)
                 given_name_node.content = gn
                 add_child(individual_name_node, given_name_node)
+            if mn:
+                given_name_node = Node(names.GIVENNAME)
+                given_name_node.content = mn
+                add_child(individual_name_node, given_name_node)
             if sn:
                 surname_node = Node(names.SURNAME)
                 surname_node.content = sn
                 add_child(individual_name_node, surname_node)
             add_child(responsible_party_node, individual_name_node)
+
+        if user_id:
+            user_id_node = Node(names.USERID)
+            user_id_node.content = user_id
+            user_id_node.add_attribute('directory', 'https://orcid.org')  # FIXME - temporary
+            add_child(responsible_party_node, user_id_node)
 
         if organization:
             organization_name_node = Node(names.ORGANIZATIONNAME)
@@ -1753,6 +1804,55 @@ def create_responsible_party(
 
     except Exception as e:
         logger.error(e)
+
+
+def list_funding_awards(eml_node:Node=None):
+    award_list = []
+    if eml_node:
+        project_node = eml_node.find_child(names.PROJECT)
+        if not project_node:
+            return []
+        award_nodes = project_node.find_all_children(names.AWARD)
+        if award_nodes:
+            for i, award_node in enumerate(award_nodes):
+                Awards_Entry = collections.namedtuple(
+                    "AwardEntry",
+                    ["id", "funder_name", "funder_identifier", "award_number", "award_title", "award_url", "upval", "downval"],
+                    rename=False)
+                id = award_node.id
+                funder_name = ''
+                funder_identifier = ''  # FIX ME - list of ids
+                award_number = ''
+                award_title = ''
+                award_url = ''
+                funder_name_node = award_node.find_child(names.FUNDERNAME)
+                if funder_name_node:
+                    funder_name = funder_name_node.content
+                funder_identifier_node = award_node.find_child(names.FUNDERIDENTIFIER)
+                if funder_identifier_node:
+                    funder_identifier = funder_identifier_node.content
+                award_number_node = award_node.find_child(names.AWARDNUMBER)
+                if award_number_node:
+                    award_number = award_number_node.content
+                award_title_node = award_node.find_child(names.TITLE)
+                if award_title_node:
+                    award_title = award_title_node.content
+                award_url_node = award_node.find_child(names.AWARDURL)
+                if award_url_node:
+                    award_url = award_url_node.content
+                upval = get_upval(i)
+                downval = get_downval(i + 1, len(award_nodes))
+                award_entry = Awards_Entry(id=id,
+                                        funder_name=funder_name,
+                                        funder_identifier=funder_identifier,
+                                        award_number=award_number,
+                                        award_title=award_title,
+                                        award_url=award_url,
+                                        upval=upval,
+                                        downval=downval)
+                award_list.append(award_entry)
+
+    return award_list
 
 
 def list_method_steps(parent_node:Node=None):
@@ -1851,14 +1951,18 @@ def compose_method_step_description(method_step_node:Node=None):
     if method_step_node:
         description_node = method_step_node.find_child(names.DESCRIPTION)
         if description_node:
-            section_node = description_node.find_child(names.SECTION)
-            if section_node:
-                description = section_node.content 
+            if description_node.content:
+                description = description_node.content
             else:
-                para_node = description_node.find_child(names.PARA)
-                if para_node:
-                    description = para_node.content 
+                section_node = description_node.find_child(names.SECTION)
+                if section_node:
+                    description = section_node.content
+                else:
+                    para_node = description_node.find_child(names.PARA)
+                    if para_node:
+                        description = para_node.content
 
+            description = remove_paragraph_tags(description)
             if description and len(description) > MAX_LEN:
                 description = description[0:MAX_LEN]
     return description
@@ -1884,14 +1988,17 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
         add_child(method_step_node, description_node)
         
         if description:
-            para_node = Node(names.PARA, parent=description_node)
-            add_child(description_node, para_node)
-            para_node.content = description
+            # para_node = Node(names.PARA, parent=description_node)
+            # add_child(description_node, para_node)
+            # para_node.content = description
+            # For now, we're assuming that the content already has para tags.
+            description_node.content = description
 
-        instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
-        add_child(method_step_node, instrumentation_node)
         if instrumentation:
-            instrumentation_node.content = instrumentation
+            instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
+            add_child(method_step_node, instrumentation_node)
+            if instrumentation:
+                instrumentation_node.content = instrumentation
 
 
 def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=None):

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_pubplace_id, help_pubplace_title, help_pubplace_content = help[0] %}
+    {% set help_pubplace_btn = help_pubplace_id ~ '_btn' %}
+    {% set help_pubplace_dialog = help_pubplace_id ~ '_dialog' %}
+
+    <h1>Publication Place</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the publication place:</h5>
+                <table>
+                    <td>{{ wtf.form_field(form.pubplace, size=100) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_pubplace_btn) }}</td>
+                </table>
+                <br/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_pubplace_dialog, help_pubplace_title, help_pubplace_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_pubplace_id, help_pubplace_title, help_pubplace_content = help[0] %}
+    {% set help_pubplace_btn = help_pubplace_id ~ '_btn' %}
+    {% set help_pubplace_dialog = help_pubplace_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_pubplace_dialog, help_pubplace_btn) }}
+    });
+    </script>
+{% endblock %}

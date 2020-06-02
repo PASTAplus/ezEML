@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
+    {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
+    {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h1>Geographic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
+    </table>
+{#    <div class="row">#}
+        <div class="col-md-12">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table class="table table-striped">
+                    <tr>
+                        <th width="30%">Geographic&nbsp;Description</th>
+                        <th width="30%">Bounding&nbsp;Coordinates (W, E, N, S)</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    {% for gc_entry in gc_list %}
+                    <tr>
+                        <td>{{ gc_entry.geographic_description }}</td>
+                        <td>{{ gc_entry.label }}</td>
+                        {{ macros.up_down_arrow(gc_entry.id, gc_entry.upval) }}
+                        {{ macros.up_down_arrow(gc_entry.id, gc_entry.downval) }}
+                        <td><input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="Edit"/>&nbsp;
+                        <input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Geographic Coverage"/>
+                <br/><br/>
+{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                {% if not suppress_next_btn %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                {% else %}
+                    {% if element_name == 'dataTable' %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Data Table"/>
+                    {% else %}
+                        <input class="btn btn-primary" name="Back" type="submit" value="Back to Other Entity"/>
+                    {% endif %}
+                {% endif %}
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+{#    </div>#}
+
+    {{ macros.help_dialog(help_geographic_coverage_dialog, help_geographic_coverage_title, help_geographic_coverage_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
+    {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
+    {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_geographic_coverage_dialog, help_geographic_coverage_btn) }}
+    });
+    </script>
+{% endblock %}

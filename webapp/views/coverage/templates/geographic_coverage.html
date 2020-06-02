@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Geographic Coverage</h1>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the geographic description and bounding coordinates below:</h5>
+                {{ wtf.form_field(form.geographic_description) }}
+                {{ wtf.form_field(form.wbc) }}
+                {{ wtf.form_field(form.ebc) }}
+                {{ wtf.form_field(form.nbc) }}
+                {{ wtf.form_field(form.sbc) }}
+                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}

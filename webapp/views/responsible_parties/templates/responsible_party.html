@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h1>{{ title }}</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please document the metadata {{ rp_lower }} in the fields below:</h5>
+{#                {% if not role %}#}
+{#                <i><h6>(One of Last Name, Organization, or Position Name is required. ORCID ID is recommended. All other fields are optional.)</h6></i>#}
+{#                {% else %}#}
+{#                <i><h6>(One of Last Name, Organization, or Position Name is required. Role is required. ORCID ID is recommended. All other fields are optional.)</h6></i>#}
+{#                {% endif %}#}
+                {{ wtf.form_field(form.salutation) }}
+                {{ wtf.form_field(form.gn) }}
+                {{ wtf.form_field(form.mn) }}
+                <h5 style="color: steelblue;font-style: italic">At least one of the following is required: Last Name, Organization, or Position Name</h5>
+                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                    <tr>
+                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.sn) }}</td>
+                    </tr><tr>
+                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.organization) }}</td>
+                    </tr><tr>
+                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.position_name) }}</td>
+                    </tr>
+                </table>
+                <br>
+                {% if role %}
+                {{ wtf.form_field(form.role) }}
+                {% endif %}
+                {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}
+                {{ wtf.form_field(form.address_1) }}
+                {{ wtf.form_field(form.address_2) }}
+                {{ wtf.form_field(form.city) }}
+                {{ wtf.form_field(form.state) }}
+                {{ wtf.form_field(form.postal_code) }}
+                {{ wtf.form_field(form.country) }}
+                {{ wtf.form_field(form.phone) }}
+                {{ wtf.form_field(form.fax) }}
+                {{ wtf.form_field(form.email) }}
+                {{ wtf.form_field(form.online_url) }}
+                {% if not save_and_continue %}
+                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {% if next_page %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
+                {% endif %}
+                {% else %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                {{ macros.hidden_buttons() }}
+                {% endif %}
+            </form>
+            <p>&nbsp;</p>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
+    });
+    </script>
+{% endblock %}

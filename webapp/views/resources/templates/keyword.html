@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Keyword</h1>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the keyword below or select one from the list at the right:</h5>
+                <table border="0">
+                <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword, size="100") }}</td>
+                <td width="2%"></td>
+                <td valign="bottom" width="45%">{{ wtf.form_field(form.lter_keyword_select) }}</td>
+                </table>
+                <br/>
+                {{ wtf.form_field(form.keyword_type) }}
+                <br/>
+                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    <script>
+    $(function()
+    {
+        $('#lter_keyword_select').on('change', function() {
+            let selected = $('#lter_keyword_select').val();
+            $('#keyword').val(selected);
+        });
+        $('#keyword').on('input', function() {
+            $('#lter_keyword_select').val(0);
+        });
+    });
+    </script>
+{% endblock %}

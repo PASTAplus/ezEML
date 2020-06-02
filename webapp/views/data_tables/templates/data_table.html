@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Data Table</h1>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter information about the data table object:</h5>
+                {{ wtf.form_field(form.entity_name) }}
+                {{ wtf.form_field(form.entity_description) }}
+                {{ wtf.form_field(form.object_name) }}
+                {{ wtf.form_field(form.size) }}
+                {{ wtf.form_field(form.md5_hash) }}
+                {{ wtf.form_field(form.num_header_lines) }}
+                {{ wtf.form_field(form.record_delimiter) }}
+                {{ wtf.form_field(form.attribute_orientation) }}
+                {{ wtf.form_field(form.field_delimiter) }}
+                {{ wtf.form_field(form.case_sensitive) }}
+                {{ wtf.form_field(form.number_of_records) }}
+                {{ wtf.form_field(form.online_url) }}
+                <br/>
+                <h4>Attributes:</h4>
+                {{ atts }}
+                <br/><br/>
+                <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Attributes"/>
+                <br/><br/><br/>
+                <h4>Data Table Coverage (Optional):</h4>
+                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="Temporal" type="submit" value="Edit Temporal Coverage"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="Taxonomic" type="submit" value="Edit Taxonomic Coverage"/>
+                <br/><br/><br/>
+                <h4>Data Table Methods (Optional):</h4>
+                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+            </form>
+            <p>&nbsp;</p>
+        </div>
+    </div>
+{% endblock %}

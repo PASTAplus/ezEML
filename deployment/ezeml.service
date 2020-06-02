@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=pasta
 Group=www-data
-WorkingDirectory=/home/pasta/metadata-eml
+WorkingDirectory=/home/pasta/ezeml
 Environment="PATH=/home/pasta/anaconda3/envs/ezeml/bin"
 ExecStart=/home/pasta/anaconda3/envs/ezeml/bin/uwsgi --ini deployment/ezeml.ini
 

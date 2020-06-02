@@ -11,12 +11,12 @@
 {#                {{ wtf.form_field(form.mscale_choice) }}<br/>#}
 {#                <h5>Please enter additional information about the data table attribute:</h5>#}
                 {{ wtf.form_field(form.attribute_name) }}
+                {{ wtf.form_field(form.attribute_definition) }}
                 {{ wtf.form_field(form.attribute_label) }}
-                <h5 style="color: steelblue;font-style: italic">One of the following is required: Definition or one or more Codes and Definitions</h5>
+{#                <h5 style="color: steelblue;font-style: italic">One of the following is required: Definition or one or more Codes and Definitions</h5>#}
+                <h5>Optionally, define coded values and their definitions:</h5>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
-                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.attribute_definition) }}</td>
-                    </tr><tr>
                     <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 1px 20px;"><table>
                     <td><input class="btn btn-primary" name="Codes" type="submit" value="Codes and Definitions"/></td>
                     <td width="5%">&nbsp;</td>

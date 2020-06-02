@@ -1066,13 +1066,19 @@ def create_nominal_ordinal_attribute(
             non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=no_node)
             add_child(no_node, non_numeric_domain_node)
 
-            enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
-            add_child(non_numeric_domain_node, enumerated_domain_node)
-
-            if enforced:
-                enumerated_domain_node.add_attribute('enforced', enforced)
-        
             if code_dict:
+
+                # get rid of textDomain node, if any
+                text_domain_node = attribute_node.find_child(names.TEXTDOMAIN)
+                if text_domain_node:
+                    attribute_node.remove_child(text_domain_node)
+
+                enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
+                add_child(non_numeric_domain_node, enumerated_domain_node)
+
+                if enforced:
+                    enumerated_domain_node.add_attribute('enforced', enforced)
+
                 for key in code_dict:
                     if code_dict[key]:
                         code = key
@@ -1086,6 +1092,20 @@ def create_nominal_ordinal_attribute(
                             code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
                             code_explanation_node.content = code_explanation
                             add_child(mvc_node, code_explanation_node)
+
+            else:
+                # if no codes defined, treat as textDomain
+                text_domain_node = Node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
+                add_child(non_numeric_domain_node, text_domain_node)
+                definition_node = Node(names.DEFINITION, parent=non_numeric_domain_node)
+                add_child(text_domain_node, definition_node)
+                definition_node.content = attribute_definition
+
+                # get rid of enumeratedDomain node, if any
+                enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
+                if enumerated_domain_node:
+                    non_numeric_domain_node.remove_child(enumerated_domain_node)
+
 
         except Exception as e:
             logger.error(e)

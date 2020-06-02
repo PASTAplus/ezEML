@@ -1454,6 +1454,11 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
                 code_definition_node = Node(names.CODEDEFINITION, parent=ed_node)
                 create_code_definition(code_definition_node, code, definition, order)
 
+                # get rid of textDomain node, if any
+                text_domain_node = nnd_node.find_child(names.TEXTDOMAIN)
+                if text_domain_node:
+                    nnd_node.remove_child(text_domain_node)
+
                 if cd_node_id and len(cd_node_id) != 1:
                     old_code_definition_node = Node.get_node_instance(cd_node_id)
 

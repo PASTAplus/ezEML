@@ -192,3 +192,17 @@ The URL associated with award.
 Typically, the Award URL is use to find and locate the award, and it generally addresses the internet location to find out more information about the award.
 
 It should point to a funder site for the award, rather than a project site.
+--------------------
+measurement_scale
+Variable Type
+Attributes (variables) can have the following types: Nominal, Ordinal, Interval, Ratio, or DateTime.
+
+<b>Nominal</b> refers to variables containing alphanumeric codes used for the purpose of categorizing data. An example of a nominal scale is 1 for Male and 2 for Female, or M for Male and F for Female. Alternatively, a nominal variable can contain simple text (as opposed to coded values). Examples of the latter include names or ID numbers of experimental subjects.
+
+<b>Ordinal</b> values are also used for categorization, but here the categories have a logical or ordered relationship to each other. An <b>ordinal</b> scale lets one distinguish the <i>order</i> of values, but not the magnitude of differences between values. An example of an ordinal scale is a categorical survey that ranks a variable 1=good, 2=fair, 3=poor.
+
+<b>Interval</b> values are measured in reference to equidistant points on a continuous scale. The Celsius scale is an interval scale, since each degree difference is equal to every other, but there is no natural zero point (so, 20 C is not twice as hot as 10 C).
+
+<b>Ratio</b> values are also measured in reference to a continuous scale that has equidistant values, but here the scale has a meaningful zero point. This allows ratios to have meaning: e.g., it make sense to say one value is twice as great as another. Examples of ratio scales are the Kelvin temperature scale (200K is half as hot as 400K) and length in meters (10 meters is twice as long as 5 meters).
+
+<b>DateTime</b> variables contain date and time values. Note that time <i>durations</i> should be treated as Interval or Ratio values.

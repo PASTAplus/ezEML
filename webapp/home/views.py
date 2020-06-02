@@ -96,11 +96,11 @@ def init_help():
             index = index + 1
             if line.startswith('--------------------'):
                 break
-            if index >= len(lines):
-                break
             if len(line) == 0:
                 line = '</p><p>'
             content = content + line
+            if index >= len(lines):
+                break
         content = content + '</p>'
         return (id, title, content), index
 

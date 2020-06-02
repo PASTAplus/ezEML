@@ -341,11 +341,13 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
             att_list = list_attributes(data_table_node)
 
     set_current_page('data_table')
+    help = [get_help('measurement_scale')]
     return render_template('attribute_select.html',
                            title=title,
                            entity_name=entity_name,
                            att_list=att_list,
-                           form=form)
+                           form=form,
+                           help=help)
 
 
 @dt_bp.route('/attribute_measurement_scale/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])

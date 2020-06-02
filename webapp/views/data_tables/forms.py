@@ -74,9 +74,8 @@ class AttributeNominalOrdinalForm(EDIForm):
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    enforced = SelectField('Enforce codes', 
-                            choices=[("yes", "Yes, enforce the code values I've documented"), 
-                                     ("no", "No, other code values are allowed")
+    enforced = SelectField('', choices=[("yes", "Enforce the code values I've defined"),
+                                     ("no", "Other code values are allowed")
                                     ])
     code_1 = StringField('Missing Value Code', validators=[])
     code_explanation_1 = StringField('Explanation', validators=[]) 

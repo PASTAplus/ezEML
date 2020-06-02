@@ -3,15 +3,15 @@ server {
 	server_name ezeml.edirepository.org;
 	root /var/www/html;
 
-        location / {
-                # First attempt to serve request as file, then
-                # as directory, then fall back to displaying a 404.
-	        index index.html index.htm index.nginx-debian.html;
-                try_files $uri $uri/ =404;
-        }
+
+	location / {
+		index index.html index.htm index.nginx-debian.html;
+		try_files $uri $uri/ =404;
+	}
+
 
 	location /static {
-		root /home/pasta/metadata-eml/webapp;
+		root /home/pasta/ezeml/webapp;
 	}
 
 	location /eml {
@@ -22,4 +22,15 @@ server {
 		client_max_body_size 500m;
 	}
 
+    	listen 443 ssl; # managed by Certbot
+    	ssl_certificate /etc/letsencrypt/live/sam.edirepository.org/fullchain.pem; # managed by Certbot
+    	ssl_certificate_key /etc/letsencrypt/live/sam.edirepository.org/privkey.pem; # managed by Certbot
+    	include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+        if ($scheme != "https") {
+                return 301 https://$host$request_uri;
+        } # managed by Certbot
+
+}
 }

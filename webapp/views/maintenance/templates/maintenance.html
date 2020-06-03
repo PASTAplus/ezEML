@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_maintenance_id, help_maintenance_title, help_maintenance_content = help[0] %}
+    {% set help_maintenance_btn = help_maintenance_id ~ '_btn' %}
+    {% set help_maintenance_dialog = help_maintenance_id ~ '_dialog' %}
+    {% set help_maintenance_freq_id, help_maintenance_freq_title, help_maintenance_freq_content = help[1] %}
+    {% set help_maintenance_freq_btn = help_maintenance_freq_id ~ '_btn' %}
+    {% set help_maintenance_freq_dialog = help_maintenance_freq_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h1>Maintenance</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_maintenance_btn) }}</td>
+    </table>
+    
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+                <h5>Please enter the dataset maintenance information below:</h5>
+                <table>
+                    <td>{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>
+{#                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_maintenance_freq_btn) }}</td>#}
+                </table>
+                <table>
+                    <td width="100%">{{ wtf.form_field(form.update_frequency, cols=100) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_maintenance_freq_btn) }}</td>
+                </table>
+                <br>
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_maintenance_dialog, help_maintenance_title, help_maintenance_content) }}
+    {{ macros.help_dialog(help_maintenance_freq_dialog, help_maintenance_freq_title, help_maintenance_freq_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_maintenance_id, help_maintenance_title, help_maintenance_content = help[0] %}
+    {% set help_maintenance_btn = help_maintenance_id ~ '_btn' %}
+    {% set help_maintenance_dialog = help_maintenance_id ~ '_dialog' %}
+    {% set help_maintenance_freq_id, help_maintenance_freq_title, help_maintenance_freq_content = help[1] %}
+    {% set help_maintenance_freq_btn = help_maintenance_freq_id ~ '_btn' %}
+    {% set help_maintenance_freq_dialog = help_maintenance_freq_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_maintenance_dialog, help_maintenance_btn) }}
+        {{ macros.help_script(help_maintenance_freq_dialog, help_maintenance_freq_btn) }}
+    });
+    </script>
+{% endblock %}

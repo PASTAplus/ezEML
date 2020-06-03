@@ -70,7 +70,7 @@ def maintenance(packageid=None):
             populate_maintenance_form(form, maintenance_node)
 
     set_current_page('maintenance')
-    help = [get_help('maintenance'), get_help('maintenance_freq')]
+    help = [get_help('maintenance'), get_help('maintenance_description'), get_help('maintenance_freq')]
     return render_template('maintenance.html',
                            title='Maintenance',
                            packageid=packageid,

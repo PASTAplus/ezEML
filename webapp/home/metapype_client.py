@@ -42,7 +42,8 @@ DOWN_ARROW = html.unescape('&#x25BC;')
 
 def add_paragraph_tags(s):
     if s:
-        return '\n<para>' + s.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
+        ps = '\n<para>' + s.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
+        return ps.replace('<para></para>\n', '')
     else:
         return ''
 

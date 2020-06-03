@@ -134,6 +134,12 @@ A description of the maintenance of this data resource.
 
 This includes information about the frequency of update and whether there is ongoing data collection.
 --------------------
+maintenance_description
+Maintenance Description
+A text description of the maintenance of this data resource.
+
+It may consist of multiple paragraphs.
+--------------------
 maintenance_freq
 Maintenance Update Frequency
 Frequency with which changes and additions are made to the dataset after the initial dataset is completed.metadata_providers

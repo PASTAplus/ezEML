@@ -6,7 +6,10 @@
     {% set help_maintenance_id, help_maintenance_title, help_maintenance_content = help[0] %}
     {% set help_maintenance_btn = help_maintenance_id ~ '_btn' %}
     {% set help_maintenance_dialog = help_maintenance_id ~ '_dialog' %}
-    {% set help_maintenance_freq_id, help_maintenance_freq_title, help_maintenance_freq_content = help[1] %}
+    {% set help_maintenance_description_id, help_maintenance_description_title, help_maintenance_description_content = help[1] %}
+    {% set help_maintenance_description_btn = help_maintenance_description_id ~ '_btn' %}
+    {% set help_maintenance_description_dialog = help_maintenance_description_id ~ '_dialog' %}
+    {% set help_maintenance_freq_id, help_maintenance_freq_title, help_maintenance_freq_content = help[2] %}
     {% set help_maintenance_freq_btn = help_maintenance_freq_id ~ '_btn' %}
     {% set help_maintenance_freq_dialog = help_maintenance_freq_id ~ '_dialog' %}
     {% endif %}
@@ -24,7 +27,7 @@
                 <h5>Please enter the dataset maintenance information below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>
-{#                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_maintenance_freq_btn) }}</td>#}
+                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_maintenance_description_btn) }}</td>
                 </table>
                 <table>
                     <td width="100%">{{ wtf.form_field(form.update_frequency, cols=100) }}</td>
@@ -39,6 +42,7 @@
     </div>
 
     {{ macros.help_dialog(help_maintenance_dialog, help_maintenance_title, help_maintenance_content) }}
+    {{ macros.help_dialog(help_maintenance_description_dialog, help_maintenance_description_title, help_maintenance_description_content) }}
     {{ macros.help_dialog(help_maintenance_freq_dialog, help_maintenance_freq_title, help_maintenance_freq_content) }}
 {% endblock %}
 
@@ -48,7 +52,10 @@
     {% set help_maintenance_id, help_maintenance_title, help_maintenance_content = help[0] %}
     {% set help_maintenance_btn = help_maintenance_id ~ '_btn' %}
     {% set help_maintenance_dialog = help_maintenance_id ~ '_dialog' %}
-    {% set help_maintenance_freq_id, help_maintenance_freq_title, help_maintenance_freq_content = help[1] %}
+    {% set help_maintenance_description_id, help_maintenance_description_title, help_maintenance_description_content = help[1] %}
+    {% set help_maintenance_description_btn = help_maintenance_description_id ~ '_btn' %}
+    {% set help_maintenance_description_dialog = help_maintenance_description_id ~ '_dialog' %}
+    {% set help_maintenance_freq_id, help_maintenance_freq_title, help_maintenance_freq_content = help[2] %}
     {% set help_maintenance_freq_btn = help_maintenance_freq_id ~ '_btn' %}
     {% set help_maintenance_freq_dialog = help_maintenance_freq_id ~ '_dialog' %}
     {% endif %}
@@ -57,6 +64,7 @@
     $(function()
     {
         {{ macros.help_script(help_maintenance_dialog, help_maintenance_btn) }}
+        {{ macros.help_script(help_maintenance_description_dialog, help_maintenance_description_btn) }}
         {{ macros.help_script(help_maintenance_freq_dialog, help_maintenance_freq_btn) }}
     });
     </script>

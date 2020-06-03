@@ -2,7 +2,14 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Keyword</h1>
+    {% set help_keywords_id, help_keywords_title, help_keywords_content = help[0] %}
+    {% set help_keywords_btn = help_keywords_id ~ '_btn' %}
+    {% set help_keywords_dialog = help_keywords_id ~ '_dialog' %}
+
+    <table>
+        <td><h1>Keyword</h1></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_keywords_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -22,10 +29,15 @@
             </form>
         </div>
     </div>
+    {{ macros.help_dialog(help_keywords_dialog, help_keywords_title, help_keywords_content) }}
 {% endblock %}
 
 {% block app_scripts %}
     {{ super() }}
+    {% set help_keywords_id, help_keywords_title, help_keywords_content = help[0] %}
+    {% set help_keywords_btn = help_keywords_id ~ '_btn' %}
+    {% set help_keywords_dialog = help_keywords_id ~ '_dialog' %}
+
     <script>
     $(function()
     {
@@ -36,6 +48,10 @@
         $('#keyword').on('input', function() {
             $('#lter_keyword_select').val(0);
         });
+    });
+    $(function()
+    {
+        {{ macros.help_script(help_keywords_dialog, help_keywords_btn) }}
     });
     </script>
 {% endblock %}

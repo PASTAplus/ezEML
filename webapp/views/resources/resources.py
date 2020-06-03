@@ -421,4 +421,5 @@ def keyword(packageid=None, node_id=None):
                     break
 
     set_current_page('keyword')
-    return render_template('keyword.html', title='Keyword', form=form, packageid=packageid)
+    help = [get_help('keywords')]
+    return render_template('keyword.html', title='Keyword', form=form, packageid=packageid, help=help)

@@ -51,7 +51,7 @@ There is an argument for publication date referring to the original date of rele
 --------------------
 abstract
 Abstract
-The <b>Abstract</b> will be used for full-text searches, and it should be rich with descriptive text.
+The <b>Abstract</b> will be used for full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
 
 In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the dataset is ongoing or completed.
 
@@ -61,7 +61,7 @@ keywords
 Keywords
 It is recommended that meaningful sets of keywords be provided.
 
-One set of keywords may identify the contributing organization(s), e.g., the LTER or OBFS site, LTREB or Macrosystems project, which is especially if data are co-funded or funding is leveraged.
+One set of keywords may identify the contributing organization(s), e.g., the LTER or OBFS site, LTREB or Macrosystems project, especially if data are co-funded or funding is leveraged.
 
 Meaningful geographic place names also are appropriate (e.g. state, city, county).
 

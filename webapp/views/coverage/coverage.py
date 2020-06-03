@@ -142,7 +142,8 @@ def geographic_coverage(packageid=None, node_id=None):
                             populate_geographic_coverage_form(form, gc_node)
 
     set_current_page('geographic_coverage')
-    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form)
+    help = [get_help('geographic_coverages'), get_help('geographic_description'), get_help('bounding_coordinates')]
+    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, help=help)
 
 
 def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):

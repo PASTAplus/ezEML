@@ -2,21 +2,75 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Geographic Coverage</h1>
+    {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
+    {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
+    {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    {% set help_geographic_description_id, help_geographic_description_title, help_geographic_description_content = help[1] %}
+    {% set help_geographic_description_btn = help_geographic_description_id ~ '_btn' %}
+    {% set help_geographic_description_dialog = help_geographic_description_id ~ '_dialog' %}
+    {% set help_bounding_coordinates_id, help_bounding_coordinates_title, help_bounding_coordinates_content = help[2] %}
+    {% set help_bounding_coordinates_btn = help_bounding_coordinates_id ~ '_btn' %}
+    {% set help_bounding_coordinates_dialog = help_bounding_coordinates_id ~ '_dialog' %}
+
+    <table>
+        <td><h1>Geographic Coverage</h1></td>
+        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
                 <h5>Please enter the geographic description and bounding coordinates below:</h5>
-                {{ wtf.form_field(form.geographic_description) }}
-                {{ wtf.form_field(form.wbc) }}
-                {{ wtf.form_field(form.ebc) }}
-                {{ wtf.form_field(form.nbc) }}
-                {{ wtf.form_field(form.sbc) }}
+                <table width="100%">
+                    <td width="100%">{{ wtf.form_field(form.geographic_description, rows=6) }}</td>
+                    <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_geographic_description_btn) }}</td>
+                </table>
+                <table width="100%">
+                    <td width="100%">{{ wtf.form_field(form.wbc) }}</td>
+                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
+                </table>
+                <table width="100%">
+                    <td width="100%">{{ wtf.form_field(form.ebc) }}</td>
+                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
+                </table>
+                <table width="100%">
+                    <td width="100%">{{ wtf.form_field(form.nbc) }}</td>
+                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
+                </table>
+                <table width="100%">
+                    <td width="100%">{{ wtf.form_field(form.sbc) }}</td>
+                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
+                </table>
+                <br>
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
             </form>
         </div>
     </div>
+    {{ macros.help_dialog(help_geographic_coverage_dialog, help_geographic_coverage_title, help_geographic_coverage_content) }}
+    {{ macros.help_dialog(help_geographic_description_dialog, help_geographic_description_title, help_geographic_description_content) }}
+    {{ macros.help_dialog(help_bounding_coordinates_dialog, help_bounding_coordinates_title, help_bounding_coordinates_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
+    {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
+    {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    {% set help_geographic_description_id, help_geographic_description_title, help_geographic_description_content = help[1] %}
+    {% set help_geographic_description_btn = help_geographic_description_id ~ '_btn' %}
+    {% set help_geographic_description_dialog = help_geographic_description_id ~ '_dialog' %}
+    {% set help_bounding_coordinates_id, help_bounding_coordinates_title, help_bounding_coordinates_content = help[2] %}
+    {% set help_bounding_coordinates_btn = help_bounding_coordinates_id ~ '_btn' %}
+    {% set help_bounding_coordinates_dialog = help_bounding_coordinates_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_geographic_coverage_dialog, help_geographic_coverage_btn) }}
+        {{ macros.help_script(help_geographic_description_dialog, help_geographic_description_btn) }}
+        {{ macros.help_script(help_bounding_coordinates_dialog, help_bounding_coordinates_btn) }}
+    });
+    </script>
 {% endblock %}

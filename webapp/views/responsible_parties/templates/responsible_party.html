@@ -18,15 +18,14 @@
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
                 <h5>Please document the metadata {{ rp_lower }} in the fields below:</h5>
-{#                {% if not role %}#}
-{#                <i><h6>(One of Last Name, Organization, or Position Name is required. ORCID ID is recommended. All other fields are optional.)</h6></i>#}
-{#                {% else %}#}
-{#                <i><h6>(One of Last Name, Organization, or Position Name is required. Role is required. ORCID ID is recommended. All other fields are optional.)</h6></i>#}
-{#                {% endif %}#}
                 {{ wtf.form_field(form.salutation) }}
                 {{ wtf.form_field(form.gn) }}
                 {{ wtf.form_field(form.mn) }}
-                <h5 style="color: steelblue;font-style: italic">At least one of the following is required: Last Name, Organization, or Position Name</h5>
+                {% if not role %}
+                    <h5 style="color: steelblue;font-style: italic">At least one of the following is required: Last Name, Organization, or Position Name.</h5>
+                {% else %}
+                    <h5 style="color: steelblue;font-style: italic">At least one of the following is required: Last Name, Organization, or Position Name. Role is also required.</h5>
+                {% endif %}
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
                     <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.sn) }}</td>

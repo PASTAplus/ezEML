@@ -190,6 +190,7 @@
             {% set geographic_coverage_style = '""' %}
             {% set temporal_coverage_style = '""' %}
             {% set taxonomic_coverage_style = '""' %}
+            {% set maintenance_style = '""' %}
             {% set contact_style = '""' %}
 {#            {% set publisher_style = '""' %}#}
 {#            {% set publication_place_style = '""' %}#}
@@ -212,6 +213,7 @@
             {% if page == 'geographic_coverage' %}{% set geographic_coverage_style = current %}{% endif %}
             {% if page == 'temporal_coverage' %}{% set temporal_coverage_style = current %}{% endif %}
             {% if page == 'taxonomic_coverage' %}{% set taxonomic_coverage_style = current %}{% endif %}
+            {% if page == 'maintenance' %}{% set maintenance_style = current %}{% endif %}
             {% if page == 'contact' %}{% set contact_style = current %}{% endif %}
 {#            {% if page == 'publisher' %}{% set publisher_style = current %}{% endif %}#}
 {#            {% if page == 'publication_place' %}{% set publication_place_style = current %}{% endif %}#}
@@ -231,6 +233,7 @@
         <a class="nav_link" style={{ geographic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a><br>
         <a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
         <a class="nav_link" style={{ taxonomic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
+        <a class="nav_link" style={{ maintenance_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>
         <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
 {#        <a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>#}
 {#        <a class="nav_link" style={{ publication_place_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.publication_place') }}" title="Edit">Publication Place</a><br>#}

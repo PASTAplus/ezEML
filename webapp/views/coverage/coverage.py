@@ -304,7 +304,7 @@ def taxonomic_coverage_select(packageid=None):
         url = select_post(packageid, form, form_dict,
                           'POST', PAGE_TAXONOMIC_COVERAGE_SELECT,
                           PAGE_TEMPORAL_COVERAGE_SELECT,
-                          PAGE_CONTACT_SELECT, PAGE_TAXONOMIC_COVERAGE)
+                          PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
         return redirect(url)
 
     # Process GET

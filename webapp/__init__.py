@@ -59,6 +59,9 @@ app.register_blueprint(dt_bp, url_prefix='/eml')
 from webapp.views.entities.entities import ent_bp
 app.register_blueprint(ent_bp, url_prefix='/eml')
 
+from webapp.views.maintenance.maintenance import maint_bp
+app.register_blueprint(maint_bp, url_prefix='/eml')
+
 from webapp.views.method_steps.md import md_bp
 app.register_blueprint(md_bp, url_prefix='/eml')
 

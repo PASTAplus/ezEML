@@ -51,6 +51,16 @@ def remove_paragraph_tags(s):
     return s.strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
 
 
+def add_node(parent_node:Node, child_name:str, content:str=None):
+    child_node = parent_node.find_child(child_name)
+    if not child_node:
+        child_node = Node(child_name, parent=parent_node)
+        add_child(parent_node, child_node)
+    if content:
+        child_node.content = content
+    return child_node
+
+
 def list_data_tables(eml_node:Node=None):
     dt_list = []
     if eml_node:
@@ -1333,6 +1343,17 @@ def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None)
 
     try:
         save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+
+def create_maintenance(dataset_node:Node=None, description:str=None, update_frequency:str=None):
+    try:
+        if dataset_node:
+            maintenance_node = add_node(dataset_node, names.MAINTENANCE)
+            description_node = add_node(maintenance_node, names.DESCRIPTION, description)
+            update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
+
     except Exception as e:
         logger.error(e)
 

@@ -206,3 +206,13 @@ Attributes (variables) can have the following types: Nominal, Ordinal, Interval,
 <b>Ratio</b> values are also measured in reference to a continuous scale that has equidistant values, but here the scale has a meaningful zero point. This allows ratios to have meaning: e.g., it make sense to say one value is twice as great as another. Examples of ratio scales are the Kelvin temperature scale (200K is half as hot as 400K) and length in meters (10 meters is twice as long as 5 meters).
 
 <b>DateTime</b> variables contain date and time values. Note that time <i>durations</i> should be treated as Interval or Ratio values.
+--------------------
+maintenance
+Maintenance
+A description of the maintenance of this data resource.
+
+This includes information about the frequency of update and whether there is ongoing data collection.
+--------------------
+maintenance_freq
+Maintenance Update Frequency
+Frequency with which changes and additions are made to the dataset after the initial dataset is completed.

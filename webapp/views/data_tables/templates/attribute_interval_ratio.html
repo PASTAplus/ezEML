@@ -63,6 +63,7 @@
         let descriptions = {{ custom_unit_descriptions|tojson }};
 
         $('#custom_unit').on('input', function() {
+            $('#custom_unit_description').val('');
             for (i = 0; i < names.length; i++) {
                 if (names[i] === $('#custom_unit').val()) {
                     // if we have the custom unit in our dictionary, fill in the description

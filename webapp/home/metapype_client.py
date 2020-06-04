@@ -53,7 +53,10 @@ def add_paragraph_tags(s):
 
 
 def remove_paragraph_tags(s):
-    return s.strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
+    if s:
+        return s.strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
+    else:
+        return ''
 
 
 def add_node(parent_node:Node, child_name:str, content:str=None, optionality=REQUIRED):

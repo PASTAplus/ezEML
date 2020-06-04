@@ -118,6 +118,13 @@ The coordinates may define a rectangle around a country, with this Geographic De
 
 Geographic Description can also contain information about the collection of bounding coordinates, e.g., an altitude value that is referenced to Mean Lower Low Water, or the projection system that the latitude and longitude coordinates were taken from.</para>
 --------------------
+intellectual_rights
+Intellectual Rights
+Intellectual rights are controlled at the source, however it is recommended that data be released with as few restrictions as possible.
+
+EDI's default policy is <b>CC0</b>. The LTER Network-wide default policy is <b>CC BY</b>. Please consult those organizations for more information and more details.
+This includes information about the frequency of update and whether there is ongoing data collection.
+--------------------
 keywords
 Keywords
 It is recommended that meaningful sets of keywords be provided.

@@ -221,17 +221,11 @@ def data_table(packageid=None, node_id=None):
 
 
 def compose_atts(att_list: list = []):
-    atts = ''
+    atts = []
     if att_list:
-        atts = ''
-        for att_entry in att_list:
-            att_name = att_entry.label
-            if att_name is None:
-                att_name = ''
-            atts = atts + att_name + ', '
-        atts = atts[:-2]
-
-    return atts
+        for att in att_list:
+            atts.append(att.label if att.label else 'unnamed')
+    return ', '.join(atts)
 
 
 def populate_data_table_form(form: DataTableForm, node: Node):

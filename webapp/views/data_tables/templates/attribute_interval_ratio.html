@@ -15,9 +15,20 @@
                 {{ wtf.form_field(form.attribute_definition) }}
                 {{ wtf.form_field(form.storage_type) }}
                 {{ wtf.form_field(form.storage_type_system) }}
-                <h5>Enter a standard unit <em>or</em> a custom unit value:</h5>
-                {{ wtf.form_field(form.standard_unit) }}
-                {{ wtf.form_field(form.custom_unit) }}
+                <h5>Enter a standard unit value <em><u>or</u></em> a custom unit value:</h5>
+
+                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                    <tr>
+                    <td valign="top" width="50%" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.standard_unit) }}</td>
+                    <td width="50%" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">
+                        <table>
+                        <tr>{{ wtf.form_field(form.custom_unit) }}</tr>
+                        <tr>{{ wtf.form_field(form.custom_unit_description, rows=3) }}</tr>
+                        </table>
+                    </td>
+                    </tr>
+                </table>
+
                 <br/>
                 {{ wtf.form_field(form.precision) }}
                 {{ wtf.form_field(form.number_type) }}
@@ -41,4 +52,34 @@
             </form>
         </div>
     </div>
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    <script>
+    $(function()
+    {
+        let names = {{ custom_unit_names|tojson }};
+        let descriptions = {{ custom_unit_descriptions|tojson }};
+
+        $('#custom_unit').on('input', function() {
+            for (i = 0; i < names.length; i++) {
+                if (names[i] === $('#custom_unit').val()) {
+                    // if we have the custom unit in our dictionary, fill in the description
+                    $('#custom_unit_description').val(descriptions[i]);
+                }
+            }
+        })
+
+        $('#custom_unit').change(function() {
+            $('#custom_unit_description').val('');
+            for (i = 0; i < names.length; i++) {
+                if (names[i] === $('#custom_unit').val()) {
+                    // if we have the custom unit in our dictionary, fill in the description
+                    $('#custom_unit_description').val(descriptions[i]);
+                }
+            }
+        })
+    });
+    </script>
 {% endblock %}

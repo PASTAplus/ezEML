@@ -17,7 +17,7 @@ import html
 import json
 import os
 
-from flask import flash
+from flask import flash, session
 from flask_login import (
     current_user
 )
@@ -39,6 +39,10 @@ NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
 
+REQUIRED = object()
+OPTIONAL = object()
+FORCE = object()
+
 
 def add_paragraph_tags(s):
     if s:
@@ -52,11 +56,17 @@ def remove_paragraph_tags(s):
     return s.strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
 
 
-def add_node(parent_node:Node, child_name:str, content:str=None):
+def add_node(parent_node:Node, child_name:str, content:str=None, optionality=REQUIRED):
+    if optionality == OPTIONAL and not content:
+        return
     child_node = parent_node.find_child(child_name)
     if not child_node:
         child_node = Node(child_name, parent=parent_node)
-        add_child(parent_node, child_node)
+        if not FORCE:
+            add_child(parent_node, child_node)
+        else:
+            # when we're add to additionalMetadata, we sidestep rule checking
+            parent_node.add_child(child_node)
     if content:
         child_node.content = content
     return child_node
@@ -490,7 +500,7 @@ def compose_taxonomic_label(txc_node:Node=None, label:str=''):
         return label
 
 
-def add_child(parent_node:Node, child_node:Node):
+def add_child(parent_node:Node, child_node:Node, force=False):
     if parent_node and child_node:
         parent_rule = rule.get_rule(parent_node.name)
         index = parent_rule.child_insert_index(parent_node, child_node)
@@ -919,6 +929,7 @@ def create_datetime_attribute(
 
 
 def create_interval_ratio_attribute(
+                    eml_node:Node=None,
                     attribute_node:Node=None, 
                     attribute_name:str=None,
                     attribute_label:str=None,
@@ -927,6 +938,7 @@ def create_interval_ratio_attribute(
                     storage_type_system:str=None,
                     standard_unit:str=None, 
                     custom_unit:str=None,
+                    custom_unit_description:str=None,
                     precision:str=None, 
                     number_type:str=None, 
                     bounds_minimum=None,
@@ -937,27 +949,15 @@ def create_interval_ratio_attribute(
                     mscale:str=None):
     if attribute_node:
         try:
-            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
-            attribute_name_node.content = attribute_name
-            add_child(attribute_node, attribute_name_node)
-            
-            if attribute_label:
-                attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
-                attribute_label_node.content = attribute_label
-                add_child(attribute_node, attribute_label_node)
-            
-            attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
-            attribute_definition_node.content = attribute_definition
-            add_child(attribute_node, attribute_definition_node)
+            add_node(attribute_node, names.ATTRIBUTENAME, attribute_name, REQUIRED)
+            add_node(attribute_node, names.ATTRIBUTELABEL, attribute_label, OPTIONAL)
+            add_node(attribute_node, names.ATTRIBUTEDEFINITION, attribute_definition, REQUIRED)
 
-            storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
-            storage_type_node.content = storage_type
+            storage_type_node = add_node(attribute_node, names.STORAGETYPE, storage_type, OPTIONAL)
             if storage_type_system:
                 storage_type_node.add_attribute('typeSystem', storage_type_system)
-            add_child(attribute_node, storage_type_node)
 
-            mscale_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
-            add_child(attribute_node, mscale_node)
+            mscale_node = add_node(attribute_node, names.MEASUREMENTSCALE, '', REQUIRED)
 
             ir_node = None  # this will be either a ratio or an interval node
             if mscale == 'interval':
@@ -974,6 +974,8 @@ def create_interval_ratio_attribute(
                 custom_unit_node = Node(names.CUSTOMUNIT, parent=unit_node)
                 custom_unit_node.content = custom_unit
                 add_child(unit_node, custom_unit_node)
+                # need additional nodes under additionalMetadata
+                handle_custom_unit_additional_metadata(eml_node, custom_unit, custom_unit_description)
             elif standard_unit:
                 standard_unit_node = Node(names.STANDARDUNIT, parent=unit_node)
                 standard_unit_node.content = standard_unit
@@ -1030,6 +1032,39 @@ def create_interval_ratio_attribute(
 
         except Exception as e:
             logger.error(e)
+
+
+def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
+    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
+    if not additional_metadata_node:
+        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, '', REQUIRED)
+    # do we already have the metadata node?
+    metadata_node = additional_metadata_node.find_child(names.METADATA)
+    if not metadata_node:
+        metadata_node = add_node(additional_metadata_node, names.METADATA, '', REQUIRED)
+    # de we already have the unitList node?
+    unit_list_node = metadata_node.find_child(names.UNITLIST)
+    if not unit_list_node:
+        unit_list_node = add_node(metadata_node, names.UNITLIST, '', FORCE)
+    # do we already have a node for this custom unit?
+    unit_node = None
+    unit_nodes = unit_list_node.find_all_children(names.UNIT)
+    for child in unit_nodes:
+        if child.attribute_value('name') == custom_unit_name:
+            unit_node = child
+            break
+    if not unit_node:
+        unit_node = add_node(unit_list_node, names.UNIT, '', FORCE)
+    unit_node.add_attribute('id', custom_unit_name)
+    unit_node.add_attribute('name', custom_unit_name)
+    description_node = unit_node.find_child(names.DESCRIPTION)
+    if description_node:
+        unit_node.remove_child(description_node)
+    add_node(unit_node, names.DESCRIPTION, custom_unit_description, FORCE)
+    # save custom unit names and descriptions in session so we can do some javascript magic
+    custom_units = session.get("custom_units", {})
+    custom_units[custom_unit_name] = custom_unit_description
+    session["custom_units"] = custom_units
 
 
 def create_nominal_ordinal_attribute(

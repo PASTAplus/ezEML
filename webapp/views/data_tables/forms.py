@@ -4,6 +4,8 @@ from wtforms import (
     FloatField, IntegerField, HiddenField
 )
 
+from wtforms.widgets import TextArea
+
 from wtforms.validators import (
     URL, Optional
 )
@@ -116,6 +118,7 @@ class AttributeIntervalRatioForm(EDIForm):
     standard_unit = SelectField('Standard Unit', 
                                 choices=[(unit, unit) for unit in standard_units])
     custom_unit = StringField('Custom Unit', validators=[])
+    custom_unit_description = StringField('Description (Recommended)', widget=TextArea(), validators=[])
     precision = FloatField('Precision (Optional)', validators=[Optional()])
     number_type = SelectField('Number Type', 
                                choices=[("real", "real"),
@@ -145,6 +148,7 @@ class AttributeIntervalRatioForm(EDIForm):
                 self.storage_type_system.data,
                 self.standard_unit.data,
                 self.custom_unit.data,
+                self.custom_unit_description.data,
                 self.precision.data,
                 self.number_type.data,
                 self.bounds_minimum.data,

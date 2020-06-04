@@ -1,7 +1,7 @@
 import hashlib
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for
+    Blueprint, flash, render_template, redirect, request, session, url_for
 )
 
 from webapp.home.views import process_up_button, process_down_button, set_current_page
@@ -836,6 +836,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
             storage_type_system = form.storage_type_system.data
             standard_unit = form.standard_unit.data
             custom_unit = form.custom_unit.data
+            custom_unit_definition = form.custom_unit_description.data
             precision = form.precision.data
             number_type = form.number_type.data
             bounds_minimum = form.bounds_minimum.data
@@ -863,6 +864,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
             att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
 
             create_interval_ratio_attribute(
+                eml_node,
                 att_node,
                 attribute_name,
                 attribute_label,
@@ -871,6 +873,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
                 storage_type_system,
                 standard_unit,
                 custom_unit,
+                custom_unit_definition,
                 precision,
                 number_type,
                 bounds_minimum,
@@ -919,19 +922,27 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
                             if att_nodes:
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
-                                        populate_attribute_interval_ratio_form(form, att_node, mscale)
+                                        populate_attribute_interval_ratio_form(form, eml_node, att_node, mscale)
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
     set_current_page('data_table')
+    custom_unit_names = []
+    custom_unit_descriptions = []
+    if 'custom_units' in session:
+        for name, desc in session['custom_units'].items():
+            custom_unit_names.append(name)
+            custom_unit_descriptions.append(desc)
     return render_template('attribute_interval_ratio.html',
                            title='Attribute: Interval or Ratio',
                            form=form,
                            attribute_name=attribute_name,
-                           mscale=mscale)
+                           mscale=mscale,
+                           custom_unit_names=custom_unit_names,
+                           custom_unit_descriptions=custom_unit_descriptions)
 
 
-def populate_attribute_interval_ratio_form(form: AttributeIntervalRatioForm = None, att_node: Node = None,
+def populate_attribute_interval_ratio_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,
                                            mscale: str = None):
     # if mscale is not None:
     #     if mscale == names.INTERVAL:
@@ -979,7 +990,26 @@ def populate_attribute_interval_ratio_form(form: AttributeIntervalRatioForm = No
                     form.standard_unit.data = standard_unit_node.content
                 custom_unit_node = unit_node.find_child(names.CUSTOMUNIT)
                 if custom_unit_node:
-                    form.custom_unit.data = custom_unit_node.content
+                    custom_unit_name = custom_unit_node.content
+                    form.custom_unit.data = custom_unit_name
+                    custom_unit_description = ''
+                    # get description, if any, from the additionaMetadata section
+                    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
+                    if additional_metadata_node:
+                        metadata_node = additional_metadata_node.find_child(names.METADATA)
+                        if metadata_node:
+                            unit_list_node = metadata_node.find_child(names.UNITLIST)
+                            if unit_list_node:
+                                unit_nodes = unit_list_node.find_all_children(names.UNIT)
+                                unit_node = None
+                                for node in unit_nodes:
+                                    if node.attribute_value('name') == custom_unit_name:
+                                        unit_node = node
+                                        break
+                                if unit_node:
+                                    description_node = unit_node.find_child(names.DESCRIPTION)
+                                    if description_node:
+                                        form.custom_unit_description.data = description_node.content
 
             precision_node = ir_node.find_child(names.PRECISION)
             if precision_node:

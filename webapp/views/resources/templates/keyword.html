@@ -48,6 +48,16 @@
         $('#keyword').on('input', function() {
             $('#lter_keyword_select').val(0);
         });
+
+        $('#keyword').on('input', function() {
+            $('#lter_keyword_select').val(0);
+            $('#lter_keyword_select option').each(function() {
+                if (this.value == $('#keyword').val()) {
+                    $('#lter_keyword_select').val(this.value);
+                    return;
+                }
+            })
+        })
     });
     $(function()
     {

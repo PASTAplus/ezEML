@@ -1391,7 +1391,8 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
         if dataset_node:
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
             description_node = add_node(maintenance_node, names.DESCRIPTION, description)
-            update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
+            if update_frequency:
+                update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
 
     except Exception as e:
         logger.error(e)

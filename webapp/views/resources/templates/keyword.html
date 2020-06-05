@@ -46,11 +46,11 @@
             $('#keyword').val(selected);
         });
         $('#keyword').on('input', function() {
-            $('#lter_keyword_select').val(0);
+            $('#lter_keyword_select').val("");
         });
 
         $('#keyword').on('input', function() {
-            $('#lter_keyword_select').val(0);
+            $('#lter_keyword_select').val("");
             $('#lter_keyword_select option').each(function() {
                 if (this.value == $('#keyword').val()) {
                     $('#lter_keyword_select').val(this.value);

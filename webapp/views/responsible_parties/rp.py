@@ -263,7 +263,7 @@ def associated_party_select(packageid=None):
         url = select_post(packageid, form, form_dict,
                           'POST', PAGE_ASSOCIATED_PARTY_SELECT,
                           PAGE_METADATA_PROVIDER_SELECT,
-                          PAGE_PUBDATE,
+                          PAGE_ABSTRACT,
                           PAGE_ASSOCIATED_PARTY)
         return redirect(url)
 
@@ -296,7 +296,7 @@ def contact_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
                           'POST', PAGE_CONTACT_SELECT, PAGE_TAXONOMIC_COVERAGE_SELECT,
-                          PAGE_PUBLISHER, PAGE_CONTACT)
+                          PAGE_METHOD_STEP_SELECT, PAGE_CONTACT)
         return redirect(url)
 
     # Process GET

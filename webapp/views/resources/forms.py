@@ -31,7 +31,9 @@ class IntellectualRightsForm(EDIForm):
                                            choices=[("CC0", INTELLECTUAL_RIGHTS_CC0),
                                                     ("CCBY", INTELLECTUAL_RIGHTS_CC_BY),
                                                     ("Other", "Other (Enter text below)")
-                                                    ], validators=[InputRequired()])
+                                                    ],
+                                           default="CC0",
+                                           validators=[InputRequired()])
     intellectual_rights = StringField('', widget=TextArea(), validators=[])
     md5 = HiddenField('')
 

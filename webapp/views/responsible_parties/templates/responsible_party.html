@@ -40,6 +40,7 @@
                 {{ wtf.form_field(form.role) }}
                 {% endif %}
                 {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}
+                {{ wtf.form_field(form.email) }}
                 {{ wtf.form_field(form.address_1) }}
                 {{ wtf.form_field(form.address_2) }}
                 {{ wtf.form_field(form.city) }}
@@ -48,7 +49,6 @@
                 {{ wtf.form_field(form.country) }}
                 {{ wtf.form_field(form.phone) }}
                 {{ wtf.form_field(form.fax) }}
-                {{ wtf.form_field(form.email) }}
                 {{ wtf.form_field(form.online_url) }}
                 {% if not save_and_continue %}
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>

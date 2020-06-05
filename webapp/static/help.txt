@@ -169,11 +169,19 @@ Attributes (variables) can have the following types: Nominal, Ordinal, Interval,
 
 <b>DateTime</b> variables contain date and time values. Note that time <i>durations</i> should be treated as Interval or Ratio values.
 --------------------
+metadata_providers
+Metadata Providers
+The metadata provider is the person(s) or organization(s) responsible for producing or providing the metadata content.
+--------------------
 methods
 Method Steps
 Method steps are descriptions of specific steps of the method employed when collecting data. They are intended to be descriptive, i.e., human-readable rather than machine-readable.
 
 The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, relevant literature, software, instrumentation, source data and any quality control measures taken.
+--------------------
+name_org_position
+Last Name, Organization, Position Name
+place holder
 --------------------
 nav
 Navigating in ezEML

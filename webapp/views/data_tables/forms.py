@@ -18,10 +18,11 @@ class AttributeSelectForm(EDIForm):
 
 
 class AttributeMeasurementScaleForm(EDIForm):
-    mscale_choice = SelectField('New Measurement Scale',
-                                choices=[("interval", "interval"), ("ratio", "ratio"),
-                                         ("nominal", "nominal"), ("ordinal", "ordinal"),
-                                         ("dateTime", "dateTime")])
+    mscale_choice = SelectField('New Variable Type',
+                                choices=[("CATEGORICAL", "Categorical"),
+                                         ("DATETIME", "DateTime"),
+                                         ("NUMERICAL", "Numerical"),
+                                         ("TEXT", "Text")])
     md5 = HiddenField('')
 
     def field_data(self)->tuple:
@@ -76,7 +77,7 @@ class AttributeNominalOrdinalForm(EDIForm):
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    enforced = SelectField('', choices=[("yes", "Enforce the code values I've defined"),
+    enforced = SelectField('', choices=[("yes", "Enforce the code values"),
                                      ("no", "Other code values are allowed")
                                     ])
     code_1 = StringField('Missing Value Code', validators=[])
@@ -97,6 +98,36 @@ class AttributeNominalOrdinalForm(EDIForm):
                 self.storage_type.data,
                 self.storage_type_system.data,
                 self.enforced.data,
+                self.code_1.data,
+                self.code_explanation_1.data,
+                self.code_2.data,
+                self.code_explanation_2.data,
+                self.code_3.data,
+                self.code_explanation_3.data,
+                self.mscale.data)
+
+class AttributeTextForm(EDIForm):
+    attribute_name = StringField('Name', validators=[])
+    attribute_label = StringField('Label (Optional)', validators=[])
+    attribute_definition = StringField('Definition', validators=[])
+    storage_type = StringField('Storage Type (Optional)', validators=[])
+    storage_type_system = StringField('Storage Type System (Optional)', validators=[])
+    code_1 = StringField('Missing Value Code', validators=[])
+    code_explanation_1 = StringField('Explanation', validators=[])
+    code_2 = StringField('Missing Value Code', validators=[])
+    code_explanation_2 = StringField('Explanation', validators=[])
+    code_3 = StringField('Missing Value Code', validators=[])
+    code_explanation_3 = StringField('Explanation', validators=[])
+    md5 = HiddenField('')
+    mscale = HiddenField('')
+    init_str = ""
+
+    def field_data(self)->tuple:
+        return (self.attribute_name.data,
+                self.attribute_label.data,
+                self.attribute_definition.data,
+                self.storage_type.data,
+                self.storage_type_system.data,
                 self.code_1.data,
                 self.code_explanation_1.data,
                 self.code_2.data,

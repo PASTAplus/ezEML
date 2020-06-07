@@ -2,7 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Categorical Attribute</h2>
+    <h2>Text Attribute</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -13,18 +13,6 @@
                 {{ wtf.form_field(form.attribute_name) }}
                 {{ wtf.form_field(form.attribute_definition) }}
                 {{ wtf.form_field(form.attribute_label) }}
-{#                <h5 style="color: steelblue;font-style: italic">One of the following is required: Definition or one or more Codes and Definitions</h5>#}
-                <label class="control-label">Define coded values and their definitions:</label>
-                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
-                    <tr>
-                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 1px 20px;"><table>
-                    <td><input class="btn btn-primary" name="Codes" type="submit" value="Codes and Definitions"/></td>
-                    <td width="5%">&nbsp;</td>
-                    <td style="padding-bottom: 5px;">{{ wtf.form_field(form.enforced) }}</td>
-                    </table></td>
-                    </tr>
-                </table>
-                <p>&nbsp;</p>
                 <label class="control-label">Optionally, enter up to 3 missing value codes with accompanying explanations:</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>

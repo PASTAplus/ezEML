@@ -19,13 +19,13 @@ from webapp.home.forms import (
 )
 
 from webapp.home.metapype_client import (
-    load_eml, save_both_formats, add_child, remove_child,
+    load_eml, save_both_formats, new_child_node, add_child, remove_child,
     create_data_table, list_data_tables, list_attributes,
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
     create_datetime_attribute, create_interval_ratio_attribute,
-    create_nominal_ordinal_attribute,
+    create_nominal_ordinal_attribute, VariableType,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute
 )
 
@@ -395,59 +395,32 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
         return
     # flash(f'Changing from {old_mscale} to {new_mscale}')
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
-    old_scale_node = mscale_node.find_child(old_mscale)
-    children = None
 
-    # if we're changing interval <-> ratio or nominal <-> ordinal, the children of the
-    # measurementScale node can be reused
-    if (old_mscale in ('interval', 'ratio') and new_mscale in ('interval', 'ratio')) or \
-            (old_mscale in ('nominal', 'ordinal') and new_mscale in ('nominal', 'ordinal')):
-        children = old_scale_node.children
+    # clear its children
+    mscale_node.remove_children()
 
-    remove_child(old_scale_node.id)
-    if children:
-        new_scale_node = Node(new_mscale, parent=mscale_node)
-        add_child(mscale_node, new_scale_node)
-        for child in children:
-            child.parent = new_scale_node
-            add_child(new_scale_node, child)
-        return
+    # construct new children
+    if new_mscale == VariableType.NUMERICAL.name:
+        new_scale_node = new_child_node(names.RATIO, mscale_node)
+        numeric_domain_node = new_child_node(names.NUMERICDOMAIN, new_scale_node)
 
-    # otherwise, we need to construct new children
-    if new_mscale in ('interval', 'ratio'):
+        number_type_ratio_node = new_child_node(names.NUMBERTYPE, numeric_domain_node)
+        number_type_ratio_node.content = 'real'
 
-        if new_mscale == 'interval':
-            new_scale_node = Node(names.INTERVAL, parent=mscale_node)
-        else:
-            new_scale_node = Node(names.RATIO, parent=mscale_node)
-        add_child(mscale_node, new_scale_node)
+    elif new_mscale == VariableType.CATEGORICAL.name:
+        new_scale_node = new_child_node(names.NOMINAL, mscale_node)
+        non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
+        enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
 
-        numeric_domain_node = Node(names.NUMERICDOMAIN, parent=new_scale_node)
-        add_child(new_scale_node, numeric_domain_node)
+    elif new_mscale == VariableType.TEXT.name:
+        new_scale_node = new_child_node(names.NOMINAL, mscale_node)
+        non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
+        text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
+        definition_node = new_child_node(names.DEFINITION, text_domain_node)
 
-        number_type_ratio_node = Node(names.NUMBERTYPE, parent=numeric_domain_node)
-        add_child(numeric_domain_node, number_type_ratio_node)
-        number_type = 'real'
-        number_type_ratio_node.content = number_type
-
-    elif new_mscale in ('nominal', 'ordinal'):
-
-        if new_mscale == 'nominal':
-            new_scale_node = Node(names.NOMINAL, parent=mscale_node)
-        else:
-            new_scale_node = Node(names.ORDINAL, parent=mscale_node)
-        add_child(mscale_node, new_scale_node)
-
-        non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=new_scale_node)
-        add_child(new_scale_node, non_numeric_domain_node)
-
-    elif new_mscale == 'dateTime':
-
-        datetime_node = Node(names.DATETIME, parent=mscale_node)
-        add_child(mscale_node, datetime_node)
-
-        format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
-        add_child(datetime_node, format_string_node)
+    elif new_mscale == VariableType.DATETIME.name:
+        new_scale_node = new_child_node(names.DATETIME, mscale_node)
+        format_string_node = new_child_node(names.FORMATSTRING, new_scale_node)
         format_string_node.content = ''
 
 
@@ -467,11 +440,13 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 node_id = key
                 attribute_node = Node.get_node_instance(node_id)
                 mscale = mscale_from_attribute(attribute_node)
-                if mscale.startswith('date'):
+                if mscale == VariableType.DATETIME.name:
                     new_page = PAGE_ATTRIBUTE_DATETIME
-                elif mscale == 'interval' or mscale == 'ratio':
+                elif mscale == VariableType.NUMERICAL.name:
                     new_page = PAGE_ATTRIBUTE_INTERVAL_RATIO
-                elif mscale == 'nominal' or mscale == 'ordinal':
+                elif mscale == VariableType.CATEGORICAL.name:
+                    new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
+                elif mscale == VariableType.TEXT.name:
                     new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
             elif val == BTN_REMOVE:
                 new_page = this_page
@@ -497,24 +472,18 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
             elif val.startswith('Add Attribute'):
-                if 'Ratio' in val:
-                    mscale = 'ratio'
+                if 'Numerical' in val:
+                    mscale = 'NUMERICAL'
                     new_page = PAGE_ATTRIBUTE_INTERVAL_RATIO
-                elif 'Interval' in val:
-                    mscale = 'interval'
-                    new_page = PAGE_ATTRIBUTE_INTERVAL_RATIO
-                elif 'Nominal' in val:
-                    mscale = 'nominal'
+                elif 'Categorical' in val:
+                    mscale = 'CATEGORICAL'
                     new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
-                elif 'Ordinal' in val:
-                    mscale = 'ordinal'
+                elif 'Text' in val:
+                    mscale = 'TEXT'
                     new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
                 elif 'Datetime' in val:
                     new_page = PAGE_ATTRIBUTE_DATETIME
                 node_id = '1'
-            elif val == '[  ]':
-                new_page = this_page
-                node_id = key
 
     if form.validate_on_submit():
         if new_page == back_page:
@@ -1121,7 +1090,10 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
             attribute_definition = form.attribute_definition.data
             storage_type = form.storage_type.data
             storage_type_system = form.storage_type_system.data
-            enforced = form.enforced.data
+            if mscale == VariableType.CATEGORICAL.name:
+                enforced = form.enforced.data
+            else:
+                enforced = None
 
             code_dict = {}
 
@@ -1208,12 +1180,20 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
+    # if mscale
     set_current_page('data_table')
-    return render_template('attribute_nominal_ordinal.html',
-                           title='Attribute: Nominal or Ordinal',
-                           form=form,
-                           attribute_name=attribute_name,
-                           mscale=mscale)
+    if mscale == VariableType.CATEGORICAL.name:
+        return render_template('attribute_nominal_ordinal.html',
+                               title='Categorical Attribute',
+                               form=form,
+                               attribute_name=attribute_name,
+                               mscale=mscale)
+    else:
+        return render_template('attribute_text.html',
+                               title='Text Attribute',
+                               form=form,
+                               attribute_name=attribute_name,
+                               mscale=mscale)
 
 
 def populate_attribute_nominal_ordinal_form(form: AttributeNominalOrdinalForm, att_node: Node = None,
@@ -1254,14 +1234,17 @@ def populate_attribute_nominal_ordinal_form(form: AttributeNominalOrdinalForm, a
             node = mscale_node.find_child(names.ORDINAL)
 
         if node:
-            enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
+            if mscale == VariableType.CATEGORICAL.name:
+                enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
 
-            if enumerated_domain_node:
-                enforced = enumerated_domain_node.attribute_value('enforced')
-                if enforced and enforced.upper() == 'NO':
-                    form.enforced.data = 'no'
-                else:
-                    form.enforced.data = 'yes'
+                if enumerated_domain_node:
+                    enforced = enumerated_domain_node.attribute_value('enforced')
+                    if enforced and enforced.upper() == 'NO':
+                        form.enforced.data = 'no'
+                    else:
+                        form.enforced.data = 'yes'
+            # elif mscale == VariableType.TEXT.name:
+            #     text_domain_node = node.find_immediate_child(names.TEXTDOMAIN)
 
     mvc_nodes = att_node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:

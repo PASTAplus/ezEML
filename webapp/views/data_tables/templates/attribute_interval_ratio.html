@@ -2,7 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Attribute (interval/ratio)</h1>
+    <h2>Numerical Attribute</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -13,10 +13,7 @@
                 {{ wtf.form_field(form.attribute_name) }}
                 {{ wtf.form_field(form.attribute_label) }}
                 {{ wtf.form_field(form.attribute_definition) }}
-                {{ wtf.form_field(form.storage_type) }}
-                {{ wtf.form_field(form.storage_type_system) }}
                 <h5>Enter a standard unit value <em><u>or</u></em> a custom unit value:</h5>
-
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
                     <td valign="top" width="50%" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.standard_unit) }}</td>
@@ -28,11 +25,11 @@
                     </td>
                     </tr>
                 </table>
-
                 <br/>
-                {{ wtf.form_field(form.precision) }}
                 {{ wtf.form_field(form.number_type) }}
-                <br/>
+                {{ wtf.form_field(form.storage_type) }}
+                {{ wtf.form_field(form.storage_type_system) }}
+                {{ wtf.form_field(form.precision) }}
                 <h4>Bounds (Optional):</h4>
                 {{ wtf.form_field(form.bounds_minimum) }}
                 {{ wtf.form_field(form.bounds_minimum_exclusive) }}

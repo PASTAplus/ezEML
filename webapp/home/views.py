@@ -545,6 +545,8 @@ def select_post(packageid=None, form=None, form_dict=None,
             val = form_dict[key][0]  # value is the first list element
             if val in (BTN_BACK, BTN_DONE):
                 new_page = back_page
+            elif val[0:4] == BTN_BACK:
+                new_page = back_page
             elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
                 new_page = next_page
             elif val == BTN_EDIT:

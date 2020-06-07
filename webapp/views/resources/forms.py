@@ -22,7 +22,7 @@ from webapp.home.views import get_keywords
 
 class AbstractForm(EDIForm):
     abstract = StringField('Abstract', widget=TextArea(),
-                           validators=[Optional(), valid_min_length(min=20)])
+                           validators=[Optional()])
     md5 = HiddenField('')
 
 

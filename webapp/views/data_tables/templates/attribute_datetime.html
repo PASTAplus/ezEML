@@ -2,7 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Attribute (Datetime)</h1>
+    <h2>DateTime Attribute</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -11,10 +11,10 @@
                 {{ wtf.form_field(form.attribute_name) }}
                 {{ wtf.form_field(form.attribute_label) }}
                 {{ wtf.form_field(form.attribute_definition) }}
-                {{ wtf.form_field(form.storage_type) }}
-                {{ wtf.form_field(form.storage_type_system) }}
                 <h5>Enter a dateTime format string (e.g. YYYY-MM-DD):</h5>
                 {{ wtf.form_field(form.format_string) }}
+                {{ wtf.form_field(form.storage_type) }}
+                {{ wtf.form_field(form.storage_type_system) }}
                 {{ wtf.form_field(form.datetime_precision) }}
                 <h4>Bounds (Optional):</h4>
                 {{ wtf.form_field(form.bounds_minimum) }}

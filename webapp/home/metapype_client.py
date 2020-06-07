@@ -13,6 +13,7 @@
 """
 import collections
 import daiquiri
+from enum import Enum
 import html
 import json
 import os
@@ -39,9 +40,18 @@ NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
 DOWN_ARROW = html.unescape('&#x25BC;')
 
-REQUIRED = object()
-OPTIONAL = object()
-FORCE = object()
+
+class Optionality(Enum):
+    REQUIRED = 1
+    OPTIONAL = 2
+    FORCE = 3
+
+
+class VariableType(Enum):
+    CATEGORICAL = 1
+    DATETIME = 2
+    NUMERICAL = 3
+    TEXT = 4
 
 
 def add_paragraph_tags(s):
@@ -59,16 +69,22 @@ def remove_paragraph_tags(s):
         return ''
 
 
-def add_node(parent_node:Node, child_name:str, content:str=None, optionality=REQUIRED):
-    if optionality == OPTIONAL and not content:
+def new_child_node(child_name:str, parent:Node):
+    child_node = Node(child_name, parent=parent)
+    add_child(parent, child_node)
+    return child_node
+
+
+def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Optionality.REQUIRED):
+    if optionality == Optionality.OPTIONAL and not content:
         return
     child_node = parent_node.find_child(child_name)
     if not child_node:
         child_node = Node(child_name, parent=parent_node)
-        if not FORCE:
+        if not Optionality.FORCE:
             add_child(parent_node, child_node)
         else:
-            # when we're add to additionalMetadata, we sidestep rule checking
+            # when we add to additionalMetadata, we sidestep rule checking
             parent_node.add_child(child_node)
     if content:
         child_node.content = content
@@ -259,8 +275,6 @@ def non_numeric_domain_from_measurement_scale(ms_node:Node=None):
 
 
 def mscale_from_attribute(att_node:Node=None):
-    mscale = ''
-
     if att_node:
         mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
@@ -268,25 +282,24 @@ def mscale_from_attribute(att_node:Node=None):
         
             nominal_node = mscale_node.find_child(names.NOMINAL)
             if nominal_node:
-                return names.NOMINAL
-
-            ordinal_node = mscale_node.find_child(names.ORDINAL)
-            if ordinal_node:
-                return names.ORDINAL
-
-            interval_node = mscale_node.find_child(names.INTERVAL)
-            if interval_node:
-                return names.INTERVAL
+                non_numeric_domain_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
+                if non_numeric_domain_node:
+                    enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
+                    if enumerated_domain_node:
+                        return VariableType.CATEGORICAL.name
+                    text_domain_node = non_numeric_domain_node.find_child(names.TEXTDOMAIN)
+                    if text_domain_node:
+                        return VariableType.TEXT.name
 
             ratio_node = mscale_node.find_child(names.RATIO)
             if ratio_node:
-                return names.RATIO
+                return VariableType.NUMERICAL.name
 
-            datetime_node = mscale_node.find_child(names.DATETIME)
-            if datetime_node:
-                return names.DATETIME
+            date_time_node = mscale_node.find_child(names.DATETIME)
+            if date_time_node:
+                return VariableType.DATETIME.name
 
-    return mscale
+    return None
     
 
 def list_attributes(data_table_node:Node=None):
@@ -330,6 +343,14 @@ def compose_attribute_mscale(att_node:Node=None):
     mscale = ''
     if att_node:
         mscale = mscale_from_attribute(att_node)
+        if mscale == VariableType.CATEGORICAL.name:
+            mscale = 'Categorical'
+        elif mscale == VariableType.NUMERICAL.name:
+            mscale = 'Numerical'
+        elif mscale == VariableType.TEXT.name:
+            mscale = 'Text'
+        elif mscale == VariableType.DATETIME.name:
+            mscale = 'DateTime'
     return mscale
 
 
@@ -952,15 +973,15 @@ def create_interval_ratio_attribute(
                     mscale:str=None):
     if attribute_node:
         try:
-            add_node(attribute_node, names.ATTRIBUTENAME, attribute_name, REQUIRED)
-            add_node(attribute_node, names.ATTRIBUTELABEL, attribute_label, OPTIONAL)
-            add_node(attribute_node, names.ATTRIBUTEDEFINITION, attribute_definition, REQUIRED)
+            add_node(attribute_node, names.ATTRIBUTENAME, attribute_name, Optionality.REQUIRED)
+            add_node(attribute_node, names.ATTRIBUTELABEL, attribute_label, Optionality.OPTIONAL)
+            add_node(attribute_node, names.ATTRIBUTEDEFINITION, attribute_definition, Optionality.REQUIRED)
 
-            storage_type_node = add_node(attribute_node, names.STORAGETYPE, storage_type, OPTIONAL)
+            storage_type_node = add_node(attribute_node, names.STORAGETYPE, storage_type, Optionality.OPTIONAL)
             if storage_type_system:
                 storage_type_node.add_attribute('typeSystem', storage_type_system)
 
-            mscale_node = add_node(attribute_node, names.MEASUREMENTSCALE, '', REQUIRED)
+            mscale_node = add_node(attribute_node, names.MEASUREMENTSCALE, '', Optionality.REQUIRED)
 
             ir_node = None  # this will be either a ratio or an interval node
             if mscale == 'interval':
@@ -1040,15 +1061,15 @@ def create_interval_ratio_attribute(
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     if not additional_metadata_node:
-        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, '', REQUIRED)
+        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, '', Optionality.REQUIRED)
     # do we already have the metadata node?
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     if not metadata_node:
-        metadata_node = add_node(additional_metadata_node, names.METADATA, '', REQUIRED)
+        metadata_node = add_node(additional_metadata_node, names.METADATA, '', Optionality.REQUIRED)
     # de we already have the unitList node?
     unit_list_node = metadata_node.find_child(names.UNITLIST)
     if not unit_list_node:
-        unit_list_node = add_node(metadata_node, names.UNITLIST, '', FORCE)
+        unit_list_node = add_node(metadata_node, names.UNITLIST, '', Optionality.FORCE)
     # do we already have a node for this custom unit?
     unit_node = None
     unit_nodes = unit_list_node.find_all_children(names.UNIT)
@@ -1057,13 +1078,13 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
             unit_node = child
             break
     if not unit_node:
-        unit_node = add_node(unit_list_node, names.UNIT, '', FORCE)
+        unit_node = add_node(unit_list_node, names.UNIT, '', Optionality.FORCE)
     unit_node.add_attribute('id', custom_unit_name)
     unit_node.add_attribute('name', custom_unit_name)
     description_node = unit_node.find_child(names.DESCRIPTION)
     if description_node:
         unit_node.remove_child(description_node)
-    add_node(unit_node, names.DESCRIPTION, custom_unit_description, FORCE)
+    add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
     # save custom unit names and descriptions in session so we can do some javascript magic
     custom_units = session.get("custom_units", {})
     custom_units[custom_unit_name] = custom_unit_description
@@ -1104,27 +1125,17 @@ def create_nominal_ordinal_attribute(
             mscale_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
             add_child(attribute_node, mscale_node)
 
-            no_node = None  # this will be either a nominal or an ordinal node
-            if mscale == 'nominal':
-                no_node = Node(names.NOMINAL, parent=mscale_node)
-                add_child(mscale_node, no_node)
-            elif mscale == 'ordinal':
-                no_node = Node(names.ORDINAL, parent=mscale_node)
-                add_child(mscale_node, no_node)
+            nominal_node = new_child_node(names.NOMINAL, parent=mscale_node)
+            non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, parent=nominal_node)
 
-            non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=no_node)
-            add_child(no_node, non_numeric_domain_node)
-
-            if code_dict:
+            if mscale == VariableType.CATEGORICAL.name:
 
                 # get rid of textDomain node, if any
-                text_domain_node = attribute_node.find_child(names.TEXTDOMAIN)
+                text_domain_node = attribute_node.find_immediate_child(names.TEXTDOMAIN)
                 if text_domain_node:
                     attribute_node.remove_child(text_domain_node)
 
-                enumerated_domain_node = Node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
-                add_child(non_numeric_domain_node, enumerated_domain_node)
-
+                enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
                 if enforced:
                     enumerated_domain_node.add_attribute('enforced', enforced)
 
@@ -1133,21 +1144,16 @@ def create_nominal_ordinal_attribute(
                         code = key
                         code_explanation = code_dict[key]
                         if code is not None:
-                            mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
-                            add_child(attribute_node, mvc_node)
-                            code_node = Node(names.CODE, parent=mvc_node)
+                            mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                            code_node = new_child_node(names.CODE, parent=mvc_node)
                             code_node.content = code
-                            add_child(mvc_node, code_node)
-                            code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
+                            code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
                             code_explanation_node.content = code_explanation
-                            add_child(mvc_node, code_explanation_node)
 
-            else:
-                # if no codes defined, treat as textDomain
-                text_domain_node = Node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
-                add_child(non_numeric_domain_node, text_domain_node)
-                definition_node = Node(names.DEFINITION, parent=non_numeric_domain_node)
-                add_child(text_domain_node, definition_node)
+            elif mscale == VariableType.TEXT.name:
+
+                text_domain_node = new_child_node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
+                definition_node = new_child_node(names.DEFINITION, parent=non_numeric_domain_node)
                 definition_node.content = attribute_definition
 
                 # get rid of enumeratedDomain node, if any
@@ -1165,12 +1171,10 @@ def create_code_definition(code_definition_node:Node=None,
                            definition:str='',
                            order:str=''):
     if code_definition_node:
-        code_node = Node(names.CODE, parent=code_definition_node)
+        code_node = new_child_node(names.CODE, parent=code_definition_node)
         code_node.content = code
-        add_child(code_definition_node, code_node)
-        definition_node = Node(names.DEFINITION, parent=code_definition_node)
+        definition_node = new_child_node(names.DEFINITION, parent=code_definition_node)
         definition_node.content = definition
-        add_child(code_definition_node, definition_node)
         if order:
             code_definition_node.add_attribute('order', order)
 
@@ -1192,8 +1196,10 @@ def create_title(title=None, packageid=None):
 
     dataset_node = eml_node.find_child('dataset')
     if dataset_node:
-        title_node = dataset_node.find_child('title')
-        if not title_node:
+        title_nodes = dataset_node.find_all_children('title')
+        if title_nodes:
+            title_node = title_nodes[0]
+        else:
             title_node = Node(names.TITLE, parent=dataset_node)
             add_child(dataset_node, title_node)
     else:

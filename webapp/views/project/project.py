@@ -157,6 +157,8 @@ def funding_award_select(packageid=None):
                 val = form_dict[key][0]  # value is the first list element
                 if val == BTN_SAVE_AND_CONTINUE:
                     new_page = PAGE_PROJECT
+                elif val[0:4] == 'Back':
+                    new_page = PAGE_PROJECT
                 elif val == BTN_EDIT:
                     new_page = PAGE_FUNDING_AWARD
                     node_id = key

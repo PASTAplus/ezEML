@@ -9,7 +9,7 @@
     {% endif %}
 
     <table>
-        <td><h1>{{ rp_plural }}</h1></td>
+        <td><h2>{{ rp_plural }}</h2></td>
         <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
     </table>
     <div class="row">
@@ -33,8 +33,11 @@
                 <br/>
                 <input class="btn btn-primary" name="1" type="submit" value="Add {{ rp_singular }}"/>
                 <br/><br/>
-{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                {% if session['current_page'] != 'project' %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                {% else %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Back to Project"/>
+                {% endif %}
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

@@ -186,7 +186,8 @@ def method_step(packageid=None, node_id=None):
                     break
 
     set_current_page('method_step')
-    return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)
+    help = [get_help('method_step_description'), get_help('method_step_instrumentation')]
+    return render_template('method_step.html', title='Method Step', form=form, packageid=packageid, help=help)
 
 
 def populate_method_step_form(form: MethodStepForm, ms_node: Node):

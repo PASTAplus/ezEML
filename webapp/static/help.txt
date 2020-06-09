@@ -187,15 +187,15 @@ method_step_description
 Method Step Description
 Description of the methods employed in collecting or generating a data set or other resource or in quality control and assurance.
 
-Describes the methodology for a project, experiment, or particular data table or to describe the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information my be provided by either referencing a protocol resource or entering the structured protocol information.
+Describe the methodology for a project, experiment, or particular data table or the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information my be provided by either referencing a protocol resource or entering the structured protocol information.
 --------------------
 method_step_instrumentation
 Method Step Instrumentation
-Instruments used for measurement and recording data.
+Description of instruments used for measurement and recording data.
 
-The Instrumentation field allows the description of any instruments used in the data collection or quality control and quality assurance. The description should include vendor, model number, optional equipment, etc.
+This may include any instruments used in the data collection or quality control and quality assurance. The description should provide vendor, model number, optional equipment, etc.
 
-LACHAT analyzer, model XYX.
+Example: LACHAT analyzer, model XYX.
 --------------------
 name_org_position
 Last Name, Organization, Position Name

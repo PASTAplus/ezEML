@@ -631,7 +631,7 @@ def save_old_to_new(old_packageid:str=None, new_packageid:str=None, eml_node:Nod
     msg = None
     if new_packageid and eml_node and new_packageid != old_packageid:
         eml_node.add_attribute('packageId', new_packageid)
-        save_eml(packageid=new_packageid, eml_node=eml_node, format='json')
+        # save_eml(packageid=new_packageid, eml_node=eml_node, format='json')
         save_both_formats(packageid=new_packageid, eml_node=eml_node)
     elif new_packageid == old_packageid:
         msg = 'New package id and old package id are the same'
@@ -641,7 +641,40 @@ def save_old_to_new(old_packageid:str=None, new_packageid:str=None, eml_node:Nod
     return msg
 
 
+def collect_children(parent_node:Node, child_name:str, children:list):
+    children.extend(parent_node.find_all_children(child_name))
+
+
+def enforce_dataset_sequence(eml_node:Node=None):
+    if eml_node:
+        # Children of dataset node need to be in sequence. This happens "naturally" when ezEML is used as a
+        #  wizard, but not when jumping around between sections
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        if dataset_node:
+            new_children = []
+            sequence = (
+                names.TITLE,
+                names.CREATOR,
+                names.METADATAPROVIDER,
+                names.ASSOCIATEDPARTY,
+                names.ABSTRACT,
+                names.KEYWORDSET,
+                names.INTELLECTUALRIGHTS,
+                names.COVERAGE,
+                names.MAINTENANCE,
+                names.CONTACT,
+                names.METHODS,
+                names.PROJECT,
+                names.DATATABLE,
+                names.OTHERENTITY
+            )
+            for name in sequence:
+                collect_children(dataset_node, name, new_children)
+            dataset_node._children = new_children
+
+
 def save_both_formats(packageid:str=None, eml_node:Node=None):
+    enforce_dataset_sequence(eml_node)
     save_eml(packageid=packageid, eml_node=eml_node, format='json')
     save_eml(packageid=packageid, eml_node=eml_node, format='xml')
 

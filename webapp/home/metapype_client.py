@@ -952,7 +952,7 @@ def create_datetime_attribute(
             logger.error(e)
 
 
-def create_interval_ratio_attribute(
+def create_numerical_attribute(
                     eml_node:Node=None,
                     attribute_node:Node=None, 
                     attribute_name:str=None,
@@ -981,19 +981,10 @@ def create_interval_ratio_attribute(
             if storage_type_system:
                 storage_type_node.add_attribute('typeSystem', storage_type_system)
 
-            mscale_node = add_node(attribute_node, names.MEASUREMENTSCALE, '', Optionality.REQUIRED)
+            mscale_node = new_child_node(names.MEASUREMENTSCALE, attribute_node)
+            ratio_node = new_child_node(names.RATIO, mscale_node)
+            unit_node = new_child_node(names.UNIT, ratio_node)
 
-            ir_node = None  # this will be either a ratio or an interval node
-            if mscale == 'interval':
-                ir_node = Node(names.INTERVAL, parent=mscale_node)
-                add_child(mscale_node, ir_node)
-            elif mscale == 'ratio':
-                ir_node = Node(names.RATIO, parent=mscale_node)
-                add_child(mscale_node, ir_node)
-
-            unit_node = Node(names.UNIT, parent=ir_node)
-            add_child(ir_node, unit_node)
-        
             if custom_unit:
                 custom_unit_node = Node(names.CUSTOMUNIT, parent=unit_node)
                 custom_unit_node.content = custom_unit
@@ -1006,38 +997,31 @@ def create_interval_ratio_attribute(
                 add_child(unit_node, standard_unit_node)
         
             if precision:
-                precision_node = Node(names.PRECISION, parent=ir_node)
+                precision_node = new_child_node(names.PRECISION, parent=ratio_node)
                 precision_node.content = precision
-                add_child(ir_node, precision_node)
-        
-            numeric_domain_node = Node(names.NUMERICDOMAIN, parent=ir_node)
-            add_child(ir_node, numeric_domain_node)
-        
-            number_type_node = Node(names.NUMBERTYPE, parent=numeric_domain_node)
-            add_child(numeric_domain_node, number_type_node)
-        
+
+            numeric_domain_node = new_child_node(names.NUMERICDOMAIN, parent=ratio_node)
+            number_type_node = new_child_node(names.NUMBERTYPE, parent=numeric_domain_node)
             number_type_node.content = number_type
+
             if is_non_empty_bounds(bounds_minimum) or is_non_empty_bounds(bounds_maximum):
-                bounds_node = Node(names.BOUNDS, parent=numeric_domain_node)
-                add_child(numeric_domain_node, bounds_node)
-            
+                bounds_node = new_child_node(names.BOUNDS, parent=numeric_domain_node)
+
             if is_non_empty_bounds(bounds_minimum):
-                bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
+                bounds_minimum_node = new_child_node(names.MINIMUM, parent=bounds_node)
                 bounds_minimum_node.content = bounds_minimum
                 if bounds_minimum_exclusive:
                     bounds_minimum_node.add_attribute('exclusive', 'true')
                 else:
                     bounds_minimum_node.add_attribute('exclusive', 'false')
-                add_child(bounds_node, bounds_minimum_node)
-            
+
             if is_non_empty_bounds(bounds_maximum):
-                bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
+                bounds_maximum_node = new_child_node(names.MAXIMUM, parent=bounds_node)
                 bounds_maximum_node.content = bounds_maximum
                 if bounds_maximum_exclusive:
                     bounds_maximum_node.add_attribute('exclusive', 'true')
                 else:
                     bounds_maximum_node.add_attribute('exclusive', 'false')
-                add_child(bounds_node, bounds_maximum_node)
 
             if code_dict:
                 for key in code_dict:
@@ -1091,7 +1075,7 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
     session["custom_units"] = custom_units
 
 
-def create_nominal_ordinal_attribute(
+def create_categorical_or_text_attribute(
                     attribute_node:Node=None, 
                     attribute_name:str=None,
                     attribute_label:str=None,
@@ -1100,7 +1084,8 @@ def create_nominal_ordinal_attribute(
                     storage_type_system:str=None,
                     enforced:str=None, 
                     code_dict:dict=None,
-                    mscale:str=None):
+                    mscale:str=None,
+                    enumerated_domain_node:Node=None):
     if attribute_node:
         try:
             attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
@@ -1135,7 +1120,10 @@ def create_nominal_ordinal_attribute(
                 if text_domain_node:
                     attribute_node.remove_child(text_domain_node)
 
-                enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
+                if enumerated_domain_node:
+                    non_numeric_domain_node.add_child(enumerated_domain_node)
+                else:
+                    enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
                 if enforced:
                     enumerated_domain_node.add_attribute('enforced', enforced)
 
@@ -1196,10 +1184,8 @@ def create_title(title=None, packageid=None):
 
     dataset_node = eml_node.find_child('dataset')
     if dataset_node:
-        title_nodes = dataset_node.find_all_children('title')
-        if title_nodes:
-            title_node = title_nodes[0]
-        else:
+        title_node = dataset_node.find_immediate_child('title')
+        if not title_node:
             title_node = Node(names.TITLE, parent=dataset_node)
             add_child(dataset_node, title_node)
     else:

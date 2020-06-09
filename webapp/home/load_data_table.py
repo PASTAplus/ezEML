@@ -95,17 +95,47 @@ def sort_codes(codes):
 
 
 def infer_col_type(data_frame, col):
+    col_type = None
+    sorted_codes = None
     codes = data_frame[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
-    is_code = float(num_codes) / float(col_size) < 0.2
+    is_code = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
     if is_code:
-        return VariableType.CATEGORICAL, sort_codes(codes)
-    dtype = data_frame[col][1:].infer_objects().dtype
-    if dtype == object:
-        return VariableType.TEXT, None
+        col_type = VariableType.CATEGORICAL
+        sorted_codes = sort_codes(codes)
     else:
-        return VariableType.NUMERICAL, None
+        dtype = data_frame[col][1:].infer_objects().dtype
+        if dtype == object:
+            col_type = VariableType.TEXT
+        else:
+            col_type = VariableType.NUMERICAL
+
+    # does it look like a date?
+    lc_col = col.lower()
+    if 'year' in lc_col or 'date' in lc_col:
+        if col_type == VariableType.CATEGORICAL:
+            # see if most of the codes look like years
+            # we say "most" to allow for missing-value codes
+            year_like = 0
+            for code in sorted_codes:
+                try:
+                    year = int(code)
+                    if year >= 1900 and year <= 2100:
+                        year_like = year_like + 1
+                except:
+                    pass
+            if year_like >= len(sorted_codes) - 3:
+                return VariableType.DATETIME, 'YYYY'
+    if 'date' in lc_col:
+        if col_type == VariableType.TEXT:
+            try:
+                s = pd.to_datetime(data_frame[col][1:], errors='ignore')
+            except:
+                pass
+            ijk = 123
+
+    return col_type, sorted_codes
 
 
 def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str=''):
@@ -178,7 +208,6 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
 
             attribute_node = new_child_node(names.ATTRIBUTE, attribute_list_node)
             attribute_name_node = new_child_node(names.ATTRIBUTENAME, attribute_node)
-            add_child(attribute_node, attribute_name_node)
             attribute_name_node.content = col
         
             att_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
@@ -232,7 +261,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
 
                 format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
                 add_child(datetime_node, format_string_node)
-                format_string_node.content = ''  # FIXME - try to infer this
+                format_string_node.content = codes
 
     delete_data_files(uploads_path)
 
@@ -281,6 +310,9 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
     add_child(externally_defined_format_node, format_name_node)
     format_name_node.content = format_name_from_data_file(data_file)
+
+    entity_type_node = new_child_node(names.ENTITYTYPE, parent=other_entity_node)
+    entity_type_node.content = format_name_from_data_file(data_file)
 
     delete_data_files(uploads_path)
 

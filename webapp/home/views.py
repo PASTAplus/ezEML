@@ -46,7 +46,7 @@ from webapp.home.load_data_table import (
 from webapp.home.metapype_client import ( 
     load_eml, save_both_formats, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
-    save_old_to_new, read_xml
+    save_old_to_new, read_xml, new_child_node
 )
 
 from webapp.buttons import *
@@ -423,9 +423,11 @@ def load_data():
                 file.save(os.path.join(uploads_folder, filename))
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
-                flash(f'Loaded {data_file_path}')
+                flash(f'Loaded {filename}')
                 eml_node = load_eml(packageid=packageid)
                 dataset_node = eml_node.find_child(names.DATASET)
+                if not dataset_node:
+                    dataset_node = new_child_node(names.DATASET, eml_node)
                 dt_node = load_data_table(dataset_node, uploads_folder, data_file)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
                 return redirect(url_for(PAGE_DATA_TABLE, packageid=packageid, node_id=dt_node.id))

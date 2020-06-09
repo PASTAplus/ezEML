@@ -17,8 +17,11 @@
                 <label class="control-label">Define coded values and their definitions:</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
-                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 1px 20px;"><table>
-                    <td><input class="btn btn-primary" name="Codes" type="submit" value="Codes and Definitions"/></td>
+                        <td style="padding: 10px 25px 0px;" width="100%"><label class="control-label">Codes:&nbsp;&nbsp;</label>{{ codes }}</td>
+                    </tr>
+                    <tr>
+                    <td><table>
+                    <td style="padding: 0px 20px;"><input class="btn btn-primary" name="Codes" type="submit" value="Edit Codes and Definitions"/></td>
                     <td width="5%">&nbsp;</td>
                     <td style="padding-bottom: 5px;">{{ wtf.form_field(form.enforced) }}</td>
                     </table></td>
@@ -49,9 +52,13 @@
                     </tr>
                 </table>
                 <br>
-                {{ wtf.form_field(form.storage_type) }}
-                {{ wtf.form_field(form.storage_type_system) }}
-                <br>
+                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                    <tr>
+                    <td style="padding: 10px 15px 10px 20px;" width="48%">{{ wtf.form_field(form.storage_type) }}</td>
+                    <td style="padding: 10px 20px 10px 15px;" width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.storage_type_system) }}</td>
+                    </tr>
+                </table>
+                <p>&nbsp;</p>
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ wtf.form_field(form.md5) }}

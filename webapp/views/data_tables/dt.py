@@ -9,7 +9,7 @@ from webapp.home.views import process_up_button, process_down_button, set_curren
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
     AttributeMeasurementScaleForm,
-    AttributeNominalOrdinalForm, AttributeSelectForm,
+    AttributeCategoricalForm, AttributeSelectForm,
     CodeDefinitionForm, CodeDefinitionSelectForm,
     DataTableForm, DataTableSelectForm
 )
@@ -24,8 +24,8 @@ from webapp.home.metapype_client import (
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
-    create_datetime_attribute, create_interval_ratio_attribute,
-    create_nominal_ordinal_attribute, VariableType,
+    create_datetime_attribute, create_numerical_attribute,
+    create_categorical_or_text_attribute, VariableType,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute
 )
 
@@ -218,6 +218,11 @@ def data_table(packageid=None, node_id=None):
     set_current_page('data_table')
     return render_template('data_table.html', title='Data Table', form=form,
                            atts=atts)
+
+
+def compose_codes():
+    code_list = list_codes_and_definitions()
+    pass
 
 
 def compose_atts(att_list: list = []):
@@ -443,11 +448,11 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 if mscale == VariableType.DATETIME.name:
                     new_page = PAGE_ATTRIBUTE_DATETIME
                 elif mscale == VariableType.NUMERICAL.name:
-                    new_page = PAGE_ATTRIBUTE_INTERVAL_RATIO
+                    new_page = PAGE_ATTRIBUTE_NUMERICAL
                 elif mscale == VariableType.CATEGORICAL.name:
-                    new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
+                    new_page = PAGE_ATTRIBUTE_CATEGORICAL
                 elif mscale == VariableType.TEXT.name:
-                    new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
+                    new_page = PAGE_ATTRIBUTE_TEXT
             elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
@@ -474,13 +479,13 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
             elif val.startswith('Add Attribute'):
                 if 'Numerical' in val:
                     mscale = 'NUMERICAL'
-                    new_page = PAGE_ATTRIBUTE_INTERVAL_RATIO
+                    new_page = PAGE_ATTRIBUTE_NUMERICAL
                 elif 'Categorical' in val:
                     mscale = 'CATEGORICAL'
-                    new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
+                    new_page = PAGE_ATTRIBUTE_CATEGORICAL
                 elif 'Text' in val:
                     mscale = 'TEXT'
-                    new_page = PAGE_ATTRIBUTE_NOMINAL_ORDINAL
+                    new_page = PAGE_ATTRIBUTE_TEXT
                 elif 'Datetime' in val:
                     new_page = PAGE_ATTRIBUTE_DATETIME
                 node_id = '1'
@@ -499,8 +504,9 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
         elif new_page in (
                 PAGE_ATTRIBUTE_SELECT,
                 PAGE_ATTRIBUTE_DATETIME,
-                PAGE_ATTRIBUTE_INTERVAL_RATIO,
-                PAGE_ATTRIBUTE_NOMINAL_ORDINAL,
+                PAGE_ATTRIBUTE_NUMERICAL,
+                PAGE_ATTRIBUTE_CATEGORICAL,
+                PAGE_ATTRIBUTE_TEXT,
                 PAGE_ATTRIBUTE_MEASUREMENT_SCALE
         ):
             # other attribute measurement scales need to pass mscale value
@@ -743,8 +749,8 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
     form.md5.data = form_md5(form)
 
 
-@dt_bp.route('/attribute_interval_ratio/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, mscale=None):
+@dt_bp.route('/attribute_numerical/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=None):
     form = AttributeIntervalRatioForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
@@ -826,7 +832,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
 
             att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
 
-            create_interval_ratio_attribute(
+            create_numerical_attribute(
                 eml_node,
                 att_node,
                 attribute_name,
@@ -885,7 +891,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
                             if att_nodes:
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
-                                        populate_attribute_interval_ratio_form(form, eml_node, att_node, mscale)
+                                        populate_attribute_numerical_form(form, eml_node, att_node, mscale)
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
@@ -896,8 +902,8 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
         for name, desc in session['custom_units'].items():
             custom_unit_names.append(name)
             custom_unit_descriptions.append(desc)
-    return render_template('attribute_interval_ratio.html',
-                           title='Attribute: Interval or Ratio',
+    return render_template('attribute_numerical.html',
+                           title='Attribute: Numerical',
                            form=form,
                            attribute_name=attribute_name,
                            mscale=mscale,
@@ -905,7 +911,7 @@ def attribute_interval_ratio(packageid=None, dt_node_id=None, node_id=None, msca
                            custom_unit_descriptions=custom_unit_descriptions)
 
 
-def populate_attribute_interval_ratio_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,
+def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,
                                            mscale: str = None):
     # if mscale is not None:
     #     if mscale == names.INTERVAL:
@@ -1034,9 +1040,14 @@ def populate_attribute_interval_ratio_form(form: AttributeIntervalRatioForm = No
     form.md5.data = form_md5(form)
 
 
-@dt_bp.route('/attribute_nominal_ordinal/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
-    form = AttributeNominalOrdinalForm(packageid=packageid, node_id=node_id)
+@dt_bp.route('/attribute_text/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_text(packageid: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
+    return attribute_categorical(packageid, dt_node_id, node_id, mscale)
+
+
+@dt_bp.route('/attribute_categorical/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
+    form = AttributeCategoricalForm(packageid=packageid, node_id=node_id)
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -1084,13 +1095,18 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
                 add_child(dt_node, attribute_list_node)
 
-            # mscale_choice = form.mscale_choice.data
             attribute_name = form.attribute_name.data
             attribute_label = form.attribute_label.data
             attribute_definition = form.attribute_definition.data
             storage_type = form.storage_type.data
             storage_type_system = form.storage_type_system.data
+            enumerated_domain_node = None
             if mscale == VariableType.CATEGORICAL.name:
+                # we need to hang onto the categorical codes
+                att_node = Node.get_node_instance(att_node_id)
+                if att_node:
+                    enumerated_domain_node = att_node.find_child(names.ENUMERATEDDOMAIN)
+
                 enforced = form.enforced.data
             else:
                 enforced = None
@@ -1114,7 +1130,7 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
 
             att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
 
-            create_nominal_ordinal_attribute(
+            create_categorical_or_text_attribute(
                 att_node,
                 attribute_name,
                 attribute_label,
@@ -1123,7 +1139,8 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
                 storage_type_system,
                 enforced,
                 code_dict,
-                mscale)
+                mscale,
+                enumerated_domain_node)
 
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
@@ -1158,6 +1175,7 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
 
     # Process GET
     attribute_name = ''
+    codes = 'No codes have been defined yet'
     if node_id == '1':
         form_str = mscale + form.init_str
         form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
@@ -1176,18 +1194,19 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
                             if att_nodes:
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
-                                        populate_attribute_nominal_ordinal_form(form, att_node, mscale)
+                                        codes = populate_attribute_nominal_ordinal_form(form, att_node, mscale)
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
     # if mscale
     set_current_page('data_table')
     if mscale == VariableType.CATEGORICAL.name:
-        return render_template('attribute_nominal_ordinal.html',
+        return render_template('attribute_categorical.html',
                                title='Categorical Attribute',
                                form=form,
                                attribute_name=attribute_name,
-                               mscale=mscale)
+                               mscale=mscale,
+                               codes=codes)
     else:
         return render_template('attribute_text.html',
                                title='Text Attribute',
@@ -1196,7 +1215,7 @@ def attribute_nominal_ordinal(packageid: str = None, dt_node_id: str = None, nod
                                mscale=mscale)
 
 
-def populate_attribute_nominal_ordinal_form(form: AttributeNominalOrdinalForm, att_node: Node = None,
+def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node: Node = None,
                                             mscale: str = None):
     # if mscale is not None:
     #     if mscale == names.NOMINAL:
@@ -1228,6 +1247,7 @@ def populate_attribute_nominal_ordinal_form(form: AttributeNominalOrdinalForm, a
 
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
+    codes = ''
     if mscale_node:
         node = mscale_node.find_child(names.NOMINAL)
         if not node:
@@ -1235,6 +1255,14 @@ def populate_attribute_nominal_ordinal_form(form: AttributeNominalOrdinalForm, a
 
         if node:
             if mscale == VariableType.CATEGORICAL.name:
+                code_entries = list_codes_and_definitions(att_node)
+                if code_entries and len(code_entries) > 0:
+                    code_list = []
+                    for code_entry in code_entries:
+                        code_list.append(code_entry.code)
+                    codes = ', '.join(code_list)
+                else:
+                    codes = 'No codes have been defined yet'
                 enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
 
                 if enumerated_domain_node:
@@ -1270,6 +1298,7 @@ def populate_attribute_nominal_ordinal_form(form: AttributeNominalOrdinalForm, a
             i = i + 1
 
     form.md5.data = form_md5(form)
+    return codes
 
 
 # <node_id> identifies the nominal or ordinal node that this code definition
@@ -1290,7 +1319,7 @@ def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, no
                                           form_dict=form_dict,
                                           method='POST',
                                           this_page=PAGE_CODE_DEFINITION_SELECT,
-                                          back_page=PAGE_ATTRIBUTE_NOMINAL_ORDINAL,
+                                          back_page=PAGE_ATTRIBUTE_CATEGORICAL,
                                           edit_page=PAGE_CODE_DEFINITION,
                                           dt_node_id=dt_node_id,
                                           att_node_id=att_node_id,

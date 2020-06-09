@@ -69,9 +69,7 @@ class AttributeDateTimeForm(EDIForm):
                 self.code_explanation_3.data)
 
 
-class AttributeNominalOrdinalForm(EDIForm):
-    mscale_choice = SelectField('Measurement Scale', 
-                                choices=[("nominal", "nominal"), ("ordinal", "ordinal")])
+class AttributeCategoricalForm(EDIForm):
     attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])

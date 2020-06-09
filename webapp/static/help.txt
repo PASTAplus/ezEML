@@ -92,6 +92,68 @@ data_tables
 Data Tables
 A data table is one tabular entity in the dataset, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
 --------------------
+data_table
+Data Table
+A data table is one tabular entity in the dataset, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+--------------------
+data_table_name
+Data Table Name
+The name identifies the data table in the dataset.
+
+Example: SpeciesAbundance1996
+--------------------
+data_table_description
+Data Table Description
+Text generally describing the data table and relevant information about its contents.
+
+Example: Species abundance data for 1996 at the VCR LTER
+--------------------
+data_table_object_name
+Data Object Name
+The name of the data object that is the source of the data table. It usually is the filename of a file in a file system or that is accessible on the network.
+--------------------
+data_table_attribute_orientation
+Attribute Orientation
+Specifies whether the data attributes are organized in columns or rows.
+--------------------
+data_table_field_delimiter
+Field Delimiter
+Specifies the character used in the data object for delimiting data values.
+--------------------
+data_table_size
+Size
+The size of the data object, in bytes.
+--------------------
+data_table_checksum
+MD5 Checksum
+The checksum for the data object, calculated using the MD5 message-digest algorithm.
+--------------------
+data_table_header_lines
+Number of Header Lines
+The number of header lines preceding the data. I.e., the number of header lines that should be skipped before starting to parse the data.
+--------------------
+data_table_record_delimiter
+Record Delimiter
+Character(s) used to delimit records (e.g., rows).
+
+The record delimiter is usually a linefeed (\n) on UNIX, a carriage return (\r) on MacOS, or both (\r\n) on Windows/DOS.
+--------------------
+data_table_case_sensitive
+Case Sensitive
+Specifies text case sensitivity of the data in the data table. The valid values are yes or no.
+
+If it is set to yes, then values of attributes that differ only in case (e.g.,LOW, low) represent distinct values. If set to no, then values of attributes that differ only in case represent the same value.
+--------------------
+data_table_number_of_records
+Number of Records
+The integer count of the number of records in the data table.
+
+It should only include records that represent observations. I.e., it would not include any details of physical formatting such as the number of header lines.
+--------------------
+data_table_online_url
+Online Distribution URL
+If the data table is available online, its URL address.
+--------------------
 funder_identifiers
 Funder Identifier(s)
 One or more canonical identifiers that reference the funder. If entering more than one identifier, separate them by commas.

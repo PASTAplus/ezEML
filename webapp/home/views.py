@@ -117,6 +117,14 @@ def get_help(id):
     return f'__help__{id}', title, content
 
 
+def get_helps(ids):
+    helps = []
+    for id in ids:
+        title, content = help_dict.get(id)
+        helps.append((f'__help__{id}', title, content))
+    return helps
+
+
 @home.route('/')
 def index():
     if current_user.is_authenticated:

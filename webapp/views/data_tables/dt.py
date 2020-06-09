@@ -35,7 +35,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, get_help
+from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
 
@@ -216,8 +216,23 @@ def data_table(packageid=None, node_id=None):
                         populate_data_table_form(form, dt_node)
 
     set_current_page('data_table')
+    help = get_helps([
+        'data_table',
+        'data_table_name',
+        'data_table_description',
+        'data_table_object_name',
+        'data_table_attribute_orientation',
+        'data_table_field_delimiter',
+        'data_table_size',
+        'data_table_checksum',
+        'data_table_header_lines',
+        'data_table_record_delimiter',
+        'data_table_case_sensitive',
+        'data_table_number_of_records',
+        'data_table_online_url'
+    ])
     return render_template('data_table.html', title='Data Table', form=form,
-                           atts=atts)
+                           atts=atts, help=help)
 
 
 def compose_codes():
@@ -1194,7 +1209,7 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
                             if att_nodes:
                                 for att_node in att_nodes:
                                     if node_id == att_node.id:
-                                        codes = populate_attribute_nominal_ordinal_form(form, att_node, mscale)
+                                        codes = populate_attribute_categorical_form(form, att_node, mscale)
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 

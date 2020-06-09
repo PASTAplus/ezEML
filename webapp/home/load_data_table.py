@@ -194,7 +194,8 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         number_of_records = Node(names.NUMBEROFRECORDS, parent=datatable_node)
         add_child(datatable_node, number_of_records)
         row_count = data_frame.shape[0]
-        number_of_records.content = f'{row_count}'
+        record_count = row_count - 1  # assuming 1 header row
+        number_of_records.content = f'{record_count}'
 
         attribute_list_node = Node(names.ATTRIBUTELIST, parent=datatable_node)
         add_child(datatable_node, attribute_list_node)
@@ -244,7 +245,6 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                 number_type_node = new_child_node(names.NUMBERTYPE, numeric_domain_node)
                 number_type_node.content = number_type
                 numeric_domain_node = new_child_node(names.UNIT, ratio_node)
-
 
             elif var_type == VariableType.TEXT:
                 # nominal / nonNumericDomain / textDomain

@@ -18,7 +18,7 @@ class OtherEntityForm(EDIForm):
     entity_type = StringField('Entity Type (e.g., photograph)', validators=[])
     entity_description = StringField('Description (Recommended)', validators=[])
     object_name = StringField('Source Name (e.g., filename)', validators=[])
-    format_name = StringField('Format Name (e.g., PNG)', validators=[])
+    format_name = StringField('Data Format (e.g., PNG)', validators=[])
     size = IntegerField('Size (Optional)', validators=[Optional()])
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])

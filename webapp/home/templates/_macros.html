@@ -23,6 +23,15 @@
         {{ content|safe }}
     </div>
 {% endmacro %}
+{% macro item_start() %}
+                <table width="100%">
+                    <td width="95%">
+{% endmacro %}
+{% macro item_end(help_id) %}
+                    </td>
+                    <td valign="top" style="padding-top: 30px;">{{ help_button(help_id) }}</td>
+                </table>
+{% endmacro %}
 {% macro help_script(dialog_id, btn_id) %}
         var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
             autoOpen: false,
@@ -30,6 +39,7 @@
             position: {my: "left top", at: "right center", of: "#{{ btn_id }}"}
         });
         $( '#{{ btn_id }}' ).button().on('click', function() {
+{#            alert('click');#}
             if ({{ dialog_id }}.dialog('isOpen')) {
                 {{ dialog_id }}.dialog('close');
             } else {

@@ -213,7 +213,7 @@ def data_table(packageid=None, node_id=None):
                 if dt_nodes:
                     for dt_node in dt_nodes:
                         if dt_node_id == dt_node.id:
-                            att_list = list_attributes(dt_node, 'data_table')
+                            att_list = list_attributes(dt_node, 'data_table', dt_node_id)
                             if att_list:
                                 atts = compose_atts(att_list)
                             populate_data_table_form(form, dt_node)
@@ -357,7 +357,9 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            att_list = list_attributes(data_table_node, 'attribute_select_get')
+            app = Flask(__name__)
+
+            att_list = list_attributes(data_table_node, 'attribute_select_get', dt_node_id)
             if Config.FLASH_DEBUG:
                 # check attr node ids in list
                 ok = True
@@ -485,7 +487,7 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                     current_app.logger.info(f'dt_node_id={dt_node_id}')
 
                 # TEMP - for debugging - this will cause logging to happen
-                list_attributes(Node.get_node_instance(dt_node_id), 'attribute_select_post')
+                list_attributes(Node.get_node_instance(dt_node_id), 'attribute_select_post', dt_node_id)
 
                 if Config.FLASH_DEBUG:
                     if not attribute_node:

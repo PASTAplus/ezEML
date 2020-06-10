@@ -319,7 +319,7 @@ def mscale_from_attribute(att_node:Node=None):
     return None
     
 
-def list_attributes(data_table_node:Node=None, caller:str=None):
+def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=None):
     att_list = []
     if data_table_node:
         attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
@@ -344,7 +344,7 @@ def list_attributes(data_table_node:Node=None, caller:str=None):
                                       downval=downval)
                 att_list.append(att_entry)
     with app.app_context():
-        current_app.logger.info(f'Attribute list: caller={caller}')
+        current_app.logger.info(f'Attribute list: caller={caller} dt_node_id={dt_node_id}')
         if not data_table_node:
             current_app.logger.info('*** data_table_node not found ***')
         else:

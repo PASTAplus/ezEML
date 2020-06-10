@@ -344,6 +344,11 @@ def list_attributes(data_table_node:Node=None, caller:str=None):
                 att_list.append(att_entry)
     with app.app_context():
         current_app.logger.info(f'Attribute list: caller={caller}')
+        if not data_table_node:
+            current_app.logger.info('data_table_node not found')
+        else:
+            current_app.logger.info(f'data_table_node.id={data_table_node.id}')
+
         for entry in att_list:
             current_app.logger.info(f'{entry.id} {entry.label}')
     if Config.FLASH_DEBUG:

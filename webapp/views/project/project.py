@@ -63,8 +63,7 @@ def project(packageid=None):
         if save:
             title = form.title.data
             abstract = add_paragraph_tags(form.abstract.data)
-            funding = form.funding.data
-            create_project(dataset_node, title, abstract, funding)
+            create_project(dataset_node, title, abstract)
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
         return redirect(url_for(new_page, packageid=packageid))

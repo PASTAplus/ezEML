@@ -1423,7 +1423,7 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
         logger.error(e)
 
 
-def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, funding:str=None):
+def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
     try:
         if dataset_node:
             project_node = dataset_node.find_child(names.PROJECT)
@@ -1445,14 +1445,6 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
             abstract_node.content = abstract
         else:
             project_node.remove_child(abstract_node)
-
-        funding_node = project_node.find_child(names.FUNDING)
-        if not funding_node:
-            funding_node = Node(names.FUNDING, parent=project_node)
-            add_child(project_node, funding_node)
-        if funding:
-            funding_node.content = funding
-        project_node.remove_child(funding_node)
 
     except Exception as e:
         logger.error(e)

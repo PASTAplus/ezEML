@@ -204,16 +204,19 @@ def data_table(packageid=None, node_id=None):
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            dt_nodes = dataset_node.find_all_children(names.DATATABLE)
-            if dt_nodes:
-                for dt_node in dt_nodes:
-                    if dt_node_id == dt_node.id:
-                        att_list = list_attributes(dt_node)
-                        if att_list:
-                            atts = compose_atts(att_list)
-                        populate_data_table_form(form, dt_node)
+        if eml_node:
+            dataset_node = eml_node.find_child(names.DATASET)
+            if dataset_node:
+                dt_nodes = dataset_node.find_all_children(names.DATATABLE)
+                if dt_nodes:
+                    for dt_node in dt_nodes:
+                        if dt_node_id == dt_node.id:
+                            att_list = list_attributes(dt_node)
+                            if att_list:
+                                atts = compose_atts(att_list)
+                            populate_data_table_form(form, dt_node)
+        else:
+            flash('eml_node is None')
 
     set_current_page('data_table')
     help = get_helps([
@@ -454,12 +457,14 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
+            flash(f'val:{val}')
             if val.startswith(BTN_BACK):
                 new_page = back_page
             elif val.startswith(BTN_EDIT):
                 node_id = key
                 attribute_node = Node.get_node_instance(node_id)
                 mscale = mscale_from_attribute(attribute_node)
+                flash(f'val:{val} node_id:{node_id} mscale:{mscale}')
                 if mscale == VariableType.DATETIME.name:
                     new_page = PAGE_ATTRIBUTE_DATETIME
                 elif mscale == VariableType.NUMERICAL.name:

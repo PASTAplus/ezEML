@@ -42,11 +42,12 @@ app = Flask(__name__)
 with app.app_context():
     cwd = os.path.dirname(os.path.realpath(__file__))
     logfile = cwd + '/metadata-eml-threads.log'
-    file_handler = RotatingFileHandler(logfile, maxBytes=10240, backupCount=10)
+    file_handler = RotatingFileHandler(logfile, maxBytes=1000000000, backupCount=10)
     file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s [pid:%(process)d tid:%(thread)d]: %(message)s [in %(pathname)s:%(lineno)d]'))
     file_handler.setLevel(logging.INFO)
     current_app.logger.addHandler(file_handler)
     current_app.logger.setLevel(logging.INFO)
+    current_app.logger.info('*** RESTART ***')
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
 
@@ -345,7 +346,7 @@ def list_attributes(data_table_node:Node=None, caller:str=None):
     with app.app_context():
         current_app.logger.info(f'Attribute list: caller={caller}')
         if not data_table_node:
-            current_app.logger.info('data_table_node not found')
+            current_app.logger.info('*** data_table_node not found ***')
         else:
             current_app.logger.info(f'data_table_node.id={data_table_node.id}')
 

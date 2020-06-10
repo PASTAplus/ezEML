@@ -4,6 +4,8 @@ from flask import (
     Blueprint, flash, render_template, redirect, request, session, url_for
 )
 
+from webapp.config import Config
+
 from webapp.home.views import process_up_button, process_down_button, set_current_page
 
 from webapp.views.data_tables.forms import (
@@ -356,7 +358,17 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
             att_list = list_attributes(data_table_node)
-
+            if Config.FLASH_DEBUG:
+                # check attr node ids in list
+                ok = True
+                for attr_entry in att_list:
+                    id = attr_entry.id
+                    if not Node.get_node_instance(id):
+                        ok = False
+                        flash('Missing attr node for {attr_entry.label}: id={id}')
+                if ok:
+                    flash('Attr node ids ok')
+                    
     set_current_page('data_table')
     help = [get_help('measurement_scale')]
     return render_template('attribute_select.html',
@@ -457,14 +469,19 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
-            flash(f'val:{val}')
+            if Config.FLASH_DEBUG:
+                flash(f'val:{val}')
             if val.startswith(BTN_BACK):
                 new_page = back_page
             elif val.startswith(BTN_EDIT):
                 node_id = key
                 attribute_node = Node.get_node_instance(node_id)
+                if Config.FLASH_DEBUG:
+                    if not attribute_node:
+                        flash('attribute_node not found')
                 mscale = mscale_from_attribute(attribute_node)
-                flash(f'val:{val} node_id:{node_id} mscale:{mscale}')
+                if Config.FLASH_DEBUG:
+                    flash(f'val:{val} node_id:{node_id} mscale:{mscale}')
                 if mscale == VariableType.DATETIME.name:
                     new_page = PAGE_ATTRIBUTE_DATETIME
                 elif mscale == VariableType.NUMERICAL.name:

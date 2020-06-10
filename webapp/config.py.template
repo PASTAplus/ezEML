@@ -17,6 +17,7 @@ class Config(object):
     # Flask app configuration
     SECRET_KEY = 'SECRET KEY'
     DEBUG = False
+    FLASH_DEBUG = False
     
     PASTA_URL = 'https://pasta.lternet.edu/package'
 

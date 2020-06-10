@@ -17,8 +17,9 @@ from enum import Enum
 import html
 import json
 import os
+import threading
 
-from flask import flash, session
+from flask import Flask, flash, session, current_app
 from flask_login import (
     current_user
 )
@@ -33,8 +34,23 @@ from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io
 
+import logging
+from logging import Formatter
+from logging.handlers import RotatingFileHandler
+
+app = Flask(__name__)
+with app.app_context():
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    logfile = cwd + '/metadata-eml-threads.log'
+    file_handler = RotatingFileHandler(logfile, maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s [pid:%(process)d tid:%(thread)d]: %(message)s [in %(pathname)s:%(lineno)d]'))
+    file_handler.setLevel(logging.INFO)
+    current_app.logger.addHandler(file_handler)
+    current_app.logger.setLevel(logging.INFO)
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
+
+
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -302,7 +318,7 @@ def mscale_from_attribute(att_node:Node=None):
     return None
     
 
-def list_attributes(data_table_node:Node=None):
+def list_attributes(data_table_node:Node=None, caller:str=None):
     att_list = []
     if data_table_node:
         attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
@@ -326,6 +342,12 @@ def list_attributes(data_table_node:Node=None):
                                       upval=upval, 
                                       downval=downval)
                 att_list.append(att_entry)
+    with app.app_context():
+        current_app.logger.info(f'Attribute list: caller={caller}')
+        for entry in att_list:
+            current_app.logger.info(f'{entry.id} {entry.label}')
+    if Config.FLASH_DEBUG:
+        flash(f'Attribute list: {att_list}')
     return att_list
 
 

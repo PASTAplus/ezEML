@@ -1,7 +1,7 @@
 import hashlib
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, session, url_for
+    Blueprint, Flask, flash, render_template, redirect, request, session, url_for
 )
 
 from webapp.config import Config
@@ -213,7 +213,7 @@ def data_table(packageid=None, node_id=None):
                 if dt_nodes:
                     for dt_node in dt_nodes:
                         if dt_node_id == dt_node.id:
-                            att_list = list_attributes(dt_node)
+                            att_list = list_attributes(dt_node, 'data_table')
                             if att_list:
                                 atts = compose_atts(att_list)
                             populate_data_table_form(form, dt_node)
@@ -357,7 +357,7 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            att_list = list_attributes(data_table_node)
+            att_list = list_attributes(data_table_node, 'attribute_select_get')
             if Config.FLASH_DEBUG:
                 # check attr node ids in list
                 ok = True
@@ -368,6 +368,9 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
                         flash('Missing attr node for {attr_entry.label}: id={id}')
                 if ok:
                     flash('Attr node ids ok')
+                for key, node in Node.store.items():
+                    if node.id != key:
+                        flash(f'Node store inconsistency for node {node.name} with id={node.id}')
 
     set_current_page('data_table')
     help = [get_help('measurement_scale')]
@@ -476,6 +479,10 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
             elif val.startswith(BTN_EDIT):
                 node_id = key
                 attribute_node = Node.get_node_instance(node_id)
+
+                # TEMP - for debugging - this will cause logging to happen
+                list_attributes(Node.get_node_instance(dt_node_id), 'attribute_select_post')
+
                 if Config.FLASH_DEBUG:
                     if not attribute_node:
                         flash('attribute_node not found')

@@ -467,6 +467,7 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
 def attribute_select_post(packageid=None, form=None, form_dict=None,
                           method=None, this_page=None, back_page=None,
                           dt_node_id=None):
+    load_eml(packageid)
     node_id = ''
     new_page = ''
     mscale = ''

@@ -633,9 +633,15 @@ def load_eml(packageid:str=None):
     if os.path.isfile(filename):
         try:
             # flash(f'Loading eml from {filename}')
+            with app.app_context():
+                current_app.logger.info(f'load_eml (json)... loading')
+
             with open(filename, "r") as json_file:
                 json_obj = json.load(json_file)
                 eml_node = mp_io.from_json(json_obj)
+            with app.app_context():
+                current_app.logger.info(f'load_eml (json)... done')
+
         except Exception as e:
             logger.error(e)
     return eml_node
@@ -702,12 +708,25 @@ def enforce_dataset_sequence(eml_node:Node=None):
 
 
 def save_both_formats(packageid:str=None, eml_node:Node=None):
+    # with app.app_context():
+    #     if eml_node:
+    #         current_app.logger.info(f'save_both_formats... eml_node.id={eml_node.id}')
+    #     else:
+    #         current_app.logger.info(f'save_both_formats... eml_node is None')
+
     enforce_dataset_sequence(eml_node)
     save_eml(packageid=packageid, eml_node=eml_node, format='json')
     save_eml(packageid=packageid, eml_node=eml_node, format='xml')
 
 
 def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
+    with app.app_context():
+        if format == 'json':
+            if eml_node:
+                current_app.logger.info(f'save_eml (json)... eml_node.id={eml_node.id}')
+            else:
+                current_app.logger.info(f'save_eml (json)... eml_node is None')
+
     if packageid:
         if eml_node is not None:
             metadata_str = None
@@ -728,6 +747,10 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                 with open(filename, "w") as fh:
                     fh.write(metadata_str)
                     fh.flush()
+
+                with app.app_context():
+                    if format == 'json':
+                        current_app.logger.info(f'save_eml (json)... done')
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:

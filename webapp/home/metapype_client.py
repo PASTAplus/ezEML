@@ -317,7 +317,7 @@ def mscale_from_attribute(att_node:Node=None):
                 return VariableType.DATETIME.name
 
     return None
-    
+
 
 def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=None):
     att_list = []
@@ -727,6 +727,7 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                 # flash(f'Saving {format} to {filename}')
                 with open(filename, "w") as fh:
                     fh.write(metadata_str)
+                    fh.flush()
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:

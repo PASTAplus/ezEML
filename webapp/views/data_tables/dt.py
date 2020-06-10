@@ -123,7 +123,7 @@ def data_table(packageid=None, node_id=None):
             dt_node = Node(names.DATATABLE, parent=dataset_node)
 
             if not entity_name:
-                entity_name = '- TO DO -'
+                entity_name = 'TO DO: Data Table Name'
 
             create_data_table(
                 dt_node,

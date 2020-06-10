@@ -147,7 +147,7 @@ def other_entity(packageid=None, node_id=None):
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 
             if not entity_name:
-                entity_name = '- TO DO -'
+                entity_name = 'TO DO: Entity Name'
 
             create_other_entity(
                 dt_node,

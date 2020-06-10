@@ -72,8 +72,7 @@ def project(packageid=None):
     # Process GET
     if dataset_node:
         project_node = dataset_node.find_child(names.PROJECT)
-        if project_node:
-            populate_project_form(form, project_node)
+        populate_project_form(form, project_node)
 
     set_current_page('project')
     help = [get_help('project'), get_help('project_title')]
@@ -87,7 +86,6 @@ def project(packageid=None):
 def populate_project_form(form: ProjectForm, project_node: Node):
     title = ''
     abstract = ''
-    funding = ''
 
     if project_node:
         title_node = project_node.find_child(names.TITLE)
@@ -107,21 +105,8 @@ def populate_project_form(form: ProjectForm, project_node: Node):
                         abstract = section_node.content
             abstract = abstract
 
-        funding_node = project_node.find_child(names.FUNDING)
-        if funding_node:
-            funding = funding_node.content
-            if not funding:
-                para_node = funding_node.find_child(names.PARA)
-                if para_node:
-                    funding = para_node.content
-                else:
-                    section_node = funding_node.find_child(names.SECTION)
-                    if section_node:
-                        funding = section_node.content
-
         form.title.data = title
         form.abstract.data = remove_paragraph_tags(abstract)
-        form.funding.data = funding
     form.md5.data = form_md5(form)
 
 

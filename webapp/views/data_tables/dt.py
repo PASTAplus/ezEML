@@ -368,7 +368,7 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
                         flash('Missing attr node for {attr_entry.label}: id={id}')
                 if ok:
                     flash('Attr node ids ok')
-                    
+
     set_current_page('data_table')
     help = [get_help('measurement_scale')]
     return render_template('attribute_select.html',

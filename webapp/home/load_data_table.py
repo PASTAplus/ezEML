@@ -94,20 +94,36 @@ def sort_codes(codes):
     return all_sorted
 
 
+def is_datetime(data_frame, col):
+    s = pd.to_datetime(data_frame[col][1:], errors='coerce')
+    missing = 0
+    for i in range(len(s)):
+        if s.iloc[i] is pd.NaT:
+            missing = missing + 1
+    # see how many missing values... arbitrary cutoff allowing for missing values
+    return float(missing) / float(len(s)) < 0.2
+
+
+
 def infer_col_type(data_frame, col):
     col_type = None
     sorted_codes = None
     codes = data_frame[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
-    is_code = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
-    if is_code:
+    # arbitrary test to distinguish categorical from text
+    is_categorical = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
+    if is_categorical:
         col_type = VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)
     else:
         dtype = data_frame[col][1:].infer_objects().dtype
         if dtype == object:
-            col_type = VariableType.TEXT
+            if is_datetime(data_frame, col):
+                col_type = VariableType.DATETIME
+                sorted_codes = ''
+            else:
+                col_type = VariableType.TEXT
         else:
             col_type = VariableType.NUMERICAL
 
@@ -115,25 +131,21 @@ def infer_col_type(data_frame, col):
     lc_col = col.lower()
     if 'year' in lc_col or 'date' in lc_col:
         if col_type == VariableType.CATEGORICAL:
-            # see if most of the codes look like years
-            # we say "most" to allow for missing-value codes
-            year_like = 0
-            for code in sorted_codes:
-                try:
-                    year = int(code)
-                    if year >= 1900 and year <= 2100:
-                        year_like = year_like + 1
-                except:
-                    pass
-            if year_like >= len(sorted_codes) - 3:
-                return VariableType.DATETIME, 'YYYY'
-    if 'date' in lc_col:
-        if col_type == VariableType.TEXT:
-            try:
-                s = pd.to_datetime(data_frame[col][1:], errors='ignore')
-            except:
-                pass
-            ijk = 123
+            if is_datetime(data_frame, col):
+                # make sure we don't just have numerical codes that are incorrectly being treated as years
+                # see if most of the codes look like years
+                # we say "most" to allow for missing-value codes
+                year_like = 0
+                for code in sorted_codes:
+                    try:
+                        year = int(code)
+                        if year >= 1900 and year <= 2100:
+                            year_like = year_like + 1
+                    except:
+                        pass
+
+                if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
+                    return VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
 

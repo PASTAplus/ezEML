@@ -2,17 +2,34 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>DateTime Attribute</h2>
+    <h2>Numerical Attribute</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+{#                <h5>You may select either the interval or ratio measurement scale for this data table attribute:</h5>#}
+{#                {{ wtf.form_field(form.mscale_choice) }}<br/>#}
+{#                 <h5>Please enter additional information about the data table attribute:</h5>#}
                 {{ wtf.form_field(form.attribute_name) }}
                 {{ wtf.form_field(form.attribute_label) }}
                 {{ wtf.form_field(form.attribute_definition) }}
-                <h5>Enter a dateTime format string (e.g. YYYY-MM-DD):</h5>
-                {{ wtf.form_field(form.format_string) }}
-                {{ wtf.form_field(form.datetime_precision) }}
+                <label class="control-label">Enter a standard unit value <em><u>or</u></em> a custom unit value:</label>
+                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                    <tr>
+                    <td valign="top" width="50%" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.standard_unit) }}</td>
+                    <td width="50%" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">
+                        <table>
+                        <tr>{{ wtf.form_field(form.custom_unit) }}</tr>
+                        <tr>{{ wtf.form_field(form.custom_unit_description, rows=3) }}</tr>
+                        </table>
+                    </td>
+                    </tr>
+                </table>
+                <br/>
+                {{ wtf.form_field(form.number_type) }}
+{#                {{ wtf.form_field(form.storage_type) }}#}
+{#                {{ wtf.form_field(form.storage_type_system) }}#}
+                {{ wtf.form_field(form.precision) }}
                 <label class="control-label">Bounds (Optional):</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
@@ -63,10 +80,43 @@
                     </tr>
                 </table>
                 <p>&nbsp;</p>
+
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ wtf.form_field(form.md5) }}
+                {{ wtf.form_field(form.mscale) }}
             </form>
         </div>
     </div>
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    <script>
+    $(function()
+    {
+        let names = {{ custom_unit_names|tojson }};
+        let descriptions = {{ custom_unit_descriptions|tojson }};
+
+        $('#custom_unit').on('input', function() {
+            $('#custom_unit_description').val('');
+            for (i = 0; i < names.length; i++) {
+                if (names[i] === $('#custom_unit').val()) {
+                    // if we have the custom unit in our dictionary, fill in the description
+                    $('#custom_unit_description').val(descriptions[i]);
+                }
+            }
+        })
+
+        $('#custom_unit').change(function() {
+            $('#custom_unit_description').val('');
+            for (i = 0; i < names.length; i++) {
+                if (names[i] === $('#custom_unit').val()) {
+                    // if we have the custom unit in our dictionary, fill in the description
+                    $('#custom_unit_description').val(descriptions[i]);
+                }
+            }
+        })
+    });
+    </script>
 {% endblock %}

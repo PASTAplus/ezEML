@@ -2,36 +2,32 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>DateTime Attribute</h2>
+    <h2>Categorical Attribute</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+{#                <h5>You may select either the nominal or ordinal measurement scale for this data table attribute:</h5>#}
+{#                {{ wtf.form_field(form.mscale_choice) }}<br/>#}
+{#                <h5>Please enter additional information about the data table attribute:</h5>#}
                 {{ wtf.form_field(form.attribute_name) }}
-                {{ wtf.form_field(form.attribute_label) }}
                 {{ wtf.form_field(form.attribute_definition) }}
-                <h5>Enter a dateTime format string (e.g. YYYY-MM-DD):</h5>
-                {{ wtf.form_field(form.format_string) }}
-                {{ wtf.form_field(form.datetime_precision) }}
-                <label class="control-label">Bounds (Optional):</label>
+                {{ wtf.form_field(form.attribute_label) }}
+{#                <h5 style="color: steelblue;font-style: italic">One of the following is required: Definition or one or more Codes and Definitions</h5>#}
+                <label class="control-label">Define coded values and their definitions:</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
-                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 15px 20px 1px;">
-                    <table width="100%">
-                    <tr>
-                    <td width="48%">{{ wtf.form_field(form.bounds_minimum) }}</td>
-                    <td width="4%">&nbsp;</td>
-                    <td width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.bounds_minimum_exclusive) }}</td>
+                        <td style="padding: 10px 25px 0px;" width="100%"><label class="control-label">Codes:&nbsp;&nbsp;</label>{{ codes }}</td>
                     </tr>
                     <tr>
-                    <td width="48%">{{ wtf.form_field(form.bounds_maximum) }}</td>
-                    <td width="4%">&nbsp;</td>
-                    <td width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.bounds_maximum_exclusive) }}</td>
-                    </tr>
+                    <td><table>
+                    <td style="padding: 0px 20px;"><input class="btn btn-primary" name="Codes" type="submit" value="Edit Codes and Definitions"/></td>
+                    <td width="5%">&nbsp;</td>
+                    <td style="padding-bottom: 5px;">{{ wtf.form_field(form.enforced) }}</td>
                     </table></td>
                     </tr>
                 </table>
-                <br>
+                <p>&nbsp;</p>
                 <label class="control-label">Optionally, enter up to 3 missing value codes with accompanying explanations:</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
@@ -66,6 +62,7 @@
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ wtf.form_field(form.md5) }}
+                {{ wtf.form_field(form.mscale) }}
             </form>
         </div>
     </div>

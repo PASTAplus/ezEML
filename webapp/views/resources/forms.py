@@ -22,7 +22,7 @@ from webapp.home.views import get_keywords
 
 class AbstractForm(EDIForm):
     abstract = StringField('Abstract', widget=TextArea(),
-                           validators=[Optional(), valid_min_length(min=20)])
+                           validators=[Optional()])
     md5 = HiddenField('')
 
 
@@ -32,7 +32,7 @@ class IntellectualRightsForm(EDIForm):
                                                     ("CCBY", INTELLECTUAL_RIGHTS_CC_BY),
                                                     ("Other", "Other (Enter text below)")
                                                     ],
-                                           default="CC0",
+                                           # default="CC0",
                                            validators=[InputRequired()])
     intellectual_rights = StringField('', widget=TextArea(), validators=[])
     md5 = HiddenField('')

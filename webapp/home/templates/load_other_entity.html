@@ -7,9 +7,10 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 {{ form.csrf_token }}
+                <br>
                 <h4>Please select the file to upload:</h4>
                 <input type=file name=file>
-                <br/>
+                <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Upload" type="submit" value="Upload"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
                 {{ macros.hidden_buttons() }}

@@ -18,10 +18,11 @@ class AttributeSelectForm(EDIForm):
 
 
 class AttributeMeasurementScaleForm(EDIForm):
-    mscale_choice = SelectField('New Measurement Scale',
-                                choices=[("interval", "interval"), ("ratio", "ratio"),
-                                         ("nominal", "nominal"), ("ordinal", "ordinal"),
-                                         ("dateTime", "dateTime")])
+    mscale_choice = SelectField('New Variable Type',
+                                choices=[("CATEGORICAL", "Categorical"),
+                                         ("DATETIME", "DateTime"),
+                                         ("NUMERICAL", "Numerical"),
+                                         ("TEXT", "Text")])
     md5 = HiddenField('')
 
     def field_data(self)->tuple:
@@ -68,15 +69,13 @@ class AttributeDateTimeForm(EDIForm):
                 self.code_explanation_3.data)
 
 
-class AttributeNominalOrdinalForm(EDIForm):
-    mscale_choice = SelectField('Measurement Scale', 
-                                choices=[("nominal", "nominal"), ("ordinal", "ordinal")])
+class AttributeCategoricalForm(EDIForm):
     attribute_name = StringField('Name', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    enforced = SelectField('', choices=[("yes", "Enforce the code values I've defined"),
+    enforced = SelectField('', choices=[("yes", "Enforce the code values"),
                                      ("no", "Other code values are allowed")
                                     ])
     code_1 = StringField('Missing Value Code', validators=[])
@@ -90,13 +89,42 @@ class AttributeNominalOrdinalForm(EDIForm):
     init_str = "yes"
 
     def field_data(self)->tuple:
-        return (self.mscale_choice.data, 
-                self.attribute_name.data, 
+        return (self.attribute_name.data,
                 self.attribute_label.data,
                 self.attribute_definition.data,
                 self.storage_type.data,
                 self.storage_type_system.data,
                 self.enforced.data,
+                self.code_1.data,
+                self.code_explanation_1.data,
+                self.code_2.data,
+                self.code_explanation_2.data,
+                self.code_3.data,
+                self.code_explanation_3.data,
+                self.mscale.data)
+
+class AttributeTextForm(EDIForm):
+    attribute_name = StringField('Name', validators=[])
+    attribute_label = StringField('Label (Optional)', validators=[])
+    attribute_definition = StringField('Definition', validators=[])
+    storage_type = StringField('Storage Type (Optional)', validators=[])
+    storage_type_system = StringField('Storage Type System (Optional)', validators=[])
+    code_1 = StringField('Missing Value Code', validators=[])
+    code_explanation_1 = StringField('Explanation', validators=[])
+    code_2 = StringField('Missing Value Code', validators=[])
+    code_explanation_2 = StringField('Explanation', validators=[])
+    code_3 = StringField('Missing Value Code', validators=[])
+    code_explanation_3 = StringField('Explanation', validators=[])
+    md5 = HiddenField('')
+    mscale = HiddenField('')
+    init_str = ""
+
+    def field_data(self)->tuple:
+        return (self.attribute_name.data,
+                self.attribute_label.data,
+                self.attribute_definition.data,
+                self.storage_type.data,
+                self.storage_type_system.data,
                 self.code_1.data,
                 self.code_explanation_1.data,
                 self.code_2.data,
@@ -170,17 +198,17 @@ class DataTableSelectForm(EDIForm):
 
 class DataTableForm(EDIForm):
     entity_name = StringField('Name', validators=[])
-    entity_description = StringField('Description', validators=[])
-    object_name = StringField('Object Name', validators=[])
+    entity_description = StringField('Description (Recommended)', validators=[])
+    object_name = StringField('Data Object Name (e.g., filename)', validators=[])
     size = IntegerField('Size (Optional)', validators=[Optional()])
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
     record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
     attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
-    field_delimiter = SelectField('Simple Delimited: Field Delimiter', choices=[(",", "comma"), (" ", "space"), ("\\t", "tab")])
+    field_delimiter = SelectField('Field Delimiter', choices=[(",", "comma"), (" ", "space"), ("\\t", "tab")])
     case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
     number_of_records = IntegerField('Number of Records (Optional)', validators=[Optional()])
-    online_url = StringField('Online Distribution URL', validators=[Optional(), URL()])
+    online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
     md5 = HiddenField('')
     init_str = 'columncommano'
 

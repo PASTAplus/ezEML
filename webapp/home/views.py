@@ -46,7 +46,7 @@ from webapp.home.load_data_table import (
 from webapp.home.metapype_client import ( 
     load_eml, save_both_formats, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
-    save_old_to_new, read_xml
+    save_old_to_new, read_xml, new_child_node
 )
 
 from webapp.buttons import *
@@ -115,6 +115,14 @@ def init_help():
 def get_help(id):
     title, content = help_dict.get(id)
     return f'__help__{id}', title, content
+
+
+def get_helps(ids):
+    helps = []
+    for id in ids:
+        title, content = help_dict.get(id)
+        helps.append((f'__help__{id}', title, content))
+    return helps
 
 
 @home.route('/')
@@ -423,9 +431,11 @@ def load_data():
                 file.save(os.path.join(uploads_folder, filename))
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
-                flash(f'Loaded {data_file_path}')
+                flash(f'Loaded {filename}')
                 eml_node = load_eml(packageid=packageid)
                 dataset_node = eml_node.find_child(names.DATASET)
+                if not dataset_node:
+                    dataset_node = new_child_node(names.DATASET, eml_node)
                 dt_node = load_data_table(dataset_node, uploads_folder, data_file)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
                 return redirect(url_for(PAGE_DATA_TABLE, packageid=packageid, node_id=dt_node.id))
@@ -544,6 +554,8 @@ def select_post(packageid=None, form=None, form_dict=None,
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
             if val in (BTN_BACK, BTN_DONE):
+                new_page = back_page
+            elif val[0:4] == BTN_BACK:
                 new_page = back_page
             elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
                 new_page = next_page

@@ -9,13 +9,13 @@
     {% set help_nav_btn = help_nav_id ~ '_btn' %}
     {% set help_nav_dialog = help_nav_id ~ '_dialog' %}
 
-    <h1>Title</h1>
+    <h2>Title</h2>
 {#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter the data package title:</h5>
+                <h5>Please enter the data package's title:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.title, size=100) }}</td>
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_title_btn) }}</td>

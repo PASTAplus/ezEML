@@ -17,17 +17,11 @@ import os
 import re
 import pandas as pd
 
-from metapype.eml.exceptions import MetapypeRuleError
-from metapype.eml import export
-from metapype.eml import evaluate
 from metapype.eml import names
-from metapype.eml import rule
-from metapype.eml import validate
-from metapype.model import mp_io
 from metapype.model.node import Node
 
 from webapp.home.metapype_client import ( 
-    add_child
+    add_child, new_child_node, VariableType
 )
 
 
@@ -75,28 +69,105 @@ def is_datetime_column(col:str=None):
     return is_datetime
 
 
+def sort_codes_key(x):
+    try:
+        i = int(x)
+        return str(i)
+    except:
+        pass
+    return x.lower()
+
+
+def sort_codes(codes):
+    nums = []
+    text = []
+    for code in codes:
+        try:
+            i = int(code)
+            nums.append(i)
+        except:
+            text.append(code)
+    sorted_nums = sorted(nums)
+    all_sorted = sorted(text, key=sort_codes_key)
+    for num in sorted_nums:
+        all_sorted.append(str(num))
+    return all_sorted
+
+
+def is_datetime(data_frame, col):
+    s = pd.to_datetime(data_frame[col][1:], errors='coerce')
+    missing = 0
+    for i in range(len(s)):
+        if s.iloc[i] is pd.NaT:
+            missing = missing + 1
+    # see how many missing values... arbitrary cutoff allowing for missing values
+    return float(missing) / float(len(s)) < 0.2
+
+
+
+def infer_col_type(data_frame, col):
+    col_type = None
+    sorted_codes = None
+    codes = data_frame[col].unique().tolist()
+    num_codes = len(codes)
+    col_size = len(data_frame[col])
+    # arbitrary test to distinguish categorical from text
+    is_categorical = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
+    if is_categorical:
+        col_type = VariableType.CATEGORICAL
+        sorted_codes = sort_codes(codes)
+    else:
+        dtype = data_frame[col][1:].infer_objects().dtype
+        if dtype == object:
+            if is_datetime(data_frame, col):
+                col_type = VariableType.DATETIME
+                sorted_codes = ''
+            else:
+                col_type = VariableType.TEXT
+        else:
+            col_type = VariableType.NUMERICAL
+
+    # does it look like a date?
+    lc_col = col.lower()
+    if 'year' in lc_col or 'date' in lc_col:
+        if col_type == VariableType.CATEGORICAL:
+            if is_datetime(data_frame, col):
+                # make sure we don't just have numerical codes that are incorrectly being treated as years
+                # see if most of the codes look like years
+                # we say "most" to allow for missing-value codes
+                year_like = 0
+                for code in sorted_codes:
+                    try:
+                        year = int(code)
+                        if year >= 1900 and year <= 2100:
+                            year_like = year_like + 1
+                    except:
+                        pass
+
+                if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
+                    return VariableType.DATETIME, 'YYYY'
+
+    return col_type, sorted_codes
+
+
 def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str=''):
     full_path = f'{uploads_path}/{data_file}'
-    datatable_node = Node(names.DATATABLE, parent=dataset_node)
-    add_child(dataset_node, datatable_node)
 
-    physical_node = Node(names.PHYSICAL, parent=datatable_node)
-    add_child(datatable_node, physical_node)
+    datatable_node = new_child_node(names.DATATABLE, parent=dataset_node)
+
+    physical_node = new_child_node(names.PHYSICAL, parent=datatable_node)
     physical_node.add_attribute('system', 'EDI')
 
-    entity_name_node = Node(names.ENTITYNAME, parent=datatable_node)
-    add_child(datatable_node, entity_name_node)
+    entity_name_node = new_child_node(names.ENTITYNAME, parent=datatable_node)
     entity_name = entity_name_from_data_file(data_file)
     entity_name_node.content = entity_name
 
-    object_name_node = Node(names.OBJECTNAME, parent=physical_node)
-    add_child(physical_node, object_name_node)
+    object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
     object_name_node.content = data_file
 
     file_size = get_file_size(full_path)
     if file_size is not None:
-        size_node = Node(names.SIZE, parent=physical_node)
-        add_child(physical_node, size_node)
+        size_node = new_child_node(names.SIZE, physical_node)
         size_node.add_attribute('unit', 'byte')
         size_node.content = str(file_size)
 
@@ -116,7 +187,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
     add_child(text_format_node, num_header_lines_node)
     num_header_lines_node.content = '1'
-    
+
     num_footer_lines_node = Node(names.NUMFOOTERLINES, parent=text_format_node)
     add_child(text_format_node, num_footer_lines_node)
     num_footer_lines_node.content = '0'
@@ -135,7 +206,8 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         number_of_records = Node(names.NUMBEROFRECORDS, parent=datatable_node)
         add_child(datatable_node, number_of_records)
         row_count = data_frame.shape[0]
-        number_of_records.content = f'{row_count}'
+        record_count = row_count - 1  # assuming 1 header row
+        number_of_records.content = f'{record_count}'
 
         attribute_list_node = Node(names.ATTRIBUTELIST, parent=datatable_node)
         add_child(datatable_node, attribute_list_node)
@@ -143,14 +215,12 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         columns = data_frame.columns
 
         for col in columns:
-            dtype = str(data_frame[col].dtype)
-            print(f'{col}: {dtype}')
+            dtype = data_frame[col][1:].infer_objects().dtype
 
-            attribute_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
-            add_child(attribute_list_node, attribute_node)
-        
-            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
-            add_child(attribute_node, attribute_name_node)
+            var_type, codes = infer_col_type(data_frame, col)
+
+            attribute_node = new_child_node(names.ATTRIBUTE, attribute_list_node)
+            attribute_name_node = new_child_node(names.ATTRIBUTENAME, attribute_node)
             attribute_name_node.content = col
         
             att_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
@@ -159,51 +229,51 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             add_child(attribute_node, att_def_node)
-            att_def_node.content = f'Attribute definition for {col}'
+            att_def_node.content = f'TO DO: Attribute definition for {col}'
         
             ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
             add_child(attribute_node, ms_node)
 
-            if dtype == 'bool':
+            if var_type == VariableType.CATEGORICAL:
+                # nominal / nonNumericDomain / enumeratedDomain / ...codes...
+                nominal_node = new_child_node(names.NOMINAL, ms_node)
+                non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
+                enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
 
-                nominal_node = Node(names.NOMINAL, parent=ms_node)
-                add_child(ms_node, nominal_node)
+                for code in codes:
+                    code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
+                    code_node = new_child_node(names.CODE, code_definition_node)
+                    code_node.content = code
+                    definition_node = new_child_node(names.DEFINITION, code_definition_node)
+                    definition_node.content = f'TO DO: Definition for code {code}'
 
-                non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
-                add_child(nominal_node, non_numeric_domain_node)
-
-            elif dtype == 'object':
-
-                if is_datetime_column(col):
-                    datetime_node = Node(names.DATETIME, parent=ms_node)
-                    add_child(ms_node, datetime_node)
-
-                    format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
-                    add_child(datetime_node, format_string_node)
-                    format_string_node.content = ''
-
-                else:
-                    nominal_node = Node(names.NOMINAL, parent=ms_node)
-                    add_child(ms_node, nominal_node)
-
-                    non_numeric_domain_node = Node(names.NONNUMERICDOMAIN, parent=nominal_node)
-                    add_child(nominal_node, non_numeric_domain_node)
-
-            elif dtype.startswith('float') or dtype.startswith('int'):
-
+            elif var_type == VariableType.NUMERICAL:
+                # ratio / numericDomain
+                ratio_node = new_child_node(names.RATIO, ms_node)
+                numeric_domain_node = new_child_node(names.NUMERICDOMAIN, ratio_node)
                 number_type = 'real'
-                if dtype.startswith('int'):
+                if str(dtype).startswith('int'):  # FIXME - we can do better than this
                     number_type = 'integer'
+                number_type_node = new_child_node(names.NUMBERTYPE, numeric_domain_node)
+                number_type_node.content = number_type
+                numeric_domain_node = new_child_node(names.UNIT, ratio_node)
 
-                ratio_node = Node(names.RATIO, parent=ms_node)
-                add_child(ms_node, ratio_node)
+            elif var_type == VariableType.TEXT:
+                # nominal / nonNumericDomain / textDomain
+                nominal_node = new_child_node(names.NOMINAL, ms_node)
+                non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
+                text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
+                definition_node = new_child_node(names.DEFINITION, text_domain_node)
+                definition_node.content = f'TO DO: Attribute definition for {col}'  # FIXME - leave blank?
 
-                numeric_domain_ratio_node = Node(names.NUMERICDOMAIN, parent=ratio_node)
-                add_child(ratio_node, numeric_domain_ratio_node)
+            elif var_type == VariableType.DATETIME:
+                # dateTime / formatString
+                datetime_node = Node(names.DATETIME, parent=ms_node)
+                add_child(ms_node, datetime_node)
 
-                number_type_ratio_node = Node(names.NUMBERTYPE, parent=numeric_domain_ratio_node)
-                add_child(numeric_domain_ratio_node, number_type_ratio_node)
-                number_type_ratio_node.content = number_type
+                format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
+                add_child(datetime_node, format_string_node)
+                format_string_node.content = codes
 
     delete_data_files(uploads_path)
 
@@ -252,6 +322,9 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
     add_child(externally_defined_format_node, format_name_node)
     format_name_node.content = format_name_from_data_file(data_file)
+
+    entity_type_node = new_child_node(names.ENTITYTYPE, parent=other_entity_node)
+    entity_type_node.content = format_name_from_data_file(data_file)
 
     delete_data_files(uploads_path)
 

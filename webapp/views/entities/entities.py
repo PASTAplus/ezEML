@@ -147,7 +147,7 @@ def other_entity(packageid=None, node_id=None):
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 
             if not entity_name:
-                entity_name = '- TO DO -'
+                entity_name = 'TO DO: Entity Name'
 
             create_other_entity(
                 dt_node,
@@ -662,7 +662,8 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
         set_current_page('data_table')
     else:
         set_current_page('other_entity')
-    return render_template('method_step.html', title='Method Step', form=form, packageid=packageid)
+    help = [get_help('method_step_description'), get_help('method_step_instrumentation')]
+    return render_template('method_step.html', title='Method Step', form=form, packageid=packageid, help=help)
 
 
 @ent_bp.route('/entity_geographic_coverage_select/<packageid>/<dt_element_name>/<dt_node_id>',
@@ -831,7 +832,8 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
         set_current_page('data_table')
     else:
         set_current_page('other_entity')
-    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, packageid=packageid)
+    help = [get_help('geographic_coverages'), get_help('geographic_description'), get_help('bounding_coordinates')]
+    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, packageid=packageid, help=help)
 
 
 def entity_select_post(packageid=None, form=None, form_dict=None,

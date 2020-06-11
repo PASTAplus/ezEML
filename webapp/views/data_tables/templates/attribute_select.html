@@ -7,7 +7,7 @@
     {% set help_measurement_scale_btn = help_measurement_scale_id ~ '_btn' %}
     {% set help_measurement_scale_dialog = help_measurement_scale_id ~ '_dialog' %}
     {% endif %}
-    <h1>Attributes for {{ entity_name }}</h1>
+    <h2>Attributes for {{ entity_name }}</h2>
 {#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
@@ -34,10 +34,9 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="ratio" type="submit" value="Add Attribute - Ratio"/><br/><br/>
-                <input class="btn btn-primary" name="interval" type="submit" value="Add Attribute - Interval"/><br/><br/>
-                <input class="btn btn-primary" name="nominal" type="submit" value="Add Attribute - Nominal"/><br/><br/>
-                <input class="btn btn-primary" name="ordinal" type="submit" value="Add Attribute - Ordinal"/><br/><br/>
+                <input class="btn btn-primary" name="categorical" type="submit" value="Add Attribute - Categorical"/><br/><br/>
+                <input class="btn btn-primary" name="numerical" type="submit" value="Add Attribute - Numerical"/><br/><br/>
+                <input class="btn btn-primary" name="text" type="submit" value="Add Attribute - Text"/><br/><br/>
                 <input class="btn btn-primary" name="dateTime" type="submit" value="Add Attribute - Datetime"/><br/><br/><br/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back to Data Table"/>
                 {{ macros.hidden_buttons() }}

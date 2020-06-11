@@ -2,7 +2,7 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Other Entity</h1>
+    <h2>Other Entity</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -13,9 +13,9 @@
                 {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.entity_description) }}
                 {{ wtf.form_field(form.object_name) }}
+                {{ wtf.form_field(form.format_name) }}
                 {{ wtf.form_field(form.size) }}
                 {{ wtf.form_field(form.md5_hash) }}
-                {{ wtf.form_field(form.format_name) }}
                 {{ wtf.form_field(form.online_url) }}
                 <br/><br/>
                 <h4>Other Entity Coverage (Optional):</h4>

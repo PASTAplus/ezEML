@@ -96,10 +96,7 @@ def sort_codes(codes):
 
 def is_datetime(data_frame, col):
     s = pd.to_datetime(data_frame[col][1:], errors='coerce')
-    missing = 0
-    for i in range(len(s)):
-        if s.iloc[i] is pd.NaT:
-            missing = missing + 1
+    missing = sum(1 for i in range(len(s)) if s.iloc[i] is pd.NaT)
     # see how many missing values... arbitrary cutoff allowing for missing values
     return float(missing) / float(len(s)) < 0.2
 
@@ -129,23 +126,25 @@ def infer_col_type(data_frame, col):
 
     # does it look like a date?
     lc_col = col.lower()
-    if 'year' in lc_col or 'date' in lc_col:
-        if col_type == VariableType.CATEGORICAL:
-            if is_datetime(data_frame, col):
-                # make sure we don't just have numerical codes that are incorrectly being treated as years
-                # see if most of the codes look like years
-                # we say "most" to allow for missing-value codes
-                year_like = 0
-                for code in sorted_codes:
-                    try:
-                        year = int(code)
-                        if year >= 1900 and year <= 2100:
-                            year_like = year_like + 1
-                    except:
-                        pass
+    if (
+        ('year' in lc_col or 'date' in lc_col)
+        and col_type == VariableType.CATEGORICAL
+        and is_datetime(data_frame, col)
+    ):
+        # make sure we don't just have numerical codes that are incorrectly being treated as years
+        # see if most of the codes look like years
+        # we say "most" to allow for missing-value codes
+        year_like = 0
+        for code in sorted_codes:
+            try:
+                year = int(code)
+                if year >= 1900 and year <= 2100:
+                    year_like += 1
+            except:
+                pass
 
-                if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
-                    return VariableType.DATETIME, 'YYYY'
+        if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
+            return VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
 

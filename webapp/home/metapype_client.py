@@ -16,8 +16,12 @@ import daiquiri
 from enum import Enum
 import html
 import json
+
+import logging
+from logging import Formatter
+from logging.handlers import RotatingFileHandler
+
 import os
-import threading
 
 from flask import Flask, flash, session, current_app
 from flask_login import (
@@ -34,23 +38,20 @@ from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io
 
-import logging
-from logging import Formatter
-from logging.handlers import RotatingFileHandler
 
-app = Flask(__name__)
-with app.app_context():
-    cwd = os.path.dirname(os.path.realpath(__file__))
-    logfile = cwd + '/metadata-eml-threads.log'
-    file_handler = RotatingFileHandler(logfile, maxBytes=1000000000, backupCount=10)
-    file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s [pid:%(process)d tid:%(thread)d]: %(message)s [in %(pathname)s:%(lineno)d]'))
-    file_handler.setLevel(logging.INFO)
-    current_app.logger.addHandler(file_handler)
-    current_app.logger.setLevel(logging.INFO)
-    current_app.logger.info('*** RESTART ***')
+if Config.LOG_DEBUG:
+    app = Flask(__name__)
+    with app.app_context():
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        logfile = cwd + '/metadata-eml-threads.log'
+        file_handler = RotatingFileHandler(logfile, maxBytes=1000000000, backupCount=10)
+        file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s [pid:%(process)d tid:%(thread)d]: %(message)s [in %(pathname)s:%(lineno)d]'))
+        file_handler.setLevel(logging.INFO)
+        current_app.logger.addHandler(file_handler)
+        current_app.logger.setLevel(logging.INFO)
+        current_app.logger.info('*** RESTART ***')
 
 logger = daiquiri.getLogger('metapyp_client: ' + __name__)
-
 
 
 NO_OP = ''
@@ -95,7 +96,7 @@ def new_child_node(child_name:str, parent:Node):
 def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Optionality.REQUIRED):
     if optionality == Optionality.OPTIONAL and not content:
         return
-    child_node = parent_node.find_child(child_name)
+    child_node = parent_node.find_immediate_child(child_name)
     if not child_node:
         child_node = Node(child_name, parent=parent_node)
         if not Optionality.FORCE:
@@ -108,10 +109,27 @@ def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Opt
     return child_node
 
 
+def add_child(parent_node:Node, child_node:Node):
+    if parent_node and child_node:
+        parent_rule = rule.get_rule(parent_node.name)
+        index = parent_rule.child_insert_index(parent_node, child_node)
+        parent_node.add_child(child_node, index=index)
+
+
+def move_up(parent_node:Node, child_node:Node):
+    if parent_node and child_node:
+        parent_node.shift(child_node, Shift.LEFT)
+
+
+def move_down(parent_node:Node, child_node:Node):
+    if parent_node and child_node:
+        parent_node.shift(child_node, Shift.RIGHT)
+
+
 def list_data_tables(eml_node:Node=None):
     dt_list = []
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             DT_Entry = collections.namedtuple(
@@ -134,7 +152,7 @@ def list_data_tables(eml_node:Node=None):
 def list_other_entities(eml_node:Node=None):
     oe_list = []
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             oe_nodes = dataset_node.find_all_children(names.OTHERENTITY)
             OE_Entry = collections.namedtuple(
@@ -157,51 +175,57 @@ def list_other_entities(eml_node:Node=None):
 def compose_entity_label(entity_node:Node=None):
     label = ''
     if entity_node:
-        entity_name_node = entity_node.find_child(names.ENTITYNAME)
+        entity_name_node = entity_node.find_immediate_child(names.ENTITYNAME)
         if entity_name_node:
             entity_name = entity_name_node.content 
             label = entity_name
     return label
 
 
+def nominal_ordinal_from_attribute(att_node:Node=None):
+    if att_node:
+        nominal_node = att_node.find_single_node_by_path([
+            names.MEASUREMENTSCALE, names.NOMINAL
+        ])
+        if nominal_node:
+            return nominal_node
+        return att_node.find_single_node_by_path([
+            names.MEASUREMENTSCALE, names.ORDINAL
+        ])
+    return None
+
+
 def list_codes_and_definitions(att_node:Node=None):
     codes_list = []
-    if att_node:
-        mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
-        if mscale_node:
-            nominal_ordinal_node = None
-            nominal_node = mscale_node.find_child(names.NOMINAL)
-            if nominal_node:
-                nominal_ordinal_node = nominal_node
-            else:
-                nominal_ordinal_node = mscale_node.find_child(names.ORDINAL)
+    nominal_ordinal_node = nominal_ordinal_from_attribute(att_node)
 
-            if nominal_ordinal_node:
-                non_number_domain_node = nominal_ordinal_node.find_child(names.NONNUMERICDOMAIN)
-                if non_number_domain_node:
-                    enumerated_domain_node = non_number_domain_node.find_child(names.ENUMERATEDDOMAIN)
-                    if enumerated_domain_node:
-                        code_definition_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
+    if nominal_ordinal_node:
+        code_definition_nodes = nominal_ordinal_node.find_all_nodes_by_path([
+            names.NONNUMERICDOMAIN,
+            names.ENUMERATEDDOMAIN,
+            names.CODEDEFINITION
+        ])
+        if code_definition_nodes:
 
-                        Code_Definition_Entry = collections.namedtuple(
-                                        'Code_Definition_Entry', 
-                                        ["id", "code", "definition", "upval", "downval"],
-                                         
-                                        rename=False)
-            
-                        for i, cd_node in enumerate(code_definition_nodes):
-                            id = cd_node.id
-                            code, definition = compose_code_definition(cd_node)
-                            upval = get_upval(i)
-                            downval = get_downval(i+1, len(code_definition_nodes))
-                            cd_entry = Code_Definition_Entry(
-                                            id=id,
-                                            code=code,
-                                            definition=definition,
-                                            upval=upval, 
-                                            downval=downval)
-                            codes_list.append(cd_entry)
-    return codes_list
+            Code_Definition_Entry = collections.namedtuple(
+                            'Code_Definition_Entry',
+                            ["id", "code", "definition", "upval", "downval"],
+
+                            rename=False)
+
+            for i, cd_node in enumerate(code_definition_nodes):
+                id = cd_node.id
+                code, definition = compose_code_definition(cd_node)
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(code_definition_nodes))
+                cd_entry = Code_Definition_Entry(
+                                id=id,
+                                code=code,
+                                definition=definition,
+                                upval=upval,
+                                downval=downval)
+                codes_list.append(cd_entry)
+        return codes_list
 
 
 def compose_code_definition(code_definition_node:Node=None):
@@ -209,10 +233,10 @@ def compose_code_definition(code_definition_node:Node=None):
     definition = ''
 
     if code_definition_node:
-        code_node = code_definition_node.find_child(names.CODE)
+        code_node = code_definition_node.find_immediate_child(names.CODE)
         if code_node:
             code = code_node.content
-        definition_node = code_definition_node.find_child(names.DEFINITION)
+        definition_node = code_definition_node.find_immediate_child(names.DEFINITION)
         if definition_node:
             definition = definition_node.content
 
@@ -223,7 +247,7 @@ def entity_name_from_data_table(dt_node:Node=None):
     entity_name = ''
 
     if dt_node:
-        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        entity_name_node = dt_node.find_immediate_child(names.ENTITYNAME)
         if entity_name_node:
             entity_name = entity_name_node.content
 
@@ -234,7 +258,7 @@ def attribute_name_from_attribute(att_node:Node=None):
     attribute_name = ''
 
     if att_node:
-        attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+        attribute_name_node = att_node.find_immediate_child(names.ATTRIBUTENAME)
         if attribute_name_node:
             attribute_name = attribute_name_node.content
 
@@ -242,77 +266,63 @@ def attribute_name_from_attribute(att_node:Node=None):
 
 
 def code_definition_from_attribute(att_node:Node=None):
-    cd_node = None
-
-    if att_node:
-        ms_node = att_node.find_child(names.MEASUREMENTSCALE)
-        if ms_node:
-            no_node = ms_node.find_child(names.NOMINAL)
-            if not no_node:
-                no_node = ms_node.find_child(names.ORDINAL)
-            if no_node:
-                nnd_node = no_node.find_child(names.NONNUMERICDOMAIN)
-                if nnd_node:
-                    ed_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
-                    if ed_node:
-                        cd_node = ed_node.find_child(names.CODEDEFINITION)
-
-    return cd_node
+    nominal_ordinal_node = nominal_ordinal_from_attribute(att_node)
+    if nominal_ordinal_node:
+        return nominal_ordinal_node.find_single_node_by_path([
+            names.NONNUMERICDOMAIN,
+            names.ENUMERATEDDOMAIN,
+            names.CODEDEFINITION
+        ])
+    else:
+        return None
 
 
 def enumerated_domain_from_attribute(att_node:Node=None):
-    enumerated_domain_node = None
+    nominal_ordinal_node = nominal_ordinal_from_attribute(att_node)
+    if nominal_ordinal_node:
+        return nominal_ordinal_node.find_single_node_by_path([
+            names.NONNUMERICDOMAIN, names.ENUMERATEDDOMAIN
+        ])
+    else:
+        return None
 
-    if att_node:
-        nominal_or_ordinal_node = att_node.find_child(names.NOMINAL)
-        if not nominal_or_ordinal_node:
-            nominal_or_ordinal_node = att_node.find_child(names.ORDINAL)
-        
-        if nominal_or_ordinal_node:
-            non_numeric_domain_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
-
-            if non_numeric_domain_node:
-                enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
-
-    return enumerated_domain_node
-    
 
 def non_numeric_domain_from_measurement_scale(ms_node:Node=None):
     nnd_node = None
 
     if ms_node:
-        nominal_or_ordinal_node = ms_node.find_child(names.NOMINAL)
+        nominal_or_ordinal_node = ms_node.find_immediate_child(names.NOMINAL)
         if not nominal_or_ordinal_node:
-            nominal_or_ordinal_node = ms_node.find_child(names.ORDINAL)
+            nominal_or_ordinal_node = ms_node.find_immediate_child(names.ORDINAL)
         
         if nominal_or_ordinal_node:
-            nnd_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
+            nnd_node = nominal_or_ordinal_node.find_immediate_child(names.NONNUMERICDOMAIN)
 
     return nnd_node
 
 
 def mscale_from_attribute(att_node:Node=None):
     if att_node:
-        mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+        mscale_node = att_node.find_immediate_child(names.MEASUREMENTSCALE)
 
         if mscale_node:
         
-            nominal_node = mscale_node.find_child(names.NOMINAL)
+            nominal_node = mscale_node.find_immediate_child(names.NOMINAL)
             if nominal_node:
-                non_numeric_domain_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
+                non_numeric_domain_node = nominal_node.find_immediate_child(names.NONNUMERICDOMAIN)
                 if non_numeric_domain_node:
-                    enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
+                    enumerated_domain_node = non_numeric_domain_node.find_immediate_child(names.ENUMERATEDDOMAIN)
                     if enumerated_domain_node:
                         return VariableType.CATEGORICAL.name
-                    text_domain_node = non_numeric_domain_node.find_child(names.TEXTDOMAIN)
+                    text_domain_node = non_numeric_domain_node.find_immediate_child(names.TEXTDOMAIN)
                     if text_domain_node:
                         return VariableType.TEXT.name
 
-            ratio_node = mscale_node.find_child(names.RATIO)
+            ratio_node = mscale_node.find_immediate_child(names.RATIO)
             if ratio_node:
                 return VariableType.NUMERICAL.name
 
-            date_time_node = mscale_node.find_child(names.DATETIME)
+            date_time_node = mscale_node.find_immediate_child(names.DATETIME)
             if date_time_node:
                 return VariableType.DATETIME.name
 
@@ -322,7 +332,7 @@ def mscale_from_attribute(att_node:Node=None):
 def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=None):
     att_list = []
     if data_table_node:
-        attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
+        attribute_list_node = data_table_node.find_immediate_child(names.ATTRIBUTELIST)
         if attribute_list_node:
             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
             ATT_Entry = collections.namedtuple(
@@ -343,24 +353,26 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
                                       upval=upval, 
                                       downval=downval)
                 att_list.append(att_entry)
-    with app.app_context():
-        current_app.logger.info(f'Attribute list: caller={caller} dt_node_id={dt_node_id}')
-        if not data_table_node:
-            current_app.logger.info('*** data_table_node not found ***')
-        else:
-            current_app.logger.info(f'data_table_node.id={data_table_node.id}')
+    if Config.LOG_DEBUG:
+        with app.app_context():
+            current_app.logger.info(f'Attribute list: caller={caller} dt_node_id={dt_node_id}')
+            if not data_table_node:
+                current_app.logger.info('*** data_table_node not found ***')
+            else:
+                current_app.logger.info(f'data_table_node.id={data_table_node.id}')
+            for entry in att_list:
+                current_app.logger.info(f'{entry.id} {entry.label}')
 
-        for entry in att_list:
-            current_app.logger.info(f'{entry.id} {entry.label}')
     if Config.FLASH_DEBUG:
         flash(f'Attribute list: {att_list}')
+
     return att_list
 
 
 def compose_attribute_label(att_node:Node=None):
     label = ''
     if att_node:
-        attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+        attribute_name_node = att_node.find_immediate_child(names.ATTRIBUTENAME)
         if attribute_name_node:
             attribute_name = attribute_name_node.content 
             label = attribute_name
@@ -385,11 +397,11 @@ def compose_attribute_mscale(att_node:Node=None):
 def list_responsible_parties(eml_node:Node=None, node_name:str=None):
     rp_list = []
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             parent_node = dataset_node
             if node_name == 'personnel':
-                project_node = dataset_node.find_child(names.PROJECT)
+                project_node = dataset_node.find_immediate_child(names.PROJECT)
                 if project_node:
                     parent_node = project_node
 
@@ -411,7 +423,7 @@ def list_geographic_coverages(parent_node:Node=None):
     gc_list = []
     max_len = 40
     if parent_node:
-        coverage_node = parent_node.find_child(names.COVERAGE)
+        coverage_node = parent_node.find_immediate_child(names.COVERAGE)
         if coverage_node:
             gc_nodes = \
                 coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
@@ -425,7 +437,7 @@ def list_geographic_coverages(parent_node:Node=None):
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(gc_nodes))
                 geographic_description_node = \
-                    gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
+                    gc_node.find_immediate_child(names.GEOGRAPHICDESCRIPTION)
                 if geographic_description_node:
                     description = geographic_description_node.content
                     if description and len(description) > max_len:
@@ -440,13 +452,11 @@ def list_geographic_coverages(parent_node:Node=None):
 
 
 def get_upval(i:int):
-    upval = NO_OP if i == 0 else UP_ARROW
-    return upval
+    return NO_OP if i == 0 else UP_ARROW
 
 
 def get_downval(i:int, n:int):
-    downval = NO_OP if i >= n else DOWN_ARROW
-    return downval
+    return NO_OP if i >= n else DOWN_ARROW
 
 
 def compose_gc_label(gc_node:Node=None):
@@ -455,12 +465,12 @@ def compose_gc_label(gc_node:Node=None):
     '''
     label = ''
     if gc_node:
-        bc_node = gc_node.find_child(names.BOUNDINGCOORDINATES)
+        bc_node = gc_node.find_immediate_child(names.BOUNDINGCOORDINATES)
         if bc_node:
-            wbc_node = bc_node.find_child(names.WESTBOUNDINGCOORDINATE)
-            ebc_node = bc_node.find_child(names.EASTBOUNDINGCOORDINATE)
-            nbc_node = bc_node.find_child(names.NORTHBOUNDINGCOORDINATE)
-            sbc_node = bc_node.find_child(names.SOUTHBOUNDINGCOORDINATE)
+            wbc_node = bc_node.find_immediate_child(names.WESTBOUNDINGCOORDINATE)
+            ebc_node = bc_node.find_immediate_child(names.EASTBOUNDINGCOORDINATE)
+            nbc_node = bc_node.find_immediate_child(names.NORTHBOUNDINGCOORDINATE)
+            sbc_node = bc_node.find_immediate_child(names.SOUTHBOUNDINGCOORDINATE)
             if wbc_node and ebc_node and nbc_node and sbc_node:
                 coordinate_list = [str(wbc_node.content),
                                    str(ebc_node.content),
@@ -473,7 +483,7 @@ def compose_gc_label(gc_node:Node=None):
 def list_temporal_coverages(parent_node:Node=None):
     tc_list = []
     if parent_node:
-        coverage_node = parent_node.find_child(names.COVERAGE)
+        coverage_node = parent_node.find_immediate_child(names.COVERAGE)
         if coverage_node:
             tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
             TC_Entry = collections.namedtuple(
@@ -487,7 +497,7 @@ def list_temporal_coverages(parent_node:Node=None):
                 single_datetime_nodes = tc_node.find_all_children(names.SINGLEDATETIME)
                 if single_datetime_nodes:
                     for sd_node in single_datetime_nodes:
-                        calendar_date_node = sd_node.find_child(names.CALENDARDATE)
+                        calendar_date_node = sd_node.find_immediate_child(names.CALENDARDATE)
                         if calendar_date_node:
                             begin_date = calendar_date_node.content
                             end_date = ''
@@ -499,14 +509,14 @@ def list_temporal_coverages(parent_node:Node=None):
                     for rod_node in range_of_dates_nodes:
                         begin_date = ''
                         end_date = ''
-                        begin_date_node = rod_node.find_child(names.BEGINDATE)
+                        begin_date_node = rod_node.find_immediate_child(names.BEGINDATE)
                         if begin_date_node:
-                            calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
+                            calendar_date_node = begin_date_node.find_immediate_child(names.CALENDARDATE)
                             if calendar_date_node:
                                 begin_date = calendar_date_node.content
-                        end_date_node = rod_node.find_child(names.ENDDATE)
+                        end_date_node = rod_node.find_immediate_child(names.ENDDATE)
                         if end_date_node:
-                            calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
+                            calendar_date_node = end_date_node.find_immediate_child(names.CALENDARDATE)
                             if calendar_date_node:
                                 end_date = calendar_date_node.content
                         tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
@@ -517,7 +527,7 @@ def list_temporal_coverages(parent_node:Node=None):
 def list_taxonomic_coverages(parent_node:Node=None):
     txc_list = []
     if parent_node:
-        coverage_node = parent_node.find_child(names.COVERAGE)
+        coverage_node = parent_node.find_immediate_child(names.COVERAGE)
         if coverage_node:
             txc_nodes = coverage_node.find_all_children(
                 names.TAXONOMICCOVERAGE)
@@ -537,42 +547,24 @@ def list_taxonomic_coverages(parent_node:Node=None):
 
 
 def compose_taxonomic_label(txc_node:Node=None, label:str=''):
-    if txc_node:
-        tc_node = txc_node.find_child(names.TAXONOMICCLASSIFICATION)
-        if tc_node:
-            val = ''
-            trv_node = tc_node.find_child(names.TAXONRANKVALUE)
-            if trv_node:
-                val = trv_node.content 
-            new_label = label + ' ' + val if label else val
-            return compose_taxonomic_label(tc_node, new_label)
-        else:
-            return label
+    if not txc_node:
+        return label
+    tc_node = txc_node.find_immediate_child(names.TAXONOMICCLASSIFICATION)
+    if tc_node:
+        val = ''
+        trv_node = tc_node.find_immediate_child(names.TAXONRANKVALUE)
+        if trv_node:
+            val = trv_node.content
+        new_label = label + ' ' + val if label else val
+        return compose_taxonomic_label(tc_node, new_label)
     else:
         return label
-
-
-def add_child(parent_node:Node, child_node:Node, force=False):
-    if parent_node and child_node:
-        parent_rule = rule.get_rule(parent_node.name)
-        index = parent_rule.child_insert_index(parent_node, child_node)
-        parent_node.add_child(child_node, index=index)
-
-
-def move_up(parent_node:Node, child_node:Node):
-    if parent_node and child_node:
-        parent_node.shift(child_node, Shift.LEFT)
-
-
-def move_down(parent_node:Node, child_node:Node):
-    if parent_node and child_node:
-        parent_node.shift(child_node, Shift.RIGHT)
 
 
 def compose_rp_label(rp_node:Node=None):
     label = ''
     if rp_node:
-        individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
+        individual_name_node = rp_node.find_immediate_child(names.INDIVIDUALNAME)
         individual_name_label = (
             compose_individual_name_label(individual_name_node))
         organization_name_label = (
@@ -608,7 +600,7 @@ def compose_individual_name_label(rp_node:Node=None):
                 if given_name_node and given_name_node.content:
                     label = label + " " + given_name_node.content
         
-        surname_node = rp_node.find_child(names.SURNAME)
+        surname_node = rp_node.find_immediate_child(names.SURNAME)
         if surname_node and surname_node.content:
             label = label + " " + surname_node.content
 
@@ -618,7 +610,7 @@ def compose_individual_name_label(rp_node:Node=None):
 def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
     label = ''
     if rp_node and child_node_name:
-        child_node = rp_node.find_child(child_node_name)
+        child_node = rp_node.find_immediate_child(child_node_name)
         if child_node and child_node.content:
             label = child_node.content
     return label
@@ -777,8 +769,7 @@ def validate_tree(node:Node):
 
 
 def create_access(parent_node:Node=None):
-    access_node = Node(names.ACCESS, parent=parent_node)
-    add_child(parent_node, access_node)
+    access_node = new_child_node(names.ACCESS, parent=parent_node)
     access_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
     access_node.add_attribute('scope', Config.SCOPE_ATTRIBUTE_VALUE)
     access_node.add_attribute('order', Config.ORDER_ATTRIBUTE_VALUE)
@@ -797,8 +788,7 @@ def create_eml(packageid=None):
         access_node = create_access(parent_node=eml_node)
         initialize_access_rules(access_node)
 
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
 
         try:
             save_both_formats(packageid=packageid, eml_node=eml_node)
@@ -811,28 +801,22 @@ def initialize_access_rules(access_node:Node):
     Initialize the access element with default access rules for user and public
     '''
     if current_user.is_authenticated:
-        user_allow_node = Node(names.ALLOW, parent=access_node)
-        add_child(access_node, user_allow_node)
+        user_allow_node = new_child_node(names.ALLOW, parent=access_node)
 
-        user_principal_node = Node(names.PRINCIPAL, parent=user_allow_node)
+        user_principal_node = new_child_node(names.PRINCIPAL, parent=user_allow_node)
         userid = current_user.get_dn()
         user_principal_node.content = userid
-        add_child(user_allow_node, user_principal_node)
 
-        user_permission_node = Node(names.PERMISSION, parent=user_allow_node)
+        user_permission_node = new_child_node(names.PERMISSION, parent=user_allow_node)
         user_permission_node.content = 'all'
-        add_child(user_allow_node, user_permission_node)
 
-    public_allow_node = Node(names.ALLOW, parent=access_node)
-    add_child(access_node, public_allow_node)
+    public_allow_node = new_child_node(names.ALLOW, parent=access_node)
 
-    public_principal_node = Node(names.PRINCIPAL, parent=public_allow_node)
+    public_principal_node = new_child_node(names.PRINCIPAL, parent=public_allow_node)
     public_principal_node.content = 'public'
-    add_child(public_allow_node, public_principal_node)
 
-    public_permission_node = Node(names.PERMISSION, parent=public_allow_node)
+    public_permission_node = new_child_node(names.PERMISSION, parent=public_allow_node)
     public_permission_node.content = 'read'
-    add_child(public_allow_node, public_permission_node)
 
 
 def create_data_table(
@@ -856,89 +840,68 @@ def create_data_table(
             data_table_node = Node(names.DATATABLE)
 
         if entity_name:
-            entity_name_node = Node(names.ENTITYNAME, parent=data_table_node)
+            entity_name_node = new_child_node(names.ENTITYNAME, parent=data_table_node)
             entity_name_node.content = entity_name
-            add_child(data_table_node, entity_name_node)
 
         if entity_description:
-            entity_description_node = Node(names.ENTITYDESCRIPTION, parent=data_table_node)
+            entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=data_table_node)
             entity_description_node.content = entity_description
-            add_child(data_table_node, entity_description_node)
 
         if object_name or size or md5_hash or num_header_lines or \
            record_delimiter or attribute_orientation or \
            field_delimiter or online_url:
 
-            physical_node = Node(names.PHYSICAL, parent=data_table_node)
-            add_child(data_table_node, physical_node)
+            physical_node = new_child_node(names.PHYSICAL, parent=data_table_node)
 
-            if object_name:
-                object_name_node = Node(names.OBJECTNAME, parent=physical_node)
-                object_name_node.content = object_name
-                add_child(physical_node, object_name_node)
+        if object_name:
+            object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
+            object_name_node.content = object_name
 
-            if size:
-                size_node = Node(names.SIZE, parent=physical_node)
-                size_node.content = size
-                add_child(physical_node, size_node)
+        if size:
+            size_node = new_child_node(names.SIZE, parent=physical_node)
+            size_node.content = size
 
-            if md5_hash:
-                md5_hash_node = Node(names.AUTHENTICATION, parent=physical_node)
-                md5_hash_node.content = md5_hash
-                add_child(physical_node, md5_hash_node)
+        if md5_hash:
+            md5_hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
+            md5_hash_node.content = md5_hash
 
-            if num_header_lines or record_delimiter or \
+        if num_header_lines or record_delimiter or \
                attribute_orientation or field_delimiter:
 
-                data_format_node = Node(names.DATAFORMAT, parent=physical_node)
-                add_child(physical_node, data_format_node)
-    
-                text_format_node = Node(names.TEXTFORMAT, parent=data_format_node)
-                add_child(data_format_node, text_format_node)
+            data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
+            text_format_node = new_child_node(names.TEXTFORMAT, parent=data_format_node)
 
-                if num_header_lines:
-                    num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
-                    num_header_lines_node.content = num_header_lines
-                    add_child(text_format_node, num_header_lines_node)
-                
-                if record_delimiter:
-                    record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
-                    record_delimiter_node.content = record_delimiter
-                    add_child(text_format_node, record_delimiter_node)
+        if num_header_lines:
+            num_header_lines_node = new_child_node(names.NUMHEADERLINES, parent=text_format_node)
+            num_header_lines_node.content = num_header_lines
 
-                if attribute_orientation:
-                    attribute_orientation_node = Node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
-                    attribute_orientation_node.content = attribute_orientation
-                    add_child(text_format_node, attribute_orientation_node)
+        if record_delimiter:
+            record_delimiter_node = new_child_node(names.RECORDDELIMITER, parent=text_format_node)
+            record_delimiter_node.content = record_delimiter
 
-                if field_delimiter:
-                    simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
-                    add_child(text_format_node, simple_delimited_node)
+        if attribute_orientation:
+            attribute_orientation_node = new_child_node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
+            attribute_orientation_node.content = attribute_orientation
 
-                    field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
-                    field_delimiter_node.content = field_delimiter
-                    add_child(simple_delimited_node, field_delimiter_node)
+        if field_delimiter:
+            simple_delimited_node = new_child_node(names.SIMPLEDELIMITED, parent=text_format_node)
 
-            if online_url:
-                distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
-                add_child(physical_node, distribution_node)
+            field_delimiter_node = new_child_node(names.FIELDDELIMITER, parent=simple_delimited_node)
+            field_delimiter_node.content = field_delimiter
 
-                online_node = Node(names.ONLINE, parent=distribution_node)
-                add_child(distribution_node, online_node)
-
-                url_node = Node(names.URL, parent=online_node)
-                url_node.content = online_url
-                add_child(online_node, url_node)
+        if online_url:
+            distribution_node = new_child_node(names.DISTRIBUTION, parent=physical_node)
+            online_node = new_child_node(names.ONLINE, parent=distribution_node)
+            url_node = new_child_node(names.URL, parent=online_node)
+            url_node.content = online_url
 
         if case_sensitive:
-            case_sensitive_node = Node(names.CASESENSITIVE, parent=data_table_node)
+            case_sensitive_node = new_child_node(names.CASESENSITIVE, parent=data_table_node)
             case_sensitive_node.content = case_sensitive
-            add_child(data_table_node, case_sensitive_node)
 
         if number_of_records:
-            number_of_records_node = Node(names.NUMBEROFRECORDS, parent=data_table_node)
+            number_of_records_node = new_child_node(names.NUMBEROFRECORDS, parent=data_table_node)
             number_of_records_node.content = number_of_records
-            add_child(data_table_node, number_of_records_node)
 
         return data_table_node
 
@@ -960,81 +923,64 @@ def create_datetime_attribute(
                     bounds_maximum:str=None, 
                     bounds_maximum_exclusive:str=None,
                     code_dict:dict=None):
-    if attribute_node:
-        try:
-            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
-            attribute_name_node.content = attribute_name
-            add_child(attribute_node, attribute_name_node)
-            
-            if attribute_label:
-                attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
-                attribute_label_node.content = attribute_label
-                add_child(attribute_node, attribute_label_node)
-            
-            attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
-            attribute_definition_node.content = attribute_definition
-            add_child(attribute_node, attribute_definition_node)
+    if not attribute_node:
+        return
+    try:
+        attribute_name_node = new_child_node(names.ATTRIBUTENAME, parent=attribute_node)
+        attribute_name_node.content = attribute_name
 
-            storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
-            storage_type_node.content = storage_type
-            if storage_type_system:
-                storage_type_node.add_attribute('typeSystem', storage_type_system)
-            add_child(attribute_node, storage_type_node)
+        if attribute_label:
+            attribute_label_node = new_child_node(names.ATTRIBUTELABEL, parent=attribute_node)
+            attribute_label_node.content = attribute_label
 
-            ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
-            add_child(attribute_node, ms_node)
+        attribute_definition_node = new_child_node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+        attribute_definition_node.content = attribute_definition
 
-            datetime_node = Node(names.DATETIME, parent=ms_node)
-            add_child(ms_node, datetime_node)
+        storage_type_node = new_child_node(names.STORAGETYPE, parent=attribute_node)
+        storage_type_node.content = storage_type
+        if storage_type_system:
+            storage_type_node.add_attribute('typeSystem', storage_type_system)
 
-            format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
-            format_string_node.content = format_string
-            add_child(datetime_node, format_string_node)
-        
-            if datetime_precision:
-                datetime_precision_node = Node(names.DATETIMEPRECISION, parent=datetime_node)
-                datetime_precision_node.content = datetime_precision
-                add_child(datetime_node, datetime_precision_node)
-            
-            datetime_domain_node = Node(names.DATETIMEDOMAIN, parent=datetime_node)
-            add_child(datetime_node, datetime_domain_node)
-            if bounds_minimum or bounds_maximum:
-                bounds_node = Node(names.BOUNDS, parent=datetime_domain_node)
-                add_child(datetime_domain_node, bounds_node)
-                if bounds_minimum:
-                    bounds_minimum_node = Node(names.MINIMUM, parent=bounds_node)
-                    bounds_minimum_node.content = bounds_minimum
-                    if bounds_minimum_exclusive:
-                        bounds_minimum_node.add_attribute('exclusive', 'true')
-                    else:
-                        bounds_minimum_node.add_attribute('exclusive', 'false')
-                    add_child(bounds_node, bounds_minimum_node)
-                if bounds_maximum:
-                    bounds_maximum_node = Node(names.MAXIMUM, parent=bounds_node)
-                    bounds_maximum_node.content = bounds_maximum
-                    if bounds_maximum_exclusive:
-                        bounds_maximum_node.add_attribute('exclusive', 'true')
-                    else:
-                        bounds_maximum_node.add_attribute('exclusive', 'false')
-                    add_child(bounds_node, bounds_maximum_node)
+        ms_node = new_child_node(names.MEASUREMENTSCALE, parent=attribute_node)
+        datetime_node = new_child_node(names.DATETIME, parent=ms_node)
+        format_string_node = new_child_node(names.FORMATSTRING, parent=datetime_node)
+        format_string_node.content = format_string
 
-            if code_dict:
-                for key in code_dict:
-                    if code_dict[key]:
-                        code = key
-                        code_explanation = code_dict[key]
-                        if code is not None:
-                            mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
-                            add_child(attribute_node, mvc_node)
-                            code_node = Node(names.CODE, parent=mvc_node)
-                            code_node.content = code
-                            add_child(mvc_node, code_node)
-                            code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
-                            code_explanation_node.content = code_explanation
-                            add_child(mvc_node, code_explanation_node)
+        if datetime_precision:
+            datetime_precision_node = new_child_node(names.DATETIMEPRECISION, parent=datetime_node)
+            datetime_precision_node.content = datetime_precision
 
-        except Exception as e:
-            logger.error(e)
+        datetime_domain_node = new_child_node(names.DATETIMEDOMAIN, parent=datetime_node)
+        if bounds_minimum or bounds_maximum:
+            bounds_node = new_child_node(names.BOUNDS, parent=datetime_domain_node)
+        if bounds_minimum:
+            bounds_minimum_node = new_child_node(names.MINIMUM, parent=bounds_node)
+            bounds_minimum_node.content = bounds_minimum
+            if bounds_minimum_exclusive:
+                bounds_minimum_node.add_attribute('exclusive', 'true')
+            else:
+                bounds_minimum_node.add_attribute('exclusive', 'false')
+        if bounds_maximum:
+            bounds_maximum_node = new_child_node(names.MAXIMUM, parent=bounds_node)
+            bounds_maximum_node.content = bounds_maximum
+            if bounds_maximum_exclusive:
+                bounds_maximum_node.add_attribute('exclusive', 'true')
+            else:
+                bounds_maximum_node.add_attribute('exclusive', 'false')
+
+        if code_dict:
+            for key, code_explanation in code_dict.items():
+                if code_dict[key]:
+                    code = key
+                    if code is not None:
+                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                        code_node = new_child_node(names.CODE, parent=mvc_node)
+                        code_node.content = code
+                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                        code_explanation_node.content = code_explanation
+
+    except Exception as e:
+        logger.error(e)
 
 
 def create_numerical_attribute(
@@ -1056,87 +1002,82 @@ def create_numerical_attribute(
                     bounds_maximum_exclusive:str=None,
                     code_dict:dict=None,
                     mscale:str=None):
-    if attribute_node:
-        try:
-            add_node(attribute_node, names.ATTRIBUTENAME, attribute_name, Optionality.REQUIRED)
-            add_node(attribute_node, names.ATTRIBUTELABEL, attribute_label, Optionality.OPTIONAL)
-            add_node(attribute_node, names.ATTRIBUTEDEFINITION, attribute_definition, Optionality.REQUIRED)
+    if not attribute_node:
+        return
+    try:
+        add_node(attribute_node, names.ATTRIBUTENAME, attribute_name, Optionality.REQUIRED)
+        add_node(attribute_node, names.ATTRIBUTELABEL, attribute_label, Optionality.OPTIONAL)
+        add_node(attribute_node, names.ATTRIBUTEDEFINITION, attribute_definition, Optionality.REQUIRED)
 
-            storage_type_node = add_node(attribute_node, names.STORAGETYPE, storage_type, Optionality.OPTIONAL)
-            if storage_type_system:
-                storage_type_node.add_attribute('typeSystem', storage_type_system)
+        storage_type_node = add_node(attribute_node, names.STORAGETYPE, storage_type, Optionality.OPTIONAL)
+        if storage_type_system:
+            storage_type_node.add_attribute('typeSystem', storage_type_system)
 
-            mscale_node = new_child_node(names.MEASUREMENTSCALE, attribute_node)
-            ratio_node = new_child_node(names.RATIO, mscale_node)
-            unit_node = new_child_node(names.UNIT, ratio_node)
+        mscale_node = new_child_node(names.MEASUREMENTSCALE, attribute_node)
+        ratio_node = new_child_node(names.RATIO, mscale_node)
+        unit_node = new_child_node(names.UNIT, ratio_node)
 
-            if custom_unit:
-                custom_unit_node = Node(names.CUSTOMUNIT, parent=unit_node)
-                custom_unit_node.content = custom_unit
-                add_child(unit_node, custom_unit_node)
-                # need additional nodes under additionalMetadata
-                handle_custom_unit_additional_metadata(eml_node, custom_unit, custom_unit_description)
-            elif standard_unit:
-                standard_unit_node = Node(names.STANDARDUNIT, parent=unit_node)
-                standard_unit_node.content = standard_unit
-                add_child(unit_node, standard_unit_node)
-        
-            if precision:
-                precision_node = new_child_node(names.PRECISION, parent=ratio_node)
-                precision_node.content = precision
+        if custom_unit:
+            custom_unit_node = new_child_node(names.CUSTOMUNIT, parent=unit_node)
+            custom_unit_node.content = custom_unit
+            # need additional nodes under additionalMetadata
+            handle_custom_unit_additional_metadata(eml_node, custom_unit, custom_unit_description)
+        elif standard_unit:
+            standard_unit_node = new_child_node(names.STANDARDUNIT, parent=unit_node)
+            standard_unit_node.content = standard_unit
 
-            numeric_domain_node = new_child_node(names.NUMERICDOMAIN, parent=ratio_node)
-            number_type_node = new_child_node(names.NUMBERTYPE, parent=numeric_domain_node)
-            number_type_node.content = number_type
+        if precision:
+            precision_node = new_child_node(names.PRECISION, parent=ratio_node)
+            precision_node.content = precision
 
-            if is_non_empty_bounds(bounds_minimum) or is_non_empty_bounds(bounds_maximum):
-                bounds_node = new_child_node(names.BOUNDS, parent=numeric_domain_node)
+        numeric_domain_node = new_child_node(names.NUMERICDOMAIN, parent=ratio_node)
+        number_type_node = new_child_node(names.NUMBERTYPE, parent=numeric_domain_node)
+        number_type_node.content = number_type
 
-            if is_non_empty_bounds(bounds_minimum):
-                bounds_minimum_node = new_child_node(names.MINIMUM, parent=bounds_node)
-                bounds_minimum_node.content = bounds_minimum
-                if bounds_minimum_exclusive:
-                    bounds_minimum_node.add_attribute('exclusive', 'true')
-                else:
-                    bounds_minimum_node.add_attribute('exclusive', 'false')
+        if is_non_empty_bounds(bounds_minimum) or is_non_empty_bounds(bounds_maximum):
+            bounds_node = new_child_node(names.BOUNDS, parent=numeric_domain_node)
 
-            if is_non_empty_bounds(bounds_maximum):
-                bounds_maximum_node = new_child_node(names.MAXIMUM, parent=bounds_node)
-                bounds_maximum_node.content = bounds_maximum
-                if bounds_maximum_exclusive:
-                    bounds_maximum_node.add_attribute('exclusive', 'true')
-                else:
-                    bounds_maximum_node.add_attribute('exclusive', 'false')
+        if is_non_empty_bounds(bounds_minimum):
+            bounds_minimum_node = new_child_node(names.MINIMUM, parent=bounds_node)
+            bounds_minimum_node.content = bounds_minimum
+            if bounds_minimum_exclusive:
+                bounds_minimum_node.add_attribute('exclusive', 'true')
+            else:
+                bounds_minimum_node.add_attribute('exclusive', 'false')
 
-            if code_dict:
-                for key in code_dict:
-                    if code_dict[key]:
-                        code = key
-                        code_explanation = code_dict[key]
-                        if code is not None:
-                            mvc_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
-                            add_child(attribute_node, mvc_node)
-                            code_node = Node(names.CODE, parent=mvc_node)
-                            code_node.content = code
-                            add_child(mvc_node, code_node)
-                            code_explanation_node = Node(names.CODEEXPLANATION, parent=mvc_node)
-                            code_explanation_node.content = code_explanation
-                            add_child(mvc_node, code_explanation_node)
+        if is_non_empty_bounds(bounds_maximum):
+            bounds_maximum_node = new_child_node(names.MAXIMUM, parent=bounds_node)
+            bounds_maximum_node.content = bounds_maximum
+            if bounds_maximum_exclusive:
+                bounds_maximum_node.add_attribute('exclusive', 'true')
+            else:
+                bounds_maximum_node.add_attribute('exclusive', 'false')
 
-        except Exception as e:
-            logger.error(e)
+        if code_dict:
+            for key, code_explanation in code_dict.items():
+                if code_dict[key]:
+                    code = key
+                    if code is not None:
+                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                        code_node = new_child_node(names.CODE, parent=mvc_node)
+                        code_node.content = code
+                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                        code_explanation_node.content = code_explanation
+
+    except Exception as e:
+        logger.error(e)
 
 
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
-    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
+    additional_metadata_node = eml_node.find_immediate_child(names.ADDITIONALMETADATA)
     if not additional_metadata_node:
         additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, '', Optionality.REQUIRED)
     # do we already have the metadata node?
-    metadata_node = additional_metadata_node.find_child(names.METADATA)
+    metadata_node = additional_metadata_node.find_immediate_child(names.METADATA)
     if not metadata_node:
         metadata_node = add_node(additional_metadata_node, names.METADATA, '', Optionality.REQUIRED)
     # de we already have the unitList node?
-    unit_list_node = metadata_node.find_child(names.UNITLIST)
+    unit_list_node = metadata_node.find_immediate_child(names.UNITLIST)
     if not unit_list_node:
         unit_list_node = add_node(metadata_node, names.UNITLIST, '', Optionality.FORCE)
     # do we already have a node for this custom unit?
@@ -1150,7 +1091,7 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
         unit_node = add_node(unit_list_node, names.UNIT, '', Optionality.FORCE)
     unit_node.add_attribute('id', custom_unit_name)
     unit_node.add_attribute('name', custom_unit_name)
-    description_node = unit_node.find_child(names.DESCRIPTION)
+    description_node = unit_node.find_immediate_child(names.DESCRIPTION)
     if description_node:
         unit_node.remove_child(description_node)
     add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
@@ -1171,72 +1112,67 @@ def create_categorical_or_text_attribute(
                     code_dict:dict=None,
                     mscale:str=None,
                     enumerated_domain_node:Node=None):
-    if attribute_node:
-        try:
-            attribute_name_node = Node(names.ATTRIBUTENAME, parent=attribute_node)
-            attribute_name_node.content = attribute_name
-            add_child(attribute_node, attribute_name_node)
-            
-            if attribute_label:
-                attribute_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
-                attribute_label_node.content = attribute_label
-                add_child(attribute_node, attribute_label_node)
-            
-            attribute_definition_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
-            attribute_definition_node.content = attribute_definition
-            add_child(attribute_node, attribute_definition_node)
+    if not attribute_node:
+        return
+    try:
+        attribute_name_node = new_child_node(names.ATTRIBUTENAME, parent=attribute_node)
+        attribute_name_node.content = attribute_name
 
-            storage_type_node = Node(names.STORAGETYPE, parent=attribute_node)
-            storage_type_node.content = storage_type
-            if storage_type_system:
-                storage_type_node.add_attribute('typeSystem', storage_type_system)
-            add_child(attribute_node, storage_type_node)
+        if attribute_label:
+            attribute_label_node = new_child_node(names.ATTRIBUTELABEL, parent=attribute_node)
+            attribute_label_node.content = attribute_label
 
-            mscale_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
-            add_child(attribute_node, mscale_node)
+        attribute_definition_node = new_child_node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+        attribute_definition_node.content = attribute_definition
 
-            nominal_node = new_child_node(names.NOMINAL, parent=mscale_node)
-            non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, parent=nominal_node)
+        storage_type_node = new_child_node(names.STORAGETYPE, parent=attribute_node)
+        storage_type_node.content = storage_type
+        if storage_type_system:
+            storage_type_node.add_attribute('typeSystem', storage_type_system)
 
-            if mscale == VariableType.CATEGORICAL.name:
+        mscale_node = new_child_node(names.MEASUREMENTSCALE, parent=attribute_node)
 
-                # get rid of textDomain node, if any
-                text_domain_node = attribute_node.find_immediate_child(names.TEXTDOMAIN)
-                if text_domain_node:
-                    attribute_node.remove_child(text_domain_node)
+        nominal_node = new_child_node(names.NOMINAL, parent=mscale_node)
+        non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, parent=nominal_node)
 
-                if enumerated_domain_node:
-                    non_numeric_domain_node.add_child(enumerated_domain_node)
-                else:
-                    enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
-                if enforced:
-                    enumerated_domain_node.add_attribute('enforced', enforced)
+        if mscale == VariableType.CATEGORICAL.name:
 
-                for key in code_dict:
-                    if code_dict[key]:
-                        code = key
-                        code_explanation = code_dict[key]
-                        if code is not None:
-                            mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                            code_node = new_child_node(names.CODE, parent=mvc_node)
-                            code_node.content = code
-                            code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                            code_explanation_node.content = code_explanation
+            # get rid of textDomain node, if any
+            text_domain_node = attribute_node.find_immediate_child(names.TEXTDOMAIN)
+            if text_domain_node:
+                attribute_node.remove_child(text_domain_node)
 
-            elif mscale == VariableType.TEXT.name:
+            if enumerated_domain_node:
+                non_numeric_domain_node.add_child(enumerated_domain_node)
+            else:
+                enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, parent=non_numeric_domain_node)
+            if enforced:
+                enumerated_domain_node.add_attribute('enforced', enforced)
 
-                text_domain_node = new_child_node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
-                definition_node = new_child_node(names.DEFINITION, parent=non_numeric_domain_node)
-                definition_node.content = attribute_definition
+            for key, code_explanation in code_dict.items():
+                if code_dict[key]:
+                    code = key
+                    if code is not None:
+                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                        code_node = new_child_node(names.CODE, parent=mvc_node)
+                        code_node.content = code
+                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                        code_explanation_node.content = code_explanation
 
-                # get rid of enumeratedDomain node, if any
-                enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
-                if enumerated_domain_node:
-                    non_numeric_domain_node.remove_child(enumerated_domain_node)
+        elif mscale == VariableType.TEXT.name:
+
+            text_domain_node = new_child_node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
+            definition_node = new_child_node(names.DEFINITION, parent=non_numeric_domain_node)
+            definition_node.content = attribute_definition
+
+            # get rid of enumeratedDomain node, if any
+            enumerated_domain_node = non_numeric_domain_node.find_immediate_child(names.ENUMERATEDDOMAIN)
+            if enumerated_domain_node:
+                non_numeric_domain_node.remove_child(enumerated_domain_node)
 
 
-        except Exception as e:
-            logger.error(e)
+    except Exception as e:
+        logger.error(e)
 
 
 def create_code_definition(code_definition_node:Node=None,
@@ -1256,7 +1192,7 @@ def is_non_empty_bounds(bounds=None):
     if bounds:
         return bounds
     elif type(bounds) is str:
-        return bounds == "0.0" or bounds == "0"
+        return bounds in ["0.0", "0"]
     elif type(bounds) is float:
         return bounds == 0.0
     elif type(bounds) is int:
@@ -1267,17 +1203,14 @@ def create_title(title=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
     title_node = None
 
-    dataset_node = eml_node.find_child('dataset')
+    dataset_node = eml_node.find_immediate_child('dataset')
     if dataset_node:
         title_node = dataset_node.find_immediate_child('title')
         if not title_node:
-            title_node = Node(names.TITLE, parent=dataset_node)
-            add_child(dataset_node, title_node)
+            title_node = new_child_node(names.TITLE, parent=dataset_node)
     else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        title_node = Node(names.TITLE, parent=dataset_node)
-        add_child(dataset_node, title_node)
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        title_node = new_child_node(names.TITLE, parent=dataset_node)
 
     title_node.content = title
 
@@ -1293,17 +1226,14 @@ def create_pubplace(pubplace=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
     pubplace_node = None
 
-    dataset_node = eml_node.find_child('dataset')
+    dataset_node = eml_node.find_immediate_child('dataset')
     if dataset_node:
-        pubplace_node = dataset_node.find_child('pubPlace')
+        pubplace_node = dataset_node.find_immediate_child('pubPlace')
         if not pubplace_node:
-            pubplace_node = Node(names.PUBPLACE, parent=dataset_node)
-            add_child(dataset_node, pubplace_node)
+            pubplace_node = new_child_node(names.PUBPLACE, parent=dataset_node)
     else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        pubplace_node = Node(names.PUBPLACE, parent=dataset_node)
-        add_child(dataset_node, pubplace_node)
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        pubplace_node = new_child_node(names.PUBPLACE, parent=dataset_node)
 
     pubplace_node.content = pubplace
 
@@ -1332,61 +1262,46 @@ def create_other_entity(
             entity_node = Node(names.OTHERENTITY)
 
         if entity_name:
-            entity_name_node = Node(names.ENTITYNAME, parent=entity_node)
+            entity_name_node = new_child_node(names.ENTITYNAME, parent=entity_node)
             entity_name_node.content = entity_name
-            add_child(entity_node, entity_name_node)
 
         if entity_type:
-            entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
+            entity_type_node = new_child_node(names.ENTITYTYPE, parent=entity_node)
             entity_type_node.content = entity_type
-            add_child(entity_node, entity_type_node)
 
         if entity_description:
-            entity_description_node = Node(names.ENTITYDESCRIPTION, parent=entity_node)
+            entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=entity_node)
             entity_description_node.content = entity_description
-            add_child(entity_node, entity_description_node)
 
         if object_name or format_name or online_url:
 
-            physical_node = Node(names.PHYSICAL, parent=entity_node)
-            add_child(entity_node, physical_node)
+            physical_node = new_child_node(names.PHYSICAL, parent=entity_node)
 
             if object_name:
-                object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+                object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
                 object_name_node.content = object_name
-                add_child(physical_node, object_name_node)
 
             if format_name:
-                data_format_node = Node(names.DATAFORMAT, parent=physical_node)
-                add_child(physical_node, data_format_node)
-                externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
-                add_child(data_format_node, externally_defined_format_node)
-                format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+                data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
+                externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+                format_name_node = new_child_node(names.FORMATNAME, parent=externally_defined_format_node)
                 format_name_node.content = format_name
-                add_child(externally_defined_format_node, format_name_node)
 
             if size:
-                size_node = Node(names.SIZE, parent=physical_node)
-                add_child(physical_node, size_node)
+                size_node = new_child_node(names.SIZE, parent=physical_node)
                 size_node.add_attribute('unit', 'byte')
                 size_node.content = size
 
             if md5_hash:
-                hash_node = Node(names.AUTHENTICATION, parent=physical_node)
-                add_child(physical_node, hash_node)
+                hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
                 hash_node.add_attribute('method', 'MD5')
                 hash_node.content = str(md5_hash)
 
-            if online_url:
-                distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
-                add_child(physical_node, distribution_node)
-
-                online_node = Node(names.ONLINE, parent=distribution_node)
-                add_child(distribution_node, online_node)
-
-                url_node = Node(names.URL, parent=online_node)
-                url_node.content = online_url
-                add_child(online_node, url_node)
+        if online_url:
+            distribution_node = new_child_node(names.DISTRIBUTION, parent=physical_node)
+            online_node = new_child_node(names.ONLINE, parent=distribution_node)
+            url_node = new_child_node(names.URL, parent=online_node)
+            url_node.content = online_url
 
         return entity_node
 
@@ -1397,17 +1312,14 @@ def create_other_entity(
 def create_pubdate(pubdate=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_child(names.DATASET)
+    dataset_node = eml_node.find_immediate_child(names.DATASET)
     if dataset_node:
-        pubdate_node = dataset_node.find_child(names.PUBDATE)
+        pubdate_node = dataset_node.find_immediate_child(names.PUBDATE)
         if not pubdate_node:
-            pubdate_node = Node(names.PUBDATE, parent=dataset_node)
-            add_child(dataset_node, pubdate_node)
+            pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
     else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        pubdate_node = Node(names.PUBDATE, parent=dataset_node)
-        add_child(dataset_node, pubdate_node)
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
 
     pubdate_node.content = pubdate
 
@@ -1420,17 +1332,14 @@ def create_pubdate(pubdate=None, packageid=None):
 def create_abstract(packageid:str=None, abstract:str=None):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_child(names.DATASET)
+    dataset_node = eml_node.find_immediate_child(names.DATASET)
     if dataset_node:
-        abstract_node = dataset_node.find_child(names.ABSTRACT)
+        abstract_node = dataset_node.find_immediate_child(names.ABSTRACT)
         if not abstract_node:
-            abstract_node = Node(names.ABSTRACT, parent=dataset_node)
-            add_child(dataset_node, abstract_node)
+            abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
     else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        abstract_node = Node(names.ABSTRACT, parent=dataset_node)
-        add_child(dataset_node, abstract_node)
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
 
     abstract_node.content = abstract
 
@@ -1443,17 +1352,14 @@ def create_abstract(packageid:str=None, abstract:str=None):
 def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_child(names.DATASET)
+    dataset_node = eml_node.find_immediate_child(names.DATASET)
     if dataset_node:
-        intellectual_rights_node = dataset_node.find_child(names.INTELLECTUALRIGHTS)
+        intellectual_rights_node = dataset_node.find_immediate_child(names.INTELLECTUALRIGHTS)
         if not intellectual_rights_node:
-            intellectual_rights_node = Node(names.INTELLECTUALRIGHTS, parent=dataset_node)
-            add_child(dataset_node, intellectual_rights_node)
+            intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
     else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-        intellectual_rights_node = Node(names.INTELLECTUALRIGHTS, parent=dataset_node)
-        add_child(dataset_node, intellectual_rights_node)
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
 
     intellectual_rights_node.content = intellectual_rights
 
@@ -1478,21 +1384,18 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
 def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
     try:
         if dataset_node:
-            project_node = dataset_node.find_child(names.PROJECT)
+            project_node = dataset_node.find_immediate_child(names.PROJECT)
             if not project_node:
-                project_node = Node(names.PROJECT, parent=dataset_node)
-                add_child(dataset_node, project_node)
+                project_node = new_child_node(names.PROJECT, parent=dataset_node)
 
-        title_node = project_node.find_child(names.TITLE)
+        title_node = project_node.find_immediate_child(names.TITLE)
         if not title_node:
-            title_node = Node(names.TITLE, parent=project_node)
-            add_child(project_node, title_node)
+            title_node = new_child_node(names.TITLE, parent=project_node)
         title_node.content = title
 
-        abstract_node = project_node.find_child(names.ABSTRACT)
+        abstract_node = project_node.find_immediate_child(names.ABSTRACT)
         if not abstract_node:
-            abstract_node = Node(names.ABSTRACT, parent=project_node)
-            add_child(project_node, abstract_node)
+            abstract_node = new_child_node(names.ABSTRACT, parent=project_node)
         if abstract:
             abstract_node.content = abstract
         else:
@@ -1511,29 +1414,24 @@ def create_funding_award(
         award_url:str=None):
 
     try:
-        funder_name_node = Node(names.FUNDERNAME, parent=award_node)
-        add_child(award_node, funder_name_node)
+        funder_name_node = new_child_node(names.FUNDERNAME, parent=award_node)
         funder_name_node.content = funder_name
 
         if funder_identifier:
             ids = funder_identifier.split(',')
             for id in ids:
-                funder_identifier_node = Node(names.FUNDERIDENTIFIER, parent=award_node)
-                add_child(award_node, funder_identifier_node)
+                funder_identifier_node = new_child_node(names.FUNDERIDENTIFIER, parent=award_node)
                 funder_identifier_node.content = id
 
         if award_number:
-            award_number_node = Node(names.AWARDNUMBER, parent=award_node)
-            add_child(award_node, award_number_node)
+            award_number_node = new_child_node(names.AWARDNUMBER, parent=award_node)
             award_number_node.content = award_number
 
-        award_title_node = Node(names.TITLE, parent=award_node)
-        add_child(award_node, award_title_node)
+        award_title_node = new_child_node(names.TITLE, parent=award_node)
         award_title_node.content = award_title
 
         if award_url:
-            award_url_node = Node(names.AWARDURL, parent=award_node)
-            add_child(award_node, award_url_node)
+            award_url_node = new_child_node(names.AWARDURL, parent=award_node)
             award_url_node.content = award_url
 
     except Exception as e:
@@ -1544,15 +1442,13 @@ def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
     if keyword:
         eml_node = load_eml(packageid=packageid)
 
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if not dataset_node:
-            dataset_node = Node(names.DATASET, parent=eml_node)
-            add_child(eml_node, dataset_node)
+            dataset_node = new_child_node(names.DATASET, parent=eml_node)
 
-        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
+        keywordset_node = dataset_node.find_immediate_child(names.KEYWORDSET)
         if not keywordset_node:
-            keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
-            add_child(dataset_node, keywordset_node)
+            keywordset_node = new_child_node(names.KEYWORDSET, parent=dataset_node)
 
         keyword_node = None
         
@@ -1564,10 +1460,9 @@ def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
                 break
         
         if not keyword_node:
-            keyword_node = Node(names.KEYWORD, parent=keywordset_node)
+            keyword_node = new_child_node(names.KEYWORD, parent=keywordset_node)
             keyword_node.content = keyword
-            add_child(keywordset_node, keyword_node)
-        
+
         if keyword_type:
             keyword_node.add_attribute(name='keywordType', value=keyword_type)
 
@@ -1580,7 +1475,9 @@ def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
 def remove_keyword(packageid:str=None, keyword:str=None):
     if keyword:
         eml_node = load_eml(packageid=packageid)
-        keywordset_node = eml_node.find_child(names.KEYWORDSET)
+        keywordset_node = eml_node.find_single_node_by_path([
+            names.DATASET, names.KEYWORDSET
+        ])
         if keywordset_node:
             current_keywords = \
                 keywordset_node.find_all_children(child_name=names.KEYWORD)
@@ -1597,23 +1494,20 @@ def remove_keyword(packageid:str=None, keyword:str=None):
 def create_keywords(packageid:str=None, keywords_list:list=[]):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_child(names.DATASET)
+    dataset_node = eml_node.find_immediate_child(names.DATASET)
     if dataset_node:
-        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
+        keywordset_node = dataset_node.find_immediate_child(names.KEYWORDSET)
         if keywordset_node:
             # Get rid of the old keyword set if it exists
             dataset_node.remove_child(keywordset_node)
     else:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-    
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+
     if keywords_list:
-        keywordset_node = Node(names.KEYWORDSET, parent=dataset_node)
-        add_child(dataset_node, keywordset_node)
+        keywordset_node = new_child_node(names.KEYWORDSET, parent=dataset_node)
         for keyword in keywords_list:
-            keyword_node = Node(names.KEYWORD, parent=keywordset_node)
+            keyword_node = new_child_node(names.KEYWORD, parent=keywordset_node)
             keyword_node.content = keyword
-            add_child(keywordset_node, keyword_node)
 
     try:
         save_both_formats(packageid=packageid, eml_node=eml_node)
@@ -1629,29 +1523,22 @@ def create_geographic_coverage(
                    nbc:str=None,
                    sbc:str=None):
     try:
-        geographic_description_node = Node(names.GEOGRAPHICDESCRIPTION)
+        geographic_description_node = new_child_node(names.GEOGRAPHICDESCRIPTION)
         geographic_description_node.content = geographic_description
-        add_child(geographic_coverage_node, geographic_description_node)
 
-        bounding_coordinates_node = Node(names.BOUNDINGCOORDINATES)
+        bounding_coordinates_node = new_child_node(names.BOUNDINGCOORDINATES)
 
-        wbc_node = Node(names.WESTBOUNDINGCOORDINATE)
+        wbc_node = new_child_node(names.WESTBOUNDINGCOORDINATE)
         wbc_node.content = wbc
-        add_child(bounding_coordinates_node, wbc_node)
 
-        ebc_node = Node(names.EASTBOUNDINGCOORDINATE)
+        ebc_node = new_child_node(names.EASTBOUNDINGCOORDINATE)
         ebc_node.content = ebc
-        add_child(bounding_coordinates_node, ebc_node)
 
-        nbc_node = Node(names.NORTHBOUNDINGCOORDINATE)
+        nbc_node = new_child_node(names.NORTHBOUNDINGCOORDINATE)
         nbc_node.content = nbc
-        add_child(bounding_coordinates_node, nbc_node)
 
-        sbc_node = Node(names.SOUTHBOUNDINGCOORDINATE)
+        sbc_node = new_child_node(names.SOUTHBOUNDINGCOORDINATE)
         sbc_node.content = sbc
-        add_child(bounding_coordinates_node, sbc_node)
-
-        add_child(geographic_coverage_node, bounding_coordinates_node)
 
         return geographic_coverage_node
 
@@ -1665,25 +1552,19 @@ def create_temporal_coverage(
                    end_date:str=None):
     try:
         if begin_date and end_date:
-            range_of_dates_node = Node(names.RANGEOFDATES, parent=temporal_coverage_node)
-            add_child(temporal_coverage_node, range_of_dates_node)
+            range_of_dates_node = new_child_node(names.RANGEOFDATES, parent=temporal_coverage_node)
 
-            begin_date_node = Node(names.BEGINDATE, parent=range_of_dates_node)
-            add_child(range_of_dates_node, begin_date_node)
-            begin_calendar_date_node = Node(names.CALENDARDATE, parent=begin_date_node)
-            add_child(begin_date_node, begin_calendar_date_node)
+            begin_date_node = new_child_node(names.BEGINDATE, parent=range_of_dates_node)
+            begin_calendar_date_node = new_child_node(names.CALENDARDATE, parent=begin_date_node)
             begin_calendar_date_node.content = begin_date
 
-            end_date_node = Node(names.ENDDATE, parent=range_of_dates_node)
-            add_child(range_of_dates_node, end_date_node)
-            end_calendar_date_node = Node(names.CALENDARDATE, parent=end_date_node)
-            add_child(end_date_node, end_calendar_date_node)
+            end_date_node = new_child_node(names.ENDDATE, parent=range_of_dates_node)
+            end_calendar_date_node = new_child_node(names.CALENDARDATE, parent=end_date_node)
             end_calendar_date_node.content = end_date
+
         elif begin_date:
-            single_datetime_node = Node(names.SINGLEDATETIME, parent=temporal_coverage_node)
-            add_child(temporal_coverage_node, single_datetime_node)
-            calendar_date_node = Node(names.CALENDARDATE, parent=single_datetime_node)
-            add_child(single_datetime_node, calendar_date_node)
+            single_datetime_node = new_child_node(names.SINGLEDATETIME, parent=temporal_coverage_node)
+            calendar_date_node = new_child_node(names.CALENDARDATE, parent=single_datetime_node)
             calendar_date_node.content = begin_date
 
         return temporal_coverage_node
@@ -1712,116 +1593,87 @@ def create_taxonomic_coverage(
     try:
         if taxonomic_coverage_node:
             if general_taxonomic_coverage:
-                general_taxonomic_coverage_node = Node(names.GENERALTAXONOMICCOVERAGE, 
+                general_taxonomic_coverage_node = new_child_node(names.GENERALTAXONOMICCOVERAGE,
                                                        parent=taxonomic_coverage_node)
                 general_taxonomic_coverage_node.content = general_taxonomic_coverage
-                add_child(taxonomic_coverage_node, general_taxonomic_coverage_node)
 
             taxonomic_classification_parent_node = taxonomic_coverage_node
             
             if kingdom_value:
-                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
-                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_name_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = 'Kingdom'
-                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_value_node)
+                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = kingdom_value
                 if kingdom_common_name:
-                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content=kingdom_common_name
-                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if phylum_value:
-                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
-                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_name_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = 'Phylum'
-                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_value_node)
+                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = phylum_value
                 if phylum_common_name:
-                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = phylum_common_name
-                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if class_value:
-                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
-                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_name_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = 'Class'
-                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_value_node)
+                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = class_value
                 if class_common_name:
-                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = class_common_name
-                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if order_value:
-                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
-                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_name_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = 'Order'
-                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_value_node)
+                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = order_value
                 if order_common_name:
-                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = order_common_name
-                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if family_value:
-                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
-                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_name_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = 'Family'
-                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_value_node)
+                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = family_value
                 if family_common_name:
-                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = family_common_name
-                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if genus_value:
-                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
-                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_name_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = 'Genus'
-                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_value_node)
+                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = genus_value
                 if genus_common_name:
-                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = genus_common_name
-                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
             if species_value:
-                taxonomic_classification_node = Node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                add_child(taxonomic_classification_parent_node, taxonomic_classification_node)
-                taxon_rank_name_node = Node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_name_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = 'Species'
-                taxon_rank_value_node = Node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                add_child(taxonomic_classification_node, taxon_rank_value_node)
+                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = species_value
                 if species_common_name:
-                    common_name_node = Node(names.COMMONNAME, parent=taxonomic_classification_node)
+                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = species_common_name
-                    add_child(taxonomic_classification_node, common_name_node)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
         return taxonomic_coverage_node
@@ -1852,104 +1704,83 @@ def create_responsible_party(
                    online_url:str=None,
                    role:str=None):
     try:
-        if salutation or gn or sn:
-            individual_name_node = Node(names.INDIVIDUALNAME)
-            if salutation:
-                salutation_node = Node(names.SALUTATION)
-                salutation_node.content = salutation
-                add_child(individual_name_node, salutation_node)
-            if gn:
-                given_name_node = Node(names.GIVENNAME)
-                given_name_node.content = gn
-                add_child(individual_name_node, given_name_node)
-            if mn:
-                given_name_node = Node(names.GIVENNAME)
-                given_name_node.content = mn
-                add_child(individual_name_node, given_name_node)
-            if sn:
-                surname_node = Node(names.SURNAME)
-                surname_node.content = sn
-                add_child(individual_name_node, surname_node)
-            add_child(responsible_party_node, individual_name_node)
+        if salutation or gn or mn or sn:
+            individual_name_node = new_child_node(names.INDIVIDUALNAME, parent=responsible_party_node)
+        if salutation:
+            salutation_node = new_child_node(names.SALUTATION, parent=individual_name_node)
+            salutation_node.content = salutation
+        if gn:
+            given_name_node = new_child_node(names.GIVENNAME, parent=individual_name_node)
+            given_name_node.content = gn
+        if mn:
+            given_name_node = new_child_node(names.GIVENNAME, parent=individual_name_node)
+            given_name_node.content = mn
+        if sn:
+            surname_node = new_child_node(names.SURNAME, parent=individual_name_node)
+            surname_node.content = sn
 
         if user_id:
-            user_id_node = Node(names.USERID)
+            user_id_node = new_child_node(names.USERID, parent=responsible_party_node)
             user_id_node.content = user_id
             user_id_node.add_attribute('directory', 'https://orcid.org')  # FIXME - temporary
-            add_child(responsible_party_node, user_id_node)
 
         if organization:
-            organization_name_node = Node(names.ORGANIZATIONNAME)
+            organization_name_node = new_child_node(names.ORGANIZATIONNAME, parent=responsible_party_node)
             organization_name_node.content = organization
-            add_child(responsible_party_node, organization_name_node)
 
         if position_name:
-            position_name_node = Node(names.POSITIONNAME)
+            position_name_node = new_child_node(names.POSITIONNAME, parent=responsible_party_node)
             position_name_node.content = position_name
-            add_child(responsible_party_node, position_name_node)
 
         if address_1 or address_2 or city or state or postal_code or country:
-            address_node = Node(names.ADDRESS)
+            address_node = new_child_node(names.ADDRESS, parent=responsible_party_node)
 
-            if address_1:
-                delivery_point_node_1 = Node(names.DELIVERYPOINT)
-                delivery_point_node_1.content = address_1
-                add_child(address_node, delivery_point_node_1)
+        if address_1:
+            delivery_point_node_1 = new_child_node(names.DELIVERYPOINT, parent=address_node)
+            delivery_point_node_1.content = address_1
 
-            if address_2:
-                delivery_point_node_2 = Node(names.DELIVERYPOINT)
-                delivery_point_node_2.content = address_2
-                add_child(address_node, delivery_point_node_2)
+        if address_2:
+            delivery_point_node_2 = new_child_node(names.DELIVERYPOINT, parent=address_node)
+            delivery_point_node_2.content = address_2
 
-            if city:
-                city_node = Node(names.CITY)
-                city_node.content = city
-                add_child(address_node, city_node)
+        if city:
+            city_node = new_child_node(names.CITY, parent=address_node)
+            city_node.content = city
 
-            if state:
-                administrative_area_node = Node(names.ADMINISTRATIVEAREA)
-                administrative_area_node.content = state
-                add_child(address_node, administrative_area_node)
+        if state:
+            administrative_area_node = new_child_node(names.ADMINISTRATIVEAREA, parent=address_node)
+            administrative_area_node.content = state
 
-            if postal_code:
-                postal_code_node = Node(names.POSTALCODE)
-                postal_code_node.content = postal_code
-                add_child(address_node, postal_code_node)
+        if postal_code:
+            postal_code_node = new_child_node(names.POSTALCODE, parent=address_node)
+            postal_code_node.content = postal_code
 
-            if country:
-                country_node = Node(names.COUNTRY)
-                country_node.content = country
-                add_child(address_node,country_node)
-
-            add_child(responsible_party_node, address_node)
+        if country:
+            country_node = new_child_node(names.COUNTRY, parent=address_node)
+            country_node.content = country
 
         if phone:
-            phone_node = Node(names.PHONE)
+            phone_node = new_child_node(names.PHONE, parent=responsible_party_node)
             phone_node.content = phone
             phone_node.add_attribute('phonetype', 'voice')
-            add_child(responsible_party_node, phone_node)
 
         if fax:
-            fax_node = Node(names.PHONE)
+            fax_node = new_child_node(names.PHONE, parent=responsible_party_node)
             fax_node.content = fax
             fax_node.add_attribute('phonetype', 'facsimile')
-            add_child(responsible_party_node, fax_node)
 
         if email:
-            email_node = Node(names.ELECTRONICMAILADDRESS)
+            email_node = new_child_node(names.ELECTRONICMAILADDRESS, parent=responsible_party_node)
             email_node.content = email
-            add_child(responsible_party_node, email_node)
 
         if online_url:
-            online_url_node = Node(names.ONLINEURL)
+            online_url_node = new_child_node(names.ONLINEURL, parent=responsible_party_node)
             online_url_node.content = online_url
-            add_child(responsible_party_node, online_url_node)
 
         if role:
-            role_node = Node(names.ROLE)
+            role_node = new_child_node(names.ROLE, parent=responsible_party_node)
             role_node.content = role
-            add_child(responsible_party_node, role_node)
-             
+
         return responsible_party_node
 
     except Exception as e:
@@ -1959,7 +1790,9 @@ def create_responsible_party(
 def list_funding_awards(eml_node:Node=None):
     award_list = []
     if eml_node:
-        project_node = eml_node.find_child(names.PROJECT)
+        project_node = eml_node.find_all_nodes_by_path([
+            names.DATASET, names.PROJECT
+        ])
         if not project_node:
             return []
         award_nodes = project_node.find_all_children(names.AWARD)
@@ -1975,19 +1808,19 @@ def list_funding_awards(eml_node:Node=None):
                 award_number = ''
                 award_title = ''
                 award_url = ''
-                funder_name_node = award_node.find_child(names.FUNDERNAME)
+                funder_name_node = award_node.find_immediate_child(names.FUNDERNAME)
                 if funder_name_node:
                     funder_name = funder_name_node.content
-                funder_identifier_node = award_node.find_child(names.FUNDERIDENTIFIER)
+                funder_identifier_node = award_node.find_immediate_child(names.FUNDERIDENTIFIER)
                 if funder_identifier_node:
                     funder_identifier = funder_identifier_node.content
-                award_number_node = award_node.find_child(names.AWARDNUMBER)
+                award_number_node = award_node.find_immediate_child(names.AWARDNUMBER)
                 if award_number_node:
                     award_number = award_number_node.content
-                award_title_node = award_node.find_child(names.TITLE)
+                award_title_node = award_node.find_immediate_child(names.TITLE)
                 if award_title_node:
                     award_title = award_title_node.content
-                award_url_node = award_node.find_child(names.AWARDURL)
+                award_url_node = award_node.find_immediate_child(names.AWARDURL)
                 if award_url_node:
                     award_url = award_url_node.content
                 upval = get_upval(i)
@@ -2008,7 +1841,7 @@ def list_funding_awards(eml_node:Node=None):
 def list_method_steps(parent_node:Node=None):
     ms_list = []
     if parent_node:
-        methods_node = parent_node.find_child(names.METHODS)
+        methods_node = parent_node.find_immediate_child(names.METHODS)
         if methods_node:
             method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
             MS_Entry = collections.namedtuple(
@@ -2033,35 +1866,33 @@ def list_method_steps(parent_node:Node=None):
 def list_keywords(eml_node:Node=None):
     kw_list = []
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            keyword_set_node = dataset_node.find_child(names.KEYWORDSET)
-            if keyword_set_node:
-                kw_nodes = keyword_set_node.find_all_children(names.KEYWORD)
-                KW_Entry = collections.namedtuple(
-                    'KW_Entry', 
-                    ["id", "keyword", "keyword_type", "upval", "downval"],
-                    rename=False)
-                for i, kw_node in enumerate(kw_nodes):
-                    id = kw_node.id
-                    keyword = kw_node.content
-                    kt = kw_node.attribute_value('keywordType')
-                    keyword_type = kt if kt else ''
-                    upval = get_upval(i)
-                    downval = get_downval(i+1, len(kw_nodes))
-                    kw_entry = KW_Entry(id=id,
-                                        keyword=keyword,
-                                        keyword_type=keyword_type,
-                                        upval=upval, 
-                                        downval=downval)
-                    kw_list.append(kw_entry)
+        kw_nodes = eml_node.find_all_nodes_by_path([
+            names.DATASET, names.KEYWORDSET, names.KEYWORD
+        ])
+        KW_Entry = collections.namedtuple(
+            'KW_Entry',
+            ["id", "keyword", "keyword_type", "upval", "downval"],
+            rename=False)
+        for i, kw_node in enumerate(kw_nodes):
+            id = kw_node.id
+            keyword = kw_node.content
+            kt = kw_node.attribute_value('keywordType')
+            keyword_type = kt if kt else ''
+            upval = get_upval(i)
+            downval = get_downval(i+1, len(kw_nodes))
+            kw_entry = KW_Entry(id=id,
+                                keyword=keyword,
+                                keyword_type=keyword_type,
+                                upval=upval,
+                                downval=downval)
+            kw_list.append(kw_entry)
     return kw_list
 
 
 def list_access_rules(parent_node:Node=None):
     ar_list = []
     if parent_node:
-        access_node = parent_node.find_child(names.ACCESS)
+        access_node = parent_node.find_immediate_child(names.ACCESS)
         if access_node:
             allow_nodes = access_node.find_all_children(names.ALLOW)
             AR_Entry = collections.namedtuple(
@@ -2087,7 +1918,7 @@ def get_child_content(parent_node:Node=None, child_name:str=None):
     content = ''
 
     if parent_node and child_name:
-        child_node = parent_node.find_child(child_name)
+        child_node = parent_node.find_immediate_child(child_name)
         if child_node:
             content = child_node.content 
 
@@ -2099,16 +1930,16 @@ def compose_method_step_description(method_step_node:Node=None):
     MAX_LEN = 40
 
     if method_step_node:
-        description_node = method_step_node.find_child(names.DESCRIPTION)
+        description_node = method_step_node.find_immediate_child(names.DESCRIPTION)
         if description_node:
             if description_node.content:
                 description = description_node.content
             else:
-                section_node = description_node.find_child(names.SECTION)
+                section_node = description_node.find_immediate_child(names.SECTION)
                 if section_node:
                     description = section_node.content
                 else:
-                    para_node = description_node.find_child(names.PARA)
+                    para_node = description_node.find_immediate_child(names.PARA)
                     if para_node:
                         description = para_node.content
 
@@ -2123,7 +1954,7 @@ def compose_method_step_instrumentation(method_step_node:Node=None):
     MAX_LEN = 40
 
     if method_step_node:
-        instrumentation_node = method_step_node.find_child(names.INSTRUMENTATION)
+        instrumentation_node = method_step_node.find_immediate_child(names.INSTRUMENTATION)
         if instrumentation_node:
             instrumentation = instrumentation_node.content 
             if instrumentation and len(instrumentation) > MAX_LEN:
@@ -2134,9 +1965,8 @@ def compose_method_step_instrumentation(method_step_node:Node=None):
 
 def create_method_step(method_step_node:Node=None, description:str=None, instrumentation:str=None):
     if method_step_node:
-        description_node = Node(names.DESCRIPTION, parent=method_step_node)
-        add_child(method_step_node, description_node)
-        
+        description_node = new_child_node(names.DESCRIPTION, parent=method_step_node)
+
         if description:
             # para_node = Node(names.PARA, parent=description_node)
             # add_child(description_node, para_node)
@@ -2145,10 +1975,8 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
             description_node.content = description
 
         if instrumentation:
-            instrumentation_node = Node(names.INSTRUMENTATION, parent=method_step_node)
-            add_child(method_step_node, instrumentation_node)
-            if instrumentation:
-                instrumentation_node.content = instrumentation
+            instrumentation_node = new_child_node(names.INSTRUMENTATION, parent=method_step_node)
+            instrumentation_node.content = instrumentation
 
 
 def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=None):
@@ -2161,13 +1989,11 @@ def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=No
 def create_access_rule(allow_node:Node=None, userid:str=None, permission:str=None):
     if allow_node:
         if userid:
-            principal_node = Node(names.PRINCIPAL, parent=allow_node)
-            add_child(allow_node, principal_node)
+            principal_node = new_child_node(names.PRINCIPAL, parent=allow_node)
             principal_node.content = userid
         
         if permission:
-            permission_node = Node(names.PERMISSION, parent=allow_node)
-            add_child(allow_node, permission_node)
+            permission_node = new_child_node(names.PERMISSION, parent=allow_node)
             permission_node.content = permission
 
 

@@ -184,12 +184,13 @@ def data_table(packageid=None, node_id=None):
 
             save_both_formats(packageid=packageid, eml_node=eml_node)
 
-        if (next_page == PAGE_ENTITY_ACCESS_SELECT or
-                next_page == PAGE_ENTITY_METHOD_STEP_SELECT or
-                next_page == PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT or
-                next_page == PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT or
-                next_page == PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
-        ):
+        if next_page in [
+            PAGE_ENTITY_ACCESS_SELECT,
+            PAGE_ENTITY_METHOD_STEP_SELECT,
+            PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT,
+            PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT,
+            PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT,
+        ]:
             return redirect(url_for(next_page,
                                     packageid=packageid,
                                     dt_element_name=names.DATATABLE,
@@ -393,7 +394,9 @@ def attribute_measurement_scale(packageid=None, dt_node_id=None, node_id=None, m
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        return attribute_measurement_scale_post(packageid, form, form_dict, dt_node_id, node_id, mscale)
+        return attribute_measurement_scale_post(
+            packageid, form, form_dict, dt_node_id, att_node_id, mscale
+        )
 
     # Process GET
     return attribute_measurement_scale_get(packageid, form, att_node_id)
@@ -755,25 +758,18 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
                     if minimum_node:
                         form.bounds_minimum.data = minimum_node.content
                         exclusive = minimum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_minimum_exclusive.data = True
-                            else:
-                                form.bounds_minimum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_minimum_exclusive.data = True
                         else:
                             form.bounds_minimum_exclusive.data = False
                     maximum_node = bounds_node.find_child(names.MAXIMUM)
                     if maximum_node:
                         form.bounds_maximum.data = maximum_node.content
                         exclusive = maximum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_maximum_exclusive.data = True
-                            else:
-                                form.bounds_maximum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_maximum_exclusive.data = True
                         else:
                             form.bounds_maximum_exclusive.data = False
-
     mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
         i = 1
@@ -795,7 +791,7 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
             elif i == 3:
                 form.code_3.data = code
                 form.code_explanation_3.data = code_explanation
-            i = i + 1
+            i += 1
 
     form.md5.data = form_md5(form)
 
@@ -1046,25 +1042,18 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                     if minimum_node:
                         form.bounds_minimum.data = minimum_node.content
                         exclusive = minimum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_minimum_exclusive.data = True
-                            else:
-                                form.bounds_minimum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_minimum_exclusive.data = True
                         else:
                             form.bounds_minimum_exclusive.data = False
                     maximum_node = bounds_node.find_child(names.MAXIMUM)
                     if maximum_node:
                         form.bounds_maximum.data = maximum_node.content
                         exclusive = maximum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_maximum_exclusive.data = True
-                            else:
-                                form.bounds_maximum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_maximum_exclusive.data = True
                         else:
                             form.bounds_maximum_exclusive.data = False
-
     mvc_nodes = att_node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
         i = 1
@@ -1086,7 +1075,7 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
             elif i == 3:
                 form.code_3.data = code
                 form.code_explanation_3.data = code_explanation
-            i = i + 1
+            i += 1
 
     form.md5.data = form_md5(form)
 
@@ -1211,7 +1200,7 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
             cd_node = None
             if att_node_id != '1':
                 att_node = Node.get_node_instance(att_node_id)
-                cd_node = code_definition_from_attribute(att_node)
+                cd_node = code_definition_from_attribute(att_node)  # FIXME - What's going on here??? Only one node returned...
 
             if not cd_node:
                 cd_node = Node(names.CODEDEFINITION, parent=None)
@@ -1574,7 +1563,7 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
     if node_id == '1':
         form.init_md5()
     else:
-        enumerated_domain_node = enumerated_domain_from_attribute(att_node)
+        enumerated_domain_node = enumerated_domain_from_attribute(att_node)  # FIXME - Question: schema allows multiple of these
         if enumerated_domain_node:
             cd_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
             if cd_nodes:

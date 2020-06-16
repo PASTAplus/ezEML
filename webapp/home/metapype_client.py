@@ -96,7 +96,7 @@ def new_child_node(child_name:str, parent:Node):
 def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Optionality.REQUIRED):
     if optionality == Optionality.OPTIONAL and not content:
         return
-    child_node = parent_node.find_immediate_child(child_name)
+    child_node = parent_node.find_child(child_name)
     if not child_node:
         child_node = Node(child_name, parent=parent_node)
         if not Optionality.FORCE:
@@ -129,7 +129,7 @@ def move_down(parent_node:Node, child_node:Node):
 def list_data_tables(eml_node:Node=None):
     dt_list = []
     if eml_node:
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             DT_Entry = collections.namedtuple(
@@ -152,7 +152,7 @@ def list_data_tables(eml_node:Node=None):
 def list_other_entities(eml_node:Node=None):
     oe_list = []
     if eml_node:
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             oe_nodes = dataset_node.find_all_children(names.OTHERENTITY)
             OE_Entry = collections.namedtuple(
@@ -175,7 +175,7 @@ def list_other_entities(eml_node:Node=None):
 def compose_entity_label(entity_node:Node=None):
     label = ''
     if entity_node:
-        entity_name_node = entity_node.find_immediate_child(names.ENTITYNAME)
+        entity_name_node = entity_node.find_child(names.ENTITYNAME)
         if entity_name_node:
             entity_name = entity_name_node.content 
             label = entity_name
@@ -233,10 +233,10 @@ def compose_code_definition(code_definition_node:Node=None):
     definition = ''
 
     if code_definition_node:
-        code_node = code_definition_node.find_immediate_child(names.CODE)
+        code_node = code_definition_node.find_child(names.CODE)
         if code_node:
             code = code_node.content
-        definition_node = code_definition_node.find_immediate_child(names.DEFINITION)
+        definition_node = code_definition_node.find_child(names.DEFINITION)
         if definition_node:
             definition = definition_node.content
 
@@ -247,7 +247,7 @@ def entity_name_from_data_table(dt_node:Node=None):
     entity_name = ''
 
     if dt_node:
-        entity_name_node = dt_node.find_immediate_child(names.ENTITYNAME)
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
         if entity_name_node:
             entity_name = entity_name_node.content
 
@@ -258,7 +258,7 @@ def attribute_name_from_attribute(att_node:Node=None):
     attribute_name = ''
 
     if att_node:
-        attribute_name_node = att_node.find_immediate_child(names.ATTRIBUTENAME)
+        attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
         if attribute_name_node:
             attribute_name = attribute_name_node.content
 
@@ -291,38 +291,38 @@ def non_numeric_domain_from_measurement_scale(ms_node:Node=None):
     nnd_node = None
 
     if ms_node:
-        nominal_or_ordinal_node = ms_node.find_immediate_child(names.NOMINAL)
+        nominal_or_ordinal_node = ms_node.find_child(names.NOMINAL)
         if not nominal_or_ordinal_node:
-            nominal_or_ordinal_node = ms_node.find_immediate_child(names.ORDINAL)
+            nominal_or_ordinal_node = ms_node.find_child(names.ORDINAL)
         
         if nominal_or_ordinal_node:
-            nnd_node = nominal_or_ordinal_node.find_immediate_child(names.NONNUMERICDOMAIN)
+            nnd_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
 
     return nnd_node
 
 
 def mscale_from_attribute(att_node:Node=None):
     if att_node:
-        mscale_node = att_node.find_immediate_child(names.MEASUREMENTSCALE)
+        mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
         if mscale_node:
         
-            nominal_node = mscale_node.find_immediate_child(names.NOMINAL)
+            nominal_node = mscale_node.find_child(names.NOMINAL)
             if nominal_node:
-                non_numeric_domain_node = nominal_node.find_immediate_child(names.NONNUMERICDOMAIN)
+                non_numeric_domain_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
                 if non_numeric_domain_node:
-                    enumerated_domain_node = non_numeric_domain_node.find_immediate_child(names.ENUMERATEDDOMAIN)
+                    enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
                     if enumerated_domain_node:
                         return VariableType.CATEGORICAL.name
-                    text_domain_node = non_numeric_domain_node.find_immediate_child(names.TEXTDOMAIN)
+                    text_domain_node = non_numeric_domain_node.find_child(names.TEXTDOMAIN)
                     if text_domain_node:
                         return VariableType.TEXT.name
 
-            ratio_node = mscale_node.find_immediate_child(names.RATIO)
+            ratio_node = mscale_node.find_child(names.RATIO)
             if ratio_node:
                 return VariableType.NUMERICAL.name
 
-            date_time_node = mscale_node.find_immediate_child(names.DATETIME)
+            date_time_node = mscale_node.find_child(names.DATETIME)
             if date_time_node:
                 return VariableType.DATETIME.name
 
@@ -332,7 +332,7 @@ def mscale_from_attribute(att_node:Node=None):
 def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=None):
     att_list = []
     if data_table_node:
-        attribute_list_node = data_table_node.find_immediate_child(names.ATTRIBUTELIST)
+        attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
         if attribute_list_node:
             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
             ATT_Entry = collections.namedtuple(
@@ -373,7 +373,7 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
 def compose_attribute_label(att_node:Node=None):
     label = ''
     if att_node:
-        attribute_name_node = att_node.find_immediate_child(names.ATTRIBUTENAME)
+        attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
         if attribute_name_node:
             attribute_name = attribute_name_node.content 
             label = attribute_name
@@ -398,11 +398,11 @@ def compose_attribute_mscale(att_node:Node=None):
 def list_responsible_parties(eml_node:Node=None, node_name:str=None):
     rp_list = []
     if eml_node:
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             parent_node = dataset_node
             if node_name == 'personnel':
-                project_node = dataset_node.find_immediate_child(names.PROJECT)
+                project_node = dataset_node.find_child(names.PROJECT)
                 if project_node:
                     parent_node = project_node
 
@@ -424,7 +424,7 @@ def list_geographic_coverages(parent_node:Node=None):
     gc_list = []
     max_len = 40
     if parent_node:
-        coverage_node = parent_node.find_immediate_child(names.COVERAGE)
+        coverage_node = parent_node.find_child(names.COVERAGE)
         if coverage_node:
             gc_nodes = \
                 coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
@@ -438,7 +438,7 @@ def list_geographic_coverages(parent_node:Node=None):
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(gc_nodes))
                 geographic_description_node = \
-                    gc_node.find_immediate_child(names.GEOGRAPHICDESCRIPTION)
+                    gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
                 if geographic_description_node:
                     description = geographic_description_node.content
                     if description and len(description) > max_len:
@@ -466,12 +466,12 @@ def compose_gc_label(gc_node:Node=None):
     '''
     label = ''
     if gc_node:
-        bc_node = gc_node.find_immediate_child(names.BOUNDINGCOORDINATES)
+        bc_node = gc_node.find_child(names.BOUNDINGCOORDINATES)
         if bc_node:
-            wbc_node = bc_node.find_immediate_child(names.WESTBOUNDINGCOORDINATE)
-            ebc_node = bc_node.find_immediate_child(names.EASTBOUNDINGCOORDINATE)
-            nbc_node = bc_node.find_immediate_child(names.NORTHBOUNDINGCOORDINATE)
-            sbc_node = bc_node.find_immediate_child(names.SOUTHBOUNDINGCOORDINATE)
+            wbc_node = bc_node.find_child(names.WESTBOUNDINGCOORDINATE)
+            ebc_node = bc_node.find_child(names.EASTBOUNDINGCOORDINATE)
+            nbc_node = bc_node.find_child(names.NORTHBOUNDINGCOORDINATE)
+            sbc_node = bc_node.find_child(names.SOUTHBOUNDINGCOORDINATE)
             if wbc_node and ebc_node and nbc_node and sbc_node:
                 coordinate_list = [str(wbc_node.content),
                                    str(ebc_node.content),
@@ -484,7 +484,7 @@ def compose_gc_label(gc_node:Node=None):
 def list_temporal_coverages(parent_node:Node=None):
     tc_list = []
     if parent_node:
-        coverage_node = parent_node.find_immediate_child(names.COVERAGE)
+        coverage_node = parent_node.find_child(names.COVERAGE)
         if coverage_node:
             tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
             TC_Entry = collections.namedtuple(
@@ -498,7 +498,7 @@ def list_temporal_coverages(parent_node:Node=None):
                 single_datetime_nodes = tc_node.find_all_children(names.SINGLEDATETIME)
                 if single_datetime_nodes:
                     for sd_node in single_datetime_nodes:
-                        calendar_date_node = sd_node.find_immediate_child(names.CALENDARDATE)
+                        calendar_date_node = sd_node.find_child(names.CALENDARDATE)
                         if calendar_date_node:
                             begin_date = calendar_date_node.content
                             end_date = ''
@@ -510,14 +510,14 @@ def list_temporal_coverages(parent_node:Node=None):
                     for rod_node in range_of_dates_nodes:
                         begin_date = ''
                         end_date = ''
-                        begin_date_node = rod_node.find_immediate_child(names.BEGINDATE)
+                        begin_date_node = rod_node.find_child(names.BEGINDATE)
                         if begin_date_node:
-                            calendar_date_node = begin_date_node.find_immediate_child(names.CALENDARDATE)
+                            calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
                             if calendar_date_node:
                                 begin_date = calendar_date_node.content
-                        end_date_node = rod_node.find_immediate_child(names.ENDDATE)
+                        end_date_node = rod_node.find_child(names.ENDDATE)
                         if end_date_node:
-                            calendar_date_node = end_date_node.find_immediate_child(names.CALENDARDATE)
+                            calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
                             if calendar_date_node:
                                 end_date = calendar_date_node.content
                         tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
@@ -528,7 +528,7 @@ def list_temporal_coverages(parent_node:Node=None):
 def list_taxonomic_coverages(parent_node:Node=None):
     txc_list = []
     if parent_node:
-        coverage_node = parent_node.find_immediate_child(names.COVERAGE)
+        coverage_node = parent_node.find_child(names.COVERAGE)
         if coverage_node:
             txc_nodes = coverage_node.find_all_children(
                 names.TAXONOMICCOVERAGE)
@@ -550,10 +550,10 @@ def list_taxonomic_coverages(parent_node:Node=None):
 def compose_taxonomic_label(txc_node:Node=None, label:str=''):
     if not txc_node:
         return label
-    tc_node = txc_node.find_immediate_child(names.TAXONOMICCLASSIFICATION)
+    tc_node = txc_node.find_child(names.TAXONOMICCLASSIFICATION)
     if tc_node:
         val = ''
-        trv_node = tc_node.find_immediate_child(names.TAXONRANKVALUE)
+        trv_node = tc_node.find_child(names.TAXONRANKVALUE)
         if trv_node:
             val = trv_node.content
         new_label = label + ' ' + val if label else val
@@ -565,7 +565,7 @@ def compose_taxonomic_label(txc_node:Node=None, label:str=''):
 def compose_rp_label(rp_node:Node=None):
     label = ''
     if rp_node:
-        individual_name_node = rp_node.find_immediate_child(names.INDIVIDUALNAME)
+        individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
         individual_name_label = (
             compose_individual_name_label(individual_name_node))
         organization_name_label = (
@@ -601,7 +601,7 @@ def compose_individual_name_label(rp_node:Node=None):
                 if given_name_node and given_name_node.content:
                     label = label + " " + given_name_node.content
         
-        surname_node = rp_node.find_immediate_child(names.SURNAME)
+        surname_node = rp_node.find_child(names.SURNAME)
         if surname_node and surname_node.content:
             label = label + " " + surname_node.content
 
@@ -611,7 +611,7 @@ def compose_individual_name_label(rp_node:Node=None):
 def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
     label = ''
     if rp_node and child_node_name:
-        child_node = rp_node.find_immediate_child(child_node_name)
+        child_node = rp_node.find_child(child_node_name)
         if child_node and child_node.content:
             label = child_node.content
     return label
@@ -681,7 +681,7 @@ def enforce_dataset_sequence(eml_node:Node=None):
     if eml_node:
         # Children of dataset node need to be in sequence. This happens "naturally" when ezEML is used as a
         #  wizard, but not when jumping around between sections
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             new_children = []
             sequence = (
@@ -1073,15 +1073,15 @@ def create_numerical_attribute(
 
 
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
-    additional_metadata_node = eml_node.find_immediate_child(names.ADDITIONALMETADATA)
+    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     if not additional_metadata_node:
         additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, '', Optionality.REQUIRED)
     # do we already have the metadata node?
-    metadata_node = additional_metadata_node.find_immediate_child(names.METADATA)
+    metadata_node = additional_metadata_node.find_child(names.METADATA)
     if not metadata_node:
         metadata_node = add_node(additional_metadata_node, names.METADATA, '', Optionality.REQUIRED)
     # de we already have the unitList node?
-    unit_list_node = metadata_node.find_immediate_child(names.UNITLIST)
+    unit_list_node = metadata_node.find_child(names.UNITLIST)
     if not unit_list_node:
         unit_list_node = add_node(metadata_node, names.UNITLIST, '', Optionality.FORCE)
     # do we already have a node for this custom unit?
@@ -1095,7 +1095,7 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
         unit_node = add_node(unit_list_node, names.UNIT, '', Optionality.FORCE)
     unit_node.add_attribute('id', custom_unit_name)
     unit_node.add_attribute('name', custom_unit_name)
-    description_node = unit_node.find_immediate_child(names.DESCRIPTION)
+    description_node = unit_node.find_child(names.DESCRIPTION)
     if description_node:
         unit_node.remove_child(description_node)
     add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
@@ -1142,7 +1142,7 @@ def create_categorical_or_text_attribute(
         if mscale == VariableType.CATEGORICAL.name:
 
             # get rid of textDomain node, if any
-            text_domain_node = attribute_node.find_immediate_child(names.TEXTDOMAIN)
+            text_domain_node = attribute_node.find_child(names.TEXTDOMAIN)
             if text_domain_node:
                 attribute_node.remove_child(text_domain_node)
 
@@ -1170,7 +1170,7 @@ def create_categorical_or_text_attribute(
             definition_node.content = attribute_definition
 
             # get rid of enumeratedDomain node, if any
-            enumerated_domain_node = non_numeric_domain_node.find_immediate_child(names.ENUMERATEDDOMAIN)
+            enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
             if enumerated_domain_node:
                 non_numeric_domain_node.remove_child(enumerated_domain_node)
 
@@ -1207,9 +1207,9 @@ def create_title(title=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
     title_node = None
 
-    dataset_node = eml_node.find_immediate_child('dataset')
+    dataset_node = eml_node.find_child('dataset')
     if dataset_node:
-        title_node = dataset_node.find_immediate_child('title')
+        title_node = dataset_node.find_child('title')
         if not title_node:
             title_node = new_child_node(names.TITLE, parent=dataset_node)
     else:
@@ -1230,9 +1230,9 @@ def create_pubplace(pubplace=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
     pubplace_node = None
 
-    dataset_node = eml_node.find_immediate_child('dataset')
+    dataset_node = eml_node.find_child('dataset')
     if dataset_node:
-        pubplace_node = dataset_node.find_immediate_child('pubPlace')
+        pubplace_node = dataset_node.find_child('pubPlace')
         if not pubplace_node:
             pubplace_node = new_child_node(names.PUBPLACE, parent=dataset_node)
     else:
@@ -1316,9 +1316,9 @@ def create_other_entity(
 def create_pubdate(pubdate=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_immediate_child(names.DATASET)
+    dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
-        pubdate_node = dataset_node.find_immediate_child(names.PUBDATE)
+        pubdate_node = dataset_node.find_child(names.PUBDATE)
         if not pubdate_node:
             pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
     else:
@@ -1336,9 +1336,9 @@ def create_pubdate(pubdate=None, packageid=None):
 def create_abstract(packageid:str=None, abstract:str=None):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_immediate_child(names.DATASET)
+    dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
-        abstract_node = dataset_node.find_immediate_child(names.ABSTRACT)
+        abstract_node = dataset_node.find_child(names.ABSTRACT)
         if not abstract_node:
             abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
     else:
@@ -1356,9 +1356,9 @@ def create_abstract(packageid:str=None, abstract:str=None):
 def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_immediate_child(names.DATASET)
+    dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
-        intellectual_rights_node = dataset_node.find_immediate_child(names.INTELLECTUALRIGHTS)
+        intellectual_rights_node = dataset_node.find_child(names.INTELLECTUALRIGHTS)
         if not intellectual_rights_node:
             intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
     else:
@@ -1388,16 +1388,16 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
 def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
     try:
         if dataset_node:
-            project_node = dataset_node.find_immediate_child(names.PROJECT)
+            project_node = dataset_node.find_child(names.PROJECT)
             if not project_node:
                 project_node = new_child_node(names.PROJECT, parent=dataset_node)
 
-        title_node = project_node.find_immediate_child(names.TITLE)
+        title_node = project_node.find_child(names.TITLE)
         if not title_node:
             title_node = new_child_node(names.TITLE, parent=project_node)
         title_node.content = title
 
-        abstract_node = project_node.find_immediate_child(names.ABSTRACT)
+        abstract_node = project_node.find_child(names.ABSTRACT)
         if not abstract_node:
             abstract_node = new_child_node(names.ABSTRACT, parent=project_node)
         if abstract:
@@ -1446,11 +1446,11 @@ def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
     if keyword:
         eml_node = load_eml(packageid=packageid)
 
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
             dataset_node = new_child_node(names.DATASET, parent=eml_node)
 
-        keywordset_node = dataset_node.find_immediate_child(names.KEYWORDSET)
+        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
         if not keywordset_node:
             keywordset_node = new_child_node(names.KEYWORDSET, parent=dataset_node)
 
@@ -1498,9 +1498,9 @@ def remove_keyword(packageid:str=None, keyword:str=None):
 def create_keywords(packageid:str=None, keywords_list:list=[]):
     eml_node = load_eml(packageid=packageid)
 
-    dataset_node = eml_node.find_immediate_child(names.DATASET)
+    dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
-        keywordset_node = dataset_node.find_immediate_child(names.KEYWORDSET)
+        keywordset_node = dataset_node.find_child(names.KEYWORDSET)
         if keywordset_node:
             # Get rid of the old keyword set if it exists
             dataset_node.remove_child(keywordset_node)
@@ -1812,19 +1812,19 @@ def list_funding_awards(eml_node:Node=None):
                 award_number = ''
                 award_title = ''
                 award_url = ''
-                funder_name_node = award_node.find_immediate_child(names.FUNDERNAME)
+                funder_name_node = award_node.find_child(names.FUNDERNAME)
                 if funder_name_node:
                     funder_name = funder_name_node.content
-                funder_identifier_node = award_node.find_immediate_child(names.FUNDERIDENTIFIER)
+                funder_identifier_node = award_node.find_child(names.FUNDERIDENTIFIER)
                 if funder_identifier_node:
                     funder_identifier = funder_identifier_node.content
-                award_number_node = award_node.find_immediate_child(names.AWARDNUMBER)
+                award_number_node = award_node.find_child(names.AWARDNUMBER)
                 if award_number_node:
                     award_number = award_number_node.content
-                award_title_node = award_node.find_immediate_child(names.TITLE)
+                award_title_node = award_node.find_child(names.TITLE)
                 if award_title_node:
                     award_title = award_title_node.content
-                award_url_node = award_node.find_immediate_child(names.AWARDURL)
+                award_url_node = award_node.find_child(names.AWARDURL)
                 if award_url_node:
                     award_url = award_url_node.content
                 upval = get_upval(i)
@@ -1845,7 +1845,7 @@ def list_funding_awards(eml_node:Node=None):
 def list_method_steps(parent_node:Node=None):
     ms_list = []
     if parent_node:
-        methods_node = parent_node.find_immediate_child(names.METHODS)
+        methods_node = parent_node.find_child(names.METHODS)
         if methods_node:
             method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
             MS_Entry = collections.namedtuple(
@@ -1897,7 +1897,7 @@ def list_keywords(eml_node:Node=None):
 def list_access_rules(parent_node:Node=None):
     ar_list = []
     if parent_node:
-        access_node = parent_node.find_immediate_child(names.ACCESS)
+        access_node = parent_node.find_child(names.ACCESS)
         if access_node:
             allow_nodes = access_node.find_all_children(names.ALLOW)
             AR_Entry = collections.namedtuple(
@@ -1923,7 +1923,7 @@ def get_child_content(parent_node:Node=None, child_name:str=None):
     content = ''
 
     if parent_node and child_name:
-        child_node = parent_node.find_immediate_child(child_name)
+        child_node = parent_node.find_child(child_name)
         if child_node:
             content = child_node.content 
 
@@ -1935,16 +1935,16 @@ def compose_method_step_description(method_step_node:Node=None):
     MAX_LEN = 40
 
     if method_step_node:
-        description_node = method_step_node.find_immediate_child(names.DESCRIPTION)
+        description_node = method_step_node.find_child(names.DESCRIPTION)
         if description_node:
             if description_node.content:
                 description = description_node.content
             else:
-                section_node = description_node.find_immediate_child(names.SECTION)
+                section_node = description_node.find_child(names.SECTION)
                 if section_node:
                     description = section_node.content
                 else:
-                    para_node = description_node.find_immediate_child(names.PARA)
+                    para_node = description_node.find_child(names.PARA)
                     if para_node:
                         description = para_node.content
 
@@ -1959,7 +1959,7 @@ def compose_method_step_instrumentation(method_step_node:Node=None):
     MAX_LEN = 40
 
     if method_step_node:
-        instrumentation_node = method_step_node.find_immediate_child(names.INSTRUMENTATION)
+        instrumentation_node = method_step_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node:
             instrumentation = instrumentation_node.content 
             if instrumentation and len(instrumentation) > MAX_LEN:

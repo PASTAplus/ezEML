@@ -433,7 +433,7 @@ def load_data():
                 data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {filename}')
                 eml_node = load_eml(packageid=packageid)
-                dataset_node = eml_node.find_immediate_child(names.DATASET)
+                dataset_node = eml_node.find_child(names.DATASET)
                 if not dataset_node:
                     dataset_node = new_child_node(names.DATASET, eml_node)
                 dt_node = load_data_table(dataset_node, uploads_folder, data_file)
@@ -473,7 +473,7 @@ def load_entity():
                 data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {data_file_path}')
                 eml_node = load_eml(packageid=packageid)
-                dataset_node = eml_node.find_immediate_child(names.DATASET)
+                dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
                 return redirect(url_for(PAGE_OTHER_ENTITY, packageid=packageid, node_id=other_entity_node.id))

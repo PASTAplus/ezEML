@@ -131,7 +131,7 @@ def other_entity(packageid=None, node_id=None):
         # flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
-            dataset_node = eml_node.find_immediate_child(names.DATASET)
+            dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
 
@@ -164,25 +164,25 @@ def other_entity(packageid=None, node_id=None):
                 old_dt_node = Node.get_node_instance(dt_node_id)
                 if old_dt_node:
 
-                    old_physical_node = old_dt_node.find_immediate_child(names.PHYSICAL)
+                    old_physical_node = old_dt_node.find_child(names.PHYSICAL)
                     if old_physical_node:
-                        old_distribution_node = old_physical_node.find_immediate_child(names.DISTRIBUTION)
+                        old_distribution_node = old_physical_node.find_child(names.DISTRIBUTION)
                         if old_distribution_node:
-                            access_node = old_distribution_node.find_immediate_child(names.ACCESS)
+                            access_node = old_distribution_node.find_child(names.ACCESS)
                             if access_node:
-                                physical_node = dt_node.find_immediate_child(names.PHYSICAL)
+                                physical_node = dt_node.find_child(names.PHYSICAL)
                                 if physical_node:
-                                    distribution_node = dt_node.find_immediate_child(names.DISTRIBUTION)
+                                    distribution_node = dt_node.find_child(names.DISTRIBUTION)
                                     if distribution_node:
                                         old_distribution_node.remove_child(access_node)
                                         add_child(distribution_node, access_node)
 
-                    methods_node = old_dt_node.find_immediate_child(names.METHODS)
+                    methods_node = old_dt_node.find_child(names.METHODS)
                     if methods_node:
                         old_dt_node.remove_child(methods_node)
                         add_child(dt_node, methods_node)
 
-                    coverage_node = old_dt_node.find_immediate_child(names.COVERAGE)
+                    coverage_node = old_dt_node.find_child(names.COVERAGE)
                     if coverage_node:
                         old_dt_node.remove_child(coverage_node)
                         add_child(dt_node, coverage_node)
@@ -219,7 +219,7 @@ def other_entity(packageid=None, node_id=None):
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
             if dt_nodes:
@@ -232,50 +232,50 @@ def other_entity(packageid=None, node_id=None):
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
-    entity_name_node = node.find_immediate_child(names.ENTITYNAME)
+    entity_name_node = node.find_child(names.ENTITYNAME)
     if entity_name_node:
         form.entity_name.data = entity_name_node.content
 
-    entity_type_node = node.find_immediate_child(names.ENTITYTYPE)
+    entity_type_node = node.find_child(names.ENTITYTYPE)
     if entity_type_node:
         form.entity_type.data = entity_type_node.content
 
-    entity_description_node = node.find_immediate_child(names.ENTITYDESCRIPTION)
+    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
     if entity_description_node:
         form.entity_description.data = entity_description_node.content
 
-    physical_node = node.find_immediate_child(names.PHYSICAL)
+    physical_node = node.find_child(names.PHYSICAL)
     if physical_node:
 
-        object_name_node = physical_node.find_immediate_child(names.OBJECTNAME)
+        object_name_node = physical_node.find_child(names.OBJECTNAME)
         if object_name_node:
             form.object_name.data = object_name_node.content
 
-        size_node = physical_node.find_immediate_child(names.SIZE)
+        size_node = physical_node.find_child(names.SIZE)
         if size_node:
             form.size.data = size_node.content
 
-        md5_hash_node = physical_node.find_immediate_child(names.AUTHENTICATION)
+        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
         if md5_hash_node:
             form.md5_hash.data = md5_hash_node.content
 
-        data_format_node = physical_node.find_immediate_child(names.DATAFORMAT)
+        data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:
 
-            externally_defined_format_node = data_format_node.find_immediate_child(names.EXTERNALLYDEFINEDFORMAT)
+            externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
             if externally_defined_format_node:
-                format_name_node = externally_defined_format_node.find_immediate_child(names.FORMATNAME)
+                format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
 
                 if format_name_node:
                     form.format_name.data = format_name_node.content
 
-        distribution_node = physical_node.find_immediate_child(names.DISTRIBUTION)
+        distribution_node = physical_node.find_child(names.DISTRIBUTION)
         if distribution_node:
 
-            online_node = distribution_node.find_immediate_child(names.ONLINE)
+            online_node = distribution_node.find_child(names.ONLINE)
             if online_node:
 
-                url_node = online_node.find_immediate_child(names.URL)
+                url_node = online_node.find_child(names.URL)
                 if url_node:
                     form.online_url.data = url_node.content
     form.md5.data = form_md5(form)
@@ -318,9 +318,9 @@ def entity_access_select_get(packageid=None, form=None, dt_node_id=None):
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            physical_node = data_table_node.find_immediate_child(names.PHYSICAL)
+            physical_node = data_table_node.find_child(names.PHYSICAL)
             if physical_node:
-                distribution_node = physical_node.find_immediate_child(names.DISTRIBUTION)
+                distribution_node = physical_node.find_child(names.DISTRIBUTION)
                 if distribution_node:
                     access_rules_list = list_access_rules(distribution_node)
 
@@ -421,7 +421,7 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
             dt_node = None
             distribution_node = None
             eml_node = load_eml(packageid=packageid)
-            dataset_node = eml_node.find_immediate_child(names.DATASET)
+            dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
             else:
@@ -436,17 +436,17 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
                 dt_node = Node(dt_element_name, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            physical_node = dt_node.find_immediate_child(names.PHYSICAL)
+            physical_node = dt_node.find_child(names.PHYSICAL)
             if not physical_node:
                 physical_node = Node(names.PHYSICAL, parent=dt_node)
                 add_child(dt_node, physical_node)
 
-            distribution_node = physical_node.find_immediate_child(names.DISTRIBUTION)
+            distribution_node = physical_node.find_child(names.DISTRIBUTION)
             if not distribution_node:
                 distribution_node = Node(names.DISTRIBUTION, parent=physical_node)
                 add_child(physical_node, distribution_node)
 
-            access_node = distribution_node.find_immediate_child(names.ACCESS)
+            access_node = distribution_node.find_child(names.ACCESS)
             if not access_node:
                 access_node = create_access(parent_node=distribution_node)
 
@@ -483,17 +483,17 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        physical_node = dt_node.find_immediate_child(names.PHYSICAL)
+                        physical_node = dt_node.find_child(names.PHYSICAL)
                         if physical_node:
-                            distribution_node = physical_node.find_immediate_child(names.DISTRIBUTION)
+                            distribution_node = physical_node.find_child(names.DISTRIBUTION)
                             if distribution_node:
-                                access_node = distribution_node.find_immediate_child(names.ACCESS)
+                                access_node = distribution_node.find_child(names.ACCESS)
                                 if access_node:
                                     allow_nodes = access_node.find_all_children(names.ALLOW)
                                     if allow_nodes:
@@ -589,7 +589,7 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
         if submit_type == 'Save Changes':
             dt_node = None
             eml_node = load_eml(packageid=packageid)
-            dataset_node = eml_node.find_immediate_child(names.DATASET)
+            dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
                 add_child(eml_node, dataset_node)
@@ -605,7 +605,7 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
                 dt_node = Node(dt_element_name, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            methods_node = dt_node.find_immediate_child(names.METHODS)
+            methods_node = dt_node.find_child(names.METHODS)
             if not methods_node:
                 methods_node = Node(names.METHODS, parent=dt_node)
                 add_child(dt_node, methods_node)
@@ -643,13 +643,13 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        methods_node = dt_node.find_immediate_child(names.METHODS)
+                        methods_node = dt_node.find_child(names.METHODS)
                         if methods_node:
                             method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
                             if method_step_nodes:
@@ -743,7 +743,7 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
             dt_node = None
             eml_node = load_eml(packageid=packageid)
 
-            dataset_node = eml_node.find_immediate_child(names.DATASET)
+            dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
                 add_child(eml_node, dataset_node)
@@ -759,7 +759,7 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
                 dt_node = Node(dt_element_name, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            coverage_node = dt_node.find_immediate_child(names.COVERAGE)
+            coverage_node = dt_node.find_child(names.COVERAGE)
             if not coverage_node:
                 coverage_node = Node(names.COVERAGE, parent=dt_node)
                 add_child(dt_node, coverage_node)
@@ -813,13 +813,13 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        coverage_node = dt_node.find_immediate_child(names.COVERAGE)
+                        coverage_node = dt_node.find_child(names.COVERAGE)
                         if coverage_node:
                             gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
                             if gc_nodes:
@@ -975,7 +975,7 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
             dt_node = None
             eml_node = load_eml(packageid=packageid)
 
-            dataset_node = eml_node.find_immediate_child(names.DATASET)
+            dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
                 add_child(eml_node, dataset_node)
@@ -991,7 +991,7 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
                 dt_node = Node(dt_element_name, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            coverage_node = dt_node.find_immediate_child(names.COVERAGE)
+            coverage_node = dt_node.find_child(names.COVERAGE)
             if not coverage_node:
                 coverage_node = Node(names.COVERAGE, parent=dt_node)
                 add_child(dt_node, coverage_node)
@@ -1034,13 +1034,13 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        coverage_node = dt_node.find_immediate_child(names.COVERAGE)
+                        coverage_node = dt_node.find_child(names.COVERAGE)
                         if coverage_node:
                             tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
                             if tc_nodes:
@@ -1133,7 +1133,7 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
             dt_node = None
             eml_node = load_eml(packageid=packageid)
 
-            dataset_node = eml_node.find_immediate_child(names.DATASET)
+            dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
                 add_child(eml_node, dataset_node)
@@ -1149,7 +1149,7 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
                 dt_node = Node(dt_element_name, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            coverage_node = dt_node.find_immediate_child(names.COVERAGE)
+            coverage_node = dt_node.find_child(names.COVERAGE)
             if not coverage_node:
                 coverage_node = Node(names.COVERAGE, parent=dt_node)
                 add_child(dt_node, coverage_node)
@@ -1201,13 +1201,13 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_immediate_child(names.DATASET)
+        dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        coverage_node = dt_node.find_immediate_child(names.COVERAGE)
+                        coverage_node = dt_node.find_child(names.COVERAGE)
                         if coverage_node:
                             txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
                             if txc_nodes:

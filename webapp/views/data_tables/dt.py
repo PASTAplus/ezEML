@@ -103,7 +103,7 @@ def data_table(packageid=None, node_id=None):
         eml_node = load_eml(packageid=packageid)
 
         if submit_type == 'Save Changes':
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
 
@@ -144,30 +144,32 @@ def data_table(packageid=None, node_id=None):
                 old_dt_node = Node.get_node_instance(dt_node_id)
                 if old_dt_node:
 
-                    attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
+                    attribute_list_node = old_dt_node.find_immediate_child(names.ATTRIBUTELIST)
                     if attribute_list_node:
                         old_dt_node.remove_child(attribute_list_node)
                         add_child(dt_node, attribute_list_node)
 
-                    old_physical_node = old_dt_node.find_child(names.PHYSICAL)
-                    if old_physical_node:
-                        old_distribution_node = old_physical_node.find_child(names.DISTRIBUTION)
-                        if old_distribution_node:
-                            access_node = old_distribution_node.find_child(names.ACCESS)
-                            if access_node:
-                                physical_node = dt_node.find_child(names.PHYSICAL)
-                                if physical_node:
-                                    distribution_node = dt_node.find_child(names.DISTRIBUTION)
-                                    if distribution_node:
-                                        old_distribution_node.remove_child(access_node)
-                                        add_child(distribution_node, access_node)
+                    old_distribution_node = old_dt_node.find_single_node_by_path([
+                        names.PHYSICAL,
+                        names.DISTRIBUTION
 
-                    methods_node = old_dt_node.find_child(names.METHODS)
+                    ])
+                    if old_distribution_node:
+                        access_node = old_distribution_node.find_immediate_child(names.ACCESS)
+                        if access_node:
+                            distribution_node = dt_node.find_single_node_by_path([
+                                names.PHYSICAL,
+                                names.DISTRIBUTION
+                            ])
+                            old_distribution_node.remove_child(access_node)
+                            add_child(distribution_node, access_node)
+
+                    methods_node = old_dt_node.find_immediate_child(names.METHODS)
                     if methods_node:
                         old_dt_node.remove_child(methods_node)
                         add_child(dt_node, methods_node)
 
-                    coverage_node = old_dt_node.find_child(names.COVERAGE)
+                    coverage_node = old_dt_node.find_immediate_child(names.COVERAGE)
                     if coverage_node:
                         old_dt_node.remove_child(coverage_node)
                         add_child(dt_node, coverage_node)
@@ -208,7 +210,7 @@ def data_table(packageid=None, node_id=None):
     else:
         eml_node = load_eml(packageid=packageid)
         if eml_node:
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if dataset_node:
                 dt_nodes = dataset_node.find_all_children(names.DATATABLE)
                 if dt_nodes:
@@ -255,69 +257,69 @@ def compose_atts(att_list: list = []):
 
 
 def populate_data_table_form(form: DataTableForm, node: Node):
-    entity_name_node = node.find_child(names.ENTITYNAME)
+    entity_name_node = node.find_immediate_child(names.ENTITYNAME)
     if entity_name_node:
         form.entity_name.data = entity_name_node.content
 
-    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
+    entity_description_node = node.find_immediate_child(names.ENTITYDESCRIPTION)
     if entity_description_node:
         form.entity_description.data = entity_description_node.content
 
-    physical_node = node.find_child(names.PHYSICAL)
+    physical_node = node.find_immediate_child(names.PHYSICAL)
     if physical_node:
 
-        object_name_node = physical_node.find_child(names.OBJECTNAME)
+        object_name_node = physical_node.find_immediate_child(names.OBJECTNAME)
         if object_name_node:
             form.object_name.data = object_name_node.content
 
-        size_node = physical_node.find_child(names.SIZE)
+        size_node = physical_node.find_immediate_child(names.SIZE)
         if size_node:
             form.size.data = size_node.content
 
-        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
+        md5_hash_node = physical_node.find_immediate_child(names.AUTHENTICATION)
         if md5_hash_node:
             form.md5_hash.data = md5_hash_node.content
 
-        data_format_node = physical_node.find_child(names.DATAFORMAT)
+        data_format_node = physical_node.find_immediate_child(names.DATAFORMAT)
         if data_format_node:
 
-            text_format_node = data_format_node.find_child(names.TEXTFORMAT)
+            text_format_node = data_format_node.find_immediate_child(names.TEXTFORMAT)
             if text_format_node:
 
-                num_header_lines_node = text_format_node.find_child(names.NUMHEADERLINES)
+                num_header_lines_node = text_format_node.find_immediate_child(names.NUMHEADERLINES)
                 if num_header_lines_node:
                     form.num_header_lines.data = num_header_lines_node.content
 
-                record_delimiter_node = text_format_node.find_child(names.RECORDDELIMITER)
+                record_delimiter_node = text_format_node.find_immediate_child(names.RECORDDELIMITER)
                 if record_delimiter_node:
                     form.record_delimiter.data = record_delimiter_node.content
 
-                attribute_orientation_node = text_format_node.find_child(names.ATTRIBUTEORIENTATION)
+                attribute_orientation_node = text_format_node.find_immediate_child(names.ATTRIBUTEORIENTATION)
                 if attribute_orientation_node:
                     form.attribute_orientation.data = attribute_orientation_node.content
 
-                simple_delimited_node = text_format_node.find_child(names.SIMPLEDELIMITED)
+                simple_delimited_node = text_format_node.find_immediate_child(names.SIMPLEDELIMITED)
                 if simple_delimited_node:
 
-                    field_delimiter_node = simple_delimited_node.find_child(names.FIELDDELIMITER)
+                    field_delimiter_node = simple_delimited_node.find_immediate_child(names.FIELDDELIMITER)
                     if field_delimiter_node:
                         form.field_delimiter.data = field_delimiter_node.content
 
-        distribution_node = physical_node.find_child(names.DISTRIBUTION)
+        distribution_node = physical_node.find_immediate_child(names.DISTRIBUTION)
         if distribution_node:
 
-            online_node = distribution_node.find_child(names.ONLINE)
+            online_node = distribution_node.find_immediate_child(names.ONLINE)
             if online_node:
 
-                url_node = online_node.find_child(names.URL)
+                url_node = online_node.find_immediate_child(names.URL)
                 if url_node:
                     form.online_url.data = url_node.content
 
-    case_sensitive_node = node.find_child(names.CASESENSITIVE)
+    case_sensitive_node = node.find_immediate_child(names.CASESENSITIVE)
     if case_sensitive_node:
         form.case_sensitive.data = case_sensitive_node.content
 
-    number_of_records_node = node.find_child(names.NUMBEROFRECORDS)
+    number_of_records_node = node.find_immediate_child(names.NUMBEROFRECORDS)
     if number_of_records_node:
         form.number_of_records.data = number_of_records_node.content
 
@@ -419,7 +421,7 @@ def attribute_measurement_scale_post(packageid, form, form_dict, dt_node_id, att
 def attribute_measurement_scale_get(packageid, form, att_node_id):
     load_eml(packageid)
     node_to_change = Node.get_node_instance(att_node_id)
-    name_child = node_to_change.find_child(names.ATTRIBUTENAME)
+    name_child = node_to_change.find_immediate_child(names.ATTRIBUTENAME)
     name = name_child.content
     if not name:
         name = 'Attribute'
@@ -437,7 +439,7 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
     if old_mscale == new_mscale:
         return
     # flash(f'Changing from {old_mscale} to {new_mscale}')
-    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    mscale_node = att_node.find_immediate_child(names.MEASUREMENTSCALE)
 
     # clear its children
     mscale_node.remove_children()
@@ -604,7 +606,7 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
             dt_node = None
             attribute_list_node = None
             eml_node = load_eml(packageid=packageid)
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
             else:
@@ -619,7 +621,7 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
                 dt_node = Node(names.DATATABLE, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            attribute_list_node = dt_node.find_immediate_child(names.ATTRIBUTELIST)
             if not attribute_list_node:
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
                 add_child(dt_node, attribute_list_node)
@@ -694,13 +696,13 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
         form.md5.data = form_md5(form)
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        attribute_list_node = dt_node.find_immediate_child(names.ATTRIBUTELIST)
                         if attribute_list_node:
                             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
                             if att_nodes:
@@ -716,45 +718,45 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
 def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
     att_node = node
 
-    attribute_name_node = node.find_child(names.ATTRIBUTENAME)
+    attribute_name_node = node.find_immediate_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         form.attribute_name.data = attribute_name_node.content
 
-    attribute_label_node = node.find_child(names.ATTRIBUTELABEL)
+    attribute_label_node = node.find_immediate_child(names.ATTRIBUTELABEL)
     if attribute_label_node:
         form.attribute_label.data = attribute_label_node.content
 
-    attribute_definition_node = node.find_child(names.ATTRIBUTEDEFINITION)
+    attribute_definition_node = node.find_immediate_child(names.ATTRIBUTEDEFINITION)
     if attribute_definition_node:
         form.attribute_definition.data = attribute_definition_node.content
 
-    storage_type_node = node.find_child(names.STORAGETYPE)
+    storage_type_node = node.find_immediate_child(names.STORAGETYPE)
     if storage_type_node:
         form.storage_type.data = storage_type_node.content
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
         if storage_type_system_att:
             form.storage_type_system.data = storage_type_system_att
 
-    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    mscale_node = att_node.find_immediate_child(names.MEASUREMENTSCALE)
 
     if mscale_node:
-        datetime_node = mscale_node.find_child(names.DATETIME)
+        datetime_node = mscale_node.find_immediate_child(names.DATETIME)
 
         if datetime_node:
-            format_string_node = datetime_node.find_child(names.FORMATSTRING)
+            format_string_node = datetime_node.find_immediate_child(names.FORMATSTRING)
 
             if format_string_node:
                 form.format_string.data = format_string_node.content
 
-            datetime_precision_node = datetime_node.find_child(names.DATETIMEPRECISION)
+            datetime_precision_node = datetime_node.find_immediate_child(names.DATETIMEPRECISION)
             if datetime_precision_node:
                 form.datetime_precision.data = datetime_precision_node.content
 
-            datetime_domain_node = datetime_node.find_child(names.DATETIMEDOMAIN)
+            datetime_domain_node = datetime_node.find_immediate_child(names.DATETIMEDOMAIN)
             if datetime_domain_node:
-                bounds_node = datetime_domain_node.find_child(names.BOUNDS)
+                bounds_node = datetime_domain_node.find_immediate_child(names.BOUNDS)
                 if bounds_node:
-                    minimum_node = bounds_node.find_child(names.MINIMUM)
+                    minimum_node = bounds_node.find_immediate_child(names.MINIMUM)
                     if minimum_node:
                         form.bounds_minimum.data = minimum_node.content
                         exclusive = minimum_node.attribute_value('exclusive')
@@ -762,7 +764,7 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
                             form.bounds_minimum_exclusive.data = True
                         else:
                             form.bounds_minimum_exclusive.data = False
-                    maximum_node = bounds_node.find_child(names.MAXIMUM)
+                    maximum_node = bounds_node.find_immediate_child(names.MAXIMUM)
                     if maximum_node:
                         form.bounds_maximum.data = maximum_node.content
                         exclusive = maximum_node.attribute_value('exclusive')
@@ -776,8 +778,8 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
         for mvc_node in mvc_nodes:
             code = ''
             code_explanation = ''
-            code_node = mvc_node.find_child(names.CODE)
-            code_explanation_node = mvc_node.find_child(names.CODEEXPLANATION)
+            code_node = mvc_node.find_immediate_child(names.CODE)
+            code_explanation_node = mvc_node.find_immediate_child(names.CODEEXPLANATION)
             if code_node:
                 code = code_node.content
             if code_explanation_node:
@@ -824,7 +826,7 @@ def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=No
             dt_node = None
             attribute_list_node = None
             eml_node = load_eml(packageid=packageid)
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
             else:
@@ -839,7 +841,7 @@ def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=No
                 dt_node = Node(names.DATATABLE, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            attribute_list_node = dt_node.find_immediate_child(names.ATTRIBUTELIST)
             if not attribute_list_node:
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
                 add_child(dt_node, attribute_list_node)
@@ -926,13 +928,13 @@ def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=No
         # form.mscale_choice.data = mscale
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        attribute_list_node = dt_node.find_immediate_child(names.ATTRIBUTELIST)
                         if attribute_list_node:
                             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
                             if att_nodes:
@@ -966,19 +968,19 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
     #     elif mscale == names.RATIO:
     #         form.mscale_choice.data = names.RATIO
 
-    attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+    attribute_name_node = att_node.find_immediate_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         form.attribute_name.data = attribute_name_node.content
 
-    attribute_label_node = att_node.find_child(names.ATTRIBUTELABEL)
+    attribute_label_node = att_node.find_immediate_child(names.ATTRIBUTELABEL)
     if attribute_label_node:
         form.attribute_label.data = attribute_label_node.content
 
-    attribute_definition_node = att_node.find_child(names.ATTRIBUTEDEFINITION)
+    attribute_definition_node = att_node.find_immediate_child(names.ATTRIBUTEDEFINITION)
     if attribute_definition_node:
         form.attribute_definition.data = attribute_definition_node.content
 
-    storage_type_node = att_node.find_child(names.STORAGETYPE)
+    storage_type_node = att_node.find_immediate_child(names.STORAGETYPE)
     if storage_type_node:
         form.storage_type.data = storage_type_node.content
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
@@ -988,33 +990,32 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
     if mscale:
         form.mscale.data = mscale
 
-    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    mscale_node = att_node.find_immediate_child(names.MEASUREMENTSCALE)
     if mscale_node:
-        ratio_node = mscale_node.find_child(names.RATIO)
-        interval_node = mscale_node.find_child(names.INTERVAL)
+        ratio_node = mscale_node.find_immediate_child(names.RATIO)
+        interval_node = mscale_node.find_immediate_child(names.INTERVAL)
 
         ir_node = ratio_node
         if not ir_node:
             ir_node = interval_node
 
         if ir_node:
-            unit_node = ir_node.find_child(names.UNIT)
+            unit_node = ir_node.find_immediate_child(names.UNIT)
 
             if unit_node:
-                standard_unit_node = unit_node.find_child(names.STANDARDUNIT)
+                standard_unit_node = unit_node.find_immediate_child(names.STANDARDUNIT)
                 if standard_unit_node:
                     form.standard_unit.data = standard_unit_node.content
-                custom_unit_node = unit_node.find_child(names.CUSTOMUNIT)
+                custom_unit_node = unit_node.find_immediate_child(names.CUSTOMUNIT)
                 if custom_unit_node:
                     custom_unit_name = custom_unit_node.content
                     form.custom_unit.data = custom_unit_name
-                    custom_unit_description = ''
                     # get description, if any, from the additionaMetadata section
-                    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
+                    additional_metadata_node = eml_node.find_immediate_child(names.ADDITIONALMETADATA)
                     if additional_metadata_node:
-                        metadata_node = additional_metadata_node.find_child(names.METADATA)
+                        metadata_node = additional_metadata_node.find_immediate_child(names.METADATA)
                         if metadata_node:
-                            unit_list_node = metadata_node.find_child(names.UNITLIST)
+                            unit_list_node = metadata_node.find_immediate_child(names.UNITLIST)
                             if unit_list_node:
                                 unit_nodes = unit_list_node.find_all_children(names.UNIT)
                                 unit_node = None
@@ -1023,22 +1024,22 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                                         unit_node = node
                                         break
                                 if unit_node:
-                                    description_node = unit_node.find_child(names.DESCRIPTION)
+                                    description_node = unit_node.find_immediate_child(names.DESCRIPTION)
                                     if description_node:
                                         form.custom_unit_description.data = description_node.content
 
-            precision_node = ir_node.find_child(names.PRECISION)
+            precision_node = ir_node.find_immediate_child(names.PRECISION)
             if precision_node:
                 form.precision.data = precision_node.content
 
-            numeric_domain_node = ir_node.find_child(names.NUMERICDOMAIN)
+            numeric_domain_node = ir_node.find_immediate_child(names.NUMERICDOMAIN)
             if numeric_domain_node:
-                number_type_node = numeric_domain_node.find_child(names.NUMBERTYPE)
+                number_type_node = numeric_domain_node.find_immediate_child(names.NUMBERTYPE)
                 if number_type_node:
                     form.number_type.data = number_type_node.content
-                bounds_node = numeric_domain_node.find_child(names.BOUNDS)
+                bounds_node = numeric_domain_node.find_immediate_child(names.BOUNDS)
                 if bounds_node:
-                    minimum_node = bounds_node.find_child(names.MINIMUM)
+                    minimum_node = bounds_node.find_immediate_child(names.MINIMUM)
                     if minimum_node:
                         form.bounds_minimum.data = minimum_node.content
                         exclusive = minimum_node.attribute_value('exclusive')
@@ -1046,7 +1047,7 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                             form.bounds_minimum_exclusive.data = True
                         else:
                             form.bounds_minimum_exclusive.data = False
-                    maximum_node = bounds_node.find_child(names.MAXIMUM)
+                    maximum_node = bounds_node.find_immediate_child(names.MAXIMUM)
                     if maximum_node:
                         form.bounds_maximum.data = maximum_node.content
                         exclusive = maximum_node.attribute_value('exclusive')
@@ -1060,8 +1061,8 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
         for mvc_node in mvc_nodes:
             code = ''
             code_explanation = ''
-            code_node = mvc_node.find_child(names.CODE)
-            code_explanation_node = mvc_node.find_child(names.CODEEXPLANATION)
+            code_node = mvc_node.find_immediate_child(names.CODE)
+            code_explanation_node = mvc_node.find_immediate_child(names.CODEEXPLANATION)
             if code_node:
                 code = code_node.content
             if code_explanation_node:
@@ -1115,7 +1116,7 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
             dt_node = None
             attribute_list_node = None
             eml_node = load_eml(packageid=packageid)
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
             else:
@@ -1130,7 +1131,7 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
                 dt_node = Node(names.DATATABLE, parent=dataset_node)
                 add_child(dataset_node, dt_node)
 
-            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            attribute_list_node = dt_node.find_immediate_child(names.ATTRIBUTELIST)
             if not attribute_list_node:
                 attribute_list_node = Node(names.ATTRIBUTELIST, parent=dt_node)
                 add_child(dt_node, attribute_list_node)
@@ -1145,7 +1146,7 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
                 # we need to hang onto the categorical codes
                 att_node = Node.get_node_instance(att_node_id)
                 if att_node:
-                    enumerated_domain_node = att_node.find_child(names.ENUMERATEDDOMAIN)
+                    enumerated_domain_node = att_node.find_immediate_child(names.ENUMERATEDDOMAIN)
 
                 enforced = form.enforced.data
             else:
@@ -1222,13 +1223,13 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
         # form.mscale_choice.data = mscale
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             if dt_nodes:
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
-                        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+                        attribute_list_node = dt_node.find_immediate_child(names.ATTRIBUTELIST)
                         if attribute_list_node:
                             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
                             if att_nodes:
@@ -1263,19 +1264,19 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
     #     elif mscale == names.ORDINAL:
     #         form.mscale_choice.data = names.ORDINAL
 
-    attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+    attribute_name_node = att_node.find_immediate_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         form.attribute_name.data = attribute_name_node.content
 
-    attribute_label_node = att_node.find_child(names.ATTRIBUTELABEL)
+    attribute_label_node = att_node.find_immediate_child(names.ATTRIBUTELABEL)
     if attribute_label_node:
         form.attribute_label.data = attribute_label_node.content
 
-    attribute_definition_node = att_node.find_child(names.ATTRIBUTEDEFINITION)
+    attribute_definition_node = att_node.find_immediate_child(names.ATTRIBUTEDEFINITION)
     if attribute_definition_node:
         form.attribute_definition.data = attribute_definition_node.content
 
-    storage_type_node = att_node.find_child(names.STORAGETYPE)
+    storage_type_node = att_node.find_immediate_child(names.STORAGETYPE)
     if storage_type_node:
         form.storage_type.data = storage_type_node.content
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
@@ -1285,13 +1286,13 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
     if mscale:
         form.mscale.data = mscale
 
-    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    mscale_node = att_node.find_immediate_child(names.MEASUREMENTSCALE)
 
     codes = ''
     if mscale_node:
-        node = mscale_node.find_child(names.NOMINAL)
+        node = mscale_node.find_immediate_child(names.NOMINAL)
         if not node:
-            node = mscale_node.find_child(names.ORDINAL)
+            node = mscale_node.find_immediate_child(names.ORDINAL)
 
         if node:
             if mscale == VariableType.CATEGORICAL.name:
@@ -1303,8 +1304,10 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
                     codes = ', '.join(code_list)
                 else:
                     codes = 'No codes have been defined yet'
-                enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
-
+                enumerated_domain_node = node.find_single_node_by_path([
+                    names.NONNUMERICDOMAIN,
+                    names.ENUMERATEDDOMAIN
+                ])
                 if enumerated_domain_node:
                     enforced = enumerated_domain_node.attribute_value('enforced')
                     if enforced and enforced.upper() == 'NO':
@@ -1320,8 +1323,8 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
         for mvc_node in mvc_nodes:
             code = ''
             code_explanation = ''
-            code_node = mvc_node.find_child(names.CODE)
-            code_explanation_node = mvc_node.find_child(names.CODEEXPLANATION)
+            code_node = mvc_node.find_immediate_child(names.CODE)
+            code_explanation_node = mvc_node.find_immediate_child(names.CODEEXPLANATION)
             if code_node:
                 code = code_node.content
             if code_explanation_node:
@@ -1498,14 +1501,14 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
 
         if submit_type == 'Save Changes':
             if att_node:
-                measurement_scale_node = att_node.find_child(names.MEASUREMENTSCALE)
+                measurement_scale_node = att_node.find_immediate_child(names.MEASUREMENTSCALE)
                 if not measurement_scale_node:
                     measurement_scale_node = Node(names.MEASUREMENTSCALE, parent=att_node)
                     add_child(att_node, measurement_scale_node)
 
-                nominal_ordinal_node = measurement_scale_node.find_child(names.NOMINAL)
+                nominal_ordinal_node = measurement_scale_node.find_immediate_child(names.NOMINAL)
                 if not nominal_ordinal_node:
-                    nominal_ordinal_node = measurement_scale_node.find_child(names.ORDINAL)
+                    nominal_ordinal_node = measurement_scale_node.find_immediate_child(names.ORDINAL)
                     if not nominal_ordinal_node:
                         if mscale == names.NOMINAL:
                             nominal_ordinal_node = Node(names.NOMINAL, parent=measurement_scale_node)
@@ -1514,12 +1517,12 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
                             nominal_ordinal_node = Node(names.ORDINAL, parent=measurement_scale_node)
                             add_child(measurement_scale_node, nominal_ordinal_node)
 
-                nnd_node = nominal_ordinal_node.find_child(names.NONNUMERICDOMAIN)
+                nnd_node = nominal_ordinal_node.find_immediate_child(names.NONNUMERICDOMAIN)
                 if not nnd_node:
                     nnd_node = Node(names.NONNUMERICDOMAIN, parent=nominal_ordinal_node)
                     add_child(nominal_ordinal_node, nnd_node)
 
-                ed_node = nnd_node.find_child(names.ENUMERATEDDOMAIN)
+                ed_node = nnd_node.find_immediate_child(names.ENUMERATEDDOMAIN)
                 if not ed_node:
                     ed_node = Node(names.ENUMERATEDDOMAIN, parent=nnd_node)
                     add_child(nnd_node, ed_node)
@@ -1531,7 +1534,7 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
                 create_code_definition(code_definition_node, code, definition, order)
 
                 # get rid of textDomain node, if any
-                text_domain_node = nnd_node.find_child(names.TEXTDOMAIN)
+                text_domain_node = nnd_node.find_immediate_child(names.TEXTDOMAIN)
                 if text_domain_node:
                     nnd_node.remove_child(text_domain_node)
 
@@ -1581,10 +1584,10 @@ def populate_code_definition_form(form: CodeDefinitionForm, cd_node: Node):
     definition = ''
 
     if cd_node:
-        code_node = cd_node.find_child(names.CODE)
+        code_node = cd_node.find_immediate_child(names.CODE)
         if code_node:
             code = code_node.content
-        definition_node = cd_node.find_child(names.DEFINITION)
+        definition_node = cd_node.find_immediate_child(names.DEFINITION)
         if definition_node:
             definition = definition_node.content
         order = cd_node.attribute_value('order')

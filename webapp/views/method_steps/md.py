@@ -105,7 +105,7 @@ def method_step_select(packageid=None):
     eml_node = load_eml(packageid=packageid)
 
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             method_step_list = list_method_steps(dataset_node)
 
@@ -124,10 +124,10 @@ def method_step_select(packageid=None):
 @md_bp.route('/method_step/<packageid>/<node_id>', methods=['GET', 'POST'])
 def method_step(packageid=None, node_id=None):
     eml_node = load_eml(packageid=packageid)
-    dataset_node = eml_node.find_child(names.DATASET)
+    dataset_node = eml_node.find_immediate_child(names.DATASET)
 
     if dataset_node:
-        methods_node = dataset_node.find_child(names.METHODS)
+        methods_node = dataset_node.find_immediate_child(names.METHODS)
     else:
         dataset_node = Node(names.DATASET, parent=eml_node)
         add_child(eml_node, dataset_node)
@@ -195,20 +195,20 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
     instrumentation = ''
 
     if ms_node:
-        description_node = ms_node.find_child(names.DESCRIPTION)
+        description_node = ms_node.find_immediate_child(names.DESCRIPTION)
         if description_node:
             if description_node.content:
                 description = description_node.content
             else:
-                section_node = description_node.find_child(names.SECTION)
+                section_node = description_node.find_immediate_child(names.SECTION)
                 if section_node:
                     description = remove_paragraph_tags(section_node.content)
                 else:
-                    para_node = description_node.find_child(names.PARA)
+                    para_node = description_node.find_immediate_child(names.PARA)
                     if para_node:
                         description = para_node.content
 
-        instrumentation_node = ms_node.find_child(names.INSTRUMENTATION)
+        instrumentation_node = ms_node.find_immediate_child(names.INSTRUMENTATION)
         if instrumentation_node:
             instrumentation = instrumentation_node.content
 

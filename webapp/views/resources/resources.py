@@ -67,7 +67,7 @@ def title(packageid=None):
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    dataset_node = eml_node.find_child(child_name=names.DATASET)
+    dataset_node = eml_node.find_immediate_child(child_name=names.DATASET)
     title_node = dataset_node.find_immediate_child(names.TITLE)
     if title_node:
         form.title.data = title_node.content
@@ -106,7 +106,7 @@ def publication_place(packageid=None):
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    pubplace_node = eml_node.find_child(child_name='pubPlace')
+    pubplace_node = eml_node.find_immediate_child(child_name='pubPlace')
     if pubplace_node:
         form.pubplace.data = pubplace_node.content
     form.md5.data = form_md5(form)
@@ -143,7 +143,7 @@ def pubdate(packageid=None):
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    pubdate_node = eml_node.find_child(child_name=names.PUBDATE)
+    pubdate_node = eml_node.find_immediate_child(child_name=names.PUBDATE)
     if pubdate_node:
         form.pubdate.data = pubdate_node.content
     form.md5.data = form_md5(form)
@@ -190,7 +190,7 @@ def abstract(packageid=None):
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    abstract_node = eml_node.find_child(child_name=names.ABSTRACT)
+    abstract_node = eml_node.find_immediate_child(child_name=names.ABSTRACT)
     if abstract_node:
         form.abstract.data = remove_paragraph_tags(abstract_node.content)
     form.md5.data = form_md5(form)
@@ -234,7 +234,10 @@ def intellectual_rights(packageid=None):
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    intellectual_rights_node = eml_node.find_child(child_name=names.INTELLECTUALRIGHTS)
+    intellectual_rights_node = eml_node.find_single_node_by_path([
+        names.DATASET,
+        names.INTELLECTUALRIGHTS
+    ])
     if intellectual_rights_node:
         ir_content = intellectual_rights_node.content
         if ir_content == INTELLECTUAL_RIGHTS_CC0:
@@ -358,10 +361,10 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
 @res_bp.route('/keyword/<packageid>/<node_id>', methods=['GET', 'POST'])
 def keyword(packageid=None, node_id=None):
     eml_node = load_eml(packageid=packageid)
-    dataset_node = eml_node.find_child(names.DATASET)
+    dataset_node = eml_node.find_immediate_child(names.DATASET)
 
     if dataset_node:
-        keyword_set_node = dataset_node.find_child(names.KEYWORDSET)
+        keyword_set_node = dataset_node.find_immediate_child(names.KEYWORDSET)
     else:
         dataset_node = Node(names.DATASET, parent=eml_node)
         add_child(eml_node, dataset_node)

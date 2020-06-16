@@ -52,7 +52,7 @@ def geographic_coverage_select(packageid=None):
 
     eml_node = load_eml(packageid=packageid)
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             gc_list = list_geographic_coverages(dataset_node)
 
@@ -81,11 +81,11 @@ def geographic_coverage(packageid=None, node_id=None):
         if submit_type == 'Save Changes':
             eml_node = load_eml(packageid=packageid)
 
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
 
-            coverage_node = dataset_node.find_child(names.COVERAGE)
+            coverage_node = dataset_node.find_immediate_child(names.COVERAGE)
             if not coverage_node:
                 coverage_node = Node(names.COVERAGE, parent=dataset_node)
                 add_child(dataset_node, coverage_node)
@@ -131,9 +131,9 @@ def geographic_coverage(packageid=None, node_id=None):
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
-            coverage_node = dataset_node.find_child(names.COVERAGE)
+            coverage_node = dataset_node.find_immediate_child(names.COVERAGE)
             if coverage_node:
                 gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
                 if gc_nodes:
@@ -147,20 +147,32 @@ def geographic_coverage(packageid=None, node_id=None):
 
 
 def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
-    geographic_description_node = node.find_child(names.GEOGRAPHICDESCRIPTION)
+    geographic_description_node = node.find_immediate_child(names.GEOGRAPHICDESCRIPTION)
     if geographic_description_node:
         form.geographic_description.data = geographic_description_node.content
 
-    wbc_node = node.find_child(names.WESTBOUNDINGCOORDINATE)
+    wbc_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.WESTBOUNDINGCOORDINATE
+    ])
     if wbc_node:
         form.wbc.data = wbc_node.content
-    ebc_node = node.find_child(names.EASTBOUNDINGCOORDINATE)
+    ebc_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.EASTBOUNDINGCOORDINATE
+    ])
     if ebc_node:
         form.ebc.data = ebc_node.content
-    nbc_node = node.find_child(names.NORTHBOUNDINGCOORDINATE)
+    nbc_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.NORTHBOUNDINGCOORDINATE
+    ])
     if nbc_node:
         form.nbc.data = nbc_node.content
-    sbc_node = node.find_child(names.SOUTHBOUNDINGCOORDINATE)
+    sbc_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.SOUTHBOUNDINGCOORDINATE
+    ])
     if sbc_node:
         form.sbc.data = sbc_node.content
 
@@ -188,7 +200,7 @@ def temporal_coverage_select(packageid=None):
 
     eml_node = load_eml(packageid=packageid)
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             tc_list = list_temporal_coverages(dataset_node)
 
@@ -219,11 +231,11 @@ def temporal_coverage(packageid=None, node_id=None):
         if save:
             eml_node = load_eml(packageid=packageid)
 
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
 
-            coverage_node = dataset_node.find_child(names.COVERAGE)
+            coverage_node = dataset_node.find_immediate_child(names.COVERAGE)
             if not coverage_node:
                 coverage_node = Node(names.COVERAGE, parent=dataset_node)
                 add_child(dataset_node, coverage_node)
@@ -261,9 +273,9 @@ def temporal_coverage(packageid=None, node_id=None):
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
-            coverage_node = dataset_node.find_child(names.COVERAGE)
+            coverage_node = dataset_node.find_immediate_child(names.COVERAGE)
             if coverage_node:
                 tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
                 if tc_nodes:
@@ -276,19 +288,25 @@ def temporal_coverage(packageid=None, node_id=None):
 
 
 def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
-    begin_date_node = node.find_child(names.BEGINDATE)
+    begin_date_node = node.find_single_node_by_path([
+        names.RANGEOFDATES,
+        names.BEGINDATE
+    ])
     if begin_date_node:
-        calendar_date_node = begin_date_node.find_child(names.CALENDARDATE)
+        calendar_date_node = begin_date_node.find_immediate_child(names.CALENDARDATE)
         form.begin_date.data = calendar_date_node.content
 
-        end_date_node = node.find_child(names.ENDDATE)
+        end_date_node = node.find_single_node_by_path([
+            names.RANGEOFDATES,
+            names.ENDDATE
+        ])
         if end_date_node:
-            calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
+            calendar_date_node = end_date_node.find_immediate_child(names.CALENDARDATE)
             form.end_date.data = calendar_date_node.content
     else:
-        single_date_time_node = node.find_child(names.SINGLEDATETIME)
+        single_date_time_node = node.find_immediate_child(names.SINGLEDATETIME)
         if single_date_time_node:
-            calendar_date_node = single_date_time_node.find_child(names.CALENDARDATE)
+            calendar_date_node = single_date_time_node.find_immediate_child(names.CALENDARDATE)
             form.begin_date.data = calendar_date_node.content
 
     form.md5.data = form_md5(form)
@@ -314,7 +332,7 @@ def taxonomic_coverage_select(packageid=None):
 
     eml_node = load_eml(packageid=packageid)
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
             txc_list = list_taxonomic_coverages(dataset_node)
 
@@ -342,11 +360,11 @@ def taxonomic_coverage(packageid=None, node_id=None):
         if save:
             eml_node = load_eml(packageid=packageid)
 
-            dataset_node = eml_node.find_child(names.DATASET)
+            dataset_node = eml_node.find_immediate_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET)
 
-            coverage_node = dataset_node.find_child(names.COVERAGE)
+            coverage_node = dataset_node.find_immediate_child(names.COVERAGE)
             if not coverage_node:
                 coverage_node = Node(names.COVERAGE, parent=dataset_node)
                 add_child(dataset_node, coverage_node)
@@ -391,9 +409,9 @@ def taxonomic_coverage(packageid=None, node_id=None):
         form.init_md5()
     else:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
-            coverage_node = dataset_node.find_child(names.COVERAGE)
+            coverage_node = dataset_node.find_immediate_child(names.COVERAGE)
             if coverage_node:
                 txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
                 if txc_nodes:
@@ -406,11 +424,11 @@ def taxonomic_coverage(packageid=None, node_id=None):
 
 
 def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
-    general_taxonomic_coverage_node = node.find_child(names.GENERALTAXONOMICCOVERAGE)
+    general_taxonomic_coverage_node = node.find_immediate_child(names.GENERALTAXONOMICCOVERAGE)
     if general_taxonomic_coverage_node:
         form.general_taxonomic_coverage.data = general_taxonomic_coverage_node.content
 
-    taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
+    taxonomic_classification_node = node.find_immediate_child(names.TAXONOMICCLASSIFICATION)
     populate_taxonomic_coverage_form_aux(form, taxonomic_classification_node)
 
     form.md5.data = form_md5(form)
@@ -418,9 +436,9 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
 
 def populate_taxonomic_coverage_form_aux(form: TaxonomicCoverageForm, node: Node = None):
     if node:
-        taxon_rank_name_node = node.find_child(names.TAXONRANKNAME)
-        taxon_rank_value_node = node.find_child(names.TAXONRANKVALUE)
-        taxon_common_name_node = node.find_child(names.COMMONNAME)
+        taxon_rank_name_node = node.find_immediate_child(names.TAXONRANKNAME)
+        taxon_rank_value_node = node.find_immediate_child(names.TAXONRANKVALUE)
+        taxon_common_name_node = node.find_immediate_child(names.COMMONNAME)
 
         if taxon_rank_name_node.content == 'Kingdom':
             form.kingdom_value.data = taxon_rank_value_node.content
@@ -451,6 +469,6 @@ def populate_taxonomic_coverage_form_aux(form: TaxonomicCoverageForm, node: Node
             if taxon_common_name_node:
                 form.species_common_name.data = taxon_common_name_node.content
 
-        taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
+        taxonomic_classification_node = node.find_immediate_child(names.TAXONOMICCLASSIFICATION)
         if taxonomic_classification_node:
             populate_taxonomic_coverage_form_aux(form, taxonomic_classification_node)

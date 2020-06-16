@@ -94,7 +94,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
 
     form = ResponsiblePartyForm(packageid=packageid)
     eml_node = load_eml(packageid=packageid)
-    dataset_node = eml_node.find_child(names.DATASET)
+    dataset_node = eml_node.find_immediate_child(names.DATASET)
     if not dataset_node:
         dataset_node = Node(names.DATASET, parent=eml_node)
         add_child(eml_node, dataset_node)
@@ -124,7 +124,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
     # If this is a project personnel party, place it under the
     # project node, not under the dataset node
     if node_name == names.PERSONNEL:
-        project_node = dataset_node.find_child(names.PROJECT)
+        project_node = dataset_node.find_immediate_child(names.PROJECT)
         if not project_node:
             project_node = Node(names.PROJECT, parent=dataset_node)
             add_child(dataset_node, project_node)
@@ -321,9 +321,9 @@ def publisher(packageid=None):
     node_id = '1'
     if packageid:
         eml_node = load_eml(packageid=packageid)
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if dataset_node:
-            publisher_node = dataset_node.find_child(names.PUBLISHER)
+            publisher_node = dataset_node.find_immediate_child(names.PUBLISHER)
             if publisher_node:
                 node_id = publisher_node.id
     set_current_page('publisher')
@@ -335,12 +335,12 @@ def publisher(packageid=None):
                              save_and_continue=True, help=help)
 
 
-def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
-    salutation_node = node.find_child(names.SALUTATION)
+def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
+    salutation_node = node.find_immediate_child(names.SALUTATION)
     if salutation_node:
         form.salutation.data = salutation_node.content
 
-    in_node = node.find_child(names.INDIVIDUALNAME)
+    in_node = node.find_immediate_child(names.INDIVIDUALNAME)
     if in_node:
         gn_nodes = in_node.find_all_children(names.GIVENNAME)
         if gn_nodes:
@@ -348,23 +348,23 @@ def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
             if len(gn_nodes) > 1:
                 form.mn.data = gn_nodes[1].content
 
-    sn_node = node.find_child(names.SURNAME)
+    sn_node = node.find_immediate_child(names.SURNAME)
     if sn_node:
         form.sn.data = sn_node.content
 
-    user_id_node = node.find_child(names.USERID)
+    user_id_node = node.find_immediate_child(names.USERID)
     if user_id_node:
         form.user_id.data = user_id_node.content
 
-    organization_node = node.find_child(names.ORGANIZATIONNAME)
+    organization_node = node.find_immediate_child(names.ORGANIZATIONNAME)
     if organization_node:
         form.organization.data = organization_node.content
 
-    position_name_node = node.find_child(names.POSITIONNAME)
+    position_name_node = node.find_immediate_child(names.POSITIONNAME)
     if position_name_node:
         form.position_name.data = position_name_node.content
 
-    address_node = node.find_child(names.ADDRESS)
+    address_node = node.find_immediate_child(names.ADDRESS)
 
     if address_node:
         delivery_point_nodes = \
@@ -374,24 +374,24 @@ def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
         if len(delivery_point_nodes) > 1:
             form.address_2.data = delivery_point_nodes[1].content
 
-        city_node = address_node.find_child(names.CITY)
+        city_node = address_node.find_immediate_child(names.CITY)
         if city_node:
             form.city.data = city_node.content
 
         administrative_area_node = \
-            address_node.find_child(names.ADMINISTRATIVEAREA)
+            address_node.find_immediate_child(names.ADMINISTRATIVEAREA)
         if administrative_area_node:
             form.state.data = administrative_area_node.content
 
-        postal_code_node = address_node.find_child(names.POSTALCODE)
+        postal_code_node = address_node.find_immediate_child(names.POSTALCODE)
         if postal_code_node:
             form.postal_code.data = postal_code_node.content
 
-        country_node = address_node.find_child(names.COUNTRY)
+        country_node = address_node.find_immediate_child(names.COUNTRY)
         if country_node:
             form.country.data = country_node.content
 
-        phone_node = node.find_child(names.PHONE)
+        phone_node = node.find_immediate_child(names.PHONE)
         if phone_node:
             form.phone.data = phone_node.content
 
@@ -404,15 +404,15 @@ def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
         else:
             form.phone.data = phone_node.content
 
-    email_node = node.find_child(names.ELECTRONICMAILADDRESS)
+    email_node = node.find_immediate_child(names.ELECTRONICMAILADDRESS)
     if email_node:
         form.email.data = email_node.content
 
-    online_url_node = node.find_child(names.ONLINEURL)
+    online_url_node = node.find_immediate_child(names.ONLINEURL)
     if online_url_node:
         form.online_url.data = online_url_node.content
 
-    role_node = node.find_child(names.ROLE)
+    role_node = node.find_immediate_child(names.ROLE)
     if role_node:
         form.role.data = role_node.content
 

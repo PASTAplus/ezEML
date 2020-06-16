@@ -35,7 +35,7 @@ def project(packageid=None):
     form = ProjectForm(packageid=packageid)
     eml_node = load_eml(packageid=packageid)
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if not dataset_node:
             dataset_node = Node(names.DATASET, parent=eml_node)
             add_child(eml_node, dataset_node)
@@ -70,7 +70,7 @@ def project(packageid=None):
 
     # Process GET
     if dataset_node:
-        project_node = dataset_node.find_child(names.PROJECT)
+        project_node = dataset_node.find_immediate_child(names.PROJECT)
         populate_project_form(form, project_node)
 
     set_current_page('project')
@@ -87,19 +87,19 @@ def populate_project_form(form: ProjectForm, project_node: Node):
     abstract = ''
 
     if project_node:
-        title_node = project_node.find_child(names.TITLE)
+        title_node = project_node.find_immediate_child(names.TITLE)
         if title_node:
             title = title_node.content
 
-        abstract_node = project_node.find_child(names.ABSTRACT)
+        abstract_node = project_node.find_immediate_child(names.ABSTRACT)
         if abstract_node:
             abstract = abstract_node.content
             if not abstract:
-                para_node = abstract_node.find_child(names.PARA)
+                para_node = abstract_node.find_immediate_child(names.PARA)
                 if para_node:
                     abstract = para_node.content
                 else:
-                    section_node = abstract_node.find_child(names.SECTION)
+                    section_node = abstract_node.find_immediate_child(names.SECTION)
                     if section_node:
                         abstract = section_node.content
             abstract = abstract
@@ -205,8 +205,10 @@ def funding_award(packageid=None, node_id=None):
     form = AwardForm(packageid=packageid)
 
     eml_node = load_eml(packageid=packageid)
-    project_node = eml_node.find_child(names.PROJECT)
-
+    project_node = eml_node.find_single_node_by_path([
+        names.DATASET,
+        names.PROJECT
+    ])
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
@@ -287,11 +289,11 @@ def populate_award_form(form: AwardForm, award_node: Node):
     award_url = ''
 
     if award_node:
-        funder_name_node = award_node.find_child(names.FUNDERNAME)
+        funder_name_node = award_node.find_immediate_child(names.FUNDERNAME)
         if funder_name_node and funder_name_node.content:
             funder_name = funder_name_node.content
 
-        award_title_node = award_node.find_child(names.TITLE)
+        award_title_node = award_node.find_immediate_child(names.TITLE)
         if award_title_node and award_title_node.content:
             award_title = award_title_node.content
 
@@ -302,11 +304,11 @@ def populate_award_form(form: AwardForm, award_node: Node):
                 funder_identifiers.append(funder_identifier_node.content)
         funder_identifier = ','.join(funder_identifiers)
 
-        award_number_node = award_node.find_child(names.AWARDNUMBER)
+        award_number_node = award_node.find_immediate_child(names.AWARDNUMBER)
         if award_number_node and award_number_node.content:
             award_number = award_number_node.content
 
-        award_url_node = award_node.find_child(names.AWARDURL)
+        award_url_node = award_node.find_immediate_child(names.AWARDURL)
         if award_url_node and award_url_node.content:
             award_url = award_url_node.content
 

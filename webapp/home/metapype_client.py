@@ -51,7 +51,7 @@ if Config.LOG_DEBUG:
         current_app.logger.setLevel(logging.INFO)
         current_app.logger.info('*** RESTART ***')
 
-logger = daiquiri.getLogger('metapyp_client: ' + __name__)
+logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
 
 NO_OP = ''
@@ -354,6 +354,7 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
                                       downval=downval)
                 att_list.append(att_entry)
     if Config.LOG_DEBUG:
+        app = Flask(__name__)
         with app.app_context():
             current_app.logger.info(f'Attribute list: caller={caller} dt_node_id={dt_node_id}')
             if not data_table_node:
@@ -624,15 +625,20 @@ def load_eml(packageid:str=None):
     filename = f"{user_folder}/{packageid}.json"
     if os.path.isfile(filename):
         try:
-            # flash(f'Loading eml from {filename}')
-            with app.app_context():
-                current_app.logger.info(f'load_eml (json)... loading')
+            flash(f'Loading eml from {filename}')
+            if Config.LOG_DEBUG:
+                app = Flask(__name__)
+                with app.app_context():
+                    current_app.logger.info(f'load_eml (json)... loading')
 
             with open(filename, "r") as json_file:
                 json_obj = json.load(json_file)
                 eml_node = mp_io.from_json(json_obj)
-            with app.app_context():
-                current_app.logger.info(f'load_eml (json)... done')
+
+            if Config.LOG_DEBUG:
+                app = Flask(__name__)
+                with app.app_context():
+                    current_app.logger.info(f'load_eml (json)... done')
 
         except Exception as e:
             logger.error(e)
@@ -700,24 +706,20 @@ def enforce_dataset_sequence(eml_node:Node=None):
 
 
 def save_both_formats(packageid:str=None, eml_node:Node=None):
-    # with app.app_context():
-    #     if eml_node:
-    #         current_app.logger.info(f'save_both_formats... eml_node.id={eml_node.id}')
-    #     else:
-    #         current_app.logger.info(f'save_both_formats... eml_node is None')
-
     enforce_dataset_sequence(eml_node)
     save_eml(packageid=packageid, eml_node=eml_node, format='json')
     save_eml(packageid=packageid, eml_node=eml_node, format='xml')
 
 
 def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
-    with app.app_context():
-        if format == 'json':
-            if eml_node:
-                current_app.logger.info(f'save_eml (json)... eml_node.id={eml_node.id}')
-            else:
-                current_app.logger.info(f'save_eml (json)... eml_node is None')
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            if format == 'json':
+                if eml_node:
+                    current_app.logger.info(f'save_eml (json)... eml_node.id={eml_node.id}')
+                else:
+                    current_app.logger.info(f'save_eml (json)... eml_node is None')
 
     if packageid:
         if eml_node is not None:
@@ -740,9 +742,11 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                     fh.write(metadata_str)
                     fh.flush()
 
-                with app.app_context():
-                    if format == 'json':
-                        current_app.logger.info(f'save_eml (json)... done')
+                if Config.LOG_DEBUG:
+                    app = Flask(__name__)
+                    with app.app_context():
+                        if format == 'json':
+                            current_app.logger.info(f'save_eml (json)... done')
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:
@@ -1523,21 +1527,21 @@ def create_geographic_coverage(
                    nbc:str=None,
                    sbc:str=None):
     try:
-        geographic_description_node = new_child_node(names.GEOGRAPHICDESCRIPTION)
+        geographic_description_node = new_child_node(names.GEOGRAPHICDESCRIPTION, parent=geographic_coverage_node)
         geographic_description_node.content = geographic_description
 
-        bounding_coordinates_node = new_child_node(names.BOUNDINGCOORDINATES)
+        bounding_coordinates_node = new_child_node(names.BOUNDINGCOORDINATES, parent=geographic_coverage_node)
 
-        wbc_node = new_child_node(names.WESTBOUNDINGCOORDINATE)
+        wbc_node = new_child_node(names.WESTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
         wbc_node.content = wbc
 
-        ebc_node = new_child_node(names.EASTBOUNDINGCOORDINATE)
+        ebc_node = new_child_node(names.EASTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
         ebc_node.content = ebc
 
-        nbc_node = new_child_node(names.NORTHBOUNDINGCOORDINATE)
+        nbc_node = new_child_node(names.NORTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
         nbc_node.content = nbc
 
-        sbc_node = new_child_node(names.SOUTHBOUNDINGCOORDINATE)
+        sbc_node = new_child_node(names.SOUTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
         sbc_node.content = sbc
 
         return geographic_coverage_node
@@ -1790,7 +1794,7 @@ def create_responsible_party(
 def list_funding_awards(eml_node:Node=None):
     award_list = []
     if eml_node:
-        project_node = eml_node.find_all_nodes_by_path([
+        project_node = eml_node.find_single_node_by_path([
             names.DATASET, names.PROJECT
         ])
         if not project_node:
@@ -1869,23 +1873,24 @@ def list_keywords(eml_node:Node=None):
         kw_nodes = eml_node.find_all_nodes_by_path([
             names.DATASET, names.KEYWORDSET, names.KEYWORD
         ])
-        KW_Entry = collections.namedtuple(
-            'KW_Entry',
-            ["id", "keyword", "keyword_type", "upval", "downval"],
-            rename=False)
-        for i, kw_node in enumerate(kw_nodes):
-            id = kw_node.id
-            keyword = kw_node.content
-            kt = kw_node.attribute_value('keywordType')
-            keyword_type = kt if kt else ''
-            upval = get_upval(i)
-            downval = get_downval(i+1, len(kw_nodes))
-            kw_entry = KW_Entry(id=id,
-                                keyword=keyword,
-                                keyword_type=keyword_type,
-                                upval=upval,
-                                downval=downval)
-            kw_list.append(kw_entry)
+        if kw_nodes:
+            KW_Entry = collections.namedtuple(
+                'KW_Entry',
+                ["id", "keyword", "keyword_type", "upval", "downval"],
+                rename=False)
+            for i, kw_node in enumerate(kw_nodes):
+                id = kw_node.id
+                keyword = kw_node.content
+                kt = kw_node.attribute_value('keywordType')
+                keyword_type = kt if kt else ''
+                upval = get_upval(i)
+                downval = get_downval(i+1, len(kw_nodes))
+                kw_entry = KW_Entry(id=id,
+                                    keyword=keyword,
+                                    keyword_type=keyword_type,
+                                    upval=upval,
+                                    downval=downval)
+                kw_list.append(kw_entry)
     return kw_list
 
 

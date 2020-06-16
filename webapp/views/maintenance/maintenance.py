@@ -30,7 +30,7 @@ def maintenance(packageid=None):
     form = MaintenanceForm(packageid=packageid)
     eml_node = load_eml(packageid=packageid)
     if eml_node:
-        dataset_node = eml_node.find_child(names.DATASET)
+        dataset_node = eml_node.find_immediate_child(names.DATASET)
         if not dataset_node:
             dataset_node = Node(names.DATASET, parent=eml_node)
             add_child(eml_node, dataset_node)
@@ -65,7 +65,7 @@ def maintenance(packageid=None):
 
     # Process GET
     if dataset_node:
-        maintenance_node = dataset_node.find_child(names.MAINTENANCE)
+        maintenance_node = dataset_node.find_immediate_child(names.MAINTENANCE)
         if maintenance_node:
             populate_maintenance_form(form, maintenance_node)
 
@@ -83,11 +83,11 @@ def populate_maintenance_form(form: MaintenanceForm, maintenance_node: Node):
     update_frequency = ''
 
     if maintenance_node:
-        description_node = maintenance_node.find_child(names.DESCRIPTION)
+        description_node = maintenance_node.find_immediate_child(names.DESCRIPTION)
         if description_node:
             description = remove_paragraph_tags(description_node.content)
 
-        update_frequency_node = maintenance_node.find_child(names.MAINTENANCEUPDATEFREQUENCY)
+        update_frequency_node = maintenance_node.find_immediate_child(names.MAINTENANCEUPDATEFREQUENCY)
         if update_frequency_node:
             update_frequency = update_frequency_node.content
 

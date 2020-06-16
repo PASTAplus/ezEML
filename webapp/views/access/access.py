@@ -107,7 +107,7 @@ def access(packageid=None, node_id=None):
     eml_node = load_eml(packageid=packageid)
 
     if eml_node:
-        access_node = eml_node.find_child(names.ACCESS)
+        access_node = eml_node.find_immediate_child(names.ACCESS)
     else:
         return
 
@@ -175,11 +175,11 @@ def populate_access_rule_form(form: AccessForm, allow_node: Node):
     permission = ''
 
     if allow_node:
-        principal_node = allow_node.find_child(names.PRINCIPAL)
+        principal_node = allow_node.find_immediate_child(names.PRINCIPAL)
         if principal_node:
             userid = principal_node.content
 
-        permission_node = allow_node.find_child(names.PERMISSION)
+        permission_node = allow_node.find_immediate_child(names.PERMISSION)
         if permission_node:
             permission = permission_node.content
 

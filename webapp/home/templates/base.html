@@ -126,6 +126,10 @@
                 <li>
                     <table style="height: 50px;" valign="middle">
                         <td>
+                             <input id="nav_check" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Check" type="submit" value="Check"/>
+                        </td>
+                        <td width="5%"></td>
+                        <td>
                              <input id="nav_save" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Save" type="submit" value="Save"/>
                         </td>
                         <td width="5%"></td>
@@ -261,18 +265,30 @@
     <script>
     $(function()
     {
+        let nav_check = $("#nav_check");
         let nav_save = $("#nav_save");
         let nav_download = $("#nav_download");
+        let hidden_check = $("#hidden_check");
         let hidden_save = $("#hidden_save");
         let hidden_download = $("#hidden_download");
         let nav_link = $('.nav_link');
         if (hidden_save.length === 0) {
             nav_link.hide();
             nav_save.hide();
+            nav_check.hide();
         }
         if (hidden_download.length === 0) {
             nav_download.hide();
         }
+        nav_check.on("click", function() {
+            if (hidden_check.length) {
+                {#alert('click');#}
+                {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
+                {#alert($('form').serialize());#}
+                {#alert($('form').data('serialize'));#}
+                hidden_check.click();
+            }
+        })
         nav_save.on("click", function() {
             if (hidden_save.length) {
                 {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}

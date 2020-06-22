@@ -118,6 +118,8 @@ def other_entity(packageid=None, node_id=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
             auto_save = True
+        elif 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_OTHER_ENTITY
         elif 'Hidden_Download' in request.form:
@@ -859,6 +861,8 @@ def entity_select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
                 node_id = key

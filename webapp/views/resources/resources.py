@@ -43,21 +43,21 @@ def title(packageid=None):
     form = TitleForm()
 
     # Process POST
-    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
         new_page = PAGE_CREATOR_SELECT
         save = False
         if is_dirty_form(form):
             save = True
-        # flash(f'save: {save}')
 
         if save:
-            title_node = create_title(title=form.title.data, packageid=packageid)
+            create_title(title=form.title.data, packageid=packageid)
             form.md5.data = form_md5(form)
 
-        current_page = 'title'
         if 'Next' in request.form:
             new_page = PAGE_CREATOR_SELECT
-            current_page = 'creators'
+        elif 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_TITLE
         elif 'Hidden_Download' in request.form:
@@ -83,9 +83,12 @@ def publication_place(packageid=None):
     form = PublicationPlaceForm()
 
     # Process POST
-    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
         if 'Next' in request.form:
             new_page = PAGE_METHOD_STEP_SELECT
+        elif 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_PUBLICATION_PLACE
         elif 'Hidden_Download' in request.form:
@@ -96,11 +99,10 @@ def publication_place(packageid=None):
         save = False
         if is_dirty_form(form):
             save = True
-        # flash(f'save: {save}')
 
         if save:
             pubplace = form.pubplace.data
-            pubplace_node = create_pubplace(pubplace=pubplace, packageid=packageid)
+            create_pubplace(pubplace=pubplace, packageid=packageid)
 
         return redirect(url_for(new_page, packageid=packageid))
 
@@ -120,9 +122,10 @@ def pubdate(packageid=None):
     form = PubDateForm(packageid=packageid)
 
     # Process POST
-    if request.method == 'POST' and form.validate_on_submit():
-        if 'Back' in request.form:
-            new_page = PAGE_ASSOCIATED_PARTY_SELECT
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
+        if 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_PUBDATE
         elif 'Hidden_Download' in request.form:
@@ -133,7 +136,6 @@ def pubdate(packageid=None):
         save = False
         if is_dirty_form(form):
             save = True
-        # flash(f'save: {save}')
 
         if save:
             pubdate = form.pubdate.data
@@ -161,17 +163,13 @@ def abstract(packageid=None):
 
     # Process POST
     if request.method == 'POST':
-        if 'Back' in request.form:
-            submit_type = 'Back'
-            new_page = PAGE_PUBDATE
-        elif 'Next' in request.form:
-            submit_type = 'Next'
+        if 'Next' in request.form:
             new_page = PAGE_KEYWORD_SELECT
+        elif 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
-            submit_type = 'Save'
             new_page = PAGE_ABSTRACT
         elif 'Hidden_Download' in request.form:
-            submit_type = 'Save'
             new_page = PAGE_DOWNLOAD
         else:
             submit_type = None
@@ -181,11 +179,6 @@ def abstract(packageid=None):
             if is_dirty_form(form):
                 abstract = add_paragraph_tags(form.abstract.data)
                 create_abstract(packageid=packageid, abstract=abstract)
-                # flash(f"is_dirty_form: True")
-            else:
-                # flash(f"is_dirty_form: False")
-                pass
-            # new_page = PAGE_PUBDATE if (submit_type == 'Back') else PAGE_KEYWORD_SELECT
             return redirect(url_for(new_page, packageid=packageid))
 
     # Process GET
@@ -209,7 +202,8 @@ def intellectual_rights(packageid=None):
     form = IntellectualRightsForm(packageid=packageid)
 
     # Process POST
-    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
         submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -224,8 +218,8 @@ def intellectual_rights(packageid=None):
 
             create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
 
-        if 'Back' in request.form:
-            new_page = PAGE_KEYWORD_SELECT
+        if 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_PUBLICATION_PLACE
         elif 'Hidden_Download' in request.form:
@@ -331,6 +325,8 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
@@ -384,7 +380,8 @@ def keyword(packageid=None, node_id=None):
             url = url_for(PAGE_KEYWORD_SELECT, packageid=packageid)
             return redirect(url)
 
-    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
         next_page = PAGE_KEYWORD_SELECT  # Save or Back sends us back to the list of keywords
 
         submit_type = None

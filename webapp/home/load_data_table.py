@@ -228,7 +228,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             add_child(attribute_node, att_def_node)
-            att_def_node.content = f'TO DO: Attribute definition for {col}'
+            # att_def_node.content = f'TO DO: Attribute definition for {col}'
         
             ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
             add_child(attribute_node, ms_node)
@@ -244,7 +244,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                     code_node = new_child_node(names.CODE, code_definition_node)
                     code_node.content = code
                     definition_node = new_child_node(names.DEFINITION, code_definition_node)
-                    definition_node.content = f'TO DO: Definition for code {code}'
+                    # definition_node.content = f'TO DO: Definition for code {code}'
 
             elif var_type == VariableType.NUMERICAL:
                 # ratio / numericDomain
@@ -263,7 +263,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                 non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
                 text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
                 definition_node = new_child_node(names.DEFINITION, text_domain_node)
-                definition_node.content = f'TO DO: Attribute definition for {col}'  # FIXME - leave blank?
+                # definition_node.content = f'TO DO: Attribute definition for {col}'  # FIXME - leave blank?
 
             elif var_type == VariableType.DATETIME:
                 # dateTime / formatString

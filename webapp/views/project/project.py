@@ -55,6 +55,8 @@ def project(packageid=None):
             new_page = PAGE_PROJECT_PERSONNEL_SELECT
         elif 'Edit Funding Awards' in request.form:
             new_page = PAGE_FUNDING_AWARD_SELECT
+        elif 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_PROJECT
         elif 'Hidden_Download' in request.form:
@@ -152,6 +154,8 @@ def funding_award_select(packageid=None):
                     eml_node = load_eml(packageid=packageid)
                     remove_child(node_id=node_id)
                     save_both_formats(packageid=packageid, eml_node=eml_node)
+                elif val == BTN_HIDDEN_CHECK:
+                    new_page = PAGE_CHECK
                 elif val == BTN_HIDDEN_SAVE:
                     new_page = PAGE_FUNDING_AWARD_SELECT
                 elif val == BTN_HIDDEN_DOWNLOAD:

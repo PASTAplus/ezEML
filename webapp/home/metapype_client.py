@@ -237,8 +237,10 @@ def compose_code_definition(code_definition_node:Node=None):
         if code_node:
             code = code_node.content
         definition_node = code_definition_node.find_child(names.DEFINITION)
-        if definition_node:
+        if definition_node and definition_node.content:
             definition = definition_node.content
+        else:
+            definition = ''
 
     return code, definition
 
@@ -625,7 +627,8 @@ def load_eml(packageid:str=None):
     filename = f"{user_folder}/{packageid}.json"
     if os.path.isfile(filename):
         try:
-            flash(f'Loading eml from {filename}')
+            if Config.FLASH_DEBUG:
+                flash(f'Loading eml from {filename}')
             if Config.LOG_DEBUG:
                 app = Flask(__name__)
                 with app.app_context():

@@ -56,6 +56,8 @@ def maintenance(packageid=None):
                 val = form_dict[key][0]  # value is the first list element
                 if val == BTN_SAVE_AND_CONTINUE:
                     new_page = PAGE_CONTACT_SELECT
+                elif val == BTN_HIDDEN_CHECK:
+                    new_page = PAGE_CHECK
                 elif val == BTN_HIDDEN_SAVE:
                     new_page = PAGE_PROJECT
                 elif val == BTN_HIDDEN_DOWNLOAD:

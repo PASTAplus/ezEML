@@ -245,7 +245,6 @@ def data_table(packageid=None, node_id=None):
 
 def compose_codes():
     code_list = list_codes_and_definitions()
-    pass
 
 
 def compose_atts(att_list: list = []):
@@ -528,6 +527,8 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
@@ -1146,7 +1147,7 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
                 # we need to hang onto the categorical codes
                 att_node = Node.get_node_instance(att_node_id)
                 if att_node:
-                    enumerated_domain_node = att_node.find_child(names.ENUMERATEDDOMAIN)
+                    enumerated_domain_node = att_node.find_descendant(names.ENUMERATEDDOMAIN)
 
                 enforced = form.enforced.data
             else:
@@ -1427,6 +1428,8 @@ def code_definition_select_post(packageid=None,
                 new_page = this_page
                 node_id = key
                 process_down_button(packageid, node_id)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:

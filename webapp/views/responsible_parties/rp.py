@@ -348,9 +348,9 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
             if len(gn_nodes) > 1:
                 form.mn.data = gn_nodes[1].content
 
-    sn_node = in_node.find_child(names.SURNAME)
-    if sn_node:
-        form.sn.data = sn_node.content
+        sn_node = in_node.find_child(names.SURNAME)
+        if sn_node:
+            form.sn.data = sn_node.content
 
     user_id_node = node.find_child(names.USERID)
     if user_id_node:

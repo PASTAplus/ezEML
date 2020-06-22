@@ -27,6 +27,8 @@ from flask_login import (
     current_user, login_required
 )
 
+import xlrd
+
 from webapp.auth.user_data import (
     delete_eml, download_eml, get_active_packageid, get_user_document_list,
     get_user_uploads_folder_name
@@ -49,6 +51,8 @@ from webapp.home.metapype_client import (
     save_old_to_new, read_xml, new_child_node
 )
 
+from webapp.home.evaulate import check_eml
+
 from webapp.buttons import *
 from webapp.pages import *
 
@@ -67,6 +71,16 @@ def non_breaking(_str):
     return _str.replace(' ', html.unescape('&nbsp;'))
 
 
+@home.before_app_first_request
+def load_eval_entries():
+    workbook = xlrd.open_workbook('webapp/static/evaluate.xlsx')
+    worksheet = workbook.sheet_by_index(0)
+    for row in range(1, worksheet.nrows):
+        id = worksheet.cell_value(row, 0)
+        vals = [worksheet.cell_value(row, i) for i in range(1, worksheet.ncols)]
+        session[f'__eval__{id}'] = vals
+
+
 @home.before_app_request  # FIXME - temporary
 @home.before_app_first_request
 def init_keywords():
@@ -78,7 +92,7 @@ def get_keywords(which):
     return keywords.get(which, [])
 
 
-@home.before_app_request  # FIXME - temporary
+# @home.before_app_request  # FIXME - temporary
 @home.before_app_first_request
 def init_help():
     lines = []
@@ -131,10 +145,7 @@ def index():
         current_packageid = get_active_packageid()
         if current_packageid:
             eml_node = load_eml(packageid=current_packageid)
-            if eml_node:
-                new_page = PAGE_TITLE
-            else:
-                new_page = PAGE_FILE_ERROR
+            new_page = PAGE_TITLE if eml_node else PAGE_FILE_ERROR
             return redirect(url_for(new_page, packageid=current_packageid))
     return render_template('index.html')
 
@@ -150,10 +161,7 @@ def edit(page:str=None):
         current_packageid = get_active_packageid()
         if current_packageid:
             eml_node = load_eml(packageid=current_packageid)
-            if eml_node:
-                new_page = page
-            else:
-                new_page = PAGE_FILE_ERROR
+            new_page = page if eml_node else PAGE_FILE_ERROR
             return redirect(url_for(new_page, packageid=current_packageid))
     return render_template('index.html')
 
@@ -295,6 +303,20 @@ def download():
                            form=form)
 
 
+@home.route('/check_metadata/<packageid>', methods=['GET', 'POST'])
+@login_required
+def check_metadata(packageid:str):
+    current_packageid = get_active_packageid()
+    content = check_eml(current_packageid)
+    # Process POST
+    if request.method == 'POST':
+        # return render_template(PAGE_CHECK, packageid=packageid)
+        return redirect(url_for(PAGE_CHECK, packageid=current_packageid))
+
+    else:
+        return render_template('check_metadata.html', content=content)
+
+
 @home.route('/download_current', methods=['GET', 'POST'])
 @login_required
 def download_current():
@@ -415,7 +437,7 @@ def load_data():
     uploads_folder = get_user_uploads_folder_name()
 
     # Process POST
-    if  request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         # Check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -424,14 +446,14 @@ def load_data():
         file = request.files['file']
         if file:
             filename = secure_filename(file.filename)
-            
+
             if filename is None or filename == '':
-                flash('No selected file')           
+                flash('No selected file')
             elif allowed_data_file(filename):
                 file.save(os.path.join(uploads_folder, filename))
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
-                flash(f'Loaded {filename}')
+                flash(f'Loaded {data_file}')
                 eml_node = load_eml(packageid=packageid)
                 dataset_node = eml_node.find_child(names.DATASET)
                 if not dataset_node:
@@ -557,7 +579,7 @@ def select_post(packageid=None, form=None, form_dict=None,
                 new_page = back_page
             elif val[0:4] == BTN_BACK:
                 new_page = back_page
-            elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
+            elif val in [BTN_NEXT, BTN_SAVE_AND_CONTINUE]:
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
@@ -568,6 +590,8 @@ def select_post(packageid=None, form=None, form_dict=None,
                 eml_node = load_eml(packageid=packageid)
                 remove_child(node_id=node_id)
                 save_both_formats(packageid=packageid, eml_node=eml_node)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:

@@ -55,7 +55,7 @@ def method_step_select(packageid=None):
                 val = form_dict[key][0]  # value is the first list element
                 if val == BTN_BACK:
                     new_page = back_page
-                elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
+                elif val in [BTN_NEXT, BTN_SAVE_AND_CONTINUE]:
                     new_page = next_page
                 elif val == BTN_EDIT:
                     new_page = edit_page
@@ -66,6 +66,8 @@ def method_step_select(packageid=None):
                     eml_node = load_eml(packageid=packageid)
                     remove_child(node_id=node_id)
                     save_both_formats(packageid=packageid, eml_node=eml_node)
+                elif val == BTN_HIDDEN_CHECK:
+                    new_page = PAGE_CHECK
                 elif val == BTN_HIDDEN_SAVE:
                     new_page = this_page
                 elif val == BTN_HIDDEN_DOWNLOAD:
@@ -86,11 +88,7 @@ def method_step_select(packageid=None):
                     node_id = key
 
         if form.validate_on_submit():
-            if new_page == edit_page:
-                url = url_for(new_page,
-                              packageid=packageid,
-                              node_id=node_id)
-            elif new_page == this_page:
+            if new_page in [edit_page, this_page]:
                 url = url_for(new_page,
                               packageid=packageid,
                               node_id=node_id)

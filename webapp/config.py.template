@@ -18,7 +18,8 @@ class Config(object):
     SECRET_KEY = 'SECRET KEY'
     DEBUG = False
     FLASH_DEBUG = False
-    
+    LOG_DEBUG = False
+
     PASTA_URL = 'https://pasta.lternet.edu/package'
 
     DOMAINS = {'edi': 'o=EDI,dc=edirepository,dc=org',

@@ -7,6 +7,7 @@
 
 :Author:
     costa
+    ide
 
 :Created:
     7/27/18
@@ -866,7 +867,7 @@ def create_data_table(
 
         if size:
             size_node = new_child_node(names.SIZE, parent=physical_node)
-            size_node.content = size
+            size_node.content = str(size)
 
         if md5_hash:
             md5_hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
@@ -880,7 +881,7 @@ def create_data_table(
 
         if num_header_lines:
             num_header_lines_node = new_child_node(names.NUMHEADERLINES, parent=text_format_node)
-            num_header_lines_node.content = num_header_lines
+            num_header_lines_node.content = str(num_header_lines)
 
         if record_delimiter:
             record_delimiter_node = new_child_node(names.RECORDDELIMITER, parent=text_format_node)
@@ -908,7 +909,7 @@ def create_data_table(
 
         if number_of_records:
             number_of_records_node = new_child_node(names.NUMBEROFRECORDS, parent=data_table_node)
-            number_of_records_node.content = number_of_records
+            number_of_records_node.content = str(number_of_records)
 
         return data_table_node
 

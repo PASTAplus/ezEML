@@ -142,14 +142,14 @@ def other_entity(packageid=None, node_id=None):
             entity_description = form.entity_description.data
             object_name = form.object_name.data
             format_name = form.format_name.data
-            size = form.size.data
+            size = str(form.size.data) if form.size.data else ''
             md5_hash = form.md5_hash.data
             online_url = form.online_url.data
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 
             if not entity_name:
-                entity_name = 'TO DO: Entity Name'
+                entity_name = ''
 
             create_other_entity(
                 dt_node,

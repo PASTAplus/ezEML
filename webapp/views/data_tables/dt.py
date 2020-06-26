@@ -110,20 +110,20 @@ def data_table(packageid=None, node_id=None):
             entity_name = form.entity_name.data
             entity_description = form.entity_description.data
             object_name = form.object_name.data
-            size = form.size.data
+            size = str(form.size.data) if form.size.data else ''
             md5_hash = form.md5_hash.data
-            num_header_lines = form.num_header_lines.data
+            num_header_lines = str(form.num_header_lines.data) if form.num_header_lines.data else ''
             record_delimiter = form.record_delimiter.data
             attribute_orientation = form.attribute_orientation.data
             field_delimiter = form.field_delimiter.data
             case_sensitive = form.case_sensitive.data
-            number_of_records = form.number_of_records.data
+            number_of_records = str(form.number_of_records.data) if form.number_of_records.data else ''
             online_url = form.online_url.data
 
             dt_node = Node(names.DATATABLE, parent=dataset_node)
 
             if not entity_name:
-                entity_name = 'TO DO: Data Table Name'
+                entity_name = ''
 
             create_data_table(
                 dt_node,

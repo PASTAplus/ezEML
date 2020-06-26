@@ -27,7 +27,7 @@ from flask_login import (
     current_user, login_required
 )
 
-import xlrd
+import csv
 
 from webapp.auth.user_data import (
     delete_eml, download_eml, get_active_packageid, get_user_document_list,
@@ -51,7 +51,7 @@ from webapp.home.metapype_client import (
     save_old_to_new, read_xml, new_child_node
 )
 
-from webapp.home.evaulate import check_eml
+from webapp.home.check_metadata import check_eml
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -73,11 +73,13 @@ def non_breaking(_str):
 
 @home.before_app_first_request
 def load_eval_entries():
-    workbook = xlrd.open_workbook('webapp/static/evaluate.xlsx')
-    worksheet = workbook.sheet_by_index(0)
-    for row in range(1, worksheet.nrows):
-        id = worksheet.cell_value(row, 0)
-        vals = [worksheet.cell_value(row, i) for i in range(1, worksheet.ncols)]
+    rows = []
+    with open('webapp/static/evaluate.csv') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            rows.append(row)
+    for row_num in range(1, len(rows)):
+        id, *vals = rows[row_num]
         session[f'__eval__{id}'] = vals
 
 

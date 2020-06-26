@@ -221,7 +221,8 @@ def funding_award(packageid=None, node_id=None):
             url = url_for(PAGE_FUNDING_AWARD_SELECT, packageid=packageid)
             return redirect(url)
 
-        if request.method == 'POST' and form.validate_on_submit():
+        # if request.method == 'POST' and form.validate_on_submit():
+        if request.method == 'POST':
             next_page = PAGE_FUNDING_AWARD_SELECT  # Save or Back sends us back to the list of keywords
 
         submit_type = None

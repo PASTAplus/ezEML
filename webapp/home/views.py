@@ -71,6 +71,7 @@ def non_breaking(_str):
     return _str.replace(' ', html.unescape('&nbsp;'))
 
 
+@home.before_app_request
 @home.before_app_first_request
 def load_eval_entries():
     rows = []
@@ -94,7 +95,7 @@ def get_keywords(which):
     return keywords.get(which, [])
 
 
-# @home.before_app_request  # FIXME - temporary
+@home.before_app_request
 @home.before_app_first_request
 def init_help():
     lines = []

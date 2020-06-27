@@ -46,8 +46,8 @@ def valid_latitude(min:float=-90.0, max:float=90.0):
             l = float(field.data)
             if l < min or l > max:
                 raise ValidationError(message)
-        else:
-            raise ValidationError("Missing value")
+        # else:
+        #     raise ValidationError("Missing value")
            
 
     return _valid_latitude
@@ -61,7 +61,7 @@ def valid_longitude(min:float=-180.0, max:float=180.0):
             l = float(field.data)
             if l < min or l > max:
                 raise ValidationError(message)
-        else:
-            raise ValidationError("Missing value")
+        # else:
+        #     raise ValidationError("Missing value")
 
     return _valid_longitude

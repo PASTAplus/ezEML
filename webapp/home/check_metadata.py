@@ -106,8 +106,9 @@ def find_err_code(errs, err_code_to_find, node_name):
 
 
 def check_dataset_title(eml_node, packageid):
-    validation_errs = validate_via_metapype(eml_node)
     link = url_for(PAGE_TITLE, packageid=packageid)
+    dataset_node = eml_node.find_child(names.DATASET)
+    validation_errs = validate_via_metapype(dataset_node)
     # Is title node missing?
     if find_min_unmet(validation_errs, names.DATASET, names.TITLE):
         add_to_evaluation('title_01', link)
@@ -150,7 +151,8 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
 
 def check_creators(eml_node, packageid):
     link = url_for(PAGE_CREATOR_SELECT, packageid=packageid)
-    validation_errs = validate_via_metapype(eml_node)
+    dataset_node = eml_node.find_child(names.DATASET)
+    validation_errs = validate_via_metapype(dataset_node)
 
     if find_min_unmet(validation_errs, names.DATASET, names.CREATOR):
         add_to_evaluation('creators_01', link)
@@ -340,8 +342,8 @@ def check_data_tables(eml_node, packageid):
 def check_contacts(eml_node, packageid):
     link = url_for(PAGE_CONTACT_SELECT, packageid=packageid)
     dataset_node = eml_node.find_child(names.DATASET)
-    validation_errors = validate_via_metapype(eml_node)
-    if find_min_unmet(validation_errors, names.DATASET, names.CONTACT):
+    validation_errs = validate_via_metapype(dataset_node)
+    if find_min_unmet(validation_errs, names.DATASET, names.CONTACT):
         add_to_evaluation('contacts_01', link=link)
     contact_nodes = eml_node.find_all_nodes_by_path([
         names.DATASET,

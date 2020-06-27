@@ -523,7 +523,7 @@ def validate_via_metapype(node):
     try:
         validate.tree(node, errs)
     except Exception as e:
-        print(e)
+        print(f'validate_via_metapype: node={node.name} exception={e}')
     return errs
 
 
@@ -532,7 +532,7 @@ def evaluate_via_metapype(node):
     try:
         evaluate.tree(node, eval)
     except Exception as e:
-        print(e)
+        print(f'evaluate_via_metapype: node={node.name} exception={e}')
     return eval
 
 

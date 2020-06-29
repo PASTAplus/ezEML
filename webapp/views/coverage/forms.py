@@ -25,10 +25,10 @@ class GeographicCoverageSelectForm(EDIForm):
 class GeographicCoverageForm(EDIForm):
     geographic_description = StringField('Geographic Description', widget=TextArea(),
                                          validators=[])
-    wbc = FloatField('West Bounding Coordinate', validators=[valid_longitude()])
-    ebc = FloatField('East Bounding Coordinate', validators=[valid_longitude()])
-    nbc = FloatField('North Bounding Coordinate', validators=[valid_latitude()])
-    sbc = FloatField('South Bounding Coordinate', validators=[valid_latitude()])
+    wbc = FloatField('West Bounding Coordinate', validators=[valid_longitude(), Optional()])
+    ebc = FloatField('East Bounding Coordinate', validators=[valid_longitude(), Optional()])
+    nbc = FloatField('North Bounding Coordinate', validators=[valid_latitude(), Optional()])
+    sbc = FloatField('South Bounding Coordinate', validators=[valid_latitude(), Optional()])
     md5 = HiddenField('')
 
     def field_data(self)->tuple:

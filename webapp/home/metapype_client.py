@@ -105,8 +105,7 @@ def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Opt
         else:
             # when we add to additionalMetadata, we sidestep rule checking
             parent_node.add_child(child_node)
-    if content:
-        child_node.content = content
+    child_node.content = content
     return child_node
 
 

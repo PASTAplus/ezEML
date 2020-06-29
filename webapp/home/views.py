@@ -84,7 +84,7 @@ def load_eval_entries():
         session[f'__eval__{id}'] = vals
 
 
-@home.before_app_request  # FIXME - temporary
+@home.before_app_request
 @home.before_app_first_request
 def init_keywords():
     lter_keywords = pickle.load(open('webapp/static/lter_keywords.pkl', 'rb'))

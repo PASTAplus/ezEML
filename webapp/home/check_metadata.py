@@ -339,6 +339,14 @@ def check_data_tables(eml_node, packageid):
         check_data_table(eml_node, packageid, data_table_node)
 
 
+def check_maintenance(eml_node, packageid):
+    link = url_for(PAGE_MAINTENANCE, packageid=packageid)
+    dataset_node = eml_node.find_child(names.DATASET)
+    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if find_err_code(evaluation_warnings, EvaluationWarning.MAINTENANCE_DESCRIPTION_MISSING, names.DESCRIPTION):
+        add_to_evaluation('maintenance_01', link)
+
+
 def check_contacts(eml_node, packageid):
     link = url_for(PAGE_CONTACT_SELECT, packageid=packageid)
     dataset_node = eml_node.find_child(names.DATASET)
@@ -354,9 +362,11 @@ def check_contacts(eml_node, packageid):
                                 packageid, contact_node.id)
 
 
-def check_method_step(method_step_node):
-    validation_errors = validate_via_metapype(method_step_node)
-    # FIXME - rule allows empty content for description. What to do about this?
+def check_method_step(method_step_node, packageid, node_id):
+    link = url_for(PAGE_METHOD_STEP, packageid=packageid, node_id=node_id)
+    evaluation_warnings = evaluate_via_metapype(method_step_node)
+    if find_err_code(evaluation_warnings, EvaluationWarning.METHOD_STEP_DESCRIPTION_MISSING, names.DESCRIPTION):
+        add_to_evaluation('methods_02', link)
 
 
 def check_method_steps(eml_node, packageid):
@@ -372,7 +382,7 @@ def check_method_steps(eml_node, packageid):
         names.METHODSTEP
     ])
     for method_step_node in method_step_nodes:
-        check_method_step(method_step_node)
+        check_method_step(method_step_node, packageid, method_step_node.id)
 
 
 def check_project_award(award_node, packageid):
@@ -512,6 +522,7 @@ def check_eml(packageid:str):
     check_intellectual_rights(eml_node, packageid)
     check_coverage(eml_node, packageid)
     check_geographic_coverage(eml_node, packageid)
+    check_maintenance(eml_node, packageid)
     check_contacts(eml_node, packageid)
     check_method_steps(eml_node, packageid)
     check_project(eml_node, packageid)

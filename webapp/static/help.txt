@@ -184,6 +184,56 @@ The coordinates may define a rectangle around a country, with this Geographic De
 
 Geographic Description can also contain information about the collection of bounding coordinates, e.g., an altitude value that is referenced to Mean Lower Low Water, or the projection system that the latitude and longitude coordinates were taken from.</para>
 --------------------
+import_funding_awards
+Import Funding Awards
+You may import the details for one or more funding awards from another data package.
+
+Note that you may also "import" from the current data package, to "copy and paste" a funding award to which you can then make edits.
+--------------------
+import_funding_awards_2
+Import Funding Awards
+Select the funding awards to import.
+
+If none are shown, none are available in the selected data package.
+--------------------
+import_geographic_coverage
+Import Geographic Coverage
+You may import selected geographic coverage details from another data package.
+
+Currently, only geographic coverages at the dataset level (as opposed to the individual data table level) are available to import.
+--------------------
+import_geographic_coverage_2
+Import Geographic Coverage
+Select the geographic coverages to import.
+
+If none are shown, none are available in the selected data package.
+--------------------
+import_taxonomic_coverage
+Import Taxonomic Coverage
+You may import selected taxonomic coverage details from another data package.
+
+Note that you may also "import" from the current data package, to "copy and paste" a taxonomy to which you can then make edits.
+
+Currently, only taxonomic coverages at the dataset level (as opposed to the individual data table level) are available to import.
+--------------------
+import_taxonomic_coverage_2
+Import Taxonomic Coverage
+Select the taxonomic coverages to import.
+
+If none are shown, none are available in the selected data package.
+--------------------
+import_responsible_parties
+Import Responsible Parties
+You may import the details for one or more responsible parties (persons, organizations, positions who have been specified as Creators, Metadata Providers, etc.) from another data package where they have already been defined.
+
+Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.
+--------------------
+import_responsible_parties_2
+Import Responsible Parties
+Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
+
+If none are shown, none are available in the selected data package.
+--------------------
 intellectual_rights
 Intellectual Rights
 Intellectual rights are controlled at the source, however it is recommended that data be released with as few restrictions as possible.

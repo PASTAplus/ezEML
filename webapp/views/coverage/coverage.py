@@ -439,31 +439,31 @@ def populate_taxonomic_coverage_form_aux(form: TaxonomicCoverageForm, node: Node
         taxon_rank_value_node = node.find_child(names.TAXONRANKVALUE)
         taxon_common_name_node = node.find_child(names.COMMONNAME)
 
-        if taxon_rank_name_node.content == 'Kingdom':
+        if taxon_rank_name_node.content.lower() == 'kingdom':
             form.kingdom_value.data = taxon_rank_value_node.content
             if taxon_common_name_node:
                 form.kingdom_common_name.data = taxon_common_name_node.content
-        elif taxon_rank_name_node.content == 'Phylum':
+        elif taxon_rank_name_node.content.lower() == 'phylum':
             form.phylum_value.data = taxon_rank_value_node.content
             if taxon_common_name_node:
                 form.phylum_common_name.data = taxon_common_name_node.content
-        elif taxon_rank_name_node.content == 'Class':
+        elif taxon_rank_name_node.content.lower() == 'class':
             form.class_value.data = taxon_rank_value_node.content
             if taxon_common_name_node:
                 form.class_common_name.data = taxon_common_name_node.content
-        elif taxon_rank_name_node.content == 'Order':
+        elif taxon_rank_name_node.content.lower() == 'order':
             form.order_value.data = taxon_rank_value_node.content
             if taxon_common_name_node:
                 form.order_common_name.data = taxon_common_name_node.content
-        elif taxon_rank_name_node.content == 'Family':
+        elif taxon_rank_name_node.content.lower() == 'family':
             form.family_value.data = taxon_rank_value_node.content
             if taxon_common_name_node:
                 form.family_common_name.data = taxon_common_name_node.content
-        elif taxon_rank_name_node.content == 'Genus':
+        elif taxon_rank_name_node.content.lower() == 'genus':
             form.genus_value.data = taxon_rank_value_node.content
             if taxon_common_name_node:
                 form.genus_common_name.data = taxon_common_name_node.content
-        elif taxon_rank_name_node.content == 'Species':
+        elif taxon_rank_name_node.content.lower() == 'species':
             form.species_value.data = taxon_rank_value_node.content
             if taxon_common_name_node:
                 form.species_common_name.data = taxon_common_name_node.content

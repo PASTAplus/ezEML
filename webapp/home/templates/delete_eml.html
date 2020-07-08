@@ -2,13 +2,15 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Delete EML Document</h1>
+    <h2>Delete EML Document</h2>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-8">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+                <br>
                 <h5>Please enter the package ID of the data package to delete:</h5>
                 {{ wtf.form_field(form.packageid) }}
+                <p>&nbsp;<p/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Delete"/>
             </form>
         </div>

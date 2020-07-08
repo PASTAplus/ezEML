@@ -38,7 +38,8 @@ from webapp.home.forms import (
     CreateEMLForm,
     DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
-    LoadDataForm, LoadMetadataForm, LoadOtherEntityForm
+    LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
+    ImportEMLForm, ImportEMLItemsForm, ImportItemsForm
 )
 
 from webapp.home.load_data_table import (
@@ -48,7 +49,10 @@ from webapp.home.load_data_table import (
 from webapp.home.metapype_client import ( 
     load_eml, save_both_formats, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
-    save_old_to_new, read_xml, new_child_node
+    save_old_to_new, read_xml, new_child_node, truncate_middle,
+    compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
+    compose_funding_award_label, list_data_packages,
+    import_responsible_parties, import_coverage_nodes, import_funding_award_nodes
 )
 
 from webapp.home.check_metadata import check_eml
@@ -183,12 +187,8 @@ def file_error(packageid=None):
 @login_required
 def delete():
     form = DeleteEMLForm()
-    choices = []
-    packageids = get_user_document_list()
-    for packageid in packageids:
-        pid_tuple = (packageid, packageid)
-        choices.append(pid_tuple)
-    form.packageid.choices = choices
+    form.packageid.choices = list_data_packages()
+
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
@@ -197,10 +197,9 @@ def delete():
             flash(return_value)
         else:
             flash(f'Deleted {packageid}')
-        new_page = PAGE_DELETE   # Return the Response object
-        return redirect(url_for(new_page))
+        return redirect(url_for(PAGE_INDEX))
     # Process GET
-    return render_template('delete_eml.html', title='Delete EML', 
+    return render_template('delete_eml.html', title='Delete EML',
                            form=form)
 
 
@@ -287,12 +286,8 @@ def save_as():
 @login_required
 def download():
     form = DownloadEMLForm()
-    choices = []
-    packageids = get_user_document_list()
-    for packageid in packageids:
-        pid_tuple = (packageid, packageid)
-        choices.append(pid_tuple)
-    form.packageid.choices = choices
+    form.packageid.choices = list_data_packages()
+
     # Process POST
     if form.validate_on_submit():
         packageid = form.packageid.data
@@ -407,13 +402,7 @@ def create():
 @login_required
 def open_eml_document():
     form = OpenEMLDocumentForm()
-
-    choices = []
-    user_packageids = get_user_document_list()
-    for packageid in user_packageids:
-        pid_tuple = (packageid, packageid)
-        choices.append(pid_tuple)
-    form.packageid.choices = choices
+    form.packageid.choices = list_data_packages()
 
     # Process POST
     if form.validate_on_submit():
@@ -430,6 +419,326 @@ def open_eml_document():
     # Process GET
     return render_template('open_eml_document.html', title='Open EML Document', 
                            form=form)
+
+
+@home.route('/import_parties', methods=['GET', 'POST'])
+@login_required
+def import_parties():
+    form = ImportEMLForm()
+    form.packageid.choices = list_data_packages(True)
+
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        return redirect(url_for('home.import_parties_2', packageid=packageid))
+
+    # Process GET
+
+    help = get_helps(['import_responsible_parties'])
+    return render_template('import_parties.html', help=help, form=form)
+
+
+def get_redirect_target_page():
+    current_page = get_current_page()
+    if current_page == 'title':
+        return PAGE_TITLE
+    elif current_page == 'creator':
+        return PAGE_CREATOR_SELECT
+    elif current_page == 'metadata_provider':
+        return PAGE_METADATA_PROVIDER_SELECT
+    elif current_page == 'associated_party':
+        return PAGE_ASSOCIATED_PARTY_SELECT
+    elif current_page == 'abstract':
+        return PAGE_ABSTRACT
+    elif current_page == 'keyword':
+        return PAGE_KEYWORD_SELECT
+    elif current_page == 'intellectual_rights':
+        return PAGE_INTELLECTUAL_RIGHTS
+    elif current_page == 'geographic_coverage':
+        return PAGE_GEOGRAPHIC_COVERAGE_SELECT
+    elif current_page == 'temporal_coverage':
+        return PAGE_TEMPORAL_COVERAGE_SELECT
+    elif current_page == 'taxonomic_coverage':
+        return PAGE_TAXONOMIC_COVERAGE_SELECT
+    elif current_page == 'maintenance':
+        return PAGE_MAINTENANCE
+    elif current_page == 'contact':
+        return PAGE_CONTACT_SELECT
+    elif current_page == 'method_step':
+        return PAGE_METHOD_STEP_SELECT
+    elif current_page == 'project':
+        return PAGE_PROJECT
+    elif current_page == 'data_table':
+        return PAGE_DATA_TABLE_SELECT
+    elif current_page == 'other_entity':
+        return PAGE_OTHER_ENTITY_SELECT
+    else:
+        return PAGE_TITLE
+
+
+@home.route('/import_parties_2/<packageid>/', methods=['GET', 'POST'])
+@login_required
+def import_parties_2(packageid):
+    form = ImportEMLItemsForm()
+
+    eml_node = load_eml(packageid)
+    parties = get_responsible_parties_for_import(eml_node)
+    choices = [[party[2], party[1]] for party in parties]
+    form.to_import.choices = choices
+    targets = [
+        ("Creators", "Creators"),
+        ("Metadata Providers", "Metadata Providers"),
+        ("Associated Parties", "Associated Parties"),
+        ("Contacts", "Contacts"),
+        ("Project Personnel", "Project Personnel")]
+    form.target.choices = targets
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, packageid=packageid)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_class = form.data['target']
+        import_packageid = packageid
+        target_packageid = current_user.get_packageid()
+        import_responsible_parties(target_packageid, node_ids_to_import, target_class)
+        if target_class == 'Creators':
+            new_page = PAGE_CREATOR_SELECT
+        elif target_class == 'Metadata Providers':
+            new_page = PAGE_METADATA_PROVIDER_SELECT
+        elif target_class == 'Associated Parties':
+            new_page = PAGE_ASSOCIATED_PARTY_SELECT
+        elif target_class == 'Contacts':
+            new_page = PAGE_CONTACT_SELECT
+        elif target_class == 'Project Personnel':
+            new_page = PAGE_PROJECT_PERSONNEL_SELECT
+        return redirect(url_for(new_page, packageid=target_packageid))
+
+    # Process GET
+    help = get_helps(['import_responsible_parties_2'])
+    return render_template('import_parties_2.html', target_packageid=packageid, help=help, form=form)
+
+
+def get_responsible_parties_for_import(eml_node):
+    parties = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
+        label = compose_rp_label(node)
+        parties.append(('Creator', f'{label} (Creator)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
+        label = compose_rp_label(node)
+        parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
+        label = compose_rp_label(node)
+        parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
+        label = compose_rp_label(node)
+        parties.append(('Contact', f'{label} (Contact)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
+        label = compose_rp_label(node)
+        parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
+    return parties
+
+
+@home.route('/import_geo_coverage', methods=['GET', 'POST'])
+@login_required
+def import_geo_coverage():
+    form = ImportEMLForm()
+    form.packageid.choices = list_data_packages(True)
+
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        return redirect(url_for('home.import_geo_coverage_2', packageid=packageid))
+
+    # Process GET
+    help = get_helps(['import_geographic_coverage'])
+    return render_template('import_geo_coverage.html', help=help, form=form)
+
+
+@home.route('/import_geo_coverage_2/<packageid>/', methods=['GET', 'POST'])
+@login_required
+def import_geo_coverage_2(packageid):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(packageid)
+    coverages = get_geo_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, packageid=packageid)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_packageid = current_user.get_packageid()
+        import_coverage_nodes(target_packageid, node_ids_to_import)
+        return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, packageid=target_packageid))
+
+    # Process GET
+    help = get_helps(['import_geographic_coverage_2'])
+    return render_template('import_geo_coverage_2.html', help=help, target_packageid=packageid, form=form)
+
+
+def get_geo_coverages_for_import(eml_node):
+    coverages = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE]):
+        label = compose_full_gc_label(node)
+        coverages.append((f'{label}', node.id))
+    return coverages
+
+
+@home.route('/import_temporal_coverage', methods=['GET', 'POST'])
+@login_required
+def import_temporal_coverage():
+    form = ImportEMLForm()
+    form.packageid.choices = list_data_packages(True)
+
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        return redirect(url_for('home.import_temporal_coverage_2', packageid=packageid))
+
+    # Process GET
+    return render_template('import_temporal_coverage.html', form=form)
+
+
+@home.route('/import_temporal_coverage_2/<packageid>/', methods=['GET', 'POST'])
+@login_required
+def import_temporal_coverage_2(packageid):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(packageid)
+    coverages = get_temporal_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, packageid=packageid)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_packageid = current_user.get_packageid()
+        import_coverage_nodes(target_packageid, node_ids_to_import)
+        return redirect(url_for(PAGE_TEMPORAL_COVERAGE_SELECT, packageid=target_packageid))
+
+    # Process GET
+    return render_template('import_temporal_coverage_2.html', target_packageid=packageid, title='Import Metadata',
+                           form=form)
+
+
+def get_temporal_coverages_for_import(eml_node):
+    coverages = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TEMPORALCOVERAGE]):
+        label = compose_full_gc_label(node) # FIXME
+        coverages.append((f'{label}', node.id))
+    return coverages
+
+
+@home.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
+@login_required
+def import_taxonomic_coverage():
+    form = ImportEMLForm()
+    form.packageid.choices = list_data_packages(True)
+
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        return redirect(url_for('home.import_taxonomic_coverage_2', packageid=packageid))
+
+    # Process GET
+    help = get_helps(['import_taxonomic_coverage'])
+    return render_template('import_taxonomic_coverage.html', help=help, form=form)
+
+
+@home.route('/import_taxonomic_coverage_2/<packageid>/', methods=['GET', 'POST'])
+@login_required
+def import_taxonomic_coverage_2(packageid):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(packageid)
+    coverages = get_taxonomic_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, packageid=packageid)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_packageid = current_user.get_packageid()
+        import_coverage_nodes(target_packageid, node_ids_to_import)
+        return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, packageid=target_packageid))
+
+    # Process GET
+    help = get_helps(['import_taxonomic_coverage_2'])
+    return render_template('import_taxonomic_coverage_2.html', help=help, target_packageid=packageid, form=form)
+
+
+def get_taxonomic_coverages_for_import(eml_node):
+    coverages = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TAXONOMICCOVERAGE]):
+        label = truncate_middle(compose_taxonomic_label(node), 100, ' ... ')
+        coverages.append((f'{label}', node.id))
+    return coverages
+
+
+@home.route('/import_funding_awards', methods=['GET', 'POST'])
+@login_required
+def import_funding_awards():
+    form = ImportEMLForm()
+    form.packageid.choices = list_data_packages(True)
+
+    # Process POST
+    if form.validate_on_submit():
+        packageid = form.packageid.data
+        return redirect(url_for('home.import_funding_awards_2', packageid=packageid))
+
+    # Process GET
+    help = get_helps(['import_funding_awards'])
+    return render_template('import_funding_awards.html', help=help, form=form)
+
+
+@home.route('/import_import_funding_awards_2/<packageid>/', methods=['GET', 'POST'])
+@login_required
+def import_funding_awards_2(packageid):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(packageid)
+    coverages = get_funding_awards_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, packageid=packageid)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_packageid = current_user.get_packageid()
+        import_funding_award_nodes(target_packageid, node_ids_to_import)
+        return redirect(url_for(PAGE_FUNDING_AWARD_SELECT, packageid=target_packageid))
+
+    # Process GET
+    help = get_helps(['import_funding_awards_2'])
+    return render_template('import_funding_awards_2.html', help=help, target_packageid=packageid, form=form)
+
+
+def get_funding_awards_for_import(eml_node):
+    awards = []
+    award_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.AWARD])
+    for award_node in award_nodes:
+        label = truncate_middle(compose_funding_award_label(award_node), 80, ' ... ')
+        awards.append((f'{label}', award_node.id))
+    return awards
 
 
 @home.route('/load_data', methods=['GET', 'POST'])
@@ -673,3 +982,7 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
 
 def set_current_page(page):
     session['current_page'] = page
+
+
+def get_current_page():
+    return session.get('current_page')

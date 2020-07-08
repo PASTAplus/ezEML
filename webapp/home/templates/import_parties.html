@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_import_responsible_parties_id, help_import_responsible_parties_title, help_import_responsible_parties_content = help[0] %}
+    {% set help_import_responsible_parties_btn = help_import_responsible_parties_id ~ '_btn' %}
+    {% set help_import_responsible_parties_dialog = help_import_responsible_parties_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Import Responsible Parties</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_responsible_parties_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <h5>Select a data package identifier from which to import:</h5>
+                {{ wtf.form_field(form.packageid) }}
+                <p> </p>
+                <input class="btn btn-primary" name="Open" type="submit" value="Open for Import"/>
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_import_responsible_parties_dialog, help_import_responsible_parties_title, help_import_responsible_parties_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_import_responsible_parties_id, help_import_responsible_parties_title, help_import_responsible_parties_content = help[0] %}
+    {% set help_import_responsible_parties_btn = help_import_responsible_parties_id ~ '_btn' %}
+    {% set help_import_responsible_parties_dialog = help_import_responsible_parties_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_import_responsible_parties_dialog, help_import_responsible_parties_btn) }}
+    });
+    </script>
+{% endblock %}

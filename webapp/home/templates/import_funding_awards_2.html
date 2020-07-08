@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_funding_awards_2_id, help_funding_awards_2_title, help_funding_awards_2_content = help[0] %}
+    {% set help_funding_awards_2_btn = help_funding_awards_2_id ~ '_btn' %}
+    {% set help_funding_awards_2_dialog = help_funding_awards_2_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Import Funding Awards</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_funding_awards_2_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table>
+                    <tr><h5>Select funding awards to import from {{ target_packageid }}:</h5></tr>
+                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
+                    <tr>&nbsp;<p/></tr>
+                    <tr><input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;
+                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                    </table>
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_funding_awards_2_dialog, help_funding_awards_2_title, help_funding_awards_2_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_funding_awards_2_id, help_funding_awards_2_title, help_funding_awards_2_content = help[0] %}
+    {% set help_funding_awards_2_btn = help_funding_awards_2_id ~ '_btn' %}
+    {% set help_funding_awards_2_dialog = help_funding_awards_2_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_funding_awards_2_dialog, help_funding_awards_2_btn) }}
+    });
+    </script>
+{% endblock %}

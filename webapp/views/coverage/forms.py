@@ -44,7 +44,7 @@ class TaxonomicCoverageSelectForm(EDIForm):
 
 
 class TaxonomicCoverageForm(EDIForm):
-    general_taxonomic_coverage = StringField('General Taxonomic Coverage', widget=TextArea(), validators=[])
+    general_taxonomic_coverage = StringField('General Taxonomic Coverage (Optional)', widget=TextArea(), validators=[])
     kingdom_value = StringField('Kingdom', validators=[])
     kingdom_common_name = StringField('Common Name', validators=[])
     phylum_value =  StringField('Phylum', validators=[])

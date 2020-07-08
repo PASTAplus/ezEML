@@ -58,7 +58,7 @@
                         </li>
                     {% else %}
                         <li>
-                            <a href="{{ url_for('home.create') }}" title="New">New</a>
+                            <a href="{{ url_for('home.create') }}" title="New">New...</a>
                         </li>
                         <li>
                             <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
@@ -66,9 +66,9 @@
 {#                        <li>#}
 {#                            <a href="{{ url_for('home.download') }}" title="Download">Download Data Package as XML...</a>#}
 {#                        </li>#}
-                        <li>
-                            <a href="{{ url_for('home.load_metadata') }}" title="Upload">Upload Data Package from XML...</a>
-                        </li>
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.load_metadata') }}" title="Upload">Upload Data Package from XML...</a>#}
+{#                        </li>#}
                         <li>
                             <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>
                         </li>
@@ -81,14 +81,20 @@
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">Data<span class="caret"></span>
+                       role="button">Import<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a href="{{ url_for('home.load_data') }}" title="Load Data Table">Load Data Table into {{ current_user.get_packageid() }}...</a>
+                            <a href="{{ url_for('home.import_parties') }}" title="Import Responsible Parties">Import Responsible Parties (People, Organizations, Positions)</a>
                         </li>
                         <li>
-                            <a href="{{ url_for('home.load_entity') }}" title="Load Other Entity">Load Other Entity into {{ current_user.get_packageid() }}...</a>
+                            <a href="{{ url_for('home.import_geo_coverage') }}" title="Import Geographic Coverage">Import Geographic Coverage</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.import_taxonomic_coverage') }}" title="Import Taxonomic Coverage">Import Taxonomic Coverage</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.import_funding_awards') }}" title="Import Funding Awards">Import Funding Awards</a>
                         </li>
                     </ul>
                 </li>
@@ -148,10 +154,6 @@
                 </li>
                 {% endif %}
             </ul>
-{#            <ul class="nav navbar-nav navbar-right">#}
-{#                <li>#}
-{#                </li>#}
-{#            </ul>#}
         </div>
         {% if current_user.is_authenticated %}
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">

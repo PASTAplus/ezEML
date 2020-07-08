@@ -30,7 +30,7 @@ from flask_login import (
 )
 
 from webapp.auth.user_data import (
-    get_user_folder_name
+    get_user_document_list, get_user_folder_name
 )
 
 from webapp.config import Config
@@ -71,6 +71,32 @@ class VariableType(Enum):
     DATETIME = 2
     NUMERICAL = 3
     TEXT = 4
+
+
+def parse_package_id(package_id: str):
+    """
+    Takes a package_id in the form 'scope.identifier.revision' and returns a
+    triple (scope, identifier, revision) where the identifier and revision are
+    ints, suitable for sorting.
+    """
+    *_, scope, identifier, revision = package_id.split('.')
+    return scope, int(identifier), int(revision)
+
+
+def sort_package_ids(packages):
+    return sorted(packages, key=lambda x: parse_package_id(x))
+
+
+def list_data_packages(flag_current=False):
+    choices = []
+    user_packageids = sort_package_ids(get_user_document_list())
+    current_annotation = ' (current data package)' if flag_current else ''
+    for packageid in user_packageids:
+        pid_tuple = (packageid, packageid)
+        if packageid == current_user.get_packageid():
+            pid_tuple = (packageid, f'{packageid}{current_annotation}')
+        choices.append(pid_tuple)
+    return choices
 
 
 def add_paragraph_tags(s):
@@ -483,6 +509,16 @@ def compose_gc_label(gc_node:Node=None):
     return label
 
 
+def compose_full_gc_label(gc_node:Node=None):
+    description = ''
+    if gc_node:
+        description_node = gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
+        if description_node and description_node.content:
+            description = description_node.content
+    bounding_coordinates_label = compose_gc_label(gc_node)
+    return ': '.join([description, bounding_coordinates_label])
+
+
 def list_temporal_coverages(parent_node:Node=None):
     tc_list = []
     if parent_node:
@@ -541,12 +577,23 @@ def list_taxonomic_coverages(parent_node:Node=None):
                 id = txc_node.id
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(txc_nodes))
-                label = compose_taxonomic_label(txc_node, label='')
+                label = truncate_middle(compose_taxonomic_label(txc_node, label=''), 70, ' ... ')
                 txc_entry = TXC_Entry(
                     id=id, label=label, upval=upval, downval=downval)
                 txc_list.append(txc_entry)
 
     return txc_list
+
+
+def truncate_middle(s, n, mid='...'):
+    if len(s) <= n:
+        # string is already short-enough
+        return s
+    # half of the size, minus the middle
+    n_2 = int(n / 2) - len(mid)
+    # whatever's left
+    n_1 = n - n_2 - len(mid)
+    return f'{s[:n_1]}{mid}{s[-n_2:]}'
 
 
 def compose_taxonomic_label(txc_node:Node=None, label:str=''):
@@ -562,6 +609,88 @@ def compose_taxonomic_label(txc_node:Node=None, label:str=''):
         return compose_taxonomic_label(tc_node, new_label)
     else:
         return label
+
+
+def reconcile_roles(node, target_class):
+    if target_class in ['Creators', 'Metadata Providers', 'Contacts']:
+        role_node = node.find_child(names.ROLE)
+        if role_node:
+            node.remove_child(role_node)
+    elif target_class in ['Associated Parties', 'Project Personnel']:
+        role_node = node.find_child(names.ROLE)
+        if not role_node:
+            role_node = Node(names.ROLE)
+            node.add_child(role_node)
+
+
+def import_responsible_parties(target_packageid, node_ids_to_import, target_class):
+    target_eml_node = load_eml(target_packageid)
+    if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts']:
+        parent_node = target_eml_node.find_child(names.DATASET)
+    else:
+        parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+    new_name = None
+    if target_class == 'Creators':
+        new_name = names.CREATOR
+    elif target_class == 'Metadata Providers':
+        new_name = names.METADATAPROVIDER
+    elif target_class == 'Associated Parties':
+        new_name = names.ASSOCIATEDPARTY
+    elif target_class == 'Contacts':
+        new_name = names.CONTACT
+    elif target_class == 'Project Personnel':
+        new_name = names.PERSONNEL
+    for node_id in node_ids_to_import:
+        node = Node.get_node_instance(node_id)
+        new_node = node.copy()
+        reconcile_roles(new_node, target_class)
+        new_node.name = new_name
+        add_child(parent_node, new_node)
+    save_both_formats(target_packageid, target_eml_node)
+
+
+def import_coverage_nodes(target_packageid, node_ids_to_import):
+    target_eml_node = load_eml(target_packageid)
+    parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE])
+    if not parent_node:
+        dataset_node = target_eml_node.find_child(names.DATASET)
+        coverage_node = Node(names.COVERAGE)
+        add_child(dataset_node, coverage_node)
+        parent_node = coverage_node
+    for node_id in node_ids_to_import:
+        node = Node.get_node_instance(node_id)
+        new_node = node.copy()
+        add_child(parent_node, new_node)
+    save_both_formats(target_packageid, target_eml_node)
+
+
+def import_funding_award_nodes(target_packageid, node_ids_to_import):
+    target_eml_node = load_eml(target_packageid)
+    parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+    if not parent_node:
+        dataset_node = target_eml_node.find_child(names.DATASET)
+        project_node = Node(names.PROJECT)
+        add_child(dataset_node, project_node)
+        parent_node = project_node
+    for node_id in node_ids_to_import:
+        node = Node.get_node_instance(node_id)
+        new_node = node.copy()
+        add_child(parent_node, new_node)
+    save_both_formats(target_packageid, target_eml_node)
+
+
+def compose_funding_award_label(award_node:Node=None):
+    if not award_node:
+        return ''
+    title = ''
+    title_node = award_node.find_child(names.TITLE)
+    if title_node:
+        title = title_node.content
+    funder_name = ''
+    funder_name_node = award_node.find_child(names.FUNDERNAME)
+    if funder_name_node:
+        funder_name = funder_name_node.content
+    return f'{title}: {funder_name}'
 
 
 def compose_rp_label(rp_node:Node=None):

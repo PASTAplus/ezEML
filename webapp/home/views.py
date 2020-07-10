@@ -394,8 +394,8 @@ def create():
         current_user.set_packageid(packageid)
         return redirect(url_for(PAGE_TITLE, packageid=packageid))
     # Process GET
-    return render_template('create_eml.html', title='Create New EML', 
-                           form=form)
+    help = get_helps(['new_eml_document'])
+    return render_template('create_eml.html', help=help, form=form)
 
 
 @home.route('/open_eml_document', methods=['GET', 'POST'])

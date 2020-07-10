@@ -4,12 +4,12 @@
 {% block app_content %}
     <h2>Open EML Document</h2>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <br>
                 <h5>Please select the data package identifier:</h5>
-                {{ wtf.form_field(form.packageid) }}
+                {{ wtf.form_field(form.packageid, maxlen=100) }}
                 <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Open" type="submit" value="Open"/>
             </form>

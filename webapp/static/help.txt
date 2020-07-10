@@ -2,7 +2,7 @@ abstract
 Abstract
 The <b>Abstract</b> will be used for full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
 
-In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the dataset is ongoing or completed.
+In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the data package is ongoing or completed.
 
 Some general methods description is appropriate, and broad classes of measured parameters should also be included.  For a large number of parameters, use categories instead of listing all parameters (e.g. use the term “nutrients” instead of nitrate, phosphate, calcium, etc.), in combination with the parameters that seem most relevant for search.
 
@@ -90,15 +90,15 @@ For long-term data, e.g., from an LTER Site, we recommend that you include the o
 --------------------
 data_tables
 Data Tables
-A data table is one tabular entity in the dataset, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
 --------------------
 data_table
 Data Table
-A data table is one tabular entity in the dataset, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
 --------------------
 data_table_name
 Data Table Name
-The name identifies the data table in the dataset.
+The name identifies the data table in the data package.
 
 Example: SpeciesAbundance1996
 --------------------
@@ -176,7 +176,7 @@ Additional <b>Geographic Coverage</b> elements should be included if there are s
 --------------------
 geographic_description
 Geographic Description
-<b>Geographic Description</b> is a short text description of a dataset's geographic areal domain. A text description is especially important to provide a geographic setting when the extent of the data set cannot be well described by the "bounding coordinates", or in the case of data which are not specifically geospatial.
+<b>Geographic Description</b> is a short text description of a data package's geographic areal domain. A text description is especially important to provide a geographic setting when the extent of the data set cannot be well described by the "bounding coordinates", or in the case of data which are not specifically geospatial.
 
 In cases where the "bounding coordinates" do not adequately describe the extent of the data set, the discrepancy can be identified and described here.
 
@@ -200,7 +200,7 @@ import_geographic_coverage
 Import Geographic Coverage
 You may import selected geographic coverage details from another data package.
 
-Currently, only geographic coverages at the dataset level (as opposed to the individual data table level) are available to import.
+Currently, only geographic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
 import_geographic_coverage_2
 Import Geographic Coverage
@@ -212,9 +212,9 @@ import_taxonomic_coverage
 Import Taxonomic Coverage
 You may import selected taxonomic coverage details from another data package.
 
-Note that you may also "import" from the current data package, to "copy and paste" a taxonomy to which you can then make edits.
+Note that you may also "import" from the current data package, to "copy and paste" a taxonomy you can then edit.
 
-Currently, only taxonomic coverages at the dataset level (as opposed to the individual data table level) are available to import.
+Currently, only taxonomic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
 import_taxonomic_coverage_2
 Import Taxonomic Coverage
@@ -224,15 +224,17 @@ If none are shown, none are available in the selected data package.
 --------------------
 import_responsible_parties
 Import Responsible Parties
-You may import the details for one or more responsible parties (persons, organizations, positions who have been specified as Creators, Metadata Providers, etc.) from another data package where they have already been defined.
+You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
 
-Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.
+The parties you import do not have to be used for the same purpose in this data package for which they were used in the other data package. For example, a person who was a Contact in another data package can be imported into this data package as an Associated Party.
+
+<b>Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.</b>
 --------------------
 import_responsible_parties_2
 Import Responsible Parties
 Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
 
-If none are shown, none are available in the selected data package.
+If none are listed, none are available in the selected data package.
 --------------------
 intellectual_rights
 Intellectual Rights
@@ -265,7 +267,9 @@ It may consist of multiple paragraphs.
 --------------------
 maintenance_freq
 Maintenance Update Frequency
-Frequency with which changes and additions are made to the dataset after the initial dataset is completed.metadata_providers
+Frequency with which changes and additions are made to the dataset after the initial dataset is completed.
+--------------------
+metadata_providers
 Metadata Providers
 The metadata provider is the person(s) or organization(s) responsible for producing or providing the metadata content.
 
@@ -319,7 +323,15 @@ The <b>Save and Continue</b> button saves the changes you've made on the current
 
 The <b>Reset</b> button clears the changes you've made on the current page and leaves you on that page.
 
-<b>Please refrain from using your browser's forward and back buttons. Using them may cause you to lose some of your edits.</b>
+<b>It's best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.</b>
+--------------------
+new_eml_document
+New EML Document
+An EML document is identified by a data package identifier.
+
+A data package identifier is of the form <i>scope.identifier.revision</i>. I.e., it consists of three parts, separated by periods(.).
+
+The first part, the <b>scope</b>, is text; e.g., edi, knb-lter-sbc, or my-contacts. The second part, the <b>identifier</b>, is an integer, that identifies the package within the scope. The third part, the <b>revision</b>, is an integer that identifies the particular revision of a data package.
 --------------------
 other_entities
 Other Entities
@@ -350,9 +362,9 @@ Example: Madison, WI, USA
 --------------------
 project
 Project
-Documents the research context of a dataset or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
+This documents the research context of a data package or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
 
-To document methods specific to a dataset, use <b>Methods</b>.
+To document <i>methods</i> specific to a data package, use <b>Methods</b>.
 --------------------
 project_title
 Project Title

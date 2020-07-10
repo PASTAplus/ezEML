@@ -62,7 +62,7 @@ def login():
         flash('Invalid username or password')
         return redirect(url_for(PAGE_LOGIN))
     # Process GET
-    return render_template('login.html', title='Sign In', form=form)
+    return render_template('login.html', form=form)
 
 
 @auth.route('/logout', methods=['GET'])

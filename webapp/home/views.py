@@ -433,7 +433,6 @@ def import_parties():
         return redirect(url_for('home.import_parties_2', packageid=packageid))
 
     # Process GET
-
     help = get_helps(['import_responsible_parties'])
     return render_template('import_parties.html', help=help, form=form)
 
@@ -464,6 +463,10 @@ def get_redirect_target_page():
         return PAGE_MAINTENANCE
     elif current_page == 'contact':
         return PAGE_CONTACT_SELECT
+    elif current_page == 'publisher':
+        return PAGE_PUBLISHER
+    elif current_page == 'publication_place':
+        return PAGE_PUBLICATION_PLACE
     elif current_page == 'method_step':
         return PAGE_METHOD_STEP_SELECT
     elif current_page == 'project':
@@ -490,6 +493,7 @@ def import_parties_2(packageid):
         ("Metadata Providers", "Metadata Providers"),
         ("Associated Parties", "Associated Parties"),
         ("Contacts", "Contacts"),
+        ("Publisher", "Publisher"),
         ("Project Personnel", "Project Personnel")]
     form.target.choices = targets
 
@@ -512,6 +516,8 @@ def import_parties_2(packageid):
             new_page = PAGE_ASSOCIATED_PARTY_SELECT
         elif target_class == 'Contacts':
             new_page = PAGE_CONTACT_SELECT
+        elif target_class == 'Publisher':
+            new_page = PAGE_PUBLISHER
         elif target_class == 'Project Personnel':
             new_page = PAGE_PROJECT_PERSONNEL_SELECT
         return redirect(url_for(new_page, packageid=target_packageid))
@@ -535,6 +541,9 @@ def get_responsible_parties_for_import(eml_node):
     for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
         label = compose_rp_label(node)
         parties.append(('Contact', f'{label} (Contact)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
+        label = compose_rp_label(node)
+        parties.append(('Publisher', f'{label} (Publisher)', node.id))
     for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
         label = compose_rp_label(node)
         parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
@@ -927,7 +936,8 @@ def select_post(packageid=None, form=None, form_dict=None,
                 node_id = '1'
 
     if form.validate_on_submit():   
-       return url_for(new_page, packageid=packageid, node_id=node_id)
+        return url_for(new_page, packageid=packageid, node_id=node_id)
+        # return new_page, node_id
 
 
 def process_up_button(packageid:str=None, node_id:str=None):

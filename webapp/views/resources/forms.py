@@ -70,8 +70,9 @@ class PubDateForm(EDIForm):
     md5 = HiddenField('')
 
 
-class PublicationPlaceForm(EDIForm):
-    pubplace = StringField('Publication Place', validators=[])
+class PublicationInfoForm(EDIForm):
+    pubplace = StringField('Publication Place (Optional)', validators=[])
+    pubdate = StringField('Publication Date (Optional)', validators=[])
     md5 = HiddenField('')
 
 

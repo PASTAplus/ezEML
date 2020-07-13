@@ -345,20 +345,27 @@ pubdate
 Publication Date
 The year or date of public release of data online.
 
-Because this element may be used in constructing citations, the publication date also should  reflect the 'recentness' of a package. I.e., it should be updated along with significant revisions
- or data additions (e.g., corrected data or additions to an ongoing time series).
+Because this element may be used in constructing citations, the publication date also should  reflect the 'recentness' of a package. I.e., it should be updated along with significant revisions or data additions (e.g., corrected data or additions to an ongoing time series).
 
 There is an argument for publication date referring to the original date of release, but this is probably only useful for static data packages, or if the only metadata changes are to enhance discovery.
 --------------------
 publisher
 Publisher
 The organization producing the EML metadata (e.g., an LTER site or field station).
+
+Publisher is not required by EML. If you submit your data to the EDI data repository, EDI will be entered automatically as the publisher in the published EML.
 --------------------
 pubplace
 Publication Place
 The location where the resource was published, which may be different from where the resource was created.
 
 Example: Madison, WI, USA
+--------------------
+pubdate
+Publication Date
+The date of publication.
+
+Publication date is not required by EML. If you submit your data to the EDI data repository, the date of publication will be entered automatically by EDI.
 --------------------
 project
 Project

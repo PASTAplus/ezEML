@@ -4,7 +4,7 @@ from flask import (
 
 from webapp.home.metapype_client import (
     add_child, create_abstract, create_intellectual_rights,
-    create_keyword, create_pubdate, create_pubplace,
+    create_keyword, create_pubinfo,
     create_title, list_keywords, load_eml, remove_child,
     save_both_formats, DOWN_ARROW, UP_ARROW,
     add_paragraph_tags, remove_paragraph_tags
@@ -17,14 +17,14 @@ from webapp.views.resources.forms import (
     KeywordForm,
     KeywordSelectForm,
     PubDateForm,
-    PublicationPlaceForm,
+    PublicationInfoForm,
     TitleForm
 )
 
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import process_up_button, process_down_button, get_help
+from webapp.home.views import process_up_button, process_down_button, get_help, get_helps
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -78,9 +78,9 @@ def title(packageid=None):
     return render_template('title.html', title='Title', form=form, help=help)
 
 
-@res_bp.route('/publication_place/<packageid>', methods=['GET', 'POST'])
-def publication_place(packageid=None):
-    form = PublicationPlaceForm()
+@res_bp.route('/publication_info/<packageid>', methods=['GET', 'POST'])
+def publication_info(packageid=None):
+    form = PublicationInfoForm()
 
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
@@ -90,7 +90,7 @@ def publication_place(packageid=None):
         elif 'Hidden_Check' in request.form:
             new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
-            new_page = PAGE_PUBLICATION_PLACE
+            new_page = PAGE_PUBLICATION_INFO
         elif 'Hidden_Download' in request.form:
             new_page = PAGE_DOWNLOAD
         else:
@@ -102,59 +102,63 @@ def publication_place(packageid=None):
 
         if save:
             pubplace = form.pubplace.data
-            create_pubplace(pubplace=pubplace, packageid=packageid)
+            pubdate = form.pubdate.data
+            create_pubinfo(pubplace=pubplace, pubdate=pubdate, packageid=packageid)
 
         return redirect(url_for(new_page, packageid=packageid))
 
     # Process GET
     eml_node = load_eml(packageid=packageid)
-    pubplace_node = eml_node.find_child(child_name='pubPlace')
+    pubplace_node = eml_node.find_single_node_by_path([names.DATASET, names.PUBPLACE])
     if pubplace_node:
         form.pubplace.data = pubplace_node.content
-    form.md5.data = form_md5(form)
-    set_current_page('publication_place')
-    help = [get_help('pubplace')]
-    return render_template('publication_place.html', title='Publication Place', form=form, help=help)
-
-
-@res_bp.route('/pubdate/<packageid>', methods=['GET', 'POST'])
-def pubdate(packageid=None):
-    form = PubDateForm(packageid=packageid)
-
-    # Process POST
-    # if request.method == 'POST' and form.validate_on_submit():
-    if request.method == 'POST':
-        if 'Hidden_Check' in request.form:
-            new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
-            new_page = PAGE_PUBDATE
-        elif 'Hidden_Download' in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif 'Next' in request.form:
-            new_page = PAGE_ABSTRACT
-
-        save = False
-        if is_dirty_form(form):
-            save = True
-
-        if save:
-            pubdate = form.pubdate.data
-            create_pubdate(packageid=packageid, pubdate=pubdate)
-
-        return redirect(url_for(new_page, packageid=packageid))
-
-    # Process GET
-    eml_node = load_eml(packageid=packageid)
-    pubdate_node = eml_node.find_child(child_name=names.PUBDATE)
+    pubdate_node = eml_node.find_single_node_by_path([names.DATASET, names.PUBDATE])
     if pubdate_node:
         form.pubdate.data = pubdate_node.content
     form.md5.data = form_md5(form)
+    set_current_page('publication_info')
+    help = get_helps(['pubplace', 'pubdate'])
+    return render_template('publication_info.html', help=help, form=form)
 
-    set_current_page('pubdate')
-    help = [get_help('pubdate'), get_help('nav')]
-    return render_template('pubdate.html',
-                           title='Publication Date',
-                           packageid=packageid, form=form, help=help)
+
+# @res_bp.route('/pubdate/<packageid>', methods=['GET', 'POST'])
+# def pubdate(packageid=None):
+#     form = PubDateForm(packageid=packageid)
+#
+#     # Process POST
+#     # if request.method == 'POST' and form.validate_on_submit():
+#     if request.method == 'POST':
+#         if 'Hidden_Check' in request.form:
+#             new_page = PAGE_CHECK
+#         elif 'Hidden_Save' in request.form:
+#             new_page = PAGE_PUBDATE
+#         elif 'Hidden_Download' in request.form:
+#             new_page = PAGE_DOWNLOAD
+#         elif 'Next' in request.form:
+#             new_page = PAGE_ABSTRACT
+#
+#         save = False
+#         if is_dirty_form(form):
+#             save = True
+#
+#         if save:
+#             pubdate = form.pubdate.data
+#             create_pubdate(packageid=packageid, pubdate=pubdate)
+#
+#         return redirect(url_for(new_page, packageid=packageid))
+#
+#     # Process GET
+#     eml_node = load_eml(packageid=packageid)
+#     pubdate_node = eml_node.find_child(child_name=names.PUBDATE)
+#     if pubdate_node:
+#         form.pubdate.data = pubdate_node.content
+#     form.md5.data = form_md5(form)
+#
+#     set_current_page('pubdate')
+#     help = [get_help('pubdate'), get_help('nav')]
+#     return render_template('pubdate.html',
+#                            title='Publication Date',
+#                            packageid=packageid, form=form, help=help)
 
 
 @res_bp.route('/abstract/<packageid>', methods=['GET', 'POST'])

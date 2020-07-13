@@ -625,7 +625,7 @@ def reconcile_roles(node, target_class):
 
 def import_responsible_parties(target_packageid, node_ids_to_import, target_class):
     target_eml_node = load_eml(target_packageid)
-    if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts']:
+    if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts', 'Publisher']:
         parent_node = target_eml_node.find_child(names.DATASET)
     else:
         parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
@@ -638,6 +638,8 @@ def import_responsible_parties(target_packageid, node_ids_to_import, target_clas
         new_name = names.ASSOCIATEDPARTY
     elif target_class == 'Contacts':
         new_name = names.CONTACT
+    elif target_class == 'Publisher':
+        new_name = names.PUBLISHER
     elif target_class == 'Project Personnel':
         new_name = names.PERSONNEL
     for node_id in node_ids_to_import:
@@ -827,6 +829,9 @@ def enforce_dataset_sequence(eml_node:Node=None):
                 names.COVERAGE,
                 names.MAINTENANCE,
                 names.CONTACT,
+                names.PUBLISHER,
+                names.PUBPLACE,
+                names.PUBDATE,
                 names.METHODS,
                 names.PROJECT,
                 names.DATATABLE,
@@ -1358,9 +1363,36 @@ def create_title(title=None, packageid=None):
     return title_node
 
 
+def create_pubinfo(pubplace=None, pubdate=None, packageid=None):
+    eml_node = load_eml(packageid=packageid)
+
+    dataset_node = eml_node.find_child('dataset')
+    if dataset_node:
+        pubplace_node = dataset_node.find_child('pubPlace')
+        if not pubplace_node:
+            pubplace_node = new_child_node(names.PUBPLACE, parent=dataset_node)
+        pubdate_node = dataset_node.find_child(names.PUBDATE)
+        if not pubdate_node:
+            pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
+
+    else:
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        pubplace_node = new_child_node(names.PUBPLACE, parent=dataset_node)
+        pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
+
+    pubplace_node.content = pubplace
+    pubdate_node.content = pubdate
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+    return pubplace_node, pubdate_node
+
+
 def create_pubplace(pubplace=None, packageid=None):
     eml_node = load_eml(packageid=packageid)
-    pubplace_node = None
 
     dataset_node = eml_node.find_child('dataset')
     if dataset_node:
@@ -1380,6 +1412,25 @@ def create_pubplace(pubplace=None, packageid=None):
 
     return pubplace_node
 
+
+def create_pubdate(pubdate=None, packageid=None):
+    eml_node = load_eml(packageid=packageid)
+
+    dataset_node = eml_node.find_child(names.DATASET)
+    if dataset_node:
+        pubdate_node = dataset_node.find_child(names.PUBDATE)
+        if not pubdate_node:
+            pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
+    else:
+        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
+
+    pubdate_node.content = pubdate
+
+    try:
+        save_both_formats(packageid=packageid, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
 
 def create_other_entity(
     entity_node:Node=None, 
@@ -1441,26 +1492,6 @@ def create_other_entity(
 
         return entity_node
 
-    except Exception as e:
-        logger.error(e)
-
-
-def create_pubdate(pubdate=None, packageid=None):
-    eml_node = load_eml(packageid=packageid)
-
-    dataset_node = eml_node.find_child(names.DATASET)
-    if dataset_node:
-        pubdate_node = dataset_node.find_child(names.PUBDATE)
-        if not pubdate_node:
-            pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
-    else:
-        dataset_node = new_child_node(names.DATASET, parent=eml_node)
-        pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
-
-    pubdate_node.content = pubdate
-
-    try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 

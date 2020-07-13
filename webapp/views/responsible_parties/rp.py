@@ -106,15 +106,8 @@ def responsible_party(packageid=None, node_id=None, method=None,
     form_dict = form_value.to_dict(flat=False)
     url = select_post(packageid, form, form_dict,
                       'POST', PAGE_PUBLISHER,
-                      PAGE_CONTACT_SELECT, PAGE_PUBLICATION_PLACE,
+                      PAGE_CONTACT_SELECT, PAGE_PUBLICATION_INFO,
                       PAGE_PUBLISHER)
-    # url = select_post(packageid, form, form_dict,
-    #                   method, this_page, back_page,
-    #                   next_page, edit_page)
-
-    # def select_post(packageid=None, form=None, form_dict=None,
-    #                 method=None, this_page=None, back_page=None,
-    #                 next_page=None, edit_page=None):
 
     # If this is an associatedParty or a project personnel element,
     # set role to True so it will appear as a form field.
@@ -197,10 +190,14 @@ def responsible_party(packageid=None, node_id=None, method=None,
             # There is at most only one publisher element, so we don't have a
             # list of publishers to navigate back to. Stay on this page after
             # saving changes.
+            # FIXME
             if node_name == names.PUBLISHER:
-                new_page = PAGE_PUBLISHER
+                new_page = PAGE_PUBLICATION_INFO
 
-        return redirect(url_for(new_page, packageid=packageid))
+        if node_name != names.PUBLISHER:
+            return redirect(url_for(new_page, packageid=packageid))
+        else:
+            return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -296,7 +293,7 @@ def contact_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
                           'POST', PAGE_CONTACT_SELECT, PAGE_TAXONOMIC_COVERAGE_SELECT,
-                          PAGE_METHOD_STEP_SELECT, PAGE_CONTACT)
+                          PAGE_PUBLISHER, PAGE_CONTACT)
         return redirect(url)
 
     # Process GET
@@ -331,7 +328,7 @@ def publisher(packageid=None):
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.PUBLISHER,
                              back_page=PAGE_CONTACT_SELECT, title='Publisher',
-                             next_page=PAGE_PUBLICATION_PLACE,
+                             next_page=PAGE_PUBLICATION_INFO,
                              save_and_continue=True, help=help)
 
 

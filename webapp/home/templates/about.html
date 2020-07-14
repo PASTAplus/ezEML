@@ -4,25 +4,38 @@
     <h4 align="left">About ezEML</h4>
 
     <p>&nbsp;</p>
-    <p><b>ezEML</b> is a web-based application designed to streamline the creation of metadata in the <a href="https://eml.ecoinformatics.org/" target=""_blank"><b>Ecological Metadata Language (EML)</b></a>.</p>
+    <p><b>ezEML</b> is a form-based online application designed to streamline the creation of metadata in the <a href="https://eml.ecoinformatics.org/" target=""_blank"><b>Ecological Metadata Language (EML)</b></a>. If you're not sure what we mean by metadata,
+    or if you've never heard of EML, please see the <a href="/static/user_guide/terminology.html" target="_blank">Some Terminology</a> section of the User Guide, below.
+    </p>
 
-    <p>The EML standard was designed to handle a wide variety of data scenarios. As a result, EML is complex and the learning curve to generating EML can be steep.
-        Many data scenarios require only a relatively small subset of EML, however, and in such scenarios ezEML can greatly simplify the process of
+    <p>Since the EML standard was designed to handle an enormous variety of data scenarios, EML is complex and the learning curve to creating it can be steep.
+        But many data scenarios require only a relatively small subset of EML, and in such scenarios ezEML can greatly simplify the process of
         creating EML, especially for users who are new to EML or use it only infrequently.</p>
 
-    <p>ezEML was created by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.</p>
+    <p>ezEML can be used as a “wizard” leading the user through EML document creation step by step, or it can be used in a more user-directed fashion.
+        Among other things, it supports checking the EML for correctness and completeness, importing EML content from other ezEML documents, uploading data tables and inferring most of their characteristics, and
+        downloading the finished EML document as an EML XML file for downstream use in a data workflow.</p>
 
-    <p>Our goal with ezEML is to provide an easy-to-use, do-it-yourself tool for creating EML in relatively simple data scenarios. We hope you find it useful, and we welcome your feedback.</p>
+    <p>ezEML was created by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
+    It employs EDI's Metapype library, , which is a general-purpose framework for creating and validating metadata, along with Metapype’s implementation of validation rules for the EML 2.2.0 standard.
+    </p>
+
+    <p>ezEML is aimed at the “long tail” of scientists and others who want to prepare their dataset for submission to a data repository but are not themselves proficient in the details of EML editing. ezEML is designed to give such users a do-it-yourself tool that can handle the great majority of typical datasets.
+    </p><p>
+        We hope you find it useful, and we welcome your feedback!</p>
+    </p>
     <p>&nbsp;</p>
+
 
     <h4>User Guide</h4>
     <ul>
     <li><a href="/static/user_guide/terminology.html" target="_blank">Some Terminology</a></li>
     <li><a href="/static/user_guide/eml_workflow.html" target="_blank">ezEML's Place in the Data Workflow</a></li>
     <li><a href="/static/user_guide/getting_started.html" target="_blank">Getting Started</a></li>
-    <li><a href="/static/user_guide/navigation.html" target="_blank">Navigating Within ezEML</a></li>
-    <li><a href="/static/user_guide/uploading_data_tables.html" target="_blank">Uploading a Data Table</a></li>
-    <li><a href="/static/user_guide/checking_metadata.html" target="_blank">Checking Your Metadata</a></li>
+{#    <li><a href="/static/user_guide/navigation.html" target="_blank">Navigating Within ezEML</a></li>#}
+    <li><a href="/static/user_guide/navigating.pdf" target="_blank">Navigating in ezEML</a></li>
+    <li><a href="/static/user_guide/uploading_data_tables.pdf" target="_blank">Uploading Data Tables</a></li>
+    <li><a href="/static/user_guide/checking_your_metadata.pdf" target="_blank">Checking Your Metadata</a></li>
     <li><a href="/static/user_guide/importing.html" target="_blank">Importing from Other Data Packages</a></li>
     <li><a href="/static/user_guide/downloading.html" target="_blank">Downloading the EML Document</a></li>
     </ul>

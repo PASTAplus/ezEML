@@ -178,6 +178,11 @@ def about():
     return render_template('about.html')
 
 
+@home.route('/uer_guide')
+def user_guide():
+    return render_template('user_guide.html')
+
+
 @home.route('/file_error/<packageid>')
 def file_error(packageid=None):
     return render_template('file_error.html', packageid=packageid)

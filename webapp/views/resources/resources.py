@@ -55,7 +55,7 @@ def title(packageid=None):
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_CREATOR_SELECT
+            new_page = PAGE_DATA_TABLE_SELECT
         elif 'Hidden_Check' in request.form:
             new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:

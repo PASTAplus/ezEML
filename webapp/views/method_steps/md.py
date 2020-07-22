@@ -47,7 +47,7 @@ def method_step_select(packageid=None):
         url = ''
         this_page = PAGE_METHOD_STEP_SELECT
         edit_page = PAGE_METHOD_STEP
-        back_page = PAGE_PUBLICATION_PLACE
+        back_page = PAGE_PUBLICATION_INFO
         next_page = PAGE_PROJECT
 
         if form_dict:

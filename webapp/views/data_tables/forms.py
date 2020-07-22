@@ -75,8 +75,8 @@ class AttributeCategoricalForm(EDIForm):
     attribute_definition = StringField('Definition', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    enforced = SelectField('', choices=[("yes", "Enforce the code values"),
-                                     ("no", "Other code values are allowed")
+    enforced = SelectField('', choices=[("yes", "Allow only the code values found in the table"),
+                                     ("no", "Allow other code values besides those found in the table")
                                     ])
     code_1 = StringField('Missing Value Code', validators=[])
     code_explanation_1 = StringField('Explanation', validators=[]) 

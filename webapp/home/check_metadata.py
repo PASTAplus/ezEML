@@ -479,10 +479,9 @@ def format_entry(entry:Eval_Entry):
 
 
 def format_output(evaluation):
-    sections = ['Title', 'Creators', 'Metadata Providers', 'Associated Parties', 'Abstract', 'Keywords',
-                'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
-                'Taxonomic Coverage', 'Maintenance', 'Contacts', 'Methods', 'Project', 'Data Tables',
-                'Other Entities']
+    sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
+                'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
+                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Other Entities']
 
     severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
@@ -514,19 +513,19 @@ def check_eml(packageid:str):
     eml_node = load_eml(packageid)
 
     check_dataset_title(eml_node, packageid)
+    check_data_tables(eml_node, packageid)
     check_creators(eml_node, packageid)
-    check_metadata_providers(eml_node, packageid)
+    check_contacts(eml_node, packageid)
     check_associated_parties(eml_node, packageid)
+    check_metadata_providers(eml_node, packageid)
     check_dataset_abstract(eml_node, packageid)
     check_keywords(eml_node, packageid)
     check_intellectual_rights(eml_node, packageid)
     check_coverage(eml_node, packageid)
     check_geographic_coverage(eml_node, packageid)
     check_maintenance(eml_node, packageid)
-    check_contacts(eml_node, packageid)
     check_method_steps(eml_node, packageid)
     check_project(eml_node, packageid)
-    check_data_tables(eml_node, packageid)
     check_other_entities(eml_node, packageid)
     return format_output(evaluation)
 

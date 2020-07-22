@@ -54,7 +54,7 @@ def data_table_select(packageid=None):
                           'POST',
                           PAGE_DATA_TABLE_SELECT,
                           PAGE_PROJECT,
-                          PAGE_OTHER_ENTITY_SELECT,
+                          PAGE_CREATOR_SELECT,
                           PAGE_DATA_TABLE)
         return redirect(url)
 

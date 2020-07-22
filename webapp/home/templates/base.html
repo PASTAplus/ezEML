@@ -43,20 +43,7 @@
                        role="button">EML Document<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
-                    {% if current_user.get_packageid() %}
-{#                        <li>#}
-{#                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>#}
-{#                        </li>#}
-                        <li>
-                            <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
-                        </li>
-{#                        <li>#}
-{#                            <a href="{{ url_for('home.download_current') }}" title="Download">Download {{ current_user.get_packageid() }}</a>#}
-{#                        </li>#}
-                        <li>
-                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
-                        </li>
-                    {% else %}
+{#                    {% else %}#}
                         <li>
                             <a href="{{ url_for('home.create') }}" title="New">New...</a>
                         </li>
@@ -71,6 +58,20 @@
 {#                        </li>#}
                         <li>
                             <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>
+                        </li>
+{#                    {% endif %}#}
+                    {% if current_user.get_packageid() %}
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>#}
+{#                        </li>#}
+                        <li>
+                            <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
+                        </li>
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.download_current') }}" title="Download">Download {{ current_user.get_packageid() }}</a>#}
+{#                        </li>#}
+                        <li>
+                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
                         </li>
                     {% endif %}
                     </ul>
@@ -235,9 +236,11 @@
             {% if page == 'other_entity' %}{% set other_entity_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
+        <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
         <a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>
-        <a class="nav_link" style={{ metadata_provider_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
+        <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
         <a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>
+        <a class="nav_link" style={{ metadata_provider_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
 {#        <a class="nav_link" style={{ pubdate_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.pubdate') }}" title="Edit">Publication Date</a><br>#}
         <a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>
         <a class="nav_link" style={{ keyword_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>
@@ -246,12 +249,10 @@
         <a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
         <a class="nav_link" style={{ taxonomic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
         <a class="nav_link" style={{ maintenance_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>
-        <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
         <a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>
         <a class="nav_link" style={{ publication_info_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.publication_info') }}" title="Edit">Publication Info</a><br>
         <a class="nav_link" style={{ method_step_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='md.method_step_select') }}" title="Edit">Methods</a><br>
         <a class="nav_link" style={{ project_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
-        <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
         <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
         {% endif %}
     </div>

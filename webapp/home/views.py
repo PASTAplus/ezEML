@@ -198,6 +198,8 @@ def delete():
     if form.validate_on_submit():
         packageid = form.packageid.data
         return_value = delete_eml(packageid=packageid)
+        if packageid == get_active_packageid():
+            current_user.set_packageid(None)
         if isinstance(return_value, str):
             flash(return_value)
         else:

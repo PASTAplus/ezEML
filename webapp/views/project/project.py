@@ -50,7 +50,7 @@ def project(packageid=None):
         if 'Back' in request.form:
             new_page = PAGE_METHOD_STEP_SELECT
         elif 'Next' in request.form:
-            new_page = PAGE_DATA_TABLE_SELECT
+            new_page = PAGE_OTHER_ENTITY_SELECT
         elif 'Edit Project Personnel' in request.form:
             new_page = PAGE_PROJECT_PERSONNEL_SELECT
         elif 'Edit Funding Awards' in request.form:

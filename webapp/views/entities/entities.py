@@ -75,7 +75,7 @@ def other_entity_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
-                          'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_DATA_TABLE_SELECT,
+                          'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT,
                           PAGE_TITLE, PAGE_OTHER_ENTITY)
         return redirect(url)
 

@@ -37,7 +37,7 @@ def creator_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
                           'POST', PAGE_CREATOR_SELECT, PAGE_TITLE,
-                          PAGE_METADATA_PROVIDER_SELECT, PAGE_CREATOR)
+                          PAGE_CONTACT_SELECT, PAGE_CREATOR)
         return redirect(url)
 
     # Process GET
@@ -53,7 +53,9 @@ def creator(packageid=None, node_id=None):
     set_current_page('creator')
     return responsible_party(packageid=packageid, node_id=node_id,
                              method=method, node_name=names.CREATOR,
-                             back_page=PAGE_CREATOR_SELECT, title='Creator')
+                             back_page=PAGE_CREATOR_SELECT,
+                             # next_page=PAGE_CREATOR_SELECT,
+                             title='Creator')
 
 
 def rp_select_get(packageid=None, form=None, rp_name=None,
@@ -101,12 +103,13 @@ def responsible_party(packageid=None, node_id=None, method=None,
     parent_node = dataset_node
     role = False
     new_page = select_new_page(back_page, next_page)
+    new_page = back_page
 
     form_value = request.form
     form_dict = form_value.to_dict(flat=False)
     url = select_post(packageid, form, form_dict,
                       'POST', PAGE_PUBLISHER,
-                      PAGE_CONTACT_SELECT, PAGE_PUBLICATION_INFO,
+                      PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
                       PAGE_PUBLISHER)
 
     # If this is an associatedParty or a project personnel element,
@@ -226,7 +229,7 @@ def metadata_provider_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
                           'POST', PAGE_METADATA_PROVIDER_SELECT,
-                          PAGE_CREATOR_SELECT, PAGE_ASSOCIATED_PARTY_SELECT,
+                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_ABSTRACT,
                           PAGE_METADATA_PROVIDER)
         return redirect(url)
 
@@ -259,8 +262,8 @@ def associated_party_select(packageid=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
                           'POST', PAGE_ASSOCIATED_PARTY_SELECT,
+                          PAGE_CONTACT_SELECT,
                           PAGE_METADATA_PROVIDER_SELECT,
-                          PAGE_ABSTRACT,
                           PAGE_ASSOCIATED_PARTY)
         return redirect(url)
 
@@ -292,8 +295,8 @@ def contact_select(packageid=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(packageid, form, form_dict,
-                          'POST', PAGE_CONTACT_SELECT, PAGE_TAXONOMIC_COVERAGE_SELECT,
-                          PAGE_PUBLISHER, PAGE_CONTACT)
+                          'POST', PAGE_CONTACT_SELECT, PAGE_CREATOR_SELECT,
+                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_CONTACT)
         return redirect(url)
 
     # Process GET

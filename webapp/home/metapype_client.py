@@ -21,6 +21,7 @@ import json
 import logging
 from logging import Formatter
 from logging.handlers import RotatingFileHandler
+from xml.sax.saxutils import escape, unescape
 
 import os
 
@@ -101,7 +102,8 @@ def list_data_packages(flag_current=False):
 
 def add_paragraph_tags(s):
     if s:
-        ps = '\n<para>' + s.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
+        ps = escape(s)
+        ps = '\n<para>' + ps.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
         return ps.replace('<para></para>\n', '')
     else:
         return ''
@@ -109,7 +111,7 @@ def add_paragraph_tags(s):
 
 def remove_paragraph_tags(s):
     if s:
-        return s.strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
+        return unescape(s).strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
     else:
         return ''
 
@@ -436,7 +438,7 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None):
 
             rp_nodes = parent_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
-                'RP_Entry', ["id", "label", "upval", "downval"], 
+                'RP_Entry', ["id", "label", "upval", "downval"],
                  rename=False)
             for i, rp_node in enumerate(rp_nodes):
                 label = compose_rp_label(rp_node)
@@ -625,10 +627,14 @@ def reconcile_roles(node, target_class):
 
 def import_responsible_parties(target_packageid, node_ids_to_import, target_class):
     target_eml_node = load_eml(target_packageid)
+    dataset_node = target_eml_node.find_child(names.DATASET)
     if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts', 'Publisher']:
-        parent_node = target_eml_node.find_child(names.DATASET)
+        parent_node = dataset_node
     else:
-        parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+        project_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+        if not project_node:
+            project_node = new_child_node(names.PROJECT, dataset_node)
+        parent_node = project_node
     new_name = None
     if target_class == 'Creators':
         new_name = names.CREATOR
@@ -701,11 +707,16 @@ def compose_rp_label(rp_node:Node=None):
         individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
         individual_name_label = (
             compose_individual_name_label(individual_name_node))
+        role_node = rp_node.find_child(names.ROLE)
+        if role_node:
+            role_label = role_node.content
+        else:
+            role_label = ''
         organization_name_label = (
             compose_simple_label(rp_node, names.ORGANIZATIONNAME))
         position_name_label = (
             compose_simple_label(rp_node, names.POSITIONNAME))
-        
+
         if individual_name_label:
             label = individual_name_label
         if position_name_label:
@@ -716,6 +727,10 @@ def compose_rp_label(rp_node:Node=None):
             if label:
                 label = label + ', '
             label = label + organization_name_label
+        if role_label:
+            if label:
+                label = label + ', '
+            label = label + role_label
     return label
 
 

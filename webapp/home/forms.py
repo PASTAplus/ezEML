@@ -91,7 +91,7 @@ class MultiCheckboxField(SelectMultipleField):
 
 
 class ImportEMLForm(FlaskForm):
-    packageid = SelectField('Data Package Identifier', choices=[])
+    filename = SelectField('Document Name', choices=[])
 
 
 class ImportItemsForm(FlaskForm):
@@ -108,16 +108,15 @@ class ImportEMLTargetForm(FlaskForm):
 
 
 class CreateEMLForm(FlaskForm):
-    packageid = StringField('Package ID', 
-                            validators=[DataRequired(), Regexp(r'^[a-z][a-z\-]+\.\d+\.\d+$', message='Invalid package ID value')])
+    filename = StringField('Document Name', validators=[DataRequired()])
 
 
 class DeleteEMLForm(FlaskForm):
-    packageid = SelectField('Data Package Identifier', choices=[])
+    filename = SelectField('Document Name', choices=[])
 
 
 class DownloadEMLForm(FlaskForm):
-    packageid = SelectField('Data Package Identifier', choices=[])
+    filename = StringField('Document Name', validators=[DataRequired()])
 
 
 class LoadDataForm(FlaskForm):
@@ -133,8 +132,8 @@ class LoadMetadataForm(FlaskForm):
 
 
 class OpenEMLDocumentForm(FlaskForm):
-    packageid = SelectField('Data Package Identifier', choices=[])
+    filename = SelectField('Document Name', choices=[])
 
 
 class SaveAsForm(FlaskForm):
-    packageid = StringField('Package ID', validators=[DataRequired()])
+    filename = StringField('Document Name', validators=[DataRequired()])

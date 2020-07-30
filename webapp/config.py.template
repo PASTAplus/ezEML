@@ -25,7 +25,7 @@ class Config(object):
     DOMAINS = {'edi': 'o=EDI,dc=edirepository,dc=org',
                'lter':'o=LTER,dc=ecoinformatics,dc=org',}
 
-    ACTIVE_PACKAGE = 'active.txt'
+    ACTIVE_PACKAGE = 'active.pkl'
 
     AUTH_SYSTEM_ATTRIBUTE_VALUE = 'https://pasta.edirepository.org/authentication'
     ORDER_ATTRIBUTE_VALUE = 'allowFirst' 

@@ -77,5 +77,10 @@ class PublicationInfoForm(EDIForm):
 
 
 class TitleForm(EDIForm):
-    title = StringField('Title', validators=[valid_min_length(min=20)])
+    title = StringField('Title', validators=[])
+    md5 = HiddenField('')
+
+
+class DataPackageIDForm(EDIForm):
+    data_package_id = StringField('Data Package ID', validators=[])
     md5 = HiddenField('')

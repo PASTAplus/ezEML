@@ -24,7 +24,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter the dataset maintenance information below:</h5>
+                <h5>Enter the dataset maintenance information below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_maintenance_description_btn) }}</td>

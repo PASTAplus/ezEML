@@ -15,7 +15,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please choose from one of the intellectual rights options shown below:</h5>
+                <h5>Choose from one of the intellectual rights options shown below:</h5>
                 {{ wtf.form_field(form.intellectual_rights_radio) }}
                 {{ wtf.form_field(form.intellectual_rights, rows=6) }}
                 <br/>

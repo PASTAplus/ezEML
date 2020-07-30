@@ -8,7 +8,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter information about the data entity object:</h5>
+                <h5>Enter information about the data entity object:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.entity_description) }}

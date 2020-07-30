@@ -11,7 +11,7 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please enter the abstract text below:</h5>
+                <h5>Enter the abstract text below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.abstract, rows=10, cols=100) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_abstract_btn) }}</td>

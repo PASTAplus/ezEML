@@ -15,7 +15,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter the method step description and (optionally) instrumentation below:</h5>
+                <h5>Enter the method step description and (optionally) instrumentation below:</h5>
                 <table width="100%">
                     <td width="90%">{{ wtf.form_field(form.description, rows=8) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_description_btn) }}</td>

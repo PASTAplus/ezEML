@@ -14,10 +14,11 @@
         <div class="col-md-6">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Select a data package identifier from which to import:</h5>
-                {{ wtf.form_field(form.packageid) }}
+                <h5>Select a data package from which to import:</h5>
+                {{ wtf.form_field(form.filename) }}
                 <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Open" type="submit" value="Open for Import"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
             </form>
         </div>
     </div>

@@ -15,7 +15,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select responsible parties to import from {{ target_packageid }}:</h5></tr>
+                    <tr><h5>Select responsible parties to import from {{ target_package }}:</h5></tr>
                     <tr>{{ form.to_import(style="list-style:none;") }}</tr>
                     <tr><h5>Import as:</h5></tr>
                     <tr>{{ form.target(style="list-style:none;") }}</tr>

@@ -90,12 +90,12 @@ def sort_package_ids(packages):
 
 def list_data_packages(flag_current=False):
     choices = []
-    user_packageids = sort_package_ids(get_user_document_list())
+    user_documents = sorted(get_user_document_list(), key=str.casefold)
     current_annotation = ' (current data package)' if flag_current else ''
-    for packageid in user_packageids:
-        pid_tuple = (packageid, packageid)
-        if packageid == current_user.get_packageid():
-            pid_tuple = (packageid, f'{packageid}{current_annotation}')
+    for document in user_documents:
+        pid_tuple = (document, document)
+        if document == current_user.get_filename():
+            pid_tuple = (document, f'{document}{current_annotation}')
         choices.append(pid_tuple)
     return choices
 
@@ -625,8 +625,8 @@ def reconcile_roles(node, target_class):
             node.add_child(role_node)
 
 
-def import_responsible_parties(target_packageid, node_ids_to_import, target_class):
-    target_eml_node = load_eml(target_packageid)
+def import_responsible_parties(target_package, node_ids_to_import, target_class):
+    target_eml_node = load_eml(target_package)
     dataset_node = target_eml_node.find_child(names.DATASET)
     if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts', 'Publisher']:
         parent_node = dataset_node
@@ -654,11 +654,11 @@ def import_responsible_parties(target_packageid, node_ids_to_import, target_clas
         reconcile_roles(new_node, target_class)
         new_node.name = new_name
         add_child(parent_node, new_node)
-    save_both_formats(target_packageid, target_eml_node)
+    save_both_formats(target_package, target_eml_node)
 
 
-def import_coverage_nodes(target_packageid, node_ids_to_import):
-    target_eml_node = load_eml(target_packageid)
+def import_coverage_nodes(target_package, node_ids_to_import):
+    target_eml_node = load_eml(target_package)
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE])
     if not parent_node:
         dataset_node = target_eml_node.find_child(names.DATASET)
@@ -669,11 +669,11 @@ def import_coverage_nodes(target_packageid, node_ids_to_import):
         node = Node.get_node_instance(node_id)
         new_node = node.copy()
         add_child(parent_node, new_node)
-    save_both_formats(target_packageid, target_eml_node)
+    save_both_formats(target_package, target_eml_node)
 
 
-def import_funding_award_nodes(target_packageid, node_ids_to_import):
-    target_eml_node = load_eml(target_packageid)
+def import_funding_award_nodes(target_package, node_ids_to_import):
+    target_eml_node = load_eml(target_package)
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if not parent_node:
         dataset_node = target_eml_node.find_child(names.DATASET)
@@ -684,7 +684,7 @@ def import_funding_award_nodes(target_packageid, node_ids_to_import):
         node = Node.get_node_instance(node_id)
         new_node = node.copy()
         add_child(parent_node, new_node)
-    save_both_formats(target_packageid, target_eml_node)
+    save_both_formats(target_package, target_eml_node)
 
 
 def compose_funding_award_label(award_node:Node=None):
@@ -765,12 +765,12 @@ def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
     return label
 
 
-def load_eml(packageid:str=None):
+def load_eml(filename:str=None):
     eml_node = None
     user_folder = get_user_folder_name()
     if not user_folder:
         user_folder = '.'
-    filename = f"{user_folder}/{packageid}.json"
+    filename = f"{user_folder}/{filename}.json"
     if os.path.isfile(filename):
         try:
             if Config.FLASH_DEBUG:
@@ -808,13 +808,13 @@ def log_as_xml(node: Node):
     logger.info("\n\n" + xml_str)
 
 
-def save_old_to_new(old_packageid:str=None, new_packageid:str=None, eml_node:Node=None):
+def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=None):
     msg = None
-    if new_packageid and eml_node and new_packageid != old_packageid:
-        eml_node.add_attribute('packageId', new_packageid)
-        # save_eml(packageid=new_packageid, eml_node=eml_node, format='json')
-        save_both_formats(packageid=new_packageid, eml_node=eml_node)
-    elif new_packageid == old_packageid:
+    if new_filename and eml_node and new_filename != old_filename:
+        eml_node.add_attribute('filename', new_filename)
+        # save_eml(filename=new_filename, eml_node=eml_node, format='json')
+        save_both_formats(filename=new_filename, eml_node=eml_node)
+    elif new_filename == old_filename:
         msg = 'New package id and old package id are the same'
     else:
         msg = 'Not saved'
@@ -857,13 +857,13 @@ def enforce_dataset_sequence(eml_node:Node=None):
             dataset_node._children = new_children
 
 
-def save_both_formats(packageid:str=None, eml_node:Node=None):
+def save_both_formats(filename:str=None, eml_node:Node=None):
     enforce_dataset_sequence(eml_node)
-    save_eml(packageid=packageid, eml_node=eml_node, format='json')
-    save_eml(packageid=packageid, eml_node=eml_node, format='xml')
+    save_eml(filename=filename, eml_node=eml_node, format='json')
+    save_eml(filename=filename, eml_node=eml_node, format='xml')
 
 
-def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
+def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
     if Config.LOG_DEBUG:
         app = Flask(__name__)
         with app.app_context():
@@ -873,7 +873,7 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                 else:
                     current_app.logger.info(f'save_eml (json)... eml_node is None')
 
-    if packageid:
+    if filename:
         if eml_node is not None:
             metadata_str = None
 
@@ -888,7 +888,7 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
                 user_folder = get_user_folder_name()
                 if not user_folder:
                     user_folder = '.'
-                filename = f'{user_folder}/{packageid}.{format}'
+                filename = f'{user_folder}/{filename}.{format}'
                 # flash(f'Saving {format} to {filename}')
                 with open(filename, "w") as fh:
                     fh.write(metadata_str)
@@ -902,7 +902,7 @@ def save_eml(packageid:str=None, eml_node:Node=None, format:str='json'):
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:
-        raise Exception(f"No packageid value was supplied for saving EML.")
+        raise Exception(f"No filename value was supplied for saving EML.")
 
 
 def evaluate_node(node:Node):
@@ -933,12 +933,11 @@ def create_access(parent_node:Node=None):
     return access_node
 
 
-def create_eml(packageid=None):
-    eml_node = load_eml(packageid=packageid)
+def create_eml(filename=None):
+    eml_node = load_eml(filename=filename)
 
     if not eml_node:
         eml_node = Node(names.EML)
-        eml_node.add_attribute('packageId', packageid)
         eml_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
 
         access_node = create_access(parent_node=eml_node)
@@ -947,7 +946,7 @@ def create_eml(packageid=None):
         dataset_node = new_child_node(names.DATASET, parent=eml_node)
 
         try:
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
         except Exception as e:
             logger.error(e)
 
@@ -1355,8 +1354,8 @@ def is_non_empty_bounds(bounds=None):
         return bounds == 0
 
 
-def create_title(title=None, packageid=None):
-    eml_node = load_eml(packageid=packageid)
+def create_title(title=None, filename=None):
+    eml_node = load_eml(filename=filename)
     title_node = None
 
     dataset_node = eml_node.find_child('dataset')
@@ -1371,15 +1370,25 @@ def create_title(title=None, packageid=None):
     title_node.content = title
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
     return title_node
 
 
-def create_pubinfo(pubplace=None, pubdate=None, packageid=None):
-    eml_node = load_eml(packageid=packageid)
+def create_data_package_id(data_package_id=None, filename=None):
+    eml_node = load_eml(filename=filename)
+    eml_node.add_attribute('packageId', data_package_id)
+
+    try:
+        save_both_formats(filename=filename, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
+
+
+def create_pubinfo(pubplace=None, pubdate=None, filename=None):
+    eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child('dataset')
     if dataset_node:
@@ -1399,15 +1408,15 @@ def create_pubinfo(pubplace=None, pubdate=None, packageid=None):
     pubdate_node.content = pubdate
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
     return pubplace_node, pubdate_node
 
 
-def create_pubplace(pubplace=None, packageid=None):
-    eml_node = load_eml(packageid=packageid)
+def create_pubplace(pubplace=None, filename=None):
+    eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child('dataset')
     if dataset_node:
@@ -1421,15 +1430,15 @@ def create_pubplace(pubplace=None, packageid=None):
     pubplace_node.content = pubplace
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
     return pubplace_node
 
 
-def create_pubdate(pubdate=None, packageid=None):
-    eml_node = load_eml(packageid=packageid)
+def create_pubdate(pubdate=None, filename=None):
+    eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
@@ -1443,7 +1452,7 @@ def create_pubdate(pubdate=None, packageid=None):
     pubdate_node.content = pubdate
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
@@ -1511,8 +1520,8 @@ def create_other_entity(
         logger.error(e)
 
 
-def create_abstract(packageid:str=None, abstract:str=None):
-    eml_node = load_eml(packageid=packageid)
+def create_abstract(filename:str=None, abstract:str=None):
+    eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
@@ -1526,13 +1535,13 @@ def create_abstract(packageid:str=None, abstract:str=None):
     abstract_node.content = abstract
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
 
-def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None):
-    eml_node = load_eml(packageid=packageid)
+def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
+    eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
@@ -1546,7 +1555,7 @@ def create_intellectual_rights(packageid:str=None, intellectual_rights:str=None)
     intellectual_rights_node.content = intellectual_rights
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
@@ -1620,9 +1629,9 @@ def create_funding_award(
         logger.error(e)
 
 
-def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
+def add_keyword(filename:str=None, keyword:str=None, keyword_type:str=None):
     if keyword:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
 
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
@@ -1649,14 +1658,14 @@ def add_keyword(packageid:str=None, keyword:str=None, keyword_type:str=None):
             keyword_node.add_attribute(name='keywordType', value=keyword_type)
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
 
-def remove_keyword(packageid:str=None, keyword:str=None):
+def remove_keyword(filename:str=None, keyword:str=None):
     if keyword:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         keywordset_node = eml_node.find_single_node_by_path([
             names.DATASET, names.KEYWORDSET
         ])
@@ -1668,13 +1677,13 @@ def remove_keyword(packageid:str=None, keyword:str=None):
                     keywordset_node.remove_child(keyword_node)
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
 
-def create_keywords(packageid:str=None, keywords_list:list=[]):
-    eml_node = load_eml(packageid=packageid)
+def create_keywords(filename:str=None, keywords_list:list=[]):
+    eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
@@ -1692,7 +1701,7 @@ def create_keywords(packageid:str=None, keywords_list:list=[]):
             keyword_node.content = keyword
 
     try:
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
 
@@ -1866,7 +1875,7 @@ def create_taxonomic_coverage(
 
 def create_responsible_party(
                    responsible_party_node:Node=None,
-                   packageid:str=None, 
+                   filename:str=None,
                    salutation:str=None,
                    gn:str=None,
                    mn:str=None,

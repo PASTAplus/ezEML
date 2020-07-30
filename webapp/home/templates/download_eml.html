@@ -7,7 +7,7 @@
         <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please enter the package ID of the data package to download:</h5>
+                <h5>Enter the document name of the data package to download:</h5>
                 {{ wtf.form_field(form.packageid) }}
                 <input class="btn btn-primary" name="Back" type="submit" value="Download EML"/>
             </form>

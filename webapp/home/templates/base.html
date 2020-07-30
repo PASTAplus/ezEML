@@ -40,7 +40,7 @@
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">EML Document<span class="caret"></span>
+                       role="button">EML Documents<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
 {#                    {% else %}#}
@@ -56,29 +56,26 @@
 {#                        <li>#}
 {#                            <a href="{{ url_for('home.load_metadata') }}" title="Upload">Upload Data Package from XML...</a>#}
 {#                        </li>#}
-                        <li>
-                            <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>
-                        </li>
 {#                    {% endif %}#}
-                    {% if current_user.get_packageid() %}
+                    {% if current_user.get_filename() %}
+                        <li>
+                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
+                        </li>
 {#                        <li>#}
 {#                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>#}
 {#                        </li>#}
                         <li>
                             <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
                         </li>
-{#                        <li>#}
-{#                            <a href="{{ url_for('home.download_current') }}" title="Download">Download {{ current_user.get_packageid() }}</a>#}
-{#                        </li>#}
-                        <li>
-                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
-                        </li>
                     {% endif %}
+                        <li>
+                            <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>
+                        </li>
                     </ul>
                 </li>
             {% endif %}
             {% if current_user.is_authenticated %}
-                {% if current_user.get_packageid() %}
+                {% if current_user.get_filename() %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
@@ -164,8 +161,8 @@
             <ul class="nav navbar-nav">
                 <li>
                     Active user: <strong>{{ current_user.get_username() }}</strong>
-                    {% if current_user.get_packageid() %}
-                    &nbsp;&nbsp;Data Package: <strong>{{ current_user.get_packageid() }}</strong>
+                    {% if current_user.get_filename() %}
+                    &nbsp;&nbsp;Active EML Document: <strong>{{ current_user.get_filename() }}</strong>
                     {% endif %}
                 </li>
             </ul>
@@ -193,6 +190,7 @@
                     <td valign="middle" style="padding-top: 7px;padding-left: 10px;">{{ macros.help_button('__help__contents_btn', 'nav_link') }}</td>
                 </table>
             {% set title_style = '""' %}
+            {% set data_package_id_style = '""' %}
             {% set creator_style = '""' %}
             {% set metadata_provider_style = '""' %}
             {% set associated_party_style = '""' %}
@@ -216,6 +214,7 @@
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
 
             {% if page == 'title' %}{% set title_style = current %}{% endif %}
+            {% if page == 'data_package_id' %}{% set data_package_id_style = current %}{% endif %}
             {% if page == 'creator' %}{% set creator_style = current %}{% endif %}
             {% if page == 'metadata_provider' %}{% set metadata_provider_style = current %}{% endif %}
             {% if page == 'associated_party' %}{% set associated_party_style = current %}{% endif %}
@@ -236,6 +235,7 @@
             {% if page == 'other_entity' %}{% set other_entity_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
+        <a class="nav_link" style={{ data_package_id_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>
         <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
         <a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>
         <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>

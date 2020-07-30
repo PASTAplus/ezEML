@@ -105,8 +105,8 @@ def find_err_code(errs, err_code_to_find, node_name):
     return found
 
 
-def check_dataset_title(eml_node, packageid):
-    link = url_for(PAGE_TITLE, packageid=packageid)
+def check_dataset_title(eml_node, filename):
+    link = url_for(PAGE_TITLE, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     validation_errs = validate_via_metapype(dataset_node)
     # Is title node missing?
@@ -126,9 +126,19 @@ def check_dataset_title(eml_node, packageid):
         add_to_evaluation('title_02', link)
 
 
+def check_data_package_id(eml_node, filename):
+    link = url_for(PAGE_DATA_PACKAGE_ID, filename=filename)
+    validation_errs = validate_via_metapype(eml_node)
+    errs_found = find_err_code(validation_errs, ValidationError.ATTRIBUTE_REQUIRED, 'eml')
+    for err in errs_found:
+        errcode, msg, node, attribute = err
+        if attribute == 'packageId':
+            add_to_evaluation('data_package_id_01', link)
+
+
 def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
-                            page:str=None, packageid:str=None, node_id:str=None):
-    link = url_for(page, packageid=packageid, node_id=node_id)
+                            page:str=None, filename:str=None, node_id:str=None):
+    link = url_for(page, filename=filename, node_id=node_id)
     validation_errs = validate_via_metapype(rp_node)
 
     # Last name is required if other parts of name are given
@@ -149,8 +159,8 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
         add_to_evaluation('responsible_party_02', link, section, item)
 
 
-def check_creators(eml_node, packageid):
-    link = url_for(PAGE_CREATOR_SELECT, packageid=packageid)
+def check_creators(eml_node, filename):
+    link = url_for(PAGE_CREATOR_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     validation_errs = validate_via_metapype(dataset_node)
 
@@ -159,29 +169,29 @@ def check_creators(eml_node, packageid):
     else:
         creator_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR])
         for creator_node in creator_nodes:
-            check_responsible_party(creator_node, 'Creators', 'Creator', PAGE_CREATOR, packageid, creator_node.id)
+            check_responsible_party(creator_node, 'Creators', 'Creator', PAGE_CREATOR, filename, creator_node.id)
 
 
-def check_metadata_providers(eml_node, packageid):
-    link = url_for(PAGE_METADATA_PROVIDER_SELECT, packageid=packageid)
+def check_metadata_providers(eml_node, filename):
+    link = url_for(PAGE_METADATA_PROVIDER_SELECT, filename=filename)
     metadata_provider_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER])
     if metadata_provider_nodes and len(metadata_provider_nodes) > 0:
         for metadata_provider_node in metadata_provider_nodes:
             check_responsible_party(metadata_provider_node, 'Metadata Providers', 'Metadata Provider',
-                                    PAGE_METADATA_PROVIDER, packageid, metadata_provider_node.id)
+                                    PAGE_METADATA_PROVIDER, filename, metadata_provider_node.id)
 
 
-def check_associated_parties(eml_node, packageid):
-    link = url_for(PAGE_ASSOCIATED_PARTY_SELECT, packageid=packageid)
+def check_associated_parties(eml_node, filename):
+    link = url_for(PAGE_ASSOCIATED_PARTY_SELECT, filename=filename)
     associated_party_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY])
     if associated_party_nodes and len(associated_party_nodes) > 0:
         for associated_party_node in associated_party_nodes:
             check_responsible_party(associated_party_node, 'Associated Parties', 'Associated Party',
-                                    PAGE_ASSOCIATED_PARTY, packageid, associated_party_node.id)
+                                    PAGE_ASSOCIATED_PARTY, filename, associated_party_node.id)
 
 
-def check_dataset_abstract(eml_node, packageid):
-    link = url_for(PAGE_ABSTRACT, packageid=packageid)
+def check_dataset_abstract(eml_node, filename):
+    link = url_for(PAGE_ABSTRACT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     evaluation_warnings = evaluate_via_metapype(dataset_node)
 
@@ -194,8 +204,8 @@ def check_dataset_abstract(eml_node, packageid):
         return
 
 
-def check_keywords(eml_node, packageid):
-    link = url_for(PAGE_KEYWORD_SELECT, packageid=packageid)
+def check_keywords(eml_node, filename):
+    link = url_for(PAGE_KEYWORD_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     evaluation_warnings = evaluate_via_metapype(dataset_node)
 
@@ -208,8 +218,8 @@ def check_keywords(eml_node, packageid):
         return
 
 
-def check_intellectual_rights(eml_node, packageid):
-    link = url_for(PAGE_INTELLECTUAL_RIGHTS, packageid=packageid)
+def check_intellectual_rights(eml_node, filename):
+    link = url_for(PAGE_INTELLECTUAL_RIGHTS, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     evaluation_warnings = evaluate_via_metapype(dataset_node)
 
@@ -218,8 +228,8 @@ def check_intellectual_rights(eml_node, packageid):
         return
 
 
-def check_coverage(eml_node, packageid):
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, packageid=packageid)
+def check_coverage(eml_node, filename):
+    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     evaluation_warnings = evaluate_via_metapype(dataset_node)
 
@@ -228,11 +238,11 @@ def check_coverage(eml_node, packageid):
         return
 
 
-def check_geographic_coverage(eml_node, packageid):
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, packageid=packageid)
+def check_geographic_coverage(eml_node, filename):
+    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
     geographic_coverage_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE])
     for geographic_coverage_node in geographic_coverage_nodes:
-        link = url_for(PAGE_GEOGRAPHIC_COVERAGE, packageid=packageid, node_id=geographic_coverage_node.id)
+        link = url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=geographic_coverage_node.id)
         validation_errs = validate_via_metapype(geographic_coverage_node)
         if find_content_empty(validation_errs, names.GEOGRAPHICDESCRIPTION):
             add_to_evaluation('geographic_coverage_01', link)
@@ -265,7 +275,7 @@ def get_attribute_type(attrib_node:Node):
     return None
 
 
-def check_attribute(eml_node, packageid, data_table_node:Node, attrib_node:Node):
+def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     if attr_type == VariableType.CATEGORICAL:
@@ -280,7 +290,7 @@ def check_attribute(eml_node, packageid, data_table_node:Node, attrib_node:Node)
     elif attr_type == VariableType.DATETIME:
         page = PAGE_ATTRIBUTE_DATETIME
         mscale = VariableType.DATETIME.name
-    link = url_for(page, packageid=packageid, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
+    link = url_for(page, filename=filename, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
 
     validation_errs = validate_via_metapype(attrib_node)
     if find_content_empty(validation_errs, names.ATTRIBUTEDEFINITION):
@@ -303,8 +313,8 @@ def check_attribute(eml_node, packageid, data_table_node:Node, attrib_node:Node)
         add_to_evaluation('attributes_03', link)
 
 
-def check_data_table(eml_node, packageid, data_table_node:Node):
-    link = url_for(PAGE_DATA_TABLE, packageid=packageid, node_id=data_table_node.id)
+def check_data_table(eml_node, filename, data_table_node:Node):
+    link = url_for(PAGE_DATA_TABLE, filename=filename, node_id=data_table_node.id)
     validation_errs = validate_via_metapype(data_table_node)
 
     if find_min_unmet(validation_errs, names.DATATABLE, names.ENTITYNAME):
@@ -324,11 +334,11 @@ def check_data_table(eml_node, packageid, data_table_node:Node):
     if attribute_list_node:
         attribute_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
         for attribute_node in attribute_nodes:
-            check_attribute(eml_node, packageid, data_table_node, attribute_node)
+            check_attribute(eml_node, filename, data_table_node, attribute_node)
 
 
-def check_data_tables(eml_node, packageid):
-    link = url_for(PAGE_DATA_TABLE_SELECT, packageid=packageid)
+def check_data_tables(eml_node, filename):
+    link = url_for(PAGE_DATA_TABLE_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     evaluation_warnings = evaluate_via_metapype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_MISSING, names.DATASET):
@@ -336,19 +346,19 @@ def check_data_tables(eml_node, packageid):
 
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
     for data_table_node in data_table_nodes:
-        check_data_table(eml_node, packageid, data_table_node)
+        check_data_table(eml_node, filename, data_table_node)
 
 
-def check_maintenance(eml_node, packageid):
-    link = url_for(PAGE_MAINTENANCE, packageid=packageid)
+def check_maintenance(eml_node, filename):
+    link = url_for(PAGE_MAINTENANCE, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     evaluation_warnings = evaluate_via_metapype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.MAINTENANCE_DESCRIPTION_MISSING, names.DESCRIPTION):
         add_to_evaluation('maintenance_01', link)
 
 
-def check_contacts(eml_node, packageid):
-    link = url_for(PAGE_CONTACT_SELECT, packageid=packageid)
+def check_contacts(eml_node, filename):
+    link = url_for(PAGE_CONTACT_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     validation_errs = validate_via_metapype(dataset_node)
     if find_min_unmet(validation_errs, names.DATASET, names.CONTACT):
@@ -359,18 +369,18 @@ def check_contacts(eml_node, packageid):
     ])
     for contact_node in contact_nodes:
         check_responsible_party(contact_node, 'Contacts', 'Contact', PAGE_CONTACT,
-                                packageid, contact_node.id)
+                                filename, contact_node.id)
 
 
-def check_method_step(method_step_node, packageid, node_id):
-    link = url_for(PAGE_METHOD_STEP, packageid=packageid, node_id=node_id)
+def check_method_step(method_step_node, filename, node_id):
+    link = url_for(PAGE_METHOD_STEP, filename=filename, node_id=node_id)
     evaluation_warnings = evaluate_via_metapype(method_step_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.METHOD_STEP_DESCRIPTION_MISSING, names.DESCRIPTION):
         add_to_evaluation('methods_02', link)
 
 
-def check_method_steps(eml_node, packageid):
-    link = url_for(PAGE_METHOD_STEP_SELECT, packageid=packageid)
+def check_method_steps(eml_node, filename):
+    link = url_for(PAGE_METHOD_STEP_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     evaluation_warnings = evaluate_via_metapype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_METHOD_STEPS_MISSING, names.DATASET):
@@ -382,11 +392,11 @@ def check_method_steps(eml_node, packageid):
         names.METHODSTEP
     ])
     for method_step_node in method_step_nodes:
-        check_method_step(method_step_node, packageid, method_step_node.id)
+        check_method_step(method_step_node, filename, method_step_node.id)
 
 
-def check_project_award(award_node, packageid):
-    link = url_for(PAGE_FUNDING_AWARD, packageid=packageid, node_id=award_node.id)
+def check_project_award(award_node, filename):
+    link = url_for(PAGE_FUNDING_AWARD, filename=filename, node_id=award_node.id)
     validation_errors = validate_via_metapype(award_node)
     if find_min_unmet(validation_errors, names.AWARD, names.FUNDERNAME) or \
             find_content_empty(validation_errors, names.FUNDERNAME):
@@ -396,8 +406,8 @@ def check_project_award(award_node, packageid):
         add_to_evaluation('project_05', link)
 
 
-def check_project(eml_node, packageid):
-    link = url_for(PAGE_PROJECT, packageid=packageid)
+def check_project(eml_node, filename):
+    link = url_for(PAGE_PROJECT, filename=filename)
     project_node = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if project_node:
         validation_errors = validate_via_metapype(project_node)
@@ -419,7 +429,7 @@ def check_project(eml_node, packageid):
     ])
     for project_personnel_node in project_personnel_nodes:
         check_responsible_party(project_personnel_node, "Project", "Project Personnel",
-                                PAGE_PROJECT_PERSONNEL, packageid, project_personnel_node.id)
+                                PAGE_PROJECT_PERSONNEL, filename, project_personnel_node.id)
 
     project_award_nodes = eml_node.find_all_nodes_by_path([
         names.DATASET,
@@ -427,11 +437,11 @@ def check_project(eml_node, packageid):
         names.AWARD
     ])
     for project_award_node in project_award_nodes:
-        check_project_award(project_award_node, packageid)
+        check_project_award(project_award_node, filename)
 
 
-def check_other_entity(entity_node, packageid):
-    link = url_for(PAGE_OTHER_ENTITY, packageid=packageid, node_id=entity_node.id)
+def check_other_entity(entity_node, filename):
+    link = url_for(PAGE_OTHER_ENTITY, filename=filename, node_id=entity_node.id)
 
     validation_errors = validate_via_metapype(entity_node)
     if find_min_unmet(validation_errors, names.OTHERENTITY, names.ENTITYNAME):
@@ -444,10 +454,10 @@ def check_other_entity(entity_node, packageid):
         add_to_evaluation('other_entity_03', link)
 
 
-def check_other_entities(eml_node, packageid):
+def check_other_entities(eml_node, filename):
     other_entity_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.OTHERENTITY])
     for other_entity_node in other_entity_nodes:
-        check_other_entity(other_entity_node, packageid)
+        check_other_entity(other_entity_node, filename)
 
 
 def eval_entry_to_string(eval_entry):
@@ -479,7 +489,7 @@ def format_entry(entry:Eval_Entry):
 
 
 def format_output(evaluation):
-    sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
+    sections = ['Title', 'Data Package ID', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
                 'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
                 'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Other Entities']
 
@@ -505,28 +515,29 @@ def format_output(evaluation):
     return output
 
 
-def check_eml(packageid:str):
+def check_eml(filename:str):
     # global evaluation, metapype_validation_errs, metapype_evaluation
     global evaluation
     evaluation = []
 
-    eml_node = load_eml(packageid)
+    eml_node = load_eml(filename)
 
-    check_dataset_title(eml_node, packageid)
-    check_data_tables(eml_node, packageid)
-    check_creators(eml_node, packageid)
-    check_contacts(eml_node, packageid)
-    check_associated_parties(eml_node, packageid)
-    check_metadata_providers(eml_node, packageid)
-    check_dataset_abstract(eml_node, packageid)
-    check_keywords(eml_node, packageid)
-    check_intellectual_rights(eml_node, packageid)
-    check_coverage(eml_node, packageid)
-    check_geographic_coverage(eml_node, packageid)
-    check_maintenance(eml_node, packageid)
-    check_method_steps(eml_node, packageid)
-    check_project(eml_node, packageid)
-    check_other_entities(eml_node, packageid)
+    check_dataset_title(eml_node, filename)
+    check_data_package_id(eml_node, filename)
+    check_data_tables(eml_node, filename)
+    check_creators(eml_node, filename)
+    check_contacts(eml_node, filename)
+    check_associated_parties(eml_node, filename)
+    check_metadata_providers(eml_node, filename)
+    check_dataset_abstract(eml_node, filename)
+    check_keywords(eml_node, filename)
+    check_intellectual_rights(eml_node, filename)
+    check_coverage(eml_node, filename)
+    check_geographic_coverage(eml_node, filename)
+    check_maintenance(eml_node, filename)
+    check_method_steps(eml_node, filename)
+    check_project(eml_node, filename)
+    check_other_entities(eml_node, filename)
     return format_output(evaluation)
 
 

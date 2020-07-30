@@ -8,18 +8,18 @@
     
     <h2>New EML Document</h2>
     <div class="row">
-        <div class="col-md-6">
-            <form method="POST" action="" class="form" role="form">
+        <div class="col-md-8">
+            <form method="POST" action="" class="form" role="form" novalidate>
                 {{ form.csrf_token }}
                 <br>
-                <h5>Please enter the data package identifier (e.g. edi.1.1):</h5>
+                <h5>Enter a name for the new document:</h5>
                 <table>
-                    <td>{{ wtf.form_field(form.packageid, size=120) }}</td>
+                    <td>{{ wtf.form_field(form.filename, size=120) }}</td>
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>
                 </table>
                 <p>&nbsp;</p>
-                <input class="btn btn-primary" name="Next" type="submit" value="OK"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Create"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
             </form>
         </div>
     </div>

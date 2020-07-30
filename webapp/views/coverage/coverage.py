@@ -31,15 +31,15 @@ from webapp.home.views import set_current_page
 cov_bp = Blueprint('cov', __name__, template_folder='templates')
 
 
-@cov_bp.route('/geographic_coverage_select/<packageid>', methods=['GET', 'POST'])
-def geographic_coverage_select(packageid=None):
-    form = GeographicCoverageSelectForm(packageid=packageid)
+@cov_bp.route('/geographic_coverage_select/<filename>', methods=['GET', 'POST'])
+def geographic_coverage_select(filename=None):
+    form = GeographicCoverageSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_GEOGRAPHIC_COVERAGE_SELECT,
                           PAGE_INTELLECTUAL_RIGHTS,
                           PAGE_TEMPORAL_COVERAGE_SELECT,
@@ -50,7 +50,7 @@ def geographic_coverage_select(packageid=None):
     gc_list = []
     title = "Geographic Coverage"
 
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -62,13 +62,13 @@ def geographic_coverage_select(packageid=None):
                            gc_list=gc_list, form=form, help=help)
 
 
-@cov_bp.route('/geographic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
-def geographic_coverage(packageid=None, node_id=None):
-    form = GeographicCoverageForm(packageid=packageid)
+@cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
+def geographic_coverage(filename=None, node_id=None):
+    form = GeographicCoverageForm(filename=filename)
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, packageid=packageid)
+        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
@@ -76,10 +76,10 @@ def geographic_coverage(packageid=None, node_id=None):
         if is_dirty_form(form):
             submit_type = 'Save Changes'
 
-        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, packageid=packageid)
+        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
 
         if submit_type == 'Save Changes':
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
 
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
@@ -116,13 +116,13 @@ def geographic_coverage(packageid=None, node_id=None):
 
             if nbc and sbc and nbc < sbc:
                 flash('North should be greater than or equal to South')
-                url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, packageid=packageid, node_id=gc_node.id))
+                url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=gc_node.id))
 
             if ebc and wbc and ebc < wbc:
                 flash('East should be greater than or equal to West')
-                url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, packageid=packageid, node_id=gc_node.id))
+                url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=gc_node.id))
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
         return redirect(url)
 
@@ -130,7 +130,7 @@ def geographic_coverage(packageid=None, node_id=None):
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             coverage_node = dataset_node.find_child(names.COVERAGE)
@@ -179,15 +179,15 @@ def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
     form.md5.data = form_md5(form)
 
 
-@cov_bp.route('/temporal_coverage_select/<packageid>', methods=['GET', 'POST'])
-def temporal_coverage_select(packageid=None):
-    form = TemporalCoverageSelectForm(packageid=packageid)
+@cov_bp.route('/temporal_coverage_select/<filename>', methods=['GET', 'POST'])
+def temporal_coverage_select(filename=None):
+    form = TemporalCoverageSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_TEMPORAL_COVERAGE_SELECT,
                           PAGE_GEOGRAPHIC_COVERAGE_SELECT,
                           PAGE_TAXONOMIC_COVERAGE_SELECT,
@@ -198,7 +198,7 @@ def temporal_coverage_select(packageid=None):
     title = "Temporal Coverage"
     tc_list = []
 
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -210,14 +210,14 @@ def temporal_coverage_select(packageid=None):
                            tc_list=tc_list, form=form, help=help)
 
 
-@cov_bp.route('/temporal_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
-def temporal_coverage(packageid=None, node_id=None):
-    form = TemporalCoverageForm(packageid=packageid)
+@cov_bp.route('/temporal_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
+def temporal_coverage(filename=None, node_id=None):
+    form = TemporalCoverageForm(filename=filename)
     tc_node_id = node_id
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, packageid=packageid)
+        url = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=filename)
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
@@ -225,10 +225,10 @@ def temporal_coverage(packageid=None, node_id=None):
         if is_dirty_form(form):
             save = True
 
-        url = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, packageid=packageid)
+        url = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=filename)
 
         if save:
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
 
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
@@ -261,9 +261,9 @@ def temporal_coverage(packageid=None, node_id=None):
             flash_msg = compare_begin_end_dates(begin_date_str, end_date_str)
             if flash_msg:
                 flash(flash_msg)
-                url = (url_for(PAGE_TEMPORAL_COVERAGE, packageid=packageid, node_id=tc_node_id))
+                url = (url_for(PAGE_TEMPORAL_COVERAGE, filename=filename, node_id=tc_node_id))
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
         return redirect(url)
 
@@ -271,7 +271,7 @@ def temporal_coverage(packageid=None, node_id=None):
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             coverage_node = dataset_node.find_child(names.COVERAGE)
@@ -311,15 +311,15 @@ def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
     form.md5.data = form_md5(form)
 
 
-@cov_bp.route('/taxonomic_coverage_select/<packageid>', methods=['GET', 'POST'])
-def taxonomic_coverage_select(packageid=None):
-    form = TaxonomicCoverageSelectForm(packageid=packageid)
+@cov_bp.route('/taxonomic_coverage_select/<filename>', methods=['GET', 'POST'])
+def taxonomic_coverage_select(filename=None):
+    form = TaxonomicCoverageSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_TAXONOMIC_COVERAGE_SELECT,
                           PAGE_TEMPORAL_COVERAGE_SELECT,
                           PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
@@ -329,7 +329,7 @@ def taxonomic_coverage_select(packageid=None):
     title = "Taxonomic Coverage"
     txc_list = []
 
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -341,13 +341,13 @@ def taxonomic_coverage_select(packageid=None):
                            txc_list=txc_list, form=form, help=help)
 
 
-@cov_bp.route('/taxonomic_coverage/<packageid>/<node_id>', methods=['GET', 'POST'])
-def taxonomic_coverage(packageid=None, node_id=None):
-    form = TaxonomicCoverageForm(packageid=packageid)
+@cov_bp.route('/taxonomic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
+def taxonomic_coverage(filename=None, node_id=None):
+    form = TaxonomicCoverageForm(filename=filename)
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, packageid=packageid)
+        url = url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=filename)
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
@@ -357,7 +357,7 @@ def taxonomic_coverage(packageid=None, node_id=None):
         flash(f'save: {save}')
 
         if save:
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
 
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
@@ -399,15 +399,15 @@ def taxonomic_coverage(packageid=None, node_id=None):
             else:
                 add_child(coverage_node, txc_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
-        return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, packageid=packageid))
+        return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=filename))
 
     # Process GET
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             coverage_node = dataset_node.find_child(names.COVERAGE)

@@ -7,12 +7,14 @@
 
 :Author:
     costa
+    ide
 
 :Created:
     12/18/2018
 """
 import daiquiri
 import os
+import pickle
 
 from flask import (
     send_file
@@ -102,11 +104,11 @@ def initialize_user_data():
         os.mkdir(user_uploads_folder_name)
 
 
-def delete_eml(packageid:str=''):
-    if packageid:
+def delete_eml(filename:str=''):
+    if filename:
         user_folder = get_user_folder_name()
-        json_filename = f'{user_folder}/{packageid}.json'
-        xml_filename = f'{user_folder}/{packageid}.xml'
+        json_filename = f'{user_folder}/{filename}.json'
+        xml_filename = f'{user_folder}/{filename}.xml'
         if os.path.exists(json_filename):
             try:
                 os.remove(json_filename)
@@ -118,18 +120,18 @@ def delete_eml(packageid:str=''):
             except Exception as e:
                 return str(e)
         else:
-            msg = f'Data package not found: {packageid}'
+            msg = f'Data package not found: {filename}'
             return msg
     else:
         msg = f'No package ID was specified'
         return msg
 
 
-def download_eml(packageid:str=''):
-    if packageid:
+def download_eml(filename:str=''):
+    if filename:
         user_folder = get_user_folder_name()
-        filename = f'{packageid}.xml'
-        pathname = f'{user_folder}/{filename}'
+        filename_xml = f'{filename}.xml'
+        pathname = f'{user_folder}/{filename_xml}'
         if os.path.exists(pathname):
             relative_pathname = '../' + pathname
             mimetype = 'application/xml'
@@ -137,7 +139,7 @@ def download_eml(packageid:str=''):
                 return send_file(relative_pathname, 
                     mimetype=mimetype, 
                     as_attachment=True, 
-                    attachment_filename=filename, 
+                    attachment_filename=filename_xml,
                     add_etags=True, 
                     cache_timeout=None, 
                     conditional=False, 
@@ -145,36 +147,65 @@ def download_eml(packageid:str=''):
             except Exception as e:
                 return str(e)
         else:
-            msg = f'Data package not found: {packageid}'
+            msg = f'Data package not found: {filename}'
             return msg
     else:
         msg = f'No package ID was specified'
         return msg
 
 
+def read_active_dict():
+    user_folder = get_user_folder_name()
+    active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
+    try:
+        with open(active_file, 'rb') as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return dict()
+
+
+def write_active_dict(active_dict):
+    user_folder = get_user_folder_name()
+    active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
+    with open(active_file, 'wb') as f:
+        pickle.dump(active_dict, f)
+
+
 def set_active_packageid(packageid: str):
+    active_dict = read_active_dict()
+    if not active_dict:
+        active_dict = dict()
     if packageid is not None:
-        user_folder = get_user_folder_name()
-        active_packageid_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
-        with open(active_packageid_file, 'w') as f:
-            f.write(packageid)
+        active_dict['packageid'] = packageid
     else:
-        remove_active_packageid()
+        active_dict.pop('packageid', None)
+    write_active_dict(active_dict)
 
 
 def get_active_packageid() -> str:
-    package_id = None
-    user_folder = get_user_folder_name()
-    active_packageid_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
-    if os.path.exists(active_packageid_file):
-        with open(active_packageid_file, 'r') as f:
-            package_id = f.readline().strip()
-    return package_id
+    active_dict = read_active_dict()
+    return active_dict.get('packageid', None)
 
 
-def remove_active_packageid():
+def set_active_document(filename: str):
+    if filename is not None:
+        active_dict = read_active_dict()
+        if not active_dict:
+            active_dict = dict()
+        active_dict['filename'] = filename
+        write_active_dict(active_dict)
+    else:
+        remove_active_file()
+
+
+def get_active_document() -> str:
+    active_dict = read_active_dict()
+    return active_dict.get('filename', None)
+
+
+def remove_active_file():
     user_folder = get_user_folder_name()
-    active_packageid_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
-    if os.path.exists(active_packageid_file):
-        os.remove(active_packageid_file)
+    active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
+    if os.path.exists(active_file):
+        os.remove(active_file)
 

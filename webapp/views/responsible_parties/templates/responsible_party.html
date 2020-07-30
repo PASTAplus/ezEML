@@ -12,12 +12,18 @@
         <td><h2>{{ title }}</h2></td>
         <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
     </table>
+    {% if node_name == 'publisher' %}
+    <div class="col-md-10" style="border: 1px solid steelblue;color: steelblue;padding: 15px;">
+        Please note: if you plan to submit your data package to the data repository hosted by the
+        Environmental Data Initiative (EDI), you can leave this page blank. EDI will
+        replace these entries when the data package is submitted.
+    </div>
+    {% endif %}
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please document the metadata {{ rp_lower }} in the fields below:</h5>
                 {{ wtf.form_field(form.salutation) }}
                 {{ wtf.form_field(form.gn) }}
                 {{ wtf.form_field(form.mn) }}

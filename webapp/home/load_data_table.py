@@ -7,6 +7,7 @@
 
 :Author:
     costa
+    ide
 
 :Created:
     5/9/19
@@ -16,6 +17,7 @@ import hashlib
 import os
 import re
 import pandas as pd
+import time
 
 from metapype.eml import names
 from metapype.model.node import Node
@@ -75,7 +77,7 @@ def sort_codes_key(x):
         return str(i)
     except:
         pass
-    return x.lower()
+    return str(x).lower()
 
 
 def sort_codes(codes):
@@ -101,6 +103,24 @@ def is_datetime(data_frame, col):
     return float(missing) / float(len(s)) < 0.2
 
 
+def infer_datetime_format(dt):
+    formats = [
+        ('%Y', 'YYYY'),
+        ('%Y-%m-%d', 'YYYY-MM-DD'),
+        ('%Y-%m-%d %H:%M', 'YYYY-MM-DD hh:mm'),
+        ('%Y-%m-%d %H:%M:%S', 'YYYY-MM-DD hh:mm:ss'),
+        ('%Y-%m-%dT%H:%M', 'YYYY-MM-DDThh:mm'),
+        ('%Y-%m-%dT%H:%M:%S', 'YYYY-MM-DDThh:mm:ss'),
+        ('%Y-%m-%dT%H:%M:%S-%H', 'YYYY-MM-DDThh:mm:ss-hh')
+    ]
+    for f, fout in formats:
+        try:
+            time.strptime(dt, f)
+        except:
+            continue
+        return fout
+    return ''
+
 
 def infer_col_type(data_frame, col):
     col_type = None
@@ -117,8 +137,7 @@ def infer_col_type(data_frame, col):
         dtype = data_frame[col][1:].infer_objects().dtype
         if dtype == object:
             if is_datetime(data_frame, col):
-                col_type = VariableType.DATETIME
-                sorted_codes = ''
+                return VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
             else:
                 col_type = VariableType.TEXT
         else:

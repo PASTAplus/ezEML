@@ -30,10 +30,10 @@ from metapype.model.node import Node
 proj_bp = Blueprint('proj', __name__, template_folder='templates')
 
 
-@proj_bp.route('/project/<packageid>', methods=['GET', 'POST'])
-def project(packageid=None):
-    form = ProjectForm(packageid=packageid)
-    eml_node = load_eml(packageid=packageid)
+@proj_bp.route('/project/<filename>', methods=['GET', 'POST'])
+def project(filename=None):
+    form = ProjectForm(filename=filename)
+    eml_node = load_eml(filename=filename)
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
@@ -66,9 +66,9 @@ def project(packageid=None):
             title = form.title.data
             abstract = add_paragraph_tags(form.abstract.data)
             create_project(dataset_node, title, abstract)
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
-        return redirect(url_for(new_page, packageid=packageid))
+        return redirect(url_for(new_page, filename=filename))
 
     # Process GET
     if dataset_node:
@@ -79,7 +79,7 @@ def project(packageid=None):
     help = [get_help('project'), get_help('project_title')]
     return render_template('project.html',
                            title='Project',
-                           packageid=packageid,
+                           filename=filename,
                            form=form,
                            help=help)
 
@@ -111,27 +111,27 @@ def populate_project_form(form: ProjectForm, project_node: Node):
     form.md5.data = form_md5(form)
 
 
-@proj_bp.route('/project_personnel_select/<packageid>', methods=['GET', 'POST'])
-def project_personnel_select(packageid=None):
-    form = ResponsiblePartySelectForm(packageid=packageid)
+@proj_bp.route('/project_personnel_select/<filename>', methods=['GET', 'POST'])
+def project_personnel_select(filename=None):
+    form = ResponsiblePartySelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_PROJECT_PERSONNEL_SELECT, PAGE_PROJECT,
                           PAGE_PROJECT, PAGE_PROJECT_PERSONNEL)
         return redirect(url)
 
     # Process GET
-    return rp_select_get(packageid=packageid, form=form, rp_name='personnel',
+    return rp_select_get(filename=filename, form=form, rp_name='personnel',
                          rp_singular=non_breaking('Project Personnel'), rp_plural=non_breaking('Project Personnel'))
 
 
-@proj_bp.route('/funding_award_select/<packageid>', methods=['GET', 'POST'])
-def funding_award_select(packageid=None):
-    form = AwardSelectForm(packageid=packageid)
+@proj_bp.route('/funding_award_select/<filename>', methods=['GET', 'POST'])
+def funding_award_select(filename=None):
+    form = AwardSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
@@ -151,9 +151,9 @@ def funding_award_select(packageid=None):
                 elif val == BTN_REMOVE:
                     new_page = PAGE_FUNDING_AWARD_SELECT
                     node_id = key
-                    eml_node = load_eml(packageid=packageid)
+                    eml_node = load_eml(filename=filename)
                     remove_child(node_id=node_id)
-                    save_both_formats(packageid=packageid, eml_node=eml_node)
+                    save_both_formats(filename=filename, eml_node=eml_node)
                 elif val == BTN_HIDDEN_CHECK:
                     new_page = PAGE_CHECK
                 elif val == BTN_HIDDEN_SAVE:
@@ -163,11 +163,11 @@ def funding_award_select(packageid=None):
                 elif val == UP_ARROW:
                     new_page = PAGE_FUNDING_AWARD_SELECT
                     node_id = key
-                    process_up_button(packageid, node_id)
+                    process_up_button(filename, node_id)
                 elif val == DOWN_ARROW:
                     new_page = PAGE_FUNDING_AWARD_SELECT
                     node_id = key
-                    process_down_button(packageid, node_id)
+                    process_down_button(filename, node_id)
                 elif val[0:3] == 'Add':
                     new_page = PAGE_FUNDING_AWARD
                     node_id = '1'
@@ -175,40 +175,40 @@ def funding_award_select(packageid=None):
         if form.validate_on_submit():
             if new_page == PAGE_FUNDING_AWARD:
                 url = url_for(new_page,
-                              packageid=packageid,
+                              filename=filename,
                               node_id=node_id)
             # elif new_page == PAGE_FUNDING_AWARD_SELECT:
             #     url = url_for(new_page,
-            #                   packageid=packageid)
+            #                   filename=filename)
             else:
                 url = url_for(new_page,
-                              packageid=packageid)
+                              filename=filename)
             return redirect(url)
 
     # Process GET
-    return funding_award_select_get(packageid=packageid, form=form)
+    return funding_award_select_get(filename=filename, form=form)
 
 
-def funding_award_select_get(packageid=None, form=None):
+def funding_award_select_get(filename=None, form=None):
     # Process GET
     title = 'Funding Awards'
     # entity_name = ''
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
 
     funding_award_list = list_funding_awards(eml_node)
     set_current_page('project')
     help = [get_help('awards')]
     return render_template('award_select.html', title=title,
-                           packageid=packageid,
+                           filename=filename,
                            award_list=funding_award_list,
                            form=form, help=help)
 
 
-@proj_bp.route('/funding_award/<packageid>/<node_id>', methods=['GET', 'POST'])
-def funding_award(packageid=None, node_id=None):
-    form = AwardForm(packageid=packageid)
+@proj_bp.route('/funding_award/<filename>/<node_id>', methods=['GET', 'POST'])
+def funding_award(filename=None, node_id=None):
+    form = AwardForm(filename=filename)
 
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     project_node = eml_node.find_single_node_by_path([
         names.DATASET,
         names.PROJECT
@@ -218,7 +218,7 @@ def funding_award(packageid=None, node_id=None):
         form_dict = form_value.to_dict(flat=False)
 
         if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_FUNDING_AWARD_SELECT, packageid=packageid)
+            url = url_for(PAGE_FUNDING_AWARD_SELECT, filename=filename)
             return redirect(url)
 
         # if request.method == 'POST' and form.validate_on_submit():
@@ -253,9 +253,9 @@ def funding_award(packageid=None, node_id=None):
             else:
                 add_child(project_node, award_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT,
                           PAGE_PROJECT, PAGE_FUNDING_AWARD)
         return redirect(url)

@@ -8,10 +8,11 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <br>
-                <h5>Please select the data package identifier:</h5>
-                {{ wtf.form_field(form.packageid, maxlen=100) }}
+                <h5>Select an EML document to open:</h5>
+                {{ wtf.form_field(form.filename, maxlen=100) }}
                 <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Open" type="submit" value="Open"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
             </form>
         </div>
     </div>

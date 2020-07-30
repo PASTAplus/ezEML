@@ -10,15 +10,17 @@ An abstract is not required, but it is highly recommended.
 --------------------
 add_load_data_tables
 Add/Load Data Tables
-You can create a data table's metadata "from scratch" via <b>Add Data Table</b>, or you can load an existing data table CSV file via <b>Load Data Table</b>.
+You can create a data table's metadata "from scratch" via <b>Add Data Table from Scratch</b>, or you can load an existing data table CSV file via <b>Load Data Table from CSV File</b>.
 
-In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but others will still need to be entered or modified manually.
+In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
+
+CSV files are assumed to contain a single header row.
 --------------------
 add_load_other_entities
 Add/Load Other Entities
-You can create an other entity's metadata "from scratch" via <b>Add Other Entity</b>, or you can load an existing other entity file via <b>Load Other Entity</b>.
+You can create an other entity's metadata "from scratch" via <b>Add Other Entity from Scratch</b>, or you can load an existing other entity file via <b>Load Other Entity from File</b>.
 
-In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but others will still need to be entered or modified manually.
+In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
 --------------------
 associated_parties
 Associated Parties
@@ -88,12 +90,18 @@ The creator is considered to be the author of the data package, i.e. the person(
 
 For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
 --------------------
-data_tables
-Data Tables
-A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+data_package_id
+Data Package ID
+EML requires a data package to have a <b>Data Package ID</b>. The particular form and value of the Data Package ID is determined by the data repository where the data package will be submitted. Contact your data repository for an appropriate value.
+
+If your data package will be submitted to the repository hosted by the Environmental Data Initiative (EDI), please contact support@environmentaldatainitiative.org to obtain a data package ID.
 --------------------
 data_table
 Data Table
+A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+--------------------
+data_tables
+Data Tables
 A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
 --------------------
 data_table_name
@@ -326,18 +334,16 @@ The <b>Reset Changes</b> button clears the changes you've made on the current pa
 <b>It's best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.</b>
 --------------------
 new_eml_document
-New EML Document
-An EML document is identified by a data package identifier.
+Document Name
+Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
 
-A data package identifier is of the form <i>scope.identifier.revision</i>. I.e., it consists of three parts, separated by periods(.).
-
-The first part, the <b>scope</b>, is text; e.g., edi, knb-lter-sbc, or my-contacts. The second part, the <b>identifier</b>, is an integer, that identifies the package within the scope. The third part, the <b>revision</b>, is an integer that identifies the particular revision of a data package.
+This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 --------------------
 other_entities
 Other Entities
-<b>Other Entities</b> are data entities other than data tables. They are identitied by their names.
+<b>Other Entities</b> are data entities other than data tables. They are identified by their names.
 
-<b>Other Entities</b> descriptors can contain information about an entity's basic identity, its temporal, geographic, and taxonomic coverage, and its type.
+<b>Other Entities</b> descriptors can contain information about an entity's basic identity and its type.
 
 Example: Photograph of rocky intertidal plot 12 from Santa Cruz
 --------------------
@@ -393,7 +399,7 @@ Two formats are allowed, either a 4-digit year, or a date in ISO format: YYYY-MM
 --------------------
 title
 Title
-The <b>Title</b> field provides a description of the data package. It should be long enough to differentiate it from other similar resources. A minimum of 20 characters is required.
+The <b>Title</b> field provides a description of the data package. It should be long enough to differentiate it from other similar resources.
 
 It should be descriptive and should mention the data collected, geographic context, research site, and time frame (i.e., what, where, and when).
 

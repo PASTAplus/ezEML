@@ -4,7 +4,7 @@ from flask import (
 
 from webapp.home.metapype_client import (
     add_child, create_abstract, create_intellectual_rights,
-    create_keyword, create_pubinfo,
+    create_keyword, create_pubinfo, create_data_package_id,
     create_title, list_keywords, load_eml, remove_child,
     save_both_formats, DOWN_ARROW, UP_ARROW,
     add_paragraph_tags, remove_paragraph_tags
@@ -13,6 +13,7 @@ from webapp.home.metapype_client import (
 from webapp.home.forms import is_dirty_form, form_md5
 from webapp.views.resources.forms import (
     AbstractForm,
+    DataPackageIDForm,
     IntellectualRightsForm,
     KeywordForm,
     KeywordSelectForm,
@@ -38,24 +39,24 @@ from webapp.home.views import set_current_page
 res_bp = Blueprint('res', __name__, template_folder='templates')
 
 
-@res_bp.route('/title/<packageid>', methods=['GET', 'POST'])
-def title(packageid=None):
+@res_bp.route('/title/<filename>', methods=['GET', 'POST'])
+def title(filename=None):
     form = TitleForm()
 
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
-        new_page = PAGE_CREATOR_SELECT
+        new_page = PAGE_DATA_PACKAGE_ID
         save = False
         if is_dirty_form(form):
             save = True
 
         if save:
-            create_title(title=form.title.data, packageid=packageid)
+            create_title(title=form.title.data, filename=filename)
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_DATA_TABLE_SELECT
+            new_page = PAGE_DATA_PACKAGE_ID
         elif 'Hidden_Check' in request.form:
             new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
@@ -63,10 +64,10 @@ def title(packageid=None):
         elif 'Hidden_Download' in request.form:
             new_page = PAGE_DOWNLOAD
 
-        return redirect(url_for(new_page, packageid=packageid))
+        return redirect(url_for(new_page, filename=filename))
 
     # Process GET
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     dataset_node = eml_node.find_child(child_name=names.DATASET)
     title_node = dataset_node.find_child(names.TITLE)
     if title_node:
@@ -78,8 +79,47 @@ def title(packageid=None):
     return render_template('title.html', title='Title', form=form, help=help)
 
 
-@res_bp.route('/publication_info/<packageid>', methods=['GET', 'POST'])
-def publication_info(packageid=None):
+@res_bp.route('/data_package_id/<filename>', methods=['GET', 'POST'])
+def data_package_id(filename=None):
+    form = DataPackageIDForm()
+    eml_node = load_eml(filename=filename)
+
+    # Process POST
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
+        new_page = PAGE_DATA_TABLE_SELECT
+        save = False
+        if is_dirty_form(form):
+            save = True
+
+        if save:
+            data_package_id = form.data_package_id.data
+            create_data_package_id(data_package_id, filename)
+            form.md5.data = form_md5(form)
+
+        if 'Next' in request.form:
+            new_page = PAGE_DATA_TABLE_SELECT
+        elif 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
+        elif 'Hidden_Save' in request.form:
+            new_page = PAGE_DATA_PACKAGE_ID
+        elif 'Hidden_Download' in request.form:
+            new_page = PAGE_DOWNLOAD
+
+        return redirect(url_for(new_page, filename=filename))
+
+    # Process GET
+    data_package_id = eml_node.attribute_value('packageId')
+    form.data_package_id.data = data_package_id if data_package_id else ''
+    form.md5.data = form_md5(form)
+
+    set_current_page('data_package_id')
+    help = get_helps(['data_package_id'])
+    return render_template('data_package_id.html', form=form, help=help)
+
+
+@res_bp.route('/publication_info/<filename>', methods=['GET', 'POST'])
+def publication_info(filename=None):
     form = PublicationInfoForm()
 
     # Process POST
@@ -103,12 +143,12 @@ def publication_info(packageid=None):
         if save:
             pubplace = form.pubplace.data
             pubdate = form.pubdate.data
-            create_pubinfo(pubplace=pubplace, pubdate=pubdate, packageid=packageid)
+            create_pubinfo(pubplace=pubplace, pubdate=pubdate, filename=filename)
 
-        return redirect(url_for(new_page, packageid=packageid))
+        return redirect(url_for(new_page, filename=filename))
 
     # Process GET
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     pubplace_node = eml_node.find_single_node_by_path([names.DATASET, names.PUBPLACE])
     if pubplace_node:
         form.pubplace.data = pubplace_node.content
@@ -121,9 +161,9 @@ def publication_info(packageid=None):
     return render_template('publication_info.html', help=help, form=form)
 
 
-# @res_bp.route('/pubdate/<packageid>', methods=['GET', 'POST'])
-# def pubdate(packageid=None):
-#     form = PubDateForm(packageid=packageid)
+# @res_bp.route('/pubdate/<filename>', methods=['GET', 'POST'])
+# def pubdate(filename=None):
+#     form = PubDateForm(filename=filename)
 #
 #     # Process POST
 #     # if request.method == 'POST' and form.validate_on_submit():
@@ -143,12 +183,12 @@ def publication_info(packageid=None):
 #
 #         if save:
 #             pubdate = form.pubdate.data
-#             create_pubdate(packageid=packageid, pubdate=pubdate)
+#             create_pubdate(filename=filename, pubdate=pubdate)
 #
-#         return redirect(url_for(new_page, packageid=packageid))
+#         return redirect(url_for(new_page, filename=filename))
 #
 #     # Process GET
-#     eml_node = load_eml(packageid=packageid)
+#     eml_node = load_eml(filename=filename)
 #     pubdate_node = eml_node.find_child(child_name=names.PUBDATE)
 #     if pubdate_node:
 #         form.pubdate.data = pubdate_node.content
@@ -158,12 +198,12 @@ def publication_info(packageid=None):
 #     help = [get_help('pubdate'), get_help('nav')]
 #     return render_template('pubdate.html',
 #                            title='Publication Date',
-#                            packageid=packageid, form=form, help=help)
+#                            filename=filename, form=form, help=help)
 
 
-@res_bp.route('/abstract/<packageid>', methods=['GET', 'POST'])
-def abstract(packageid=None):
-    form = AbstractForm(packageid=packageid)
+@res_bp.route('/abstract/<filename>', methods=['GET', 'POST'])
+def abstract(filename=None):
+    form = AbstractForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
@@ -182,11 +222,11 @@ def abstract(packageid=None):
         if form.validate_on_submit():
             if is_dirty_form(form):
                 abstract = add_paragraph_tags(form.abstract.data)
-                create_abstract(packageid=packageid, abstract=abstract)
-            return redirect(url_for(new_page, packageid=packageid))
+                create_abstract(filename=filename, abstract=abstract)
+            return redirect(url_for(new_page, filename=filename))
 
     # Process GET
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     abstract_node = eml_node.find_single_node_by_path([
         names.DATASET,
         names.ABSTRACT
@@ -198,12 +238,12 @@ def abstract(packageid=None):
     help = [get_help('abstract'), get_help('nav')]
     return render_template('abstract.html',
                            title='Abstract',
-                           packageid=packageid, form=form, help=help)
+                           filename=filename, form=form, help=help)
 
 
-@res_bp.route('/intellectual_rights/<packageid>', methods=['GET', 'POST'])
-def intellectual_rights(packageid=None):
-    form = IntellectualRightsForm(packageid=packageid)
+@res_bp.route('/intellectual_rights/<filename>', methods=['GET', 'POST'])
+def intellectual_rights(filename=None):
+    form = IntellectualRightsForm(filename=filename)
 
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
@@ -220,7 +260,7 @@ def intellectual_rights(packageid=None):
             else:
                 intellectual_rights = form.intellectual_rights.data
 
-            create_intellectual_rights(packageid=packageid, intellectual_rights=intellectual_rights)
+            create_intellectual_rights(filename=filename, intellectual_rights=intellectual_rights)
 
         if 'Hidden_Check' in request.form:
             new_page = PAGE_CHECK
@@ -231,10 +271,10 @@ def intellectual_rights(packageid=None):
         else:
             new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
 
-        return redirect(url_for(new_page, packageid=packageid))
+        return redirect(url_for(new_page, filename=filename))
 
     # Process GET
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     intellectual_rights_node = eml_node.find_single_node_by_path([
         names.DATASET,
         names.INTELLECTUALRIGHTS
@@ -257,7 +297,7 @@ def intellectual_rights(packageid=None):
     help = [get_help('intellectual_rights')]
     return render_template('intellectual_rights.html',
                            title='Intellectual Rights',
-                           packageid=packageid, form=form, help=help)
+                           filename=filename, form=form, help=help)
 
 
 def populate_keyword_form(form: KeywordForm, kw_node: Node):
@@ -274,28 +314,28 @@ def populate_keyword_form(form: KeywordForm, kw_node: Node):
     form.md5.data = form_md5(form)
 
 
-@res_bp.route('/keyword_select/<packageid>', methods=['GET', 'POST'])
-def keyword_select(packageid=None):
-    form = KeywordSelectForm(packageid=packageid)
+@res_bp.route('/keyword_select/<filename>', methods=['GET', 'POST'])
+def keyword_select(filename=None):
+    form = KeywordSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = keyword_select_post(packageid, form, form_dict,
+        url = keyword_select_post(filename, form, form_dict,
                                   'POST', PAGE_KEYWORD_SELECT, PAGE_ABSTRACT,
                                   PAGE_INTELLECTUAL_RIGHTS, PAGE_KEYWORD)
         return redirect(url)
 
     # Process GET
-    return keyword_select_get(packageid=packageid, form=form)
+    return keyword_select_get(filename=filename, form=form)
 
 
-def keyword_select_get(packageid=None, form=None):
+def keyword_select_get(filename=None, form=None):
     # Process GET
     kw_list = []
     title = 'Keywords'
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
 
     if eml_node:
         kw_list = list_keywords(eml_node)
@@ -303,12 +343,12 @@ def keyword_select_get(packageid=None, form=None):
     set_current_page('keyword')
     help = [get_help('keywords')]
     return render_template('keyword_select.html', title=title,
-                           packageid=packageid,
+                           filename=filename,
                            kw_list=kw_list,
                            form=form, help=help)
 
 
-def keyword_select_post(packageid=None, form=None, form_dict=None,
+def keyword_select_post(filename=None, form=None, form_dict=None,
                         method=None, this_page=None, back_page=None,
                         next_page=None, edit_page=None):
     node_id = ''
@@ -326,9 +366,9 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
             elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=filename)
                 remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_HIDDEN_CHECK:
                 new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
@@ -338,11 +378,11 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(packageid, node_id)
+                process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(packageid, node_id)
+                process_down_button(filename, node_id)
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'
@@ -350,20 +390,20 @@ def keyword_select_post(packageid=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page == edit_page:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            node_id=node_id)
         else:
             return url_for(new_page,
-                           packageid=packageid)
+                           filename=filename)
 
 
 # node_id is the id of the keyword node being edited. If the value is
 # '1', it means we are adding a new keyword node, otherwise we are
 # editing an existing one.
 #
-@res_bp.route('/keyword/<packageid>/<node_id>', methods=['GET', 'POST'])
-def keyword(packageid=None, node_id=None):
-    eml_node = load_eml(packageid=packageid)
+@res_bp.route('/keyword/<filename>/<node_id>', methods=['GET', 'POST'])
+def keyword(filename=None, node_id=None):
+    eml_node = load_eml(filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
 
     if dataset_node:
@@ -376,12 +416,12 @@ def keyword(packageid=None, node_id=None):
         keyword_set_node = Node(names.KEYWORDSET, parent=dataset_node)
         add_child(dataset_node, keyword_set_node)
 
-    form = KeywordForm(packageid=packageid, node_id=node_id)
+    form = KeywordForm(filename=filename, node_id=node_id)
     form.init_keywords()
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_KEYWORD_SELECT, packageid=packageid)
+            url = url_for(PAGE_KEYWORD_SELECT, filename=filename)
             return redirect(url)
 
     # if request.method == 'POST' and form.validate_on_submit():
@@ -412,9 +452,9 @@ def keyword(packageid=None, node_id=None):
             else:
                 add_child(keyword_set_node, keyword_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
-        url = url_for(next_page, packageid=packageid)
+        url = url_for(next_page, filename=filename)
         return redirect(url)
 
     # Process GET
@@ -430,4 +470,4 @@ def keyword(packageid=None, node_id=None):
 
     set_current_page('keyword')
     help = [get_help('keywords')]
-    return render_template('keyword.html', title='Keyword', form=form, packageid=packageid, help=help)
+    return render_template('keyword.html', title='Keyword', form=form, filename=filename, help=help)

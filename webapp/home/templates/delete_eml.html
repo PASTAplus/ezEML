@@ -8,10 +8,11 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <br>
-                <h5>Please enter the package ID of the data package to delete:</h5>
-                {{ wtf.form_field(form.packageid) }}
+                <h5>Select the document to delete:</h5>
+                {{ wtf.form_field(form.filename) }}
                 <p>&nbsp;<p/>
                 <input class="btn btn-primary" name="Back" type="submit" value="Delete"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
             </form>
         </div>
     </div>

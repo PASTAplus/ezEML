@@ -21,7 +21,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter the geographic description and bounding coordinates below:</h5>
+                <h5>Enter the geographic description and bounding coordinates below:</h5>
                 <table width="100%">
                     <td width="100%">{{ wtf.form_field(form.geographic_description, rows=6) }}</td>
                     <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_geographic_description_btn) }}</td>

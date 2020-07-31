@@ -216,6 +216,20 @@ Select the geographic coverages to import.
 
 If none are shown, none are available in the selected data package.
 --------------------
+import_responsible_parties
+Import Responsible Parties
+You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
+
+The parties you import do not have to be used for the same purpose in this data package as they were in the other data package. For example, a person who was a Contact in another data package can be imported into this data package as an Associated Party.
+
+<b>Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.</b>
+--------------------
+import_responsible_parties_2
+Import Responsible Parties
+Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
+
+If none are listed, none are available in the selected data package.
+--------------------
 import_taxonomic_coverage
 Import Taxonomic Coverage
 You may import selected taxonomic coverage details from another data package.
@@ -229,20 +243,6 @@ Import Taxonomic Coverage
 Select the taxonomic coverages to import.
 
 If none are shown, none are available in the selected data package.
---------------------
-import_responsible_parties
-Import Responsible Parties
-You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
-
-The parties you import do not have to be used for the same purpose in this data package for which they were used in the other data package. For example, a person who was a Contact in another data package can be imported into this data package as an Associated Party.
-
-<b>Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.</b>
---------------------
-import_responsible_parties_2
-Import Responsible Parties
-Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
-
-If none are listed, none are available in the selected data package.
 --------------------
 intellectual_rights
 Intellectual Rights

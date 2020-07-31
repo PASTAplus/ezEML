@@ -489,9 +489,9 @@ def format_entry(entry:Eval_Entry):
 
 
 def format_output(evaluation):
-    sections = ['Title', 'Data Package ID', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
+    sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
                 'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
-                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Other Entities']
+                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Other Entities', 'Data Package ID']
 
     severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
@@ -523,7 +523,6 @@ def check_eml(filename:str):
     eml_node = load_eml(filename)
 
     check_dataset_title(eml_node, filename)
-    check_data_package_id(eml_node, filename)
     check_data_tables(eml_node, filename)
     check_creators(eml_node, filename)
     check_contacts(eml_node, filename)
@@ -538,6 +537,8 @@ def check_eml(filename:str):
     check_method_steps(eml_node, filename)
     check_project(eml_node, filename)
     check_other_entities(eml_node, filename)
+    check_data_package_id(eml_node, filename)
+
     return format_output(evaluation)
 
 

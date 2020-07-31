@@ -46,7 +46,7 @@ def title(filename=None):
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
-        new_page = PAGE_DATA_PACKAGE_ID
+        new_page = PAGE_DATA_TABLE_SELECT
         save = False
         if is_dirty_form(form):
             save = True
@@ -56,7 +56,7 @@ def title(filename=None):
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_DATA_PACKAGE_ID
+            new_page = PAGE_DATA_TABLE_SELECT
         elif 'Hidden_Check' in request.form:
             new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
@@ -87,7 +87,7 @@ def data_package_id(filename=None):
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
-        new_page = PAGE_DATA_TABLE_SELECT
+        new_page = PAGE_TITLE
         save = False
         if is_dirty_form(form):
             save = True
@@ -98,7 +98,7 @@ def data_package_id(filename=None):
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_DATA_TABLE_SELECT
+            new_page = PAGE_TITLE
         elif 'Hidden_Check' in request.form:
             new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:

@@ -1379,7 +1379,10 @@ def create_title(title=None, filename=None):
 
 def create_data_package_id(data_package_id=None, filename=None):
     eml_node = load_eml(filename=filename)
-    eml_node.add_attribute('packageId', data_package_id)
+    if data_package_id:
+        eml_node.add_attribute('packageId', data_package_id)
+    else:
+        eml_node.remove_attribute('packageId')
 
     try:
         save_both_formats(filename=filename, eml_node=eml_node)

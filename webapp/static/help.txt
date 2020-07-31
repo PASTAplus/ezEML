@@ -329,6 +329,8 @@ nav
 Navigating in ezEML
 The <b>Save and Continue</b> button saves the changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to another section of the metadata.
 
+You can think of using ezEML as filling out one big form, organized in a number of pages. As you move from page to page, your changes are automatically retained, except in the cases where a page has a <b>Cancel</b> button.
+
 The <b>Reset Changes</b> button clears the changes you've made on the current page and leaves you on that page.
 
 <b>It's best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.</b>

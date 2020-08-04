@@ -13,6 +13,7 @@
     12/18/2018
 """
 import daiquiri
+import json
 import os
 import pickle
 
@@ -102,6 +103,33 @@ def initialize_user_data():
         os.path.exists(user_uploads_folder_name)
        ):
         os.mkdir(user_uploads_folder_name)
+
+
+def get_user_properties():
+    user_folder_name = get_user_folder_name()
+    user_properties_filename = os.path.join(user_folder_name, 'user_properties.json')
+    user_properties = {}
+    # if properties file doesn't exist, create one with an empty dict
+    if not os.path.isfile(user_properties_filename):
+        save_user_properties(user_properties)
+    with open(user_properties_filename, 'r') as user_properties_file:
+        user_properties = json.load(user_properties_file)
+    return user_properties
+
+
+def save_user_properties(user_properties):
+    user_folder_name = get_user_folder_name()
+    user_properties_filename = os.path.join(user_folder_name, 'user_properties.json')
+    with open(user_properties_filename, 'w') as user_properties_file:
+        json.dump(user_properties, user_properties_file)
+
+
+def is_first_usage():
+    user_properties = get_user_properties()
+    is_first_usage = user_properties.get('is_first_usage', True)
+    user_properties['is_first_usage'] = False
+    save_user_properties(user_properties)
+    return is_first_usage
 
 
 def delete_eml(filename:str=''):

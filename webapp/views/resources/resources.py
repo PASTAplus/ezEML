@@ -2,6 +2,10 @@ from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 
+from webapp.auth.user_data import (
+    is_first_usage
+)
+
 from webapp.home.metapype_client import (
     add_child, create_abstract, create_intellectual_rights,
     create_keyword, create_pubinfo, create_data_package_id,
@@ -34,7 +38,6 @@ from webapp.home.intellectual_rights import (
 )
 
 from webapp.home.views import set_current_page
-
 
 res_bp = Blueprint('res', __name__, template_folder='templates')
 
@@ -76,7 +79,8 @@ def title(filename=None):
 
     set_current_page('title')
     help = [get_help('title'), get_help('nav')]
-    return render_template('title.html', title='Title', form=form, help=help)
+    first_usage = is_first_usage()
+    return render_template('title.html', title='Title', form=form, help=help, is_first_usage=first_usage)
 
 
 @res_bp.route('/data_package_id/<filename>', methods=['GET', 'POST'])

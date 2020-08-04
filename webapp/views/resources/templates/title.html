@@ -49,6 +49,10 @@
     {
         {{ macros.help_script(help_title_dialog, help_title_btn) }}
         {{ macros.help_script(help_nav_dialog, help_nav_btn) }}
+        {% if is_first_usage %}
+            {{ help_nav_btn }}.click();
+            document.activeElement.blur();
+        {% endif %}
     });
     </script>
 {% endblock %}

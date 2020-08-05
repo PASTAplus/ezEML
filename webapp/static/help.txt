@@ -327,7 +327,7 @@ place holder
 --------------------
 nav
 Navigating in ezEML
-The <b>Save and Continue</b> button saves any changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to another section of the metadata.
+The <b>Save and Continue</b> button saves any changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
 
 The <b>Reset Changes</b> button clears the changes you've made on the current page and leaves you on that page.
 
@@ -418,7 +418,7 @@ Welcome to ezEML! Here is some initial guidance on its use.
 
 You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a <b>Cancel</b> button, which lets you exit that page without saving.
 
-<b>Save and Continue</b> buttons save any changes you've made on the current page and move you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to another section of the metadata.
+<b>Save and Continue</b> buttons save any changes you've made on the current page and move you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
 
 <b>Reset Changes</b> buttons clear the changes you've made on the current page and leave you on that page.
 

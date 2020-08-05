@@ -63,7 +63,8 @@
             var {{ help_welcome_dialog }} = $( '#{{ help_welcome_dialog }}' ).dialog({
                 autoOpen: true,
                 width: 600,
-                position: {my: "left top", at: "right top", of: "#{{ help_nav_btn }}"}
+                {#position: {my: "left top", at: "right top", of: "#{{ help_nav_btn }}"}#}
+                position: {my: "center", at: "center", of: window}
             });
             $( '#{{ help_welcome_btn }}' ).button().on('click', function() {
                 if ({{ help_welcome_dialog }}.dialog('isOpen')) {

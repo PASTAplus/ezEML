@@ -327,7 +327,7 @@ place holder
 --------------------
 nav
 Navigating in ezEML
-The <b>Save and Continue</b> button saves the changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to another section of the metadata.
+The <b>Save and Continue</b> button saves any changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to another section of the metadata.
 
 The <b>Reset Changes</b> button clears the changes you've made on the current page and leaves you on that page.
 
@@ -335,9 +335,9 @@ The <b>Reset Changes</b> button clears the changes you've made on the current pa
 
 The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
 
-It's best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
+It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
 
-See also "Navigating in ezEML" in the <a href="/eml/user_guide">User Guide</a>.
+See also <a href=/static/user_guide/navigating.pdf target="_ezeml_user_guide"">Navigating in ezEML</a> in the <a href="/eml/user_guide">User Guide</a>.
 --------------------
 new_eml_document
 Document Name
@@ -410,4 +410,25 @@ The <b>Title</b> field provides a description of the data package. It should be 
 It should be descriptive and should mention the data collected, geographic context, research site, and time frame (i.e., what, where, and when).
 
 Example: <i>Vernal pool amphibian density data, Isla Vista, 1990-1996.</i>
+--------------------
+welcome
+Welcome to ezEML
+
+Welcome to ezEML! Here is some initial guidance on its use.
+
+You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a <b>Cancel</b> button, which lets you exit that page without saving.
+
+<b>Save and Continue</b> buttons save any changes you've made on the current page and move you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to another section of the metadata.
+
+<b>Reset Changes</b> buttons clear the changes you've made on the current page and leave you on that page.
+
+The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
+
+It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
+
+Notice that there are lots of Help buttons in ezEML (see the circular question mark icons). You may find them helpful.
+
+We won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a href=/static/user_guide/navigating.pdf target="_ezeml_user_guide"">Navigating in ezEML</a> in the <a href="/eml/user_guide">User Guide</a>.
+
+We hope you find ezEML useful, and we welcome your feedback at support.environmentaldatainitiative.org.
 --------------------

@@ -40,7 +40,6 @@
             position: {my: "left top", at: "right center", of: "#{{ btn_id }}"}
         });
         $( '#{{ btn_id }}' ).button().on('click', function() {
-{#            alert('click');#}
             if ({{ dialog_id }}.dialog('isOpen')) {
                 {{ dialog_id }}.dialog('close');
             } else {

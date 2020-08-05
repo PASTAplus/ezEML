@@ -78,7 +78,7 @@ def title(filename=None):
     form.md5.data = form_md5(form)
 
     set_current_page('title')
-    help = [get_help('title'), get_help('nav')]
+    help = get_helps(['title', 'nav', 'welcome'])
     first_usage = is_first_usage()
     return render_template('title.html', title='Title', form=form, help=help, is_first_usage=first_usage)
 

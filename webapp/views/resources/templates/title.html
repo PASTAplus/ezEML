@@ -8,6 +8,9 @@
     {% set help_nav_id, help_nav_title, help_nav_content = help[1] %}
     {% set help_nav_btn = help_nav_id ~ '_btn' %}
     {% set help_nav_dialog = help_nav_id ~ '_dialog' %}
+    {% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
+    {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
+    {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
 
     <h2>Title</h2>
 {#    <div class="row">#}
@@ -24,7 +27,9 @@
                 <table>
                     <td><input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                         <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/></td>
-                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_nav_btn) }}</td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_nav_btn) }}
+                        <span hidden="hidden">{{ macros.help_button(help_welcome_btn) }}</span>
+                    </td>
                 </table>
                 {{ macros.hidden_buttons() }}
             </form>
@@ -33,6 +38,7 @@
 
     {{ macros.help_dialog(help_title_dialog, help_title_title, help_title_content) }}
     {{ macros.help_dialog(help_nav_dialog, help_nav_title, help_nav_content) }}
+    {{ macros.help_dialog(help_welcome_dialog, help_welcome_title, help_welcome_content) }}
 
 {% endblock %}
 
@@ -44,13 +50,29 @@
     {% set help_nav_id, help_nav_title, help_nav_content = help[1] %}
     {% set help_nav_btn = help_nav_id ~ '_btn' %}
     {% set help_nav_dialog = help_nav_id ~ '_dialog' %}
+    {% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
+    {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
+    {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
     <script>
     $(function()
     {
         {{ macros.help_script(help_title_dialog, help_title_btn) }}
         {{ macros.help_script(help_nav_dialog, help_nav_btn) }}
+        {{ macros.help_script(help_welcome_dialog, help_welcome_btn) }}
         {% if is_first_usage %}
-            {{ help_nav_btn }}.click();
+            var {{ help_welcome_dialog }} = $( '#{{ help_welcome_dialog }}' ).dialog({
+                autoOpen: true,
+                width: 600,
+                position: {my: "left top", at: "right top", of: "#{{ help_nav_btn }}"}
+            });
+            $( '#{{ help_welcome_btn }}' ).button().on('click', function() {
+                if ({{ help_welcome_dialog }}.dialog('isOpen')) {
+                    {{ help_welcome_dialog }}.dialog('close');
+                } else {
+                    {{ help_welcome_dialog }}.dialog('open');
+                }
+            });
+            $( '#{{ help_welcome_btn }}' ).click();
             document.activeElement.blur();
         {% endif %}
     });

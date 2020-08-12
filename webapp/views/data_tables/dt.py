@@ -10,8 +10,8 @@ from webapp.home.views import process_up_button, process_down_button, set_curren
 
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
-    AttributeMeasurementScaleForm,
-    AttributeCategoricalForm, AttributeSelectForm,
+    AttributeMeasurementScaleForm, AttributeCategoricalForm,
+    AttributeSelectForm, AttributeTextForm,
     CodeDefinitionForm, CodeDefinitionSelectForm,
     DataTableForm, DataTableSelectForm
 )
@@ -98,6 +98,12 @@ def data_table(filename=None, node_id=None):
             next_page = PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
     if form.validate_on_submit():
         eml_node = load_eml(filename=filename)
@@ -533,6 +539,12 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
             elif val.startswith('Add Attribute'):
                 if 'Numerical' in val:
                     mscale = 'NUMERICAL'
@@ -602,6 +614,12 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         # Go back to data table or go to the appropriate measurement scale page
         if BTN_DONE in request.form:
             next_page = PAGE_ATTRIBUTE_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -694,7 +712,8 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
 
     # Process GET
     if node_id == '1':
-        form.md5.data = form_md5(form)
+        form.init_md5()
+        # form.md5.data = form_md5(form)
     else:
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
@@ -822,6 +841,12 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
         # Go back to data table or go to the appropriate measurement scale page
         if BTN_DONE in request.form:  # FIXME
             next_page = PAGE_ATTRIBUTE_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -924,8 +949,9 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
     # Process GET
     attribute_name = ''
     if node_id == '1':
-        form_str = mscale + form.init_str
-        form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
+        form.init_md5()
+        # form_str = mscale + form.init_str
+        # form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
         # form.mscale_choice.data = mscale
     else:
         eml_node = load_eml(filename=filename)
@@ -1089,7 +1115,10 @@ def attribute_text(filename: str = None, dt_node_id: str = None, node_id: str = 
 
 @dt_bp.route('/attribute_categorical/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
 def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
-    form = AttributeCategoricalForm(filename=filename, node_id=node_id)
+    if mscale == 'TEXT':
+        form = AttributeTextForm(filename=filename, node_id=node_id)
+    else:
+        form = AttributeCategoricalForm(filename=filename, node_id=node_id)
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -1112,6 +1141,12 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             next_page = PAGE_ATTRIBUTE_SELECT  # FIXME
         elif 'Codes' in request.form:
             next_page = PAGE_CODE_DEFINITION_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1219,8 +1254,9 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
     attribute_name = ''
     codes = 'No codes have been defined yet'
     if node_id == '1':
-        form_str = mscale + form.init_str
-        form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
+        form.init_md5()
+        # form_str = mscale + form.init_str
+        # form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
         # form.mscale_choice.data = mscale
     else:
         eml_node = load_eml(filename=filename)
@@ -1434,6 +1470,12 @@ def code_definition_select_post(filename=None,
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
@@ -1494,6 +1536,13 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
 
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_CODE_DEFINITION_SELECT  # Save or Back sends us back to the list of attributes
+
+        if BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         # if 'Back' in request.form:
         if is_dirty_form(form):

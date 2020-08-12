@@ -210,7 +210,7 @@ class DataTableForm(EDIForm):
     number_of_records = IntegerField('Number of Records (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
     md5 = HiddenField('')
-    init_str = 'columncommano'
+    init_str = 'column,no'
 
     def field_data(self)->tuple:
         return (self.entity_name.data, 

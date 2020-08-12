@@ -15,11 +15,12 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select funding awards to import from {{ target_package }}:</h5></tr>
+                    <tr><h5>Select funding awards to import from {{ target_filename }}:</h5></tr>
                     <tr>{{ form.to_import(style="list-style:none;") }}</tr>
                     <tr>&nbsp;<p/></tr>
                     <tr><input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;
                     <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                    {{ macros.hidden_buttons() }}
                     </table>
             </form>
         </div>

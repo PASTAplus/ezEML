@@ -142,8 +142,9 @@ def get_help(id):
 def get_helps(ids):
     helps = []
     for id in ids:
-        title, content = help_dict.get(id)
-        helps.append((f'__help__{id}', title, content))
+        if id in help_dict:
+            title, content = help_dict.get(id)
+            helps.append((f'__help__{id}', title, content))
     return helps
 
 
@@ -280,7 +281,7 @@ def save_as():
                 current_user.set_filename(filename=new_document)
                 flash(f'Saved as {new_document}')
             new_page = PAGE_TITLE   # Return the Response object
-        
+
             return redirect(url_for(new_page, filename=new_document))
         # else:
         #     return redirect(url_for(PAGE_SAVE_AS, filename=current_filename))
@@ -288,10 +289,12 @@ def save_as():
      # Process GET
     if current_document:
         # form.filename.data = current_filename
+        help = get_helps(['save_as_document'])
         return render_template('save_as.html',
-                           filename=current_document,
-                           title='Save As', 
-                           form=form)
+                               filename=current_document,
+                               title='Save As',
+                               form=form,
+                               help=help)
     else:
         flash("No document currently open")
         return render_template('index.html')
@@ -327,6 +330,7 @@ def check_metadata(filename:str):
         return redirect(url_for(PAGE_CHECK, filename=current_document))
 
     else:
+        set_current_page('check_metadata')
         return render_template('check_metadata.html', content=content)
 
 
@@ -400,8 +404,16 @@ def create():
     # Process POST
     help = get_helps(['new_eml_document'])
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            return redirect(url_for(PAGE_INDEX))
+
+        if BTN_CANCEL in request.form:
+            new_page = get_redirect_target_page()
+            filename = get_active_document()
+            if new_page and filename:
+                url = url_for(new_page, filename=filename)
+            else:
+                url = url_for(PAGE_INDEX, filename=filename)
+            return redirect(url)
+
         if form.validate_on_submit():
             filename = form.filename.data
             user_filenames = get_user_document_list()
@@ -426,8 +438,16 @@ def open_eml_document():
 
     # Process POST
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            return redirect(url_for(PAGE_INDEX))
+
+        if BTN_CANCEL in request.form:
+            new_page = get_redirect_target_page()
+            filename = get_active_document()
+            if new_page and filename:
+                url = url_for(new_page, filename=filename)
+            else:
+                url = url_for(PAGE_INDEX, filename=filename)
+            return redirect(url)
+
         if form.validate_on_submit():
             filename = form.filename.data
             eml_node = load_eml(filename)
@@ -496,6 +516,8 @@ def get_redirect_target_page():
         return PAGE_CONTACT_SELECT
     elif current_page == 'publisher':
         return PAGE_PUBLISHER
+    elif current_page == 'publication_info':
+        return PAGE_PUBLICATION_INFO
     elif current_page == 'method_step':
         return PAGE_METHOD_STEP_SELECT
     elif current_page == 'project':
@@ -504,6 +526,8 @@ def get_redirect_target_page():
         return PAGE_DATA_TABLE_SELECT
     elif current_page == 'other_entity':
         return PAGE_OTHER_ENTITY_SELECT
+    elif current_page == 'data_package_id':
+        return PAGE_DATA_PACKAGE_ID
     else:
         return PAGE_TITLE
 
@@ -932,7 +956,9 @@ def close():
         flash(f'Closed {current_document}')
     else:
         flash("There was no package open")
-        
+
+    set_current_page('')
+
     return render_template('index.html')
 
 
@@ -965,6 +991,12 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key

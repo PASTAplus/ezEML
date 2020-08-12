@@ -10,6 +10,7 @@
                 <h5>Enter the document name of the data package to download:</h5>
                 {{ wtf.form_field(form.packageid) }}
                 <input class="btn btn-primary" name="Back" type="submit" value="Download EML"/>
+                {{ macros.hidden_buttons() }}
             </form>
         </div>
     </div>

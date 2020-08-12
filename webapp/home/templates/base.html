@@ -4,6 +4,7 @@
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css') }}">
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
@@ -11,6 +12,26 @@
 {% block title %}
 {% if title %}{{ title }} - Metadata Editor{% endif %}
 {% endblock %}
+
+{% set non_saving_endswith = ['/eml/', '/create', '/open_eml_document', '/close',
+        '/load_data', 'load_other_entity', 'check_metadata',
+        '/import_parties', '/import_geo_coverage',
+        '/import_taxonomic_coverage', '/import_funding_awards',
+        'about', 'user_guide'] %}
+{% set non_saving_contains = ['/check_metadata/',
+        '/import_parties_2/', '/import_geo_coverage_2/',
+        '/import_taxonomic_coverage_2/', '/import_funding_awards_2/'] %}
+{% set ns = namespace(is_non_saving = false) %}
+{% for page in non_saving_endswith %}
+    {% if request.path.endswith(page) %}
+        {% set ns.is_non_saving = true %}
+    {% endif %}
+{% endfor %}
+{% for page in non_saving_contains %}
+    {% if page in request.path %}
+        {% set ns.is_non_saving = true %}
+    {% endif %}
+{% endfor %}
 
 {% block navbar %}
 
@@ -43,12 +64,20 @@
                        role="button">EML Documents<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
-{#                    {% else %}#}
+{#                    <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
                         <li>
+                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.create') }}" title="New">New...</a>
+                            {% else %}
+                            <a href="#" onclick="$('#hidden_new').click();">New...</a>
+                            {% endif %}
                         </li>
                         <li>
+                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
+                            {% else %}
+                            <a href="#" onclick="$('#hidden_open').click();">Open...</a>
+                            {% endif %}
                         </li>
 {#                        <li>#}
 {#                            <a href="{{ url_for('home.download') }}" title="Download">Download Data Package as XML...</a>#}
@@ -59,11 +88,15 @@
 {#                    {% endif %}#}
                     {% if current_user.get_filename() %}
                         <li>
+                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.close') }}" title="Close">Close</a>
+                            {% else %}
+                            <a href="#" onclick="$('#hidden_close').click();">Close</a>
+                            {% endif %}
                         </li>
-{#                        <li>#}
-{#                            <a href="{{ url_for('home.save') }}" title="Save">Save</a>#}
-{#                        </li>#}
+                        <li>
+                            <a onclick="nav_save.click();" href="#" title="Save">Save</a>
+                        </li>
                         <li>
                             <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
                         </li>
@@ -132,18 +165,18 @@
                 {% else %}
                 <li>
                     <table style="height: 50px;" valign="middle">
-                        <td>
-                             <input id="nav_check" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Check" type="submit" value="Check"/>
-                        </td>
-                        <td width="5%"></td>
-                        <td>
-                             <input id="nav_save" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Save" type="submit" value="Save"/>
-                        </td>
-                        <td width="5%"></td>
-                        <td>
-                            <input id="nav_download" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Download" type="submit" value="Download EML"/>
-                        </td>
-                        <td width="5%"></td>
+{#                        <td>#}
+{#                             <input id="nav_check" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Check" type="submit" value="Check"/>#}
+{#                        </td>#}
+{#                        <td width="5%"></td>#}
+{#                        <td>#}
+{#                             <input id="nav_save" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Save" type="submit" value="Save"/>#}
+{#                        </td>#}
+{#                        <td width="5%"></td>#}
+{#                        <td>#}
+{#                            <input id="nav_download" style="color: steelblue;font-weight: bold;" class="btn btn-link" name="Download" type="submit" value="Download EML"/>#}
+{#                        </td>#}
+{#                        <td width="5%"></td>#}
                         <td>
                             <ul class="nav navbar-nav">
                             <li>
@@ -193,7 +226,6 @@
             {% set creator_style = '""' %}
             {% set metadata_provider_style = '""' %}
             {% set associated_party_style = '""' %}
-{#            {% set pubdate_style = '""' %}#}
             {% set abstract_style = '""' %}
             {% set keyword_style = '""' %}
             {% set intellectual_rights_style = '""' %}
@@ -209,6 +241,8 @@
             {% set data_table_style = '""' %}
             {% set other_entity_style = '""' %}
             {% set data_package_id_style = '""' %}
+            {% set check_metadata_style = '""' %}
+            {% set download_eml_style = '""' %}
 
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
@@ -217,7 +251,6 @@
             {% if page == 'creator' %}{% set creator_style = current %}{% endif %}
             {% if page == 'metadata_provider' %}{% set metadata_provider_style = current %}{% endif %}
             {% if page == 'associated_party' %}{% set associated_party_style = current %}{% endif %}
-{#            {% if page == 'pubdate' %}{% set pubdate_style = current %}{% endif %}#}
             {% if page == 'abstract' %}{% set abstract_style = current %}{% endif %}
             {% if page == 'keyword' %}{% set keyword_style = current %}{% endif %}
             {% if page == 'intellectual_rights' %}{% set intellectual_rights_style = current %}{% endif %}
@@ -233,6 +266,7 @@
             {% if page == 'data_table' %}{% set data_table_style = current %}{% endif %}
             {% if page == 'other_entity' %}{% set other_entity_style = current %}{% endif %}
             {% if page == 'data_package_id' %}{% set data_package_id_style = current %}{% endif %}
+            {% if page == 'check_metadata' %}{% set check_metadata_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
         <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
@@ -240,7 +274,6 @@
         <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
         <a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>
         <a class="nav_link" style={{ metadata_provider_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
-{#        <a class="nav_link" style={{ pubdate_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.pubdate') }}" title="Edit">Publication Date</a><br>#}
         <a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>
         <a class="nav_link" style={{ keyword_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>
         <a class="nav_link" style={{ intellectual_rights_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.intellectual_rights') }}" title="Edit">Intellectual Rights</a><br>
@@ -254,6 +287,10 @@
         <a class="nav_link" style={{ project_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
         <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
         <a class="nav_link" style={{ data_package_id_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>
+        <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
+        <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a><br>
+        <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>
+
         {% endif %}
     </div>
     <div style="margin-left: 18%;">
@@ -274,9 +311,13 @@
         let nav_check = $("#nav_check");
         let nav_save = $("#nav_save");
         let nav_download = $("#nav_download");
+        let nav_close = $("#nav_close");
         let hidden_check = $("#hidden_check");
         let hidden_save = $("#hidden_save");
         let hidden_download = $("#hidden_download");
+        let hidden_new = $("#hidden_new");
+        let hidden_open = $("#hidden_open");
+        let hidden_close = $("#hidden_close");
         let nav_link = $('.nav_link');
         if (hidden_save.length === 0) {
             nav_link.hide();
@@ -309,6 +350,16 @@
                 {#alert($('form').serialize());#}
                 {#alert($('form').data('serialize'));#}
                 hidden_download.click();
+            }
+        })
+
+        {#hidden_new.on("click", function() {#}
+        {#    alert('clicked hidden new');#}
+        {#})#}
+        nav_close.on("click", function() {
+            alert('click');
+            if (hidden_close.length) {
+                hidden_close.click();
             }
         })
 

@@ -55,12 +55,18 @@ def project(filename=None):
             new_page = PAGE_PROJECT_PERSONNEL_SELECT
         elif 'Edit Funding Awards' in request.form:
             new_page = PAGE_FUNDING_AWARD_SELECT
-        elif 'Hidden_Check' in request.form:
+        elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
+        elif BTN_HIDDEN_SAVE in request.form:
             new_page = PAGE_PROJECT
-        elif 'Hidden_Download' in request.form:
+        elif BTN_HIDDEN_DOWNLOAD in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
 
         if save:
             title = form.title.data
@@ -160,6 +166,12 @@ def funding_award_select(filename=None):
                     new_page = PAGE_FUNDING_AWARD_SELECT
                 elif val == BTN_HIDDEN_DOWNLOAD:
                     new_page = PAGE_DOWNLOAD
+                elif val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
                 elif val == UP_ARROW:
                     new_page = PAGE_FUNDING_AWARD_SELECT
                     node_id = key

@@ -2,14 +2,13 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Metadata Check</h2>
+    <h2>Check Metadata: Results</h2>
 {#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 <a href="{{ request.referrer }}">Back</a>
                 {{ content|safe }}
-{#                <input class="btn btn-primary" name="Upload" type="submit" value="Upload"/>#}
-{#                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>#}
+                {{ macros.hidden_buttons() }}
             </form>
         </div>
 {#    </div>#}

@@ -72,6 +72,12 @@ def method_step_select(filename=None):
                     new_page = this_page
                 elif val == BTN_HIDDEN_DOWNLOAD:
                     new_page = PAGE_DOWNLOAD
+                elif val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
                 elif val == UP_ARROW:
                     new_page = this_page
                     node_id = key
@@ -142,7 +148,22 @@ def method_step(filename=None, node_id=None):
             return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
-        next_page = PAGE_METHOD_STEP_SELECT  # Save or Back sends us back to the list of method steps
+        new_page = PAGE_METHOD_STEP_SELECT  # Save or Back sends us back to the list of method steps
+
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+                if val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                    break
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                    break
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+                    break
 
         submit_type = None
         if is_dirty_form(form):
@@ -169,7 +190,7 @@ def method_step(filename=None, node_id=None):
 
             save_both_formats(filename=filename, eml_node=eml_node)
 
-        url = url_for(next_page, filename=filename)
+        url = url_for(new_page, filename=filename)
         return redirect(url)
 
     # Process GET

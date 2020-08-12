@@ -1317,7 +1317,7 @@ def create_categorical_or_text_attribute(
         elif mscale == VariableType.TEXT.name:
 
             text_domain_node = new_child_node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
-            definition_node = new_child_node(names.DEFINITION, parent=non_numeric_domain_node)
+            definition_node = new_child_node(names.DEFINITION, parent=text_domain_node)
             definition_node.content = attribute_definition
 
             # get rid of enumeratedDomain node, if any

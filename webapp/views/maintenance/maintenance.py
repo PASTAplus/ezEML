@@ -62,6 +62,13 @@ def maintenance(filename=None):
                     new_page = PAGE_PROJECT
                 elif val == BTN_HIDDEN_DOWNLOAD:
                     new_page = PAGE_DOWNLOAD
+                elif val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+
         return redirect(url_for(new_page, filename=filename))
 
 

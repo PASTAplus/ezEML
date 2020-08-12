@@ -124,6 +124,12 @@ def other_entity(filename=None, node_id=None):
             new_page = PAGE_OTHER_ENTITY
         elif 'Hidden_Download' in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
 
         eml_node = load_eml(filename=filename)
 
@@ -868,6 +874,12 @@ def entity_select_post(filename=None, form=None, form_dict=None,
                 node_id = key
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif BTN_HIDDEN_NEW in request.form:
+                new_page = PAGE_CREATE
+            elif BTN_HIDDEN_OPEN in request.form:
+                new_page = PAGE_OPEN
+            elif BTN_HIDDEN_CLOSE in request.form:
+                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key

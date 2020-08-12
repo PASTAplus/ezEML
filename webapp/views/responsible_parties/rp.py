@@ -21,7 +21,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, set_current_page, get_help
+from webapp.home.views import select_post, non_breaking, set_current_page, get_help, get_helps
 
 
 rp_bp = Blueprint('rp', __name__, template_folder='templates')
@@ -54,7 +54,7 @@ def creator(filename=None, node_id=None):
     return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.CREATOR,
                              back_page=PAGE_CREATOR_SELECT,
-                             # next_page=PAGE_CREATOR_SELECT,
+                             next_page=PAGE_CREATOR_SELECT,
                              title='Creator')
 
 
@@ -77,12 +77,23 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
+
             if val == BTN_BACK:
                 new_page = back_page
                 break
             elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
                 new_page = next_page
                 break
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+                break
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+                break
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
+                break
+
     return new_page
 
 
@@ -102,8 +113,8 @@ def responsible_party(filename=None, node_id=None, method=None,
         add_child(eml_node, dataset_node)
     parent_node = dataset_node
     role = False
-    # new_page = select_new_page(back_page, next_page)
-    new_page = back_page
+    new_page = select_new_page(back_page, next_page)
+    # new_page = back_page
 
     form_value = request.form
     form_dict = form_value.to_dict(flat=False)
@@ -213,8 +224,9 @@ def responsible_party(filename=None, node_id=None, method=None,
                     if node_id == rp_node.id:
                         populate_responsible_party_form(form, rp_node)
 
-    if node_name == names.PUBLISHER:
-        help = [get_help('publisher')]
+    # if node_name == names.PUBLISHER:
+    #     help = [get_help('publisher')]
+    help = get_helps([node_name])
     return render_template('responsible_party.html', title=title, node_name=node_name,
                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
 
@@ -249,6 +261,7 @@ def metadata_provider(filename=None, node_id=None):
     return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.METADATAPROVIDER,
                              back_page=PAGE_METADATA_PROVIDER_SELECT,
+                             next_page=PAGE_METADATA_PROVIDER_SELECT,
                              title='Metadata Provider')
 
 
@@ -283,6 +296,7 @@ def associated_party(filename=None, node_id=None):
     return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.ASSOCIATEDPARTY,
                              back_page=PAGE_ASSOCIATED_PARTY_SELECT,
+                             next_page=PAGE_ASSOCIATED_PARTY_SELECT,
                              title='Associated Party')
 
 

@@ -76,7 +76,24 @@ def geographic_coverage(filename=None, node_id=None):
         if is_dirty_form(form):
             submit_type = 'Save Changes'
 
-        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+
+                if val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                    break
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                    break
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+                    break
+
+        url = url_for(new_page, filename=filename)
 
         if submit_type == 'Save Changes':
             eml_node = load_eml(filename=filename)
@@ -225,7 +242,23 @@ def temporal_coverage(filename=None, node_id=None):
         if is_dirty_form(form):
             save = True
 
-        url = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=filename)
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = PAGE_TEMPORAL_COVERAGE_SELECT
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+
+                if val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                    break
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                    break
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+                    break
+        url = url_for(new_page, filename=filename)
 
         if save:
             eml_node = load_eml(filename=filename)
@@ -356,6 +389,23 @@ def taxonomic_coverage(filename=None, node_id=None):
             save = True
         flash(f'save: {save}')
 
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = PAGE_TAXONOMIC_COVERAGE_SELECT
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+
+                if val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                    break
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                    break
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+                    break
+
         if save:
             eml_node = load_eml(filename=filename)
 
@@ -401,7 +451,7 @@ def taxonomic_coverage(filename=None, node_id=None):
 
             save_both_formats(filename=filename, eml_node=eml_node)
 
-        return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=filename))
+        return redirect(url_for(new_page, filename=filename))
 
     # Process GET
     if node_id == '1':

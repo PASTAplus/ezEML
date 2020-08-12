@@ -60,12 +60,18 @@ def title(filename=None):
 
         if 'Next' in request.form:
             new_page = PAGE_DATA_TABLE_SELECT
-        elif 'Hidden_Check' in request.form:
+        elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
+        elif BTN_HIDDEN_SAVE in request.form:
             new_page = PAGE_TITLE
-        elif 'Hidden_Download' in request.form:
+        elif BTN_HIDDEN_DOWNLOAD in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -102,13 +108,19 @@ def data_package_id(filename=None):
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_TITLE
-        elif 'Hidden_Check' in request.form:
             new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
+        elif BTN_HIDDEN_CHECK in request.form:
+            new_page = PAGE_CHECK
+        elif BTN_HIDDEN_SAVE in request.form:
             new_page = PAGE_DATA_PACKAGE_ID
-        elif 'Hidden_Download' in request.form:
+        elif BTN_HIDDEN_DOWNLOAD in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -131,12 +143,18 @@ def publication_info(filename=None):
     if request.method == 'POST':
         if 'Next' in request.form:
             new_page = PAGE_METHOD_STEP_SELECT
-        elif 'Hidden_Check' in request.form:
+        elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
+        elif BTN_HIDDEN_SAVE in request.form:
             new_page = PAGE_PUBLICATION_INFO
-        elif 'Hidden_Download' in request.form:
+        elif BTN_HIDDEN_DOWNLOAD in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
         else:
             new_page = PAGE_PUBLISHER
 
@@ -172,11 +190,11 @@ def publication_info(filename=None):
 #     # Process POST
 #     # if request.method == 'POST' and form.validate_on_submit():
 #     if request.method == 'POST':
-#         if 'Hidden_Check' in request.form:
+#         if BTN_HIDDEN_CHECK in request.form:
 #             new_page = PAGE_CHECK
-#         elif 'Hidden_Save' in request.form:
+#         elif BTN_HIDDEN_SAVE in request.form:
 #             new_page = PAGE_PUBDATE
-#         elif 'Hidden_Download' in request.form:
+#         elif BTN_HIDDEN_DOWNLOAD in request.form:
 #             new_page = PAGE_DOWNLOAD
 #         elif 'Next' in request.form:
 #             new_page = PAGE_ABSTRACT
@@ -213,12 +231,18 @@ def abstract(filename=None):
     if request.method == 'POST':
         if 'Next' in request.form:
             new_page = PAGE_KEYWORD_SELECT
-        elif 'Hidden_Check' in request.form:
+        elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
+        elif BTN_HIDDEN_SAVE in request.form:
             new_page = PAGE_ABSTRACT
-        elif 'Hidden_Download' in request.form:
+        elif BTN_HIDDEN_DOWNLOAD in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
         else:
             submit_type = None
             new_page = PAGE_KEYWORD_SELECT
@@ -266,12 +290,18 @@ def intellectual_rights(filename=None):
 
             create_intellectual_rights(filename=filename, intellectual_rights=intellectual_rights)
 
-        if 'Hidden_Check' in request.form:
+        if BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
-            new_page = PAGE_PUBLICATION_PLACE
-        elif 'Hidden_Download' in request.form:
+        elif BTN_HIDDEN_SAVE in request.form:
+            new_page = PAGE_INTELLECTUAL_RIGHTS
+        elif BTN_HIDDEN_DOWNLOAD in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
         else:
             new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
 
@@ -379,6 +409,12 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
@@ -430,7 +466,21 @@ def keyword(filename=None, node_id=None):
 
     # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
-        next_page = PAGE_KEYWORD_SELECT  # Save or Back sends us back to the list of keywords
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = PAGE_KEYWORD_SELECT
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+                if val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                    break
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                    break
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+                    break
 
         submit_type = None
         if is_dirty_form(form):
@@ -458,7 +508,7 @@ def keyword(filename=None, node_id=None):
 
             save_both_formats(filename=filename, eml_node=eml_node)
 
-        url = url_for(next_page, filename=filename)
+        url = url_for(new_page, filename=filename)
         return redirect(url)
 
     # Process GET

@@ -15,8 +15,9 @@
     {% if node_name == 'publisher' %}
     <div class="col-md-10" style="border: 1px solid steelblue;color: steelblue;padding: 15px;">
         Please note: if you plan to submit your data package to the data repository hosted by the
-        Environmental Data Initiative (EDI), you can leave this page blank. EDI will
-        replace these entries when the data package is submitted.
+        Environmental Data Initiative (EDI), you should leave this page blank unless you will also
+        be using the EML for some other purpose. EDI will replace these entries in the submitted EML
+        when the data package is submitted.
     </div>
     {% endif %}
     <div class="row">
@@ -59,13 +60,17 @@
                 {% if not save_and_continue %}
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
-                {% if next_page %}
-                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
-                {% endif %}
+{#                {% if next_page %}#}
+{#                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>#}
+{#                {% endif %}#}
                 {% else %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
-                {{ macros.hidden_buttons() }}
+                {% endif %}
+                {% if node_name == 'publisher' %}
+                    {{ macros.hidden_buttons() }}
+                {% else %}
+                    {{ macros.hidden_new_open_close_buttons() }}
                 {% endif %}
             </form>
             <p>&nbsp;</p>

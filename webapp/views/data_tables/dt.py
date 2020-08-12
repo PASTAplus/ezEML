@@ -467,6 +467,9 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
         text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
         definition_node = new_child_node(names.DEFINITION, text_domain_node)
+        attribute_definition_node = att_node.find_child(names.ATTRIBUTEDEFINITION)
+        if attribute_definition_node:
+            definition_node.content = attribute_definition_node.content
 
     elif new_mscale == VariableType.DATETIME.name:
         new_scale_node = new_child_node(names.DATETIME, mscale_node)

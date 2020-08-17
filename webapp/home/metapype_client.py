@@ -1019,6 +1019,8 @@ def create_data_table(
         if md5_hash:
             md5_hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
             md5_hash_node.content = md5_hash
+            md5_hash_node.add_attribute('method', 'MD5')
+            md5_hash_node.content = str(md5_hash)
 
         if num_header_lines or record_delimiter or \
                attribute_orientation or field_delimiter:

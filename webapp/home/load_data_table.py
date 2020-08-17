@@ -224,7 +224,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
         number_of_records = Node(names.NUMBEROFRECORDS, parent=datatable_node)
         add_child(datatable_node, number_of_records)
         row_count = data_frame.shape[0]
-        record_count = row_count - 1  # assuming 1 header row
+        record_count = row_count
         number_of_records.content = f'{record_count}'
 
         attribute_list_node = Node(names.ATTRIBUTELIST, parent=datatable_node)

@@ -326,7 +326,8 @@ def contact(filename=None, node_id=None):
     set_current_page('contact')
     return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.CONTACT,
-                             back_page=PAGE_CONTACT_SELECT, title='Contact')
+                             back_page=PAGE_CONTACT_SELECT, next_page=PAGE_CONTACT_SELECT,
+                             title='Contact')
 
 
 @rp_bp.route('/publisher/<filename>', methods=['GET', 'POST'])
@@ -350,12 +351,12 @@ def publisher(filename=None):
 
 
 def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
-    salutation_node = node.find_child(names.SALUTATION)
-    if salutation_node:
-        form.salutation.data = salutation_node.content
-
     in_node = node.find_child(names.INDIVIDUALNAME)
     if in_node:
+        salutation_node = in_node.find_child(names.SALUTATION)
+        if salutation_node:
+            form.salutation.data = salutation_node.content
+
         gn_nodes = in_node.find_all_children(names.GIVENNAME)
         if gn_nodes:
             form.gn.data = gn_nodes[0].content
@@ -439,4 +440,6 @@ def project_personnel(filename=None, node_id=None):
     set_current_page('project')
     return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.PERSONNEL,
-                             back_page=PAGE_PROJECT_PERSONNEL_SELECT, title='Project Personnel')
+                             back_page=PAGE_PROJECT_PERSONNEL_SELECT,
+                             next_page=PAGE_PROJECT_PERSONNEL_SELECT,
+                             title='Project Personnel')

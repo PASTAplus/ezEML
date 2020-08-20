@@ -39,6 +39,10 @@ from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
+from webapp.auth.user_data import (
+    data_table_was_uploaded
+)
+
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
 
 
@@ -357,6 +361,7 @@ def attribute_select_get(filename=None, form=None, dt_node_id=None):
     att_list = []
     title = 'Attributes'
     entity_name = ''
+    was_uploaded = False
     load_eml(filename=filename)
 
     if dt_node_id == '1':
@@ -382,12 +387,19 @@ def attribute_select_get(filename=None, form=None, dt_node_id=None):
                     if node.id != key:
                         flash(f'Node store inconsistency for node {node.name} with id={node.id}')
 
+            object_name_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+            if object_name_node:
+                object_name = object_name_node.content
+                if object_name:
+                    was_uploaded = data_table_was_uploaded(object_name)
+
     set_current_page('data_table')
     help = [get_help('measurement_scale')]
     return render_template('attribute_select.html',
                            title=title,
                            entity_name=entity_name,
                            att_list=att_list,
+                           was_uploaded=was_uploaded,
                            form=form,
                            help=help)
 

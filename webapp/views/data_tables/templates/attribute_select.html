@@ -25,20 +25,25 @@
                         <td>{{ att_entry.column_number }}</td>
                         <td>{{ att_entry.label }}</td>
                         <td>{{ att_entry.mscale }}</td>
-                        {{ macros.up_down_arrow(att_entry.id, att_entry.upval) }}
-                        {{ macros.up_down_arrow(att_entry.id, att_entry.downval) }}
+                        {% if not was_uploaded %}
+                            {{ macros.up_down_arrow(att_entry.id, att_entry.upval) }}
+                            {{ macros.up_down_arrow(att_entry.id, att_entry.downval) }}
+                        {% endif %}
                         <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Edit"/>
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Remove"/>
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Change Type"/></td>
                     </tr>
                     {% endfor %}
                 </table>
-                <br/>
-                <input class="btn btn-primary" name="categorical" type="submit" value="Add Attribute - Categorical"/><br/><br/>
-                <input class="btn btn-primary" name="numerical" type="submit" value="Add Attribute - Numerical"/><br/><br/>
-                <input class="btn btn-primary" name="text" type="submit" value="Add Attribute - Text"/><br/><br/>
-                <input class="btn btn-primary" name="dateTime" type="submit" value="Add Attribute - Datetime"/><br/><br/><br/>
+                {% if not was_uploaded %}
+                    <br/>
+                    <input class="btn btn-primary" name="categorical" type="submit" value="Add Attribute - Categorical"/><br/><br/>
+                    <input class="btn btn-primary" name="numerical" type="submit" value="Add Attribute - Numerical"/><br/><br/>
+                    <input class="btn btn-primary" name="text" type="submit" value="Add Attribute - Text"/><br/><br/>
+                    <input class="btn btn-primary" name="dateTime" type="submit" value="Add Attribute - Datetime"/><br/><br/><br/>
+                {% endif %}
                 <input class="btn btn-primary" name="Back" type="submit" value="Back to Data Table"/>
+                <p>&nbsp;</p>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

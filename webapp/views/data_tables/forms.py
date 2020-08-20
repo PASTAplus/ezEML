@@ -199,7 +199,7 @@ class DataTableSelectForm(EDIForm):
 class DataTableForm(EDIForm):
     entity_name = StringField('Name', validators=[])
     entity_description = StringField('Description (Recommended)', validators=[])
-    object_name = StringField('Data Object Name (e.g., filename)', validators=[])
+    object_name = StringField('Filename', validators=[])
     size = IntegerField('Size (Optional)', validators=[Optional()])
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])

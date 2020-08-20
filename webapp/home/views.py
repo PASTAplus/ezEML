@@ -31,8 +31,9 @@ from flask_login import (
 import csv
 
 from webapp.auth.user_data import (
-    delete_eml, download_eml, get_active_packageid, get_user_document_list,
-    get_user_uploads_folder_name, get_active_document
+    delete_eml, download_eml, get_user_document_list, get_user_uploads_folder_name,
+    get_active_document, discard_data_table_upload_filename,
+    discard_data_table_upload_filenames_for_package
 )
 
 from webapp.home.forms import ( 
@@ -202,6 +203,7 @@ def delete():
             return redirect(url_for(PAGE_INDEX))
         if form.validate_on_submit():
             filename = form.filename.data
+            discard_data_table_upload_filenames_for_package(filename)
             return_value = delete_eml(filename=filename)
             if filename == get_active_document():
                 current_user.set_filename(None)
@@ -983,6 +985,14 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 eml_node = load_eml(filename=filename)
+                # Get the data table filename, if any, so we can remove it from the uploaded list
+                dt_node = Node.get_node_instance(node_id)
+                if dt_node:
+                    object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+                    if object_name_node:
+                        object_name = object_name_node.content
+                        if object_name:
+                            discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_HIDDEN_CHECK:

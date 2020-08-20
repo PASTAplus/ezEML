@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""":Mod: metapype_client.py
+""":Mod: user_data.py
 
 :Synopsis:
 
@@ -30,7 +30,7 @@ from webapp.config import Config
 
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
-
+USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
 def get_user_org():
     user_org = None
@@ -68,7 +68,7 @@ def get_user_document_list():
         onlyfiles = [f for f in folder_contents if os.path.isfile(os.path.join(user_folder, f))]
         if onlyfiles:
             for filename in onlyfiles:
-                if filename and filename.endswith('.json'):
+                if filename and filename.endswith('.json') and filename != USER_PROPERTIES_FILENAME:
                     packageid = os.path.splitext(filename)[0]
                     packageids.append(packageid)
     except:
@@ -107,7 +107,7 @@ def initialize_user_data():
 
 def get_user_properties():
     user_folder_name = get_user_folder_name()
-    user_properties_filename = os.path.join(user_folder_name, 'user_properties.json')
+    user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     user_properties = {}
     # if properties file doesn't exist, create one with an empty dict
     if not os.path.isfile(user_properties_filename):
@@ -119,7 +119,7 @@ def get_user_properties():
 
 def save_user_properties(user_properties):
     user_folder_name = get_user_folder_name()
-    user_properties_filename = os.path.join(user_folder_name, 'user_properties.json')
+    user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     with open(user_properties_filename, 'w') as user_properties_file:
         json.dump(user_properties, user_properties_file)
 
@@ -130,6 +130,40 @@ def is_first_usage():
     user_properties['is_first_usage'] = False
     save_user_properties(user_properties)
     return is_first_usage
+
+
+def add_data_table_upload_filename(filename):
+    user_properties = get_user_properties()
+    uploaded_files = user_properties.get('data_table_upload_filenames', [])
+    this_upload = [get_active_document(), filename.lower()]  # list rather than tuple because JSON
+    if this_upload not in uploaded_files:
+        uploaded_files.append(this_upload)
+    user_properties['data_table_upload_filenames'] = uploaded_files
+    save_user_properties(user_properties)
+
+
+def discard_data_table_upload_filename(filename):
+    user_properties = get_user_properties()
+    uploaded_files = user_properties.get('data_table_upload_filenames', [])
+    this_upload = [get_active_document(), filename.lower()]  # list rather than tuple because JSON
+    if this_upload in uploaded_files:
+        uploaded_files.remove(this_upload)
+    user_properties['data_table_upload_filenames'] = uploaded_files
+    save_user_properties(user_properties)
+
+
+def discard_data_table_upload_filenames_for_package(package_filename):
+    user_properties = get_user_properties()
+    uploaded_files = user_properties.get('data_table_upload_filenames', [])
+    uploaded_files = list(filter(lambda x: x[0] != package_filename, uploaded_files))
+    user_properties['data_table_upload_filenames'] = uploaded_files
+    save_user_properties(user_properties)
+
+
+def data_table_was_uploaded(filename):
+    user_properties = get_user_properties()
+    uploaded_files = user_properties.get('data_table_upload_filenames', [])
+    return [get_active_document(), filename.lower()] in uploaded_files
 
 
 def delete_eml(filename:str=''):
@@ -220,7 +254,7 @@ def set_active_document(filename: str):
         active_dict = read_active_dict()
         if not active_dict:
             active_dict = dict()
-        active_dict['filename'] = filename
+        active_dict['filename'] = filename.lower()
         write_active_dict(active_dict)
     else:
         remove_active_file()

@@ -26,6 +26,10 @@ from webapp.home.metapype_client import (
     add_child, new_child_node, VariableType
 )
 
+from webapp.auth.user_data import (
+    add_data_table_upload_filename
+)
+
 
 def get_file_size(full_path:str=''):
     file_size = None
@@ -290,6 +294,8 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                 add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
 
+    add_data_table_upload_filename(data_file)
+
     delete_data_files(uploads_path)
 
     return datatable_node
@@ -352,6 +358,8 @@ def delete_data_files(data_folder:str=None):
             file_path = os.path.join(data_folder, data_file)
             try:
                 if os.path.isfile(file_path):
-                    os.unlink(file_path)
+                    # Keep smaller files around for troubleshooting purposes
+                    if os.path.getsize(file_path) > 10**7:
+                        os.unlink(file_path)
             except Exception as e:
                 print(e)

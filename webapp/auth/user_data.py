@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""":Mod: user_data.py
+""":Mod: metapype_client.py
 
 :Synopsis:
 

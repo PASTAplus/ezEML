@@ -778,7 +778,7 @@ def load_eml(filename:str=None):
             if Config.LOG_DEBUG:
                 app = Flask(__name__)
                 with app.app_context():
-                    current_app.logger.info(f'load_eml (json)... loading')
+                    current_app.logger.info(f'load_eml (json)... loading {filename}')
 
             with open(filename, "r") as json_file:
                 json_obj = json.load(json_file)

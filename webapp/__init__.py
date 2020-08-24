@@ -23,8 +23,14 @@ from webapp.config import Config
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + '/metadata-eml.log'
+# daiquiri.setup(level=logging.INFO,
+#                outputs=(daiquiri.output.File(logfile), 'stdout',))
 daiquiri.setup(level=logging.INFO,
-               outputs=(daiquiri.output.File(logfile), 'stdout',))
+               outputs=(daiquiri.output.File(logfile,
+                                             formatter=daiquiri.formatter.ColorFormatter(
+                                                fmt="%(asctime)s [PID %(process)d] [%(levelname)s] "
+                                                        "%(name)s -> %(message)s")),
+                        ))
 logger = daiquiri.getLogger(__name__)
 
 app = Flask(__name__)

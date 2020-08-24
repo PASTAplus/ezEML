@@ -250,6 +250,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
             att_label_node.content = col
         
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+            att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             add_child(attribute_node, att_def_node)
 
             ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)

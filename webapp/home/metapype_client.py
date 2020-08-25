@@ -779,6 +779,10 @@ def load_eml(filename:str=None):
         with app.app_context():
             current_app.logger.info(f'user_folder = {user_folder}')
     filename = f"{user_folder}/{filename}.json"
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'filename = {filename}')
     if os.path.isfile(filename):
         try:
             if Config.FLASH_DEBUG:
@@ -799,6 +803,11 @@ def load_eml(filename:str=None):
 
         except Exception as e:
             logger.error(e)
+            if Config.LOG_DEBUG:
+                app = Flask(__name__)
+                with app.app_context():
+                    current_app.logger.info(f'e = {repr(e)}')
+
     return eml_node
 
 

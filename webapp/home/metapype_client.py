@@ -774,6 +774,10 @@ def load_eml(filename:str=None):
     user_folder = get_user_folder_name()
     if not user_folder:
         user_folder = '.'
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'user_folder = {user_folder}')
     filename = f"{user_folder}/{filename}.json"
     if os.path.isfile(filename):
         try:

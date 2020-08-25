@@ -853,7 +853,6 @@ def load_data():
                 file.save(os.path.join(uploads_folder, filename))
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
-                flash(f'Loaded {data_file}')
                 eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 if not dataset_node:
@@ -862,6 +861,7 @@ def load_data():
                     dt_node = load_data_table(dataset_node, uploads_folder, data_file)
                 except UnicodeDecodeError:
                     return redirect(url_for(PAGE_ENCODING_ERROR, filename=filename))
+                flash(f'Loaded {data_file}')
                 save_both_formats(filename=document, eml_node=eml_node)
                 return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id))
             else:

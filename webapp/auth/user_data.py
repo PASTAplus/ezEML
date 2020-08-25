@@ -254,7 +254,7 @@ def set_active_document(filename: str):
         active_dict = read_active_dict()
         if not active_dict:
             active_dict = dict()
-        active_dict['filename'] = filename.lower()
+        active_dict['filename'] = filename
         write_active_dict(active_dict)
     else:
         remove_active_file()

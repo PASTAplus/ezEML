@@ -33,7 +33,7 @@ import csv
 from webapp.auth.user_data import (
     delete_eml, download_eml, get_user_document_list, get_user_uploads_folder_name,
     get_active_document, discard_data_table_upload_filename,
-    discard_data_table_upload_filenames_for_package
+    discard_data_table_upload_filenames_for_package, remove_active_file
 )
 
 from webapp.home.forms import ( 
@@ -155,10 +155,16 @@ def index():
         current_document = get_active_document()
         if current_document:
             eml_node = load_eml(filename=current_document)
-            new_page = PAGE_TITLE if eml_node else PAGE_FILE_ERROR
+            if eml_node:
+                new_page = PAGE_TITLE
+            else:
+                remove_active_file()
+                new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=current_document))
     return render_template('index.html')
 
+
+#def clear_active_
 
 @home.route('/edit/<page>')
 def edit(page:str=None):

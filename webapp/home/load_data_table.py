@@ -221,7 +221,10 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
-    data_frame = pd.read_csv(full_path, comment='#')
+    # file_encoding = 'utf-8'
+    # input_fd = open(full_path, encoding=file_encoding, errors='backslashreplace')
+    # data_frame = pd.read_csv(input_fd, comment='#')
+    data_frame = pd.read_csv(full_path, comment='#', encoding='utf8')
 
     if data_frame is not None:
 

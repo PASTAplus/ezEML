@@ -766,6 +766,10 @@ def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
 
 
 def load_eml(filename:str=None):
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'load_eml (json)')
     eml_node = None
     user_folder = get_user_folder_name()
     if not user_folder:

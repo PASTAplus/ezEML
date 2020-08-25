@@ -186,6 +186,11 @@ def user_guide():
     return render_template('user_guide.html')
 
 
+@home.route('/encoding_error/<filename>')
+def encoding_error(filename=None):
+    return render_template('encoding_error.html', filename=filename)
+
+
 @home.route('/file_error/<filename>')
 def file_error(filename=None):
     return render_template('file_error.html', filename=filename)
@@ -853,7 +858,10 @@ def load_data():
                 dataset_node = eml_node.find_child(names.DATASET)
                 if not dataset_node:
                     dataset_node = new_child_node(names.DATASET, eml_node)
-                dt_node = load_data_table(dataset_node, uploads_folder, data_file)
+                try:
+                    dt_node = load_data_table(dataset_node, uploads_folder, data_file)
+                except UnicodeDecodeError:
+                    return redirect(url_for(PAGE_ENCODING_ERROR, filename=filename))
                 save_both_formats(filename=document, eml_node=eml_node)
                 return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id))
             else:

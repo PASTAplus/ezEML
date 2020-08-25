@@ -29,7 +29,7 @@ daiquiri.setup(level=logging.INFO,
                outputs=(daiquiri.output.File(logfile,
                                              formatter=daiquiri.formatter.ColorFormatter(
                                                 fmt="%(asctime)s [PID %(process)d] [%(levelname)s] "
-                                                        "%(name)s -> %(message)s")),
+                                                        "%(name)s -> %(message)s")), 'stdout',
                         ))
 logger = daiquiri.getLogger(__name__)
 

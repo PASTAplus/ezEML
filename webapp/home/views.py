@@ -193,8 +193,8 @@ def user_guide():
 
 
 @home.route('/encoding_error/<filename>')
-def encoding_error(filename=None):
-    return render_template('encoding_error.html', filename=filename)
+def encoding_error(filename=None, errors=None):
+    return render_template('encoding_error.html', filename=filename, errors=errors)
 
 
 @home.route('/file_error/<filename>')
@@ -835,6 +835,16 @@ def get_funding_awards_for_import(eml_node):
     return awards
 
 
+def display_decode_error_lines(filename):
+    errors = []
+    with open(filename, 'r', errors='replace') as f:
+        lines = f.readlines()
+    for index, line in enumerate(lines, start=1):
+        if "�" in line:
+            errors.append((index, line))
+    return errors
+
+
 @home.route('/load_data', methods=['GET', 'POST'])
 @login_required
 def load_data():
@@ -856,7 +866,8 @@ def load_data():
             if filename is None or filename == '':
                 flash('No selected file')
             elif allowed_data_file(filename):
-                file.save(os.path.join(uploads_folder, filename))
+                filepath = os.path.join(uploads_folder, filename)
+                file.save(filepath)
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
                 eml_node = load_eml(filename=document)
@@ -866,7 +877,8 @@ def load_data():
                 try:
                     dt_node = load_data_table(dataset_node, uploads_folder, data_file)
                 except UnicodeDecodeError:
-                    return redirect(url_for(PAGE_ENCODING_ERROR, filename=filename))
+                    errors = display_decode_error_lines(filepath)
+                    return render_template('encoding_error.html', filename=filename, errors=errors)
                 flash(f'Loaded {data_file}')
                 save_both_formats(filename=document, eml_node=eml_node)
                 return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id))

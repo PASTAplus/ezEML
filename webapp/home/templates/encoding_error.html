@@ -12,7 +12,8 @@
     <table>
     {% for error in errors %}
         <tr>
-        <td valign="top" width="10%">Line {{ error[0]|safe }}</td>
+        <td valign="top">Line {{ error[0]|safe }}:</td>
+            <td width="3%">&nbsp;</td>
         <td>{{ error[1]|safe }}</td>
         </tr>
     {% endfor %}

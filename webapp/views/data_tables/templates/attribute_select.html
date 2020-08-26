@@ -30,7 +30,9 @@
                             {{ macros.up_down_arrow(att_entry.id, att_entry.downval) }}
                         {% endif %}
                         <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Edit"/>
+                            {% if not was_uploaded %}
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Remove"/>
+                            {% endif %}
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Change Type"/></td>
                     </tr>
                     {% endfor %}

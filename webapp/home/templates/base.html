@@ -193,8 +193,9 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
             <ul class="nav navbar-nav">
                 <li>
-                    Active user: <strong>{{ current_user.get_username() }}</strong>
+                    Welcome Back <strong>{{ current_user.get_username() }}</strong>
                     {% if current_user.get_filename() %}
+                        &nbsp;&nbsp;
                     &nbsp;&nbsp;Active EML Document: <strong>{{ current_user.get_filename() }}</strong>
                     {% endif %}
                 </li>

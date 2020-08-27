@@ -76,11 +76,6 @@ def is_datetime_column(col:str=None):
 
 
 def sort_codes_key(x):
-    try:
-        i = int(x)
-        return str(i)
-    except:
-        pass
     return str(x).lower()
 
 
@@ -88,10 +83,9 @@ def sort_codes(codes):
     nums = []
     text = []
     for code in codes:
-        try:
-            i = int(code)
-            nums.append(i)
-        except:
+        if isinstance(code, float) or isinstance(code, int):
+            nums.append(code)
+        else:
             text.append(code)
     sorted_nums = sorted(nums)
     all_sorted = sorted(text, key=sort_codes_key)
@@ -132,7 +126,7 @@ def infer_col_type(data_frame, col):
     codes = data_frame[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
-    # arbitrary test to distinguish categorical from text
+    # heuristic to distinguish categorical from text and numeric
     is_categorical = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
     if is_categorical:
         col_type = VariableType.CATEGORICAL

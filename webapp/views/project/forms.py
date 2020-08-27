@@ -8,7 +8,7 @@ from webapp.home.forms import EDIForm
 
 
 class ProjectForm(EDIForm):
-    title = StringField('Project Title', validators=[])  # validators.DataRequired()])
+    title = StringField('Project Title (*)', validators=[])  # validators.DataRequired()])
     abstract = StringField('Project Abstract (Optional)', widget=TextArea(), validators=[])
     md5 = HiddenField('')
 
@@ -22,8 +22,8 @@ class AwardSelectForm(EDIForm):
 
 
 class AwardForm(EDIForm):
-    funder_name = StringField('Funder Name', validators=[validators.DataRequired()])
-    award_title = StringField('Award Title', validators=[validators.DataRequired()])
+    funder_name = StringField('Funder Name (*)', validators=[validators.DataRequired()])
+    award_title = StringField('Award Title (*)', validators=[validators.DataRequired()])
     funder_identifier = StringField('Funder Identifier(s) (Optional)', validators=[])
     award_number = StringField('Award Number (Optional)', validators=[])
     award_url = StringField('Award URL (Optional)', validators=[])

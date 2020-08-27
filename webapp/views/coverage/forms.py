@@ -23,12 +23,12 @@ class GeographicCoverageSelectForm(EDIForm):
 
 
 class GeographicCoverageForm(EDIForm):
-    geographic_description = StringField('Geographic Description', widget=TextArea(),
+    geographic_description = StringField('Geographic Description (*)', widget=TextArea(),
                                          validators=[])
-    wbc = FloatField('West Bounding Coordinate', validators=[valid_longitude(), Optional()])
-    ebc = FloatField('East Bounding Coordinate', validators=[valid_longitude(), Optional()])
-    nbc = FloatField('North Bounding Coordinate', validators=[valid_latitude(), Optional()])
-    sbc = FloatField('South Bounding Coordinate', validators=[valid_latitude(), Optional()])
+    wbc = FloatField('West Bounding Coordinate (*)', validators=[valid_longitude(), Optional()])
+    ebc = FloatField('East Bounding Coordinate (*)', validators=[valid_longitude(), Optional()])
+    nbc = FloatField('North Bounding Coordinate (*)', validators=[valid_latitude(), Optional()])
+    sbc = FloatField('South Bounding Coordinate (*)', validators=[valid_latitude(), Optional()])
     md5 = HiddenField('')
 
     def field_data(self)->tuple:
@@ -84,7 +84,7 @@ class TemporalCoverageSelectForm(EDIForm):
 
 
 class TemporalCoverageForm(EDIForm):
-    begin_date = StringField('Begin Date', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
+    begin_date = StringField('Begin Date (*)', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
     end_date = StringField('End Date', validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
     md5 = HiddenField('')
 

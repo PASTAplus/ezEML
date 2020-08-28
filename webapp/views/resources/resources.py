@@ -37,7 +37,7 @@ from webapp.home.intellectual_rights import (
     INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
 )
 
-from webapp.home.views import set_current_page
+from webapp.home.views import set_current_page, get_keywords
 
 res_bp = Blueprint('res', __name__, template_folder='templates')
 
@@ -446,15 +446,9 @@ def keyword(filename=None, node_id=None):
     eml_node = load_eml(filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
 
-    if dataset_node:
-        keyword_set_node = dataset_node.find_child(names.KEYWORDSET)
-    else:
+    if not dataset_node:
         dataset_node = Node(names.DATASET, parent=eml_node)
         add_child(eml_node, dataset_node)
-
-    if not keyword_set_node:
-        keyword_set_node = Node(names.KEYWORDSET, parent=dataset_node)
-        add_child(dataset_node, keyword_set_node)
 
     form = KeywordForm(filename=filename, node_id=node_id)
     form.init_keywords()
@@ -490,6 +484,33 @@ def keyword(filename=None, node_id=None):
         if submit_type == 'Save Changes':
             keyword = form.keyword.data
             keyword_type = form.keyword_type.data
+
+            # Does the keyword belong to a keywordSet with a thesaurus?
+            keyword_thesaurus = None
+            lter_keywords = get_keywords('LTER')
+            if keyword in lter_keywords:
+                keyword_thesaurus = 'LTER Controlled Vocabulary'
+
+            keyword_set_nodes = []
+            eml_node.find_all_descendants(names.KEYWORDSET, keyword_set_nodes)
+
+            keyword_set_node = None
+            for kws_node in keyword_set_nodes:
+                keyword_thesaurus_node = kws_node.find_child(names.KEYWORDTHESAURUS)
+                if keyword_thesaurus_node and keyword_thesaurus_node.content == keyword_thesaurus:
+                    keyword_set_node = kws_node
+                    break
+                if not keyword_thesaurus_node and not keyword_thesaurus:
+                    keyword_set_node = kws_node
+                    break
+            if not keyword_set_node:
+                keyword_set_node = Node(names.KEYWORDSET, parent=dataset_node)
+                add_child(dataset_node, keyword_set_node)
+                if keyword_thesaurus:
+                    keyword_thesaurus_node = Node(names.KEYWORDTHESAURUS, parent=keyword_set_node)
+                    keyword_thesaurus_node.content = keyword_thesaurus
+                    keyword_set_node.children.append(keyword_thesaurus_node)
+
             keyword_node = Node(names.KEYWORD, parent=keyword_set_node)
             create_keyword(keyword_node, keyword, keyword_type)
 

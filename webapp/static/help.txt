@@ -34,6 +34,25 @@ Associated parties are other people who were involved with the data in some way 
 
 Associated parties are not required.
 --------------------
+attribute_definition
+Attribute Definition
+A precise definition of the attribute. It explains the contents of the attribute fully so that a data user can interpret the attribute accurately.
+
+Example: "spden" is the number of individuals of all macro invertebrate species found in the plot.
+--------------------
+attribute_label
+Attribute Label
+
+A descriptive label that can be used to display the name of an attribute. This is often a longer name than the attribute name and may consist of multiple words. It is not constrained by system limitations on length or special characters in the way the attribute name is constrained.
+
+For example, an attribute with a name of 'spcode' might have an attribute label of 'Species Code'.
+--------------------
+attribute_name
+Attribute Name
+Attribute name is the official name of the attribute. This is usually a short, sometimes cryptic name that is used to refer to the attribute.  Many systems have restrictions on the length of attribute names and on the use of special characters like spaces in the name, so the attribute name is often not particularly useful for display purposes (use attributeLabel for display).
+
+The attribute name is usually the name of the variable that is found in the header of a data file.
+--------------------
 award
 Funding Award
 Information on a funding award associated with the project.
@@ -430,6 +449,30 @@ Document Name
 Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
 
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
+--------------------
+storage_type
+Storage Type
+This element describes the storage type for data in a RDBMS (or other data management system) field.
+
+Values for this field are by default drawn from the XML Schema Datatypes standard values, such as: integer, double, string, etc. If the XML Schema Datatypes are not used, the type system from which the values are derived should be specified in the Storage Type System field.
+
+Storage Type represents a 'hint' to processing systems as to how the attribute might be represented in a system or language.
+
+Examples:
+  integer
+  int
+--------------------
+storage_type_system
+Storage Type System
+The system used to define the storage types. This should be an identifier of a well known and published typing system.
+
+The default and recommended system is the XML Schema data type system. For details go to http://www.w3.org. If another system is used (such as Java or C++ types), typeSystem should be changed to match the system.
+
+Examples:
+  http://www.w3.org/2001/XMLSchema-datatypes
+  java
+  C
+  Oracle 8i
 --------------------
 taxonomic_coverages
 Taxonomic Coverage

@@ -30,12 +30,12 @@ class AttributeMeasurementScaleForm(EDIForm):
 
 
 class AttributeDateTimeForm(EDIForm):
-    attribute_name = StringField('Name (*)', validators=[])
+    attribute_name = StringField('Name *', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
-    attribute_definition = StringField('Definition (*)', validators=[])
+    attribute_definition = StringField('Definition *', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
-    format_string = StringField('Format String (*)', validators=[])
+    format_string = StringField('Format String *', validators=[])
     datetime_precision = FloatField('DateTime Precision (Optional)', validators=[Optional()])
     bounds_minimum = StringField('Bounds Minimum', validators=[])
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
@@ -70,9 +70,9 @@ class AttributeDateTimeForm(EDIForm):
 
 
 class AttributeCategoricalForm(EDIForm):
-    attribute_name = StringField('Name (*)', validators=[])
+    attribute_name = StringField('Name *', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
-    attribute_definition = StringField('Definition (*)', validators=[])
+    attribute_definition = StringField('Definition *', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
     enforced = SelectField('', choices=[("yes", "Allow only the code values found in the table"),
@@ -104,9 +104,9 @@ class AttributeCategoricalForm(EDIForm):
                 self.mscale.data)
 
 class AttributeTextForm(EDIForm):
-    attribute_name = StringField('Name (*)', validators=[])
+    attribute_name = StringField('Name *', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
-    attribute_definition = StringField('Definition (*)', validators=[])
+    attribute_definition = StringField('Definition *', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
     code_1 = StringField('Missing Value Code', validators=[])
@@ -137,9 +137,9 @@ class AttributeTextForm(EDIForm):
 class AttributeIntervalRatioForm(EDIForm):
     mscale_choice = SelectField('Measurement Scale', 
                                 choices=[("interval", "interval"), ("ratio", "ratio")])
-    attribute_name = StringField('Name (*)', validators=[])
+    attribute_name = StringField('Name *', validators=[])
     attribute_label = StringField('Label (Optional)', validators=[])
-    attribute_definition = StringField('Definition (*)', validators=[])
+    attribute_definition = StringField('Definition *', validators=[])
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
     standard_units = ['', 'acre', 'ampere', 'amperePerMeter', 'amperePerMeterSquared', 'angstrom', 'are', 'atmosphere', 'bar', 'becquerel', 'britishThermalUnit', 'bushel', 'bushelPerAcre', 'calorie', 'candela', 'candelaPerMeterSquared', 'celsius', 'centigram', 'centimeter', 'centimeterCubed', 'centimeterPerSecond', 'centimeterSquared', 'centisecond', 'coulomb', 'decibar', 'decigram', 'decimeter', 'decisecond', 'degree', 'dekagram', 'dekameter', 'dekasecond', 'dimensionless', 'equivalentPerLiter', 'fahrenheit', 'farad', 'fathom', 'foot', 'Foot_Gold_Coast', 'Foot_US', 'footCubedPerSecond', 'footPerDay', 'footPerHour', 'footPerSecond', 'footPound', 'footSquared', 'footSquaredPerDay', 'gallon', 'grad', 'gram', 'gramPerCentimeterCubed', 'gramPercentimeterSquared', 'gramPerCentimeterSquaredPerSecond', 'gramPerDayPerHectare', 'gramPerDayPerLiter', 'gramPerGram', 'gramPerLiter', 'gramPerMeterSquared', 'gramPerMeterSquaredPerDay', 'gramPerMeterSquaredPerYear', 'gramPerMilliliter', 'gramPerYear', 'gray', 'hectare', 'hectogram', 'hectometer', 'hectopascal', 'hectosecond', 'henry', 'hertz', 'hour', 'inch', 'inchCubed', 'inchPerHour', 'inverseCentimeter', 'inverseMeter', 'joule', 'katal', 'kelvin', 'kilogram', 'kilogramPerHectare', 'kilogramPerHectarePerYear', 'kilogramPerMeterCubed', 'kilogramPerMeterSquared', 'kilogramPerMeterSquaredPerDay', 'kilogramPerMeterSquaredPerSecond', 'kilogramPerMeterSquaredPerYear', 'kilogramPerSecond', 'kilohertz', 'kiloliter', 'kilometer', 'kilometerPerHour', 'kilometerSquared', 'kilopascal', 'kilosecond', 'kilovolt', 'kilowatt', 'kilowattPerMeterSquared', 'knot', 'langley', 'langleyPerDay', 'Link_Clarke', 'liter', 'literPerHectare', 'literPerLiter', 'literPerMeterSquared', 'literPerSecond', 'lumen', 'lux', 'megagram', 'megagramPerMeterCubed', 'megahertz', 'megajoulePerMeterSquaredPerDay', 'megameter', 'megapascal', 'megasecond', 'megavolt', 'megawatt', 'meter', 'meterCubed', 'meterCubedPerHectare', 'meterCubedPerKilogram', 'meterCubedPerMeterCubed', 'meterCubedPerMeterSquared', 'meterCubedPerSecond', 'meterPerDay', 'meterPerGram', 'meterPerSecond', 'meterPerSecondSquared', 'meterSquared', 'meterSquaredPerDay', 'meterSquaredPerHectare', 'meterSquaredPerKilogram', 'meterSquaredPerSecond', 'microequivalentPerLiter', 'microgram', 'microgramPerGram', 'microgramPerGramPerDay', 'microgramPerGramPerHour', 'microgramPerGramPerWeek', 'microgramPerLiter', 'microliter', 'microliterPerLiter', 'micrometer', 'micrometerCubedPerGram', 'micromolePerCentimeterSquaredPerSecond', 'micromolePerGram', 'micromolePerGramPerDay', 'micromolePerGramPerHour', 'micromolePerGramPerSecond', 'micromolePerKilogram', 'micromolePerLiter', 'micromolePerMeterSquaredPerSecond', 'micromolePerMole', 'microsecond', 'microwattPerCentimeterSquaredPerNanometer', 'microwattPerCentimeterSquaredPerNanometerPerSteradian', 'microwattPerCentimeterSquaredPerSteradian', 'mile', 'milePerHour', 'milePerMinute', 'milePerSecond', 'mileSquared', 'millibar', 'milliequivalentPerLiter', 'milligram', 'milligramPerKilogram', 'milligramPerLiter', 'milligramPerMeterCubed', 'milligramPerMeterCubedPerDay', 'milligramPerMeterSquared', 'milligramPerMeterSquaredPerDay', 'milligramPerMilliliter', 'millihertz', 'milliliter', 'milliliterPerLiter', 'millimeter', 'millimeterPerDay', 'millimeterPerSecond', 'millimeterSquared', 'millimolePerGram', 'millimolePerKilogram', 'millimolePerLiter', 'millimolePerMeterCubed', 'millimolePerMole', 'millisecond', 'millivolt', 'milliwatt', 'minute', 'mole', 'molePerGram', 'molePerKilogram', 'molePerKilogram', 'molePerKilogramPerSecond', 'molePerLiter', 'molePerMeterCubed', 'molePerMeterSquaredPerSecond', 'molePerMole', 'nanogram', 'nanogramPerGram', 'nanogramPerGramPerHour', 'nanoliterPerLiter', 'nanometer', 'nanomolePerGramPerDay', 'nanomolePerGramPerHour', 'nanomolePerGramPerSecond', 'nanomolePerKilogram', 'nanomolePerLiter', 'nanomolePerMole', 'nanosecond', 'nauticalMile', 'newton', 'nominalDay', 'nominalHour', 'nominalLeapYear', 'nominalMinute', 'nominalWeek', 'nominalYear', 'number', 'numberPerGram', 'numberPerHectare', 'numberPerKilometerSquared', 'numberPerLiter', 'numberPerMeterCubed', 'numberPerMeterSquared', 'numberPerMilliliter', 'ohm', 'ohmMeter', 'pascal', 'percent', 'permil', 'pint', 'pound', 'poundPerAcre', 'poundPerInchSquared', 'quart', 'radian', 'second', 'siemens', 'siemensPerCentimeter', 'siemensPerMeter', 'sievert', 'steradian', 'tesla', 'ton', 'tonne', 'tonnePerHectare', 'tonnePerYear', 'volt', 'watt', 'wattPerMeterSquared', 'wattPerMeterSquaredPerNanometer', 'wattPerMeterSquaredPerNanometerPerSteradian', 'wattPerMeterSquaredPerSteradian', 'weber', 'yard', 'Yard_Indian', 'yardPerSecond', 'yardSquared']
@@ -197,9 +197,9 @@ class DataTableSelectForm(EDIForm):
 
 
 class DataTableForm(EDIForm):
-    entity_name = StringField('Name (*)', validators=[])
+    entity_name = StringField('Name *', validators=[])
     entity_description = StringField('Description (Recommended)', validators=[])
-    object_name = StringField('Filename (*)', validators=[])
+    object_name = StringField('Filename *', validators=[])
     size = IntegerField('Size (Optional)', validators=[Optional()])
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
@@ -232,8 +232,8 @@ class CodeDefinitionSelectForm(EDIForm):
 
 
 class CodeDefinitionForm(EDIForm):
-    code = StringField('Code (*)', validators=[])
-    definition = StringField('Definition (*)', validators=[])
+    code = StringField('Code *', validators=[])
+    definition = StringField('Definition *', validators=[])
     order = IntegerField('Order (Optional)', validators=[Optional()])
     md5 = HiddenField('')
 

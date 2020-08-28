@@ -31,7 +31,7 @@ class ResponsiblePartyForm(EDIForm):
     email = StringField('Email (Optional)', validators=[Optional(), Email()])
     user_id = StringField('ORCID ID (Recommended)', validators=[])
     online_url = StringField('Online URL (Optional)', validators=[Optional(), URL()])
-    role = StringField('Role (*)', validators=[])
+    role = StringField('Role *', validators=[])
     md5 = HiddenField('')
 
     def field_data(self)->tuple:

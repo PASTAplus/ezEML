@@ -536,12 +536,19 @@ def keyword(filename=None, node_id=None):
     if node_id == '1':
         form.init_md5()
     else:
-        keyword_nodes = keyword_set_node.find_all_children(names.KEYWORD)
-        if keyword_nodes:
-            for kw_node in keyword_nodes:
-                if node_id == kw_node.id:
-                    populate_keyword_form(form, kw_node)
-                    break
+        keyword_set_nodes = []
+        eml_node.find_all_descendants(names.KEYWORDSET, keyword_set_nodes)
+        found = False
+        for keyword_set_node in keyword_set_nodes:
+            keyword_nodes = keyword_set_node.find_all_children(names.KEYWORD)
+            if keyword_nodes:
+                for kw_node in keyword_nodes:
+                    if node_id == kw_node.id:
+                        populate_keyword_form(form, kw_node)
+                        found = True
+                        break
+            if found:
+                break
 
     set_current_page('keyword')
     help = [get_help('keywords')]

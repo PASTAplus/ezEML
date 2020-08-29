@@ -182,14 +182,24 @@ def edit(page:str=None):
     return render_template('index.html')
 
 
+def get_back_url():
+    url = url_for(PAGE_INDEX)
+    if current_user.is_authenticated:
+        new_page = get_redirect_target_page()
+        filename = get_active_document()
+        if new_page and filename:
+            url = url_for(new_page, filename=filename)
+    return url
+
+
 @home.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html', back_url=get_back_url())
 
 
 @home.route('/user_guide')
 def user_guide():
-    return render_template('user_guide.html')
+    return render_template('user_guide.html', back_url=get_back_url())
 
 
 @home.route('/encoding_error/<filename>')
@@ -211,7 +221,7 @@ def delete():
     # Process POST
     if request.method == 'POST':
         if 'Cancel' in request.form:
-            return redirect(url_for(PAGE_INDEX))
+            return redirect(get_back_url())
         if form.validate_on_submit():
             filename = form.filename.data
             discard_data_table_upload_filenames_for_package(filename)
@@ -268,7 +278,7 @@ def save_as():
         if BTN_CANCEL in request.form:
             if current_document:
                 # Revert back to the old filename
-                return redirect(url_for(PAGE_TITLE, filename=current_document))
+                return redirect(get_back_url())
             else:
                 return render_template('index.html')
 
@@ -419,13 +429,7 @@ def create():
     if request.method == 'POST':
 
         if BTN_CANCEL in request.form:
-            new_page = get_redirect_target_page()
-            filename = get_active_document()
-            if new_page and filename:
-                url = url_for(new_page, filename=filename)
-            else:
-                url = url_for(PAGE_INDEX, filename=filename)
-            return redirect(url)
+            return redirect(get_back_url())
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -453,13 +457,7 @@ def open_eml_document():
     if request.method == 'POST':
 
         if BTN_CANCEL in request.form:
-            new_page = get_redirect_target_page()
-            filename = get_active_document()
-            if new_page and filename:
-                url = url_for(new_page, filename=filename)
-            else:
-                url = url_for(PAGE_INDEX, filename=filename)
-            return redirect(url)
+            return redirect(get_back_url())
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -492,6 +490,7 @@ def import_parties():
             new_page = get_redirect_target_page()
             url = url_for(new_page, filename=current_user.get_filename())
             return redirect(url)
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_parties_2', filename=filename))

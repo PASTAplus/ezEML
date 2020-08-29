@@ -195,6 +195,9 @@ def download_eml(filename:str=''):
         filename_xml = f'{filename}.xml'
         pathname = f'{user_folder}/{filename_xml}'
         if os.path.exists(pathname):
+            package_id = get_active_packageid()
+            if package_id:
+                filename_xml = f'{package_id}.xml'
             relative_pathname = '../' + pathname
             mimetype = 'application/xml'
             try: 

@@ -3,7 +3,7 @@ from flask import (
 )
 
 from webapp.auth.user_data import (
-    is_first_usage
+    is_first_usage, set_active_packageid
 )
 
 from webapp.home.metapype_client import (
@@ -105,6 +105,7 @@ def data_package_id(filename=None):
         if save:
             data_package_id = form.data_package_id.data
             create_data_package_id(data_package_id, filename)
+            set_active_packageid(data_package_id)
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:

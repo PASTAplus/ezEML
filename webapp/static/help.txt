@@ -179,6 +179,12 @@ data_table_header_lines
 Number of Header Lines
 The number of header lines preceding the data. I.e., the number of header lines that should be skipped before starting to parse the data.
 --------------------
+data_table_quote_character
+Quote Character
+Character used to quote values for delimiter escaping.
+
+If your data table is a CSV file with fields separated by commas, for example, then a text field that contains one or more commas will appear to be multiple fields. To deal with such cases where the field delimiter is used within a text field, enclose the text field in quotes. <b>Quote Character</b> defines which "flavor" of quotes you are using, double quotes ("), single quotes ('), or some other character.
+--------------------
 data_table_record_delimiter
 Record Delimiter
 Character(s) used to delimit records (e.g., rows).

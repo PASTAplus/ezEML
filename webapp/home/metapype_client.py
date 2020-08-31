@@ -1000,6 +1000,7 @@ def create_data_table(
     md5_hash:str=None,
     num_header_lines:str=None,
     record_delimiter:str=None,
+    quote_character:str=None,
     attribute_orientation:str=None,
     field_delimiter:str=None,
     case_sensitive:str=None,
@@ -1057,9 +1058,14 @@ def create_data_table(
             attribute_orientation_node = new_child_node(names.ATTRIBUTEORIENTATION, parent=text_format_node)
             attribute_orientation_node.content = attribute_orientation
 
-        if field_delimiter:
+        if quote_character or field_delimiter:
             simple_delimited_node = new_child_node(names.SIMPLEDELIMITED, parent=text_format_node)
 
+        if quote_character:
+            quote_character_node = new_child_node(names.QUOTECHARACTER, parent=simple_delimited_node)
+            quote_character_node.content = quote_character
+
+        if field_delimiter:
             field_delimiter_node = new_child_node(names.FIELDDELIMITER, parent=simple_delimited_node)
             field_delimiter_node.content = field_delimiter
 

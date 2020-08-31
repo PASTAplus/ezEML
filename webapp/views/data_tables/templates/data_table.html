@@ -32,13 +32,16 @@
     {% set help_data_table_record_delimiter_id, help_data_table_record_delimiter_title, help_data_table_record_delimiter_content = help[9] %}
     {% set help_data_table_record_delimiter_btn = help_data_table_record_delimiter_id ~ '_btn' %}
     {% set help_data_table_record_delimiter_dialog = help_data_table_record_delimiter_id ~ '_dialog' %}
-    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[10] %}
+    {% set help_data_table_quote_character_id, help_data_table_quote_character_title, help_data_table_quote_character_content = help[10] %}
+    {% set help_data_table_quote_character_btn = help_data_table_quote_character_id ~ '_btn' %}
+    {% set help_data_table_quote_character_dialog = help_data_table_quote_character_id ~ '_dialog' %}
+    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[11] %}
     {% set help_data_table_case_sensitive_btn = help_data_table_case_sensitive_id ~ '_btn' %}
     {% set help_data_table_case_sensitive_dialog = help_data_table_case_sensitive_id ~ '_dialog' %}
-    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[11] %}
+    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[12] %}
     {% set help_data_table_number_of_records_btn = help_data_table_number_of_records_id ~ '_btn' %}
     {% set help_data_table_number_of_records_dialog = help_data_table_number_of_records_id ~ '_dialog' %}
-    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[12] %}
+    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[13] %}
     {% set help_data_table_online_url_btn = help_data_table_online_url_id ~ '_btn' %}
     {% set help_data_table_online_url_dialog = help_data_table_online_url_id ~ '_dialog' %}
 
@@ -61,6 +64,7 @@
                 {{ macros.item_start() }}{{ wtf.form_field(form.md5_hash) }}{{ macros.item_end(help_data_table_checksum_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.num_header_lines) }}{{ macros.item_end(help_data_table_header_lines_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.record_delimiter) }}{{ macros.item_end(help_data_table_record_delimiter_btn) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.quote_character) }}{{ macros.item_end(help_data_table_quote_character_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.case_sensitive) }}{{ macros.item_end(help_data_table_case_sensitive_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.number_of_records) }}{{ macros.item_end(help_data_table_number_of_records_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.online_url) }}{{ macros.item_end(help_data_table_online_url_btn) }}
@@ -97,6 +101,7 @@
     {{ macros.help_dialog(help_data_table_checksum_dialog, help_data_table_checksum_title, help_data_table_checksum_content) }}
     {{ macros.help_dialog(help_data_table_header_lines_dialog, help_data_table_header_lines_title, help_data_table_header_lines_content) }}
     {{ macros.help_dialog(help_data_table_record_delimiter_dialog, help_data_table_record_delimiter_title, help_data_table_record_delimiter_content) }}
+    {{ macros.help_dialog(help_data_table_quote_character_dialog, help_data_table_quote_character_title, help_data_table_quote_character_content) }}
     {{ macros.help_dialog(help_data_table_case_sensitive_dialog, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content) }}
     {{ macros.help_dialog(help_data_table_number_of_records_dialog, help_data_table_number_of_records_title, help_data_table_number_of_records_content) }}
     {{ macros.help_dialog(help_data_table_online_url_dialog, help_data_table_online_url_title, help_data_table_online_url_content) }}
@@ -136,13 +141,16 @@
     {% set help_data_table_record_delimiter_id, help_data_table_record_delimiter_title, help_data_table_record_delimiter_content = help[9] %}
     {% set help_data_table_record_delimiter_btn = help_data_table_record_delimiter_id ~ '_btn' %}
     {% set help_data_table_record_delimiter_dialog = help_data_table_record_delimiter_id ~ '_dialog' %}
-    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[10] %}
+    {% set help_data_table_quote_character_id, help_data_table_quote_character_title, help_data_table_quote_character_content = help[10] %}
+    {% set help_data_table_quote_character_btn = help_data_table_quote_character_id ~ '_btn' %}
+    {% set help_data_table_quote_character_dialog = help_data_table_quote_character_id ~ '_dialog' %}
+    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[11] %}
     {% set help_data_table_case_sensitive_btn = help_data_table_case_sensitive_id ~ '_btn' %}
     {% set help_data_table_case_sensitive_dialog = help_data_table_case_sensitive_id ~ '_dialog' %}
-    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[11] %}
+    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[12] %}
     {% set help_data_table_number_of_records_btn = help_data_table_number_of_records_id ~ '_btn' %}
     {% set help_data_table_number_of_records_dialog = help_data_table_number_of_records_id ~ '_dialog' %}
-    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[12] %}
+    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[13] %}
     {% set help_data_table_online_url_btn = help_data_table_online_url_id ~ '_btn' %}
     {% set help_data_table_online_url_dialog = help_data_table_online_url_id ~ '_dialog' %}
     <script>
@@ -158,6 +166,7 @@
         {{ macros.help_script(help_data_table_checksum_dialog, help_data_table_checksum_btn) }}
         {{ macros.help_script(help_data_table_header_lines_dialog, help_data_table_header_lines_btn) }}
         {{ macros.help_script(help_data_table_record_delimiter_dialog, help_data_table_record_delimiter_btn) }}
+        {{ macros.help_script(help_data_table_quote_character_dialog, help_data_table_quote_character_btn) }}
         {{ macros.help_script(help_data_table_case_sensitive_dialog, help_data_table_case_sensitive_btn) }}
         {{ macros.help_script(help_data_table_number_of_records_dialog, help_data_table_number_of_records_btn) }}
         {{ macros.help_script(help_data_table_online_url_dialog, help_data_table_online_url_btn) }}

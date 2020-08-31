@@ -124,6 +124,7 @@ def data_table(filename=None, node_id=None):
             md5_hash = form.md5_hash.data
             num_header_lines = str(form.num_header_lines.data) if form.num_header_lines.data else ''
             record_delimiter = form.record_delimiter.data
+            quote_character = form.quote_character.data
             attribute_orientation = form.attribute_orientation.data
             field_delimiter = form.field_delimiter.data
             case_sensitive = form.case_sensitive.data
@@ -144,6 +145,7 @@ def data_table(filename=None, node_id=None):
                 md5_hash,
                 num_header_lines,
                 record_delimiter,
+                quote_character,
                 attribute_orientation,
                 field_delimiter,
                 case_sensitive,
@@ -245,6 +247,7 @@ def data_table(filename=None, node_id=None):
         'data_table_checksum',
         'data_table_header_lines',
         'data_table_record_delimiter',
+        'data_table_quote_character',
         'data_table_case_sensitive',
         'data_table_number_of_records',
         'data_table_online_url'
@@ -309,6 +312,10 @@ def populate_data_table_form(form: DataTableForm, node: Node):
 
                 simple_delimited_node = text_format_node.find_child(names.SIMPLEDELIMITED)
                 if simple_delimited_node:
+
+                    quote_character_node = simple_delimited_node.find_child(names.QUOTECHARACTER)
+                    if quote_character_node:
+                        form.quote_character.data = quote_character_node.content
 
                     field_delimiter_node = simple_delimited_node.find_child(names.FIELDDELIMITER)
                     if field_delimiter_node:

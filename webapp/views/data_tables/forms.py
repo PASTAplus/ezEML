@@ -204,13 +204,14 @@ class DataTableForm(EDIForm):
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
     record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
+    quote_character = StringField('Quote Character (Optional)', default='"', validators=[])
     attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
     field_delimiter = SelectField('Field Delimiter', choices=[(",", "comma"), (" ", "space"), ("\\t", "tab")])
     case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
     number_of_records = IntegerField('Number of Records (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
     md5 = HiddenField('')
-    init_str = 'column,no'
+    init_str = '"column,no'
 
     def field_data(self)->tuple:
         return (self.entity_name.data, 
@@ -219,7 +220,8 @@ class DataTableForm(EDIForm):
                 self.size.data,
                 self.md5_hash.data,
                 self.num_header_lines.data, 
-                self.record_delimiter.data, 
+                self.record_delimiter.data,
+                self.quote_character.data,
                 self.attribute_orientation.data, 
                 self.field_delimiter.data, 
                 self.case_sensitive.data, 

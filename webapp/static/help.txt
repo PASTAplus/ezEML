@@ -53,6 +53,58 @@ Attribute name is the official name of the attribute. This is usually a short, s
 
 The attribute name is usually the name of the variable that is found in the header of a data file.
 --------------------
+attribute_datetime_format
+Format String
+A format string that describes the format for a DateTime value from the Gregorian calendar.
+
+DateTime values should be expressed in a format that conforms to the ISO 8601 standard. To describe the format, construct a string representation of the format using the following symbols:
+<ul>
+<li>              Y   year
+<li>              M   month
+<li>              W   month abbreviation (e.g., JAN)
+<li>              D   day
+<li>              h   hour
+<li>              m   minute
+<li>              s   second
+<li>              T   time designator (demarcates date and time parts of date-time)
+<li>              Z   UTC designator, indicating value is in UTC time
+<li>              .   indicates a decimal fraction of a unit
+<li>              +/- indicates a positive or negative number, or a positive or negative time zone adjustment relative to UTC
+<li>              -   indicates a separator between date components
+<li>              A/P am or pm designator
+</ul>
+              Any other character in the format string is interpreted as a
+              separator character.  Here are some examples of the format
+              strings that can be constructed.
+<pre>
+                 Format string          Example value<br>
+                 -------------------    ------------------<br>
+  ISO Date       YYYY-MM-DD             2002-10-14<br>
+  ISO Datetime   YYYY-MM-DDThh:mm:ss    2002-10-14T09:13:45<br>
+  ISO Datetime   YYYY-MM-DDThh:mm:ss-hh 2002-10-14T09:13:45-07<br>
+  ISO Time       hh:mm:ss               17:13:45<br>
+  ISO Time       hh:mm:ss.sss           09:13:45.432<br>
+  ISO Time       hh:mm.mm               09:13.42
+</pre>
+--------------------
+attribute_datetime_precision
+DateTime Precision
+A quantitative indication of the precision of a date or time value.
+
+The precision should be interpreted in the smallest units represented by the dateTime format. For example, if a dateTime value has a format of "hh:mm:ss.sss", then "seconds" are the smallest unit and the precision should be expressed in seconds. Thus, a precision value of "0.01" would mean that measurements were precise to the nearest hundredth of a second, even though the format string might indicate that values were written down with 3 decimal places.
+--------------------
+attribute_numerical_precision
+Precision
+The precision of the measurement.
+
+Precision indicates how close together or how repeatable measurements are. A precise measuring instrument will give very nearly the same result each time it is used. This means that someone interpreting the data should expect that if a measurement were repeated, most measured values would fall within the interval specified by the precision. The value of precision should be expressed in the same unit as the measurement. For example, for an attribute with unit "meter", a precision of "0.1" would be interpreted to mean that most repeat measurements would fall within an interval of 1/10th of a meter.
+--------------------
+attribute_storage_type
+Storage Type
+<b>Storage Type</b> provides a "hint" for processing systems as to how the attribute might be represented in a system or language. Values for this field are by default drawn from the XML Schema data types standard values, such as: integer, double, string, etc.
+
+<b>Storage Type System</b> specifies the system used to define the storage types. It should be an identifier of a well known and published typing system. The default and recommended system is the XML Schema data type system. For details go to http://www.w3.org. If another system is used (such as Java or C++ types), <b>Storage Type System</b> should be changed accordingly.
+--------------------
 award
 Funding Award
 Information on a funding award associated with the project.

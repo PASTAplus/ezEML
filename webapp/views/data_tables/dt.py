@@ -754,7 +754,9 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
                                         break
 
     set_current_page('data_table')
-    return render_template('attribute_datetime.html', title='Attribute', form=form)
+    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
+                      'attribute_datetime_precision', 'attribute_datetime_format'])
+    return render_template('attribute_datetime.html', title='Attribute', form=form, help=help)
 
 
 def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
@@ -1000,13 +1002,15 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
         for name, desc in session['custom_units'].items():
             custom_unit_names.append(name)
             custom_unit_descriptions.append(desc)
+    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type', 'attribute_numerical_precision'])
     return render_template('attribute_numerical.html',
                            title='Attribute: Numerical',
                            form=form,
                            attribute_name=attribute_name,
                            mscale=mscale,
                            custom_unit_names=custom_unit_names,
-                           custom_unit_descriptions=custom_unit_descriptions)
+                           custom_unit_descriptions=custom_unit_descriptions,
+                           help=help)
 
 
 def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,
@@ -1300,19 +1304,22 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
 
     # if mscale
     set_current_page('data_table')
+    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
     if mscale == VariableType.CATEGORICAL.name:
         return render_template('attribute_categorical.html',
                                title='Categorical Attribute',
                                form=form,
                                attribute_name=attribute_name,
                                mscale=mscale,
-                               codes=codes)
+                               codes=codes,
+                               help=help)
     else:
         return render_template('attribute_text.html',
                                title='Text Attribute',
                                form=form,
                                attribute_name=attribute_name,
-                               mscale=mscale)
+                               mscale=mscale,
+                               help=help)
 
 
 def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node: Node = None,

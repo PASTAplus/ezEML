@@ -450,11 +450,15 @@ This document name will not appear in the EML itself. I.e., it is distinct from 
 --------------------
 other_entities
 Other Entities
-<b>Other Entities</b> are data entities other than data tables. They are identified by their names.
+<b>Other Entities</b> are data entities other than data tables that will be included in the data package. They are identified by their names.
 
-<b>Other Entities</b> descriptors can contain information about an entity's basic identity and its type.
+Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
+--------------------
+other_entity
+Other Entity
+An <b>Other Entity</b> is a data entity other than a data table that will be included in the data package. Other Entities are identified by their names.
 
-Example: Photograph of rocky intertidal plot 12 from Santa Cruz
+Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
 --------------------
 personnel
 Project Personnel

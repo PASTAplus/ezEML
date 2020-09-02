@@ -241,7 +241,8 @@ def other_entity(filename=None, node_id=None):
                         populate_other_entity_form(form, dt_node)
 
     set_current_page('other_entity')
-    return render_template('other_entity.html', title='Other Entity', form=form)
+    help = [get_help('other_entity')]
+    return render_template('other_entity.html', title='Other Entity', form=form, help=help)
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):

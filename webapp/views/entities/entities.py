@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for
+    Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
 )
 
 from webapp.home.views import (
@@ -134,6 +134,11 @@ def other_entity(filename=None, node_id=None):
         eml_node = load_eml(filename=filename)
 
         submit_type = None
+
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'other_entity is_dirty_form={is_dirty_form(form)} auto_save={auto_save}')
+
         if is_dirty_form(form) or auto_save:
             submit_type = 'Save Changes'
         # flash(f'submit_type: {submit_type}')

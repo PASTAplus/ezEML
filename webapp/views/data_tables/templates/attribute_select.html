@@ -15,7 +15,7 @@
                 <table class="table table-striped">
                     <tr>
                         <th>Column #</th>
-                        <th>Attribute Name</th>
+                        <th width="30%">Attribute Name</th>
                         <th>Variable Type&nbsp;{{ macros.help_button(help_measurement_scale_btn) }}</th>
 {#                        <th>Measurement<br>Scale</th>#}
                         <th colspan="3"></th>
@@ -29,7 +29,7 @@
                             {{ macros.up_down_arrow(att_entry.id, att_entry.upval) }}
                             {{ macros.up_down_arrow(att_entry.id, att_entry.downval) }}
                         {% endif %}
-                        <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Edit"/>
+                        <td><input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Edit Attribute"/>
                             {% if not was_uploaded %}
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Remove"/>
                             {% endif %}

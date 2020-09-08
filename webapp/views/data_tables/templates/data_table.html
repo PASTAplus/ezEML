@@ -58,16 +58,66 @@
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.object_name) }}{{ macros.item_end(help_data_table_object_name_btn) }}
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_orientation) }}{{ macros.item_end(help_data_table_attribute_orientation_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.field_delimiter) }}{{ macros.item_end(help_data_table_field_delimiter_btn) }}
-                {{ macros.item_start() }}{{ wtf.form_field(form.size) }}{{ macros.item_end(help_data_table_size_btn) }}
-                {{ macros.item_start() }}{{ wtf.form_field(form.md5_hash) }}{{ macros.item_end(help_data_table_checksum_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.num_header_lines) }}{{ macros.item_end(help_data_table_header_lines_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.record_delimiter) }}{{ macros.item_end(help_data_table_record_delimiter_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.quote_character) }}{{ macros.item_end(help_data_table_quote_character_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.case_sensitive) }}{{ macros.item_end(help_data_table_case_sensitive_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
+                {{ macros.item_start() }}{{ wtf.form_field(form.size, attrs={'width': '50%'}) }}{{ macros.item_end(help_data_table_size_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                {{ macros.item_start() }}{{ wtf.form_field(form.md5_hash) }}{{ macros.item_end(help_data_table_checksum_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.number_of_records) }}{{ macros.item_end(help_data_table_number_of_records_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.online_url) }}{{ macros.item_end(help_data_table_online_url_btn) }}
+                </td>
+                </tr>
+                </table>
+
                 <br/>
                 <h4>Attributes:</h4>
                 {{ atts }}

@@ -26,22 +26,33 @@
                     <td width="100%">{{ wtf.form_field(form.geographic_description, rows=6) }}</td>
                     <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_geographic_description_btn) }}</td>
                 </table>
-                <table width="100%">
-                    <td width="100%">{{ wtf.form_field(form.wbc) }}</td>
-                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
+
+                <table>
+                <tr>
+                <td class="table_cell">{{ wtf.form_field(form.wbc) }}</td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                    <table width="100%">
+                        <td width="100%">{{ wtf.form_field(form.ebc) }}</td>
+                        <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
+                    </table>
+                </td>
+                </tr>
                 </table>
-                <table width="100%">
-                    <td width="100%">{{ wtf.form_field(form.ebc) }}</td>
-                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
+
+                <table>
+                <tr>
+                <td class="table_cell">{{ wtf.form_field(form.nbc) }}</td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                    <table width="100%">
+                        <td width="80%">{{ wtf.form_field(form.sbc) }}</td>
+                        <td width="10%"></td>
+                    </table>
+                </td>
+                </tr>
                 </table>
-                <table width="100%">
-                    <td width="100%">{{ wtf.form_field(form.nbc) }}</td>
-                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
-                </table>
-                <table width="100%">
-                    <td width="100%">{{ wtf.form_field(form.sbc) }}</td>
-                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_coordinates_btn) }}</td>
-                </table>
+
                 <br>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>

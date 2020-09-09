@@ -25,9 +25,23 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.salutation) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.gn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.mn) }}
+                </td>
+                </tr>
+                </table>
+
                 {% if not role %}
                     <h5 style="color: steelblue;font-style: italic">At least one of the following is required: Last Name, Organization, or Position Name.</h5>
                 {% else %}
@@ -46,16 +60,56 @@
                 {% if role %}
                 {{ wtf.form_field(form.role) }}
                 {% endif %}
+{#                {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}#}
+{#                {{ wtf.form_field(form.email) }}#}
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.email) }}
+                </td>
+                </tr>
+                </table>
+
                 {{ wtf.form_field(form.address_1) }}
                 {{ wtf.form_field(form.address_2) }}
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.city) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.state) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.postal_code) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.country) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.phone) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.fax) }}
+                </td>
+                </tr>
+                </table>
+
                 {{ wtf.form_field(form.online_url) }}
                 {% if not save_and_continue %}
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>

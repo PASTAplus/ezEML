@@ -1,0 +1,6 @@
+.table-bordered {
+    border: 1px solid black;
+}
+.table_cell {
+    width: 500px;
+}

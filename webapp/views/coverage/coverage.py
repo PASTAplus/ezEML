@@ -28,7 +28,7 @@ from webapp.views.coverage.forms import (
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, compare_begin_end_dates, get_help
+from webapp.home.views import select_post, compare_begin_end_dates, get_help, get_helps
 from metapype.eml import names
 from metapype.model.node import Node
 from webapp.home.views import set_current_page
@@ -380,7 +380,7 @@ def taxonomic_coverage_select(filename=None):
                            txc_list=txc_list, form=form, help=help)
 
 
-def fill_taxonomic_coverage(taxon, source_type):
+def fill_taxonomic_coverage(taxon, source_type, source_name):
     # taxon = form.taxon_value.data
     hierarchy = []
     if not taxon:
@@ -394,7 +394,10 @@ def fill_taxonomic_coverage(taxon, source_type):
         raise ValueError('No source specified')
     hierarchy = source.fill_common_names(source.fill_hierarchy(taxon))
     if not hierarchy:
-        raise ValueError(f'Taxon {taxon} not found')
+        in_str = ''
+        if source_name:
+            in_str = f' in {source_name}'
+        raise ValueError(f'Taxon {taxon} not found{in_str}')
     return hierarchy
 
 
@@ -422,7 +425,12 @@ def taxonomic_coverage(filename=None, node_id=None):
             elif source == "WORMS":
                 source_type = TaxonomySourceEnum.WORMS
             try:
-                hierarchy = fill_taxonomic_coverage(form.taxon_value.data, source_type)
+                source_name = ''
+                for choice in form.taxonomic_authority.choices:
+                    if choice[0] == source:
+                        source_name = choice[1]
+                        break
+                hierarchy = fill_taxonomic_coverage(form.taxon_value.data, source_type, source_name)
                 # set the taxon rank dropdown appropriately
                 if hierarchy:
                     rank = hierarchy[0][0]
@@ -435,12 +443,14 @@ def taxonomic_coverage(filename=None, node_id=None):
             form.hidden_taxon_rank.data = form.taxon_rank.data
             form.hidden_taxon_value.data = form.taxon_value.data
             form.hidden_taxonomic_authority.data = form.taxonomic_authority.data
+            help = get_helps(['taxonomic_coverage_fill_hierarchy'])
 
             return render_template('taxonomic_coverage_3.html', title='Taxonomic Coverage', form=form,
                                    hierarchy=hierarchy,
                                    taxon_rank=form.taxon_rank.data,
                                    taxon_value=form.taxon_value.data,
-                                   taxonomic_authority=form.taxonomic_authority.data)
+                                   taxonomic_authority=form.taxonomic_authority.data,
+                                   help=help)
 
         form_dict = form_value.to_dict(flat=False)
         new_page = PAGE_TAXONOMIC_COVERAGE_SELECT
@@ -531,9 +541,11 @@ def taxonomic_coverage(filename=None, node_id=None):
                         if node_id == txc_node.id:
                             have_links = populate_taxonomic_coverage_form(form, txc_node)
 
+    help = get_helps(['taxonomic_coverage_fill_hierarchy'])
+
     set_current_page('taxonomic_coverage')
     return render_template('taxonomic_coverage_3.html', title='Taxonomic Coverage', form=form,
-                           hierarchy=form.hierarchy.data, have_links=have_links)
+                           hierarchy=form.hierarchy.data, have_links=have_links, help=help)
 
 
 def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):

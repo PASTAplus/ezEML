@@ -540,7 +540,17 @@ taxonomic_coverages
 Taxonomic Coverage
 <b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study.
 
-The lowest available level, preferably the species binomial and common name should always be included, but higher-level taxa should also be included to support broader taxonomic searches.
+The lowest available level, preferably the species binomial and common name should always be included, but higher-level taxa should also be included to support broader taxonomic searches. ezEML can fill in the higher-level taxa for you by accessing a taxonomic authority online.
+--------------------
+taxonomic_coverage_fill_hierarchy
+Fill Hierarchy
+<b>Fill Hierarchy</b> retrieves and lists the higher-level taxa associated with a given taxon.
+
+Enter the Taxon Name for the most specific relevant taxon (e.g., species or genus), select a taxonomic authority to access, and click <b>Fill Hierarchy</b>. ezEML will send requests to the selected taxonomic authority to retrieve the higher-level taxa, any associated common names, and the taxon ID for each. The taxon IDs let ezEML construct links to the corresponding pages on the taxonomic authority website.
+
+The Taxon Name you enter should be the scientific name for the taxon, not a common name.
+
+If the specified taxon is found in the taxonomic authority database, the Taxon Rank will be set appropriately. I.e., if you are going to use <b>Fill Hierarchy</b>, you don't need to worry about getting the taxon rank right. The Taxon Rank selection list is there to cover cases where the taxon is not known to the supported taxonomic authorities. In such cases, you can still click <b>Save and Continue</b> and the taxon rank and taxon name will be saved in the EML exactly as you've entered them.
 --------------------
 temporal_coverages
 Temporal Coverage

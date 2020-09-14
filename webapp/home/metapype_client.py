@@ -607,7 +607,8 @@ def compose_taxonomic_label(txc_node:Node=None, label:str=''):
         trv_node = tc_node.find_child(names.TAXONRANKVALUE)
         if trv_node:
             val = trv_node.content
-        new_label = label + ' ' + val if label else val
+        # new_label = label + ' ' + val if label else val
+        new_label = val
         return compose_taxonomic_label(tc_node, new_label)
     else:
         return label
@@ -1795,20 +1796,8 @@ def create_temporal_coverage(
 def create_taxonomic_coverage(
                 taxonomic_coverage_node:Node,
                 general_taxonomic_coverage:str,
-                kingdom_value:str,
-                kingdom_common_name:str,
-                phylum_value:str,
-                phylum_common_name:str,
-                class_value:str,
-                class_common_name:str,
-                order_value:str,
-                order_common_name:str,
-                family_value:str,
-                family_common_name:str,
-                genus_value:str,
-                genus_common_name:str,
-                species_value:str,
-                species_common_name:str):
+                hierarchy,
+                authority):
     try:
         if taxonomic_coverage_node:
             if general_taxonomic_coverage:
@@ -1817,82 +1806,30 @@ def create_taxonomic_coverage(
                 general_taxonomic_coverage_node.content = general_taxonomic_coverage
 
             taxonomic_classification_parent_node = taxonomic_coverage_node
-            
-            if kingdom_value:
-                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxon_rank_name_node.content = 'Kingdom'
-                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = kingdom_value
-                if kingdom_common_name:
-                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
-                    common_name_node.content=kingdom_common_name
-                taxonomic_classification_parent_node = taxonomic_classification_node
 
-            if phylum_value:
+            for taxon_rank, taxon_name, common_name, taxon_id, link, provider in hierarchy[::-1]:
                 taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
                 taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxon_rank_name_node.content = 'Phylum'
+                taxon_rank_name_node.content = taxon_rank
                 taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = phylum_value
-                if phylum_common_name:
+                taxon_rank_value_node.content = taxon_name
+                if common_name:
                     common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
-                    common_name_node.content = phylum_common_name
-                taxonomic_classification_parent_node = taxonomic_classification_node
-
-            if class_value:
-                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxon_rank_name_node.content = 'Class'
-                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = class_value
-                if class_common_name:
-                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
-                    common_name_node.content = class_common_name
-                taxonomic_classification_parent_node = taxonomic_classification_node
-
-            if order_value:
-                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxon_rank_name_node.content = 'Order'
-                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = order_value
-                if order_common_name:
-                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
-                    common_name_node.content = order_common_name
-                taxonomic_classification_parent_node = taxonomic_classification_node
-
-            if family_value:
-                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxon_rank_name_node.content = 'Family'
-                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = family_value
-                if family_common_name:
-                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
-                    common_name_node.content = family_common_name
-                taxonomic_classification_parent_node = taxonomic_classification_node
-
-            if genus_value:
-                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxon_rank_name_node.content = 'Genus'
-                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = genus_value
-                if genus_common_name:
-                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
-                    common_name_node.content = genus_common_name
-                taxonomic_classification_parent_node = taxonomic_classification_node
-
-            if species_value:
-                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
-                taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
-                taxon_rank_name_node.content = 'Species'
-                taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = species_value
-                if species_common_name:
-                    common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
-                    common_name_node.content = species_common_name
+                    common_name_node.content = common_name
+                if taxon_id and authority:
+                    taxon_id_node = new_child_node(names.TAXONID, parent=taxonomic_classification_node)
+                    taxon_id_node.content = taxon_id
+                    if authority == 'EOL':
+                        provider_uri = "https://eol.org"
+                    elif authority == 'ITIS':
+                        provider_uri = "https://www.itis.gov"
+                    elif authority == 'NCBI':
+                        provider_uri = "https://www.ncbi.nlm.nih.gov/taxonomy"
+                    elif authority == "PLANTS":
+                        provider_uri = "https://plants.usda.gov"
+                    elif authority == 'WORMS':
+                        provider_uri = "http://www.marinespecies.org"
+                    taxon_id_node.add_attribute(names.PROVIDER, provider_uri)
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
         return taxonomic_coverage_node

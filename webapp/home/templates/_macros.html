@@ -2,7 +2,7 @@
     {% if val == '' %}
     <td></td>
     {% else %}
-    <td style="width:5%"><input class="btn btn-primary" name="{{ id }}" type="submit" value="{{ val }}"/></td>
+    <td style="width:3%"><input class="btn btn-primary" name="{{ id }}" type="submit" value="{{ val }}"/></td>
     {% endif %}
 {% endmacro %}
 {% macro hidden_buttons() %}
@@ -40,6 +40,11 @@
                     </td>
                     <td valign="top" style="padding-top: 30px;">{{ help_button(help_id) }}</td>
                 </table>
+{% endmacro %}
+{% macro taxon_link(link) %}
+    {% if link %}
+        <a href="{{ link }}" target="_taxon_link">External Link</a>
+    {% endif %}
 {% endmacro %}
 {% macro help_script(dialog_id, btn_id) %}
         var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({

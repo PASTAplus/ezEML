@@ -1,7 +1,8 @@
 from wtforms import (
     StringField,
     FloatField,
-    HiddenField
+    HiddenField,
+    SelectField
 )
 
 from wtforms.validators import (
@@ -45,38 +46,65 @@ class TaxonomicCoverageSelectForm(EDIForm):
 
 class TaxonomicCoverageForm(EDIForm):
     general_taxonomic_coverage = StringField('General Taxonomic Coverage (Optional)', widget=TextArea(), validators=[])
-    kingdom_value = StringField('Kingdom', validators=[])
-    kingdom_common_name = StringField('Common Name', validators=[])
-    phylum_value =  StringField('Phylum', validators=[])
-    phylum_common_name = StringField('Common Name', validators=[])
-    class_value = StringField('Class', validators=[])
-    class_common_name = StringField('Common Name', validators=[])
-    order_value = StringField('Order', validators=[])
-    order_common_name = StringField('Common Name', validators=[])
-    family_value = StringField('Family', validators=[])
-    family_common_name = StringField('Common Name', validators=[])
-    genus_value = StringField('Genus', validators=[])
-    genus_common_name = StringField('Common Name', validators=[])
-    species_value = StringField('Species', validators=[])
-    species_common_name = StringField('Common Name', validators=[])
+    taxon_rank = SelectField('Taxon Rank', choices=[
+        ('Subspecies', 'Subspecies'),
+        ('Species', 'Species'),
+        ('Subgenus', 'Subgenus'),
+        ('Genus', 'Genus'),
+        ('Subfamily', 'Subfamily'),
+        ('Family', 'Family'),
+        ('Superfamily', 'Superfamily'),
+        ('Infraorder', 'Infraorder'),
+        ('Suborder', 'Suborder'),
+        ('Order', 'Order'),
+        ('Superorder', 'Superorder'),
+        ('Infraclass', 'Infraclass'),
+        ('Subclass', 'Subclass'),
+        ('Class', 'Class'),
+        ('Superclass', 'Superclass'),
+        ('Infraphylum', 'Infraphylum'),
+        ('Subphylum', 'Subphylum'),
+        ('Subdivision', 'Subdivision'),
+        ('Subphylum (Subdivision)', 'Subphylum (Subdivision)'),
+        ('Phylum', 'Phylum'),
+        ('Division', 'Division'),
+        ('Phylum (Division)', 'Phylum (Division)'),
+        ('Superphylum', 'Superphylum'),
+        ('Infrakingdom', 'Infrakingdom'),
+        ('Subkingdom', 'Subkingdom'),
+        ('Kingdom', 'Kingdom'),
+        ('Domain', 'Domain'),
+        ('Superdomain', 'Superdomain')
+    ], default='Species'
+    )
+    taxon_value = StringField('Taxon Name', validators=[])
+    hierarchy = HiddenField('')
+    taxonomic_authority = SelectField("Taxonomic Authority", choices=[
+        ("ITIS", "ITIS - Integrated Taxonomic Information System"),
+        ("WORMS", "WORMS - World Register of Marine Species")])
     md5 = HiddenField('')
+    hidden_taxon_rank = HiddenField('')
+    hidden_taxon_value = HiddenField('')
+    hidden_taxonomic_authority = HiddenField('')
 
     def field_data(self)->tuple:
         return (self.general_taxonomic_coverage.data,
-                self.kingdom_value.data,
-                self.kingdom_common_name.data,
-                self.phylum_value.data,
-                self.phylum_common_name.data,
-                self.class_value.data,
-                self.class_common_name.data,
-                self.order_value.data,
-                self.order_common_name.data,
-                self.family_value.data,
-                self.family_common_name.data,
-                self.genus_value.data,
-                self.genus_common_name.data,
-                self.species_value.data,
-                self.species_common_name.data)
+                self.taxon_value,
+                self.hierarchy)
+                # self.kingdom_value.data,
+                # self.kingdom_common_name.data,
+                # self.phylum_value.data,
+                # self.phylum_common_name.data,
+                # self.class_value.data,
+                # self.class_common_name.data,
+                # self.order_value.data,
+                # self.order_common_name.data,
+                # self.family_value.data,
+                # self.family_common_name.data,
+                # self.genus_value.data,
+                # self.genus_common_name.data,
+                # self.species_value.data,
+                # self.species_common_name.data)
 
 
 class TemporalCoverageSelectForm(EDIForm):

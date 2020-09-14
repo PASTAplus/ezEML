@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h2>Taxonomic Coverage</h2>
+{#    <div class="row">#}
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                <h5>Enter a description of the range of taxa addressed in the data set or collection.
+                    For example, "All vascular plants were identified to family or species, mosses and lichens
+                    were identified as moss or lichen.":</h5>
+                {{ wtf.form_field(form.general_taxonomic_coverage, rows=5) }}
+                <h5>Enter the most specific relevant taxon, below, then click "Fill Hierarchy." Filling the hierarchy will take a few seconds.</h5>
+                <table border="0">
+                    <tr width="60%">
+                        <td width="15%" style="padding-top: 0px;">{{ wtf.form_field(form.taxon_rank) }}</td>
+                        <td width="1%">&nbsp;</td>
+                        <td width="20%" style="padding-top: 0px;">{{ wtf.form_field(form.taxon_value) }}</td>
+                        <td width="1%">&nbsp;</td>
+                        <td width="63%">
+                            <table width="100%"><tr>
+                            <td valign="bottom" width="80%">{{ wtf.form_field(form.taxonomic_authority) }}</td>
+                            <td width="2%">&nbsp;</td>
+                            <td valign="middle" style="padding-top: 10px;"><input class="btn btn-primary" onclick="document.getElementById('spinner').style.visibility='visible';" name="Fill" type="submit" value="Fill Hierarchy"/></td>
+                            </tr></table>
+                        </td>
+                    </tr>
+                </table>
+                <div id="spinner" style="visibility: hidden;margin: auto;position: relative;z-index: 1000;" class="loader"></div>
+
+                {% if hierarchy %}
+                <table id="taxonomy" width="100%">
+                    {% if have_links %}
+                    <tr><th width="25%">Taxon Rank</th><th width="30%">Taxon Name</th><th width="25%">Common Name</th><th width="20%">Links</th></tr>
+                    {% else %}
+                    <tr><th width="25%">Taxon Rank</th><th width="25%">Taxon Name</th><th width="25%">Common Name</th></tr>
+                    {% endif %}
+                    {% for taxon in hierarchy %}
+                        {% if have_links %}
+                        <tr><td>{{ taxon[0] }}</td><td>{{ taxon[1] }}</td><td>{{ taxon[2] }}</td><td>{{ macros.taxon_link(taxon[4]) }}</td></tr>
+                        {% else %}
+                        <tr><td>{{ taxon[0] }}</td><td>{{ taxon[1] }}</td><td>{{ taxon[2] }}</td></tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+                {% endif %}
+                <br/>
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_new_open_close_buttons() }}
+                {{ form.csrf_token }} {{ wtf.form_field(form.md5) }} {{ wtf.form_field(form.hierarchy) }} {{ wtf.form_field(form.hidden_taxon_rank) }} {{ wtf.form_field(form.hidden_taxon_value) }} {{ wtf.form_field(form.hidden_taxonomic_authority) }}
+            </form>
+        </div>
+{#    </div>#}
+{% endblock %}

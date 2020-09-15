@@ -185,7 +185,9 @@ data_package_id
 Data Package ID
 EML requires a data package to have a <b>Data Package ID</b>. The particular form and value of the Data Package ID is determined by the data repository where the data package will be submitted. Contact your data repository for an appropriate value.
 
-If your data package will be submitted to the repository hosted by the Environmental Data Initiative (EDI), please contact <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a> to obtain a data package ID.
+If your data package will be submitted to the repository hosted by the Environmental Data Initiative (EDI), you can email <a href="mailto:info@environmentaldatainitiative.org">info@environmentaldatainitiative.org</a> to request a data package ID.
+
+Alternatively, you can reserve a data package ID in the EDI scope yourself via the <a href="https://portal.edirepository.org/nis/home.jsp" target="_blank"><b>EDI Data Portal</b></a>. You will need to log in, then go to "Data Package Identifier Reservations" under the "Tools" menu. If you have never used the Data Portal before, we will be happy to walk you through the process. Just email us at <a href="mailto:info@environmentaldatainitiative.org">info@environmentaldatainitiative.org</a>.</p>
 --------------------
 data_table
 Data Table

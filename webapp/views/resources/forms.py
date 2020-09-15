@@ -82,5 +82,5 @@ class TitleForm(EDIForm):
 
 
 class DataPackageIDForm(EDIForm):
-    data_package_id = StringField('Data Package ID', validators=[])
+    data_package_id = StringField('Data Package ID *', validators=[])
     md5 = HiddenField('')

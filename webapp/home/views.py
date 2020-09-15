@@ -538,6 +538,8 @@ def get_redirect_target_page():
         return PAGE_DATA_TABLE_SELECT
     elif current_page == 'other_entity':
         return PAGE_OTHER_ENTITY_SELECT
+    elif current_page == 'check_metadata':
+        return PAGE_CHECK
     elif current_page == 'data_package_id':
         return PAGE_DATA_PACKAGE_ID
     else:
@@ -842,6 +844,12 @@ def display_decode_error_lines(filename):
         if "�" in line:
             errors.append((index, line))
     return errors
+
+
+@home.route('/submit_package', methods=['GET', 'POST'])
+@login_required
+def submit_package():
+    return render_template('submit_package.html', back_url=get_back_url())
 
 
 @home.route('/load_data', methods=['GET', 'POST'])

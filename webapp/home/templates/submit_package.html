@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h4 align="left">Submitting Your Data Package to EDI</h4>
+
+    <p>&nbsp;</p>
+    <p>After you have created and downloaded your EML metadata file, you may want to submit your data package to the data repository
+        hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
+        There are a couple of ways to do this.</p>
+
+    <p>The easier way is to zip up your EML file and all of the data files comprising your data package and send an email to
+        <a href="mailto:info@environmentaldatainitiative.org">info@environmentaldatainitiative.org</a> with the zip file attached,
+        requesting our assistance in publishing your data package in the EDI repository. We will be glad to help.</p>
+
+    <p>Alternatively, you can submit the data package yourself via the <a href="https://portal.edirepository.org/nis/home.jsp" target="_blank"><b>EDI Data Portal</b></a>.
+        You will need to log in, then go to "Evaluate/Upload Data Packages" under the "Tools" menu. You will want to select the option to manually upload data from your
+    local file system. If you have never used the Data Portal before, we will be happy to walk you through the process. Just email us at <a href="mailto:info@environmentaldatainitiative.org">info@environmentaldatainitiative.org</a>.</p>
+    <br>
+    <b><a href={{ back_url }}>Back</a></b>
+
+{% endblock %}

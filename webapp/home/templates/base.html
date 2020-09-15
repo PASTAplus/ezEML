@@ -244,6 +244,7 @@
             {% set data_package_id_style = '""' %}
             {% set check_metadata_style = '""' %}
             {% set download_eml_style = '""' %}
+            {% set submit_package_style = '""' %}
 
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
@@ -291,6 +292,7 @@
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a><br>
         <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>
+        <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Submit to EDI</a><br>
 
         {% endif %}
     </div>

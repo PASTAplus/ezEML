@@ -1,10 +1,13 @@
 import json
+from lxml import etree
+from lxml.etree import fromstring
 import requests
 
 from enum import Enum, auto
 
 class TaxonomySourceEnum(Enum):
     ITIS = auto()
+    NCBI = auto()
     WORMS = auto()
 
 class TaxonomySource:
@@ -15,10 +18,13 @@ class TaxonomySource:
     def prune_hierarchy(self, hierarchy):
         pruned = []
         for rank_name, taxon_name, taxon_id, link, provider in hierarchy:
-            # if rank_name.lower() not in ('kingdom', 'phylum', 'division', 'class', 'order', 'family', 'genus', 'species'):
-            #     continue
-            # if rank_name.lower() == 'division':
-            #     rank_name = 'Phylum'
+            if rank_name.capitalize() not in (
+                    'Subspecies', 'Species', 'Subgenus', 'Genus', 'Subfamily', 'Family', 'Superfamily',
+                    'Infraorder', 'Suborder', 'Order', 'Superorder', 'Infraclass', 'Subclass', 'Class',
+                    'Superclass', 'Infraphylum', 'Subphylum', 'Subdivision', 'Subphylum (Subdivision)',
+                    'Phylum', 'Division', 'Phylum (Division)', 'Superphylum', 'Infrakingdom', 'Subkingdom',
+                    'Kingdom', 'Domain', 'Superdomain'):
+                continue
             pruned.append((rank_name, taxon_name, taxon_id, link, provider))
         return pruned
 
@@ -125,3 +131,69 @@ class WORMSTaxonomy(TaxonomySource):
                     return rec.get('vernacular')
         return ''
 
+
+class NCBITaxonomy(TaxonomySource):
+
+    # FIXME - get api_key from config file
+    def __init__(self, api_key='c75b4a9d0b39da79a3f180e82d18b8246f08'):
+        super().__init__(TaxonomySourceEnum.NCBI)
+        self.api_key = api_key
+
+    def search_by_sciname(self, name):
+        r = requests.get(
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&api_key={self.api_key}&term={name}')
+        return r.text
+
+    def get_taxon_id(self, name):
+        xml = self.search_by_sciname(name)
+        if xml:
+            parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
+            tree = fromstring(xml.encode('utf-8'), parser=parser)
+            id = tree.xpath("//IdList/Id")
+            return id[0].text
+        return None
+
+    def fetch_by_taxon_id(self, id):
+        r = requests.get(
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}')
+        return r.text
+
+    def get_summary_by_taxon_id(self, id):
+        r = requests.get(
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}')
+        return r.text
+
+    def fill_hierarchy(self, name):
+        hierarchy = []
+        parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
+        id = self.get_taxon_id(name)
+        while id:
+            rec = self.fetch_by_taxon_id(id)
+            if rec:
+                tree = fromstring(rec.encode('utf-8'), parser=parser)
+                if not tree:
+                    break
+                try:
+                    parent_id = tree.xpath("//TaxaSet/Taxon/ParentTaxId")[0].text
+                    rank_name = tree.xpath("//TaxaSet/Taxon/Rank")[0].text
+                    taxon_name = tree.xpath("//TaxaSet/Taxon/ScientificName")[0].text
+                    link = f'https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={id}'
+                    provider = 'NCBI'
+                    hierarchy.append((rank_name, taxon_name, id, link, provider))
+                    id = parent_id
+                except Exception as e:
+                    break
+            else:
+                break
+        return self.prune_hierarchy(hierarchy)
+
+    def get_common_name_by_id(self, id):
+        r = requests.get(
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}')
+        parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
+        tree = fromstring(r.text.encode('utf-8'), parser=parser)
+        common_name = tree.xpath("//DocSum/Item[@Name='CommonName']")[0].text
+        if not common_name:
+            return ''
+        else:
+            return common_name

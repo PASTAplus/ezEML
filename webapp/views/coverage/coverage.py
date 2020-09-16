@@ -12,7 +12,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.views.coverage.taxonomy import (
-    TaxonomySourceEnum, TaxonomySource, ITISTaxonomy, WORMSTaxonomy
+    TaxonomySourceEnum, ITISTaxonomy, NCBITaxonomy, WORMSTaxonomy
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -388,6 +388,8 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
 
     if source_type == TaxonomySourceEnum.ITIS:
         source = ITISTaxonomy()
+    elif source_type == TaxonomySourceEnum.NCBI:
+        source = NCBITaxonomy()
     elif source_type == TaxonomySourceEnum.WORMS:
         source = WORMSTaxonomy()
     if not source:
@@ -422,6 +424,8 @@ def taxonomic_coverage(filename=None, node_id=None):
             source = form.taxonomic_authority.data
             if source == 'ITIS':
                 source_type = TaxonomySourceEnum.ITIS
+            elif source == 'NCBI':
+                    source_type = TaxonomySourceEnum.NCBI
             elif source == "WORMS":
                 source_type = TaxonomySourceEnum.WORMS
             try:
@@ -431,11 +435,17 @@ def taxonomic_coverage(filename=None, node_id=None):
                         source_name = choice[1]
                         break
                 hierarchy = fill_taxonomic_coverage(form.taxon_value.data, source_type, source_name)
-                # set the taxon rank dropdown appropriately
+                have_links = False
                 if hierarchy:
+                    # set the taxon rank dropdown appropriately
                     rank = hierarchy[0][0]
                     if (rank, rank) in form.taxon_rank.choices:
                         form.taxon_rank.data = rank
+                    # see if we should display a Links column
+                    for taxon in hierarchy:
+                        if taxon[4]:
+                            have_links = True
+                            break
             except ValueError as e:
                 flash(str(e))
                 hierarchy = [(form.taxon_rank.data, form.taxon_value.data, '', '')]
@@ -445,12 +455,13 @@ def taxonomic_coverage(filename=None, node_id=None):
             form.hidden_taxonomic_authority.data = form.taxonomic_authority.data
             help = get_helps(['taxonomic_coverage_fill_hierarchy'])
 
-            return render_template('taxonomic_coverage_3.html', title='Taxonomic Coverage', form=form,
+            return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form,
                                    hierarchy=hierarchy,
                                    taxon_rank=form.taxon_rank.data,
                                    taxon_value=form.taxon_value.data,
                                    taxonomic_authority=form.taxonomic_authority.data,
-                                   help=help)
+                                   help=help,
+                                   have_links=have_links)
 
         form_dict = form_value.to_dict(flat=False)
         new_page = PAGE_TAXONOMIC_COVERAGE_SELECT
@@ -544,7 +555,7 @@ def taxonomic_coverage(filename=None, node_id=None):
     help = get_helps(['taxonomic_coverage_fill_hierarchy'])
 
     set_current_page('taxonomic_coverage')
-    return render_template('taxonomic_coverage_3.html', title='Taxonomic Coverage', form=form,
+    return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form,
                            hierarchy=form.hierarchy.data, have_links=have_links, help=help)
 
 
@@ -606,6 +617,9 @@ def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
                 if provider_uri == "https://www.itis.gov":
                     link = f'https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value={taxon_id}'
                     provider = 'ITIS'
+                elif provider_uri == "https://www.ncbi.nlm.nih.gov/taxonomy":
+                    link = f'https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={taxon_id}'
+                    provider = 'NCBI'
                 elif provider_uri == "http://www.marinespecies.org":
                     link = f'http://marinespecies.org/aphia.php?p=taxdetails&id={taxon_id}'
                     provider = 'WORMS'

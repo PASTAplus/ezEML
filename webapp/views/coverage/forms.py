@@ -81,6 +81,7 @@ class TaxonomicCoverageForm(EDIForm):
     hierarchy = HiddenField('')
     taxonomic_authority = SelectField("Taxonomic Authority", choices=[
         ("ITIS", "ITIS - Integrated Taxonomic Information System"),
+        ("NCBI", "NCBI - National Center for Biotechnology Information"),
         ("WORMS", "WORMS - World Register of Marine Species")])
     md5 = HiddenField('')
     hidden_taxon_rank = HiddenField('')

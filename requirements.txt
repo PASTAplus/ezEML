@@ -17,7 +17,7 @@ itsdangerous==1.1.0
 Jinja2==2.11.2
 lxml~=4.5.0
 MarkupSafe==1.1.1
-metapype~=2020.7.21
+metapype~=2020.09.14
 mkl-fft==1.0.15
 mkl-random==1.1.1
 mkl-service==2.3.0

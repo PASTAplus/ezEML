@@ -25,7 +25,7 @@ class TaxonomySource:
                     'Phylum', 'Division', 'Phylum (Division)', 'Superphylum', 'Infrakingdom', 'Subkingdom',
                     'Kingdom', 'Domain', 'Superdomain'):
                 continue
-            pruned.append((rank_name, taxon_name, taxon_id, link, provider))
+            pruned.append((rank_name.capitalize(), taxon_name, taxon_id, link, provider))
         return pruned
 
     def get_common_name_by_id(self, taxon_id):

@@ -438,7 +438,7 @@ def taxonomic_coverage(filename=None, node_id=None):
                 have_links = False
                 if hierarchy:
                     # set the taxon rank dropdown appropriately
-                    rank = hierarchy[0][0]
+                    rank = hierarchy[0][0].capitalize()
                     if (rank, rank) in form.taxon_rank.choices:
                         form.taxon_rank.data = rank
                     # see if we should display a Links column
@@ -571,8 +571,9 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
 
     first_taxon = hierarchy[-1]
     form.taxon_value.data = first_taxon[1]
-    if (first_taxon[0], first_taxon[0]) in form.taxon_rank.choices:
-        form.taxon_rank.data = first_taxon[0]
+    taxon_rank = first_taxon[0].capitalize()
+    if (taxon_rank, taxon_rank) in form.taxon_rank.choices:
+        form.taxon_rank.data = taxon_rank
     if first_taxon[5]:
         form.taxonomic_authority.data = first_taxon[5]
     have_links = False

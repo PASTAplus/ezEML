@@ -14,7 +14,10 @@
     {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
-    {% set help_attribute_numerical_precision_id, help_attribute_numerical_precision_title, help_attribute_numerical_precision_content = help[4] %}
+    {% set help_attribute_number_type_id, help_attribute_number_type_title, help_attribute_number_type_content = help[4] %}
+    {% set help_attribute_number_type_btn = help_attribute_number_type_id ~ '_btn' %}
+    {% set help_attribute_number_type_dialog = help_attribute_number_type_id ~ '_dialog' %}
+    {% set help_attribute_numerical_precision_id, help_attribute_numerical_precision_title, help_attribute_numerical_precision_content = help[5] %}
     {% set help_attribute_numerical_precision_btn = help_attribute_numerical_precision_id ~ '_btn' %}
     {% set help_attribute_numerical_precision_dialog = help_attribute_numerical_precision_id ~ '_dialog' %}
 
@@ -39,7 +42,7 @@
                     </tr>
                 </table>
                 <br/>
-                {{ wtf.form_field(form.number_type) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.number_type) }}{{ macros.item_end(help_attribute_number_type_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.precision) }}{{ macros.item_end(help_attribute_numerical_precision_btn) }}
 
                 <label class="control-label">Bounds (Optional):</label>
@@ -107,6 +110,7 @@
     {{ macros.help_dialog(help_attribute_definition_dialog, help_attribute_definition_title, help_attribute_definition_content) }}
     {{ macros.help_dialog(help_attribute_label_dialog, help_attribute_label_title, help_attribute_label_content) }}
     {{ macros.help_dialog(help_attribute_storage_type_dialog, help_attribute_storage_type_title, help_attribute_storage_type_content) }}
+    {{ macros.help_dialog(help_attribute_number_type_dialog, help_attribute_number_type_title, help_attribute_number_type_content) }}
     {{ macros.help_dialog(help_attribute_numerical_precision_dialog, help_attribute_numerical_precision_title, help_attribute_numerical_precision_content) }}
 {% endblock %}
 
@@ -124,7 +128,10 @@
     {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
-    {% set help_attribute_numerical_precision_id, help_attribute_numerical_precision_title, help_attribute_numerical_precision_content = help[4] %}
+    {% set help_attribute_number_type_id, help_attribute_number_type_title, help_attribute_number_type_content = help[4] %}
+    {% set help_attribute_number_type_btn = help_attribute_number_type_id ~ '_btn' %}
+    {% set help_attribute_number_type_dialog = help_attribute_number_type_id ~ '_dialog' %}
+    {% set help_attribute_numerical_precision_id, help_attribute_numerical_precision_title, help_attribute_numerical_precision_content = help[5] %}
     {% set help_attribute_numerical_precision_btn = help_attribute_numerical_precision_id ~ '_btn' %}
     {% set help_attribute_numerical_precision_dialog = help_attribute_numerical_precision_id ~ '_dialog' %}
     <script>
@@ -134,6 +141,7 @@
         {{ macros.help_script(help_attribute_definition_dialog, help_attribute_definition_btn) }}
         {{ macros.help_script(help_attribute_label_dialog, help_attribute_label_btn) }}
         {{ macros.help_script(help_attribute_storage_type_dialog, help_attribute_storage_type_btn) }}
+        {{ macros.help_script(help_attribute_number_type_dialog, help_attribute_number_type_btn) }}
         {{ macros.help_script(help_attribute_numerical_precision_dialog, help_attribute_numerical_precision_btn) }}
 
         let names = {{ custom_unit_names|tojson }};

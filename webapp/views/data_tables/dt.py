@@ -1002,7 +1002,8 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
         for name, desc in session['custom_units'].items():
             custom_unit_names.append(name)
             custom_unit_descriptions.append(desc)
-    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type', 'attribute_numerical_precision'])
+    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
+                      'attribute_number_type', 'attribute_numerical_precision'])
     return render_template('attribute_numerical.html',
                            title='Attribute: Numerical',
                            form=form,

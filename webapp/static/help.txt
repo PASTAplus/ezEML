@@ -93,6 +93,14 @@ A quantitative indication of the precision of a date or time value.
 
 The precision should be interpreted in the smallest units represented by the dateTime format. For example, if a dateTime value has a format of "hh:mm:ss.sss", then "seconds" are the smallest unit and the precision should be expressed in seconds. Thus, a precision value of "0.01" would mean that measurements were precise to the nearest hundredth of a second, even though the format string might indicate that values were written down with 3 decimal places.
 --------------------
+attribute_number_type
+Number Type
+The possible values for <b>Number Type</b> are as follows:<br>
+<b>Real</b> - Continuous quantities that can be represented by decimal values, e.g. 2.0, 3.14, -2.718, 42, 0<br>
+<b>Integer</b> - Positive or negative values that can be written without a fractional component, e.g., 3, -2, 127, 0<br>
+<b>Natural</b> - The "counting numbers": 1, 2, 3, etc.<br>
+<b>Whole</b> - The natural numbers plus the number zero, i.e., 0, 1, 2, 3, etc.
+--------------------
 attribute_numerical_precision
 Precision
 The precision of the measurement.

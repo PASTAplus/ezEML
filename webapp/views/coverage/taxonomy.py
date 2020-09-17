@@ -171,7 +171,7 @@ class NCBITaxonomy(TaxonomySource):
             rec = self.fetch_by_taxon_id(id)
             if rec:
                 tree = fromstring(rec.encode('utf-8'), parser=parser)
-                if not tree:
+                if tree is None:
                     break
                 try:
                     parent_id = tree.xpath("//TaxaSet/Taxon/ParentTaxId")[0].text

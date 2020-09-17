@@ -419,6 +419,7 @@ def taxonomic_coverage(filename=None, node_id=None):
         # flash(f'save: {save}')
 
         form_value = request.form
+        have_links = False
 
         if 'Fill' in form_value:
             source = form.taxonomic_authority.data
@@ -435,7 +436,6 @@ def taxonomic_coverage(filename=None, node_id=None):
                         source_name = choice[1]
                         break
                 hierarchy = fill_taxonomic_coverage(form.taxon_value.data, source_type, source_name)
-                have_links = False
                 if hierarchy:
                     # set the taxon rank dropdown appropriately
                     rank = hierarchy[0][0].capitalize()

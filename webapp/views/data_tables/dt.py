@@ -515,9 +515,9 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
                 node_id = key
                 attribute_node = Node.get_node_instance(node_id)
 
-                app = Flask(__name__)
-                with app.app_context():
-                    current_app.logger.info(f'dt_node_id={dt_node_id}')
+                # app = Flask(__name__)
+                # with app.app_context():
+                #     current_app.logger.info(f'dt_node_id={dt_node_id}')
 
                 # TEMP - for debugging - this will cause logging to happen
                 list_attributes(Node.get_node_instance(dt_node_id), 'attribute_select_post', dt_node_id)

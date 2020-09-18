@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h4>Illegal Characters Found</h4>
+<h5>{{ filename }} appears to contain one or more illegal characters.</h5>
+    <p></p>
+    <h5>Please correct the file and try again. For assistance, contact <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a>.</h5>
+    <br>
+    <b><a href="/eml/">Home</a></b>
+    <p>&nbsp;</p>
+    <h5>Errors (� indicates an illegal character):</h5>
+    <table>
+    {% for error in errors %}
+        <tr>
+        <td valign="top">Line {{ error[0]|safe }}:</td>
+            <td width="3%">&nbsp;</td>
+        <td>{{ error[1]|safe }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+
+{% endblock %}

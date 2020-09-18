@@ -8,6 +8,7 @@
 :Author:
     costa
     servilla
+    ide
 
 :Created:
     7/23/18
@@ -27,16 +28,20 @@ from flask_login import (
     current_user, login_required
 )
 
+import csv
+
 from webapp.auth.user_data import (
-    delete_eml, download_eml, get_active_packageid, get_user_document_list,
-    get_user_uploads_folder_name
+    delete_eml, download_eml, get_user_document_list, get_user_uploads_folder_name,
+    get_active_document, discard_data_table_upload_filename,
+    discard_data_table_upload_filenames_for_package, remove_active_file
 )
 
 from webapp.home.forms import ( 
     CreateEMLForm,
     DownloadEMLForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
-    LoadDataForm, LoadMetadataForm, LoadOtherEntityForm
+    LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
+    ImportEMLForm, ImportEMLItemsForm, ImportItemsForm
 )
 
 from webapp.home.load_data_table import (
@@ -46,8 +51,13 @@ from webapp.home.load_data_table import (
 from webapp.home.metapype_client import ( 
     load_eml, save_both_formats, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
-    save_old_to_new, read_xml, new_child_node
+    save_old_to_new, read_xml, new_child_node, truncate_middle,
+    compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
+    compose_funding_award_label, list_data_packages,
+    import_responsible_parties, import_coverage_nodes, import_funding_award_nodes
 )
+
+from webapp.home.check_metadata import check_eml
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -67,7 +77,20 @@ def non_breaking(_str):
     return _str.replace(' ', html.unescape('&nbsp;'))
 
 
-@home.before_app_request  # FIXME - temporary
+@home.before_app_request
+@home.before_app_first_request
+def load_eval_entries():
+    rows = []
+    with open('webapp/static/evaluate.csv') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            rows.append(row)
+    for row_num in range(1, len(rows)):
+        id, *vals = rows[row_num]
+        session[f'__eval__{id}'] = vals
+
+
+@home.before_app_request
 @home.before_app_first_request
 def init_keywords():
     lter_keywords = pickle.load(open('webapp/static/lter_keywords.pkl', 'rb'))
@@ -78,7 +101,7 @@ def get_keywords(which):
     return keywords.get(which, [])
 
 
-@home.before_app_request  # FIXME - temporary
+@home.before_app_request
 @home.before_app_first_request
 def init_help():
     lines = []
@@ -120,24 +143,28 @@ def get_help(id):
 def get_helps(ids):
     helps = []
     for id in ids:
-        title, content = help_dict.get(id)
-        helps.append((f'__help__{id}', title, content))
+        if id in help_dict:
+            title, content = help_dict.get(id)
+            helps.append((f'__help__{id}', title, content))
     return helps
 
 
 @home.route('/')
 def index():
     if current_user.is_authenticated:
-        current_packageid = get_active_packageid()
-        if current_packageid:
-            eml_node = load_eml(packageid=current_packageid)
+        current_document = get_active_document()
+        if current_document:
+            eml_node = load_eml(filename=current_document)
             if eml_node:
                 new_page = PAGE_TITLE
             else:
+                remove_active_file()
                 new_page = PAGE_FILE_ERROR
-            return redirect(url_for(new_page, packageid=current_packageid))
+            return redirect(url_for(new_page, filename=current_document))
     return render_template('index.html')
 
+
+#def clear_active_
 
 @home.route('/edit/<page>')
 def edit(page:str=None):
@@ -147,70 +174,89 @@ def edit(page:str=None):
     specified page, passing the packageid as the only parameter.
     '''
     if current_user.is_authenticated and page:
-        current_packageid = get_active_packageid()
-        if current_packageid:
-            eml_node = load_eml(packageid=current_packageid)
-            if eml_node:
-                new_page = page
-            else:
-                new_page = PAGE_FILE_ERROR
-            return redirect(url_for(new_page, packageid=current_packageid))
+        current_filename = get_active_document()
+        if current_filename:
+            eml_node = load_eml(filename=current_filename)
+            new_page = page if eml_node else PAGE_FILE_ERROR
+            return redirect(url_for(new_page, filename=current_filename))
     return render_template('index.html')
+
+
+def get_back_url():
+    url = url_for(PAGE_INDEX)
+    if current_user.is_authenticated:
+        new_page = get_redirect_target_page()
+        filename = get_active_document()
+        if new_page and filename:
+            url = url_for(new_page, filename=filename)
+    return url
 
 
 @home.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html', back_url=get_back_url())
 
 
-@home.route('/file_error/<packageid>')
-def file_error(packageid=None):
-    return render_template('file_error.html', packageid=packageid)
+@home.route('/user_guide')
+def user_guide():
+    return render_template('user_guide.html', back_url=get_back_url())
+
+
+@home.route('/encoding_error/<filename>')
+def encoding_error(filename=None, errors=None):
+    return render_template('encoding_error.html', filename=filename, errors=errors)
+
+
+@home.route('/file_error/<filename>')
+def file_error(filename=None):
+    return render_template('file_error.html', filename=filename)
 
 
 @home.route('/delete', methods=['GET', 'POST'])
 @login_required
 def delete():
     form = DeleteEMLForm()
-    choices = []
-    packageids = get_user_document_list()
-    for packageid in packageids:
-        pid_tuple = (packageid, packageid)
-        choices.append(pid_tuple)
-    form.packageid.choices = choices
+    form.filename.choices = list_data_packages()
+
     # Process POST
-    if form.validate_on_submit():
-        packageid = form.packageid.data
-        return_value = delete_eml(packageid=packageid)
-        if isinstance(return_value, str):
-            flash(return_value)
-        else:
-            flash(f'Deleted {packageid}')
-        new_page = PAGE_DELETE   # Return the Response object
-        return redirect(url_for(new_page))
+    if request.method == 'POST':
+        if 'Cancel' in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            discard_data_table_upload_filenames_for_package(filename)
+            return_value = delete_eml(filename=filename)
+            if filename == get_active_document():
+                current_user.set_filename(None)
+            if isinstance(return_value, str):
+                flash(return_value)
+            else:
+                flash(f'Deleted {filename}')
+            return redirect(url_for(PAGE_INDEX))
+
     # Process GET
-    return render_template('delete_eml.html', title='Delete EML', 
+    return render_template('delete_eml.html', title='Delete EML',
                            form=form)
 
 
 @home.route('/save', methods=['GET', 'POST'])
 @login_required
 def save():
-    current_packageid = current_user.get_packageid()
+    current_document = current_user.get_filename()
     
-    if not current_packageid:
+    if not current_document:
         flash('No document currently open')
         return render_template('index.html')
 
-    eml_node = load_eml(packageid=current_packageid)
+    eml_node = load_eml(filename=current_document)
     if not eml_node:
-        flash(f'Unable to open {current_packageid}')
+        flash(f'Unable to open {current_document}')
         return render_template('index.html')
 
-    save_both_formats(packageid=current_packageid, eml_node=eml_node)
-    flash(f'Saved {current_packageid}')
+    save_both_formats(filename=current_document, eml_node=eml_node)
+    flash(f'Saved {current_document}')
          
-    return redirect(url_for(PAGE_TITLE, packageid=current_packageid))
+    return redirect(url_for(PAGE_TITLE, filename=current_document))
 
 
 @home.route('/save_as', methods=['GET', 'POST'])
@@ -225,48 +271,53 @@ def save_as():
         else:
             submit_type = None
     form = SaveAsForm()
-    current_packageid = current_user.get_packageid()
+    current_document = current_user.get_filename()
 
     # Process POST
-    if form.validate_on_submit():
-        if submit_type == 'Cancel':
-            if current_packageid:
-                new_packageid = current_packageid  # Revert back to the old packageid
-                new_page = PAGE_TITLE
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            if current_document:
+                # Revert back to the old filename
+                return redirect(get_back_url())
             else:
                 return render_template('index.html')
-        elif submit_type == 'Save':
-            if not current_packageid:
+
+        if form.validate_on_submit():
+            if not current_document:
                 flash('No document currently open')
                 return render_template('index.html')
 
-            eml_node = load_eml(packageid=current_packageid)
+            eml_node = load_eml(filename=current_document)
             if not eml_node:
-                flash(f'Unable to open {current_packageid}')
+                flash(f'Unable to open {current_document}')
                 return render_template('index.html')
 
-            new_packageid = form.packageid.data
+            new_document = form.filename.data
             return_value = save_old_to_new(
-                            old_packageid=current_packageid, 
-                            new_packageid=new_packageid,
+                            old_filename=current_document,
+                            new_filename=new_document,
                             eml_node=eml_node)
             if isinstance(return_value, str):
                 flash(return_value)
-                new_packageid = current_packageid  # Revert back to the old packageid
+                new_filename = current_document  # Revert back to the old filename
             else:
-                current_user.set_packageid(packageid=new_packageid)
-                flash(f'Saved as {new_packageid}')
+                current_user.set_filename(filename=new_document)
+                flash(f'Saved as {new_document}')
             new_page = PAGE_TITLE   # Return the Response object
-        
-        return redirect(url_for(new_page, packageid=new_packageid))
+
+            return redirect(url_for(new_page, filename=new_document))
+        # else:
+        #     return redirect(url_for(PAGE_SAVE_AS, filename=current_filename))
 
      # Process GET
-    if current_packageid:
-        form.packageid.data = current_packageid
+    if current_document:
+        # form.filename.data = current_filename
+        help = get_helps(['save_as_document'])
         return render_template('save_as.html',
-                           packageid=current_packageid, 
-                           title='Save As', 
-                           form=form)
+                               filename=current_document,
+                               title='Save As',
+                               form=form,
+                               help=help)
     else:
         flash("No document currently open")
         return render_template('index.html')
@@ -276,16 +327,12 @@ def save_as():
 @login_required
 def download():
     form = DownloadEMLForm()
-    choices = []
-    packageids = get_user_document_list()
-    for packageid in packageids:
-        pid_tuple = (packageid, packageid)
-        choices.append(pid_tuple)
-    form.packageid.choices = choices
+    form.filename.choices = list_data_packages()
+
     # Process POST
     if form.validate_on_submit():
-        packageid = form.packageid.data
-        return_value = download_eml(packageid=packageid)
+        filename = form.filename.data
+        return_value = download_eml(filename=filename)
         if isinstance(return_value, str):
             flash(return_value)
         else:
@@ -295,12 +342,27 @@ def download():
                            form=form)
 
 
+@home.route('/check_metadata/<filename>', methods=['GET', 'POST'])
+@login_required
+def check_metadata(filename:str):
+    current_document = get_active_document()
+    content = check_eml(current_document)
+    # Process POST
+    if request.method == 'POST':
+        # return render_template(PAGE_CHECK, filename=filename)
+        return redirect(url_for(PAGE_CHECK, filename=current_document))
+
+    else:
+        set_current_page('check_metadata')
+        return render_template('check_metadata.html', content=content)
+
+
 @home.route('/download_current', methods=['GET', 'POST'])
 @login_required
 def download_current():
-    current_packageid = get_active_packageid()
-    if current_packageid:
-        return_value = download_eml(packageid=current_packageid)
+    current_document = get_active_document()
+    if current_document:
+        return_value = download_eml(filename=current_document)
         if isinstance(return_value, str):
             flash(return_value)
         else:
@@ -363,59 +425,442 @@ def create():
     form = CreateEMLForm()
 
     # Process POST
-    if form.validate_on_submit():
-        packageid = form.packageid.data
-        user_packageids = get_user_document_list()
-        if user_packageids and packageid and packageid in user_packageids:
-            flash(f'{packageid} already exists')
-            return render_template('create_eml.html', title='Create New EML', 
-                            form=form)
-        create_eml(packageid=packageid)
-        current_user.set_packageid(packageid)
-        return redirect(url_for(PAGE_TITLE, packageid=packageid))
+    help = get_helps(['new_eml_document'])
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+            user_filenames = get_user_document_list()
+            if user_filenames and filename and filename in user_filenames:
+                flash(f'{filename} already exists')
+                return render_template('create_eml.html', help=help,
+                                form=form)
+            create_eml(filename=filename)
+            current_user.set_filename(filename)
+            current_user.set_packageid(None)
+            return redirect(url_for(PAGE_TITLE, filename=filename))
+
     # Process GET
-    return render_template('create_eml.html', title='Create New EML', 
-                           form=form)
+    return render_template('create_eml.html', help=help, form=form)
 
 
 @home.route('/open_eml_document', methods=['GET', 'POST'])
 @login_required
 def open_eml_document():
     form = OpenEMLDocumentForm()
-
-    choices = []
-    user_packageids = get_user_document_list()
-    for packageid in user_packageids:
-        pid_tuple = (packageid, packageid)
-        choices.append(pid_tuple)
-    form.packageid.choices = choices
+    form.filename.choices = list_data_packages()
 
     # Process POST
-    if form.validate_on_submit():
-        packageid = form.packageid.data
-        eml_node = load_eml(packageid)
-        if eml_node:
-            current_user.set_packageid(packageid)
-            create_eml(packageid=packageid)
-            new_page = PAGE_TITLE
-        else:
-            new_page = PAGE_FILE_ERROR
-        return redirect(url_for(new_page, packageid=packageid))
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+            eml_node = load_eml(filename)
+            if eml_node:
+                current_user.set_filename(filename)
+                packageid = eml_node.attributes.get('packageId', None)
+                if packageid:
+                    current_user.set_packageid(packageid)
+                create_eml(filename=filename)
+                new_page = PAGE_TITLE
+            else:
+                new_page = PAGE_FILE_ERROR
+            return redirect(url_for(new_page, filename=filename))
     
     # Process GET
     return render_template('open_eml_document.html', title='Open EML Document', 
                            form=form)
 
 
+@home.route('/import_parties', methods=['GET', 'POST'])
+@login_required
+def import_parties():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(True)
+
+    # Process POST
+    if request.method == 'POST':
+        if 'Cancel' in request.form:
+            new_page = get_redirect_target_page()
+            url = url_for(new_page, filename=current_user.get_filename())
+            return redirect(url)
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_parties_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_responsible_parties'])
+    return render_template('import_parties.html', help=help, form=form)
+
+
+def get_redirect_target_page():
+    current_page = get_current_page()
+    if current_page == 'title':
+        return PAGE_TITLE
+    elif current_page == 'creator':
+        return PAGE_CREATOR_SELECT
+    elif current_page == 'metadata_provider':
+        return PAGE_METADATA_PROVIDER_SELECT
+    elif current_page == 'associated_party':
+        return PAGE_ASSOCIATED_PARTY_SELECT
+    elif current_page == 'abstract':
+        return PAGE_ABSTRACT
+    elif current_page == 'keyword':
+        return PAGE_KEYWORD_SELECT
+    elif current_page == 'intellectual_rights':
+        return PAGE_INTELLECTUAL_RIGHTS
+    elif current_page == 'geographic_coverage':
+        return PAGE_GEOGRAPHIC_COVERAGE_SELECT
+    elif current_page == 'temporal_coverage':
+        return PAGE_TEMPORAL_COVERAGE_SELECT
+    elif current_page == 'taxonomic_coverage':
+        return PAGE_TAXONOMIC_COVERAGE_SELECT
+    elif current_page == 'maintenance':
+        return PAGE_MAINTENANCE
+    elif current_page == 'contact':
+        return PAGE_CONTACT_SELECT
+    elif current_page == 'publisher':
+        return PAGE_PUBLISHER
+    elif current_page == 'publication_info':
+        return PAGE_PUBLICATION_INFO
+    elif current_page == 'method_step':
+        return PAGE_METHOD_STEP_SELECT
+    elif current_page == 'project':
+        return PAGE_PROJECT
+    elif current_page == 'data_table':
+        return PAGE_DATA_TABLE_SELECT
+    elif current_page == 'other_entity':
+        return PAGE_OTHER_ENTITY_SELECT
+    elif current_page == 'check_metadata':
+        return PAGE_CHECK
+    elif current_page == 'data_package_id':
+        return PAGE_DATA_PACKAGE_ID
+    else:
+        return PAGE_TITLE
+
+
+@home.route('/import_parties_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_parties_2(filename):
+    form = ImportEMLItemsForm()
+
+    eml_node = load_eml(filename)
+    parties = get_responsible_parties_for_import(eml_node)
+    choices = [[party[2], party[1]] for party in parties]
+    form.to_import.choices = choices
+    targets = [
+        ("Creators", "Creators"),
+        ("Metadata Providers", "Metadata Providers"),
+        ("Associated Parties", "Associated Parties"),
+        ("Contacts", "Contacts"),
+        ("Publisher", "Publisher"),
+        ("Project Personnel", "Project Personnel")]
+    form.target.choices = targets
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, filename=filename)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_class = form.data['target']
+        target_filename = current_user.get_filename()
+        import_responsible_parties(target_filename, node_ids_to_import, target_class)
+        if target_class == 'Creators':
+            new_page = PAGE_CREATOR_SELECT
+        elif target_class == 'Metadata Providers':
+            new_page = PAGE_METADATA_PROVIDER_SELECT
+        elif target_class == 'Associated Parties':
+            new_page = PAGE_ASSOCIATED_PARTY_SELECT
+        elif target_class == 'Contacts':
+            new_page = PAGE_CONTACT_SELECT
+        elif target_class == 'Publisher':
+            new_page = PAGE_PUBLISHER
+        elif target_class == 'Project Personnel':
+            new_page = PAGE_PROJECT_PERSONNEL_SELECT
+        return redirect(url_for(new_page, filename=target_filename))
+
+    # Process GET
+    help = get_helps(['import_responsible_parties_2'])
+    return render_template('import_parties_2.html', target_filename=filename, help=help, form=form)
+
+
+def get_responsible_parties_for_import(eml_node):
+    parties = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
+        label = compose_rp_label(node)
+        parties.append(('Creator', f'{label} (Creator)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
+        label = compose_rp_label(node)
+        parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
+        label = compose_rp_label(node)
+        parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
+        label = compose_rp_label(node)
+        parties.append(('Contact', f'{label} (Contact)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
+        label = compose_rp_label(node)
+        parties.append(('Publisher', f'{label} (Publisher)', node.id))
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
+        label = compose_rp_label(node)
+        parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
+    return parties
+
+
+@home.route('/import_geo_coverage', methods=['GET', 'POST'])
+@login_required
+def import_geo_coverage():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(True)
+
+    # Process POST
+    if request.method == 'POST':
+        if 'Cancel' in request.form:
+            new_page = get_redirect_target_page()
+            url = url_for(new_page, filename=current_user.get_filename())
+            return redirect(url)
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_geo_coverage_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_geographic_coverage'])
+    return render_template('import_geo_coverage.html', help=help, form=form)
+
+
+@home.route('/import_geo_coverage_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_geo_coverage_2(filename):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_geo_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, filename=filename)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_coverage_nodes(target_package, node_ids_to_import)
+        return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_geographic_coverage_2'])
+    return render_template('import_geo_coverage_2.html', help=help, target_filename=filename, form=form)
+
+
+def get_geo_coverages_for_import(eml_node):
+    coverages = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE]):
+        label = compose_full_gc_label(node)
+        coverages.append((f'{label}', node.id))
+    return coverages
+
+
+@home.route('/import_temporal_coverage', methods=['GET', 'POST'])
+@login_required
+def import_temporal_coverage():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(True)
+
+    # Process POST
+    if request.method == 'POST':
+        if 'Cancel' in request.form:
+            new_page = get_redirect_target_page()
+            url = url_for(new_page, filename=current_user.get_filename())
+            return redirect(url)
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_temporal_coverage_2', filename=filename))
+
+    # Process GET
+    return render_template('import_temporal_coverage.html', form=form)
+
+
+@home.route('/import_temporal_coverage_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_temporal_coverage_2(filename):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_temporal_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, filename=filename)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_coverage_nodes(target_package, node_ids_to_import)
+        return redirect(url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=target_package))
+
+    # Process GET
+    return render_template('import_temporal_coverage_2.html', target_filename=filename, title='Import Metadata',
+                           form=form)
+
+
+def get_temporal_coverages_for_import(eml_node):
+    coverages = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TEMPORALCOVERAGE]):
+        label = compose_full_gc_label(node) # FIXME
+        coverages.append((f'{label}', node.id))
+    return coverages
+
+
+@home.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
+@login_required
+def import_taxonomic_coverage():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(True)
+
+    # Process POST
+    if request.method == 'POST':
+        if 'Cancel' in request.form:
+            new_page = get_redirect_target_page()
+            url = url_for(new_page, filename=current_user.get_filename())
+            return redirect(url)
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_taxonomic_coverage'])
+    return render_template('import_taxonomic_coverage.html', help=help, form=form)
+
+
+@home.route('/import_taxonomic_coverage_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_taxonomic_coverage_2(filename):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_taxonomic_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, filename=filename)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_coverage_nodes(target_package, node_ids_to_import)
+        return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_taxonomic_coverage_2'])
+    return render_template('import_taxonomic_coverage_2.html', help=help, target_filename=filename, form=form)
+
+
+def get_taxonomic_coverages_for_import(eml_node):
+    coverages = []
+    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TAXONOMICCOVERAGE]):
+        label = truncate_middle(compose_taxonomic_label(node), 100, ' ... ')
+        coverages.append((f'{label}', node.id))
+    return coverages
+
+
+@home.route('/import_funding_awards', methods=['GET', 'POST'])
+@login_required
+def import_funding_awards():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(True)
+
+    # Process POST
+    if request.method == 'POST':
+        if 'Cancel' in request.form:
+            new_page = get_redirect_target_page()
+            url = url_for(new_page, filename=current_user.get_filename())
+            return redirect(url)
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_funding_awards_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_funding_awards'])
+    return render_template('import_funding_awards.html', help=help, form=form)
+
+
+@home.route('/import_import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_funding_awards_2(filename):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_funding_awards_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, filename=filename)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_funding_award_nodes(target_package, node_ids_to_import)
+        return redirect(url_for(PAGE_FUNDING_AWARD_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_funding_awards_2'])
+    return render_template('import_funding_awards_2.html', help=help, target_filename=filename, form=form)
+
+
+def get_funding_awards_for_import(eml_node):
+    awards = []
+    award_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.AWARD])
+    for award_node in award_nodes:
+        label = truncate_middle(compose_funding_award_label(award_node), 80, ' ... ')
+        awards.append((f'{label}', award_node.id))
+    return awards
+
+
+def display_decode_error_lines(filename):
+    errors = []
+    with open(filename, 'r', errors='replace') as f:
+        lines = f.readlines()
+    for index, line in enumerate(lines, start=1):
+        if "�" in line:
+            errors.append((index, line))
+    return errors
+
+
+@home.route('/submit_package', methods=['GET', 'POST'])
+@login_required
+def submit_package():
+    return render_template('submit_package.html', back_url=get_back_url())
+
+
 @home.route('/load_data', methods=['GET', 'POST'])
 @login_required
 def load_data():
     form = LoadDataForm()
-    packageid = current_user.get_packageid()
+    document = current_user.get_filename()
     uploads_folder = get_user_uploads_folder_name()
 
     # Process POST
-    if  request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         # Check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -424,21 +869,26 @@ def load_data():
         file = request.files['file']
         if file:
             filename = secure_filename(file.filename)
-            
+
             if filename is None or filename == '':
-                flash('No selected file')           
+                flash('No selected file')
             elif allowed_data_file(filename):
-                file.save(os.path.join(uploads_folder, filename))
+                filepath = os.path.join(uploads_folder, filename)
+                file.save(filepath)
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
-                flash(f'Loaded {filename}')
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 if not dataset_node:
                     dataset_node = new_child_node(names.DATASET, eml_node)
-                dt_node = load_data_table(dataset_node, uploads_folder, data_file)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
-                return redirect(url_for(PAGE_DATA_TABLE, packageid=packageid, node_id=dt_node.id))
+                try:
+                    dt_node = load_data_table(dataset_node, uploads_folder, data_file)
+                except UnicodeDecodeError:
+                    errors = display_decode_error_lines(filepath)
+                    return render_template('encoding_error.html', filename=filename, errors=errors)
+                flash(f'Loaded {data_file}')
+                save_both_formats(filename=document, eml_node=eml_node)
+                return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id))
             else:
                 flash(f'{filename} is not a supported data file type')
                 return redirect(request.url)
@@ -451,7 +901,7 @@ def load_data():
 @login_required
 def load_entity():
     form = LoadOtherEntityForm()
-    packageid = current_user.get_packageid()
+    document = current_user.get_filename()
     uploads_folder = get_user_uploads_folder_name()
 
     # Process POST
@@ -472,11 +922,11 @@ def load_entity():
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {data_file_path}')
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
-                return redirect(url_for(PAGE_OTHER_ENTITY, packageid=packageid, node_id=other_entity_node.id))
+                save_both_formats(filename=document, eml_node=eml_node)
+                return redirect(url_for(PAGE_OTHER_ENTITY, filename=document, node_id=other_entity_node.id))
 
     # Process GET
     return render_template('load_other_entity.html', title='Load Other Entity',
@@ -487,7 +937,7 @@ def load_entity():
 @login_required
 def load_metadata():
     form = LoadMetadataForm()
-    packageid = current_user.get_packageid()
+    document = current_user.get_filename()
     uploads_folder = get_user_uploads_folder_name()
 
     # Process POST
@@ -517,8 +967,8 @@ def load_metadata():
                         packageid = eml_node.attribute_value('packageId')
                         if packageid:
                             current_user.set_packageid(packageid)
-                            save_both_formats(packageid=packageid, eml_node=eml_node)
-                            return redirect(url_for(PAGE_TITLE, packageid=packageid))
+                            save_both_formats(filename=filename, eml_node=eml_node)
+                            return redirect(url_for(PAGE_TITLE, filename=filename))
                         else:
                             flash(f'Unable to determine packageid from file {filename}')
                     else:
@@ -534,18 +984,20 @@ def load_metadata():
 @home.route('/close', methods=['GET', 'POST'])
 @login_required
 def close():
-    current_packageid = current_user.get_packageid()
+    current_document = current_user.get_filename()
     
-    if current_packageid:
-        current_user.set_packageid(None)
-        flash(f'Closed {current_packageid}')
+    if current_document:
+        current_user.set_filename(None)
+        flash(f'Closed {current_document}')
     else:
         flash("There was no package open")
-        
+
+    set_current_page('')
+
     return render_template('index.html')
 
 
-def select_post(packageid=None, form=None, form_dict=None,
+def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
                 next_page=None, edit_page=None):
     node_id = ''
@@ -557,7 +1009,7 @@ def select_post(packageid=None, form=None, form_dict=None,
                 new_page = back_page
             elif val[0:4] == BTN_BACK:
                 new_page = back_page
-            elif val == BTN_NEXT or val == BTN_SAVE_AND_CONTINUE:
+            elif val in [BTN_NEXT, BTN_SAVE_AND_CONTINUE]:
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
@@ -565,21 +1017,37 @@ def select_post(packageid=None, form=None, form_dict=None,
             elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=filename)
+                # Get the data table filename, if any, so we can remove it from the uploaded list
+                dt_node = Node.get_node_instance(node_id)
+                if dt_node:
+                    object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+                    if object_name_node:
+                        object_name = object_name_node.content
+                        if object_name:
+                            discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(packageid, node_id)
+                process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(packageid, node_id)
+                process_down_button(filename, node_id)
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'
@@ -591,26 +1059,27 @@ def select_post(packageid=None, form=None, form_dict=None,
                 node_id = '1'
 
     if form.validate_on_submit():   
-       return url_for(new_page, packageid=packageid, node_id=node_id)
+        return url_for(new_page, filename=filename, node_id=node_id)
+        # return new_page, node_id
 
 
-def process_up_button(packageid:str=None, node_id:str=None):
-    process_updown_button(packageid, node_id, move_up)
+def process_up_button(filename:str=None, node_id:str=None):
+    process_updown_button(filename, node_id, move_up)
 
 
-def process_down_button(packageid:str=None, node_id:str=None):
-    process_updown_button(packageid, node_id, move_down)
+def process_down_button(filename:str=None, node_id:str=None):
+    process_updown_button(filename, node_id, move_down)
 
 
-def process_updown_button(packageid:str=None, node_id:str=None, move_function=None):
-    if packageid and node_id and move_function:
-        eml_node = load_eml(packageid=packageid)
+def process_updown_button(filename:str=None, node_id:str=None, move_function=None):
+    if filename and node_id and move_function:
+        eml_node = load_eml(filename=filename)
         child_node = Node.get_node_instance(node_id)
         if child_node:
             parent_node = child_node.parent
             if parent_node:
                 move_function(parent_node, child_node)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
 
 
 def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
@@ -646,3 +1115,7 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
 
 def set_current_page(page):
     session['current_page'] = page
+
+
+def get_current_page():
+    return session.get('current_page')

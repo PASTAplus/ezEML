@@ -7,6 +7,7 @@
 
 :Author:
     costa
+    ide
 
 :Created:
     5/9/19
@@ -16,12 +17,17 @@ import hashlib
 import os
 import re
 import pandas as pd
+import time
 
 from metapype.eml import names
 from metapype.model.node import Node
 
 from webapp.home.metapype_client import ( 
     add_child, new_child_node, VariableType
+)
+
+from webapp.auth.user_data import (
+    add_data_table_upload_filename
 )
 
 
@@ -70,22 +76,16 @@ def is_datetime_column(col:str=None):
 
 
 def sort_codes_key(x):
-    try:
-        i = int(x)
-        return str(i)
-    except:
-        pass
-    return x.lower()
+    return str(x).lower()
 
 
 def sort_codes(codes):
     nums = []
     text = []
     for code in codes:
-        try:
-            i = int(code)
-            nums.append(i)
-        except:
+        if isinstance(code, float) or isinstance(code, int):
+            nums.append(code)
+        else:
             text.append(code)
     sorted_nums = sorted(nums)
     all_sorted = sorted(text, key=sort_codes_key)
@@ -96,13 +96,28 @@ def sort_codes(codes):
 
 def is_datetime(data_frame, col):
     s = pd.to_datetime(data_frame[col][1:], errors='coerce')
-    missing = 0
-    for i in range(len(s)):
-        if s.iloc[i] is pd.NaT:
-            missing = missing + 1
+    missing = sum(1 for i in range(len(s)) if s.iloc[i] is pd.NaT)
     # see how many missing values... arbitrary cutoff allowing for missing values
     return float(missing) / float(len(s)) < 0.2
 
+
+def infer_datetime_format(dt):
+    formats = [
+        ('%Y', 'YYYY'),
+        ('%Y-%m-%d', 'YYYY-MM-DD'),
+        ('%Y-%m-%d %H:%M', 'YYYY-MM-DD hh:mm'),
+        ('%Y-%m-%d %H:%M:%S', 'YYYY-MM-DD hh:mm:ss'),
+        ('%Y-%m-%dT%H:%M', 'YYYY-MM-DDThh:mm'),
+        ('%Y-%m-%dT%H:%M:%S', 'YYYY-MM-DDThh:mm:ss'),
+        ('%Y-%m-%dT%H:%M:%S-%H', 'YYYY-MM-DDThh:mm:ss-hh')
+    ]
+    for f, fout in formats:
+        try:
+            time.strptime(dt, f)
+        except:
+            continue
+        return fout
+    return ''
 
 
 def infer_col_type(data_frame, col):
@@ -111,7 +126,7 @@ def infer_col_type(data_frame, col):
     codes = data_frame[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
-    # arbitrary test to distinguish categorical from text
+    # heuristic to distinguish categorical from text and numeric
     is_categorical = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
     if is_categorical:
         col_type = VariableType.CATEGORICAL
@@ -120,8 +135,7 @@ def infer_col_type(data_frame, col):
         dtype = data_frame[col][1:].infer_objects().dtype
         if dtype == object:
             if is_datetime(data_frame, col):
-                col_type = VariableType.DATETIME
-                sorted_codes = ''
+                return VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
             else:
                 col_type = VariableType.TEXT
         else:
@@ -129,23 +143,25 @@ def infer_col_type(data_frame, col):
 
     # does it look like a date?
     lc_col = col.lower()
-    if 'year' in lc_col or 'date' in lc_col:
-        if col_type == VariableType.CATEGORICAL:
-            if is_datetime(data_frame, col):
-                # make sure we don't just have numerical codes that are incorrectly being treated as years
-                # see if most of the codes look like years
-                # we say "most" to allow for missing-value codes
-                year_like = 0
-                for code in sorted_codes:
-                    try:
-                        year = int(code)
-                        if year >= 1900 and year <= 2100:
-                            year_like = year_like + 1
-                    except:
-                        pass
+    if (
+        ('year' in lc_col or 'date' in lc_col)
+        and col_type == VariableType.CATEGORICAL
+        and is_datetime(data_frame, col)
+    ):
+        # make sure we don't just have numerical codes that are incorrectly being treated as years
+        # see if most of the codes look like years
+        # we say "most" to allow for missing-value codes
+        year_like = 0
+        for code in sorted_codes:
+            try:
+                year = int(code)
+                if year >= 1900 and year <= 2100:
+                    year_like += 1
+            except:
+                pass
 
-                if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
-                    return VariableType.DATETIME, 'YYYY'
+        if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
+            return VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
 
@@ -199,14 +215,17 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
-    data_frame = pd.read_csv(full_path, comment='#')
+    # file_encoding = 'utf-8'
+    # input_fd = open(full_path, encoding=file_encoding, errors='backslashreplace')
+    # data_frame = pd.read_csv(input_fd, comment='#')
+    data_frame = pd.read_csv(full_path, comment='#', encoding='utf8')
 
     if data_frame is not None:
 
         number_of_records = Node(names.NUMBEROFRECORDS, parent=datatable_node)
         add_child(datatable_node, number_of_records)
         row_count = data_frame.shape[0]
-        record_count = row_count - 1  # assuming 1 header row
+        record_count = row_count
         number_of_records.content = f'{record_count}'
 
         attribute_list_node = Node(names.ATTRIBUTELIST, parent=datatable_node)
@@ -228,9 +247,9 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
             att_label_node.content = col
         
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+            att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             add_child(attribute_node, att_def_node)
-            att_def_node.content = f'TO DO: Attribute definition for {col}'
-        
+
             ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
             add_child(attribute_node, ms_node)
 
@@ -245,7 +264,6 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                     code_node = new_child_node(names.CODE, code_definition_node)
                     code_node.content = code
                     definition_node = new_child_node(names.DEFINITION, code_definition_node)
-                    definition_node.content = f'TO DO: Definition for code {code}'
 
             elif var_type == VariableType.NUMERICAL:
                 # ratio / numericDomain
@@ -264,7 +282,6 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                 non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
                 text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
                 definition_node = new_child_node(names.DEFINITION, text_domain_node)
-                definition_node.content = f'TO DO: Attribute definition for {col}'  # FIXME - leave blank?
 
             elif var_type == VariableType.DATETIME:
                 # dateTime / formatString
@@ -274,6 +291,8 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                 format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
                 add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
+
+    add_data_table_upload_filename(data_file)
 
     delete_data_files(uploads_path)
 
@@ -337,6 +356,8 @@ def delete_data_files(data_folder:str=None):
             file_path = os.path.join(data_folder, data_file)
             try:
                 if os.path.isfile(file_path):
-                    os.unlink(file_path)
+                    # Keep smaller files around for troubleshooting purposes
+                    if os.path.getsize(file_path) > 10**7:
+                        os.unlink(file_path)
             except Exception as e:
                 print(e)

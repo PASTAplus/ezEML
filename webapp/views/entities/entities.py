@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for
+    Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
 )
 
 from webapp.home.views import (
@@ -66,21 +66,21 @@ from webapp.home.views import select_post, non_breaking, get_help
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
 
 
-@ent_bp.route('/other_entity_select/<packageid>', methods=['GET', 'POST'])
-def other_entity_select(packageid=None):
-    form = OtherEntitySelectForm(packageid=packageid)
+@ent_bp.route('/other_entity_select/<filename>', methods=['GET', 'POST'])
+def other_entity_select(filename=None):
+    form = OtherEntitySelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
-                          'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_DATA_TABLE_SELECT,
-                          PAGE_TITLE, PAGE_OTHER_ENTITY)
+        url = select_post(filename, form, form_dict,
+                          'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT,
+                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY)
         return redirect(url)
 
     # Process GET
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     oe_list = list_other_entities(eml_node)
     title = 'Other Entities'
 
@@ -90,13 +90,13 @@ def other_entity_select(packageid=None):
                            oe_list=oe_list, form=form, help=help)
 
 
-@ent_bp.route('/other_entity/<packageid>/<node_id>', methods=['GET', 'POST'])
-def other_entity(packageid=None, node_id=None):
+@ent_bp.route('/other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
+def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
-    form = OtherEntityForm(packageid=packageid)
+    form = OtherEntityForm(filename=filename)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_OTHER_ENTITY_SELECT, packageid=packageid, dt_node_id=dt_node_id)
+            url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename, dt_node_id=dt_node_id)
             return redirect(url)
 
     # Process POST
@@ -118,14 +118,27 @@ def other_entity(packageid=None, node_id=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
             auto_save = True
+        elif 'Hidden_Check' in request.form:
+            new_page = PAGE_CHECK
         elif 'Hidden_Save' in request.form:
             new_page = PAGE_OTHER_ENTITY
         elif 'Hidden_Download' in request.form:
             new_page = PAGE_DOWNLOAD
+        elif BTN_HIDDEN_NEW in request.form:
+            new_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            new_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            new_page = PAGE_CLOSE
 
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
 
         submit_type = None
+
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'other_entity is_dirty_form={is_dirty_form(form)} auto_save={auto_save}')
+
         if is_dirty_form(form) or auto_save:
             submit_type = 'Save Changes'
         # flash(f'submit_type: {submit_type}')
@@ -140,14 +153,14 @@ def other_entity(packageid=None, node_id=None):
             entity_description = form.entity_description.data
             object_name = form.object_name.data
             format_name = form.format_name.data
-            size = form.size.data
+            size = str(form.size.data) if form.size.data else ''
             md5_hash = form.md5_hash.data
             online_url = form.online_url.data
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 
             if not entity_name:
-                entity_name = 'TO DO: Entity Name'
+                entity_name = ''
 
             create_other_entity(
                 dt_node,
@@ -197,7 +210,7 @@ def other_entity(packageid=None, node_id=None):
                 add_child(dataset_node, dt_node)
                 dt_node_id = dt_node.id
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
         if (next_page == PAGE_ENTITY_ACCESS_SELECT or
                 next_page == PAGE_ENTITY_METHOD_STEP_SELECT or
@@ -206,19 +219,19 @@ def other_entity(packageid=None, node_id=None):
                 next_page == PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
         ):
             return redirect(url_for(next_page,
-                                    packageid=packageid,
+                                    filename=filename,
                                     dt_element_name=names.OTHERENTITY,
                                     dt_node_id=dt_node_id))
         else:
             return redirect(url_for(next_page,
-                                    packageid=packageid,
+                                    filename=filename,
                                     dt_node_id=dt_node_id))
 
     # Process GET
     if dt_node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
@@ -228,7 +241,8 @@ def other_entity(packageid=None, node_id=None):
                         populate_other_entity_form(form, dt_node)
 
     set_current_page('other_entity')
-    return render_template('other_entity.html', title='Other Entity', form=form)
+    help = [get_help('other_entity')]
+    return render_template('other_entity.html', title='Other Entity', form=form, help=help)
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
@@ -281,10 +295,10 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
     form.md5.data = form_md5(form)
 
 
-@ent_bp.route('/entity_access_select/<packageid>/<dt_element_name>/<dt_node_id>',
+@ent_bp.route('/entity_access_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
-def entity_access_select(packageid: str = None, dt_element_name: str = None, dt_node_id: str = None):
-    form = AccessSelectForm(packageid=packageid)
+def entity_access_select(filename: str = None, dt_element_name: str = None, dt_node_id: str = None):
+    form = AccessSelectForm(filename=filename)
 
     parent_page = PAGE_DATA_TABLE
     if dt_element_name == names.OTHERENTITY:
@@ -294,7 +308,7 @@ def entity_access_select(packageid: str = None, dt_element_name: str = None, dt_
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = entity_access_select_post(packageid, form, form_dict,
+        url = entity_access_select_post(filename, form, form_dict,
                                         'POST', PAGE_ENTITY_ACCESS_SELECT, parent_page,
                                         parent_page, PAGE_ENTITY_ACCESS,
                                         dt_element_name=dt_element_name,
@@ -302,15 +316,15 @@ def entity_access_select(packageid: str = None, dt_element_name: str = None, dt_
         return redirect(url)
 
     # Process GET
-    return entity_access_select_get(packageid=packageid, form=form, dt_node_id=dt_node_id)
+    return entity_access_select_get(filename=filename, form=form, dt_node_id=dt_node_id)
 
 
-def entity_access_select_get(packageid=None, form=None, dt_node_id=None):
+def entity_access_select_get(filename=None, form=None, dt_node_id=None):
     # Process GET
     access_rules_list = []
     title = 'Access Rules'
     entity_name = ''
-    load_eml(packageid=packageid)
+    load_eml(filename=filename)
 
     if dt_node_id == '1':
         form.init_md5()
@@ -333,7 +347,7 @@ def entity_access_select_get(packageid=None, form=None, dt_node_id=None):
                            suppress_next_btn=True)
 
 
-def entity_access_select_post(packageid=None, form=None, form_dict=None,
+def entity_access_select_post(filename=None, form=None, form_dict=None,
                               method=None, this_page=None, back_page=None,
                               next_page=None, edit_page=None,
                               dt_element_name=None, dt_node_id=None):
@@ -352,17 +366,17 @@ def entity_access_select_post(packageid=None, form=None, form_dict=None,
             elif val == 'Remove':
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=filename)
                 remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(packageid, node_id)
+                process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(packageid, node_id)
+                process_down_button(filename, node_id)
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
@@ -373,18 +387,18 @@ def entity_access_select_post(packageid=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page == edit_page:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            dt_element_name=dt_element_name,
                            dt_node_id=dt_node_id,
                            node_id=node_id)
         elif new_page == this_page:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            dt_element_name=dt_element_name,
                            dt_node_id=dt_node_id)
         else:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            node_id=dt_node_id)
 
 
@@ -394,14 +408,14 @@ def entity_access_select_post(packageid=None, form=None, form_dict=None,
 #
 # dt_element_name will be either names.DATATABLE or names.OTHERENTITY
 #
-@ent_bp.route('/entity_access/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
-    form = AccessForm(packageid=packageid, node_id=node_id)
+@ent_bp.route('/entity_access/<filename>/<dt_element_name>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def entity_access(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = AccessForm(filename=filename, node_id=node_id)
     allow_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_ENTITY_ACCESS_SELECT,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=allow_node_id)
@@ -420,7 +434,7 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
         if submit_type == 'Save Changes':
             dt_node = None
             distribution_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
@@ -468,11 +482,11 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
             else:
                 add_child(access_node, allow_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             allow_node_id = allow_node.id
 
         url = url_for(next_page,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=allow_node_id)
@@ -482,7 +496,7 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
@@ -503,13 +517,13 @@ def entity_access(packageid=None, dt_element_name=None, dt_node_id=None, node_id
                                                 break
 
     set_current_page('other_entity')
-    return render_template('access.html', title='Access Rule', form=form, packageid=packageid)
+    return render_template('access.html', title='Access Rule', form=form, filename=filename)
 
 
-@ent_bp.route('/entity_method_step_select/<packageid>/<dt_element_name>/<dt_node_id>',
+@ent_bp.route('/entity_method_step_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
-def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_node_id: str = None):
-    form = MethodStepSelectForm(packageid=packageid)
+def entity_method_step_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
+    form = MethodStepSelectForm(filename=filename)
 
     parent_page = PAGE_DATA_TABLE
     if dt_element_name == names.OTHERENTITY:
@@ -520,7 +534,7 @@ def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_no
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
 
-        url = entity_select_post(packageid, form, form_dict,
+        url = entity_select_post(filename, form, form_dict,
                                  'POST', PAGE_ENTITY_METHOD_STEP_SELECT,
                                  parent_page, parent_page, PAGE_ENTITY_METHOD_STEP,
                                  dt_element_name, dt_node_id)
@@ -530,7 +544,7 @@ def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_no
     method_step_list = []
     title = 'Method Steps'
     entity_name = ''
-    load_eml(packageid=packageid)
+    load_eml(filename=filename)
 
     if dt_node_id == '1':
         form.init_md5()
@@ -561,15 +575,15 @@ def entity_method_step_select(packageid=None, dt_element_name: str = None, dt_no
 #
 # dt_element_name will be either names.DATATABLE or names.OTHERENTITY
 #
-@ent_bp.route('/entity_method_step/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
+@ent_bp.route('/entity_method_step/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
-def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
-    form = MethodStepForm(packageid=packageid, node_id=node_id)
+def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = MethodStepForm(filename=filename, node_id=node_id)
     ms_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_ENTITY_METHOD_STEP_SELECT,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=ms_node_id)
@@ -588,7 +602,7 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
     if form.validate_on_submit():
         if submit_type == 'Save Changes':
             dt_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
@@ -628,11 +642,11 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
             else:
                 add_child(methods_node, method_step_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             ms_node_id = method_step_node.id
 
         url = url_for(next_page,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=ms_node_id)
@@ -642,7 +656,7 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
@@ -663,13 +677,13 @@ def entity_method_step(packageid=None, dt_element_name=None, dt_node_id=None, no
     else:
         set_current_page('other_entity')
     help = [get_help('method_step_description'), get_help('method_step_instrumentation')]
-    return render_template('method_step.html', title='Method Step', form=form, packageid=packageid, help=help)
+    return render_template('method_step.html', title='Method Step', form=form, filename=filename, help=help)
 
 
-@ent_bp.route('/entity_geographic_coverage_select/<packageid>/<dt_element_name>/<dt_node_id>',
+@ent_bp.route('/entity_geographic_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
-def entity_geographic_coverage_select(packageid=None, dt_element_name: str = None, dt_node_id: str = None):
-    form = GeographicCoverageSelectForm(packageid=packageid)
+def entity_geographic_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
+    form = GeographicCoverageSelectForm(filename=filename)
 
     parent_page = PAGE_DATA_TABLE
     if dt_element_name == names.OTHERENTITY:
@@ -679,7 +693,7 @@ def entity_geographic_coverage_select(packageid=None, dt_element_name: str = Non
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = entity_select_post(packageid, form, form_dict,
+        url = entity_select_post(filename, form, form_dict,
                                  'POST', PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT,
                                  parent_page, parent_page, PAGE_ENTITY_GEOGRAPHIC_COVERAGE,
                                  dt_element_name, dt_node_id)
@@ -689,7 +703,7 @@ def entity_geographic_coverage_select(packageid=None, dt_element_name: str = Non
     gc_list = []
     title = "Geographic Coverage"
     entity_name = ''
-    load_eml(packageid=packageid)
+    load_eml(filename=filename)
 
     if dt_node_id == '1':
         form.init_md5()
@@ -714,15 +728,15 @@ def entity_geographic_coverage_select(packageid=None, dt_element_name: str = Non
                            help=help)
 
 
-@ent_bp.route('/entity_geographic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
+@ent_bp.route('/entity_geographic_coverage/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
-def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
-    form = GeographicCoverageForm(packageid=packageid)
+def entity_geographic_coverage(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = GeographicCoverageForm(filename=filename)
     gc_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=gc_node_id)
@@ -741,7 +755,7 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
     if form.validate_on_submit():
         if submit_type == 'Save Changes':
             dt_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
 
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
@@ -797,11 +811,11 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
             else:
                 add_child(coverage_node, gc_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             gc_node_id = gc_node.id
 
         url = url_for(next_page,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=gc_node_id)
@@ -812,7 +826,7 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
@@ -833,10 +847,10 @@ def entity_geographic_coverage(packageid=None, dt_element_name=None, dt_node_id=
     else:
         set_current_page('other_entity')
     help = [get_help('geographic_coverages'), get_help('geographic_description'), get_help('bounding_coordinates')]
-    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, packageid=packageid, help=help)
+    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, filename=filename, help=help)
 
 
-def entity_select_post(packageid=None, form=None, form_dict=None,
+def entity_select_post(filename=None, form=None, form_dict=None,
                        method=None, this_page=None, back_page=None,
                        next_page=None, edit_page=None,
                        dt_element_name: str = None, dt_node_id: str = None, ):
@@ -856,22 +870,30 @@ def entity_select_post(packageid=None, form=None, form_dict=None,
             elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=filename)
                 remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
                 node_id = key
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif BTN_HIDDEN_NEW in request.form:
+                new_page = PAGE_CREATE
+            elif BTN_HIDDEN_OPEN in request.form:
+                new_page = PAGE_OPEN
+            elif BTN_HIDDEN_CLOSE in request.form:
+                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(packageid, node_id)
+                process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(packageid, node_id)
+                process_down_button(filename, node_id)
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
@@ -882,26 +904,26 @@ def entity_select_post(packageid=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page == edit_page:
             url = url_for(new_page,
-                          packageid=packageid,
+                          filename=filename,
                           dt_element_name=dt_element_name,
                           dt_node_id=dt_node_id,
                           node_id=node_id)
         elif new_page == this_page:
             url = url_for(new_page,
-                          packageid=packageid,
+                          filename=filename,
                           dt_element_name=dt_element_name,
                           dt_node_id=dt_node_id)
         else:
             url = url_for(new_page,
-                          packageid=packageid,
+                          filename=filename,
                           node_id=dt_node_id)
         return url
 
 
-@ent_bp.route('/entity_temporal_coverage_select/<packageid>/<dt_element_name>/<dt_node_id>',
+@ent_bp.route('/entity_temporal_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
-def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None, dt_node_id: str = None):
-    form = TemporalCoverageSelectForm(packageid=packageid)
+def entity_temporal_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
+    form = TemporalCoverageSelectForm(filename=filename)
 
     parent_page = PAGE_DATA_TABLE
     if dt_element_name == names.OTHERENTITY:
@@ -911,7 +933,7 @@ def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None,
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = entity_select_post(packageid, form, form_dict,
+        url = entity_select_post(filename, form, form_dict,
                                  'POST', PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT,
                                  parent_page, parent_page, PAGE_ENTITY_TEMPORAL_COVERAGE,
                                  dt_element_name, dt_node_id)
@@ -921,7 +943,7 @@ def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None,
     tc_list = []
     title = "Temporal Coverage"
     entity_name = ''
-    load_eml(packageid=packageid)
+    load_eml(filename=filename)
 
     if dt_node_id == '1':
         form.init_md5()
@@ -946,15 +968,15 @@ def entity_temporal_coverage_select(packageid=None, dt_element_name: str = None,
                            help=help)
 
 
-@ent_bp.route('/entity_temporal_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
+@ent_bp.route('/entity_temporal_coverage/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
-def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
-    form = TemporalCoverageForm(packageid=packageid)
+def entity_temporal_coverage(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = TemporalCoverageForm(filename=filename)
     tc_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=tc_node_id)
@@ -973,7 +995,7 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
     if form.validate_on_submit():
         if submit_type == 'Save Changes':
             dt_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
 
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
@@ -1020,10 +1042,10 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
                 flash(flash_msg)
                 next_page = PAGE_ENTITY_TEMPORAL_COVERAGE
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
         url = url_for(next_page,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=tc_node_id)
@@ -1033,7 +1055,7 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
@@ -1053,13 +1075,13 @@ def entity_temporal_coverage(packageid=None, dt_element_name=None, dt_node_id=No
         set_current_page('data_table')
     else:
         set_current_page('other_entity')
-    return render_template('temporal_coverage.html', title='Temporal Coverage', form=form, packageid=packageid)
+    return render_template('temporal_coverage.html', title='Temporal Coverage', form=form, filename=filename)
 
 
-@ent_bp.route('/entity_taxonomic_coverage_select/<packageid>/<dt_element_name>/<dt_node_id>',
+@ent_bp.route('/entity_taxonomic_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
-def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None, dt_node_id: str = None):
-    form = TaxonomicCoverageSelectForm(packageid=packageid)
+def entity_taxonomic_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
+    form = TaxonomicCoverageSelectForm(filename=filename)
 
     parent_page = PAGE_DATA_TABLE
     if dt_element_name == names.OTHERENTITY:
@@ -1069,7 +1091,7 @@ def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = entity_select_post(packageid, form, form_dict,
+        url = entity_select_post(filename, form, form_dict,
                                  'POST', PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT,
                                  parent_page, parent_page, PAGE_ENTITY_TAXONOMIC_COVERAGE,
                                  dt_element_name, dt_node_id)
@@ -1079,7 +1101,7 @@ def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None
     txc_list = []
     title = "Taxonomic Coverage"
     entity_name = ''
-    load_eml(packageid=packageid)
+    load_eml(filename=filename)
 
     if dt_node_id == '1':
         form.init_md5()
@@ -1104,15 +1126,15 @@ def entity_taxonomic_coverage_select(packageid=None, dt_element_name: str = None
                            help=help)
 
 
-@ent_bp.route('/entity_taxonomic_coverage/<packageid>/<dt_element_name>/<dt_node_id>/<node_id>',
+@ent_bp.route('/entity_taxonomic_coverage/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
-def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=None, node_id=None):
-    form = TaxonomicCoverageForm(packageid=packageid)
+def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
+    form = TaxonomicCoverageForm(filename=filename)
     txc_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=txc_node_id)
@@ -1131,7 +1153,7 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
     if form.validate_on_submit():
         if submit_type == 'Save Changes':
             dt_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
 
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
@@ -1186,11 +1208,11 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
             else:
                 add_child(coverage_node, txc_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             txc_node_id = txc_node.id
 
         url = url_for(next_page,
-                      packageid=packageid,
+                      filename=filename,
                       dt_element_name=dt_element_name,
                       dt_node_id=dt_node_id,
                       node_id=txc_node_id)
@@ -1200,7 +1222,7 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
     if node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(dt_element_name)
@@ -1213,11 +1235,11 @@ def entity_taxonomic_coverage(packageid=None, dt_element_name=None, dt_node_id=N
                             if txc_nodes:
                                 for txc_node in txc_nodes:
                                     if node_id == txc_node.id:
-                                        populate_temporal_coverage_form(form, txc_node)
+                                        populate_temporal_coverage_form(form, txc_node)  # FIXME - is this right??
                                         break
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
     else:
         set_current_page('other_entity')
-    return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, packageid=packageid)
+    return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, filename=filename)

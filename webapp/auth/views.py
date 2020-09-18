@@ -8,6 +8,7 @@
 :Author:
     servilla
     costa
+    ide
 
 :Created:
     3/6/18
@@ -22,7 +23,7 @@ from webapp.pages import *
 
 from webapp.auth.forms import LoginForm
 from webapp.auth.user import User
-from webapp.auth.user_data import get_active_packageid
+from webapp.auth.user_data import get_active_document
 from webapp.config import Config
 
 from webapp.auth.user_data import (
@@ -53,16 +54,16 @@ def login():
             initialize_user_data()
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
-                current_packageid = get_active_packageid()
-                if current_packageid:
-                    next_page = url_for(PAGE_TITLE, packageid=current_packageid)
+                current_document = get_active_document()
+                if current_document:
+                    next_page = url_for(PAGE_TITLE, filename=current_document)
                 else:
                     next_page = url_for(PAGE_INDEX)
             return redirect(next_page)
         flash('Invalid username or password')
         return redirect(url_for(PAGE_LOGIN))
     # Process GET
-    return render_template('login.html', title='Sign In', form=form)
+    return render_template('login.html', form=form)
 
 
 @auth.route('/logout', methods=['GET'])

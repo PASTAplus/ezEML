@@ -17,7 +17,7 @@ import hashlib
 from flask_wtf import FlaskForm
 
 from wtforms import (
-    StringField, SelectField, HiddenField
+    StringField, SelectField, SelectMultipleField, HiddenField, RadioField, widgets
 )
 
 from wtforms.validators import (
@@ -36,10 +36,11 @@ class EDIForm(FlaskForm):
         self.md5.data = hashlib.md5(self.init_str.encode('utf-8')).hexdigest()
 
     def field_data(self):
-        fields = []
-        for key, val in self.data.items():
-            if key not in ('md5', 'csrf_token'):
-                fields.append(val)
+        fields = [
+            val
+            for key, val in self.data.items()
+            if key not in ('md5', 'csrf_token')
+        ]
         return tuple(fields)
 
 
@@ -73,16 +74,49 @@ def is_dirty_form(form):
     return is_dirty
 
 
+class CheckboxField(SelectField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
+
+
+class MultiCheckboxField(SelectMultipleField):
+    """
+    A multiple-select, except displays a list of checkboxes.
+
+    Iterating the field will produce subfields, allowing custom rendering of
+    the enclosed checkbox fields.
+    """
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
+
+
+class ImportEMLForm(FlaskForm):
+    filename = SelectField('Document Name', choices=[])
+
+
+class ImportItemsForm(FlaskForm):
+    to_import = MultiCheckboxField('Import', choices=[], validators=[])
+
+
+class ImportEMLItemsForm(FlaskForm):
+    to_import = MultiCheckboxField('Import', choices=[], validators=[])
+    target = RadioField('Target', choices=[], validators=[])
+
+
+class ImportEMLTargetForm(FlaskForm):
+    target = RadioField('Target', choices=[])
+
+
 class CreateEMLForm(FlaskForm):
-    packageid = StringField('Package ID', 
-                            validators=[DataRequired(), Regexp(r'^[a-z][a-z\-]+\.\d+\.\d+$', message='Invalid package ID value')])
+    filename = StringField('Document Name', validators=[DataRequired()])
+
 
 class DeleteEMLForm(FlaskForm):
-    packageid = SelectField('Data Package Identifier', choices=[])
+    filename = SelectField('Document Name', choices=[])
 
 
 class DownloadEMLForm(FlaskForm):
-    packageid = SelectField('Data Package Identifier', choices=[])
+    filename = StringField('Document Name', validators=[DataRequired()])
 
 
 class LoadDataForm(FlaskForm):
@@ -98,8 +132,8 @@ class LoadMetadataForm(FlaskForm):
 
 
 class OpenEMLDocumentForm(FlaskForm):
-    packageid = SelectField('Data Package Identifier', choices=[])
+    filename = SelectField('Document Name', choices=[])
 
 
 class SaveAsForm(FlaskForm):
-    packageid = StringField('Package ID', validators=[DataRequired()])
+    filename = StringField('Document Name', validators=[DataRequired()])

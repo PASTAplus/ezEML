@@ -2,7 +2,7 @@ abstract
 Abstract
 The <b>Abstract</b> will be used for full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
 
-In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the dataset is ongoing or completed.
+In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the data package is ongoing or completed.
 
 Some general methods description is appropriate, and broad classes of measured parameters should also be included.  For a large number of parameters, use categories instead of listing all parameters (e.g. use the term “nutrients” instead of nitrate, phosphate, calcium, etc.), in combination with the parameters that seem most relevant for search.
 
@@ -10,21 +10,108 @@ An abstract is not required, but it is highly recommended.
 --------------------
 add_load_data_tables
 Add/Load Data Tables
-You can create a data table's metadata "from scratch" via <b>Add Data Table</b>, or you can load an existing data table CSV file via <b>Load Data Table</b>.
+You can create a data table's metadata "from scratch" via <b>Add Data Table from Scratch</b>, or you can load an existing data table CSV file via <b>Load Data Table from CSV File</b>.
 
-In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but others will still need to be entered or modified manually.
+In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
+
+CSV files are assumed to contain a single header row.
 --------------------
 add_load_other_entities
 Add/Load Other Entities
-You can create an other entity's metadata "from scratch" via <b>Add Other Entity</b>, or you can load an existing other entity file via <b>Load Other Entity</b>.
+You can create an other entity's metadata "from scratch" via <b>Add Other Entity from Scratch</b>, or you can load an existing other entity file via <b>Load Other Entity from File</b>.
 
-In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but others will still need to be entered or modified manually.
+In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
+--------------------
+associatedParty
+Associated Party
+Associated parties are other people who were involved with the data in some way (field technicians, students, assistants, etc.).
+
+Associated parties are not required.
 --------------------
 associated_parties
 Associated Parties
 Associated parties are other people who were involved with the data in some way (field technicians, students, assistants, etc.).
 
 Associated parties are not required.
+--------------------
+attribute_definition
+Attribute Definition
+A precise definition of the attribute. It explains the contents of the attribute fully so that a data user can interpret the attribute accurately.
+
+Example: "spden" is the number of individuals of all macro invertebrate species found in the plot.
+--------------------
+attribute_label
+Attribute Label
+
+A descriptive label that can be used to display the name of an attribute. This is often a longer name than the attribute name and may consist of multiple words. It is not constrained by system limitations on length or special characters in the way the attribute name is constrained.
+
+For example, an attribute with a name of 'spcode' might have an attribute label of 'Species Code'.
+--------------------
+attribute_name
+Attribute Name
+Attribute name is the official name of the attribute. This is usually a short, sometimes cryptic name that is used to refer to the attribute.  Many systems have restrictions on the length of attribute names and on the use of special characters like spaces in the name, so the attribute name is often not particularly useful for display purposes (use attributeLabel for display).
+
+The attribute name is usually the name of the variable that is found in the header of a data file.
+--------------------
+attribute_datetime_format
+Format String
+A format string that describes the format for a DateTime value from the Gregorian calendar.
+
+DateTime values should be expressed in a format that conforms to the ISO 8601 standard. To describe the format, construct a string representation of the format using the following symbols:
+<ul>
+<li>              Y   year
+<li>              M   month
+<li>              W   month abbreviation (e.g., JAN)
+<li>              D   day
+<li>              h   hour
+<li>              m   minute
+<li>              s   second
+<li>              T   time designator (demarcates date and time parts of date-time)
+<li>              Z   UTC designator, indicating value is in UTC time
+<li>              .   indicates a decimal fraction of a unit
+<li>              +/- indicates a positive or negative number, or a positive or negative time zone adjustment relative to UTC
+<li>              -   indicates a separator between date components
+<li>              A/P am or pm designator
+</ul>
+              Any other character in the format string is interpreted as a
+              separator character.  Here are some examples of the format
+              strings that can be constructed.
+<pre>
+                 Format string          Example value<br>
+                 -------------------    ------------------<br>
+  ISO Date       YYYY-MM-DD             2002-10-14<br>
+  ISO Datetime   YYYY-MM-DDThh:mm:ss    2002-10-14T09:13:45<br>
+  ISO Datetime   YYYY-MM-DDThh:mm:ss-hh 2002-10-14T09:13:45-07<br>
+  ISO Time       hh:mm:ss               17:13:45<br>
+  ISO Time       hh:mm:ss.sss           09:13:45.432<br>
+  ISO Time       hh:mm.mm               09:13.42
+</pre>
+--------------------
+attribute_datetime_precision
+DateTime Precision
+A quantitative indication of the precision of a date or time value.
+
+The precision should be interpreted in the smallest units represented by the dateTime format. For example, if a dateTime value has a format of "hh:mm:ss.sss", then "seconds" are the smallest unit and the precision should be expressed in seconds. Thus, a precision value of "0.01" would mean that measurements were precise to the nearest hundredth of a second, even though the format string might indicate that values were written down with 3 decimal places.
+--------------------
+attribute_number_type
+Number Type
+The possible values for <b>Number Type</b> are as follows:<br>
+<b>Real</b> - Continuous quantities that can be represented by decimal values, e.g. 2.0, 3.14, -2.718, 42, 0<br>
+<b>Integer</b> - Positive or negative values that can be written without a fractional component, e.g., 3, -2, 127, 0<br>
+<b>Natural</b> - The "counting numbers": 1, 2, 3, etc.<br>
+<b>Whole</b> - The natural numbers plus the number zero, i.e., 0, 1, 2, 3, etc.
+--------------------
+attribute_numerical_precision
+Precision
+The precision of the measurement.
+
+Precision indicates how close together or how repeatable measurements are. A precise measuring instrument will give very nearly the same result each time it is used. This means that someone interpreting the data should expect that if a measurement were repeated, most measured values would fall within the interval specified by the precision. The value of precision should be expressed in the same unit as the measurement. For example, for an attribute with unit "meter", a precision of "0.1" would be interpreted to mean that most repeat measurements would fall within an interval of 1/10th of a meter.
+--------------------
+attribute_storage_type
+Storage Type
+<b>Storage Type</b> provides a "hint" for processing systems as to how the attribute might be represented in a system or language. Values for this field are by default drawn from the XML Schema data types standard values, such as: integer, double, string, etc.
+
+<b>Storage Type System</b> specifies the system used to define the storage types. It should be an identifier of a well known and published typing system. The default and recommended system is the XML Schema data type system. For details go to http://www.w3.org. If another system is used (such as Java or C++ types), <b>Storage Type System</b> should be changed accordingly.
 --------------------
 award
 Funding Award
@@ -72,6 +159,12 @@ All coordinates are typed as decimals. Since all four elements are required, a b
 
 In the case of a data set that comprises all longitudes (e.g., a horizontal band between 2 parallels that fully encompasses the earth), use a West Bounding Coordinate of -180.0 and an eastBoundingCoordinate of 180.0 (or +180.0).
 --------------------
+contact
+Contact
+At least one <b>Contact</b> is required.
+
+Full contact information should be included for the position of data manager or other designated contact and should be kept current and independent of personnel changes. If multiple contacts are listed (e.g. both a data and site manager) all should be kept current. Technicians who performed the work belong under <b>Associated Party</b> rather than <b>Contact</b>.
+--------------------
 contacts
 Contacts
 At least one <b>Contact</b> is required.
@@ -82,23 +175,39 @@ contents
 Contents	
 You can use ezEML as a "wizard" (i.e., by proceeding through the sections in sequence, filling out the metadata as you go), or you can click on any of the links under <b>Contents</b> to jump directly to that section of the metadata.
 --------------------
+creator
+Creator
+A creator is considered to be an author of the data package, i.e. a person responsible for intellectual input into its creation. At least one creator is required.
+
+For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
+--------------------
 creators
 Creators
 The creator is considered to be the author of the data package, i.e. the person(s) responsible for intellectual input into its creation. At least one creator is required.
 
 For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
+
+Citations generally list creator names in the order given in the EML metadata.
 --------------------
-data_tables
-Data Tables
-A data table is one tabular entity in the dataset, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+data_package_id
+Data Package ID
+EML requires a data package to have a <b>Data Package ID</b>. The particular form and value of the Data Package ID is determined by the data repository where the data package will be submitted. Contact your data repository for an appropriate value.
+
+If your data package will be submitted to the repository hosted by the Environmental Data Initiative (EDI), you can email <a href="mailto:info@environmentaldatainitiative.org">info@environmentaldatainitiative.org</a> to request a data package ID.
+
+Alternatively, you can reserve a data package ID in the EDI scope yourself via the <a href="https://portal.edirepository.org/nis/home.jsp" target="_blank"><b>EDI Data Portal</b></a>. You will need to log in there, then go to "Data Package Identifier Reservations" under the "Tools" menu. If you have never used the Data Portal before, we will be happy to walk you through the process. Just email us at <a href="mailto:info@environmentaldatainitiative.org">info@environmentaldatainitiative.org</a>.</p>
 --------------------
 data_table
 Data Table
-A data table is one tabular entity in the dataset, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+--------------------
+data_tables
+Data Tables
+A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
 --------------------
 data_table_name
 Data Table Name
-The name identifies the data table in the dataset.
+The name identifies the data table in the data package.
 
 Example: SpeciesAbundance1996
 --------------------
@@ -131,6 +240,12 @@ The checksum for the data object, calculated using the MD5 message-digest algori
 data_table_header_lines
 Number of Header Lines
 The number of header lines preceding the data. I.e., the number of header lines that should be skipped before starting to parse the data.
+--------------------
+data_table_quote_character
+Quote Character
+Character used to quote values for delimiter escaping.
+
+If your data table is a CSV file with fields separated by commas, for example, then a text field that contains one or more commas will appear to be multiple fields. To deal with such cases where the field delimiter is used within a text field, enclose the text field in quotes. <b>Quote Character</b> defines which "flavor" of quotes you are using, double quotes ("), single quotes ('), or some other character.
 --------------------
 data_table_record_delimiter
 Record Delimiter
@@ -176,13 +291,65 @@ Additional <b>Geographic Coverage</b> elements should be included if there are s
 --------------------
 geographic_description
 Geographic Description
-<b>Geographic Description</b> is a short text description of a dataset's geographic areal domain. A text description is especially important to provide a geographic setting when the extent of the data set cannot be well described by the "bounding coordinates", or in the case of data which are not specifically geospatial.
+<b>Geographic Description</b> is a short text description of a data package's geographic areal domain. A text description is especially important to provide a geographic setting when the extent of the data set cannot be well described by the "bounding coordinates", or in the case of data which are not specifically geospatial.
 
 In cases where the "bounding coordinates" do not adequately describe the extent of the data set, the discrepancy can be identified and described here.
 
 The coordinates may define a rectangle around a country, with this Geographic Description containing a disclaimer and/or further details concerning the border. E.g., a study of the diseases of salmon may not have a specific geographic extent associated with it, but the salmon were collected in the states of Washington and Oregon. The "bounding coordinates" might form a general rectangle around the states of Washington and Oregon, but the Geographic Description" might describe the fact that the study actually took place only along certain rivers within those states.
 
 Geographic Description can also contain information about the collection of bounding coordinates, e.g., an altitude value that is referenced to Mean Lower Low Water, or the projection system that the latitude and longitude coordinates were taken from.</para>
+--------------------
+import_funding_awards
+Import Funding Awards
+You may import the details for one or more funding awards from another data package.
+
+Note that you may also "import" from the current data package, to "copy and paste" a funding award to which you can then make edits.
+--------------------
+import_funding_awards_2
+Import Funding Awards
+Select the funding awards to import.
+
+If none are shown, none are available in the selected data package.
+--------------------
+import_geographic_coverage
+Import Geographic Coverage
+You may import selected geographic coverage details from another data package.
+
+Currently, only geographic coverages at the data package level (as opposed to the individual data table level) are available to import.
+--------------------
+import_geographic_coverage_2
+Import Geographic Coverage
+Select the geographic coverages to import.
+
+If none are shown, none are available in the selected data package.
+--------------------
+import_responsible_parties
+Import Responsible Parties
+You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
+
+The parties you import do not have to be used for the same purpose in this data package as they were in the other data package. For example, a person who was a Contact in another data package can be imported into this data package as an Associated Party.
+
+<b>Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.</b>
+--------------------
+import_responsible_parties_2
+Import Responsible Parties
+Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
+
+If none are listed, none are available in the selected data package.
+--------------------
+import_taxonomic_coverage
+Import Taxonomic Coverage
+You may import selected taxonomic coverage details from another data package.
+
+Note that you may also "import" from the current data package, to "copy and paste" a taxonomy you can then edit.
+
+Currently, only taxonomic coverages at the data package level (as opposed to the individual data table level) are available to import.
+--------------------
+import_taxonomic_coverage_2
+Import Taxonomic Coverage
+Select the taxonomic coverages to import.
+
+If none are shown, none are available in the selected data package.
 --------------------
 intellectual_rights
 Intellectual Rights
@@ -215,7 +382,15 @@ It may consist of multiple paragraphs.
 --------------------
 maintenance_freq
 Maintenance Update Frequency
-Frequency with which changes and additions are made to the dataset after the initial dataset is completed.metadata_providers
+Frequency with which changes and additions are made to the dataset after the initial dataset is completed.
+--------------------
+metadataProvider
+Metadata Provider
+A metadata provider is a person(s) or organization(s) responsible for producing or providing the metadata content.
+
+For primary data sets generated by LTER sites, the LTER site should typically be listed under Metadata Provider using the Organization Name field. For acquired data sets, where the Creator and Associated Party are not the same people who produced the metadata content, the actual metadata content provider should be listed instead.
+--------------------
+metadata_providers
 Metadata Providers
 The metadata provider is the person(s) or organization(s) responsible for producing or providing the metadata content.
 
@@ -265,44 +440,49 @@ place holder
 --------------------
 nav
 Navigating in ezEML
-The <b>Save and Continue</b> button saves the changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to another section of the metadata.
+The <b>Save and Continue</b> button saves any changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
 
-The <b>Reset</b> button clears the changes you've made on the current page and leaves you on that page.
+The <b>Reset Changes</b> button clears the changes you've made on the current page and leaves you on that page.
 
-<b>Please refrain from using your browser's forward and back buttons. Using them may cause you to lose some of your edits.</b>
+<i>You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a </i><b>Cancel</b><i> button, which lets you exit that page without saving.</i>
+
+The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
+
+It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
+
+See also <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_ezeml_user_guide">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+--------------------
+new_eml_document
+Document Name
+Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
+
+This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 --------------------
 other_entities
 Other Entities
-<b>Other Entities</b> are data entities other than data tables. They are identitied by their names.
+<b>Other Entities</b> are data entities other than data tables that will be included in the data package. They are identified by their names.
 
-<b>Other Entities</b> descriptors can contain information about an entity's basic identity, its temporal, geographic, and taxonomic coverage, and its type.
-
-Example: Photograph of rocky intertidal plot 12 from Santa Cruz
+Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
 --------------------
-pubdate
-Publication Date
-The year or date of public release of data online.
+other_entity
+Other Entity
+An <b>Other Entity</b> is a data entity other than a data table that will be included in the data package. Other Entities are identified by their names.
 
-Because this element may be used in constructing citations, the publication date also should  reflect the 'recentness' of a package. I.e., it should be updated along with significant revisions
- or data additions (e.g., corrected data or additions to an ongoing time series).
-
-There is an argument for publication date referring to the original date of release, but this is probably only useful for static data packages, or if the only metadata changes are to enhance discovery.
+Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
 --------------------
-publisher
-Publisher
-The organization producing the EML metadata (e.g., an LTER site or field station).
---------------------
-pubplace
-Publication Place
-The location where the resource was published, which may be different from where the resource was created.
+personnel
+Project Personnel
+Contact and role information for a person/organization involved in the research project.
 
-Example: Madison, WI, USA
+Note that Role is a required field.
 --------------------
 project
 Project
-Documents the research context of a dataset or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
+This documents the research context of a data package or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
 
-To document methods specific to a dataset, use <b>Methods</b>.
+To document <i>methods</i> specific to a data package, use <b>Methods</b>.
+
+A project is required to have a Project Title.
 --------------------
 project_title
 Project Title
@@ -310,11 +490,77 @@ A descriptive title for the research project.
 
 Example: Species diversity in Tennessee riparian habitats.
 --------------------
+pubdate
+Publication Date
+The year or date of public release of data online.
+
+Because this element may be used in constructing citations, the publication date also should  reflect the 'recentness' of a package. I.e., it should be updated along with significant revisions or data additions (e.g., corrected data or additions to an ongoing time series).
+
+There is an argument for publication date referring to the original date of release, but this is probably only useful for static data packages, or if the only metadata changes are to enhance discovery.
+--------------------
+publisher
+Publisher
+The organization producing the EML metadata (e.g., an LTER site or field station).
+
+Publisher is not required by EML. If you submit your data to the EDI data repository, EDI will be entered automatically as the publisher in the published EML.
+--------------------
+pubplace
+Publication Place
+The location where the resource was published, which may be different from where the resource was created.
+
+Example: Madison, WI, USA
+--------------------
+pubdate
+Publication Date
+The date of publication.
+
+Publication date is not required by EML. If you submit your data to the EDI data repository, the date of publication will be entered automatically by EDI.
+--------------------
+save_as_document
+Document Name
+Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
+
+This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
+--------------------
+storage_type
+Storage Type
+This element describes the storage type for data in a RDBMS (or other data management system) field.
+
+Values for this field are by default drawn from the XML Schema Datatypes standard values, such as: integer, double, string, etc. If the XML Schema Datatypes are not used, the type system from which the values are derived should be specified in the Storage Type System field.
+
+Storage Type represents a 'hint' to processing systems as to how the attribute might be represented in a system or language.
+
+Examples:
+  integer
+  int
+--------------------
+storage_type_system
+Storage Type System
+The system used to define the storage types. This should be an identifier of a well known and published typing system.
+
+The default and recommended system is the XML Schema data type system. For details go to http://www.w3.org. If another system is used (such as Java or C++ types), typeSystem should be changed to match the system.
+
+Examples:
+  http://www.w3.org/2001/XMLSchema-datatypes
+  java
+  C
+  Oracle 8i
+--------------------
 taxonomic_coverages
 Taxonomic Coverage
 <b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study.
 
-The lowest available level, preferably the species binomial and common name should always be included, but higher-level taxa should also be included to support broader taxonomic searches.
+The lowest available level, preferably the species binomial and common name should always be included, but higher-level taxa should also be included to support broader taxonomic searches. ezEML can fill in the higher-level taxa for you by accessing a taxonomic authority online.
+--------------------
+taxonomic_coverage_fill_hierarchy
+Fill Hierarchy
+<b>Fill Hierarchy</b> retrieves and lists the higher-level taxa associated with a given taxon.
+
+Enter the Taxon Name for the most specific relevant taxon (e.g., species or genus), select a taxonomic authority to access, and click <b>Fill Hierarchy</b>. ezEML will send requests to the selected taxonomic authority to retrieve the higher-level taxa, as well as any associated common names, and the taxon ID for each taxon. The taxon IDs let ezEML construct links to the corresponding pages on the taxonomic authority website. These data will be entered in the EML document as well.
+
+The Taxon Name you enter should be the scientific name for the taxon, not a common name.
+
+If the specified taxon is found in the taxonomic authority database, the Taxon Rank will be set automatically. I.e., if you are going to use <b>Fill Hierarchy</b> for a known taxon, you don't need to worry about getting the taxon rank right. The Taxon Rank selection list is there to cover cases where the taxon you've entered is not found in the supported taxonomic authorities but you want to save it as entered. In such cases, you can still click <b>Save and Continue</b> and the taxon rank and taxon name will be saved in the EML exactly as you've entered them.
 --------------------
 temporal_coverages
 Temporal Coverage
@@ -324,9 +570,30 @@ Two formats are allowed, either a 4-digit year, or a date in ISO format: YYYY-MM
 --------------------
 title
 Title
-The <b>Title</b> field provides a description of the data package. It should be long enough to differentiate it from other similar resources. A minimum of 20 characters is required.
+The <b>Title</b> field provides a description of the data package. It should be long enough to differentiate it from other similar resources.
 
 It should be descriptive and should mention the data collected, geographic context, research site, and time frame (i.e., what, where, and when).
 
 Example: <i>Vernal pool amphibian density data, Isla Vista, 1990-1996.</i>
+--------------------
+welcome
+Welcome to ezEML
+
+Welcome to ezEML! Here is some initial guidance on its use.
+
+You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a <b>Cancel</b> button, which lets you exit that page without saving.
+
+<b>Save and Continue</b> buttons save any changes you've made on the current page and move you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
+
+<b>Reset Changes</b> buttons clear the changes you've made on the current page and leave you on that page.
+
+The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
+
+It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
+
+Notice that there are lots of Help buttons in ezEML (see the circular question mark icons). You may find them helpful.
+
+We won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_ezeml_user_guide">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+
+We hope you find ezEML useful, and we welcome your feedback at <a style="color: steelblue;" href="mailto:support.environmentaldatainitiative.org">support.environmentaldatainitiative.org</a>.
 --------------------

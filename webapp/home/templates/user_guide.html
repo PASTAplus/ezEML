@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+
+    <h4>User Guide</h4>
+    <ul>
+    <li><a href="/static/user_guide/terminology.pdf?vers=2020-08-27" target="_ezeml_user_guide">Some Terminology</a></li>
+    <li><a href="/static/user_guide/data_workflow.pdf?vers=2020-08-27" target="_ezeml_user_guide">ezEML's Place in the Data Workflow</a></li>
+    <li><a href="/static/user_guide/getting_started.pdf?vers=2020-08-12" target="_ezeml_user_guide">Getting Started</a></li>
+    <li><a href="/static/user_guide/navigating.pdf?vers=2020-08-27" target="_ezeml_user_guide">Navigating in ezEML</a></li>
+    <li><a href="/static/user_guide/uploading_data_tables.pdf?vers=2020-09-01" target="_ezeml_user_guide">Uploading Data Tables</a></li>
+    <li><a href="/static/user_guide/checking_your_metadata.pdf?vers=2020-08-12" target="_ezeml_user_guide">Checking Your Metadata</a></li>
+    <li><a href="/static/user_guide/importing.pdf?vers=2020-08-12" target="_ezeml_user_guide">Importing from Other Data Packages</a></li>
+    <li><a href="/static/user_guide/downloading.pdf?vers=2020-08-12" target="_ezeml_user_guide">Downloading the EML Document</a></li>
+    </ul>
+    <br>
+    <b><a href={{ back_url }}>Back</a></b>
+
+
+{% endblock %}

@@ -21,7 +21,7 @@ from webapp.home.views import get_keywords
 
 
 class AbstractForm(EDIForm):
-    abstract = StringField('Abstract', widget=TextArea(),
+    abstract = StringField('Abstract (Recommended)', widget=TextArea(),
                            validators=[Optional()])
     md5 = HiddenField('')
 
@@ -43,7 +43,7 @@ class KeywordSelectForm(EDIForm):
 
 
 class KeywordForm(EDIForm):
-    keyword = StringField('Keyword', validators=[])
+    keyword = StringField('Keyword *', validators=[])
 
     lter_keyword_select = SelectField('', choices=[], validators=[])
 
@@ -70,11 +70,17 @@ class PubDateForm(EDIForm):
     md5 = HiddenField('')
 
 
-class PublicationPlaceForm(EDIForm):
-    pubplace = StringField('Publication Place', validators=[])
+class PublicationInfoForm(EDIForm):
+    pubplace = StringField('Publication Place (Optional)', validators=[])
+    pubdate = StringField('Publication Date (Optional)', validators=[])
     md5 = HiddenField('')
 
 
 class TitleForm(EDIForm):
-    title = StringField('Title', validators=[valid_min_length(min=20)])
+    title = StringField('Title *', validators=[])
+    md5 = HiddenField('')
+
+
+class DataPackageIDForm(EDIForm):
+    data_package_id = StringField('Data Package ID *', validators=[])
     md5 = HiddenField('')

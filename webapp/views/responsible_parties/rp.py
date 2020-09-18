@@ -21,45 +21,47 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, set_current_page, get_help
+from webapp.home.views import select_post, non_breaking, set_current_page, get_help, get_helps
 
 
 rp_bp = Blueprint('rp', __name__, template_folder='templates')
 
 
-@rp_bp.route('/creator_select/<packageid>', methods=['GET', 'POST'])
-def creator_select(packageid=None):
-    form = ResponsiblePartySelectForm(packageid=packageid)
+@rp_bp.route('/creator_select/<filename>', methods=['GET', 'POST'])
+def creator_select(filename=None):
+    form = ResponsiblePartySelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_CREATOR_SELECT, PAGE_TITLE,
-                          PAGE_METADATA_PROVIDER_SELECT, PAGE_CREATOR)
+                          PAGE_CONTACT_SELECT, PAGE_CREATOR)
         return redirect(url)
 
     # Process GET
     set_current_page('creator')
     help = [get_help('creators')]
-    return rp_select_get(packageid=packageid, form=form, rp_name=names.CREATOR,
+    return rp_select_get(filename=filename, form=form, rp_name=names.CREATOR,
                          rp_singular='Creator', rp_plural='Creators', help=help)
 
 
-@rp_bp.route('/creator/<packageid>/<node_id>', methods=['GET', 'POST'])
-def creator(packageid=None, node_id=None):
+@rp_bp.route('/creator/<filename>/<node_id>', methods=['GET', 'POST'])
+def creator(filename=None, node_id=None):
     method = request.method
     set_current_page('creator')
-    return responsible_party(packageid=packageid, node_id=node_id,
+    return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.CREATOR,
-                             back_page=PAGE_CREATOR_SELECT, title='Creator')
+                             back_page=PAGE_CREATOR_SELECT,
+                             next_page=PAGE_CREATOR_SELECT,
+                             title='Creator')
 
 
-def rp_select_get(packageid=None, form=None, rp_name=None,
+def rp_select_get(filename=None, form=None, rp_name=None,
                   rp_singular=None, rp_plural=None, help=None):
     # Process GET
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     rp_list = list_responsible_parties(eml_node, rp_name)
     title = rp_name.capitalize()
 
@@ -75,25 +77,36 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
+
             if val == BTN_BACK:
                 new_page = back_page
                 break
             elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
                 new_page = next_page
                 break
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+                break
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+                break
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
+                break
+
     return new_page
 
 
-def responsible_party(packageid=None, node_id=None, method=None,
+def responsible_party(filename=None, node_id=None, method=None,
                       node_name=None, back_page=None, title=None,
                       next_page=None, save_and_continue=False, help=None):
 
     if BTN_CANCEL in request.form:
-        url = url_for(back_page, packageid=packageid)
+        url = url_for(back_page, filename=filename)
         return redirect(url)
 
-    form = ResponsiblePartyForm(packageid=packageid)
-    eml_node = load_eml(packageid=packageid)
+    form = ResponsiblePartyForm(filename=filename)
+    eml_node = load_eml(filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
         dataset_node = Node(names.DATASET, parent=eml_node)
@@ -101,20 +114,14 @@ def responsible_party(packageid=None, node_id=None, method=None,
     parent_node = dataset_node
     role = False
     new_page = select_new_page(back_page, next_page)
+    # new_page = back_page
 
     form_value = request.form
     form_dict = form_value.to_dict(flat=False)
-    url = select_post(packageid, form, form_dict,
+    url = select_post(filename, form, form_dict,
                       'POST', PAGE_PUBLISHER,
-                      PAGE_CONTACT_SELECT, PAGE_PUBLICATION_PLACE,
+                      PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
                       PAGE_PUBLISHER)
-    # url = select_post(packageid, form, form_dict,
-    #                   method, this_page, back_page,
-    #                   next_page, edit_page)
-
-    # def select_post(packageid=None, form=None, form_dict=None,
-    #                 method=None, this_page=None, back_page=None,
-    #                 next_page=None, edit_page=None):
 
     # If this is an associatedParty or a project personnel element,
     # set role to True so it will appear as a form field.
@@ -160,7 +167,7 @@ def responsible_party(packageid=None, node_id=None, method=None,
 
             create_responsible_party(
                 rp_node,
-                packageid,
+                filename,
                 salutation,
                 gn,
                 mn,
@@ -191,16 +198,20 @@ def responsible_party(packageid=None, node_id=None, method=None,
             else:
                 add_child(parent_node, rp_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             # flash(f"Changes to the '{node_name}' element have been saved.")
 
             # There is at most only one publisher element, so we don't have a
             # list of publishers to navigate back to. Stay on this page after
             # saving changes.
+            # FIXME
             if node_name == names.PUBLISHER:
-                new_page = PAGE_PUBLISHER
+                new_page = PAGE_PUBLICATION_INFO
 
-        return redirect(url_for(new_page, packageid=packageid))
+        if node_name != names.PUBLISHER:
+            return redirect(url_for(new_page, filename=filename))
+        else:
+            return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -213,114 +224,118 @@ def responsible_party(packageid=None, node_id=None, method=None,
                     if node_id == rp_node.id:
                         populate_responsible_party_form(form, rp_node)
 
-    if node_name == names.PUBLISHER:
-        help = [get_help('publisher')]
-    return render_template('responsible_party.html', title=title,
+    # if node_name == names.PUBLISHER:
+    #     help = [get_help('publisher')]
+    help = get_helps([node_name])
+    return render_template('responsible_party.html', title=title, node_name=node_name,
                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
 
 
-@rp_bp.route('/metadata_provider_select/<packageid>', methods=['GET', 'POST'])
-def metadata_provider_select(packageid=None):
-    form = ResponsiblePartySelectForm(packageid=packageid)
+@rp_bp.route('/metadata_provider_select/<filename>', methods=['GET', 'POST'])
+def metadata_provider_select(filename=None):
+    form = ResponsiblePartySelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_METADATA_PROVIDER_SELECT,
-                          PAGE_CREATOR_SELECT, PAGE_ASSOCIATED_PARTY_SELECT,
+                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_ABSTRACT,
                           PAGE_METADATA_PROVIDER)
         return redirect(url)
 
     # Process GET
     set_current_page('metadata_provider')
     help = [get_help('metadata_providers')]
-    return rp_select_get(packageid=packageid, form=form,
+    return rp_select_get(filename=filename, form=form,
                          rp_name=names.METADATAPROVIDER,
                          rp_singular=non_breaking('Metadata Provider'),
                          rp_plural=non_breaking('Metadata Providers'), help=help)
 
 
-@rp_bp.route('/metadata_provider/<packageid>/<node_id>', methods=['GET', 'POST'])
-def metadata_provider(packageid=None, node_id=None):
+@rp_bp.route('/metadata_provider/<filename>/<node_id>', methods=['GET', 'POST'])
+def metadata_provider(filename=None, node_id=None):
     method = request.method
     set_current_page('metadata_provider')
-    return responsible_party(packageid=packageid, node_id=node_id,
+    return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.METADATAPROVIDER,
                              back_page=PAGE_METADATA_PROVIDER_SELECT,
+                             next_page=PAGE_METADATA_PROVIDER_SELECT,
                              title='Metadata Provider')
 
 
-@rp_bp.route('/associated_party_select/<packageid>', methods=['GET', 'POST'])
-def associated_party_select(packageid=None):
-    form = ResponsiblePartySelectForm(packageid=packageid)
+@rp_bp.route('/associated_party_select/<filename>', methods=['GET', 'POST'])
+def associated_party_select(filename=None):
+    form = ResponsiblePartySelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_ASSOCIATED_PARTY_SELECT,
+                          PAGE_CONTACT_SELECT,
                           PAGE_METADATA_PROVIDER_SELECT,
-                          PAGE_ABSTRACT,
                           PAGE_ASSOCIATED_PARTY)
         return redirect(url)
 
     # Process GET
     set_current_page('associated_party')
     help = [get_help('associated_parties')]
-    return rp_select_get(packageid=packageid, form=form,
+    return rp_select_get(filename=filename, form=form,
                          rp_name=names.ASSOCIATEDPARTY,
                          rp_singular=non_breaking('Associated Party'),
                          rp_plural=non_breaking('Associated Parties'), help=help)
 
 
-@rp_bp.route('/associated_party/<packageid>/<node_id>', methods=['GET', 'POST'])
-def associated_party(packageid=None, node_id=None):
+@rp_bp.route('/associated_party/<filename>/<node_id>', methods=['GET', 'POST'])
+def associated_party(filename=None, node_id=None):
     method = request.method
     set_current_page('associated_party')
-    return responsible_party(packageid=packageid, node_id=node_id,
+    return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.ASSOCIATEDPARTY,
                              back_page=PAGE_ASSOCIATED_PARTY_SELECT,
+                             next_page=PAGE_ASSOCIATED_PARTY_SELECT,
                              title='Associated Party')
 
 
-@rp_bp.route('/contact_select/<packageid>', methods=['GET', 'POST'])
-def contact_select(packageid=None):
-    form = ResponsiblePartySelectForm(packageid=packageid)
+@rp_bp.route('/contact_select/<filename>', methods=['GET', 'POST'])
+def contact_select(filename=None):
+    form = ResponsiblePartySelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
-                          'POST', PAGE_CONTACT_SELECT, PAGE_TAXONOMIC_COVERAGE_SELECT,
-                          PAGE_METHOD_STEP_SELECT, PAGE_CONTACT)
+        url = select_post(filename, form, form_dict,
+                          'POST', PAGE_CONTACT_SELECT, PAGE_CREATOR_SELECT,
+                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_CONTACT)
         return redirect(url)
 
     # Process GET
     set_current_page('contact')
     help = [get_help('contacts')]
-    return rp_select_get(packageid=packageid, form=form, rp_name='contact',
+    return rp_select_get(filename=filename, form=form, rp_name='contact',
                          rp_singular='Contact', rp_plural='Contacts', help=help)
 
 
-@rp_bp.route('/contact/<packageid>/<node_id>', methods=['GET', 'POST'])
-def contact(packageid=None, node_id=None):
+@rp_bp.route('/contact/<filename>/<node_id>', methods=['GET', 'POST'])
+def contact(filename=None, node_id=None):
     method = request.method
     set_current_page('contact')
-    return responsible_party(packageid=packageid, node_id=node_id,
+    return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.CONTACT,
-                             back_page=PAGE_CONTACT_SELECT, title='Contact')
+                             back_page=PAGE_CONTACT_SELECT, next_page=PAGE_CONTACT_SELECT,
+                             title='Contact')
 
 
-@rp_bp.route('/publisher/<packageid>', methods=['GET', 'POST'])
-def publisher(packageid=None):
+@rp_bp.route('/publisher/<filename>', methods=['GET', 'POST'])
+def publisher(filename=None):
     method = request.method
     node_id = '1'
-    if packageid:
-        eml_node = load_eml(packageid=packageid)
+    if filename:
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             publisher_node = dataset_node.find_child(names.PUBLISHER)
@@ -328,29 +343,29 @@ def publisher(packageid=None):
                 node_id = publisher_node.id
     set_current_page('publisher')
     help = [get_help('publisher')]
-    return responsible_party(packageid=packageid, node_id=node_id,
+    return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.PUBLISHER,
                              back_page=PAGE_CONTACT_SELECT, title='Publisher',
-                             next_page=PAGE_PUBLICATION_PLACE,
+                             next_page=PAGE_PUBLICATION_INFO,
                              save_and_continue=True, help=help)
 
 
-def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
-    salutation_node = node.find_child(names.SALUTATION)
-    if salutation_node:
-        form.salutation.data = salutation_node.content
-
+def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
     in_node = node.find_child(names.INDIVIDUALNAME)
     if in_node:
+        salutation_node = in_node.find_child(names.SALUTATION)
+        if salutation_node:
+            form.salutation.data = salutation_node.content
+
         gn_nodes = in_node.find_all_children(names.GIVENNAME)
         if gn_nodes:
             form.gn.data = gn_nodes[0].content
             if len(gn_nodes) > 1:
                 form.mn.data = gn_nodes[1].content
 
-    sn_node = node.find_child(names.SURNAME)
-    if sn_node:
-        form.sn.data = sn_node.content
+        sn_node = in_node.find_child(names.SURNAME)
+        if sn_node:
+            form.sn.data = sn_node.content
 
     user_id_node = node.find_child(names.USERID)
     if user_id_node:
@@ -419,10 +434,12 @@ def populate_responsible_party_form(form :ResponsiblePartyForm, node :Node):
     form.md5.data = form_md5(form)
 
 
-@rp_bp.route('/project_personnel/<packageid>/<node_id>', methods=['GET', 'POST'])
-def project_personnel(packageid=None, node_id=None):
+@rp_bp.route('/project_personnel/<filename>/<node_id>', methods=['GET', 'POST'])
+def project_personnel(filename=None, node_id=None):
     method = request.method
     set_current_page('project')
-    return responsible_party(packageid=packageid, node_id=node_id,
+    return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.PERSONNEL,
-                             back_page=PAGE_PROJECT_PERSONNEL_SELECT, title='Project Personnel')
+                             back_page=PAGE_PROJECT_PERSONNEL_SELECT,
+                             next_page=PAGE_PROJECT_PERSONNEL_SELECT,
+                             title='Project Personnel')

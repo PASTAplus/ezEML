@@ -19,39 +19,39 @@ from webapp.pages import *
 acc_bp = Blueprint('acc', __name__, template_folder='templates')
 
 
-@acc_bp.route('/access_select/<packageid>', methods=['GET', 'POST'])
-def access_select(packageid=None, node_id=None):
-    form = AccessSelectForm(packageid=packageid)
+@acc_bp.route('/access_select/<filename>', methods=['GET', 'POST'])
+def access_select(filename=None, node_id=None):
+    form = AccessSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = access_select_post(packageid, form, form_dict,
+        url = access_select_post(filename, form, form_dict,
                                  'POST', PAGE_ACCESS_SELECT, PAGE_TITLE,
                                  PAGE_CREATOR_SELECT, PAGE_ACCESS)
         return redirect(url)
 
     # Process GET
-    return access_select_get(packageid=packageid, form=form)
+    return access_select_get(filename=filename, form=form)
 
 
-def access_select_get(packageid=None, form=None):
+def access_select_get(filename=None, form=None):
     # Process GET
     access_rules_list = []
     title = 'Access Rules'
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
 
     if eml_node:
         access_rules_list = list_access_rules(eml_node)
 
     return render_template('access_select.html', title=title,
-                           packageid=packageid,
+                           filename=filename,
                            ar_list=access_rules_list,
                            form=form)
 
 
-def access_select_post(packageid=None, form=None, form_dict=None,
+def access_select_post(filename=None, form=None, form_dict=None,
                        method=None, this_page=None, back_page=None,
                        next_page=None, edit_page=None):
     node_id = ''
@@ -69,17 +69,17 @@ def access_select_post(packageid=None, form=None, form_dict=None,
             elif val == 'Remove':
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=filename)
                 remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(packageid, node_id)
+                process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(packageid, node_id)
+                process_down_button(filename, node_id)
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
@@ -87,24 +87,24 @@ def access_select_post(packageid=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page == edit_page:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            node_id=node_id)
         elif new_page == this_page:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            node_id=node_id)
         elif new_page == back_page or new_page == next_page:
             return url_for(new_page,
-                           packageid=packageid)
+                           filename=filename)
 
 
 # node_id is the id of the access node being edited. If the value is
 # '1', it means we are adding a new access node, otherwise we are
 # editing an existing access node.
 #
-@acc_bp.route('/access/<packageid>/<node_id>', methods=['GET', 'POST'])
-def access(packageid=None, node_id=None):
-    eml_node = load_eml(packageid=packageid)
+@acc_bp.route('/access/<filename>/<node_id>', methods=['GET', 'POST'])
+def access(filename=None, node_id=None):
+    eml_node = load_eml(filename=filename)
 
     if eml_node:
         access_node = eml_node.find_child(names.ACCESS)
@@ -115,13 +115,13 @@ def access(packageid=None, node_id=None):
         access_node = Node(names.ACCESS, parent=eml_node)
         add_child(eml_node, access_node)
 
-    form = AccessForm(packageid=packageid, node_id=node_id)
+    form = AccessForm(filename=filename, node_id=node_id)
     # form = AccessForm()
 
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
-            url = url_for(PAGE_ACCESS_SELECT, packageid=packageid)
+            url = url_for(PAGE_ACCESS_SELECT, filename=filename)
             return redirect(url)
 
         next_page = PAGE_ACCESS_SELECT  # Save or Back sends us back to the list of access rules
@@ -151,9 +151,9 @@ def access(packageid=None, node_id=None):
                 else:
                     add_child(access_node, allow_node)
 
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
 
-            url = url_for(next_page, packageid=packageid)
+            url = url_for(next_page, filename=filename)
             return redirect(url)
 
     # Process GET
@@ -167,7 +167,7 @@ def access(packageid=None, node_id=None):
                     populate_access_rule_form(form, allow_node)
                     break
 
-    return render_template('access.html', title='Access Rule', form=form, packageid=packageid)
+    return render_template('access.html', title='Access Rule', form=form, filename=filename)
 
 
 def populate_access_rule_form(form: AccessForm, allow_node: Node):

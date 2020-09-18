@@ -25,10 +25,10 @@ from metapype.model.node import Node
 maint_bp = Blueprint('maint', __name__, template_folder='templates')
 
 
-@maint_bp.route('/maintenance/<packageid>', methods=['GET', 'POST'])
-def maintenance(packageid=None):
-    form = MaintenanceForm(packageid=packageid)
-    eml_node = load_eml(packageid=packageid)
+@maint_bp.route('/maintenance/<filename>', methods=['GET', 'POST'])
+def maintenance(filename=None):
+    form = MaintenanceForm(filename=filename)
+    eml_node = load_eml(filename=filename)
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
@@ -46,7 +46,7 @@ def maintenance(packageid=None):
             description = add_paragraph_tags(form.description.data)
             update_frequency = form.update_frequency.data
             create_maintenance(dataset_node, description, update_frequency)
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
@@ -55,12 +55,21 @@ def maintenance(packageid=None):
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
                 if val == BTN_SAVE_AND_CONTINUE:
-                    new_page = PAGE_CONTACT_SELECT
+                    new_page = PAGE_PUBLISHER
+                elif val == BTN_HIDDEN_CHECK:
+                    new_page = PAGE_CHECK
                 elif val == BTN_HIDDEN_SAVE:
                     new_page = PAGE_PROJECT
                 elif val == BTN_HIDDEN_DOWNLOAD:
                     new_page = PAGE_DOWNLOAD
-        return redirect(url_for(new_page, packageid=packageid))
+                elif val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+
+        return redirect(url_for(new_page, filename=filename))
 
 
     # Process GET
@@ -73,7 +82,7 @@ def maintenance(packageid=None):
     help = [get_help('maintenance'), get_help('maintenance_description'), get_help('maintenance_freq')]
     return render_template('maintenance.html',
                            title='Maintenance',
-                           packageid=packageid,
+                           filename=filename,
                            form=form,
                            help=help)
 

@@ -32,13 +32,16 @@
     {% set help_data_table_record_delimiter_id, help_data_table_record_delimiter_title, help_data_table_record_delimiter_content = help[9] %}
     {% set help_data_table_record_delimiter_btn = help_data_table_record_delimiter_id ~ '_btn' %}
     {% set help_data_table_record_delimiter_dialog = help_data_table_record_delimiter_id ~ '_dialog' %}
-    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[10] %}
+    {% set help_data_table_quote_character_id, help_data_table_quote_character_title, help_data_table_quote_character_content = help[10] %}
+    {% set help_data_table_quote_character_btn = help_data_table_quote_character_id ~ '_btn' %}
+    {% set help_data_table_quote_character_dialog = help_data_table_quote_character_id ~ '_dialog' %}
+    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[11] %}
     {% set help_data_table_case_sensitive_btn = help_data_table_case_sensitive_id ~ '_btn' %}
     {% set help_data_table_case_sensitive_dialog = help_data_table_case_sensitive_id ~ '_dialog' %}
-    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[11] %}
+    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[12] %}
     {% set help_data_table_number_of_records_btn = help_data_table_number_of_records_id ~ '_btn' %}
     {% set help_data_table_number_of_records_dialog = help_data_table_number_of_records_id ~ '_dialog' %}
-    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[12] %}
+    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[13] %}
     {% set help_data_table_online_url_btn = help_data_table_online_url_id ~ '_btn' %}
     {% set help_data_table_online_url_dialog = help_data_table_online_url_id ~ '_dialog' %}
 
@@ -51,37 +54,89 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter information about the data table object:</h5>
+                <h5>Enter information about the data table object:</h5>
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.object_name) }}{{ macros.item_end(help_data_table_object_name_btn) }}
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_orientation) }}{{ macros.item_end(help_data_table_attribute_orientation_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.field_delimiter) }}{{ macros.item_end(help_data_table_field_delimiter_btn) }}
-                {{ macros.item_start() }}{{ wtf.form_field(form.size) }}{{ macros.item_end(help_data_table_size_btn) }}
-                {{ macros.item_start() }}{{ wtf.form_field(form.md5_hash) }}{{ macros.item_end(help_data_table_checksum_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.num_header_lines) }}{{ macros.item_end(help_data_table_header_lines_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.record_delimiter) }}{{ macros.item_end(help_data_table_record_delimiter_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
+                {{ macros.item_start() }}{{ wtf.form_field(form.quote_character) }}{{ macros.item_end(help_data_table_quote_character_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.case_sensitive) }}{{ macros.item_end(help_data_table_case_sensitive_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
+                {{ macros.item_start() }}{{ wtf.form_field(form.size) }}{{ macros.item_end(help_data_table_size_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                {{ macros.item_start() }}{{ wtf.form_field(form.md5_hash) }}{{ macros.item_end(help_data_table_checksum_btn) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.number_of_records) }}{{ macros.item_end(help_data_table_number_of_records_btn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.online_url) }}{{ macros.item_end(help_data_table_online_url_btn) }}
+                </td>
+                </tr>
+                </table>
+
                 <br/>
                 <h4>Attributes:</h4>
                 {{ atts }}
                 <br/><br/>
                 <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Attributes"/>
                 <br/><br/><br/>
-                <h4>Data Table Coverage (Optional):</h4>
-                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>
-                <br/><br/>
-                <input class="btn btn-primary" name="Temporal" type="submit" value="Edit Temporal Coverage"/>
-                <br/><br/>
-                <input class="btn btn-primary" name="Taxonomic" type="submit" value="Edit Taxonomic Coverage"/>
-                <br/><br/><br/>
-                <h4>Data Table Methods (Optional):</h4>
-                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>
-                <br/><br/>
-                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+{#                <h4>Data Table Coverage (Optional):</h4>#}
+{#                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>#}
+{#                <br/><br/>#}
+{#                <input class="btn btn-primary" name="Temporal" type="submit" value="Edit Temporal Coverage"/>#}
+{#                <br/><br/>#}
+{#                <input class="btn btn-primary" name="Taxonomic" type="submit" value="Edit Taxonomic Coverage"/>#}
+{#                <br/><br/><br/>#}
+{#                <h4>Data Table Methods (Optional):</h4>#}
+{#                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>#}
+{#                <br/><br/>#}
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_new_open_close_buttons() }}
             </form>
             <p>&nbsp;</p>
         </div>
@@ -96,6 +151,7 @@
     {{ macros.help_dialog(help_data_table_checksum_dialog, help_data_table_checksum_title, help_data_table_checksum_content) }}
     {{ macros.help_dialog(help_data_table_header_lines_dialog, help_data_table_header_lines_title, help_data_table_header_lines_content) }}
     {{ macros.help_dialog(help_data_table_record_delimiter_dialog, help_data_table_record_delimiter_title, help_data_table_record_delimiter_content) }}
+    {{ macros.help_dialog(help_data_table_quote_character_dialog, help_data_table_quote_character_title, help_data_table_quote_character_content) }}
     {{ macros.help_dialog(help_data_table_case_sensitive_dialog, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content) }}
     {{ macros.help_dialog(help_data_table_number_of_records_dialog, help_data_table_number_of_records_title, help_data_table_number_of_records_content) }}
     {{ macros.help_dialog(help_data_table_online_url_dialog, help_data_table_online_url_title, help_data_table_online_url_content) }}
@@ -135,13 +191,16 @@
     {% set help_data_table_record_delimiter_id, help_data_table_record_delimiter_title, help_data_table_record_delimiter_content = help[9] %}
     {% set help_data_table_record_delimiter_btn = help_data_table_record_delimiter_id ~ '_btn' %}
     {% set help_data_table_record_delimiter_dialog = help_data_table_record_delimiter_id ~ '_dialog' %}
-    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[10] %}
+    {% set help_data_table_quote_character_id, help_data_table_quote_character_title, help_data_table_quote_character_content = help[10] %}
+    {% set help_data_table_quote_character_btn = help_data_table_quote_character_id ~ '_btn' %}
+    {% set help_data_table_quote_character_dialog = help_data_table_quote_character_id ~ '_dialog' %}
+    {% set help_data_table_case_sensitive_id, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content = help[11] %}
     {% set help_data_table_case_sensitive_btn = help_data_table_case_sensitive_id ~ '_btn' %}
     {% set help_data_table_case_sensitive_dialog = help_data_table_case_sensitive_id ~ '_dialog' %}
-    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[11] %}
+    {% set help_data_table_number_of_records_id, help_data_table_number_of_records_title, help_data_table_number_of_records_content = help[12] %}
     {% set help_data_table_number_of_records_btn = help_data_table_number_of_records_id ~ '_btn' %}
     {% set help_data_table_number_of_records_dialog = help_data_table_number_of_records_id ~ '_dialog' %}
-    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[12] %}
+    {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[13] %}
     {% set help_data_table_online_url_btn = help_data_table_online_url_id ~ '_btn' %}
     {% set help_data_table_online_url_dialog = help_data_table_online_url_id ~ '_dialog' %}
     <script>
@@ -157,6 +216,7 @@
         {{ macros.help_script(help_data_table_checksum_dialog, help_data_table_checksum_btn) }}
         {{ macros.help_script(help_data_table_header_lines_dialog, help_data_table_header_lines_btn) }}
         {{ macros.help_script(help_data_table_record_delimiter_dialog, help_data_table_record_delimiter_btn) }}
+        {{ macros.help_script(help_data_table_quote_character_dialog, help_data_table_quote_character_btn) }}
         {{ macros.help_script(help_data_table_case_sensitive_dialog, help_data_table_case_sensitive_btn) }}
         {{ macros.help_script(help_data_table_number_of_records_dialog, help_data_table_number_of_records_btn) }}
         {{ macros.help_script(help_data_table_online_url_dialog, help_data_table_online_url_btn) }}

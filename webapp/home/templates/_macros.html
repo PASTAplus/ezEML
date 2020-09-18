@@ -2,13 +2,22 @@
     {% if val == '' %}
     <td></td>
     {% else %}
-    <td style="width:5%"><input class="btn btn-primary" name="{{ id }}" type="submit" value="{{ val }}"/></td>
+    <td style="width:3%"><input class="btn btn-primary" name="{{ id }}" type="submit" value="{{ val }}"/></td>
     {% endif %}
 {% endmacro %}
 {% macro hidden_buttons() %}
+                <input id="hidden_new" style="display: none;" name="Hidden_New" type="submit" value="Hidden_New"/>
+                <input id="hidden_open" style="display: none;" name="Hidden_Open" type="submit" value="Hidden_Open"/>
+                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
+                <input id="hidden_check" style="display: none;" name="Hidden_Check" type="submit" value="Hidden_Check"/>
                 <input id="hidden_save" style="display: none;" name="Hidden_Save" type="submit" value="Hidden_Save"/>
                 <input id="hidden_download" style="display: none;" name="Hidden_Download" type="submit" value="Hidden_Download"/>
     {% set show_nav_buttons = 'visible' %}
+{% endmacro %}
+{% macro hidden_new_open_close_buttons() %}
+                <input id="hidden_new" style="display: none;" name="Hidden_New" type="submit" value="Hidden_New"/>
+                <input id="hidden_open" style="display: none;" name="Hidden_Open" type="submit" value="Hidden_Open"/>
+                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
 {% endmacro %}
 {% macro help_button(id, class) %}
     <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;">
@@ -32,6 +41,11 @@
                     <td valign="top" style="padding-top: 30px;">{{ help_button(help_id) }}</td>
                 </table>
 {% endmacro %}
+{% macro taxon_link(link) %}
+    {% if link %}
+        <a href="{{ link }}" target="_taxon_link">External Link</a>
+    {% endif %}
+{% endmacro %}
 {% macro help_script(dialog_id, btn_id) %}
         var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
             autoOpen: false,
@@ -39,7 +53,6 @@
             position: {my: "left top", at: "right center", of: "#{{ btn_id }}"}
         });
         $( '#{{ btn_id }}' ).button().on('click', function() {
-{#            alert('click');#}
             if ({{ dialog_id }}.dialog('isOpen')) {
                 {{ dialog_id }}.dialog('close');
             } else {

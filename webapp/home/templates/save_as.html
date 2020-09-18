@@ -2,17 +2,40 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Save As</h1>
+    {% set help_new_eml_document_id, help_new_eml_document_title, help_new_eml_document_content = help[0] %}
+    {% set help_new_eml_document_btn = help_new_eml_document_id ~ '_btn' %}
+    {% set help_new_eml_document_dialog = help_new_eml_document_id ~ '_dialog' %}
+
+    <h2>Save As</h2>
     <div class="row">
-        <div class="col-md-4">
-            <form method="POST" action="" class="form" role="form">
+        <div class="col-md-8">
+            <form method="POST" action="" class="form" role="form" novalidate>
                 {{ form.csrf_token }}
-                <h5>Please enter the data package identifier (e.g. edi.1.1):</h5>
-                {{ wtf.form_field(form.packageid) }}
+                <h5>Enter a new document name:</h5>
+                <table>
+                    <td>{{ wtf.form_field(form.filename, size=120) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>
+                </table>
+                <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Save" type="submit" value="Save"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_new_open_close_buttons() }}
             </form>
         </div>
     </div>
+    {{ macros.help_dialog(help_new_eml_document_dialog, help_new_eml_document_title, help_new_eml_document_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_new_eml_document_id, help_new_eml_document_title, help_new_eml_document_content = help[0] %}
+    {% set help_new_eml_document_btn = help_new_eml_document_id ~ '_btn' %}
+    {% set help_new_eml_document_dialog = help_new_eml_document_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_new_eml_document_dialog, help_new_eml_document_btn) }}
+    });
+    </script>
 {% endblock %}

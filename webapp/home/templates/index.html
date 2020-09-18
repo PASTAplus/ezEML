@@ -1,9 +1,23 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+<div class="col-md-8">
 {% if current_user.is_anonymous %}
+            <p>&nbsp;</p>
 <h4>Please login to create and edit EML documents.</h4>
+            <p>&nbsp;</p>
+{#            <p>&nbsp;</p>#}
+    To <a href="auth/login">login</a>, you need an account with EDI, the Environmental Data Initiative.
+    Accounts are free and can be obtained by emailing <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a>.
+            <p> </p>
+            To learn more about ezEML, how to use it, and what it's for, see the <a href="user_guide">User Guide</a>.
 {% else %}
-    <h4>To begin, select an option from the "EML Document" menu, above.</h4>
+            <p>&nbsp;</p>
+    <h4>To create a new EML document or edit an existing one, select an option from the EML Documents menu, above.</h4>
+            <p> </p>
+            <p>&nbsp;</p>
+            To learn more about ezEML, how to use it, and what it's for, see the <a href="user_guide">User Guide</a>.
 {% endif %}
+</div>
 {% endblock %}

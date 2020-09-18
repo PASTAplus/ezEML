@@ -10,17 +10,38 @@
 
     <table>
         <td><h2>{{ title }}</h2></td>
-        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
     </table>
+    {% if node_name == 'publisher' %}
+    <div class="col-md-10" style="border: 1px solid steelblue;color: steelblue;padding: 15px;">
+        Please note: if you plan to submit your data package to the data repository hosted by the
+        Environmental Data Initiative (EDI), you should leave this page blank unless you will also
+        be using the EML for some other purpose. EDI will replace these entries in the submitted EML
+        when the data package is submitted.
+    </div>
+    {% endif %}
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please document the metadata {{ rp_lower }} in the fields below:</h5>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.salutation) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.gn) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.mn) }}
+                </td>
+                </tr>
+                </table>
+
                 {% if not role %}
                     <h5 style="color: steelblue;font-style: italic">At least one of the following is required: Last Name, Organization, or Position Name.</h5>
                 {% else %}
@@ -39,27 +60,71 @@
                 {% if role %}
                 {{ wtf.form_field(form.role) }}
                 {% endif %}
+{#                {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}#}
+{#                {{ wtf.form_field(form.email) }}#}
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.email) }}
+                </td>
+                </tr>
+                </table>
+
                 {{ wtf.form_field(form.address_1) }}
                 {{ wtf.form_field(form.address_2) }}
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.city) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.state) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.postal_code) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.country) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.phone) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.fax) }}
+                </td>
+                </tr>
+                </table>
+
                 {{ wtf.form_field(form.online_url) }}
                 {% if not save_and_continue %}
-                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
-                {% if next_page %}
-                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>
-                {% endif %}
+{#                {% if next_page %}#}
+{#                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>#}
+{#                {% endif %}#}
                 {% else %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
-                {{ macros.hidden_buttons() }}
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
+                {% endif %}
+                {% if node_name == 'publisher' %}
+                    {{ macros.hidden_buttons() }}
+                {% else %}
+                    {{ macros.hidden_new_open_close_buttons() }}
                 {% endif %}
             </form>
             <p>&nbsp;</p>

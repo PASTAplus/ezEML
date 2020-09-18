@@ -2,14 +2,18 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Open EML Document</h1>
+    <h2>Open EML Document</h2>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Please select the data package identifier:</h5>
-                {{ wtf.form_field(form.packageid) }}
+                <br>
+                <h5>Select an EML document to open:</h5>
+                {{ wtf.form_field(form.filename, maxlen=100) }}
+                <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Open" type="submit" value="Open"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_new_open_close_buttons() }}
             </form>
         </div>
     </div>

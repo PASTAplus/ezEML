@@ -22,7 +22,8 @@ from webapp import (
 )
 
 from webapp.auth.user_data import (
-    set_active_packageid, get_active_packageid
+    set_active_packageid, get_active_packageid,
+    set_active_document, get_active_document
 )
 
 from webapp.config import Config
@@ -79,11 +80,16 @@ class User(UserMixin):
         return user_org
     
     def get_packageid(self):
-        packageid = get_active_packageid()
-        return packageid
+        return get_active_packageid()
 
     def set_packageid(self, packageid:str=None):
         set_active_packageid(packageid)
+
+    def get_filename(self):
+        return get_active_document()
+
+    def set_filename(self, filename: str = None):
+        set_active_document(filename)
 
 
 @login.user_loader

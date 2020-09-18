@@ -2,36 +2,80 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Other Entity</h2>
+    {% set help_other_entity_id, help_other_entity_title, help_other_entity_content = help[0] %}
+    {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
+    {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Other Entity</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entity_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter information about the data entity object:</h5>
+                <h5>Enter information about the data entity object:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.entity_description) }}
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.object_name) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.format_name) }}
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
                 {{ wtf.form_field(form.size) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
                 {{ wtf.form_field(form.md5_hash) }}
+                </td>
+                </tr>
+                </table>
+
                 {{ wtf.form_field(form.online_url) }}
-                <br/><br/>
-                <h4>Other Entity Coverage (Optional):</h4>
-                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>
-                <br/><br/>
-                <input class="btn btn-primary" name="Temporal" type="submit" value="Edit Temporal Coverage"/>
-                <br/><br/>
-                <input class="btn btn-primary" name="Taxonomic" type="submit" value="Edit Taxonomic Coverage"/>
-                <br/><br/><br/>
-                <h4>Other Entity Methods (Optional):</h4>
-                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>
-                <br/><br/><br/>
-                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <br/>
+{#                <h4>Other Entity Coverage (Optional):</h4>#}
+{#                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>#}
+{#                <br/><br/>#}
+{#                <input class="btn btn-primary" name="Temporal" type="submit" value="Edit Temporal Coverage"/>#}
+{#                <br/><br/>#}
+{#                <input class="btn btn-primary" name="Taxonomic" type="submit" value="Edit Taxonomic Coverage"/>#}
+{#                <br/><br/><br/>#}
+{#                <h4>Other Entity Methods (Optional):</h4>#}
+{#                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>#}
+{#                <br/><br/><br/>#}
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_new_open_close_buttons() }}
             </form>
             <p>&nbsp;</p>
         </div>
     </div>
+    {{ macros.help_dialog(help_other_entity_dialog, help_other_entity_title, help_other_entity_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_other_entity_id, help_other_entity_title, help_other_entity_content = help[0] %}
+    {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
+    {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
+    });
+    </script>
 {% endblock %}

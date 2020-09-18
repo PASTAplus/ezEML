@@ -2,17 +2,27 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% set help_attribute_name_id, help_attribute_name_title, help_attribute_name_content = help[0] %}
+    {% set help_attribute_name_btn = help_attribute_name_id ~ '_btn' %}
+    {% set help_attribute_name_dialog = help_attribute_name_id ~ '_dialog' %}
+    {% set help_attribute_definition_id, help_attribute_definition_title, help_attribute_definition_content = help[1] %}
+    {% set help_attribute_definition_btn = help_attribute_definition_id ~ '_btn' %}
+    {% set help_attribute_definition_dialog = help_attribute_definition_id ~ '_dialog' %}
+    {% set help_attribute_label_id, help_attribute_label_title, help_attribute_label_content = help[2] %}
+    {% set help_attribute_label_btn = help_attribute_label_id ~ '_btn' %}
+    {% set help_attribute_label_dialog = help_attribute_label_id ~ '_dialog' %}
+    {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
+    {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
+    {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
+
     <h2>Text Attribute</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-{#                <h5>You may select either the nominal or ordinal measurement scale for this data table attribute:</h5>#}
-{#                {{ wtf.form_field(form.mscale_choice) }}<br/>#}
-{#                <h5>Please enter additional information about the data table attribute:</h5>#}
-                {{ wtf.form_field(form.attribute_name) }}
-                {{ wtf.form_field(form.attribute_definition) }}
-                {{ wtf.form_field(form.attribute_label) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.attribute_name) }}{{ macros.item_end(help_attribute_name_btn) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.attribute_definition) }}{{ macros.item_end(help_attribute_definition_btn) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.attribute_label) }}{{ macros.item_end(help_attribute_label_btn) }}
                 <label class="control-label">Optionally, enter up to 3 missing value codes with accompanying explanations:</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
@@ -39,16 +49,49 @@
                 <br>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
-                    <td style="padding: 10px 15px 10px 20px;" width="48%">{{ wtf.form_field(form.storage_type) }}</td>
-                    <td style="padding: 10px 20px 10px 15px;" width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.storage_type_system) }}</td>
+                    <td style="padding: 10px 15px 10px 20px;" width="42%">{{ wtf.form_field(form.storage_type) }}</td>
+                    <td style="padding: 10px 20px 10px 15px;" width="58%" style="padding-bottom: 5px;">
+                        {{ macros.item_start() }}{{ wtf.form_field(form.storage_type_system) }}{{ macros.item_end(help_attribute_storage_type_btn) }}
+                    </td>
                     </tr>
                 </table>
                 <p>&nbsp;</p>
-                <input class="btn btn-primary" name="OK" type="submit" value="OK"/>
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_new_open_close_buttons() }}
                 {{ wtf.form_field(form.md5) }}
                 {{ wtf.form_field(form.mscale) }}
             </form>
         </div>
     </div>
+    {{ macros.help_dialog(help_attribute_name_dialog, help_attribute_name_title, help_attribute_name_content) }}
+    {{ macros.help_dialog(help_attribute_definition_dialog, help_attribute_definition_title, help_attribute_definition_content) }}
+    {{ macros.help_dialog(help_attribute_label_dialog, help_attribute_label_title, help_attribute_label_content) }}
+    {{ macros.help_dialog(help_attribute_storage_type_dialog, help_attribute_storage_type_title, help_attribute_storage_type_content) }}
+{% endblock %}
+
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_attribute_name_id, help_attribute_name_title, help_attribute_name_content = help[0] %}
+    {% set help_attribute_name_btn = help_attribute_name_id ~ '_btn' %}
+    {% set help_attribute_name_dialog = help_attribute_name_id ~ '_dialog' %}
+    {% set help_attribute_definition_id, help_attribute_definition_title, help_attribute_definition_content = help[1] %}
+    {% set help_attribute_definition_btn = help_attribute_definition_id ~ '_btn' %}
+    {% set help_attribute_definition_dialog = help_attribute_definition_id ~ '_dialog' %}
+    {% set help_attribute_label_id, help_attribute_label_title, help_attribute_label_content = help[2] %}
+    {% set help_attribute_label_btn = help_attribute_label_id ~ '_btn' %}
+    {% set help_attribute_label_dialog = help_attribute_label_id ~ '_dialog' %}
+    {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
+    {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
+    {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_attribute_name_dialog, help_attribute_name_btn) }}
+        {{ macros.help_script(help_attribute_definition_dialog, help_attribute_definition_btn) }}
+        {{ macros.help_script(help_attribute_label_dialog, help_attribute_label_btn) }}
+        {{ macros.help_script(help_attribute_storage_type_dialog, help_attribute_storage_type_btn) }}
+    });
+    </script>
 {% endblock %}

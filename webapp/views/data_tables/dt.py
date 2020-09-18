@@ -10,8 +10,8 @@ from webapp.home.views import process_up_button, process_down_button, set_curren
 
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
-    AttributeMeasurementScaleForm,
-    AttributeCategoricalForm, AttributeSelectForm,
+    AttributeMeasurementScaleForm, AttributeCategoricalForm,
+    AttributeSelectForm, AttributeTextForm,
     CodeDefinitionForm, CodeDefinitionSelectForm,
     DataTableForm, DataTableSelectForm
 )
@@ -39,27 +39,31 @@ from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
+from webapp.auth.user_data import (
+    data_table_was_uploaded
+)
+
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
 
 
-@dt_bp.route('/data_table_select/<packageid>', methods=['GET', 'POST'])
-def data_table_select(packageid=None):
-    form = DataTableSelectForm(packageid=packageid)
+@dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])
+def data_table_select(filename=None):
+    form = DataTableSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(packageid, form, form_dict,
+        url = select_post(filename, form, form_dict,
                           'POST',
                           PAGE_DATA_TABLE_SELECT,
                           PAGE_PROJECT,
-                          PAGE_OTHER_ENTITY_SELECT,
+                          PAGE_CREATOR_SELECT,
                           PAGE_DATA_TABLE)
         return redirect(url)
 
     # Process GET
-    eml_node = load_eml(packageid=packageid)
+    eml_node = load_eml(filename=filename)
     dt_list = list_data_tables(eml_node)
     title = 'Data Tables'
 
@@ -69,14 +73,14 @@ def data_table_select(packageid=None):
                            dt_list=dt_list, form=form, help=help)
 
 
-@dt_bp.route('/data_table/<packageid>/<node_id>', methods=['GET', 'POST'])
-def data_table(packageid=None, node_id=None):
-    form = DataTableForm(packageid=packageid)
+@dt_bp.route('/data_table/<filename>/<node_id>', methods=['GET', 'POST'])
+def data_table(filename=None, node_id=None):
+    form = DataTableForm(filename=filename)
     dt_node_id = node_id
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_DATA_TABLE_SELECT, packageid=packageid)
+        url = url_for(PAGE_DATA_TABLE_SELECT, filename=filename)
         return redirect(url)
 
     if request.method == 'POST':
@@ -98,9 +102,15 @@ def data_table(packageid=None, node_id=None):
             next_page = PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
     if form.validate_on_submit():
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
 
         if submit_type == 'Save Changes':
             dataset_node = eml_node.find_child(names.DATASET)
@@ -110,20 +120,21 @@ def data_table(packageid=None, node_id=None):
             entity_name = form.entity_name.data
             entity_description = form.entity_description.data
             object_name = form.object_name.data
-            size = form.size.data
+            size = str(form.size.data) if form.size.data else ''
             md5_hash = form.md5_hash.data
-            num_header_lines = form.num_header_lines.data
+            num_header_lines = str(form.num_header_lines.data) if form.num_header_lines.data else ''
             record_delimiter = form.record_delimiter.data
+            quote_character = form.quote_character.data
             attribute_orientation = form.attribute_orientation.data
             field_delimiter = form.field_delimiter.data
             case_sensitive = form.case_sensitive.data
-            number_of_records = form.number_of_records.data
+            number_of_records = str(form.number_of_records.data) if form.number_of_records.data else ''
             online_url = form.online_url.data
 
             dt_node = Node(names.DATATABLE, parent=dataset_node)
 
             if not entity_name:
-                entity_name = 'TO DO: Data Table Name'
+                entity_name = ''
 
             create_data_table(
                 dt_node,
@@ -134,6 +145,7 @@ def data_table(packageid=None, node_id=None):
                 md5_hash,
                 num_header_lines,
                 record_delimiter,
+                quote_character,
                 attribute_orientation,
                 field_delimiter,
                 case_sensitive,
@@ -149,18 +161,20 @@ def data_table(packageid=None, node_id=None):
                         old_dt_node.remove_child(attribute_list_node)
                         add_child(dt_node, attribute_list_node)
 
-                    old_physical_node = old_dt_node.find_child(names.PHYSICAL)
-                    if old_physical_node:
-                        old_distribution_node = old_physical_node.find_child(names.DISTRIBUTION)
-                        if old_distribution_node:
-                            access_node = old_distribution_node.find_child(names.ACCESS)
-                            if access_node:
-                                physical_node = dt_node.find_child(names.PHYSICAL)
-                                if physical_node:
-                                    distribution_node = dt_node.find_child(names.DISTRIBUTION)
-                                    if distribution_node:
-                                        old_distribution_node.remove_child(access_node)
-                                        add_child(distribution_node, access_node)
+                    old_distribution_node = old_dt_node.find_single_node_by_path([
+                        names.PHYSICAL,
+                        names.DISTRIBUTION
+
+                    ])
+                    if old_distribution_node:
+                        access_node = old_distribution_node.find_child(names.ACCESS)
+                        if access_node:
+                            distribution_node = dt_node.find_single_node_by_path([
+                                names.PHYSICAL,
+                                names.DISTRIBUTION
+                            ])
+                            old_distribution_node.remove_child(access_node)
+                            add_child(distribution_node, access_node)
 
                     methods_node = old_dt_node.find_child(names.METHODS)
                     if methods_node:
@@ -182,21 +196,22 @@ def data_table(packageid=None, node_id=None):
                 add_child(dataset_node, dt_node)
                 dt_node_id = dt_node.id
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
 
-        if (next_page == PAGE_ENTITY_ACCESS_SELECT or
-                next_page == PAGE_ENTITY_METHOD_STEP_SELECT or
-                next_page == PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT or
-                next_page == PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT or
-                next_page == PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
-        ):
+        if next_page in [
+            PAGE_ENTITY_ACCESS_SELECT,
+            PAGE_ENTITY_METHOD_STEP_SELECT,
+            PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT,
+            PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT,
+            PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT,
+        ]:
             return redirect(url_for(next_page,
-                                    packageid=packageid,
+                                    filename=filename,
                                     dt_element_name=names.DATATABLE,
                                     dt_node_id=dt_node_id))
         else:
             return redirect(url_for(next_page,
-                                    packageid=packageid,
+                                    filename=filename,
                                     dt_node_id=dt_node_id))
 
     # Process GET
@@ -205,7 +220,7 @@ def data_table(packageid=None, node_id=None):
     if dt_node_id == '1':
         form.init_md5()
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         if eml_node:
             dataset_node = eml_node.find_child(names.DATASET)
             if dataset_node:
@@ -232,6 +247,7 @@ def data_table(packageid=None, node_id=None):
         'data_table_checksum',
         'data_table_header_lines',
         'data_table_record_delimiter',
+        'data_table_quote_character',
         'data_table_case_sensitive',
         'data_table_number_of_records',
         'data_table_online_url'
@@ -242,7 +258,6 @@ def data_table(packageid=None, node_id=None):
 
 def compose_codes():
     code_list = list_codes_and_definitions()
-    pass
 
 
 def compose_atts(att_list: list = []):
@@ -298,6 +313,10 @@ def populate_data_table_form(form: DataTableForm, node: Node):
                 simple_delimited_node = text_format_node.find_child(names.SIMPLEDELIMITED)
                 if simple_delimited_node:
 
+                    quote_character_node = simple_delimited_node.find_child(names.QUOTECHARACTER)
+                    if quote_character_node:
+                        form.quote_character.data = quote_character_node.content
+
                     field_delimiter_node = simple_delimited_node.find_child(names.FIELDDELIMITER)
                     if field_delimiter_node:
                         form.field_delimiter.data = field_delimiter_node.content
@@ -326,30 +345,31 @@ def populate_data_table_form(form: DataTableForm, node: Node):
 # <dt_node_id> identifies the dataTable node that this attribute
 # is a part of (within its attributeList)
 #
-@dt_bp.route('/attribute_select/<packageid>/<dt_node_id>', methods=['GET', 'POST'])
-def attribute_select(packageid=None, dt_node_id=None):
-    form = AttributeSelectForm(packageid=packageid)
+@dt_bp.route('/attribute_select/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+def attribute_select(filename=None, dt_node_id=None):
+    form = AttributeSelectForm(filename=filename)
     # dt_node_id = request.args.get('dt_node_id')  # alternate way to get the id
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = attribute_select_post(packageid, form, form_dict,
+        url = attribute_select_post(filename, form, form_dict,
                                     'POST', PAGE_ATTRIBUTE_SELECT, PAGE_DATA_TABLE,
                                     dt_node_id=dt_node_id)
         return redirect(url)
 
     # Process GET
-    return attribute_select_get(packageid=packageid, form=form, dt_node_id=dt_node_id)
+    return attribute_select_get(filename=filename, form=form, dt_node_id=dt_node_id)
 
 
-def attribute_select_get(packageid=None, form=None, dt_node_id=None):
+def attribute_select_get(filename=None, form=None, dt_node_id=None):
     # Process GET
     att_list = []
     title = 'Attributes'
     entity_name = ''
-    load_eml(packageid=packageid)
+    was_uploaded = False
+    load_eml(filename=filename)
 
     if dt_node_id == '1':
         form.init_md5()
@@ -374,47 +394,56 @@ def attribute_select_get(packageid=None, form=None, dt_node_id=None):
                     if node.id != key:
                         flash(f'Node store inconsistency for node {node.name} with id={node.id}')
 
+            object_name_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+            if object_name_node:
+                object_name = object_name_node.content
+                if object_name:
+                    was_uploaded = data_table_was_uploaded(object_name)
+
     set_current_page('data_table')
     help = [get_help('measurement_scale')]
     return render_template('attribute_select.html',
                            title=title,
                            entity_name=entity_name,
                            att_list=att_list,
+                           was_uploaded=was_uploaded,
                            form=form,
                            help=help)
 
 
-@dt_bp.route('/attribute_measurement_scale/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def attribute_measurement_scale(packageid=None, dt_node_id=None, node_id=None, mscale=None):
-    form = AttributeMeasurementScaleForm(packageid=packageid)
+@dt_bp.route('/attribute_measurement_scale/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_measurement_scale(filename=None, dt_node_id=None, node_id=None, mscale=None):
+    form = AttributeMeasurementScaleForm(filename=filename)
     att_node_id = node_id
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        return attribute_measurement_scale_post(packageid, form, form_dict, dt_node_id, node_id, mscale)
+        return attribute_measurement_scale_post(
+            filename, form, form_dict, dt_node_id, att_node_id, mscale
+        )
 
     # Process GET
-    return attribute_measurement_scale_get(packageid, form, att_node_id)
+    return attribute_measurement_scale_get(filename, form, att_node_id)
 
 
-def attribute_measurement_scale_post(packageid, form, form_dict, dt_node_id, att_node_id, mscale):
+def attribute_measurement_scale_post(filename, form, form_dict, dt_node_id, att_node_id, mscale):
     if BTN_OK in form_dict and 'mscale_choice' in form_dict:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         old_mscale = mscale
         new_mscale = form_dict['mscale_choice'][0]
         att_node = Node.get_node_instance(att_node_id)
         change_measurement_scale(att_node, old_mscale, new_mscale)
-        save_both_formats(packageid=packageid, eml_node=eml_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
     url = url_for(PAGE_ATTRIBUTE_SELECT,
-                  packageid=packageid,
+                  filename=filename,
                   dt_node_id=dt_node_id)
     return redirect(url)
 
 
-def attribute_measurement_scale_get(packageid, form, att_node_id):
-    load_eml(packageid)
+def attribute_measurement_scale_get(filename, form, att_node_id):
+    load_eml(filename)
     node_to_change = Node.get_node_instance(att_node_id)
     name_child = node_to_change.find_child(names.ATTRIBUTENAME)
     name = name_child.content
@@ -457,6 +486,9 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
         text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
         definition_node = new_child_node(names.DEFINITION, text_domain_node)
+        attribute_definition_node = att_node.find_child(names.ATTRIBUTEDEFINITION)
+        if attribute_definition_node:
+            definition_node.content = attribute_definition_node.content
 
     elif new_mscale == VariableType.DATETIME.name:
         new_scale_node = new_child_node(names.DATETIME, mscale_node)
@@ -464,10 +496,10 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
         format_string_node.content = ''
 
 
-def attribute_select_post(packageid=None, form=None, form_dict=None,
+def attribute_select_post(filename=None, form=None, form_dict=None,
                           method=None, this_page=None, back_page=None,
                           dt_node_id=None):
-    load_eml(packageid)
+    load_eml(filename)
     node_id = ''
     new_page = ''
     mscale = ''
@@ -483,9 +515,9 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
                 node_id = key
                 attribute_node = Node.get_node_instance(node_id)
 
-                app = Flask(__name__)
-                with app.app_context():
-                    current_app.logger.info(f'dt_node_id={dt_node_id}')
+                # app = Flask(__name__)
+                # with app.app_context():
+                #     current_app.logger.info(f'dt_node_id={dt_node_id}')
 
                 # TEMP - for debugging - this will cause logging to happen
                 list_attributes(Node.get_node_instance(dt_node_id), 'attribute_select_post', dt_node_id)
@@ -507,9 +539,9 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
             elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=filename)
                 remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_CHANGE_SCALE:
                 node_id = key
                 node_to_change = Node.get_node_instance(node_id)
@@ -518,15 +550,23 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(packageid, node_id)
+                process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(packageid, node_id)
+                process_down_button(filename, node_id)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
             elif val.startswith('Add Attribute'):
                 if 'Numerical' in val:
                     mscale = 'NUMERICAL'
@@ -544,12 +584,12 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page == back_page:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            node_id=dt_node_id)
         elif new_page == PAGE_ATTRIBUTE_DATETIME:
             # dateTime doesn't need to pass mscale value
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            dt_node_id=dt_node_id,
                            node_id=node_id)
         elif new_page in (
@@ -562,7 +602,7 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
         ):
             # other attribute measurement scales need to pass mscale value
             url = url_for(new_page,
-                          packageid=packageid,
+                          filename=filename,
                           dt_node_id=dt_node_id,
                           node_id=node_id,
                           mscale=mscale)
@@ -570,17 +610,17 @@ def attribute_select_post(packageid=None, form=None, form_dict=None,
         else:
             # this_page
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            dt_node_id=dt_node_id)
 
 
-@dt_bp.route('/attribute_dateTime/<packageid>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
-def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
-    form = AttributeDateTimeForm(packageid=packageid, node_id=node_id)
+@dt_bp.route('/attribute_dateTime/<filename>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
+    form = AttributeDateTimeForm(filename=filename, node_id=node_id)
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
     # Determine POST type
@@ -596,11 +636,17 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
         # Go back to data table or go to the appropriate measurement scale page
         if BTN_DONE in request.form:
             next_page = PAGE_ATTRIBUTE_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         if submit_type == 'Save Changes':
             dt_node = None
             attribute_list_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
@@ -678,19 +724,20 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
             else:
                 add_child(attribute_list_node, att_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, packageid=packageid,
+        url = url_for(next_page, filename=filename,
                       dt_node_id=dt_node_id, node_id=att_node_id)
 
         return redirect(url)
 
     # Process GET
     if node_id == '1':
-        form.md5.data = form_md5(form)
+        form.init_md5()
+        # form.md5.data = form_md5(form)
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
@@ -707,7 +754,9 @@ def attribute_dateTime(packageid=None, dt_node_id=None, node_id=None):
                                         break
 
     set_current_page('data_table')
-    return render_template('attribute_datetime.html', title='Attribute', form=form)
+    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
+                      'attribute_datetime_precision', 'attribute_datetime_format'])
+    return render_template('attribute_datetime.html', title='Attribute', form=form, help=help)
 
 
 def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
@@ -755,25 +804,18 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
                     if minimum_node:
                         form.bounds_minimum.data = minimum_node.content
                         exclusive = minimum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_minimum_exclusive.data = True
-                            else:
-                                form.bounds_minimum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_minimum_exclusive.data = True
                         else:
                             form.bounds_minimum_exclusive.data = False
                     maximum_node = bounds_node.find_child(names.MAXIMUM)
                     if maximum_node:
                         form.bounds_maximum.data = maximum_node.content
                         exclusive = maximum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_maximum_exclusive.data = True
-                            else:
-                                form.bounds_maximum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_maximum_exclusive.data = True
                         else:
                             form.bounds_maximum_exclusive.data = False
-
     mvc_nodes = node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
         i = 1
@@ -795,18 +837,18 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
             elif i == 3:
                 form.code_3.data = code
                 form.code_explanation_3.data = code_explanation
-            i = i + 1
+            i += 1
 
     form.md5.data = form_md5(form)
 
 
-@dt_bp.route('/attribute_numerical/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=None):
-    form = AttributeIntervalRatioForm(packageid=packageid, node_id=node_id)
+@dt_bp.route('/attribute_numerical/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=None):
+    form = AttributeIntervalRatioForm(filename=filename, node_id=node_id)
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
     # Determine POST type
@@ -823,11 +865,17 @@ def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=No
         # Go back to data table or go to the appropriate measurement scale page
         if BTN_DONE in request.form:  # FIXME
             next_page = PAGE_ATTRIBUTE_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         if submit_type == 'Save Changes':
             dt_node = None
             attribute_list_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
@@ -914,10 +962,10 @@ def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=No
             else:
                 add_child(attribute_list_node, att_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, packageid=packageid,
+        url = url_for(next_page, filename=filename,
                       dt_node_id=dt_node_id, node_id=att_node_id)
 
         return redirect(url)
@@ -925,11 +973,12 @@ def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=No
     # Process GET
     attribute_name = ''
     if node_id == '1':
-        form_str = mscale + form.init_str
-        form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
+        form.init_md5()
+        # form_str = mscale + form.init_str
+        # form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
         # form.mscale_choice.data = mscale
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
@@ -953,13 +1002,16 @@ def attribute_numerical(packageid=None, dt_node_id=None, node_id=None, mscale=No
         for name, desc in session['custom_units'].items():
             custom_unit_names.append(name)
             custom_unit_descriptions.append(desc)
+    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
+                      'attribute_number_type', 'attribute_numerical_precision'])
     return render_template('attribute_numerical.html',
                            title='Attribute: Numerical',
                            form=form,
                            attribute_name=attribute_name,
                            mscale=mscale,
                            custom_unit_names=custom_unit_names,
-                           custom_unit_descriptions=custom_unit_descriptions)
+                           custom_unit_descriptions=custom_unit_descriptions,
+                           help=help)
 
 
 def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,
@@ -1012,7 +1064,6 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                 if custom_unit_node:
                     custom_unit_name = custom_unit_node.content
                     form.custom_unit.data = custom_unit_name
-                    custom_unit_description = ''
                     # get description, if any, from the additionaMetadata section
                     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
                     if additional_metadata_node:
@@ -1046,25 +1097,18 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                     if minimum_node:
                         form.bounds_minimum.data = minimum_node.content
                         exclusive = minimum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_minimum_exclusive.data = True
-                            else:
-                                form.bounds_minimum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_minimum_exclusive.data = True
                         else:
                             form.bounds_minimum_exclusive.data = False
                     maximum_node = bounds_node.find_child(names.MAXIMUM)
                     if maximum_node:
                         form.bounds_maximum.data = maximum_node.content
                         exclusive = maximum_node.attribute_value('exclusive')
-                        if exclusive:
-                            if exclusive.lower() == 'true':
-                                form.bounds_maximum_exclusive.data = True
-                            else:
-                                form.bounds_maximum_exclusive.data = False
+                        if exclusive and exclusive.lower() == 'true':
+                            form.bounds_maximum_exclusive.data = True
                         else:
                             form.bounds_maximum_exclusive.data = False
-
     mvc_nodes = att_node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
         i = 1
@@ -1086,23 +1130,26 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
             elif i == 3:
                 form.code_3.data = code
                 form.code_explanation_3.data = code_explanation
-            i = i + 1
+            i += 1
 
     form.md5.data = form_md5(form)
 
 
-@dt_bp.route('/attribute_text/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def attribute_text(packageid: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
-    return attribute_categorical(packageid, dt_node_id, node_id, mscale)
+@dt_bp.route('/attribute_text/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_text(filename: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
+    return attribute_categorical(filename, dt_node_id, node_id, mscale)
 
 
-@dt_bp.route('/attribute_categorical/<packageid>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
-def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
-    form = AttributeCategoricalForm(packageid=packageid, node_id=node_id)
+@dt_bp.route('/attribute_categorical/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
+    if mscale == 'TEXT':
+        form = AttributeTextForm(filename=filename, node_id=node_id)
+    else:
+        form = AttributeCategoricalForm(filename=filename, node_id=node_id)
     att_node_id = node_id
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_ATTRIBUTE_SELECT, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+        url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
     # Determine POST type
@@ -1121,11 +1168,17 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
             next_page = PAGE_ATTRIBUTE_SELECT  # FIXME
         elif 'Codes' in request.form:
             next_page = PAGE_CODE_DEFINITION_SELECT
+        elif BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         if submit_type == 'Save Changes':
             dt_node = None
             attribute_list_node = None
-            eml_node = load_eml(packageid=packageid)
+            eml_node = load_eml(filename=filename)
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
@@ -1156,7 +1209,7 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
                 # we need to hang onto the categorical codes
                 att_node = Node.get_node_instance(att_node_id)
                 if att_node:
-                    enumerated_domain_node = att_node.find_child(names.ENUMERATEDDOMAIN)
+                    enumerated_domain_node = att_node.find_descendant(names.ENUMERATEDDOMAIN)
 
                 enforced = form.enforced.data
             else:
@@ -1204,23 +1257,23 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
             else:
                 add_child(attribute_list_node, att_node)
 
-            save_both_formats(packageid=packageid, eml_node=eml_node)
+            save_both_formats(filename=filename, eml_node=eml_node)
             att_node_id = att_node.id
 
         if next_page == PAGE_CODE_DEFINITION_SELECT:
             cd_node = None
             if att_node_id != '1':
                 att_node = Node.get_node_instance(att_node_id)
-                cd_node = code_definition_from_attribute(att_node)
+                cd_node = code_definition_from_attribute(att_node)  # FIXME - What's going on here??? Only one node returned...
 
             if not cd_node:
                 cd_node = Node(names.CODEDEFINITION, parent=None)
 
             cd_node_id = cd_node.id
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, att_node_id=att_node_id,
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, att_node_id=att_node_id,
                           node_id=cd_node_id, mscale=mscale)
         else:
-            url = url_for(next_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id)
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
 
         return redirect(url)
 
@@ -1228,11 +1281,12 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
     attribute_name = ''
     codes = 'No codes have been defined yet'
     if node_id == '1':
-        form_str = mscale + form.init_str
-        form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
+        form.init_md5()
+        # form_str = mscale + form.init_str
+        # form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
         # form.mscale_choice.data = mscale
     else:
-        eml_node = load_eml(packageid=packageid)
+        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
@@ -1251,19 +1305,22 @@ def attribute_categorical(packageid: str = None, dt_node_id: str = None, node_id
 
     # if mscale
     set_current_page('data_table')
+    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
     if mscale == VariableType.CATEGORICAL.name:
         return render_template('attribute_categorical.html',
                                title='Categorical Attribute',
                                form=form,
                                attribute_name=attribute_name,
                                mscale=mscale,
-                               codes=codes)
+                               codes=codes,
+                               help=help)
     else:
         return render_template('attribute_text.html',
                                title='Text Attribute',
                                form=form,
                                attribute_name=attribute_name,
-                               mscale=mscale)
+                               mscale=mscale,
+                               help=help)
 
 
 def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node: Node = None,
@@ -1310,12 +1367,14 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
                 if code_entries and len(code_entries) > 0:
                     code_list = []
                     for code_entry in code_entries:
-                        code_list.append(code_entry.code)
+                        code_list.append(str(code_entry.code))
                     codes = ', '.join(code_list)
                 else:
                     codes = 'No codes have been defined yet'
-                enumerated_domain_node = node.find_child(names.ENUMERATEDDOMAIN)
-
+                enumerated_domain_node = node.find_single_node_by_path([
+                    names.NONNUMERICDOMAIN,
+                    names.ENUMERATEDDOMAIN
+                ])
                 if enumerated_domain_node:
                     enforced = enumerated_domain_node.attribute_value('enforced')
                     if enforced and enforced.upper() == 'NO':
@@ -1323,7 +1382,7 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
                     else:
                         form.enforced.data = 'yes'
             # elif mscale == VariableType.TEXT.name:
-            #     text_domain_node = node.find_immediate_child(names.TEXTDOMAIN)
+            #     text_domain_node = node.find_child(names.TEXTDOMAIN)
 
     mvc_nodes = att_node.find_all_children(names.MISSINGVALUECODE)
     if mvc_nodes and len(mvc_nodes) > 0:
@@ -1355,17 +1414,17 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
 # <node_id> identifies the nominal or ordinal node that this code definition
 # is a part of
 #
-@dt_bp.route('/code_definition_select/<packageid>/<dt_node_id>/<att_node_id>/<node_id>/<mscale>',
+@dt_bp.route('/code_definition_select/<filename>/<dt_node_id>/<att_node_id>/<node_id>/<mscale>',
              methods=['GET', 'POST'])
-def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, node_id=None, mscale=None):
+def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, node_id=None, mscale=None):
     nom_ord_node_id = node_id
-    form = CodeDefinitionSelectForm(packageid=packageid)
+    form = CodeDefinitionSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = code_definition_select_post(packageid=packageid,
+        url = code_definition_select_post(filename=filename,
                                           form=form,
                                           form_dict=form_dict,
                                           method='POST',
@@ -1382,7 +1441,7 @@ def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, no
     codes_list = []
     title = 'Code Definitions'
     attribute_name = ''
-    load_eml(packageid=packageid)
+    load_eml(filename=filename)
 
     att_node = Node.get_node_instance(att_node_id)
     if att_node:
@@ -1394,7 +1453,7 @@ def code_definition_select(packageid=None, dt_node_id=None, att_node_id=None, no
                            form=form)
 
 
-def code_definition_select_post(packageid=None,
+def code_definition_select_post(filename=None,
                                 form=None,
                                 form_dict=None,
                                 method=None,
@@ -1424,21 +1483,29 @@ def code_definition_select_post(packageid=None,
             elif val == 'Remove':
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(packageid=packageid)
+                eml_node = load_eml(filename=filename)
                 remove_child(node_id=node_id)
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(packageid, node_id)
+                process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(packageid, node_id)
+                process_down_button(filename, node_id)
+            elif val == BTN_HIDDEN_CHECK:
+                new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
                 new_page = this_page
             elif val == BTN_HIDDEN_DOWNLOAD:
                 new_page = PAGE_DOWNLOAD
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
@@ -1448,17 +1515,17 @@ def code_definition_select_post(packageid=None,
 
     if form.validate_on_submit():
         if new_page == back_page:  # attribute_nominal_ordinal
-            return url_for(new_page, packageid=packageid, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
+            return url_for(new_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
         elif new_page == this_page:  # code_definition_select_post
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            dt_node_id=dt_node_id,
                            att_node_id=att_node_id,
                            node_id=node_id,
                            mscale=mscale)
         elif new_page == edit_page:  # code_definition
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            dt_node_id=dt_node_id,
                            att_node_id=att_node_id,
                            nom_ord_node_id=nom_ord_node_id,
@@ -1466,7 +1533,7 @@ def code_definition_select_post(packageid=None,
                            mscale=mscale)
         else:
             return url_for(new_page,
-                           packageid=packageid,
+                           filename=filename,
                            dt_node_id=dt_node_id)
 
 
@@ -1474,10 +1541,10 @@ def code_definition_select_post(packageid=None,
 # '1', it means we are adding a new codeDefinition node, otherwise we are
 # editing an existing one.
 #
-@dt_bp.route('/code_definition/<packageid>/<dt_node_id>/<att_node_id>/<nom_ord_node_id>/<node_id>/<mscale>',
+@dt_bp.route('/code_definition/<filename>/<dt_node_id>/<att_node_id>/<nom_ord_node_id>/<node_id>/<mscale>',
              methods=['GET', 'POST'])
-def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_node_id=None, node_id=None, mscale=None):
-    eml_node = load_eml(packageid=packageid)
+def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_node_id=None, node_id=None, mscale=None):
+    eml_node = load_eml(filename=filename)
     att_node = Node.get_node_instance(att_node_id)
     cd_node_id = node_id
     attribute_name = 'Attribute Name'
@@ -1485,12 +1552,12 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
         attribute_name = attribute_name_from_attribute(att_node)
         if not mscale:
             mscale = mscale_from_attribute(att_node)
-    form = CodeDefinitionForm(packageid=packageid, node_id=node_id, attribute_name=attribute_name)
+    form = CodeDefinitionForm(filename=filename, node_id=node_id, attribute_name=attribute_name)
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_CODE_DEFINITION_SELECT,
-                      packageid=packageid,
+                      filename=filename,
                       dt_node_id=dt_node_id,
                       att_node_id=att_node_id,
                       node_id=nom_ord_node_id,
@@ -1499,6 +1566,13 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
 
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_CODE_DEFINITION_SELECT  # Save or Back sends us back to the list of attributes
+
+        if BTN_HIDDEN_NEW in request.form:
+            next_page = PAGE_CREATE
+        elif BTN_HIDDEN_OPEN in request.form:
+            next_page = PAGE_OPEN
+        elif BTN_HIDDEN_CLOSE in request.form:
+            next_page = PAGE_CLOSE
 
         # if 'Back' in request.form:
         if is_dirty_form(form):
@@ -1560,10 +1634,10 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
                     add_child(ed_node, code_definition_node)
                     cd_node_id = code_definition_node.id
 
-                save_both_formats(packageid=packageid, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
 
         url = url_for(next_page,
-                      packageid=packageid,
+                      filename=filename,
                       dt_node_id=dt_node_id,
                       att_node_id=att_node_id,
                       node_id=nom_ord_node_id,
@@ -1574,7 +1648,7 @@ def code_definition(packageid=None, dt_node_id=None, att_node_id=None, nom_ord_n
     if node_id == '1':
         form.init_md5()
     else:
-        enumerated_domain_node = enumerated_domain_from_attribute(att_node)
+        enumerated_domain_node = enumerated_domain_from_attribute(att_node)  # FIXME - Question: schema allows multiple of these
         if enumerated_domain_node:
             cd_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
             if cd_nodes:

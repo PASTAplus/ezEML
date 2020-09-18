@@ -2,13 +2,13 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Access Rule</h1>
+    <h2>Access Rule</h2>
     <div class="row">
         <div class="col-md-8">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter the access rule information below:</h5>
+                <h5>Enter the access rule information below:</h5>
                 {{ wtf.form_field(form.userid) }}
                 {{ wtf.form_field(form.permission) }}
                 <input class="btn btn-primary" name="OK" type="submit" value="OK"/>

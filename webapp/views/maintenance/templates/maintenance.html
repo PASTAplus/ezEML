@@ -16,7 +16,7 @@
 
     <table>
         <td><h2>Maintenance</h2></td>
-        <td valign="middle" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_maintenance_btn) }}</td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_maintenance_btn) }}</td>
     </table>
     
     <div class="row">
@@ -24,7 +24,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Please enter the dataset maintenance information below:</h5>
+                <h5>Enter the dataset maintenance information below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_maintenance_description_btn) }}</td>
@@ -35,7 +35,7 @@
                 </table>
                 <br>
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

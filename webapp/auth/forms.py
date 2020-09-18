@@ -25,4 +25,4 @@ class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     domain = SelectField('Domain', choices=domain_choices)
-    submit = SubmitField('Sign In')
+    submit = SubmitField('Login')

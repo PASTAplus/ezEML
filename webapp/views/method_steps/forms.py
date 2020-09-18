@@ -13,7 +13,7 @@ class MethodStepSelectForm(EDIForm):
 
 
 class MethodStepForm(EDIForm):
-    description = StringField('Description', widget=TextArea(), validators=[])
+    description = StringField('Description *', widget=TextArea(), validators=[])
     instrumentation = StringField('Instrumentation (Optional)', widget=TextArea(), validators=[])
     md5 = HiddenField('')
 

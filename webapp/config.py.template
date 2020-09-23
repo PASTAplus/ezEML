@@ -12,22 +12,30 @@
     3/6/18
 """
 
+
 class Config(object):
 
     # Flask app configuration
-    SECRET_KEY = 'SECRET KEY'
+    SECRET_KEY = "SECRET KEY"
     DEBUG = False
     FLASH_DEBUG = False
     LOG_DEBUG = False
 
-    PASTA_URL = 'https://pasta.lternet.edu/package'
+    PASTA_URL = "https://pasta.lternet.edu/package"
 
-    DOMAINS = {'edi': 'o=EDI,dc=edirepository,dc=org',
-               'lter':'o=LTER,dc=ecoinformatics,dc=org',}
+    AUTH = "https://auth.edirepository.org/auth"
+    TARGET = "ezeml.edirepository.org"
 
-    ACTIVE_PACKAGE = 'active.pkl'
+    DOMAINS = {
+        "edi": "o=EDI,dc=edirepository,dc=org",
+        "lter": "o=LTER,dc=ecoinformatics,dc=org",
+    }
 
-    AUTH_SYSTEM_ATTRIBUTE_VALUE = 'https://pasta.edirepository.org/authentication'
-    ORDER_ATTRIBUTE_VALUE = 'allowFirst' 
-    SCOPE_ATTRIBUTE_VALUE = 'document' 
-    SYSTEM_ATTRIBUTE_VALUE = 'https://pasta.edirepository.org'
+    ACTIVE_PACKAGE = "active.pkl"
+
+    AUTH_SYSTEM_ATTRIBUTE_VALUE = (
+        "https://pasta.edirepository.org/authentication"
+    )
+    ORDER_ATTRIBUTE_VALUE = "allowFirst"
+    SCOPE_ATTRIBUTE_VALUE = "document"
+    SYSTEM_ATTRIBUTE_VALUE = "https://pasta.edirepository.org"

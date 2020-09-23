@@ -15,7 +15,6 @@ import base64
 
 import daiquiri
 from flask_login import UserMixin
-import requests
 
 from webapp import (
     login
@@ -33,16 +32,12 @@ logger = daiquiri.getLogger('user.py: ' + __name__)
 
 class User(UserMixin):
 
-    def __init__(self, auth_token=None):
+    def __init__(self, auth_token, cname=None):
         self._auth_token = auth_token
+        self._cname = cname
 
-    @staticmethod
-    def authenticate(user_dn=None, password=None):
-        auth_token = None
-        r = requests.get(Config.PASTA_URL, auth=(user_dn, password))
-        if r.status_code == 200:
-            auth_token = r.cookies['auth-token']
-        return auth_token
+    def get_cname(self):
+        return self._cname
 
     def get_id(self):
         return self._auth_token

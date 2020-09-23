@@ -16,7 +16,7 @@
 import daiquiri
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
-
+import requests
 from werkzeug.urls import url_parse
 
 from webapp.pages import *
@@ -46,9 +46,8 @@ def login():
         domain = form.domain.data # Never None
         user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
         password = form.password.data
-        user = None
-        auth_token = User.authenticate(user_dn=user_dn, password=password)
-        if auth_token is not None:
+        auth_token = authenticate(user_dn=user_dn, password=password)
+        if auth_token is not None and auth_token != "teapot":
             user = User(auth_token=auth_token)
             login_user(user)
             initialize_user_data()
@@ -60,13 +59,43 @@ def login():
                 else:
                     next_page = url_for(PAGE_INDEX)
             return redirect(next_page)
+        elif auth_token == "teapot":
+            accept_url = f"{Config.AUTH}/accept?uid={user_dn}&target={Config.TARGET}"
+            return redirect(accept_url)
         flash('Invalid username or password')
         return redirect(url_for(PAGE_LOGIN))
     # Process GET
-    return render_template('login.html', form=form)
+    auth_token = request.args.get("token")
+    cname = request.args.get("cname")
+    if auth_token is not None and cname is not None:
+        user = User(auth_token=auth_token, cname=cname)
+        login_user(user)
+        initialize_user_data()
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            current_document = get_active_document()
+            if current_document:
+                next_page = url_for(PAGE_TITLE, filename=current_document)
+            else:
+                next_page = url_for(PAGE_INDEX)
+        return redirect(next_page)
+    return render_template(
+        'login.html', form=form, auth=Config.AUTH, target=Config.TARGET
+    )
 
 
 @auth.route('/logout', methods=['GET'])
 def logout():
     logout_user()
     return redirect(url_for(PAGE_INDEX))
+
+
+def authenticate(user_dn=None, password=None):
+    auth_token = None
+    auth_url = Config.AUTH + f"/login/pasta?target={Config.TARGET}"
+    r = requests.get(auth_url, auth=(user_dn, password))
+    if r.status_code == requests.codes.ok:
+        auth_token = r.cookies['auth-token']
+    elif r.status_code == requests.codes.teapot:
+        return "teapot"
+    return auth_token

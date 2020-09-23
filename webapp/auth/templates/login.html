@@ -8,4 +8,21 @@
             {{ wtf.quick_form(form) }}
         </div>
     </div>
+
+    <div style="padding-top: 4em">
+    <h4>Or use an alternate identity provider:</h4>
+	<p>
+        <a href="{{ auth }}/login/google?target={{ target }}"><img src="/static/btn_google_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+	    <a href="{{ auth }}/login/github?target={{ target }}"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+	    <a href="{{ auth }}/login/orcid?target={{ target }}"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
+    </p>
+
+    </div>
+	<div style="padding-top: 2em">
+        <p>
+            Please read our <a class="searchsubcat" href="https://environmentaldatainitiative.org/environmental-data-initiative-privacy-policy">
+            privacy policy</a> to know what information we collect about you and to understand your privacy rights.
+        </p>
+    </div>
+
 {% endblock %}

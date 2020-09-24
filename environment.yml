@@ -15,5 +15,6 @@ dependencies:
 - lxml
 - email_validator
 - uwsgi
+- pendulum
 prefix: /home/servilla/anaconda3/envs/ezeml
 

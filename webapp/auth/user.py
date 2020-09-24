@@ -11,7 +11,7 @@
 :Created:
     3/7/18
 """
-import base64
+import hashlib
 
 import daiquiri
 from flask_login import UserMixin
@@ -32,46 +32,26 @@ logger = daiquiri.getLogger('user.py: ' + __name__)
 
 class User(UserMixin):
 
-    def __init__(self, auth_token, cname=None):
-        self._auth_token = auth_token
-        self._cname = cname
+    def __init__(self, session_id: str):
+        self._session_id = session_id
+        self._cname, self._uid = self._session_id.split("*")
 
     def get_cname(self):
         return self._cname
 
     def get_id(self):
-        return self._auth_token
+        return self._session_id
 
     def get_dn(self):
-        token64 = self._auth_token.split('-')[0]
-        token = base64.b64decode(token64).decode('utf-8')
-        dn = token.split('*')[0]
-        return dn
-
-    def get_organization(self):
-        dn = self.get_dn()
-        o = dn.split(',')[1]
-        organization = o.split('=')[1]
-        return organization
-
-    def get_uid(self):
-        dn = self.get_dn()
-        uid = dn.split(',')[0]
-        return uid
+        return self._uid
 
     def get_username(self):
-        uid = self.get_uid()
-        username = uid.split('=')[1]
-        return username
+        return self._cname
 
     def get_user_org(self):
-        user_org = None
-        try:
-            username = self.get_username()
-            organization = self.get_organization()
-            user_org = f'{username}-{organization}'
-        except AttributeError:
-            pass
+        uid_hash = hashlib.md5(self._uid.encode("utf-8")).hexdigest()
+        cname_clean = self._cname.replace(" ", "_")
+        user_org = cname_clean + "-" + uid_hash
         return user_org
     
     def get_packageid(self):
@@ -88,6 +68,5 @@ class User(UserMixin):
 
 
 @login.user_loader
-def load_user(id):
-    auth_token = id
-    return User(auth_token=auth_token)
+def load_user(session_id):
+    return User(session_id)

@@ -20,15 +20,11 @@ import requests
 from werkzeug.urls import url_parse
 
 from webapp.pages import *
-
 from webapp.auth.forms import LoginForm
+from webapp.auth.pasta_token import PastaToken
 from webapp.auth.user import User
-from webapp.auth.user_data import get_active_document
+from webapp.auth.user_data import get_active_document, initialize_user_data
 from webapp.config import Config
-
-from webapp.auth.user_data import (
-    initialize_user_data
-)
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -48,7 +44,11 @@ def login():
         password = form.password.data
         auth_token = authenticate(user_dn=user_dn, password=password)
         if auth_token is not None and auth_token != "teapot":
-            user = User(auth_token=auth_token)
+            pasta_token = PastaToken(auth_token)
+            uid = pasta_token.uid.split(",")[0]
+            cname = uid.split('=')[1]
+            session_id = cname + "*" + pasta_token.uid
+            user = User(session_id)
             login_user(user)
             initialize_user_data()
             next_page = request.args.get('next')
@@ -68,7 +68,10 @@ def login():
     auth_token = request.args.get("token")
     cname = request.args.get("cname")
     if auth_token is not None and cname is not None:
-        user = User(auth_token=auth_token, cname=cname)
+        pasta_token = PastaToken(auth_token)
+        uid = pasta_token.uid
+        session_id = cname + "*" + uid
+        user = User(session_id)
         login_user(user)
         initialize_user_data()
         next_page = request.args.get('next')

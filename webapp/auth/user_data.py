@@ -12,18 +12,13 @@
 :Created:
     12/18/2018
 """
-import daiquiri
 import json
 import os
 import pickle
 
-from flask import (
-    send_file
-)
-
-from flask_login import (
-    current_user
-)
+import daiquiri
+from flask import send_file
+from flask_login import current_user
 
 from webapp.config import Config
 
@@ -32,16 +27,6 @@ logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
-def get_user_org():
-    user_org = None
-    try:
-        username = current_user.get_username()
-        organization = current_user.get_organization()
-        user_org = f'{username}-{organization}'
-    except AttributeError:
-        pass
-    return user_org
-    
 
 def get_user_folder_name():
     user_folder_name = f'{USER_DATA_DIR}/anonymous-user'

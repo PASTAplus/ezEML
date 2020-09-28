@@ -51,7 +51,7 @@ def login():
             session_id = cname + "*" + pasta_token.uid
             user = User(session_id)
             login_user(user)
-            initialize_user_data()
+            initialize_user_data(cname, pasta_token.uid)
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 current_document = get_active_document()
@@ -74,7 +74,7 @@ def login():
         session_id = cname + "*" + uid
         user = User(session_id)
         login_user(user)
-        initialize_user_data()
+        initialize_user_data(cname, pasta_token.uid)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             current_document = get_active_document()

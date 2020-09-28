@@ -76,7 +76,7 @@ def get_user_uploads():
     return data_files
 
 
-def initialize_user_data():
+def initialize_user_data(cname, uid):
     user_folder_name = get_user_folder_name()
     user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(USER_DATA_DIR):
@@ -88,6 +88,10 @@ def initialize_user_data():
         os.path.exists(user_uploads_folder_name)
        ):
         os.mkdir(user_uploads_folder_name)
+    user_properties = get_user_properties()
+    user_properties['cname'] = cname
+    user_properties['uid'] = uid
+    save_user_properties(user_properties)
 
 
 def get_user_properties():

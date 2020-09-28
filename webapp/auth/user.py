@@ -11,6 +11,7 @@
 :Created:
     3/7/18
 """
+import base64
 import hashlib
 
 import daiquiri
@@ -34,7 +35,14 @@ class User(UserMixin):
 
     def __init__(self, session_id: str):
         self._session_id = session_id
-        self._cname, self._uid = self._session_id.split("*")
+        try:
+            self._cname, self._uid = self._session_id.split("*")
+        except ValueError as ex:
+            logger.error(ex)
+            token64 = self._session_id.split('-')[0]
+            token = base64.b64decode(token64).decode('utf-8')
+            self._uid = token.split('*')[0]
+            self._cname = self._uid.split(',')[0]
 
     def get_cname(self):
         return self._cname

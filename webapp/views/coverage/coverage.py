@@ -1,7 +1,14 @@
 import ast
+import numpy as np
+import os
+import pandas as pd
+
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
+)
+from flask_login import (
+    current_user, login_required
 )
 
 from webapp.home.metapype_client import (
@@ -15,7 +22,10 @@ from webapp.views.coverage.taxonomy import (
     TaxonomySourceEnum, ITISTaxonomy, NCBITaxonomy, WORMSTaxonomy
 )
 
-from webapp.home.forms import is_dirty_form, form_md5
+from webapp.auth.user_data import (
+    get_user_uploads_folder_name
+)
+from webapp.home.forms import is_dirty_form, form_md5, LoadDataForm
 from webapp.views.coverage.forms import (
     GeographicCoverageForm,
     GeographicCoverageSelectForm,
@@ -28,10 +38,12 @@ from webapp.views.coverage.forms import (
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, compare_begin_end_dates, get_help, get_helps
+from webapp.home.views import (
+    select_post, compare_begin_end_dates, get_help, get_helps, set_current_page,
+    secure_filename, allowed_data_file
+)
 from metapype.eml import names
 from metapype.model.node import Node
-from webapp.home.views import set_current_page
 
 
 cov_bp = Blueprint('cov', __name__, template_folder='templates')
@@ -63,9 +75,84 @@ def geographic_coverage_select(filename=None):
             gc_list = list_geographic_coverages(dataset_node)
 
     set_current_page('geographic_coverage')
-    help = [get_help('geographic_coverages')]
+    help = get_helps(['geographic_coverages', 'geographic_coverages_csv_file'])
     return render_template('geographic_coverage_select.html', title=title,
                            gc_list=gc_list, form=form, help=help)
+
+
+@cov_bp.route('/load_geo_coverage/<filename>', methods=['GET', 'POST'])
+@login_required
+def load_geo_coverage(filename):
+    form = LoadDataForm()
+    document = current_user.get_filename()
+    uploads_folder = get_user_uploads_folder_name()
+
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+
+            if filename is None or filename == '':
+                flash('No selected file')
+            elif allowed_data_file(filename):
+                filepath = os.path.join(uploads_folder, filename)
+                file.save(filepath)
+                data_file = filename
+                data_file_path = f'{uploads_folder}/{data_file}'
+                try:
+                    load_geo_coverage_from_csv(data_file_path, document)
+                    flash(f'Loaded {data_file}')
+                except ValueError as ex:
+                    flash(ex.msg)
+                return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
+
+    # Process GET
+    return render_template('load_geo_coverage.html',
+                           form=form)
+
+
+def load_geo_coverage_from_csv(csv_filename, filename):
+    eml_node = load_eml(filename=filename)
+
+    data_frame = pd.read_csv(csv_filename, comment='#', encoding='utf8')
+
+    if list(data_frame.columns) != ['geographicDescription',
+                                    'northBoundingCoordinate',
+                                    'southBoundingCoordinate',
+                                    'eastBoundingCoordinate',
+                                    'westBoundingCoordinate']:
+        raise ValueError('Geographic coverage file does not have expected column names')
+
+    if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
+        raise ValueError('Geographic coverage file does not have expected variable types in columns')
+
+    for index, row in data_frame.iterrows():
+        add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
+
+    save_both_formats(filename=filename, eml_node=eml_node)
+
+
+def add_geo_coverage_node(eml_node, description, north, south, east, west):
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = Node(names.DATASET)
+
+    coverage_node = dataset_node.find_child(names.COVERAGE)
+    if not coverage_node:
+        coverage_node = Node(names.COVERAGE, parent=dataset_node)
+        add_child(dataset_node, coverage_node)
+
+    gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
+    add_child(coverage_node, gc_node)
+
+    create_geographic_coverage(
+        gc_node, description, west, east, north, south)
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])

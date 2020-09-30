@@ -6,6 +6,9 @@
     {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
     {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
     {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    {% set help_geographic_coverage_csv_file_id, help_geographic_coverage_csv_file_title, help_geographic_coverage_csv_file_content = help[1] %}
+    {% set help_geographic_coverage_csv_file_btn = help_geographic_coverage_csv_file_id ~ '_btn' %}
+    {% set help_geographic_coverage_csv_file_dialog = help_geographic_coverage_csv_file_id ~ '_dialog' %}
     {% endif %}
 
     <table>
@@ -36,9 +39,14 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Geographic Coverage"/>
-                <br/><br/>
-{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                <table>
+                    <td>
+                        <input class="btn btn-primary" name="1" type="submit" value="Add Geographic Coverage"/>&nbsp;
+                        <input class="btn btn-primary" name="1" type="submit" value="Load Geographic Coverage from CSV File"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_geographic_coverage_csv_file_btn) }}</td>
+                </table>
+
+                <br/>
                 {% if not suppress_next_btn %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 {% else %}
@@ -54,6 +62,7 @@
 {#    </div>#}
 
     {{ macros.help_dialog(help_geographic_coverage_dialog, help_geographic_coverage_title, help_geographic_coverage_content) }}
+    {{ macros.help_dialog(help_geographic_coverage_csv_file_dialog, help_geographic_coverage_csv_file_title, help_geographic_coverage_csv_file_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -62,12 +71,16 @@
     {% set help_geographic_coverage_id, help_geographic_coverage_title, help_geographic_coverage_content = help[0] %}
     {% set help_geographic_coverage_btn = help_geographic_coverage_id ~ '_btn' %}
     {% set help_geographic_coverage_dialog = help_geographic_coverage_id ~ '_dialog' %}
+    {% set help_geographic_coverage_csv_file_id, help_geographic_coverage_csv_file_title, help_geographic_coverage_csv_file_content = help[1] %}
+    {% set help_geographic_coverage_csv_file_btn = help_geographic_coverage_csv_file_id ~ '_btn' %}
+    {% set help_geographic_coverage_csv_file_dialog = help_geographic_coverage_csv_file_id ~ '_dialog' %}
     {% endif %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_geographic_coverage_dialog, help_geographic_coverage_btn) }}
+        {{ macros.help_script(help_geographic_coverage_csv_file_dialog, help_geographic_coverage_csv_file_btn) }}
     });
     </script>
 {% endblock %}

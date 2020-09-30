@@ -289,6 +289,25 @@ At least one <b>Geographic Coverage</b> element should be included, whose boundi
 
 Additional <b>Geographic Coverage</b> elements should be included if there are significant distances between study sites and grouping them in one bounding box would be misleading or confusing. For example, a cross-site study should have bounding boxes for each site.
 --------------------
+geographic_coverages_csv_file
+Add / Load Geographic Coverage
+You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML by clicking <b>Add Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
+
+In the latter case, the CSV file is required to have the following format:
+<ul>
+<li>A header row consisting of:&nbsp;
+"geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate"
+<li>The geographicDescription column contains strings (text).
+<li>The bounding coordinate columns contain latitude/longitude coordinates in decimal degrees format.
+<li>For latitudes (north/south coordinates), use a minus sign for latitudes south of the equator.
+<li>For longitudes (east/west coordinates), use a minus sign for longitudes west of the prime meridian.
+</ul>
+
+Example:<br>
+geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate<br>
+Lake Wingra,43.06,43.05,-89.41,-89.43<br>
+Lake Kegonsa,42.98,42.95,-89.22,-89.28<br>
+--------------------
 geographic_description
 Geographic Description
 <b>Geographic Description</b> is a short text description of a data package's geographic areal domain. A text description is especially important to provide a geographic setting when the extent of the data set cannot be well described by the "bounding coordinates", or in the case of data which are not specifically geospatial.

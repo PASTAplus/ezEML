@@ -1054,7 +1054,10 @@ def select_post(filename=None, form=None, form_dict=None,
             elif val == BTN_LOAD_DATA_TABLE:
                 new_page = PAGE_LOAD_DATA
                 node_id = '1'
-            elif val== BTN_LOAD_OTHER_ENTITY:
+            elif val == BTN_LOAD_GEO_COVERAGE:
+                new_page = PAGE_LOAD_GEO_COVERAGE
+                node_id = '1'
+            elif val == BTN_LOAD_OTHER_ENTITY:
                 new_page = PAGE_LOAD_OTHER_ENTITY
                 node_id = '1'
 

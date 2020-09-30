@@ -42,7 +42,8 @@ class User(UserMixin):
             token64 = self._session_id.split('-')[0]
             token = base64.b64decode(token64).decode('utf-8')
             self._uid = token.split('*')[0]
-            self._cname = self._uid.split(',')[0]
+            self._cname = self._uid.split(',')[0].split("=")[1]
+            self._session_id = self._cname + "*" + self._uid
 
     def get_cname(self):
         return self._cname

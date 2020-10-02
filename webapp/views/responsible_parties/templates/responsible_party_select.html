@@ -26,12 +26,14 @@
                         {{ macros.up_down_arrow(rp_entry.id, rp_entry.upval) }}
                         {{ macros.up_down_arrow(rp_entry.id, rp_entry.downval) }}
                         <td align="right"><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="Edit"/>
-                        <input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="Remove"/></td>
+                        <input class="btn btn-primary" name="{{ rp_entry.id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>
                 <br/>
                 <input class="btn btn-primary" name="1" type="submit" value="Add {{ rp_singular }}"/>
+{#                &nbsp;#}
+{#                <input class="btn btn-primary" name="1" type="submit" value="Reuse a Responsible Party"/>#}
                 <br/><br/>
                 {% if session['current_page'] != 'project' %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>

@@ -491,7 +491,8 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
 
 
 @cov_bp.route('/taxonomic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
-def taxonomic_coverage(filename=None, node_id=None):
+@cov_bp.route('/taxonomic_coverage/<filename>/<node_id>/<taxon>', methods=['GET', 'POST'])
+def taxonomic_coverage(filename=None, node_id=None, taxon=None):
     form = TaxonomicCoverageForm(filename=filename)
 
     # Process POST
@@ -567,6 +568,9 @@ def taxonomic_coverage(filename=None, node_id=None):
                     break
 
         if save:
+            if not form.taxon_value.data and not form.taxon_rank.data:
+                return redirect(url_for(new_page, filename=filename))
+
             submitted_hierarchy = form_value.get('hierarchy')
             if isinstance(form_value.get('hierarchy'), str) and form_value.get('hierarchy'):
                 # convert hierarchy string to list
@@ -588,6 +592,10 @@ def taxonomic_coverage(filename=None, node_id=None):
                     '',
                     ''
                 )]
+
+            if not form_value.get('taxon_rank'):
+                flash('Taxon Rank is required.')
+                return redirect(url_for(PAGE_TAXONOMIC_COVERAGE, filename=filename, node_id=node_id, taxon=form.taxon_value.data))
 
             eml_node = load_eml(filename=filename)
 
@@ -627,6 +635,8 @@ def taxonomic_coverage(filename=None, node_id=None):
     have_links = False
     if node_id == '1':
         form.init_md5()
+        if taxon:
+            form.taxon_value.data = taxon
     else:
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)

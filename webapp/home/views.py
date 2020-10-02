@@ -566,7 +566,7 @@ def import_parties_2(filename):
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=filename)
+        url = url_for(new_page, filename=current_user.get_filename())
         return redirect(url)
 
     if form.validate_on_submit():
@@ -649,7 +649,7 @@ def import_geo_coverage_2(filename):
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=filename)
+        url = url_for(new_page, filename=current_user.get_filename())
         return redirect(url)
 
     if form.validate_on_submit():
@@ -703,7 +703,7 @@ def import_temporal_coverage_2(filename):
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=filename)
+        url = url_for(new_page, filename=current_user.get_filename())
         return redirect(url)
 
     if form.validate_on_submit():
@@ -758,7 +758,7 @@ def import_taxonomic_coverage_2(filename):
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=filename)
+        url = url_for(new_page, filename=current_user.get_filename())
         return redirect(url)
 
     if form.validate_on_submit():
@@ -1059,6 +1059,9 @@ def select_post(filename=None, form=None, form_dict=None,
                 node_id = '1'
             elif val == BTN_LOAD_OTHER_ENTITY:
                 new_page = PAGE_LOAD_OTHER_ENTITY
+                node_id = '1'
+            elif val == BTN_REUSE:
+                new_page = PAGE_IMPORT_PARTY
                 node_id = '1'
 
     if form.validate_on_submit():   

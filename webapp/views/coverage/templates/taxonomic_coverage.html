@@ -16,14 +16,15 @@
                     were identified as moss or lichen.":</h5>
                 {{ wtf.form_field(form.general_taxonomic_coverage, rows=5) }}
                 <table>
-                    <td><h5>Enter the most specific relevant taxon, below, then click "Fill Hierarchy." Filling the hierarchy will take a few seconds.</h5></td>
-                    <td valign="top" style="padding-top: 15px;padding-left: 15px;">{{ macros.help_button(help_taxonomic_coverage_fill_hierarchy_btn) }}</td>
+                    <td><h5>Enter the most specific relevant taxon, below, then click "Fill Hierarchy."
+                        Taxon Rank is filled in automatically unless the taxon is unknown to the Taxonomic Authority. Filling the hierarchy takes a few seconds.</h5></td>
+                    <td valign="top" style="padding-top: 10px;padding-left: -5px;">{{ macros.help_button(help_taxonomic_coverage_fill_hierarchy_btn) }}</td>
                 </table>
                 <table border="0">
                     <tr width="60%">
-                        <td width="15%" style="padding-top: 0px;">{{ wtf.form_field(form.taxon_rank) }}</td>
-                        <td width="1%">&nbsp;</td>
                         <td width="20%" style="padding-top: 0px;">{{ wtf.form_field(form.taxon_value) }}</td>
+                        <td width="1%">&nbsp;</td>
+                        <td width="15%" style="padding-top: 0px;">{{ wtf.form_field(form.taxon_rank) }}</td>
                         <td width="1%">&nbsp;</td>
                         <td width="63%">
                             <table width="100%"><tr>

@@ -28,7 +28,7 @@
                         {{ macros.up_down_arrow(txc_entry.id, txc_entry.upval) }}
                         {{ macros.up_down_arrow(txc_entry.id, txc_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Edit"/>
-                            <input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Remove"/></td>
+                            <input class="btn btn-primary" name="{{ txc_entry.id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>

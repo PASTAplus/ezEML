@@ -47,6 +47,7 @@ class TaxonomicCoverageSelectForm(EDIForm):
 class TaxonomicCoverageForm(EDIForm):
     general_taxonomic_coverage = StringField('General Taxonomic Coverage (Optional)', widget=TextArea(), validators=[])
     taxon_rank = SelectField('Taxon Rank', choices=[
+        ('', ''),
         ('Subspecies', 'Subspecies'),
         ('Species', 'Species'),
         ('Subgenus', 'Subgenus'),
@@ -75,7 +76,7 @@ class TaxonomicCoverageForm(EDIForm):
         ('Kingdom', 'Kingdom'),
         ('Domain', 'Domain'),
         ('Superdomain', 'Superdomain')
-    ], default='Species'
+    ], default=''
     )
     taxon_value = StringField('Taxon Name', validators=[])
     hierarchy = HiddenField('')

@@ -19,5 +19,6 @@ BTN_LOAD_OTHER_ENTITY = 'Load Other Entity from File'
 BTN_NEXT = 'Next'
 BTN_OK = 'OK'
 BTN_REMOVE = 'Remove'
+BTN_REUSE = "Reuse a Responsible Party"
 BTN_SAVE = 'Save'
 BTN_SAVE_AND_CONTINUE = 'Save and Continue'

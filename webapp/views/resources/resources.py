@@ -401,9 +401,7 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
             elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
-                eml_node = load_eml(filename=filename)
-                remove_child(node_id=node_id)
-                save_both_formats(filename=filename, eml_node=eml_node)
+                remove_keyword(filename, node_id)
             elif val == BTN_HIDDEN_CHECK:
                 new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
@@ -436,6 +434,21 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
         else:
             return url_for(new_page,
                            filename=filename)
+
+
+def remove_keyword(filename, node_id):
+    eml_node = load_eml(filename=filename)
+
+    if node_id:
+        keyword_node = Node.get_node_instance(node_id)
+        if keyword_node:
+            keyword_set_node = keyword_node.parent
+        remove_child(node_id=node_id)
+        # if we've just removed the last keyword under the keywordSet, remove the keywordSet
+        if not keyword_set_node.find_all_children(names.KEYWORD):
+            parent_node = keyword_set_node.parent
+            parent_node.remove_child(keyword_set_node)
+        save_both_formats(filename=filename, eml_node=eml_node)
 
 
 # node_id is the id of the keyword node being edited. If the value is

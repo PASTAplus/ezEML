@@ -150,7 +150,7 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
         add_to_evaluation('responsible_party_01', link, section, item)
 
     # Role, if required
-    if find_min_unmet(validation_errs, rp_node.name, names.ROLE):
+    if find_min_unmet(validation_errs, rp_node.name, names.ROLE) or find_content_empty(validation_errs, names.ROLE):
         add_to_evaluation('responsible_party_03', link, section, item)
 
     evaluation_warnings = evaluate_via_metapype(rp_node)

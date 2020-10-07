@@ -11,7 +11,7 @@
                 <h5>Select the document to delete:</h5>
                 {{ wtf.form_field(form.filename) }}
                 <p>&nbsp;<p/>
-                <input class="btn btn-primary" name="Back" type="submit" value="Delete"/>
+                <input class="btn btn-primary" onclick="return confirm('Are you sure?');" name="Back" type="submit" value="Delete"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_new_open_close_buttons() }}
             </form>

@@ -305,8 +305,8 @@ In the latter case, the CSV file is required to have the following format:
 
 Example:<br>
 geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate<br>
-Lake Wingra,43.06,43.05,-89.41,-89.43<br>
-Lake Kegonsa,42.98,42.95,-89.22,-89.28<br>
+Lake Wingra,43.062543,43.058787,-89.415478,-89.432468<br>
+Lake Kegonsa,42.987536,42.958923,-89.223452,-89.283877<br>
 --------------------
 geographic_description
 Geographic Description

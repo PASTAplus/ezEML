@@ -883,7 +883,7 @@ def load_data():
                     dataset_node = new_child_node(names.DATASET, eml_node)
                 try:
                     dt_node = load_data_table(dataset_node, uploads_folder, data_file)
-                except UnicodeDecodeError:
+                except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
                     return render_template('encoding_error.html', filename=filename, errors=errors)
                 flash(f'Loaded {data_file}')

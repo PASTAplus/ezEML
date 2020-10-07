@@ -5,15 +5,17 @@
 <h5>{{ filename }} appears to contain one or more illegal characters.</h5>
     <p></p>
     <h5>Please correct the file and try again. For assistance, contact <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a>.</h5>
-    <br>
+    <h5 style="margin: 20px;border-style: solid;padding: 15px;border-color: steelblue;">Files should be UTF-8 encoded.<p></p>For example, if you use Microsoft Excel, do "Save As..."
+        and under "File Format" in Excel's Save As dialog, pick "CSV UTF-8".
+        Then retry the file upload using the UTF-8 encoded CSV file.</h5>
     <b><a href="/eml/">Home</a></b>
     <p>&nbsp;</p>
     <h5>Errors (� indicates an illegal character):</h5>
     <table>
     {% for error in errors %}
         <tr>
-        <td valign="top">Line {{ error[0]|safe }}:</td>
-            <td width="3%">&nbsp;</td>
+        <td valign="top" width="8%">Line {{ error[0]|safe }}:</td>
+            <td width="1%">&nbsp;</td>
         <td>{{ error[1]|safe }}</td>
         </tr>
     {% endfor %}

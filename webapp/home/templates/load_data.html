@@ -11,6 +11,16 @@
                 <h4>Select the CSV file to upload:</h4>
                 <input type=file name=file>
                 <p>&nbsp;</p>
+                <table width="50%">
+                    <tr>
+                        <td width="20%">{{ wtf.form_field(form.delimiter) }}</td>
+                        <td width="3%"></td>
+                        <td width="20%">{{ wtf.form_field(form.quote) }}</td>
+                    </tr>
+                </table>
+                <p> </p>
+                <br>
+
                 <input class="btn btn-primary" name="Upload" type="submit" value="Upload"/>&nbsp;
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
                 {{ macros.hidden_buttons() }}

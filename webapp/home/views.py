@@ -877,12 +877,14 @@ def load_data():
                 file.save(filepath)
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
+                delimiter = form.delimiter.data
+                quote_char = form.quote.data
                 eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 if not dataset_node:
                     dataset_node = new_child_node(names.DATASET, eml_node)
                 try:
-                    dt_node = load_data_table(dataset_node, uploads_folder, data_file)
+                    dt_node = load_data_table(dataset_node, uploads_folder, data_file, delimiter, quote_char)
                 except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
                     return render_template('encoding_error.html', filename=filename, errors=errors)

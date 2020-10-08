@@ -166,7 +166,7 @@ def infer_col_type(data_frame, col):
     return col_type, sorted_codes
 
 
-def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str=''):
+def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str='', delimiter:str=',', quote_char:str='"'):
     full_path = f'{uploads_path}/{data_file}'
 
     datatable_node = new_child_node(names.DATATABLE, parent=dataset_node)
@@ -215,10 +215,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
     add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
-    # file_encoding = 'utf-8'
-    # input_fd = open(full_path, encoding=file_encoding, errors='backslashreplace')
-    # data_frame = pd.read_csv(input_fd, comment='#')
-    data_frame = pd.read_csv(full_path, comment='#', encoding='utf8')
+    data_frame = pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
 
     if data_frame is not None:
 

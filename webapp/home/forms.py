@@ -120,7 +120,19 @@ class DownloadEMLForm(FlaskForm):
 
 
 class LoadDataForm(FlaskForm):
-    pass
+    delimiter = SelectField('Field Delimiter', choices=[
+        (',', 'comma'),
+        ('\\t', 'tab'),
+        ('|', 'vertical bar, or pipe - |'),
+        (';', 'semicolon'),
+        (':', 'colon')
+    ], default=','
+    )
+    quote = SelectField('Quote Character', choices=[
+        ('"', '"  (double quote)'),
+        ("'", "'  (single quote)")
+    ], default='"'
+    )
 
 
 class LoadOtherEntityForm(FlaskForm):

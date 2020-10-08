@@ -129,8 +129,8 @@ class LoadDataForm(FlaskForm):
     ], default=','
     )
     quote = SelectField('Quote Character', choices=[
-        ('"', '"  (double quote)'),
-        ("'", "'  (single quote)")
+        ('"', 'double quote - "'),
+        ("'", "single quote - '")
     ], default='"'
     )
 

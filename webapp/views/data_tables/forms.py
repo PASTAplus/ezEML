@@ -205,8 +205,8 @@ class DataTableForm(EDIForm):
     num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
     record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
     quote_character = SelectField('Quote Character', choices=[
-        ('"', '"  (double quote)'),
-        ("'", "'  (single quote)")
+        ('"', 'double quote - "'),
+        ("'", "single quote - '")
     ], default='"'
     )
     attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])

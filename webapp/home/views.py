@@ -860,7 +860,13 @@ def load_data():
     uploads_folder = get_user_uploads_folder_name()
 
     # Process POST
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
+        return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
+
         # Check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -877,6 +883,8 @@ def load_data():
                 file.save(filepath)
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
+                # num_header_rows = form.num_header_rows.data
+                num_header_rows = 1
                 delimiter = form.delimiter.data
                 quote_char = form.quote.data
                 eml_node = load_eml(filename=document)
@@ -884,13 +892,13 @@ def load_data():
                 if not dataset_node:
                     dataset_node = new_child_node(names.DATASET, eml_node)
                 try:
-                    dt_node = load_data_table(dataset_node, uploads_folder, data_file, delimiter, quote_char)
+                    dt_node = load_data_table(dataset_node, uploads_folder, data_file, num_header_rows, delimiter, quote_char)
                 except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
                     return render_template('encoding_error.html', filename=filename, errors=errors)
                 flash(f'Loaded {data_file}')
                 save_both_formats(filename=document, eml_node=eml_node)
-                return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id))
+                return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
             else:
                 flash(f'{filename} is not a supported data file type')
                 return redirect(request.url)

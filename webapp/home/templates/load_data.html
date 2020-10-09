@@ -11,18 +11,20 @@
                 <h4>Select the CSV file to upload:</h4>
                 <input type=file name=file>
                 <p>&nbsp;</p>
-                <table width="50%">
+                <table width="70%">
                     <tr>
-                        <td width="25%">{{ wtf.form_field(form.delimiter) }}</td>
+{#                        <td width="25%">{{ wtf.form_field(form.num_header_rows) }}</td>#}
+{#                        <td width="3%"></td>#}
+                        <td width="35%">{{ wtf.form_field(form.delimiter) }}</td>
                         <td width="3%"></td>
-                        <td width="20%">{{ wtf.form_field(form.quote) }}</td>
+                        <td width="30%">{{ wtf.form_field(form.quote) }}</td>
                     </tr>
                 </table>
                 <p> </p>
                 <br>
 
-                <input class="btn btn-primary" name="Upload" type="submit" value="Upload"/>&nbsp;
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                <input class="btn btn-primary" style="width: 100px;" name="Upload" type="submit" value="Upload"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

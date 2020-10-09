@@ -166,7 +166,8 @@ def infer_col_type(data_frame, col):
     return col_type, sorted_codes
 
 
-def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str='', delimiter:str=',', quote_char:str='"'):
+def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str='',
+                    num_header_rows:int=1, delimiter:str=',', quote_char:str='"'):
     full_path = f'{uploads_path}/{data_file}'
 
     datatable_node = new_child_node(names.DATATABLE, parent=dataset_node)
@@ -202,11 +203,22 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
 
     num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
     add_child(text_format_node, num_header_lines_node)
-    num_header_lines_node.content = '1'
+    num_header_lines_node.content = num_header_rows
 
     num_footer_lines_node = Node(names.NUMFOOTERLINES, parent=text_format_node)
     add_child(text_format_node, num_footer_lines_node)
     num_footer_lines_node.content = '0'
+
+    simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
+    add_child(text_format_node, simple_delimited_node)
+
+    field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
+    add_child(simple_delimited_node, field_delimiter_node)
+    field_delimiter_node.content = delimiter
+
+    quote_character_node = Node(names.QUOTECHARACTER, parent=simple_delimited_node)
+    add_child(simple_delimited_node, quote_character_node)
+    quote_character_node.content = quote_char
 
     with open(full_path) as file:
         next(file)

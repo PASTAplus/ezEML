@@ -74,7 +74,7 @@ def data_table_select(filename=None):
 
 
 @dt_bp.route('/data_table/<filename>/<node_id>', methods=['GET', 'POST'])
-def data_table(filename=None, node_id=None):
+def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
     form = DataTableForm(filename=filename)
     dt_node_id = node_id
 

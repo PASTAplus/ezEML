@@ -17,7 +17,7 @@ import hashlib
 from flask_wtf import FlaskForm
 
 from wtforms import (
-    StringField, SelectField, SelectMultipleField, HiddenField, RadioField, widgets
+    IntegerField, StringField, SelectField, SelectMultipleField, HiddenField, RadioField, widgets
 )
 
 from wtforms.validators import (
@@ -120,6 +120,7 @@ class DownloadEMLForm(FlaskForm):
 
 
 class LoadDataForm(FlaskForm):
+    # num_header_rows = IntegerField('Number of Header Lines', default=1)
     delimiter = SelectField('Field Delimiter', choices=[
         (',', 'comma'),
         ('\\t', 'tab'),

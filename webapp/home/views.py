@@ -487,10 +487,11 @@ def import_parties():
 
     # Process POST
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            new_page = get_redirect_target_page()
-            url = url_for(new_page, filename=current_user.get_filename())
-            return redirect(url)
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+            # new_page = get_redirect_target_page()
+            # url = url_for(new_page, filename=current_user.get_filename())
+            # return redirect(url)
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -566,9 +567,7 @@ def import_parties_2(filename):
     form.target.choices = targets
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=current_user.get_filename())
-        return redirect(url)
+        return redirect(get_back_url())
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -625,10 +624,8 @@ def import_geo_coverage():
 
     # Process POST
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            new_page = get_redirect_target_page()
-            url = url_for(new_page, filename=current_user.get_filename())
-            return redirect(url)
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_geo_coverage_2', filename=filename))
@@ -649,9 +646,7 @@ def import_geo_coverage_2(filename):
     form.to_import.choices = choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=current_user.get_filename())
-        return redirect(url)
+        return redirect(get_back_url())
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -680,10 +675,11 @@ def import_temporal_coverage():
 
     # Process POST
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            new_page = get_redirect_target_page()
-            url = url_for(new_page, filename=current_user.get_filename())
-            return redirect(url)
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+            # new_page = get_redirect_target_page()
+            # url = url_for(new_page, filename=current_user.get_filename())
+            # return redirect(url)
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_temporal_coverage_2', filename=filename))
@@ -703,9 +699,7 @@ def import_temporal_coverage_2(filename):
     form.to_import.choices = choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=current_user.get_filename())
-        return redirect(url)
+        return redirect(get_back_url())
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -734,10 +728,8 @@ def import_taxonomic_coverage():
 
     # Process POST
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            new_page = get_redirect_target_page()
-            url = url_for(new_page, filename=current_user.get_filename())
-            return redirect(url)
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename))
@@ -758,9 +750,7 @@ def import_taxonomic_coverage_2(filename):
     form.to_import.choices = choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=current_user.get_filename())
-        return redirect(url)
+        return redirect(get_back_url())
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -789,10 +779,8 @@ def import_funding_awards():
 
     # Process POST
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            new_page = get_redirect_target_page()
-            url = url_for(new_page, filename=current_user.get_filename())
-            return redirect(url)
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_funding_awards_2', filename=filename))
@@ -813,9 +801,7 @@ def import_funding_awards_2(filename):
     form.to_import.choices = choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=filename)
-        return redirect(url)
+        return redirect(get_back_url())
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -845,10 +831,8 @@ def import_related_projects():
 
     # Process POST
     if request.method == 'POST':
-        if 'Cancel' in request.form:
-            new_page = get_redirect_target_page()
-            url = url_for(new_page, filename=current_user.get_filename())
-            return redirect(url)
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_related_projects_2', filename=filename))
@@ -869,9 +853,7 @@ def import_related_projects_2(filename):
     form.to_import.choices = choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        new_page = get_redirect_target_page()
-        url = url_for(new_page, filename=filename)
-        return redirect(url)
+        return redirect(get_back_url())
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -921,8 +903,7 @@ def load_data():
     # Process POST
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
-        return redirect(url)
+        return redirect(get_back_url())
 
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -974,6 +955,9 @@ def load_entity():
     uploads_folder = get_user_uploads_folder_name()
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
     if request.method == 'POST' and form.validate_on_submit():
         # Check if the post request has the file part
         if 'file' not in request.files:

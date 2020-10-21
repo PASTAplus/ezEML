@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_related_projects_id, help_related_projects_title, help_related_projects_content = help[0] %}
+    {% set help_related_projects_btn = help_related_projects_id ~ '_btn' %}
+    {% set help_related_projects_dialog = help_related_projects_id ~ '_dialog' %}
+    
+    <table>
+        <td><h2>Related Projects</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_related_projects_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table class="table table-striped">
+                    <tr>
+                        <th>Project Title</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    {% for project_entry in project_list %}
+                    <tr>
+                        <td width="50%">{{ project_entry.label }}</td>
+                        {{ macros.up_down_arrow(project_entry.id, project_entry.upval) }}
+                        {{ macros.up_down_arrow(project_entry.id, project_entry.downval) }}
+                        <td><input class="btn btn-primary" name="{{ project_entry.id }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ project_entry.id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <br/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Related Project"/>
+                <br/><br/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Back to Primary Project"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_related_projects_dialog, help_related_projects_title, help_related_projects_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_related_projects_id, help_related_projects_title, help_related_projects_content = help[0] %}
+    {% set help_related_projects_btn = help_related_projects_id ~ '_btn' %}
+    {% set help_related_projects_dialog = help_related_projects_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_related_projects_dialog, help_related_projects_btn) }}
+    });
+    </script>
+{% endblock %}

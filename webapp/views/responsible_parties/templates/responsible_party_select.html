@@ -37,8 +37,10 @@
                 <br/><br/>
                 {% if session['current_page'] != 'project' %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
-                {% else %}
+                {% elif not relatedProject %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Back to Project"/>
+                {% else %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Back to Related Project"/>
                 {% endif %}
                 {{ macros.hidden_buttons() }}
             </form>

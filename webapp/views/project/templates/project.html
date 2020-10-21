@@ -12,7 +12,7 @@
     {% endif %}
 
     <table>
-        <td><h2>Project</h2></td>
+        <td><h2>{{ title }}</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_project_btn) }}</td>
     </table>
     
@@ -27,13 +27,19 @@
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_project_title_btn) }}</td>
                 </table>
                 {{ wtf.form_field(form.abstract, rows=10, cols=100) }}
-{#                {{ wtf.form_field(form.funding) }}#}
                 <br/>
-                <input class="btn btn-primary" name="Edit Project Personnel" type="submit" value="Edit Project Personnel"/>
-                <input class="btn btn-primary" name="Edit Funding Awards" type="submit" value="Edit Funding Awards"/>
+                <input class="btn btn-primary" name="Project Personnel" type="submit" value="Project Personnel"/>
+                <input class="btn btn-primary" name="Funding Awards" type="submit" value="Funding Awards"/>
+                {% if title == 'Project' %}
+                <input class="btn btn-primary" name="Related Projects" type="submit" value="Related Projects"/>
+                {% endif %}
                 <br/><br/>
-{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
+                {% if title == 'Project' %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                {% endif %}
+                {% if title == 'Related Project' %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                {% endif %}
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
             </form>

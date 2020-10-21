@@ -9,7 +9,11 @@
     {% endif %}
 
     <table>
+        {% if not related_project %}
         <td><h2>Funding Awards</h2></td>
+        {% else %}
+        <td><h2>Related Project Funding Awards</h2></td>
+        {% endif %}
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_awards_btn) }}</td>
     </table>
     <div class="row">
@@ -35,7 +39,11 @@
                 <br/>
                 <input class="btn btn-primary" name="Add" type="submit" value="Add Funding Award"/>
                 <br/><br/>
+                {% if not related_project %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Back to Project"/>
+                {% else %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Back to Related Project"/>
+                {% endif %}
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

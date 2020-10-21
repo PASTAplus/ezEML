@@ -59,15 +59,20 @@ def creator(filename=None, node_id=None):
 
 
 def rp_select_get(filename=None, form=None, rp_name=None,
-                  rp_singular=None, rp_plural=None, help=None):
+                  rp_singular=None, rp_plural=None, help=None, node_id=None):
     # Process GET
     eml_node = load_eml(filename=filename)
-    rp_list = list_responsible_parties(eml_node, rp_name)
+    rp_list = list_responsible_parties(eml_node, rp_name, node_id)
     title = rp_name.capitalize()
+    related_project = node_id is not None
+    if related_project:
+        rp_singular = 'Related ' + rp_singular
+        rp_plural = 'Related ' + rp_plural
 
     return render_template('responsible_party_select.html', title=title,
                            rp_list=rp_list, form=form,
-                           rp_singular=rp_singular, rp_plural=rp_plural, help=help)
+                           rp_singular=rp_singular, rp_plural=rp_plural,
+                           help=help, relatedProject=related_project)
 
 
 def select_new_page(back_page=None, next_page=None, edit_page=None):
@@ -99,10 +104,14 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
 
 def responsible_party(filename=None, node_id=None, method=None,
                       node_name=None, back_page=None, title=None,
-                      next_page=None, save_and_continue=False, help=None):
+                      next_page=None, save_and_continue=False, help=None,
+                      project_node_id=None):
 
     if BTN_CANCEL in request.form:
-        url = url_for(back_page, filename=filename)
+        if not project_node_id:
+            url = url_for(back_page, filename=filename)
+        else:
+            url = url_for(back_page, filename=filename, node_id=project_node_id)
         return redirect(url)
 
     form = ResponsiblePartyForm(filename=filename)
@@ -121,7 +130,7 @@ def responsible_party(filename=None, node_id=None, method=None,
     url = select_post(filename, form, form_dict,
                       'POST', PAGE_PUBLISHER,
                       PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
-                      PAGE_PUBLISHER)
+                      PAGE_PUBLISHER, project_node_id=project_node_id)
 
     # If this is an associatedParty or a project personnel element,
     # set role to True so it will appear as a form field.
@@ -131,11 +140,14 @@ def responsible_party(filename=None, node_id=None, method=None,
     # If this is a project personnel party, place it under the
     # project node, not under the dataset node
     if node_name == names.PERSONNEL:
-        project_node = dataset_node.find_child(names.PROJECT)
-        if not project_node:
-            project_node = Node(names.PROJECT, parent=dataset_node)
-            add_child(dataset_node, project_node)
-        parent_node = project_node
+        if not project_node_id:
+            project_node = dataset_node.find_child(names.PROJECT)
+            if not project_node:
+                project_node = Node(names.PROJECT, parent=dataset_node)
+                add_child(dataset_node, project_node)
+            parent_node = project_node
+        else:
+            parent_node = Node.get_node_instance(project_node_id)
 
     # Process POST
     save = False
@@ -209,7 +221,7 @@ def responsible_party(filename=None, node_id=None, method=None,
                 new_page = PAGE_PUBLICATION_INFO
 
         if node_name != names.PUBLISHER:
-            return redirect(url_for(new_page, filename=filename))
+            return redirect(url_for(new_page, filename=filename, node_id=project_node_id))
         else:
             return redirect(url)
 
@@ -224,8 +236,8 @@ def responsible_party(filename=None, node_id=None, method=None,
                     if node_id == rp_node.id:
                         populate_responsible_party_form(form, rp_node)
 
-    # if node_name == names.PUBLISHER:
-    #     help = [get_help('publisher')]
+    if project_node_id:
+        title = 'Related ' + title
     help = get_helps([node_name])
     return render_template('responsible_party.html', title=title, node_name=node_name,
                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
@@ -435,11 +447,13 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
 
 
 @rp_bp.route('/project_personnel/<filename>/<node_id>', methods=['GET', 'POST'])
-def project_personnel(filename=None, node_id=None):
+@rp_bp.route('/project_personnel/<filename>/<node_id>/<project_node_id>', methods=['GET', 'POST'])
+def project_personnel(filename=None, node_id=None, project_node_id=None):
     method = request.method
     set_current_page('project')
     return responsible_party(filename=filename, node_id=node_id,
                              method=method, node_name=names.PERSONNEL,
                              back_page=PAGE_PROJECT_PERSONNEL_SELECT,
                              next_page=PAGE_PROJECT_PERSONNEL_SELECT,
-                             title='Project Personnel')
+                             title='Project Personnel',
+                             project_node_id=project_node_id)

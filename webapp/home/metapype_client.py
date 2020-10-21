@@ -88,13 +88,15 @@ def sort_package_ids(packages):
     return sorted(packages, key=lambda x: parse_package_id(x))
 
 
-def list_data_packages(flag_current=False):
+def list_data_packages(flag_current=False, include_current=True):
     choices = []
     user_documents = sorted(get_user_document_list(), key=str.casefold)
     current_annotation = ' (current data package)' if flag_current else ''
     for document in user_documents:
         pid_tuple = (document, document)
         if document == current_user.get_filename():
+            if not include_current:
+                continue
             pid_tuple = (document, f'{document}{current_annotation}')
         choices.append(pid_tuple)
     return choices
@@ -425,16 +427,19 @@ def compose_attribute_mscale(att_node:Node=None):
     return mscale
 
 
-def list_responsible_parties(eml_node:Node=None, node_name:str=None):
+def list_responsible_parties(eml_node:Node=None, node_name:str=None, node_id:str=None):
     rp_list = []
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             parent_node = dataset_node
             if node_name == 'personnel':
-                project_node = dataset_node.find_child(names.PROJECT)
-                if project_node:
-                    parent_node = project_node
+                if not node_id:
+                    project_node = dataset_node.find_child(names.PROJECT)
+                    if project_node:
+                        parent_node = project_node
+                elif node_id != '1':
+                    parent_node = Node.get_node_instance(node_id)
 
             rp_nodes = parent_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
@@ -700,6 +705,35 @@ def compose_funding_award_label(award_node:Node=None):
     if funder_name_node:
         funder_name = funder_name_node.content
     return f'{title}: {funder_name}'
+
+
+def compose_project_label(project_node:Node=None):
+    if not project_node:
+        return ''
+    title = ''
+    title_node = project_node.find_child(names.TITLE)
+    if title_node:
+        title = title_node.content
+    return title
+
+
+def import_project_nodes(target_package, node_ids_to_import):
+    target_eml_node = load_eml(target_package)
+    parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+    if not parent_node:
+        dataset_node = target_eml_node.find_child(names.DATASET)
+        project_node = Node(names.PROJECT)
+        add_child(dataset_node, project_node)
+        parent_node = project_node
+    for node_id in node_ids_to_import:
+        node = Node.get_node_instance(node_id)
+        new_node = node.copy()
+        new_node.name = names.RELATED_PROJECT
+        # if node has related_children, remove them
+        for child in new_node.find_all_children(names.RELATED_PROJECT):
+            new_node.remove_child(child)
+        add_child(parent_node, new_node)
+    save_both_formats(target_package, target_eml_node)
 
 
 def compose_rp_label(rp_node:Node=None):
@@ -1625,6 +1659,35 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
         logger.error(e)
 
 
+def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=None, project_node_id:str=None):
+    try:
+        if project_node_id != '1':
+            related_project_node = Node.get_node_instance(project_node_id)
+        else:
+            if dataset_node:
+                project_node = dataset_node.find_child(names.PROJECT)
+                if not project_node:
+                    project_node = new_child_node(names.PROJECT, parent=dataset_node)
+                related_project_node = new_child_node(names.RELATED_PROJECT, parent=project_node)
+
+        title_node = related_project_node.find_child(names.TITLE)
+        if not title_node:
+            title_node = new_child_node(names.TITLE, parent=related_project_node)
+        title_node.content = title
+
+        abstract_node = related_project_node.find_child(names.ABSTRACT)
+        if not abstract_node:
+            abstract_node = new_child_node(names.ABSTRACT, parent=related_project_node)
+        if abstract:
+            abstract_node.content = abstract
+        else:
+            related_project_node.remove_child(abstract_node)
+        return related_project_node
+
+    except Exception as e:
+        logger.error(e)
+
+
 def create_funding_award(
         award_node:Node=None,
         funder_name:str=None,
@@ -1709,6 +1772,20 @@ def remove_keyword(filename:str=None, keyword:str=None):
         save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
+
+
+def remove_related_project(filename:str=None, node_id:str=None):
+    eml_node = load_eml(filename=filename)
+    related_project_node = Node.get_node_instance(node_id)
+    if related_project_node:
+        parent_node = related_project_node.parent
+        if parent_node:
+            parent_node.remove_child(related_project_node)
+            try:
+                if eml_node:
+                    save_both_formats(filename=filename, eml_node=eml_node)
+            except Exception as e:
+                logger.error(e)
 
 
 def create_keywords(filename:str=None, keywords_list:list=[]):
@@ -1943,12 +2020,15 @@ def create_responsible_party(
         logger.error(e)
 
 
-def list_funding_awards(eml_node:Node=None):
+def list_funding_awards(eml_node:Node=None, node_id=None):
     award_list = []
     if eml_node:
-        project_node = eml_node.find_single_node_by_path([
-            names.DATASET, names.PROJECT
-        ])
+        if node_id:
+            project_node = Node.get_node_instance(node_id)
+        else:
+            project_node = eml_node.find_single_node_by_path([
+                names.DATASET, names.PROJECT
+            ])
         if not project_node:
             return []
         award_nodes = project_node.find_all_children(names.AWARD)

@@ -137,8 +137,12 @@ def check_data_package_id(eml_node, filename):
 
 
 def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
-                            page:str=None, filename:str=None, node_id:str=None):
-    link = url_for(page, filename=filename, node_id=node_id)
+                            page:str=None, filename:str=None, node_id:str=None,
+                            related_project_node_id:str=None):
+    if not related_project_node_id:
+        link = url_for(page, filename=filename, node_id=node_id)
+    else:
+        link = url_for(page, filename=filename, node_id=node_id, project_node_id=related_project_node_id)
     validation_errs = validate_via_metapype(rp_node)
 
     # Last name is required if other parts of name are given
@@ -395,8 +399,11 @@ def check_method_steps(eml_node, filename):
         check_method_step(method_step_node, filename, method_step_node.id)
 
 
-def check_project_award(award_node, filename):
-    link = url_for(PAGE_FUNDING_AWARD, filename=filename, node_id=award_node.id)
+def check_project_award(award_node, filename, related_project_id=None):
+    if not related_project_id:
+        link = url_for(PAGE_FUNDING_AWARD, filename=filename, node_id=award_node.id)
+    else:
+        link = url_for(PAGE_FUNDING_AWARD, filename=filename, node_id=award_node.id, project_node_id=related_project_id)
     validation_errors = validate_via_metapype(award_node)
     if find_min_unmet(validation_errors, names.AWARD, names.FUNDERNAME) or \
             find_content_empty(validation_errors, names.FUNDERNAME):
@@ -406,38 +413,39 @@ def check_project_award(award_node, filename):
         add_to_evaluation('project_05', link)
 
 
+def check_project_node(project_node, filename, related_project_id=None):
+    link = url_for(PAGE_PROJECT, filename=filename)
+    validation_errors = validate_via_metapype(project_node)
+    if find_min_unmet(validation_errors, names.PROJECT, names.TITLE) or \
+        find_content_empty(validation_errors, names.TITLE):
+        add_to_evaluation('project_01', link)
+    if find_min_unmet(validation_errors, names.PROJECT, names.PERSONNEL):
+        add_to_evaluation('project_02', link)
+    related_project_nodes = project_node.find_all_children(names.RELATED_PROJECT)
+    for related_project_node in related_project_nodes:
+        check_project_node(related_project_node, filename, related_project_node.id)
+
+    project_personnel_nodes = project_node.find_all_children(names.PERSONNEL)
+    for project_personnel_node in project_personnel_nodes:
+        check_responsible_party(project_personnel_node, "Project", "Project Personnel",
+                                PAGE_PROJECT_PERSONNEL, filename, project_personnel_node.id,
+                                related_project_id)
+
+    project_award_nodes = project_node.find_all_children(names.AWARD)
+    for project_award_node in project_award_nodes:
+        check_project_award(project_award_node, filename, related_project_id)
+
+
 def check_project(eml_node, filename):
     link = url_for(PAGE_PROJECT, filename=filename)
     project_node = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if project_node:
-        validation_errors = validate_via_metapype(project_node)
-        if find_min_unmet(validation_errors, names.PROJECT, names.TITLE) or \
-            find_content_empty(validation_errors, names.TITLE):
-            add_to_evaluation('project_01', link)
-        if find_min_unmet(validation_errors, names.PROJECT, names.PERSONNEL):
-            add_to_evaluation('project_02', link)
+        check_project_node(project_node, filename)
     else:
         dataset_node = eml_node.find_child(names.DATASET)
         evaluation_warnings = evaluate_via_metapype(dataset_node)
         if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_PROJECT_MISSING, names.DATASET):
             add_to_evaluation('project_03', link)
-
-    project_personnel_nodes = eml_node.find_all_nodes_by_path([
-        names.DATASET,
-        names.PROJECT,
-        names.PERSONNEL
-    ])
-    for project_personnel_node in project_personnel_nodes:
-        check_responsible_party(project_personnel_node, "Project", "Project Personnel",
-                                PAGE_PROJECT_PERSONNEL, filename, project_personnel_node.id)
-
-    project_award_nodes = eml_node.find_all_nodes_by_path([
-        names.DATASET,
-        names.PROJECT,
-        names.AWARD
-    ])
-    for project_award_node in project_award_nodes:
-        check_project_award(project_award_node, filename)
 
 
 def check_other_entity(entity_node, filename):

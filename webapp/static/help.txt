@@ -342,6 +342,18 @@ Select the geographic coverages to import.
 
 If none are shown, none are available in the selected data package.
 --------------------
+import_related_projects
+Import Related Projects
+You may import one or more projects from another data package to be incorporated in the current data package as related projects.
+
+The projects you import may be a main project or a related project in the other data package, but in the current data package they will be treated as related projects.
+--------------------
+import_related_projects_2
+Import Related Projects
+Select the projects you wish to import as related projects.
+
+If none are listed, none are available in the selected data package.
+--------------------
 import_responsible_parties
 Import Responsible Parties
 You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
@@ -534,6 +546,22 @@ Publication Date
 The date of publication.
 
 Publication date is not required by EML. If you submit your data to the EDI data repository, the date of publication will be entered automatically by EDI.
+--------------------
+related_project
+Related Project
+A project may be associated with related projects. EML treats one project as the main or primary project, which can then have one or more related projects as "children".
+
+Splitting projects up in this way lets you associate different funding awards with different Principal Investigators, for example.
+--------------------
+project_personnel
+Project Personnel
+This documents the people involved in a research project by providing their contact information and role in the project.
+--------------------
+project_title
+Project Title
+A descriptive title for the research project.
+
+Example: Species diversity in Tennessee riparian habitats.
 --------------------
 save_as_document
 Document Name

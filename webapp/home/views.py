@@ -53,8 +53,9 @@ from webapp.home.metapype_client import (
     move_up, move_down, UP_ARROW, DOWN_ARROW,
     save_old_to_new, read_xml, new_child_node, truncate_middle,
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
-    compose_funding_award_label, list_data_packages,
-    import_responsible_parties, import_coverage_nodes, import_funding_award_nodes
+    compose_funding_award_label, compose_project_label, list_data_packages,
+    import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
+    import_project_nodes
 )
 
 from webapp.home.check_metadata import check_eml
@@ -216,7 +217,7 @@ def file_error(filename=None):
 @login_required
 def delete():
     form = DeleteEMLForm()
-    form.filename.choices = list_data_packages()
+    form.filename.choices = list_data_packages(True, True)
 
     # Process POST
     if request.method == 'POST':
@@ -327,7 +328,7 @@ def save_as():
 @login_required
 def download():
     form = DownloadEMLForm()
-    form.filename.choices = list_data_packages()
+    form.filename.choices = list_data_packages(True, True)
 
     # Process POST
     if form.validate_on_submit():
@@ -451,7 +452,7 @@ def create():
 @login_required
 def open_eml_document():
     form = OpenEMLDocumentForm()
-    form.filename.choices = list_data_packages()
+    form.filename.choices = list_data_packages(False, False)
 
     # Process POST
     if request.method == 'POST':
@@ -482,7 +483,7 @@ def open_eml_document():
 @login_required
 def import_parties():
     form = ImportEMLForm()
-    form.filename.choices = list_data_packages(True)
+    form.filename.choices = list_data_packages(True, True)
 
     # Process POST
     if request.method == 'POST':
@@ -620,7 +621,7 @@ def get_responsible_parties_for_import(eml_node):
 @login_required
 def import_geo_coverage():
     form = ImportEMLForm()
-    form.filename.choices = list_data_packages(True)
+    form.filename.choices = list_data_packages(False, False)
 
     # Process POST
     if request.method == 'POST':
@@ -675,7 +676,7 @@ def get_geo_coverages_for_import(eml_node):
 @login_required
 def import_temporal_coverage():
     form = ImportEMLForm()
-    form.filename.choices = list_data_packages(True)
+    form.filename.choices = list_data_packages(False, False)
 
     # Process POST
     if request.method == 'POST':
@@ -729,7 +730,7 @@ def get_temporal_coverages_for_import(eml_node):
 @login_required
 def import_taxonomic_coverage():
     form = ImportEMLForm()
-    form.filename.choices = list_data_packages(True)
+    form.filename.choices = list_data_packages(False, False)
 
     # Process POST
     if request.method == 'POST':
@@ -784,7 +785,7 @@ def get_taxonomic_coverages_for_import(eml_node):
 @login_required
 def import_funding_awards():
     form = ImportEMLForm()
-    form.filename.choices = list_data_packages(True)
+    form.filename.choices = list_data_packages(False, False)
 
     # Process POST
     if request.method == 'POST':
@@ -801,7 +802,7 @@ def import_funding_awards():
     return render_template('import_funding_awards.html', help=help, form=form)
 
 
-@home.route('/import_import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
+@home.route('/import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_funding_awards_2(filename):
     form = ImportItemsForm()
@@ -834,6 +835,64 @@ def get_funding_awards_for_import(eml_node):
         label = truncate_middle(compose_funding_award_label(award_node), 80, ' ... ')
         awards.append((f'{label}', award_node.id))
     return awards
+
+
+@home.route('/import_related_projects', methods=['GET', 'POST'])
+@login_required
+def import_related_projects():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if 'Cancel' in request.form:
+            new_page = get_redirect_target_page()
+            url = url_for(new_page, filename=current_user.get_filename())
+            return redirect(url)
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_related_projects_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_related_projects'])
+    return render_template('import_related_projects.html', help=help, form=form)
+
+
+@home.route('/import_related_projects_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_related_projects_2(filename):
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_projects_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        new_page = get_redirect_target_page()
+        url = url_for(new_page, filename=filename)
+        return redirect(url)
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_project_nodes(target_package, node_ids_to_import)
+        return redirect(url_for(PAGE_RELATED_PROJECT_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_related_projects_2'])
+    return render_template('import_related_projects_2.html', help=help, target_filename=filename, form=form)
+
+
+def get_projects_for_import(eml_node):
+    projects = []
+    project = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+    project_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
+    project_nodes.append(project)
+    for project_node in project_nodes:
+        label = truncate_middle(compose_project_label(project_node), 80, ' ... ')
+        projects.append((f'{label}', project_node.id))
+    return projects
 
 
 def display_decode_error_lines(filename):
@@ -1009,17 +1068,19 @@ def close():
 
 def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
-                next_page=None, edit_page=None):
-    node_id = ''
-    new_page = ''
+                next_page=None, edit_page=None, project_node_id=None):
+    node_id = None
+    new_page = None
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
             if val in (BTN_BACK, BTN_DONE):
                 new_page = back_page
             elif val[0:4] == BTN_BACK:
+                node_id = project_node_id
                 new_page = back_page
             elif val in [BTN_NEXT, BTN_SAVE_AND_CONTINUE]:
+                node_id = project_node_id
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
@@ -1030,13 +1091,14 @@ def select_post(filename=None, form=None, form_dict=None,
                 eml_node = load_eml(filename=filename)
                 # Get the data table filename, if any, so we can remove it from the uploaded list
                 dt_node = Node.get_node_instance(node_id)
-                if dt_node:
+                if dt_node and dt_node.name == names.DATATABLE:
                     object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
                     if object_name_node:
                         object_name = object_name_node.content
                         if object_name:
                             discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
+                node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_HIDDEN_CHECK:
                 new_page = PAGE_CHECK
@@ -1075,8 +1137,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 node_id = '1'
 
     if form.validate_on_submit():   
-        return url_for(new_page, filename=filename, node_id=node_id)
-        # return new_page, node_id
+        return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
 
 
 def process_up_button(filename:str=None, node_id:str=None):

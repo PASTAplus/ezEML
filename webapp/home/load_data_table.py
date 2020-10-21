@@ -365,8 +365,8 @@ def delete_data_files(data_folder:str=None):
             file_path = os.path.join(data_folder, data_file)
             try:
                 if os.path.isfile(file_path):
-                    # Keep smaller files around for troubleshooting purposes
-                    if os.path.getsize(file_path) > 10**7:
+                    # Keep files that under 1 GB
+                    if os.path.getsize(file_path) > 1024**3:
                         os.unlink(file_path)
             except Exception as e:
                 print(e)

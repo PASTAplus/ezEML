@@ -150,7 +150,8 @@ class NCBITaxonomy(TaxonomySource):
             parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
             tree = fromstring(xml.encode('utf-8'), parser=parser)
             id = tree.xpath("//IdList/Id")
-            return id[0].text
+            if id:
+                return id[0].text
         return None
 
     def fetch_by_taxon_id(self, id):

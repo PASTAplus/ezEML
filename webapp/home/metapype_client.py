@@ -1286,15 +1286,15 @@ def create_numerical_attribute(
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     if not additional_metadata_node:
-        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, '', Optionality.REQUIRED)
+        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, None, Optionality.REQUIRED)
     # do we already have the metadata node?
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     if not metadata_node:
-        metadata_node = add_node(additional_metadata_node, names.METADATA, '', Optionality.REQUIRED)
+        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.REQUIRED)
     # de we already have the unitList node?
     unit_list_node = metadata_node.find_child(names.UNITLIST)
     if not unit_list_node:
-        unit_list_node = add_node(metadata_node, names.UNITLIST, '', Optionality.FORCE)
+        unit_list_node = add_node(metadata_node, names.UNITLIST, None, Optionality.FORCE)
     # do we already have a node for this custom unit?
     unit_node = None
     unit_nodes = unit_list_node.find_all_children(names.UNIT)
@@ -1303,7 +1303,7 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
             unit_node = child
             break
     if not unit_node:
-        unit_node = add_node(unit_list_node, names.UNIT, '', Optionality.FORCE)
+        unit_node = add_node(unit_list_node, names.UNIT, None, Optionality.FORCE)
     unit_node.add_attribute('id', custom_unit_name)
     unit_node.add_attribute('name', custom_unit_name)
     description_node = unit_node.find_child(names.DESCRIPTION)

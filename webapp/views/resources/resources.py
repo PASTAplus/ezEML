@@ -132,7 +132,7 @@ def data_package_id(filename=None):
 
     set_current_page('data_package_id')
     help = get_helps(['data_package_id'])
-    return render_template('data_package_id.html', form=form, help=help)
+    return render_template('data_package_id.html', form=form, help=help, title='Data Package ID')
 
 
 @res_bp.route('/publication_info/<filename>', methods=['GET', 'POST'])
@@ -181,7 +181,7 @@ def publication_info(filename=None):
     form.md5.data = form_md5(form)
     set_current_page('publication_info')
     help = get_helps(['pubplace', 'pubdate'])
-    return render_template('publication_info.html', help=help, form=form)
+    return render_template('publication_info.html', help=help, form=form, title='Publication Info')
 
 
 # @res_bp.route('/pubdate/<filename>', methods=['GET', 'POST'])

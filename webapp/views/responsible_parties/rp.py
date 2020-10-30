@@ -63,7 +63,7 @@ def rp_select_get(filename=None, form=None, rp_name=None,
     # Process GET
     eml_node = load_eml(filename=filename)
     rp_list = list_responsible_parties(eml_node, rp_name, node_id)
-    title = rp_name.capitalize()
+    title = rp_plural # rp_name.capitalize()
     related_project = node_id is not None
     if related_project:
         rp_singular = 'Related ' + rp_singular

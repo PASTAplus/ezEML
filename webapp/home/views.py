@@ -195,22 +195,22 @@ def get_back_url():
 
 @home.route('/about')
 def about():
-    return render_template('about.html', back_url=get_back_url())
+    return render_template('about.html', back_url=get_back_url(), title='About')
 
 
 @home.route('/user_guide')
 def user_guide():
-    return render_template('user_guide.html', back_url=get_back_url())
+    return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
 @home.route('/encoding_error/<filename>')
 def encoding_error(filename=None, errors=None):
-    return render_template('encoding_error.html', filename=filename, errors=errors)
+    return render_template('encoding_error.html', filename=filename, errors=errors, title='Encoding Errors')
 
 
 @home.route('/file_error/<filename>')
 def file_error(filename=None):
-    return render_template('file_error.html', filename=filename)
+    return render_template('file_error.html', filename=filename, title='File Error')
 
 
 @home.route('/delete', methods=['GET', 'POST'])
@@ -355,7 +355,7 @@ def check_metadata(filename:str):
 
     else:
         set_current_page('check_metadata')
-        return render_template('check_metadata.html', content=content)
+        return render_template('check_metadata.html', content=content, title='Check Metadata')
 
 
 @home.route('/download_current', methods=['GET', 'POST'])
@@ -890,7 +890,7 @@ def display_decode_error_lines(filename):
 @home.route('/submit_package', methods=['GET', 'POST'])
 @login_required
 def submit_package():
-    return render_template('submit_package.html', back_url=get_back_url())
+    return render_template('submit_package.html', back_url=get_back_url(), title='Submit to EDI')
 
 
 @home.route('/load_data', methods=['GET', 'POST'])

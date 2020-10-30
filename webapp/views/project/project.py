@@ -480,18 +480,18 @@ def list_related_projects(eml_node):
     project_node = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if project_node:
         related_projects_nodes = project_node.find_all_children(names.RELATED_PROJECT)
-    if related_projects_nodes:
-        RP_Entry = collections.namedtuple(
-            'RP_Entry', ["id", "label", "upval", "downval"],
-            rename=False)
-        for i, rp_node in enumerate(related_projects_nodes):
-            title_node = rp_node.find_child(names.TITLE)
-            if not title_node:
-                continue
-            label = title_node.content
-            id = rp_node.id
-            upval = get_upval(i)
-            downval = get_downval(i + 1, len(related_projects_nodes))
-            rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval)
-            related_projects.append(rp_entry)
+        if related_projects_nodes:
+            RP_Entry = collections.namedtuple(
+                'RP_Entry', ["id", "label", "upval", "downval"],
+                rename=False)
+            for i, rp_node in enumerate(related_projects_nodes):
+                title_node = rp_node.find_child(names.TITLE)
+                if not title_node:
+                    continue
+                label = title_node.content
+                id = rp_node.id
+                upval = get_upval(i)
+                downval = get_downval(i + 1, len(related_projects_nodes))
+                rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval)
+                related_projects.append(rp_entry)
     return related_projects

@@ -780,6 +780,9 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
         if storage_type_system_att:
             form.storage_type_system.data = storage_type_system_att
+    else:
+        form.storage_type.data = 'dateTime'
+        form.storage_type_system.data = 'XML Schema Datatypes'
 
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
@@ -1040,6 +1043,9 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
         if storage_type_system_att:
             form.storage_type_system.data = storage_type_system_att
+    else:
+        form.storage_type.data = 'float'
+        form.storage_type_system.data = 'XML Schema Datatypes'
 
     if mscale:
         form.mscale.data = mscale
@@ -1349,6 +1355,9 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
         storage_type_system_att = storage_type_node.attribute_value('typeSystem')
         if storage_type_system_att:
             form.storage_type_system.data = storage_type_system_att
+    else:
+        form.storage_type.data = 'string'
+        form.storage_type_system.data = 'XML Schema Datatypes'
 
     if mscale:
         form.mscale.data = mscale

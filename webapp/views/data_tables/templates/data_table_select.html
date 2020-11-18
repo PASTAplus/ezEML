@@ -9,6 +9,10 @@
     {% set help_add_load_data_tables_id, help_add_load_data_tables_title, help_add_load_data_tables_content = help[1] %}
     {% set help_add_load_data_tables_btn = help_add_load_data_tables_id ~ '_btn' %}
     {% set help_add_load_data_tables_dialog = help_add_load_data_tables_id ~ '_dialog' %}
+    {% set help_data_tables_reupload_id, help_data_tables_reupload_title, help_data_tables_reupload_content = help[2] %}
+    {% set help_data_tables_reupload_btn = help_data_tables_reupload_id ~ '_btn' %}
+    {% set help_data_tables_reupload_dialog = help_data_tables_reupload_id ~ '_dialog' %}
+    {% set ns=namespace(reupload_help_displayed=false) %}
     {% endif %}
 
     <table>
@@ -16,12 +20,12 @@
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
     </table>
     <div class="row">
-        <div class="col-md-10">
+        <div class="col-md-11">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <table class="table table-striped">
+                <table class="table table-striped" border="0">
                     <tr>
-                        <th colspan="5">Data Table Name</th>
+                        <th colspan="7">Data Table Name</th>
                     </tr>
                     {% for dt_entry in dt_list %}
                     <tr>
@@ -30,6 +34,20 @@
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>
                         <td><input class="btn btn-primary" onclick="return confirm('Are you sure?');" name="{{ dt_entry.id }}" type="submit" value="Remove"/></td>
+                        {% if dt_entry.was_uploaded and dt_entry.object_name %}
+                        <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Re-upload"/>
+                        </td>
+{#                            {{ ns.reupload_help_displayed }}#}
+                            {% if not ns.reupload_help_displayed %}
+                            <td style="padding-top: 15px;">{{ macros.help_button(help_data_tables_reupload_btn, "ui-button ui-corner-all ui-widget") }}</td>
+                            {% set ns.reupload_help_displayed = true %}
+                            {% else %}
+                            <td></td>
+                            {% endif %}
+                        {% else %}
+                        <td></td>
+                        <td></td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </table>
@@ -42,7 +60,6 @@
                 </table>
 
                 <br/><br/>
-{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 {{ macros.hidden_buttons() }}
             </form>
@@ -51,6 +68,7 @@
 
     {{ macros.help_dialog(help_data_tables_dialog, help_data_tables_title, help_data_tables_content) }}
     {{ macros.help_dialog(help_add_load_data_tables_dialog, help_add_load_data_tables_title, help_add_load_data_tables_content) }}
+    {{ macros.help_dialog(help_data_tables_reupload_dialog, help_data_tables_reupload_title, help_data_tables_reupload_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -62,6 +80,9 @@
     {% set help_add_load_data_tables_id, help_add_load_data_tables_title, help_add_load_data_tables_content = help[1] %}
     {% set help_add_load_data_tables_btn = help_add_load_data_tables_id ~ '_btn' %}
     {% set help_add_load_data_tables_dialog = help_add_load_data_tables_id ~ '_dialog' %}
+    {% set help_data_tables_reupload_id, help_data_tables_reupload_title, help_data_tables_reupload_content = help[2] %}
+    {% set help_data_tables_reupload_btn = help_data_tables_reupload_id ~ '_btn' %}
+    {% set help_data_tables_reupload_dialog = help_data_tables_reupload_id ~ '_dialog' %}
     {% endif %}
 
     <script>
@@ -69,6 +90,7 @@
     {
         {{ macros.help_script(help_data_tables_dialog, help_data_tables_btn) }}
         {{ macros.help_script(help_add_load_data_tables_dialog, help_add_load_data_tables_btn) }}
+        {{ macros.help_script(help_data_tables_reupload_dialog, help_data_tables_reupload_btn) }}
     });
     </script>
 {% endblock %}

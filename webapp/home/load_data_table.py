@@ -166,11 +166,12 @@ def infer_col_type(data_frame, col):
     return col_type, sorted_codes
 
 
-def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str='',
+def load_data_table(uploads_path:str=None, data_file:str='',
                     num_header_rows:int=1, delimiter:str=',', quote_char:str='"'):
     full_path = f'{uploads_path}/{data_file}'
 
-    datatable_node = new_child_node(names.DATATABLE, parent=dataset_node)
+    # datatable_node = new_child_node(names.DATATABLE, parent=dataset_node)
+    datatable_node = new_child_node(names.DATATABLE, parent=None)
 
     physical_node = new_child_node(names.PHYSICAL, parent=datatable_node)
     physical_node.add_attribute('system', 'EDI')
@@ -229,6 +230,10 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
 
     data_frame = pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
 
+    column_vartypes = []
+    column_names = []
+    column_categorical_codes = []
+
     if data_frame is not None:
 
         number_of_records = Node(names.NUMBEROFRECORDS, parent=datatable_node)
@@ -246,6 +251,10 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
             dtype = data_frame[col][1:].infer_objects().dtype
 
             var_type, codes = infer_col_type(data_frame, col)
+
+            column_vartypes.append(var_type)
+            column_names.append(col)
+            column_categorical_codes.append(codes)
 
             attribute_node = new_child_node(names.ATTRIBUTE, attribute_list_node)
             attribute_name_node = new_child_node(names.ATTRIBUTENAME, attribute_node)
@@ -301,11 +310,7 @@ def load_data_table(dataset_node:Node=None, uploads_path:str=None, data_file:str
                 add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
 
-    add_data_table_upload_filename(data_file)
-
-    delete_data_files(uploads_path)
-
-    return datatable_node
+    return datatable_node, column_vartypes, column_names, column_categorical_codes
 
 
 def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_file: str = ''):
@@ -365,8 +370,8 @@ def delete_data_files(data_folder:str=None):
             file_path = os.path.join(data_folder, data_file)
             try:
                 if os.path.isfile(file_path):
-                    # Keep files that under 1 GB
-                    if os.path.getsize(file_path) > 1024**3:
+                    # Keep files that under 1 GB except for temp files
+                    if os.path.getsize(file_path) > 1024**3 or file_path.endswith('.ezeml_tmp'):
                         os.unlink(file_path)
             except Exception as e:
                 print(e)

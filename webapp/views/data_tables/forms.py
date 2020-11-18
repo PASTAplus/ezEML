@@ -1,6 +1,8 @@
 
+from flask_wtf import FlaskForm
+
 from wtforms import (
-    StringField, BooleanField, SelectField,
+    StringField, BooleanField, SelectField, RadioField,
     FloatField, IntegerField, HiddenField
 )
 
@@ -252,3 +254,7 @@ class CodeDefinitionForm(EDIForm):
 
     def field_data(self)->tuple:
         return (self.code.data, self.definition.data, self.order.data)
+
+
+class SelectDataTableForm(FlaskForm):
+    source = RadioField('Source Data Table', choices=[])

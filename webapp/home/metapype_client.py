@@ -31,7 +31,7 @@ from flask_login import (
 )
 
 from webapp.auth.user_data import (
-    get_user_document_list, get_user_folder_name
+    get_user_document_list, get_user_folder_name, data_table_was_uploaded
 )
 
 from webapp.config import Config
@@ -164,15 +164,18 @@ def list_data_tables(eml_node:Node=None):
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             DT_Entry = collections.namedtuple(
                 'DT_Entry', 
-                ["id", "label", "upval", "downval"],
+                ["id", "label", "object_name", "was_uploaded", "upval", "downval"],
                  rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
-                label = compose_entity_label(dt_node)
+                label, object_name = compose_entity_label(dt_node)
+                was_uploaded = data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
                 dt_entry = DT_Entry(id=id,
                                     label=label,
+                                    object_name=object_name,
+                                    was_uploaded=was_uploaded,
                                     upval=upval, 
                                     downval=downval)
                 dt_list.append(dt_entry)
@@ -191,12 +194,12 @@ def list_other_entities(eml_node:Node=None):
                  rename=False)
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
-                label = compose_entity_label(oe_node)
+                label, _ = compose_entity_label(oe_node)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
                 oe_entry = OE_Entry(id=id,
                                     label=label,
-                                    upval=upval, 
+                                    upval=upval,
                                     downval=downval)
                 oe_list.append(oe_entry)
     return oe_list
@@ -204,12 +207,15 @@ def list_other_entities(eml_node:Node=None):
 
 def compose_entity_label(entity_node:Node=None):
     label = ''
+    object_name = ''
     if entity_node:
         entity_name_node = entity_node.find_child(names.ENTITYNAME)
         if entity_name_node:
-            entity_name = entity_name_node.content 
-            label = entity_name
-    return label
+            label = entity_name_node.content
+        object_name_node = entity_node.find_descendant(names.OBJECTNAME)
+        if object_name_node:
+            object_name = object_name_node.content
+    return label, object_name
 
 
 def nominal_ordinal_from_attribute(att_node:Node=None):

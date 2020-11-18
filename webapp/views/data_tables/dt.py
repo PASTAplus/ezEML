@@ -4,6 +4,10 @@ from flask import (
     Blueprint, Flask, flash, render_template, redirect, request, session, url_for, app, current_app
 )
 
+from flask_login import (
+    login_required
+)
+
 from webapp.config import Config
 
 from webapp.home.views import process_up_button, process_down_button, set_current_page
@@ -13,22 +17,27 @@ from webapp.views.data_tables.forms import (
     AttributeMeasurementScaleForm, AttributeCategoricalForm,
     AttributeSelectForm, AttributeTextForm,
     CodeDefinitionForm, CodeDefinitionSelectForm,
-    DataTableForm, DataTableSelectForm
+    DataTableForm, DataTableSelectForm, SelectDataTableForm
 )
 
 from webapp.home.forms import (
-    form_md5, is_dirty_form
+    form_md5, is_dirty_form,
+    ImportEMLForm, ImportEMLItemsForm
 )
 
 from webapp.home.metapype_client import (
     load_eml, save_both_formats, new_child_node, add_child, remove_child,
-    create_data_table, list_data_tables, list_attributes,
+    create_data_table, list_data_packages, list_data_tables, list_attributes,
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
     create_datetime_attribute, create_numerical_attribute,
     create_categorical_or_text_attribute, VariableType,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute
+)
+
+from webapp.home.views import (
+    get_back_url
 )
 
 from metapype.eml import names
@@ -68,7 +77,7 @@ def data_table_select(filename=None):
     title = 'Data Tables'
 
     set_current_page('data_table')
-    help = [get_help('data_tables'), get_help('add_load_data_tables')]
+    help = [get_help('data_tables'), get_help('add_load_data_tables'), get_help('data_table_reupload')]
     return render_template('data_table_select.html', title=title,
                            dt_list=dt_list, form=form, help=help)
 
@@ -92,6 +101,8 @@ def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
 
         if 'Attributes' in request.form:
             next_page = PAGE_ATTRIBUTE_SELECT
+        elif 'Clone' in request.form:
+            next_page = PAGE_CLONE_ATTRIBUTES
         elif 'Access' in request.form:
             next_page = PAGE_ENTITY_ACCESS_SELECT
         elif 'Methods' in request.form:
@@ -217,6 +228,7 @@ def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
     # Process GET
     atts = 'No data table attributes have been added'
 
+    was_uploaded = False
     if dt_node_id == '1':
         form.init_md5()
     else:
@@ -232,6 +244,13 @@ def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
                             if att_list:
                                 atts = compose_atts(att_list)
                             populate_data_table_form(form, dt_node)
+
+                            object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+                            if object_name_node:
+                                object_name = object_name_node.content
+                                if object_name:
+                                    was_uploaded = data_table_was_uploaded(object_name)
+
         else:
             flash('eml_node is None')
 
@@ -253,7 +272,7 @@ def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
         'data_table_online_url'
     ])
     return render_template('data_table.html', title='Data Table', form=form,
-                           atts=atts, help=help)
+                           atts=atts, help=help, was_uploaded=was_uploaded)
 
 
 def compose_codes():
@@ -1688,3 +1707,62 @@ def populate_code_definition_form(form: CodeDefinitionForm, cd_node: Node):
             form.order.data = order
 
     form.md5.data = form_md5(form)
+
+
+@dt_bp.route('/clone_attributes', methods=['GET', 'POST'])
+@login_required
+def clone_attributes():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(True, True)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('dt.clone_attributes_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_responsible_parties'])
+    return render_template('clone_attributes.html', help=help, form=form)
+
+
+@dt_bp.route('/clone_attributes_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def clone_attributes_2(filename):
+    form = SelectDataTableForm()
+
+    source_eml_node = load_eml(filename)
+    source_data_tables = list_data_tables(source_eml_node)
+
+    choices = [[data_table[0], data_table[1]] for data_table in source_data_tables]
+    form.source.choices = choices
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST' and form.validate_on_submit():
+
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        source_data_table_id = form_dict['source']
+        help = get_helps(['import_responsible_parties_2'])
+        return redirect(url_for('dt.clone_attributes_3', filename=filename, dt_id=source_data_table_id, help=help, form=form))
+
+    # Process GET
+    help = get_helps(['import_responsible_parties_2'])
+    return render_template('clone_attributes_2.html', target_filename=filename, help=help, form=form)
+
+
+@dt_bp.route('/clone_attributes_3/<filename>/<dt_id>', methods=['GET', 'POST'])
+@login_required
+def clone_attributes_3(filename, dt_id):
+    form = SelectDataTableForm()
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    # Process GET
+    help = get_helps(['import_responsible_parties_2'])
+    return render_template('clone_attributes_3.html', filename=filename, dt_id=dt_id, help=help, form=form)

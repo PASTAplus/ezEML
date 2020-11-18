@@ -49,9 +49,9 @@ For example, an attribute with a name of 'spcode' might have an attribute label 
 --------------------
 attribute_name
 Attribute Name
-Attribute name is the official name of the attribute. This is usually a short, sometimes cryptic name that is used to refer to the attribute.  Many systems have restrictions on the length of attribute names and on the use of special characters like spaces in the name, so the attribute name is often not particularly useful for display purposes (use attributeLabel for display).
+Attribute name is the official name of the attribute. This is usually a short, sometimes cryptic name that is used to refer to the attribute. Many systems have restrictions on the length of attribute names and on the use of special characters such as spaces in the name, so the attribute name may not be ideal for display purposes (use Label for display).
 
-The attribute name is usually the name of the variable that is found in the header of a data file.
+The attribute name is usually the name of the variable in the header of a data file.
 --------------------
 attribute_datetime_format
 Format String
@@ -204,6 +204,26 @@ A data table is one tabular entity in the data package, identified by its name. 
 data_tables
 Data Tables
 A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+--------------------
+data_table_reupload
+Re-upload Data Table
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table's attributes all over again. It assumes the
+ properties of the data table's attributes are largely unchanged.
+
+To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
+
+It is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables have been added or deleted.
+--------------------
+data_table_reupload_full
+Re-upload Data Table
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table's attributes all over again. It assumes the
+ properties of the data table's attributes are largely unchanged.
+
+To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
+
+It is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables have been added or deleted.
+
+Choose the CSV file containing the updated data table, and set the Field Delimiter and Quote Character, as needed. Then click <b>Re-upload</b> to perform the update. Table properties such as Size, Number of Records, and MD5 Checksum will be recalculated automatically. Properties of data table attributes (columns) will be preserved whenever possible.
 --------------------
 data_table_name
 Data Table Name

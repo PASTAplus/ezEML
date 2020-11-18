@@ -149,6 +149,47 @@ def discard_data_table_upload_filenames_for_package(package_filename):
     save_user_properties(user_properties)
 
 
+def get_uploaded_table_properties_dict():
+    user_folder = get_user_folder_name()
+    foobar = '__uploaded_table_properties__.pkl'
+    properties_file = f'{user_folder}/{foobar}'
+    try:
+        with open(properties_file, 'rb') as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return dict()
+
+
+def save_uploaded_table_properties_dict(properties):
+    user_folder = get_user_folder_name()
+    foobar = '__uploaded_table_properties__.pkl'
+    properties_file = f'{user_folder}/{foobar}'
+    with open(properties_file, 'wb') as f:
+        pickle.dump(properties, f)
+
+
+def add_uploaded_table_properties(filename, vartypes, colnames, categorical_codes):
+    uploaded_table_properties = get_uploaded_table_properties_dict()
+    this_upload = (get_active_document(), filename.lower())
+    properties = (vartypes, colnames, categorical_codes)
+    uploaded_table_properties[this_upload] = properties
+    save_uploaded_table_properties_dict(uploaded_table_properties)
+
+
+def discard_uploaded_table_properties_for_package(package_name):
+    user_properties = get_user_properties()
+    uploaded_table_properties = user_properties.get('uploaded_table_properties', {})
+    uploaded_table_properties = list(filter(lambda x: x[0] != package_name, uploaded_table_properties))
+    user_properties['uploaded_table_properties'] = uploaded_table_properties
+    save_user_properties(user_properties)
+
+
+def get_uploaded_table_column_properties(filename):
+    uploaded_table_properties = get_uploaded_table_properties_dict()
+    this_upload = (get_active_document(), filename.lower())
+    return uploaded_table_properties.get(this_upload, (None, None, None))
+
+
 def data_table_was_uploaded(filename):
     user_properties = get_user_properties()
     uploaded_files = user_properties.get('data_table_upload_filenames', [])

@@ -22,6 +22,8 @@ BTN_OK = 'OK'
 BTN_PROJECT_PERSONNEL = 'Project Personnel'
 BTN_RELATED_PROJECTS = 'Related Projects'
 BTN_REMOVE = 'Remove'
+BTN_REUPLOAD = 'Re-upload'
 BTN_REUSE = "Reuse a Responsible Party"
 BTN_SAVE = 'Save'
 BTN_SAVE_AND_CONTINUE = 'Save and Continue'
+

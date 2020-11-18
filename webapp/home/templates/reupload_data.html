@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_data_tables_reupload_id, help_data_tables_reupload_title, help_data_tables_reupload_content = help[0] %}
+    {% set help_data_tables_reupload_btn = help_data_tables_reupload_id ~ '_btn' %}
+    {% set help_data_tables_reupload_dialog = help_data_tables_reupload_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Re-upload Data Table</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 10px;">{{ macros.help_button(help_data_tables_reupload_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some
+                new rows or edited some cell values) without having to enter the properties of the data table's attributes all over again. It assumes
+                the properties of the data table's attributes are largely unchanged.
+                <p></p>
+                To be more specific, it is OK to use Re-upload Data Table if the number of <b>rows</b> in the table have changed or if values in
+                table cells have changed, but the <b>column</b> <i>types</i> (categorical, datetime, numerical, or text) should not have changed
+                and no columns should have been added, deleted, or moved.
+                <p></p>
+                It is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables
+                have been added or deleted.
+                <p></p>
+                If the data table has changed in ways that are not allowed, click <b>Cancel</b> below and load the table anew using
+                <b>Load Data Table from CSV File</b>.
+{#                , and then clone attributes from the existing version of the table, as needed.#}
+                <p>&nbsp;</p>
+
+                <h4>Select a CSV file to re-upload data table <span style="color:steelblue">{{ name }}</span>:</h4>
+                <input type=file name=file>
+                <p>&nbsp;</p>
+                <table width="70%">
+                    <tr>
+{#                        <td width="25%">{{ wtf.form_field(form.num_header_rows) }}</td>#}
+{#                        <td width="3%"></td>#}
+                        <td width="35%">{{ wtf.form_field(form.delimiter) }}</td>
+                        <td width="3%"></td>
+                        <td width="30%">{{ wtf.form_field(form.quote) }}</td>
+                    </tr>
+                </table>
+                <p> </p>
+                <br>
+
+                <input class="btn btn-primary" style="width: 100px;" name="Re-upload" type="submit" value="Re-upload"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_data_tables_reupload_dialog, help_data_tables_reupload_title, help_data_tables_reupload_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_data_tables_reupload_id, help_data_tables_reupload_title, help_data_tables_reupload_content = help[0] %}
+    {% set help_data_tables_reupload_btn = help_data_tables_reupload_id ~ '_btn' %}
+    {% set help_data_tables_reupload_dialog = help_data_tables_reupload_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_data_tables_reupload_dialog, help_data_tables_reupload_btn) }}
+    });
+    </script>
+{% endblock %}

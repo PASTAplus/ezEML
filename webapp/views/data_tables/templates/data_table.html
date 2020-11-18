@@ -57,7 +57,7 @@
                 <h5>Enter information about the data table object:</h5>
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}
-                {{ macros.item_start() }}{{ wtf.form_field(form.object_name) }}{{ macros.item_end(help_data_table_object_name_btn) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.object_name, readonly=was_uploaded) }}{{ macros.item_end(help_data_table_object_name_btn) }}
                 <table>
                 <tr>
                 <td class="table_cell">
@@ -122,7 +122,8 @@
                 <h4>Attributes:</h4>
                 {{ atts }}
                 <br/><br/>
-                <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Attributes"/>
+                <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Attributes"/>&nbsp;
+{#                <input class="btn btn-primary" name="Clone" type="submit" value="Clone Attributes from Another Data Table"/>#}
                 <br/><br/><br/>
 {#                <h4>Data Table Coverage (Optional):</h4>#}
 {#                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>#}
@@ -134,7 +135,7 @@
 {#                <h4>Data Table Methods (Optional):</h4>#}
 {#                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>#}
 {#                <br/><br/>#}
-                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>&nbsp;
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_new_open_close_buttons() }}
             </form>

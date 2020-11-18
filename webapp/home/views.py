@@ -1169,6 +1169,7 @@ def reupload_data(filename, node_id):
     form = LoadDataForm()
     document = current_user.get_filename()
     uploads_folder = get_user_uploads_folder_name()
+    eml_node = load_eml(filename=document)
 
     data_table_name = ''
     dt_node = Node.get_node_instance(node_id)

@@ -19,18 +19,19 @@
                 {{ form.csrf_token }}
                 <br>
                 The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some
-                new rows or edited some cell values) without having to enter the properties of the data table's attributes all over again. It assumes
-                the properties of the data table's attributes are largely unchanged.
+                new rows or edited some cell values) without having to enter the properties of the data table's attributes all over again. It
+                requires the <i>structure</i> of the data table to be largely unchanged.
                 <p></p>
-                To be more specific, it is OK to use Re-upload Data Table if the number of <b>rows</b> in the table have changed or if values in
-                table cells have changed, but the <b>column</b> <i>types</i> (categorical, datetime, numerical, or text) should not have changed
-                and no columns should have been added, deleted, or moved.
+                Specifically, it is OK to use Re-upload if the number of <b>rows</b> in the table have changed or if some of the values in
+                table cells have changed. But the <b>column</b> <i>types</i> (categorical, datetime, numerical, or text) cannot have changed
+                and no columns can have been added, deleted, or moved.
                 <p></p>
-                It is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables
+                In addition, it is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables
                 have been added or deleted.
                 <p></p>
-                If the data table has changed in ways that are not allowed, click <b>Cancel</b> below and load the table anew using
-                <b>Load Data Table from CSV File</b>.
+                If you're not sure if your data table qualifies, you can try the re-upload and see if ezEML accepts it. If the data table has been
+                changed in ways that are not allowed, ezEML will display an error message and reject the re-upload. In such cases, you will need to click
+                <b>Cancel</b> below and load the table anew using <b>Load Data Table from CSV File</b>.
 {#                , and then clone attributes from the existing version of the table, as needed.#}
                 <p>&nbsp;</p>
 

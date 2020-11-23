@@ -58,14 +58,15 @@
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.object_name, readonly=was_uploaded) }}{{ macros.item_end(help_data_table_object_name_btn) }}
-                <table>
+
+                <table style="display: none;">
                 <tr>
                 <td class="table_cell">
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_orientation) }}{{ macros.item_end(help_data_table_attribute_orientation_btn) }}
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
-                {{ macros.item_start() }}{{ wtf.form_field(form.field_delimiter) }}{{ macros.item_end(help_data_table_field_delimiter_btn) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.num_header_lines) }}{{ macros.item_end(help_data_table_header_lines_btn) }}
                 </td>
                 </tr>
                 </table>
@@ -73,7 +74,7 @@
                 <table>
                 <tr>
                 <td class="table_cell">
-                {{ macros.item_start() }}{{ wtf.form_field(form.num_header_lines) }}{{ macros.item_end(help_data_table_header_lines_btn) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.field_delimiter) }}{{ macros.item_end(help_data_table_field_delimiter_btn) }}
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
@@ -119,10 +120,10 @@
                 </table>
 
                 <br/>
-                <h4>Attributes:</h4>
+                <h4>Columns:</h4>
                 {{ atts }}
                 <br/><br/>
-                <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Attributes"/>&nbsp;
+                <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Column Properties"/>&nbsp;
 {#                <input class="btn btn-primary" name="Clone" type="submit" value="Clone Attributes from Another Data Table"/>#}
                 <br/><br/><br/>
 {#                <h4>Data Table Coverage (Optional):</h4>#}

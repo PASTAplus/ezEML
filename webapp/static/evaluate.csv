@@ -21,14 +21,14 @@ geographic_coverage_06,Geographic Coverage,South Bounding Coordinate,ERROR,REQUI
 data_table_01,Data Tables,Name,ERROR,REQUIRED,A data table <b>Name</b> is required.,
 data_table_02,Data Tables,Description,WARNING,RECOMMENDED,A data table <b>Description</b> is highly recommended.,
 data_table_03,Data Tables,Data Object Name,ERROR,REQUIRED,A <b>Data Object Name</b> is required.,
-data_table_04,Data Tables,Attributes,ERROR,REQUIRED,A data table is required to have one or more <b>Attributes</b>.,
+data_table_04,Data Tables,Columns,ERROR,REQUIRED,A data table is required to have one or more <b>Columns</b>.,
 data_table_05,Data Tables,Data Tables,WARNING,RECOMMENDED,A dataset should contain at least one <b>Data Table</b>.,
-attributes_01,Data Tables,Attribute Definition,ERROR,REQUIRED,An attribute <b>Definition</b> is required.,For each attribute present.
-attributes_02,Data Tables,Attribute Units,ERROR,REQUIRED,A Numerical attribute is required to have a <b>Standard Unit</b> or <b>Custom Unit</b> defined.,For Numerical attributes.
-attributes_03,Data Tables,Format String,ERROR,REQUIRED,A DateTime attribute requires a <b>Format String</b>.,For DateTime attributes
-attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical attribute is required is required to have at least one <b>Code</b> defined.,For Categorical attributes
-attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical attributes
-attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical attributes
+attributes_01,Data Tables,Column Definition,ERROR,REQUIRED,A column <b>Definition</b> is required.,For each column present.
+attributes_02,Data Tables,Numerical Variable Unit,ERROR,REQUIRED,A Numerical variable is required to have a <b>Standard Unit</b> or <b>Custom Unit</b> defined.,For Numerical variables.
+attributes_03,Data Tables,Format String,ERROR,REQUIRED,A DateTime variable requires a <b>Format String</b>.,For DateTime variables
+attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable is required is required to have at least one <b>Code</b> defined.,For Categorical variables
+attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical variables
+attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables
 methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a  <b>Description</b>.,
 project_01,Project,Project Title,ERROR,REQUIRED,The <b>Project Title</b> is required.,

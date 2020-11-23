@@ -1123,7 +1123,7 @@ def load_data(dt_node_id=None):
                         except Exception as err:
                             # display error
                             error = err.args[0]
-                            flash(f"ERROR: Data table could not be re-uploaded. {error}", 'error')
+                            flash(f"Data table could not be re-uploaded. {error}", 'error')
                             return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
 
                 except UnicodeDecodeError as err:

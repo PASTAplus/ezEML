@@ -35,23 +35,23 @@ Associated parties are other people who were involved with the data in some way 
 Associated parties are not required.
 --------------------
 attribute_definition
-Attribute Definition
-A precise definition of the attribute. It explains the contents of the attribute fully so that a data user can interpret the attribute accurately.
+Column Definition
+A precise definition of the column. It explains the contents of the column fully so that a data user can interpret the column accurately.
 
 Example: "spden" is the number of individuals of all macro invertebrate species found in the plot.
 --------------------
 attribute_label
-Attribute Label
+Column Label
 
-A descriptive label that can be used to display the name of an attribute. This is often a longer name than the attribute name and may consist of multiple words. It is not constrained by system limitations on length or special characters in the way the attribute name is constrained.
+A descriptive label that can be used to display the name of a column. This is often a longer name than the column name and may consist of multiple words. It is not constrained by system limitations on length or special characters in the way the column name is constrained.
 
-For example, an attribute with a name of 'spcode' might have an attribute label of 'Species Code'.
+For example, a column with a name of 'spcode' might have a column label of 'Species Code'.
 --------------------
 attribute_name
-Attribute Name
-Attribute name is the official name of the attribute. This is usually a short, sometimes cryptic name that is used to refer to the attribute. Many systems have restrictions on the length of attribute names and on the use of special characters such as spaces in the name, so the attribute name may not be ideal for display purposes (use Label for display).
+Column Name
+Column name is the official name of the column. This is usually a short, sometimes cryptic name that is used to refer to the column. Many systems have restrictions on the length of column names and on the use of special characters such as spaces in the name, so the column name may not be ideal for display purposes (use Label for display).
 
-The attribute name is usually the name of the variable in the header of a data file.
+The column name is usually the name of the variable in the header of a data file.
 --------------------
 attribute_datetime_format
 Format String
@@ -105,11 +105,11 @@ attribute_numerical_precision
 Precision
 The precision of the measurement.
 
-Precision indicates how close together or how repeatable measurements are. A precise measuring instrument will give very nearly the same result each time it is used. This means that someone interpreting the data should expect that if a measurement were repeated, most measured values would fall within the interval specified by the precision. The value of precision should be expressed in the same unit as the measurement. For example, for an attribute with unit "meter", a precision of "0.1" would be interpreted to mean that most repeat measurements would fall within an interval of 1/10th of a meter.
+Precision indicates how close together or how repeatable measurements are. A precise measuring instrument will give very nearly the same result each time it is used. This means that someone interpreting the data should expect that if a measurement were repeated, most measured values would fall within the interval specified by the precision. The value of precision should be expressed in the same unit as the measurement. For example, for a column with unit "meter", a precision of "0.1" would be interpreted to mean that most repeat measurements would fall within an interval of 1/10th of a meter.
 --------------------
 attribute_storage_type
 Storage Type
-<b>Storage Type</b> provides a "hint" for processing systems as to how the attribute might be represented in a system or language. Values for this field are by default drawn from the XML Schema data types standard values, such as: integer, double, string, etc.
+<b>Storage Type</b> provides a "hint" for processing systems as to how the column's data might be represented in a system or language. Values for this field are by default drawn from the XML Schema data types standard values, such as: integer, double, string, etc.
 
 <b>Storage Type System</b> specifies the system used to define the storage types. It should be an identifier of a well known and published typing system. The default and recommended system is the XML Schema data type system. For details go to http://www.w3.org. If another system is used (such as Java or C++ types), <b>Storage Type System</b> should be changed accordingly.
 --------------------
@@ -207,8 +207,8 @@ A data table is one tabular entity in the data package, identified by its name. 
 --------------------
 data_table_reupload
 Re-upload Data Table
-The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table's attributes all over again. It assumes the
- properties of the data table's attributes are largely unchanged.
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again. It assumes the
+ structure of the data table is largely unchanged.
 
 To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
 
@@ -216,14 +216,18 @@ It is OK if some column <i>names</i> in the header row have changed, and it is O
 --------------------
 data_table_reupload_full
 Re-upload Data Table
-The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table's attributes all over again. It assumes the
- properties of the data table's attributes are largely unchanged.
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again. It assumes the
+ structure of the data table is largely unchanged.
 
 To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
 
 It is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables have been added or deleted.
 
-Choose the CSV file containing the updated data table, and set the Field Delimiter and Quote Character, as needed. Then click <b>Re-upload</b> to perform the update. Table properties such as Size, Number of Records, and MD5 Checksum will be recalculated automatically. Properties of data table attributes (columns) will be preserved whenever possible.
+If you're not sure if your data table qualifies, you can try the re-upload and see if ezEML accepts it. If the data table has been changed in ways that are not allowed, ezEML will display an error message and reject the re-upload. In such cases, you will need to click <b>Cancel</b> below and load the table anew using <b>Load Data Table from CSV File</b>.
+
+Choose the CSV file containing the updated data table, and set the Field Delimiter and Quote Character, as needed. Then click <b>Re-upload</b> to perform the update. Table properties such as Size, Number of Records, and MD5 Checksum will be recalculated automatically. Properties of the data table's columns will be preserved whenever possible.
+
+The CSV file's name is not required to be the same as the name of the CSV file uploaded previously.
 --------------------
 data_table_name
 Data Table Name
@@ -247,15 +251,15 @@ Specifies whether the data attributes are organized in columns or rows.
 --------------------
 data_table_field_delimiter
 Field Delimiter
-Specifies the character used in the data object for delimiting data values.
+Specifies the character used in the data table for delimiting data values.
 --------------------
 data_table_size
 Size
-The size of the data object, in bytes.
+The size of the data table, in bytes.
 --------------------
 data_table_checksum
 MD5 Checksum
-The checksum for the data object, calculated using the MD5 message-digest algorithm.
+The checksum for the data table, calculated using the MD5 message-digest algorithm.
 --------------------
 data_table_header_lines
 Number of Header Lines
@@ -265,7 +269,7 @@ data_table_quote_character
 Quote Character
 Character used to quote values for delimiter escaping.
 
-If your data table is a CSV file with fields separated by commas, for example, then a text field that contains one or more commas will appear to be multiple fields. To deal with such cases where the field delimiter is used within a text field, enclose the text field in quotes. <b>Quote Character</b> defines which "flavor" of quotes you are using, double quotes ("), single quotes ('), or some other character.
+If your data table is a CSV file with fields separated by commas, for example, then a text field that contains one or more commas will appear to be multiple fields. To deal with such cases where the field delimiter is used within a text field, enclose the text field in quotes. <b>Quote Character</b> defines which "flavor" of quotes you are using, double quotes (") or single quotes (').
 --------------------
 data_table_record_delimiter
 Record Delimiter
@@ -277,7 +281,7 @@ data_table_case_sensitive
 Case Sensitive
 Specifies text case sensitivity of the data in the data table. The valid values are yes or no.
 
-If it is set to yes, then values of attributes that differ only in case (e.g.,LOW, low) represent distinct values. If set to no, then values of attributes that differ only in case represent the same value.
+If it is set to yes, then values that differ only in case (e.g.,LOW, low) represent distinct values. If set to no, then values that differ only in case represent the same value.
 --------------------
 data_table_number_of_records
 Number of Records
@@ -449,7 +453,7 @@ For primary data sets generated by LTER sites, the LTER site should typically be
 --------------------
 measurement_scale
 Variable Type
-Attributes (variables) can have the following types: Categorical, Numerical, Text, or DateTime.
+Columns (variables) can have the following types: Categorical, Numerical, Text, or DateTime.
 
 <b>Categorical</b> variables contain alphanumeric codes used to categorize data. Examples of categorical variables are 1 for Male and 2 for Female, or M for Male and F for Female. Some categorical variable codes convey an order (e.g., Low, Medium, High), others do not.
 
@@ -458,6 +462,8 @@ Attributes (variables) can have the following types: Categorical, Numerical, Tex
 <b>Text</b> variables contain text values not used for categorization. Examples include names or identification numbers of experimental subjects.
 
 <b>DateTime</b> variables contain date and time values. Note that time <i>durations</i> should be treated as Numerical values.
+
+To change the type of a variable (e.g., from Categorical to Text) click <b>Change Type</b> and select the new type.
 --------------------
 metadata_providers
 Metadata Providers
@@ -595,7 +601,7 @@ This element describes the storage type for data in a RDBMS (or other data manag
 
 Values for this field are by default drawn from the XML Schema Datatypes standard values, such as: integer, double, string, etc. If the XML Schema Datatypes are not used, the type system from which the values are derived should be specified in the Storage Type System field.
 
-Storage Type represents a 'hint' to processing systems as to how the attribute might be represented in a system or language.
+Storage Type represents a 'hint' to processing systems as to how the column's contents might be represented in a system or language.
 
 Examples:
   integer

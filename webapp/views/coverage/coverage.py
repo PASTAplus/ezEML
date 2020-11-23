@@ -109,7 +109,7 @@ def load_geo_coverage(filename):
                     load_geo_coverage_from_csv(data_file_path, document)
                     flash(f'Loaded {data_file}')
                 except ValueError as ex:
-                    flash(ex.msg)
+                    flash(f'Load CSV file failed. {ex.args[0]}', 'error')
                 return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
 
     # Process GET
@@ -127,10 +127,10 @@ def load_geo_coverage_from_csv(csv_filename, filename):
                                     'southBoundingCoordinate',
                                     'eastBoundingCoordinate',
                                     'westBoundingCoordinate']:
-        raise ValueError('Geographic coverage file does not have expected column names')
+        raise ValueError('Geographic coverage file does not have expected column names.')
 
     if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
-        raise ValueError('Geographic coverage file does not have expected variable types in columns')
+        raise ValueError('Geographic coverage file does not have expected variable types in columns.')
 
     for index, row in data_frame.iterrows():
         add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])

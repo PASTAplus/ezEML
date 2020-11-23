@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h4 align="left">What's New</h4>
+
+    <p>&nbsp;</p>
+    <table width="100%">
+    <tr>
+        <th width="15%">Date</th>
+        <th width="85%">News</th>
+    </tr>
+    <tr>
+        <td valign="top">&nbsp;</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td valign="top">2020.11.23</td>
+        <td>
+            <b>Refer to data table "Columns" rather than "Attributes"</b><br>
+            The EML standard uses the term "Attributes" to refer to a data table's columns, but in the context of ezEML, "Columns" seems preferable.
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">&nbsp;</td>
+        <td>
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">2020.11.15</td>
+        <td>
+            <b>Add support for Data Table Re-upload</b><br>
+                The purpose of Re-upload is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again. It assumes the
+ structure of the data table is largely unchanged.
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">&nbsp;</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td valign="top">2020.10.21</td>
+        <td>
+            <b>Add support for Related Projects</b><br>
+A project may be associated with related projects. The EML standard treats one project as the main or primary project, which can have one or more related projects as "children".
+This lets you associate different funding awards with different Principal Investigators, for example.
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">&nbsp;</td>
+        <td>
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">2020.10.09</td>
+        <td>
+            <b>Allow field delimiter and quote character to be specified for a data table upload</b><br>
+Previously, data table files had to be comma-separated. Now other field delimiters (tabs, colons, etc.) are supported. Similarly, the quote character (either double quote or single quote) can be specified.
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">&nbsp;</td>
+        <td>
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">2020.10.06</td>
+        <td><b>Initial release of ezEML is demonstrated in a <a href="https://www.youtube.com/watch?v=2Q0ryNoYK4E&t=927s">YouTube webinar</a></b><br>
+            This is a good place to get an overview of ezEML.</td>
+    </tr>
+    </table>
+
+    <br>
+    <b><a href={{ back_url }}>Back</a></b>
+
+{% endblock %}

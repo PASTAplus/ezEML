@@ -205,6 +205,11 @@ def user_guide():
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
+@home.route('/news')
+def news():
+    return render_template('news.html', back_url=get_back_url(), title="What's New")
+
+
 @home.route('/encoding_error/<filename>')
 def encoding_error(filename=None, errors=None):
     return render_template('encoding_error.html', filename=filename, errors=errors, title='Encoding Errors')

@@ -17,7 +17,7 @@
         '/load_data', 'load_other_entity', 'check_metadata',
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
-        'about', 'user_guide'] %}
+        'about', 'news', 'user_guide'] %}
 {% set non_saving_contains = ['/check_metadata/',
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/'] %}
@@ -160,6 +160,9 @@
                 </li>
                 <li>
                     <a href="{{ url_for('home.about') }}" title="About">About</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('home.news') }}" title="News">News</a>
                 </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">

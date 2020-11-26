@@ -1370,13 +1370,13 @@ def select_post(filename=None, form=None, form_dict=None,
                 node_id = key
                 eml_node = load_eml(filename=filename)
                 # Get the data table filename, if any, so we can remove it from the uploaded list
-                dt_node = Node.get_node_instance(node_id)
-                if dt_node and dt_node.name == names.DATATABLE:
-                    object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
-                    if object_name_node:
-                        object_name = object_name_node.content
-                        if object_name:
-                            discard_data_table_upload_filename(object_name)
+                # dt_node = Node.get_node_instance(node_id)
+                # if dt_node and dt_node.name == names.DATATABLE:
+                #     object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+                #     if object_name_node:
+                #         object_name = object_name_node.content
+                #         if object_name:
+                #             discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
                 node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)

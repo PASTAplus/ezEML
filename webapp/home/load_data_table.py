@@ -26,6 +26,10 @@ from webapp.home.metapype_client import (
     add_child, new_child_node, VariableType
 )
 
+from flask import Flask, flash, session, current_app
+
+from webapp.config import Config
+
 from webapp.auth.user_data import (
     add_data_table_upload_filename
 )
@@ -168,6 +172,12 @@ def infer_col_type(data_frame, col):
 
 def load_data_table(uploads_path:str=None, data_file:str='',
                     num_header_rows:int=1, delimiter:str=',', quote_char:str='"'):
+
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Entering load_data_table')
+
     full_path = f'{uploads_path}/{data_file}'
 
     # datatable_node = new_child_node(names.DATATABLE, parent=dataset_node)
@@ -309,6 +319,11 @@ def load_data_table(uploads_path:str=None, data_file:str='',
                 format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
                 add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
+
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Leaving load_data_table')
 
     return datatable_node, column_vartypes, column_names, column_categorical_codes
 

@@ -29,6 +29,10 @@ from flask_login import (
     current_user, login_required
 )
 
+from flask import Flask, current_app
+
+from webapp.config import Config
+
 import csv
 
 from webapp.auth.user_data import (
@@ -166,8 +170,6 @@ def index():
             return redirect(url_for(new_page, filename=current_document))
     return render_template('index.html')
 
-
-#def clear_active_
 
 @home.route('/edit/<page>')
 def edit(page:str=None):
@@ -936,6 +938,12 @@ def get_column_properties(dt_node, object_name):
 
 
 def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
+
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Entering check_data_table_similarity')
+
     if not old_dt_node or not new_dt_node:
         raise Exception('Internal error 100')
     old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
@@ -956,8 +964,19 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     if old_column_vartypes != new_column_vartypes:
         raise Exception("The variable types of the new table's columns are different from the original table.")
 
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Leaving check_data_table_similarity')
+
 
 def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes):
+
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Entering update_data_table')
+
     if not old_dt_node or not new_dt_node:
         return
 
@@ -1040,6 +1059,11 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     if definition:
                         definition_node.content = definition
 
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Leaving update_data_table')
+
 
 def backup_metadata(filename):
     user_folder = get_user_folder_name()
@@ -1065,6 +1089,12 @@ def backup_metadata(filename):
 @home.route('/load_data/<dt_node_id>', methods=['GET', 'POST']) # will have dt_node in re-upload case
 @login_required
 def load_data(dt_node_id=None):
+
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Entering load_data')
+
     form = LoadDataForm()
     document = current_user.get_filename()
     uploads_folder = get_user_uploads_folder_name()
@@ -1171,6 +1201,12 @@ def load_data(dt_node_id=None):
 @home.route('/reupload_data/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_data(filename, node_id):
+
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(f'Entering reupload_data')
+
     form = LoadDataForm()
     document = current_user.get_filename()
     uploads_folder = get_user_uploads_folder_name()

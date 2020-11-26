@@ -1006,8 +1006,14 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     debug_None(old_records_node, 'old_records_node is None')
     debug_None(new_records_node, 'new_records_node is None')
     old_records_node.content = new_records_node.content
+    debug_None(old_md5_node, 'old_md5_node is None')
+    debug_None(new_md5_node, 'new_md5_node is None')
     old_md5_node.content = new_md5_node.content
+    debug_None(old_field_delimiter_node, 'old_field_delimiter_node is None')
+    debug_None(new_field_delimiter_node, 'new_field_delimiter_node is None')
     old_field_delimiter_node.content = new_field_delimiter_node.content
+    debug_None(old_quote_char_node, 'old_quote_char_node is None')
+    debug_None(new_quote_char_node, 'new_quote_char_node is None')
     old_quote_char_node.content = new_quote_char_node.content
 
     _, old_column_names, old_column_categorical_codes = get_uploaded_table_column_properties(old_object_name)
@@ -1018,6 +1024,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
         old_attribute_list_node.find_all_descendants(names.ATTRIBUTENAME, old_attribute_names_nodes)
         for old_attribute_names_node, old_name, new_name in zip(old_attribute_names_nodes, old_column_names, new_column_names):
             if old_name != new_name:
+                debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
                 old_attribute_names_node.content = new_name
     if old_column_categorical_codes != new_column_categorical_codes:
         # need to fix up the categorical codes

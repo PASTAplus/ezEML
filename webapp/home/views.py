@@ -84,6 +84,21 @@ def non_breaking(_str):
     return _str.replace(' ', html.unescape('&nbsp;'))
 
 
+def debug_msg(msg):
+    if Config.LOG_DEBUG:
+        app = Flask(__name__)
+        with app.app_context():
+            current_app.logger.info(msg)
+
+
+def debug_None(x, msg):
+    if x is None:
+        if Config.LOG_DEBUG:
+            app = Flask(__name__)
+            with app.app_context():
+                current_app.logger.info(msg)
+
+
 @home.before_app_request
 @home.before_app_first_request
 def load_eval_entries():
@@ -938,12 +953,7 @@ def get_column_properties(dt_node, object_name):
 
 
 def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
-
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering check_data_table_similarity')
-
+    debug_msg(f'Entering check_data_table_similarity')
     if not old_dt_node or not new_dt_node:
         raise Exception('Internal error 100')
     old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
@@ -963,19 +973,11 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
         old_column_vartypes = get_column_properties(old_dt_node, old_object_name)
     if old_column_vartypes != new_column_vartypes:
         raise Exception("The variable types of the new table's columns are different from the original table.")
-
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Leaving check_data_table_similarity')
+    debug_msg(f'Leaving check_data_table_similarity')
 
 
 def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes):
-
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering update_data_table')
+    debug_msg(f'Entering update_data_table')
 
     if not old_dt_node or not new_dt_node:
         return
@@ -994,9 +996,15 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     new_field_delimiter_node = new_dt_node.find_descendant(names.FIELDDELIMITER)
     new_quote_char_node = new_dt_node.find_descendant(names.QUOTECHARACTER)
 
+    debug_None(old_object_name_node, 'old_object_name_node is None')
     old_object_name = old_object_name_node.content
+    debug_None(new_object_name_node, 'new_object_name_node is None')
     old_object_name_node.content = new_object_name_node.content.replace('.ezeml_tmp', '')
+    debug_None(old_size_node, 'old_size_node is None')
+    debug_None(new_size_node, 'new_size_node is None')
     old_size_node.content = new_size_node.content
+    debug_None(old_records_node, 'old_records_node is None')
+    debug_None(new_records_node, 'new_records_node is None')
     old_records_node.content = new_records_node.content
     old_md5_node.content = new_md5_node.content
     old_field_delimiter_node.content = new_field_delimiter_node.content
@@ -1058,11 +1066,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     definition = code_definitions.get(code)
                     if definition:
                         definition_node.content = definition
-
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Leaving update_data_table')
+    debug_msg(f'Leaving update_data_table')
 
 
 def backup_metadata(filename):

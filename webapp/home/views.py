@@ -55,7 +55,7 @@ from webapp.home.load_data_table import (
 )
 
 from webapp.home.metapype_client import ( 
-    load_eml, save_both_formats, remove_child, create_eml,
+    load_eml, save_both_formats, new_child_node, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW,
     save_old_to_new, read_xml, new_child_node, truncate_middle,
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
@@ -996,25 +996,21 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     new_field_delimiter_node = new_dt_node.find_descendant(names.FIELDDELIMITER)
     new_quote_char_node = new_dt_node.find_descendant(names.QUOTECHARACTER)
 
-    debug_None(old_object_name_node, 'old_object_name_node is None')
     old_object_name = old_object_name_node.content
-    debug_None(new_object_name_node, 'new_object_name_node is None')
     old_object_name_node.content = new_object_name_node.content.replace('.ezeml_tmp', '')
-    debug_None(old_size_node, 'old_size_node is None')
-    debug_None(new_size_node, 'new_size_node is None')
     old_size_node.content = new_size_node.content
-    debug_None(old_records_node, 'old_records_node is None')
-    debug_None(new_records_node, 'new_records_node is None')
     old_records_node.content = new_records_node.content
-    debug_None(old_md5_node, 'old_md5_node is None')
-    debug_None(new_md5_node, 'new_md5_node is None')
     old_md5_node.content = new_md5_node.content
-    debug_None(old_field_delimiter_node, 'old_field_delimiter_node is None')
-    debug_None(new_field_delimiter_node, 'new_field_delimiter_node is None')
     old_field_delimiter_node.content = new_field_delimiter_node.content
-    debug_None(old_quote_char_node, 'old_quote_char_node is None')
-    debug_None(new_quote_char_node, 'new_quote_char_node is None')
-    old_quote_char_node.content = new_quote_char_node.content
+    # quote char node is not required, so may be missing
+    if old_quote_char_node:
+        if new_quote_char_node:
+            old_quote_char_node.content = new_quote_char_node.content
+        else:
+            old_quote_char_node.parent.remove_child(old_quote_char_node)
+    else:
+        if new_quote_char_node:
+            new_child_node(names.QUOTECHARACTER, old_field_delimiter_node.parent).content = new_quote_char_node.content
 
     _, old_column_names, old_column_categorical_codes = get_uploaded_table_column_properties(old_object_name)
     if old_column_names != new_column_names:

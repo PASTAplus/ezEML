@@ -45,6 +45,11 @@ def get_user_uploads_folder_name():
     return user_uploads_folder_name
 
 
+def get_document_uploads_folder_name():
+    document_uploads_folder = os.path.join(get_user_uploads_folder_name(), get_active_document())
+    return document_uploads_folder
+
+
 def get_user_document_list():
     packageids = []
     user_folder = get_user_folder_name()
@@ -59,21 +64,6 @@ def get_user_document_list():
     except:
         pass
     return packageids
-
-
-def get_user_uploads():
-    data_files = []
-    user_uploads_folder = get_user_uploads_folder_name()
-    try:
-        folder_contents = os.listdir(user_uploads_folder)
-        onlyfiles = [f for f in folder_contents if os.path.isfile(os.path.join(user_uploads_folder, f))]
-        if onlyfiles:
-            for filename in onlyfiles:
-                data_files.append(filename)
-    except:
-        pass
-        
-    return data_files
 
 
 def initialize_user_data(cname, uid):
@@ -94,20 +84,22 @@ def initialize_user_data(cname, uid):
     save_user_properties(user_properties)
 
 
-def get_user_properties():
-    user_folder_name = get_user_folder_name()
+def get_user_properties(user_folder_name=None):
+    if not user_folder_name:
+        user_folder_name = get_user_folder_name()
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     user_properties = {}
     # if properties file doesn't exist, create one with an empty dict
     if not os.path.isfile(user_properties_filename):
-        save_user_properties(user_properties)
+        save_user_properties(user_properties, user_folder_name)
     with open(user_properties_filename, 'r') as user_properties_file:
         user_properties = json.load(user_properties_file)
     return user_properties
 
 
-def save_user_properties(user_properties):
-    user_folder_name = get_user_folder_name()
+def save_user_properties(user_properties, user_folder_name=None):
+    if not user_folder_name:
+        user_folder_name = get_user_folder_name()
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     with open(user_properties_filename, 'w') as user_properties_file:
         json.dump(user_properties, user_properties_file)
@@ -121,14 +113,14 @@ def is_first_usage():
     return is_first_usage
 
 
-def add_data_table_upload_filename(filename):
-    user_properties = get_user_properties()
+def add_data_table_upload_filename(filename, user_folder_name=None):
+    user_properties = get_user_properties(user_folder_name)
     uploaded_files = user_properties.get('data_table_upload_filenames', [])
     this_upload = [get_active_document(), filename.lower()]  # list rather than tuple because JSON
     if this_upload not in uploaded_files:
         uploaded_files.append(this_upload)
     user_properties['data_table_upload_filenames'] = uploaded_files
-    save_user_properties(user_properties)
+    save_user_properties(user_properties, user_folder_name)
 
 
 def discard_data_table_upload_filename(filename):

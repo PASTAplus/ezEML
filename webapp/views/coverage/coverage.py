@@ -23,8 +23,9 @@ from webapp.views.coverage.taxonomy import (
 )
 
 from webapp.auth.user_data import (
-    get_user_uploads_folder_name
+    get_document_uploads_folder_name
 )
+
 from webapp.home.forms import is_dirty_form, form_md5, LoadDataForm
 from webapp.views.coverage.forms import (
     GeographicCoverageForm,
@@ -85,7 +86,7 @@ def geographic_coverage_select(filename=None):
 def load_geo_coverage(filename):
     form = LoadDataForm()
     document = current_user.get_filename()
-    uploads_folder = get_user_uploads_folder_name()
+    uploads_folder = get_document_uploads_folder_name()
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():

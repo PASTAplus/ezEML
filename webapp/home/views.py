@@ -16,6 +16,7 @@
 import daiquiri
 from datetime import date, datetime
 import html
+import json
 import os.path
 import pickle
 from shutil import copyfile
@@ -36,7 +37,8 @@ from webapp.config import Config
 import csv
 
 from webapp.auth.user_data import (
-    delete_eml, download_eml, get_user_document_list, get_user_uploads_folder_name,
+    delete_eml, download_eml, get_user_document_list,
+    get_user_uploads_folder_name, get_document_uploads_folder_name,
     get_active_document, discard_data_table_upload_filename, get_user_folder_name,
     discard_data_table_upload_filenames_for_package, remove_active_file,
     add_data_table_upload_filename, add_uploaded_table_properties, get_uploaded_table_column_properties
@@ -70,6 +72,7 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from metapype.eml import names
+from metapype.model import mp_io
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
@@ -97,6 +100,64 @@ def debug_None(x, msg):
             app = Flask(__name__)
             with app.app_context():
                 current_app.logger.info(msg)
+
+
+@home.before_app_first_request
+def fixup_upload_management():
+    USER_DATA_DIR = 'user-data'
+    to_delete = set()
+    # loop on the various users' data directories
+    for user_folder_name in os.listdir(USER_DATA_DIR):
+        if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
+            full_path = os.path.join(USER_DATA_DIR, user_folder_name)
+            uploads_path = os.path.join(full_path, 'uploads')
+            # look at the EML model json files
+            for file in os.listdir(full_path):
+                full_file = os.path.join(full_path, file)
+                if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
+                    # create a subdir of the user's uploads directory for this document's uploads
+                    document_name = file[:-5]
+                    subdir_name = os.path.join(uploads_path, document_name)
+                    try:
+                        os.mkdir(subdir_name)
+                    except OSError:
+                        pass
+                    # open the model file
+                    with open(full_file, "r") as json_file:
+                        json_obj = json.load(json_file)
+                        eml_node = mp_io.from_json(json_obj)
+                    # look at data tables
+                    data_table_nodes = []
+                    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+                    for data_table_node in data_table_nodes:
+                        object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+                        if object_name_node:
+                            object_name = object_name_node.content
+                            object_path = os.path.join(uploads_path, object_name)
+                            if os.path.isfile(object_path):
+                                add_data_table_upload_filename(object_name, os.path.join('user-data', user_folder_name))
+                                to_delete.add(object_path)
+                                copyfile(object_path, os.path.join(subdir_name, object_name))
+                    # look at other entities
+                    other_entity_nodes = []
+                    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+                    for other_entity_node in other_entity_nodes:
+                        object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+                        if object_name_node:
+                            object_name = object_name_node.content
+                            object_path = os.path.join(uploads_path, object_name)
+                            if os.path.isfile(object_path):
+                                to_delete.add(object_path)
+                                copyfile(object_path, os.path.join(subdir_name, object_name))
+                    # clean up temp files
+                    for path in os.listdir(subdir_name):
+                        path = os.path.join(subdir_name, path)
+                        if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+                            to_delete.add(path)
+
+    # now we can delete the files we've copied
+    for file in to_delete:
+        os.remove(file)
 
 
 @home.before_app_request
@@ -923,7 +984,7 @@ def get_column_properties(dt_node, object_name):
     if column_vartypes:
         return column_vartypes
 
-    uploads_folder = get_user_uploads_folder_name()
+    uploads_folder = get_document_uploads_folder_name()
     num_header_rows = 1
     field_delimiter_node = dt_node.find_descendant(names.FIELDDELIMITER)
     if field_delimiter_node:
@@ -1104,8 +1165,7 @@ def load_data(dt_node_id=None):
 
     form = LoadDataForm()
     document = current_user.get_filename()
-    uploads_folder = get_user_uploads_folder_name()
-
+    uploads_folder = get_document_uploads_folder_name()
     doing_reupload = dt_node_id != None
 
     # Process POST
@@ -1127,9 +1187,6 @@ def load_data(dt_node_id=None):
 
         file = request.files['file']
         dt_node = None
-        new_column_vartypes = None
-        new_column_names = None
-        new_column_categorical_codes = None
         if file:
             filename = secure_filename(file.filename)
             if doing_reupload:
@@ -1174,10 +1231,6 @@ def load_data(dt_node_id=None):
                 data_file = data_file.replace('.ezeml_tmp', '')
                 flash(f"Loaded {data_file}")
 
-                # dataset_node = eml_node.find_child(names.DATASET)
-                # if not dataset_node:
-                #     dataset_node = new_child_node(names.DATASET, eml_node)
-
                 dt_node.parent = dataset_node
                 if not doing_reupload:
                     dataset_node.add_child(dt_node)
@@ -1216,7 +1269,7 @@ def reupload_data(filename, node_id):
 
     form = LoadDataForm()
     document = current_user.get_filename()
-    uploads_folder = get_user_uploads_folder_name()
+    uploads_folder = get_document_uploads_folder_name()
     eml_node = load_eml(filename=document)
 
     data_table_name = ''
@@ -1248,7 +1301,7 @@ def reupload_data(filename, node_id):
 def load_entity():
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
-    uploads_folder = get_user_uploads_folder_name()
+    uploads_folder = get_document_uploads_folder_name()
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -1287,7 +1340,7 @@ def load_entity():
 def load_metadata():
     form = LoadMetadataForm()
     document = current_user.get_filename()
-    uploads_folder = get_user_uploads_folder_name()
+    uploads_folder = get_document_uploads_folder_name()
 
     # Process POST
     if  request.method == 'POST' and form.validate_on_submit():

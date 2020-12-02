@@ -115,6 +115,10 @@ def fixup_upload_management():
             for file in os.listdir(full_path):
                 full_file = os.path.join(full_path, file)
                 if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
+                    # some directories may have obsolete 'user_properties.json' files
+                    if file == 'user_properties.json':
+                        to_delete.add(os.path.join(full_path, 'user_properties.json'))
+                        continue
                     # create a subdir of the user's uploads directory for this document's uploads
                     document_name = file[:-5]
                     subdir_name = os.path.join(uploads_path, document_name)

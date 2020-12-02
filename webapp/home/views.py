@@ -159,6 +159,12 @@ def fixup_upload_management():
                         if os.path.isfile(path) and path.endswith('ezeml_tmp'):
                             to_delete.add(path)
 
+            # clean up temp files
+            for path in os.listdir(full_path):
+                path = os.path.join(full_path, path)
+                if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+                    to_delete.add(path)
+
     # now we can delete the files we've copied
     for file in to_delete:
         os.remove(file)

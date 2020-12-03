@@ -279,6 +279,23 @@ def get_attribute_type(attrib_node:Node):
     return None
 
 
+def generate_code_definition_errs(eml_node, filename, err_code, errs_found):
+    mscale = VariableType.CATEGORICAL
+    for err in errs_found:
+        err_node = err[2]
+        code_definition_node = err_node.parent
+        enumerated_domain_node = code_definition_node.parent
+        non_numeric_domain_node = enumerated_domain_node.parent
+        nominal_node = non_numeric_domain_node.parent
+        mscale_node = nominal_node.parent
+        attribute_node = mscale_node.parent
+        attribute_list_node = attribute_node.parent
+        data_table_node = attribute_list_node.parent
+        link = url_for(PAGE_CODE_DEFINITION, filename=filename, dt_node_id=data_table_node.id, att_node_id=attribute_node.id,
+                       nom_ord_node_id=nominal_node.id, node_id=code_definition_node.id, mscale=mscale)
+        add_to_evaluation(err_code, link)
+
+
 def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     attr_type = get_attribute_type(attrib_node)
     mscale = None
@@ -303,10 +320,12 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     # Categorical
     if find_min_unmet(validation_errs, names.ENUMERATEDDOMAIN, names.CODEDEFINITION):
         add_to_evaluation('attributes_04', link)
-    if find_content_empty(validation_errs, names.CODE):
-        add_to_evaluation('attributes_05', link)
-    if find_content_empty(validation_errs, names.DEFINITION):
-        add_to_evaluation('attributes_06', link)
+    found = find_content_empty(validation_errs, names.CODE)
+    if found:
+        generate_code_definition_errs(eml_node, filename, 'attributes_05', found)
+    found = find_content_empty(validation_errs, names.DEFINITION)
+    if found:
+        generate_code_definition_errs(eml_node, filename, 'attributes_06', found)
 
     # Numerical
     if find_min_unmet_for_list(validation_errs, names.UNIT, [names.STANDARDUNIT, names.CUSTOMUNIT]):

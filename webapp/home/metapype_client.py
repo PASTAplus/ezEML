@@ -869,8 +869,6 @@ def log_as_xml(node: Node):
 def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=None):
     msg = None
     if new_filename and eml_node and new_filename != old_filename:
-        eml_node.add_attribute('filename', new_filename)
-        # save_eml(filename=new_filename, eml_node=eml_node, format='json')
         save_both_formats(filename=new_filename, eml_node=eml_node)
     elif new_filename == old_filename:
         msg = 'New package id and old package id are the same'
@@ -916,6 +914,13 @@ def enforce_dataset_sequence(eml_node:Node=None):
 
 
 def save_both_formats(filename:str=None, eml_node:Node=None):
+    try:
+        # There are some documents that have a spurious attribute, which gets propagated if the
+        #  document is copied via Save As. Clean it up.
+        eml_node.remove_attribute('filename')
+    except:
+        pass
+
     enforce_dataset_sequence(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')

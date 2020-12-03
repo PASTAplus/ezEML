@@ -894,6 +894,7 @@ def enforce_dataset_sequence(eml_node:Node=None):
                 names.CREATOR,
                 names.METADATAPROVIDER,
                 names.ASSOCIATEDPARTY,
+                names.PUBDATE,
                 names.ABSTRACT,
                 names.KEYWORDSET,
                 names.INTELLECTUALRIGHTS,
@@ -902,7 +903,6 @@ def enforce_dataset_sequence(eml_node:Node=None):
                 names.CONTACT,
                 names.PUBLISHER,
                 names.PUBPLACE,
-                names.PUBDATE,
                 names.METHODS,
                 names.PROJECT,
                 names.DATATABLE,
@@ -1478,8 +1478,14 @@ def create_pubinfo(pubplace=None, pubdate=None, filename=None):
         pubplace_node = new_child_node(names.PUBPLACE, parent=dataset_node)
         pubdate_node = new_child_node(names.PUBDATE, parent=dataset_node)
 
-    pubplace_node.content = pubplace
-    pubdate_node.content = pubdate
+    if pubplace:
+        pubplace_node.content = pubplace
+    else:
+        dataset_node.remove_child(pubplace_node)
+    if pubdate:
+        pubdate_node.content = pubdate
+    else:
+        dataset_node.remove_child(pubdate_node)
 
     try:
         save_both_formats(filename=filename, eml_node=eml_node)

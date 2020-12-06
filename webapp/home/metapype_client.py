@@ -913,14 +913,47 @@ def enforce_dataset_sequence(eml_node:Node=None):
             dataset_node._children = new_children
 
 
-def save_both_formats(filename:str=None, eml_node:Node=None):
+def clean_model(eml_node):
     try:
-        # There are some documents that have a spurious attribute, which gets propagated if the
+        # There are some documents that have a spurious filename attribute, which gets propagated if the
         #  document is copied via Save As. Clean it up.
         eml_node.remove_attribute('filename')
     except:
         pass
+    # Some documents have, due to earlier bugs, empty publisher, pubPlace, or pubDate nodes
+    publisher_nodes = []
+    eml_node.find_all_descendants(names.PUBLISHER, publisher_nodes)
+    for publisher_node in publisher_nodes:
+        if len(publisher_node.children) == 0:
+            publisher_node.parent.remove_child(publisher_node)
+    pubplace_nodes = []
+    eml_node.find_all_descendants(names.PUBPLACE, pubplace_nodes)
+    for pubplace_node in pubplace_nodes:
+        if not pubplace_node.content:
+            pubplace_node.parent.remove_child(pubplace_node)
+    pubdate_nodes = []
+    eml_node.find_all_descendants(names.PUBDATE, pubdate_nodes)
+    for pubdate_node in pubdate_nodes:
+        if not pubdate_node.content:
+            pubdate_node.parent.remove_child(pubdate_node)
+    # Some documents have, due to earlier bugs, keywordSets that contain no keywords
+    keyword_sets = []
+    eml_node.find_all_descendants(names.KEYWORDSET, keyword_sets)
+    for keyword_set in keyword_sets:
+        keywords = keyword_set.find_all_children(names.KEYWORD)
+        if len(keywords) == 0:
+            keyword_set.parent.remove_child(keyword_set)
+    # Some documents have, due to earlier bugs, taxonomicCoverage nodes that contain no taxonomicClassificaation nodes
+    taxonomic_coverage_nodes = []
+    eml_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_coverage_nodes)
+    for taxonomic_coverage_node in taxonomic_coverage_nodes:
+        taxonomic_classification_nodes = taxonomic_coverage_node.find_all_children(names.TAXONOMICCLASSIFICATION)
+        if len(taxonomic_classification_nodes) == 0:
+            taxonomic_coverage_node.parent.remove_child(taxonomic_coverage_node)
 
+
+def save_both_formats(filename:str=None, eml_node:Node=None):
+    clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')

@@ -328,6 +328,8 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
         generate_code_definition_errs(eml_node, filename, 'attributes_06', found)
 
     # Numerical
+    if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
+        add_to_evaluation('attributes_02', link)
     if find_min_unmet_for_list(validation_errs, names.UNIT, [names.STANDARDUNIT, names.CUSTOMUNIT]):
         add_to_evaluation('attributes_02', link)
 

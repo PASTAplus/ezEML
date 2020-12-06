@@ -458,6 +458,10 @@ def check_metadata(filename:str):
 def download_current():
     current_document = get_active_document()
     if current_document:
+        # Force the document to be saved, so it gets cleaned
+        eml_node = load_eml(filename=current_document)
+        save_both_formats(filename=current_document, eml_node=eml_node)
+        # Do the download
         return_value = download_eml(filename=current_document)
         if isinstance(return_value, str):
             flash(return_value)

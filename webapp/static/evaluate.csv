@@ -23,6 +23,8 @@ data_table_02,Data Tables,Description,WARNING,RECOMMENDED,A data table <b>Descri
 data_table_03,Data Tables,Data Object Name,ERROR,REQUIRED,A <b>Data Object Name</b> is required.,
 data_table_04,Data Tables,Columns,ERROR,REQUIRED,A data table is required to have one or more <b>Columns</b>.,
 data_table_05,Data Tables,Data Tables,WARNING,RECOMMENDED,A dataset should contain at least one <b>Data Table</b>.,
+data_table_06,Data Tables,Data Table File,ERROR,REQUIRED,A data table has changed since it was uploaded. Please re-upload.
+data_table_07,Data Tables,Data Table File,ERROR,REQUIRED,A data table CSV file is missing. Please re-upload.
 attributes_01,Data Tables,Column Definition,ERROR,REQUIRED,A column <b>Definition</b> is required.,For each column present.
 attributes_02,Data Tables,Numerical Variable Unit,ERROR,REQUIRED,A Numerical variable is required to have a <b>Standard Unit</b> or <b>Custom Unit</b> defined.,For Numerical variables.
 attributes_03,Data Tables,Format String,ERROR,REQUIRED,A DateTime variable requires a <b>Format String</b>.,For DateTime variables

@@ -27,7 +27,10 @@ from metapype.eml.evaluation_warnings import EvaluationWarning
 from metapype.model.node import Node
 from webapp.home.metapype_client import load_eml, VariableType
 from webapp.pages import *
-
+from webapp.auth.user_data import (
+    get_document_uploads_folder_name
+)
+from webapp.home.load_data_table import get_md5_hash
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -318,29 +321,51 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
         add_to_evaluation('attributes_01', link)
 
     # Categorical
-    if find_min_unmet(validation_errs, names.ENUMERATEDDOMAIN, names.CODEDEFINITION):
-        add_to_evaluation('attributes_04', link)
-    found = find_content_empty(validation_errs, names.CODE)
-    if found:
-        generate_code_definition_errs(eml_node, filename, 'attributes_05', found)
-    found = find_content_empty(validation_errs, names.DEFINITION)
-    if found:
-        generate_code_definition_errs(eml_node, filename, 'attributes_06', found)
+    if attr_type == VariableType.CATEGORICAL:
+        if find_min_unmet(validation_errs, names.ENUMERATEDDOMAIN, names.CODEDEFINITION):
+            add_to_evaluation('attributes_04', link)
+        found = find_content_empty(validation_errs, names.CODE)
+        if found:
+            generate_code_definition_errs(eml_node, filename, 'attributes_05', found)
+        found = find_content_empty(validation_errs, names.DEFINITION)
+        if found:
+            generate_code_definition_errs(eml_node, filename, 'attributes_06', found)
 
     # Numerical
-    if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
-        add_to_evaluation('attributes_02', link)
-    if find_min_unmet_for_list(validation_errs, names.UNIT, [names.STANDARDUNIT, names.CUSTOMUNIT]):
-        add_to_evaluation('attributes_02', link)
+    if attr_type == VariableType.NUMERICAL:
+        if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
+            add_to_evaluation('attributes_02', link)
+        if find_min_unmet_for_list(validation_errs, names.UNIT, [names.STANDARDUNIT, names.CUSTOMUNIT]):
+            add_to_evaluation('attributes_02', link)
 
     # DateTime
-    if find_content_empty(validation_errs, names.FORMATSTRING):
-        add_to_evaluation('attributes_03', link)
+    if attr_type == VariableType.DATETIME:
+        if find_content_empty(validation_errs, names.FORMATSTRING):
+            add_to_evaluation('attributes_03', link)
+
+
+def check_data_table_md5_checksum(data_table_node, link):
+    object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+    data_file = object_name_node.content
+    uploads_folder = get_document_uploads_folder_name()
+    full_path = f'{uploads_folder}/{data_file}'
+    try:
+        computed_md5_hash = get_md5_hash(full_path)
+    except FileNotFoundError:
+        add_to_evaluation('data_table_07', link)
+        return
+    authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
+    if authentication_node:
+        found_md5_hash = authentication_node.content
+        if found_md5_hash != computed_md5_hash:
+            add_to_evaluation('data_table_06', link)
 
 
 def check_data_table(eml_node, filename, data_table_node:Node):
     link = url_for(PAGE_DATA_TABLE, filename=filename, node_id=data_table_node.id)
     validation_errs = validate_via_metapype(data_table_node)
+
+    check_data_table_md5_checksum(data_table_node, link)
 
     if find_min_unmet(validation_errs, names.DATATABLE, names.ENTITYNAME):
         add_to_evaluation('data_table_01', link)

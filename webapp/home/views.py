@@ -18,6 +18,7 @@ from datetime import date, datetime
 import html
 import json
 import os.path
+from pathlib import Path
 import pickle
 from shutil import copyfile
 
@@ -104,6 +105,8 @@ def debug_None(x, msg):
 
 @home.before_app_first_request
 def fixup_upload_management():
+    if not current_user.is_authenticated:
+        return
     USER_DATA_DIR = 'user-data'
     to_delete = set()
     # loop on the various users' data directories
@@ -1210,6 +1213,7 @@ def load_data(dt_node_id=None):
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_data_file(filename):
+                Path(uploads_folder).mkdir(parents=True, exist_ok=True)
                 filepath = os.path.join(uploads_folder, filename)
                 file.save(filepath)
                 data_file = filename
@@ -1370,6 +1374,7 @@ def load_metadata():
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_metadata_file(filename):
+                Path(uploads_folder).mkdir(parents=True, exist_ok=True)
                 file.save(os.path.join(uploads_folder, filename))
                 metadata_file = filename
                 metadata_file_path = f'{uploads_folder}/{metadata_file}'

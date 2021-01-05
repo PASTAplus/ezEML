@@ -209,8 +209,11 @@ A data table is one tabular entity in the data package, identified by its name. 
 --------------------
 data_table_reupload
 Re-upload Data Table
-The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again. It assumes the
- structure of the data table is largely unchanged.
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again.
+
+Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
+
+<b>Re-upload Data Table</b> requires the structure of the data table to be largely unchanged.
 
 To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
 
@@ -218,8 +221,11 @@ It is OK if some column <i>names</i> in the header row have changed, and it is O
 --------------------
 data_table_reupload_full
 Re-upload Data Table
-The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again. It assumes the
- structure of the data table is largely unchanged.
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again.
+
+Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
+
+<b>Re-upload Data Table</b> requires the structure of the data table to be largely unchanged.
 
 To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
 
@@ -528,6 +534,12 @@ Other Entity
 An <b>Other Entity</b> is a data entity other than a data table that will be included in the data package. Other Entities are identified by their names.
 
 Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
+--------------------
+other_entity_reupload
+Re-upload Other Entity
+The purpose of <b>Re-upload Other Entity</b> is to let you update an other entity file without having to enter the properties of the other entity all over again. In addition, it updates the file size and checksum, which are part of the metadata describing the other entity.
+
+Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
 --------------------
 personnel
 Project Personnel

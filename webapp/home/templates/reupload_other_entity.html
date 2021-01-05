@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_other_entities_reupload_id, help_other_entities_reupload_title, help_other_entities_reupload_content = help[0] %}
+    {% set help_other_entities_reupload_btn = help_other_entities_reupload_id ~ '_btn' %}
+    {% set help_other_entities_reupload_dialog = help_other_entities_reupload_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Re-upload Other Entity</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 10px;">{{ macros.help_button(help_other_entities_reupload_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                The purpose of <b>Re-upload Other Entity</b> is to let you update an other entity file that has been modified, without your
+                having to enter its properties all over again.
+                <p></p>
+                Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data
+                tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files
+                have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the
+                exported data package, ready to be submitted to a data repository.
+                <p>&nbsp;</p>
+
+                <h4>Select a file to re-upload <span style="color:steelblue">{{ name }}</span>:</h4>
+                <input type=file name=file>
+                <p>&nbsp;</p>
+                <br>
+
+                <input class="btn btn-primary" style="width: 100px;" name="Re-upload" type="submit" value="Re-upload"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_other_entities_reupload_dialog, help_other_entities_reupload_title, help_other_entities_reupload_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_other_entities_reupload_id, help_other_entities_reupload_title, help_other_entities_reupload_content = help[0] %}
+    {% set help_other_entities_reupload_btn = help_other_entities_reupload_id ~ '_btn' %}
+    {% set help_other_entities_reupload_dialog = help_other_entities_reupload_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_other_entities_reupload_dialog, help_other_entities_reupload_btn) }}
+    });
+    </script>
+{% endblock %}

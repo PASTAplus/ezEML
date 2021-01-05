@@ -21,10 +21,11 @@ import os.path
 from pathlib import Path
 import pickle
 from shutil import copyfile
+from zipfile import ZipFile
 
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, session
+    Blueprint, flash, render_template, redirect, request, url_for, session, send_file
 )
 
 from flask_login import (
@@ -38,7 +39,7 @@ from webapp.config import Config
 import csv
 
 from webapp.auth.user_data import (
-    delete_eml, download_eml, get_user_document_list,
+    delete_eml, download_eml, get_user_document_list, get_active_packageid,
     get_user_uploads_folder_name, get_document_uploads_folder_name,
     get_active_document, discard_data_table_upload_filename, get_user_folder_name,
     discard_data_table_upload_filenames_for_package, remove_active_file,
@@ -141,10 +142,12 @@ def fixup_upload_management():
                         if object_name_node:
                             object_name = object_name_node.content
                             object_path = os.path.join(uploads_path, object_name)
+                            target_path = os.path.join(subdir_name, object_name)
                             if os.path.isfile(object_path):
-                                add_data_table_upload_filename(object_name, os.path.join('user-data', user_folder_name))
                                 to_delete.add(object_path)
-                                copyfile(object_path, os.path.join(subdir_name, object_name))
+                                copyfile(object_path, target_path)
+                            if os.path.isfile(target_path):
+                                add_data_table_upload_filename(object_name, os.path.join('user-data', user_folder_name))
                     # look at other entities
                     other_entity_nodes = []
                     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
@@ -156,6 +159,8 @@ def fixup_upload_management():
                             if os.path.isfile(object_path):
                                 to_delete.add(object_path)
                                 copyfile(object_path, os.path.join(subdir_name, object_name))
+                            if os.path.isfile(target_path):
+                                add_data_table_upload_filename(object_name, os.path.join('user-data', user_folder_name))
                     # clean up temp files
                     for path in os.listdir(subdir_name):
                         path = os.path.join(subdir_name, path)
@@ -456,6 +461,46 @@ def check_metadata(filename:str):
         return render_template('check_metadata.html', content=content, title='Check Metadata')
 
 
+def zip_package():
+    current_document = current_user.get_filename()
+    if not current_document:
+        raise FileNotFoundError
+    eml_node = load_eml(filename=current_document)
+
+    user_folder = get_user_folder_name()
+
+    zipfile_name = f'{current_document}.zip'
+    zipfile_path = os.path.join(user_folder, zipfile_name)
+    zip_object = ZipFile(zipfile_path, 'w')
+
+    pathname = f'{user_folder}/{current_document}.xml'
+    package_id = get_active_packageid()
+    if package_id:
+        arcname = f'{package_id}.xml'
+    else:
+        arcname = f'{current_document}.xml'
+    zip_object.write(pathname, arcname)
+    pathname = f'{user_folder}/{current_document}.json'
+    arcname = f'{current_document}.json'
+    zip_object.write(pathname, arcname)
+    # get data files
+    uploads_folder = get_document_uploads_folder_name()
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    entity_nodes = []
+    eml_node.find_all_descendants(names.OTHERENTITY, entity_nodes)
+    data_nodes = data_table_nodes + entity_nodes
+    for data_node in data_nodes:
+        object_name_node = data_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+        if object_name_node:
+            object_name = object_name_node.content
+            pathname = f'{uploads_folder}/{object_name}'
+            arcname = f'data/{object_name}'
+            zip_object.write(pathname, arcname)
+    zip_object.close()
+    return zipfile_path
+
+
 @home.route('/download_current', methods=['GET', 'POST'])
 @login_required
 def download_current():
@@ -466,6 +511,7 @@ def download_current():
         save_both_formats(filename=current_document, eml_node=eml_node)
         # Do the download
         return_value = download_eml(filename=current_document)
+
         if isinstance(return_value, str):
             flash(return_value)
         else:
@@ -644,6 +690,8 @@ def get_redirect_target_page():
         return PAGE_OTHER_ENTITY_SELECT
     elif current_page == 'check_metadata':
         return PAGE_CHECK
+    elif current_page == 'export_package':
+        return PAGE_EXPORT_DATA_PACKAGE
     elif current_page == 'data_package_id':
         return PAGE_DATA_PACKAGE_ID
     else:
@@ -989,9 +1037,42 @@ def display_decode_error_lines(filename):
     return errors
 
 
+@home.route('/export_package', methods=['GET', 'POST'])
+@login_required
+def export_package():
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST':
+        zipfile_path = zip_package()
+
+        path, filename = os.path.split(zipfile_path)
+
+        relative_pathname = '../' + zipfile_path
+        mimetype = 'application/xml'
+        try:
+            return send_file(relative_pathname,
+                             mimetype=mimetype,
+                             as_attachment=True,
+                             attachment_filename=filename,
+                             add_etags=True,
+                             cache_timeout=None,
+                             conditional=False,
+                             last_modified=None)
+        except Exception as e:
+            return str(e)
+
+    # Process GET
+    help = get_helps(['import_funding_awards_2'])  # FIXME
+    set_current_page('export_package')
+
+    return render_template('export_package.html', back_url=get_back_url(), title='Export Data Package')
+
+
 @home.route('/submit_package', methods=['GET', 'POST'])
 @login_required
 def submit_package():
+    set_current_page('submit_package')
     return render_template('submit_package.html', back_url=get_back_url(), title='Submit to EDI')
 
 
@@ -1314,9 +1395,38 @@ def reupload_data(filename, node_id):
                            form=form, name=data_table_name, help=help)
 
 
-@home.route('/load_other_entity', methods=['GET', 'POST'])
+@home.route('/reupload_other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
-def load_entity():
+def reupload_other_entity(filename, node_id):
+    form = LoadOtherEntityForm()
+    document = current_user.get_filename()
+    uploads_folder = get_document_uploads_folder_name()
+    eml_node = load_eml(filename=document)
+
+    other_entity_name = ''
+    oe_node = Node.get_node_instance(node_id)
+    if oe_node:
+        entity_name_node = oe_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            other_entity_name = entity_name_node.content
+            if not other_entity_name:
+                raise ValueError("Other entity's name not found")
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename)
+        return redirect(url)
+
+    if request.method == 'POST':
+        return redirect(url_for(PAGE_LOAD_OTHER_ENTITY, node_id=node_id), code=307) # 307 keeps it a POST
+
+    help = get_helps(['data_table_reupload_full']) # FIXME
+    return render_template('reupload_other_entity.html', title='Re-upload Other Entity',
+                           form=form, name=other_entity_name, help=help)
+
+
+@home.route('/load_other_entity/<node_id>', methods=['GET', 'POST'])
+@login_required
+def load_entity(node_id=None):
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
     uploads_folder = get_document_uploads_folder_name()
@@ -1341,10 +1451,10 @@ def load_entity():
                 file.save(os.path.join(uploads_folder, filename))
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
-                flash(f'Loaded {data_file_path}')
+                flash(f'Loaded {data_file}')
                 eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
-                other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file)
+                other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file, node_id=node_id)
                 save_both_formats(filename=document, eml_node=eml_node)
                 return redirect(url_for(PAGE_OTHER_ENTITY, filename=document, node_id=other_entity_node.id))
 
@@ -1420,7 +1530,7 @@ def close():
 
 def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
-                next_page=None, edit_page=None, project_node_id=None):
+                next_page=None, edit_page=None, project_node_id=None, reupload_page=None):
     node_id = None
     new_page = None
     if form_dict:
@@ -1454,7 +1564,11 @@ def select_post(filename=None, form=None, form_dict=None,
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_REUPLOAD:
                 node_id = key
-                new_page = PAGE_REUPLOAD
+                if reupload_page:
+                    new_page = reupload_page
+                else:
+                    node_id = key
+                    new_page = PAGE_REUPLOAD
             elif val == BTN_HIDDEN_CHECK:
                 new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:

@@ -76,7 +76,7 @@ def other_entity_select(filename=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT,
-                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY)
+                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY)
         return redirect(url)
 
     # Process GET
@@ -85,7 +85,7 @@ def other_entity_select(filename=None):
     title = 'Other Entities'
 
     set_current_page('other_entity')
-    help = [get_help('other_entities'), get_help('add_load_other_entities')]
+    help = [get_help('other_entities'), get_help('add_load_other_entities'), get_help('other_entity_reupload')]
     return render_template('other_entity_select.html', title=title,
                            oe_list=oe_list, form=form, help=help)
 

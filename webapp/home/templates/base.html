@@ -251,6 +251,7 @@
             {% set data_package_id_style = '""' %}
             {% set check_metadata_style = '""' %}
             {% set download_eml_style = '""' %}
+            {% set export_package_style = '""' %}
             {% set submit_package_style = '""' %}
 
             {% set page = session['current_page'] %}
@@ -276,6 +277,8 @@
             {% if page == 'other_entity' %}{% set other_entity_style = current %}{% endif %}
             {% if page == 'data_package_id' %}{% set data_package_id_style = current %}{% endif %}
             {% if page == 'check_metadata' %}{% set check_metadata_style = current %}{% endif %}
+            {% if page == 'export_package' %}{% set export_package_style = current %}{% endif %}
+            {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
         <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
@@ -299,6 +302,7 @@
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a><br>
         <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>
+        <a class="nav_link" style={{ export_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.export_package') }}" title="Edit">Export Data Package</a><br>
         <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Submit to EDI</a><br>
 
         {% endif %}

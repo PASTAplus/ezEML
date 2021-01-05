@@ -11,7 +11,8 @@ from webapp.home.metapype_client import (
     create_keyword, create_pubinfo, create_data_package_id,
     create_title, list_keywords, load_eml, remove_child,
     save_both_formats, DOWN_ARROW, UP_ARROW,
-    add_paragraph_tags, remove_paragraph_tags
+    add_paragraph_tags, remove_paragraph_tags,
+    post_process_text_type_node, display_text_type_node
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -261,7 +262,7 @@ def abstract(filename=None):
         names.ABSTRACT
     ])
     if abstract_node:
-        form.abstract.data = remove_paragraph_tags(abstract_node.content)
+        form.abstract.data = display_text_type_node(abstract_node)
     form.md5.data = form_md5(form)
     set_current_page('abstract')
     help = [get_help('abstract'), get_help('nav')]

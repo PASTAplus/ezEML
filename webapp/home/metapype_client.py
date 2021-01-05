@@ -102,6 +102,31 @@ def list_data_packages(flag_current=False, include_current=True):
     return choices
 
 
+def post_process_text_type_node(text_node:Node=None):
+    if not text_node:
+        return
+    content = remove_paragraph_tags(text_node.content)
+    if '\n' not in content:
+        return
+    paras = content.split('\n')
+    for para in paras:
+        para_node = new_child_node(names.PARA, text_node)
+        para_node.content = para
+    text_node.content = None
+
+
+def display_text_type_node(text_node:Node=None) -> str:
+    if not text_node:
+        return ''
+    if text_node.content:
+        return text_node.content
+    text = ''
+    para_nodes = text_node.find_all_children(names.PARA)
+    for para_node in para_nodes:
+        text += f'{para_node.content}\n'
+    return text
+
+
 def add_paragraph_tags(s):
     if s:
         ps = escape(s)
@@ -190,15 +215,18 @@ def list_other_entities(eml_node:Node=None):
             oe_nodes = dataset_node.find_all_children(names.OTHERENTITY)
             OE_Entry = collections.namedtuple(
                 'OE_Entry', 
-                ["id", "label", "upval", "downval"],
-                 rename=False)
+                ["id", "label", "object_name", "was_uploaded", "upval", "downval"],
+                rename=False)
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
-                label, _ = compose_entity_label(oe_node)
+                label, object_name = compose_entity_label(oe_node)
+                was_uploaded = data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
                 oe_entry = OE_Entry(id=id,
                                     label=label,
+                                    object_name=object_name,
+                                    was_uploaded=was_uploaded,
                                     upval=upval,
                                     downval=downval)
                 oe_list.append(oe_entry)
@@ -1646,6 +1674,7 @@ def create_abstract(filename:str=None, abstract:str=None):
         abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
 
     abstract_node.content = abstract
+    post_process_text_type_node(abstract_node)
 
     try:
         save_both_formats(filename=filename, eml_node=eml_node)

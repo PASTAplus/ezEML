@@ -44,3 +44,4 @@ other_entity_03,Other Entities,Entity Description,WARNING,RECOMMENDED,Entity <b>
 contacts_01,Contacts,Contacts,ERROR,REQUIRED,At least one <b>Contact</b> is required.,
 maintenance_01,Maintenance,Maintenance,ERROR,REQUIRED,Maintenance <b>Description</b> is required.,
 data_package_id_01,Data Package ID,Data Package ID,ERROR,REQUIRED,A <b>Data Package ID</b> is required.,
+data_package_id_02,Data Package ID,Data Package ID,WARNING,RECOMMENDED,The <b>Data Package ID</b> does not conform to EDI's requirements.

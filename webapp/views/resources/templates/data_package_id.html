@@ -8,11 +8,30 @@
 
     <h2>Data Package ID</h2>
 {#    <div class="row">#}
-        <div class="col-md-8">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
-                <h5>Enter the data package ID, if you have one:</h5>
+
+                A <b>Data Package ID</b> is required. The particular form and value of the Data Package ID is determined by the data repository where the data package will be published.
+                <p></p>
+                In EDI’s data repository, Data Package IDs must be reserved ahead of time. To reserve an ID, <a href="https://portal.edirepository.org/nis/login.jsp">login</a> to
+                the repository and select "Data Package Identifier Reservations" under the "Tools" menu. Select “Reserve Next Available Identifier(s)” and an ID
+                will be returned.
+                <p></p>
+
+                The provided ID will be of the form "edi.100.1". The last segment is a “revision” number specifying the version
+                of the data package you are now publishing (e.g., “edi.100<span style="color:red">.1</span>”). Future updates to this data package will require new revision
+                values (e.g., “edi.100<span style="color:red">.2</span>”, “edi.100<span style="color:red">.3</span>”, etc.).
+                <p></p>
+                Please contact <a href="mailto:info@environmentaldatainitiative.org">info@environmentaldatainitiative.org</a> with questions or to
+                obtain a login account with EDI.
+                <p></p>
+                For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
+                <p>&nbsp;</p>
+                <p></p>
+
+                <h5>Enter the data package ID:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.data_package_id, size=100) }}</td>
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_data_package_id_btn) }}</td>

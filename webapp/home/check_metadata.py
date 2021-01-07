@@ -129,14 +129,33 @@ def check_dataset_title(eml_node, filename):
         add_to_evaluation('title_02', link)
 
 
+def check_id_for_EDI(package_id):
+    try:
+        scope, identifier, revision = package_id.split('.')
+        if len(scope) != 3:
+            raise ValueError
+        identifier = int(identifier)
+        revision = int(revision)
+    except ValueError:
+        return False
+    return True
+
+
 def check_data_package_id(eml_node, filename):
     link = url_for(PAGE_DATA_PACKAGE_ID, filename=filename)
     validation_errs = validate_via_metapype(eml_node)
     errs_found = find_err_code(validation_errs, ValidationError.ATTRIBUTE_REQUIRED, 'eml')
+    err_found = False
     for err in errs_found:
         errcode, msg, node, attribute = err
         if attribute == 'packageId':
+            err_found = True
             add_to_evaluation('data_package_id_01', link)
+    if not err_found:
+        # check if data package ID has correct form for EDI data repository
+        data_package_id = eml_node.attribute_value("packageId")
+        if not check_id_for_EDI(data_package_id):
+            add_to_evaluation('data_package_id_02', link)
 
 
 def check_responsible_party(rp_node:Node, section:str=None, item:str=None,

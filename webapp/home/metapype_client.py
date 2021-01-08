@@ -105,11 +105,12 @@ def list_data_packages(flag_current=False, include_current=True):
 def post_process_text_type_node(text_node:Node=None):
     if not text_node:
         return
+    text_node.children = []
     content = remove_paragraph_tags(text_node.content)
     if '\n' not in content:
-        return
-    text_node.children = []
-    paras = content.split('\n')
+        paras = [content]
+    else:
+        paras = content.split('\n')
     for para in paras:
         para_node = new_child_node(names.PARA, text_node)
         para_node.content = para
@@ -132,7 +133,6 @@ def add_paragraph_tags(s):
     if s:
         ps = escape(s)
         ps = '\n<para>' + ps.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
-        # return ps.replace('<para></para>\n', '')
         return ps
     else:
         return ''

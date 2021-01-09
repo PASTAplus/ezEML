@@ -107,14 +107,18 @@ def post_process_text_type_node(text_node:Node=None):
         return
     text_node.children = []
     content = remove_paragraph_tags(text_node.content)
-    if '\n' not in content:
-        paras = [content]
+    paras = []
+    if content:
+        if '\n' not in content:
+            paras = [content]
+        else:
+            paras = content.split('\n')
+        for para in paras:
+            para_node = new_child_node(names.PARA, text_node)
+            para_node.content = para
+        text_node.content = None
     else:
-        paras = content.split('\n')
-    for para in paras:
-        para_node = new_child_node(names.PARA, text_node)
-        para_node.content = para
-    text_node.content = None
+        text_node.content = content
 
 
 def display_text_type_node(text_node:Node=None) -> str:
@@ -1675,7 +1679,7 @@ def create_abstract(filename:str=None, abstract:str=None):
         dataset_node = new_child_node(names.DATASET, parent=eml_node)
         abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
 
-    abstract_node.content = abstract
+    abstract_node.content = add_paragraph_tags(abstract)
     post_process_text_type_node(abstract_node)
 
     try:
@@ -2286,11 +2290,8 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
         description_node = new_child_node(names.DESCRIPTION, parent=method_step_node)
 
         if description:
-            # para_node = Node(names.PARA, parent=description_node)
-            # add_child(description_node, para_node)
-            # para_node.content = description
-            # For now, we're assuming that the content already has para tags.
-            description_node.content = description
+            description_node.content = add_paragraph_tags(description)
+            post_process_text_type_node(description_node)
 
         if instrumentation:
             instrumentation_node = new_child_node(names.INSTRUMENTATION, parent=method_step_node)

@@ -251,7 +251,7 @@ def abstract(filename=None):
 
         if form.validate_on_submit():
             if is_dirty_form(form):
-                abstract = add_paragraph_tags(form.abstract.data)
+                abstract = form.abstract.data
                 create_abstract(filename=filename, abstract=abstract)
             return redirect(url_for(new_page, filename=filename))
 

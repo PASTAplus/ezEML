@@ -12,7 +12,8 @@ from webapp.home.metapype_client import (
     load_eml, save_both_formats,
     add_child, remove_child,
     UP_ARROW, DOWN_ARROW,
-    add_paragraph_tags, remove_paragraph_tags
+    add_paragraph_tags, remove_paragraph_tags,
+    display_text_type_node
 )
 
 from webapp.views.method_steps.forms import (
@@ -170,7 +171,7 @@ def method_step(filename=None, node_id=None):
             submit_type = 'Save Changes'
 
         if submit_type == 'Save Changes':
-            description = add_paragraph_tags(form.description.data)
+            description = form.description.data
             instrumentation = form.instrumentation.data
             method_step_node = Node(names.METHODSTEP, parent=methods_node)
             create_method_step(method_step_node, description, instrumentation)
@@ -216,22 +217,13 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
     if ms_node:
         description_node = ms_node.find_child(names.DESCRIPTION)
         if description_node:
-            if description_node.content:
-                description = description_node.content
-            else:
-                section_node = description_node.find_child(names.SECTION)
-                if section_node:
-                    description = remove_paragraph_tags(section_node.content)
-                else:
-                    para_node = description_node.find_child(names.PARA)
-                    if para_node:
-                        description = para_node.content
+            description = display_text_type_node(description_node)
 
         instrumentation_node = ms_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node:
             instrumentation = instrumentation_node.content
 
-        form.description.data = remove_paragraph_tags(description)
+        form.description.data = description
         form.instrumentation.data = instrumentation
     form.md5.data = form_md5(form)
 

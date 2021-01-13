@@ -32,7 +32,7 @@ attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable
 attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical variables
 attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables
 methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,
-methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a  <b>Description</b>.,
+methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,
 project_01,Project,Project Title,ERROR,REQUIRED,The <b>Project Title</b> is required.,
 project_02,Project,Project Personnel,ERROR,REQUIRED,At least one <b>Project Personnel</b> is required.,
 project_03,Project,Project,WARNING,RECOMMENDED,A dataset should define a <b>Project</b>.,

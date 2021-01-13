@@ -588,8 +588,7 @@ def format_output(evaluation):
     return output
 
 
-def check_eml(filename:str):
-    # global evaluation, metapype_validation_errs, metapype_evaluation
+def perform_evaluation(filename:str):
     global evaluation
     evaluation = []
 
@@ -611,8 +610,26 @@ def check_eml(filename:str):
     check_project(eml_node, filename)
     check_other_entities(eml_node, filename)
     check_data_package_id(eml_node, filename)
+    
+    return evaluation
 
-    return format_output(evaluation)
+
+def check_metadata_status(filename:str):
+    evaluations = perform_evaluation(filename)
+    errors = 0
+    warnings = 0
+    for entry in evaluations:
+        _, _, severity, _, _, _ = entry
+        if severity == EvalSeverity.ERROR:
+            errors += 1
+        if severity == EvalSeverity.WARNING:
+            warnings += 1
+    return errors, warnings
+
+
+def check_eml(filename:str):
+    evaluations = perform_evaluation(filename)
+    return format_output(evaluations)
 
 
 def validate_via_metapype(node):

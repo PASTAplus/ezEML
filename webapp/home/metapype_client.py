@@ -40,6 +40,8 @@ from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io
 
+from webapp.home.check_metadata import check_metadata_status
+
 
 if Config.LOG_DEBUG:
     app = Flask(__name__)
@@ -883,6 +885,8 @@ def load_eml(filename:str=None):
                 with app.app_context():
                     current_app.logger.info(f'e = {repr(e)}')
 
+    if eml_node:
+        get_check_metadata_status(eml_node, filename)
     return eml_node
 
 
@@ -986,9 +990,21 @@ def clean_model(eml_node):
             taxonomic_coverage_node.parent.remove_child(taxonomic_coverage_node)
 
 
+def get_check_metadata_status(eml_node:Node=None, filename:str=None):
+    errors, warnings = check_metadata_status(eml_node, filename)
+    if errors > 0:
+        status = "red"
+    elif warnings > 0:
+        status = "yellow"
+    else:
+        status = "green"
+    session["check_metadata_status"] = status
+
+
 def save_both_formats(filename:str=None, eml_node:Node=None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
+    get_check_metadata_status(eml_node, filename)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
 

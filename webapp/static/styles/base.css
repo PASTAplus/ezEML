@@ -32,3 +32,34 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.red_circle {
+    display:inline-block;
+    background-color:red;
+    border:1px solid red;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:8px;
+    height:8px;
+}
+.yellow_circle {
+    display:inline-block;
+    background-color:orange;
+    border:1px solid orange;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:8px;
+    height:8px;
+}
+.green_circle {
+    display:inline-block;
+    background-color:mediumseagreen;
+    border:1px solid mediumseagreen;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:8px;
+    height:8px;
+}

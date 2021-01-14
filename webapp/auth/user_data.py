@@ -14,6 +14,8 @@
 """
 import json
 import os
+import os.path
+from pathlib import Path
 import pickle
 
 import daiquiri
@@ -47,6 +49,7 @@ def get_user_uploads_folder_name():
 
 def get_document_uploads_folder_name():
     document_uploads_folder = os.path.join(get_user_uploads_folder_name(), get_active_document())
+    Path(document_uploads_folder).mkdir(parents=True, exist_ok=True)
     return document_uploads_folder
 
 

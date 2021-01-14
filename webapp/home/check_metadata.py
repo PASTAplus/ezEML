@@ -25,12 +25,13 @@ from metapype.eml.validation_errors import ValidationError
 import metapype.eml.evaluate as evaluate
 from metapype.eml.evaluation_warnings import EvaluationWarning
 from metapype.model.node import Node
-from webapp.home.metapype_client import load_eml, VariableType
+import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
 from webapp.auth.user_data import (
     get_document_uploads_folder_name
 )
-from webapp.home.load_data_table import get_md5_hash
+# from webapp.home.load_data_table import get_md5_hash
+import webapp.home.load_data_table as load_data_table
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -288,21 +289,21 @@ def get_attribute_type(attrib_node:Node):
     if nominal_node:
         enumerated_domain_node = nominal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.ENUMERATEDDOMAIN])
         if enumerated_domain_node:
-            return VariableType.CATEGORICAL
+            return metapype_client.VariableType.CATEGORICAL
         text_domain_node = nominal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.TEXTDOMAIN])
         if text_domain_node:
-            return VariableType.TEXT
+            return metapype_client.VariableType.TEXT
     ratio_node = mscale_node.find_child(names.RATIO)
     if ratio_node:
-        return VariableType.NUMERICAL
+        return metapype_client.VariableType.NUMERICAL
     datetime_node = mscale_node.find_child(names.DATETIME)
     if datetime_node:
-        return VariableType.DATETIME
+        return metapype_client.VariableType.DATETIME
     return None
 
 
 def generate_code_definition_errs(eml_node, filename, err_code, errs_found):
-    mscale = VariableType.CATEGORICAL
+    mscale = metapype_client.VariableType.CATEGORICAL
     for err in errs_found:
         err_node = err[2]
         code_definition_node = err_node.parent
@@ -321,18 +322,18 @@ def generate_code_definition_errs(eml_node, filename, err_code, errs_found):
 def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     attr_type = get_attribute_type(attrib_node)
     mscale = None
-    if attr_type == VariableType.CATEGORICAL:
+    if attr_type == metapype_client.VariableType.CATEGORICAL:
         page = PAGE_ATTRIBUTE_CATEGORICAL
-        mscale = VariableType.CATEGORICAL.name
-    elif attr_type == VariableType.NUMERICAL:
+        mscale = metapype_client.VariableType.CATEGORICAL.name
+    elif attr_type == metapype_client.VariableType.NUMERICAL:
         page = PAGE_ATTRIBUTE_NUMERICAL
-        mscale = VariableType.NUMERICAL.name
-    elif attr_type == VariableType.TEXT:
+        mscale = metapype_client.VariableType.NUMERICAL.name
+    elif attr_type == metapype_client.VariableType.TEXT:
         page = PAGE_ATTRIBUTE_TEXT
-        mscale = VariableType.TEXT.name
-    elif attr_type == VariableType.DATETIME:
+        mscale = metapype_client.VariableType.TEXT.name
+    elif attr_type == metapype_client.VariableType.DATETIME:
         page = PAGE_ATTRIBUTE_DATETIME
-        mscale = VariableType.DATETIME.name
+        mscale = metapype_client.VariableType.DATETIME.name
     link = url_for(page, filename=filename, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
 
     validation_errs = validate_via_metapype(attrib_node)
@@ -340,7 +341,7 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
         add_to_evaluation('attributes_01', link)
 
     # Categorical
-    if attr_type == VariableType.CATEGORICAL:
+    if attr_type == metapype_client.VariableType.CATEGORICAL:
         if find_min_unmet(validation_errs, names.ENUMERATEDDOMAIN, names.CODEDEFINITION):
             add_to_evaluation('attributes_04', link)
         found = find_content_empty(validation_errs, names.CODE)
@@ -351,14 +352,14 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
             generate_code_definition_errs(eml_node, filename, 'attributes_06', found)
 
     # Numerical
-    if attr_type == VariableType.NUMERICAL:
+    if attr_type == metapype_client.VariableType.NUMERICAL:
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
             add_to_evaluation('attributes_02', link)
         if find_min_unmet_for_list(validation_errs, names.UNIT, [names.STANDARDUNIT, names.CUSTOMUNIT]):
             add_to_evaluation('attributes_02', link)
 
     # DateTime
-    if attr_type == VariableType.DATETIME:
+    if attr_type == metapype_client.VariableType.DATETIME:
         if find_content_empty(validation_errs, names.FORMATSTRING):
             add_to_evaluation('attributes_03', link)
 
@@ -369,7 +370,7 @@ def check_data_table_md5_checksum(data_table_node, link):
     uploads_folder = get_document_uploads_folder_name()
     full_path = f'{uploads_folder}/{data_file}'
     try:
-        computed_md5_hash = get_md5_hash(full_path)
+        computed_md5_hash = load_data_table.get_md5_hash(full_path)
     except FileNotFoundError:
         add_to_evaluation('data_table_07', link)
         return
@@ -588,11 +589,9 @@ def format_output(evaluation):
     return output
 
 
-def perform_evaluation(filename:str):
+def perform_evaluation(eml_node, filename):
     global evaluation
     evaluation = []
-
-    eml_node = load_eml(filename)
 
     check_dataset_title(eml_node, filename)
     check_data_tables(eml_node, filename)
@@ -614,8 +613,8 @@ def perform_evaluation(filename:str):
     return evaluation
 
 
-def check_metadata_status(filename:str):
-    evaluations = perform_evaluation(filename)
+def check_metadata_status(eml_node, filename):
+    evaluations = perform_evaluation(eml_node, filename)
     errors = 0
     warnings = 0
     for entry in evaluations:
@@ -627,8 +626,8 @@ def check_metadata_status(filename:str):
     return errors, warnings
 
 
-def check_eml(filename:str):
-    evaluations = perform_evaluation(filename)
+def check_eml(eml_node, filename):
+    evaluations = perform_evaluation(eml_node, filename)
     return format_output(evaluations)
 
 

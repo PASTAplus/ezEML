@@ -105,6 +105,11 @@ def debug_None(x, msg):
 
 
 @home.before_app_first_request
+def init_session_vars():
+    session["check_metadata_status"] = "green"
+
+
+@home.before_app_first_request
 def fixup_upload_management():
     if not current_user.is_authenticated:
         return
@@ -450,7 +455,11 @@ def download():
 @login_required
 def check_metadata(filename:str):
     current_document = get_active_document()
-    content = check_eml(current_document)
+    if not current_document:
+        raise FileNotFoundError
+    eml_node = load_eml(filename=current_document)
+    content = check_eml(eml_node, filename)
+
     # Process POST
     if request.method == 'POST':
         # return render_template(PAGE_CHECK, filename=filename)

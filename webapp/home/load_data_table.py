@@ -22,11 +22,9 @@ import time
 from metapype.eml import names
 from metapype.model.node import Node
 
-from webapp.home.metapype_client import ( 
-    add_child, new_child_node, VariableType
-)
+import webapp.home.metapype_client as metapype_client
 
-from flask import Flask, flash, session, current_app
+from flask import Flask, current_app
 
 from webapp.config import Config
 
@@ -133,23 +131,23 @@ def infer_col_type(data_frame, col):
     # heuristic to distinguish categorical from text and numeric
     is_categorical = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
     if is_categorical:
-        col_type = VariableType.CATEGORICAL
+        col_type = metapype_client.VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)
     else:
         dtype = data_frame[col][1:].infer_objects().dtype
         if dtype == object:
             if is_datetime(data_frame, col):
-                return VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
+                return metapype_client.VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
             else:
-                col_type = VariableType.TEXT
+                col_type = metapype_client.VariableType.TEXT
         else:
-            col_type = VariableType.NUMERICAL
+            col_type = metapype_client.VariableType.NUMERICAL
 
     # does it look like a date?
     lc_col = col.lower()
     if (
         ('year' in lc_col or 'date' in lc_col)
-        and col_type == VariableType.CATEGORICAL
+        and col_type == metapype_client.VariableType.CATEGORICAL
         and is_datetime(data_frame, col)
     ):
         # make sure we don't just have numerical codes that are incorrectly being treated as years
@@ -165,7 +163,7 @@ def infer_col_type(data_frame, col):
                 pass
 
         if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
-            return VariableType.DATETIME, 'YYYY'
+            return metapype_client.VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
 
@@ -180,62 +178,61 @@ def load_data_table(uploads_path:str=None, data_file:str='',
 
     full_path = f'{uploads_path}/{data_file}'
 
-    # datatable_node = new_child_node(names.DATATABLE, parent=dataset_node)
-    datatable_node = new_child_node(names.DATATABLE, parent=None)
+    datatable_node = metapype_client.new_child_node(names.DATATABLE, parent=None)
 
-    physical_node = new_child_node(names.PHYSICAL, parent=datatable_node)
+    physical_node = metapype_client.new_child_node(names.PHYSICAL, parent=datatable_node)
     physical_node.add_attribute('system', 'EDI')
 
-    entity_name_node = new_child_node(names.ENTITYNAME, parent=datatable_node)
+    entity_name_node = metapype_client.new_child_node(names.ENTITYNAME, parent=datatable_node)
     entity_name = entity_name_from_data_file(data_file)
     entity_name_node.content = entity_name
 
-    object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
+    object_name_node = metapype_client.new_child_node(names.OBJECTNAME, parent=physical_node)
     object_name_node.content = data_file
 
     file_size = get_file_size(full_path)
     if file_size is not None:
-        size_node = new_child_node(names.SIZE, physical_node)
+        size_node = metapype_client.new_child_node(names.SIZE, physical_node)
         size_node.add_attribute('unit', 'byte')
         size_node.content = str(file_size)
 
     md5_hash = get_md5_hash(full_path)
     if md5_hash is not None:
         hash_node = Node(names.AUTHENTICATION, parent=physical_node)
-        add_child(physical_node, hash_node)
+        metapype_client.add_child(physical_node, hash_node)
         hash_node.add_attribute('method', 'MD5')
         hash_node.content = str(md5_hash)
 
     data_format_node = Node(names.DATAFORMAT, parent=physical_node)
-    add_child(physical_node, data_format_node)
+    metapype_client.add_child(physical_node, data_format_node)
 
     text_format_node = Node(names.TEXTFORMAT, parent=data_format_node)
-    add_child(data_format_node, text_format_node)
+    metapype_client.add_child(data_format_node, text_format_node)
 
     num_header_lines_node = Node(names.NUMHEADERLINES, parent=text_format_node)
-    add_child(text_format_node, num_header_lines_node)
+    metapype_client.add_child(text_format_node, num_header_lines_node)
     num_header_lines_node.content = num_header_rows
 
     num_footer_lines_node = Node(names.NUMFOOTERLINES, parent=text_format_node)
-    add_child(text_format_node, num_footer_lines_node)
+    metapype_client.add_child(text_format_node, num_footer_lines_node)
     num_footer_lines_node.content = '0'
 
     simple_delimited_node = Node(names.SIMPLEDELIMITED, parent=text_format_node)
-    add_child(text_format_node, simple_delimited_node)
+    metapype_client.add_child(text_format_node, simple_delimited_node)
 
     field_delimiter_node = Node(names.FIELDDELIMITER, parent=simple_delimited_node)
-    add_child(simple_delimited_node, field_delimiter_node)
+    metapype_client.add_child(simple_delimited_node, field_delimiter_node)
     field_delimiter_node.content = delimiter
 
     quote_character_node = Node(names.QUOTECHARACTER, parent=simple_delimited_node)
-    add_child(simple_delimited_node, quote_character_node)
+    metapype_client.add_child(simple_delimited_node, quote_character_node)
     quote_character_node.content = quote_char
 
     with open(full_path) as file:
         next(file)
         line_terminator = repr(file.newlines).replace("'", "")
     record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
-    add_child(text_format_node, record_delimiter_node)
+    metapype_client.add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
     data_frame = pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
@@ -247,13 +244,13 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     if data_frame is not None:
 
         number_of_records = Node(names.NUMBEROFRECORDS, parent=datatable_node)
-        add_child(datatable_node, number_of_records)
+        metapype_client.add_child(datatable_node, number_of_records)
         row_count = data_frame.shape[0]
         record_count = row_count
         number_of_records.content = f'{record_count}'
 
         attribute_list_node = Node(names.ATTRIBUTELIST, parent=datatable_node)
-        add_child(datatable_node, attribute_list_node)
+        metapype_client.add_child(datatable_node, attribute_list_node)
 
         columns = data_frame.columns
 
@@ -266,58 +263,58 @@ def load_data_table(uploads_path:str=None, data_file:str='',
             column_names.append(col)
             column_categorical_codes.append(codes)
 
-            attribute_node = new_child_node(names.ATTRIBUTE, attribute_list_node)
-            attribute_name_node = new_child_node(names.ATTRIBUTENAME, attribute_node)
+            attribute_node = metapype_client.new_child_node(names.ATTRIBUTE, attribute_list_node)
+            attribute_name_node = metapype_client.new_child_node(names.ATTRIBUTENAME, attribute_node)
             attribute_name_node.content = col
         
             att_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
-            add_child(attribute_node, att_label_node)
+            metapype_client.add_child(attribute_node, att_label_node)
             att_label_node.content = col
         
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
-            add_child(attribute_node, att_def_node)
+            metapype_client.add_child(attribute_node, att_def_node)
 
             ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
-            add_child(attribute_node, ms_node)
+            metapype_client.add_child(attribute_node, ms_node)
 
-            if var_type == VariableType.CATEGORICAL:
+            if var_type == metapype_client.VariableType.CATEGORICAL:
                 # nominal / nonNumericDomain / enumeratedDomain / ...codes...
-                nominal_node = new_child_node(names.NOMINAL, ms_node)
-                non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
-                enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
+                nominal_node = metapype_client.new_child_node(names.NOMINAL, ms_node)
+                non_numeric_domain_node = metapype_client.new_child_node(names.NONNUMERICDOMAIN, nominal_node)
+                enumerated_domain_node = metapype_client.new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
 
                 for code in codes:
-                    code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
-                    code_node = new_child_node(names.CODE, code_definition_node)
+                    code_definition_node = metapype_client.new_child_node(names.CODEDEFINITION, enumerated_domain_node)
+                    code_node = metapype_client.new_child_node(names.CODE, code_definition_node)
                     code_node.content = code
-                    definition_node = new_child_node(names.DEFINITION, code_definition_node)
+                    definition_node = metapype_client.new_child_node(names.DEFINITION, code_definition_node)
 
-            elif var_type == VariableType.NUMERICAL:
+            elif var_type == metapype_client.VariableType.NUMERICAL:
                 # ratio / numericDomain
-                ratio_node = new_child_node(names.RATIO, ms_node)
-                numeric_domain_node = new_child_node(names.NUMERICDOMAIN, ratio_node)
+                ratio_node = metapype_client.new_child_node(names.RATIO, ms_node)
+                numeric_domain_node = metapype_client.new_child_node(names.NUMERICDOMAIN, ratio_node)
                 number_type = 'real'
                 if str(dtype).startswith('int'):  # FIXME - we can do better than this
                     number_type = 'integer'
-                number_type_node = new_child_node(names.NUMBERTYPE, numeric_domain_node)
+                number_type_node = metapype_client.new_child_node(names.NUMBERTYPE, numeric_domain_node)
                 number_type_node.content = number_type
-                numeric_domain_node = new_child_node(names.UNIT, ratio_node)
+                numeric_domain_node = metapype_client.new_child_node(names.UNIT, ratio_node)
 
-            elif var_type == VariableType.TEXT:
+            elif var_type == metapype_client.VariableType.TEXT:
                 # nominal / nonNumericDomain / textDomain
-                nominal_node = new_child_node(names.NOMINAL, ms_node)
-                non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
-                text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
-                definition_node = new_child_node(names.DEFINITION, text_domain_node)
+                nominal_node = metapype_client.new_child_node(names.NOMINAL, ms_node)
+                non_numeric_domain_node = metapype_client.new_child_node(names.NONNUMERICDOMAIN, nominal_node)
+                text_domain_node = metapype_client.new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
+                definition_node = metapype_client.new_child_node(names.DEFINITION, text_domain_node)
 
-            elif var_type == VariableType.DATETIME:
+            elif var_type == metapype_client.VariableType.DATETIME:
                 # dateTime / formatString
                 datetime_node = Node(names.DATETIME, parent=ms_node)
-                add_child(ms_node, datetime_node)
+                metapype_client.add_child(ms_node, datetime_node)
 
                 format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
-                add_child(datetime_node, format_string_node)
+                metapype_client.add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
 
     if Config.LOG_DEBUG:
@@ -338,20 +335,20 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
     else:
         other_entity_node = Node(names.OTHERENTITY, parent=dataset_node)
-        add_child(dataset_node, other_entity_node)
+        metapype_client.add_child(dataset_node, other_entity_node)
 
         physical_node = Node(names.PHYSICAL, parent=other_entity_node)
-        add_child(other_entity_node, physical_node)
+        metapype_client.add_child(other_entity_node, physical_node)
         physical_node.add_attribute('system', 'EDI')
 
         entity_name_node = Node(names.ENTITYNAME, parent=other_entity_node)
-        add_child(other_entity_node, entity_name_node)
+        metapype_client.add_child(other_entity_node, entity_name_node)
 
         entity_name = entity_name_from_data_file(data_file)
         entity_name_node.content = entity_name
 
         object_name_node = Node(names.OBJECTNAME, parent=physical_node)
-        add_child(physical_node, object_name_node)
+        metapype_client.add_child(physical_node, object_name_node)
 
     object_name_node.content = data_file
 
@@ -359,7 +356,7 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     if file_size is not None:
         if not doing_reupload:
             size_node = Node(names.SIZE, parent=physical_node)
-            add_child(physical_node, size_node)
+            metapype_client.add_child(physical_node, size_node)
             size_node.add_attribute('unit', 'byte')
         else:
             size_node = other_entity_node.find_descendant(names.SIZE)
@@ -370,7 +367,7 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     if md5_hash is not None:
         if not doing_reupload:
             hash_node = Node(names.AUTHENTICATION, parent=physical_node)
-            add_child(physical_node, hash_node)
+            metapype_client.add_child(physical_node, hash_node)
             hash_node.add_attribute('method', 'MD5')
         else:
             hash_node = other_entity_node.find_descendant(names.AUTHENTICATION)
@@ -379,20 +376,20 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
 
     if not doing_reupload:
         data_format_node = Node(names.DATAFORMAT, parent=physical_node)
-        add_child(physical_node, data_format_node)
+        metapype_client.add_child(physical_node, data_format_node)
 
         externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
-        add_child(data_format_node, externally_defined_format_node)
+        metapype_client.add_child(data_format_node, externally_defined_format_node)
 
         format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
-        add_child(externally_defined_format_node, format_name_node)
+        metapype_client.add_child(externally_defined_format_node, format_name_node)
     else:
         format_name_node = other_entity_node.find_descendant(names.FORMATNAME)
 
     format_name_node.content = format_name_from_data_file(data_file)
 
     if not doing_reupload:
-        entity_type_node = new_child_node(names.ENTITYTYPE, parent=other_entity_node)
+        entity_type_node = metapype_client.new_child_node(names.ENTITYTYPE, parent=other_entity_node)
     else:
         entity_type_node = other_entity_node.find_descendant(names.ENTITYTYPE)
 

@@ -300,7 +300,9 @@
         <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
         <a class="nav_link" style={{ data_package_id_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a><br>
+        <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
+            <div class="{{ session['check_metadata_status'] }}_circle nav_link" style="{{ check_metadata_style }}"></div>
+            <br>
         <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>
         <a class="nav_link" style={{ export_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.export_package') }}" title="Edit">Export Data Package</a><br>
         <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Submit to EDI</a><br>

@@ -25,7 +25,7 @@
 {#                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="{{ cd_entry.upval }}"/></td>#}
 {#                        <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="{{ cd_entry.downval }}"/></td>#}
                         <td><input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="Edit"/>
-                            <input class="btn btn-primary" name="{{ cd_entry.id }}" type="submit" value="Remove"/></td>
+                            <input class="btn btn-primary" onclick="return confirm('Are you sure?');" name="{{ cd_entry.id }}" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>

@@ -1749,7 +1749,7 @@ def clone_attributes_2(target_filename, target_dt_id, source_filename):
     target_object_name = target_dt_node.find_descendant(names.OBJECTNAME).content
 
     source_eml_node = load_eml(source_filename)
-    source_data_tables = list_data_tables(source_eml_node, to_skip=target_object_name)
+    source_data_tables = list_data_tables(source_eml_node, to_skip=target_dt_id) # we don't want to clone a DT onto itself
 
     choices = [[data_table[0], data_table[1]] for data_table in source_data_tables]
     form.source.choices = choices

@@ -202,9 +202,9 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
                  rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
-                label, object_name = compose_entity_label(dt_node)
-                if to_skip and object_name == to_skip:
+                if to_skip and id == to_skip:
                     continue
+                label, object_name = compose_entity_label(dt_node)
                 was_uploaded = data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))

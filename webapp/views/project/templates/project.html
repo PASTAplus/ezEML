@@ -19,8 +19,6 @@
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                {{ form.csrf_token }}
-                {{ wtf.form_field(form.md5) }}
                 <h5>Enter the project information below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.title, size=100) }}</td>
@@ -42,6 +40,8 @@
                 {% endif %}
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
             </form>
         </div>
     </div>

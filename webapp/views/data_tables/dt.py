@@ -10,14 +10,17 @@ from flask_login import (
 
 from webapp.config import Config
 
-from webapp.home.views import process_up_button, process_down_button, set_current_page
+from webapp.home.views import (
+    process_up_button, process_down_button,
+    backup_metadata, set_current_page
+)
 
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
     AttributeMeasurementScaleForm, AttributeCategoricalForm,
     AttributeSelectForm, AttributeTextForm,
     CodeDefinitionForm, CodeDefinitionSelectForm,
-    DataTableForm, DataTableSelectForm, SelectDataTableForm
+    DataTableForm, DataTableSelectForm, SelectDataTableForm, SelectDataTableColumnsForm
 )
 
 from webapp.home.forms import (
@@ -27,7 +30,7 @@ from webapp.home.forms import (
 
 from webapp.home.metapype_client import (
     load_eml, save_both_formats, new_child_node, add_child, remove_child,
-    create_data_table, list_data_packages, list_data_tables, list_attributes,
+    create_data_table, list_data_packages, list_data_tables, list_data_table_columns, list_attributes,
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
@@ -72,6 +75,7 @@ def data_table_select(filename=None):
         return redirect(url)
 
     # Process GET
+    eml_node = load_eml(filename=filename)
     eml_node = load_eml(filename=filename)
     dt_list = list_data_tables(eml_node)
     title = 'Data Tables'
@@ -269,7 +273,8 @@ def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
         'data_table_quote_character',
         'data_table_case_sensitive',
         'data_table_number_of_records',
-        'data_table_online_url'
+        'data_table_online_url',
+        'clone_attributes_general'
     ])
     return render_template('data_table.html', title='Data Table', form=form,
                            atts=atts, help=help, was_uploaded=was_uploaded)
@@ -1709,9 +1714,12 @@ def populate_code_definition_form(form: CodeDefinitionForm, cd_node: Node):
     form.md5.data = form_md5(form)
 
 
-@dt_bp.route('/clone_attributes', methods=['GET', 'POST'])
+@dt_bp.route('/clone_attributes/<filename>/<dt_node_id>/', methods=['GET', 'POST'])
 @login_required
-def clone_attributes():
+def clone_attributes(filename, dt_node_id):
+    target_filename = filename
+    target_dt_id = dt_node_id
+
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(True, True)
 
@@ -1721,21 +1729,24 @@ def clone_attributes():
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('dt.clone_attributes_2', filename=filename))
+            source_filename = form.filename.data
+            return redirect(url_for('dt.clone_attributes_2', target_filename=target_filename, target_dt_id=target_dt_id, source_filename=source_filename))
 
     # Process GET
-    help = get_helps(['import_responsible_parties'])
-    return render_template('clone_attributes.html', help=help, form=form)
+    help = get_helps(['clone_attributes_1'])
+    return render_template('clone_attributes.html', filename=filename, dt_id=dt_node_id, help=help, form=form)
 
 
-@dt_bp.route('/clone_attributes_2/<filename>/', methods=['GET', 'POST'])
+@dt_bp.route('/clone_attributes_2/<target_filename>/<target_dt_id>/<source_filename>/', methods=['GET', 'POST'])
 @login_required
-def clone_attributes_2(filename):
+def clone_attributes_2(target_filename, target_dt_id, source_filename):
     form = SelectDataTableForm()
 
-    source_eml_node = load_eml(filename)
-    source_data_tables = list_data_tables(source_eml_node)
+    target_dt_node = Node.get_node_instance(target_dt_id)
+    target_object_name = target_dt_node.find_descendant(names.OBJECTNAME).content
+
+    source_eml_node = load_eml(source_filename)
+    source_data_tables = list_data_tables(source_eml_node, to_skip=target_object_name)
 
     choices = [[data_table[0], data_table[1]] for data_table in source_data_tables]
     form.source.choices = choices
@@ -1746,23 +1757,128 @@ def clone_attributes_2(filename):
 
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        source_data_table_id = form_dict['source']
-        help = get_helps(['import_responsible_parties_2'])
-        return redirect(url_for('dt.clone_attributes_3', filename=filename, dt_id=source_data_table_id, help=help, form=form))
+        source_dt_id = form_dict['source'][0]
+        help = get_helps(['clone_attributes_3'])
+
+        source_dt_node = Node.get_node_instance(source_dt_id)
+        source_dt_name_node = source_dt_node.find_descendant(names.ENTITYNAME)
+        table_name_in = source_dt_name_node.content
+
+        target_dt_node = Node.get_node_instance(target_dt_id)
+        target_dt_name_node = target_dt_node.find_descendant(names.ENTITYNAME)
+        table_name_out = target_dt_name_node.content
+
+        return redirect(url_for('dt.clone_attributes_3', target_filename=target_filename, target_dt_id=target_dt_id,
+                                source_filename=source_filename, source_dt_id=source_dt_id,
+                                table_name_in=table_name_in, table_name_out=table_name_out,
+                                help=help, form=form))
 
     # Process GET
-    help = get_helps(['import_responsible_parties_2'])
-    return render_template('clone_attributes_2.html', target_filename=filename, help=help, form=form)
+    help = get_helps(['clone_attributes_2'])
+    return render_template('clone_attributes_2.html', target_filename=target_filename, target_dt_id=target_dt_id, source_filename=source_filename, help=help, form=form)
 
 
-@dt_bp.route('/clone_attributes_3/<filename>/<dt_id>', methods=['GET', 'POST'])
+@dt_bp.route('/clone_attributes_3/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>', methods=['GET', 'POST'])
 @login_required
-def clone_attributes_3(filename, dt_id):
-    form = SelectDataTableForm()
+def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out):
+    form = SelectDataTableColumnsForm()
+
+    source_eml_node = load_eml(source_filename)
+    source_dt_node = Node.get_node_instance(source_dt_id)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    # if request.method == 'POST' and form.validate_on_submit():
+    if request.method == 'POST':
+
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        source_attr_ids = form_dict.get('source', None)
+
+        if source_attr_ids: # If no option was selected, we'll fall thru and go the GET again
+
+            help = get_helps(['import_responsible_parties_2'])  # FIX_ME
+            return redirect(url_for('dt.clone_attributes_4', target_filename=target_filename, target_dt_id=target_dt_id,
+                                    source_filename=source_filename, source_dt_id=source_dt_id,
+                                    table_name_in=table_name_in, table_name_out=table_name_out,
+                                    source_attr_ids=source_attr_ids,
+                                    help=help, form=form))
+
     # Process GET
-    help = get_helps(['import_responsible_parties_2'])
-    return render_template('clone_attributes_3.html', filename=filename, dt_id=dt_id, help=help, form=form)
+    help = get_helps(['clone_attributes_3'])
+
+    source_dt_node = Node.get_node_instance(source_dt_id)
+    source_data_table_columns = list_data_table_columns(source_dt_node)
+
+    choices = [[source_data_table_column[0], source_data_table_column[1]] for source_data_table_column in source_data_table_columns]
+    form.source.choices = choices
+
+    return render_template('clone_attributes_3.html', target_filename=target_filename, target_dt_id=target_dt_id,
+                           source_filename=source_filename, source_dt_id=source_dt_id,
+                           table_name_in=table_name_in, table_name_out=table_name_out,
+                           help=help, form=form)
+
+
+def clone_column_properties(source_table_id, source_attr_ids, target_table_id, target_attr_ids):
+    for source_attr_id, target_attr_id in zip(source_attr_ids, target_attr_ids):
+        source_node = Node.get_node_instance(source_attr_id)
+        source_node_copy = source_node.copy()
+        target_node = Node.get_node_instance(target_attr_id)
+        # We want to preserve the column name
+        target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
+        target_parent = target_node.parent
+        target_parent.replace_child(target_node, source_node_copy, False)  # don't delete the target_node yet because we may need it again
+        source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
+        source_copy_name_node.content = target_name
+    # Now that we're done, we can delete the nodes we've replaced
+    for target_attr_id in target_attr_ids:
+        Node.delete_node_instance(target_attr_id, True)
+
+
+@dt_bp.route('/clone_attributes_4/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>/<source_attr_ids>',
+             methods=['GET', 'POST'])
+@login_required
+def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids):
+    form = SelectDataTableColumnsForm()
+
+    source_attr_ids_list = source_attr_ids.strip('][').split(', ')
+    source_attrs = []
+    for source_attr_id in source_attr_ids_list:
+        id = source_attr_id.replace("'", "")
+        source_attr_name_node = Node.get_node_instance(id)
+        source_attr_name = source_attr_name_node.content
+        source_attr_node = source_attr_name_node.parent
+        source_attrs.append((source_attr_name, source_attr_node.id))
+    target_dt_node = Node.get_node_instance(target_dt_id)
+    target_attrs = []
+    target_dt_attr_nodes = []
+    target_dt_node.find_all_descendants(names.ATTRIBUTE, target_dt_attr_nodes)
+    for target_dt_attr_node in target_dt_attr_nodes:
+        target_attr_name_node = target_dt_attr_node.find_descendant(names.ATTRIBUTENAME)
+        target_attrs.append((target_attr_name_node.content, target_dt_attr_node.id))
+
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        # Save a backup of metadata
+        backup_metadata(target_filename)
+        source_attr_ids = [x[1] for x in source_attrs]
+        target_attr_ids = []
+        for key, val in form_dict.items():
+            if key.startswith('##') and key.endswith('##') and val[0]:
+                target_attr_ids.append(val[0])
+        target_eml_node = load_eml(target_filename)
+        clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)
+        save_both_formats(target_filename, target_eml_node)
+        help = get_helps(['import_responsible_parties_2'])  # FIX_ME
+        return redirect(url_for('dt.data_table_select', filename=target_filename))
+
+
+    help = get_helps(['clone_attributes_4'])
+
+    return render_template('clone_attributes_4.html', target_filename=target_filename, target_dt_id=target_dt_id,
+                           source_filename=source_filename, source_dt_id=source_dt_id,
+                           table_name_in=table_name_in, table_name_out=table_name_out,
+                           source_attrs=source_attrs, target_attrs=target_attrs,
+                           help=help, form=form)

@@ -185,6 +185,9 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
     if find_err_code(evaluation_warnings, EvaluationWarning.ORCID_ID_MISSING, rp_node.name):
         add_to_evaluation('responsible_party_02', link, section, item)
 
+    # Email is recommended
+    if find_err_code(evaluation_warnings, EvaluationWarning.EMAIL_MISSING, rp_node.name):
+        add_to_evaluation('responsible_party_05', link, section, item)
 
 def check_creators(eml_node, filename):
     link = url_for(PAGE_CREATOR_SELECT, filename=filename)

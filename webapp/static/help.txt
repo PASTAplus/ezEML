@@ -159,6 +159,38 @@ All coordinates are typed as decimals. Since all four elements are required, a b
 
 In the case of a data set that comprises all longitudes (e.g., a horizontal band between 2 parallels that fully encompasses the earth), use a West Bounding Coordinate of -180.0 and an eastBoundingCoordinate of 180.0 (or +180.0).
 --------------------
+clone_attributes_general
+Clone Column Properties from Another Data Table
+Suppose you’ve uploaded one data table and filled out its columns’ properties, and then you upload a second data table, and some or all of the second table’s columns have the same properties (except possibly for column name) as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table.
+
+In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package you prepared with ezEML at an earlier time.
+--------------------
+clone_attributes_1
+Clone Column Properties from Another Data Table
+Suppose you’ve uploaded one data table and filled out its columns’ properties, and then you upload a second data table, and some or all of the second table’s columns have the same properties (except possibly for column name) as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table.
+
+In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package you prepared with ezEML at an earlier time.
+
+Begin by selecting the data package that contains the source data table. This may be the current data package or some other one. Then click <b>Open for Cloning</b>.
+--------------------
+clone_attributes_2
+Clone Column Properties from Another Data Table
+Having selected the data package that contains the source data table, the next step is to select the source data table from the list of data tables in the package. Then click <b>Select Data Table</b>.
+--------------------
+clone_attributes_3
+Clone Column Properties
+Having selected the source data table, the next step is to select the particular columns in the source data table whose properties you wish to clone.
+
+Select one or more columns, then click <b>Select Columns</b>.
+--------------------
+clone_attributes_4
+Clone Column Properties
+Having selected the particular columns whose properties you wish to clone, the next step is to match them up with the columns in the target data table that will receive the cloned properties.
+
+For each Source Column, select a Target Column in the target data table, then click <b>Clone Column Properties</b>. Note that the source and target columns do not have to have the same names in the two tables or appear in the same order.
+
+The properties of the source columns will be copied into the target columns, except that the <b>Name</b> of each target column will not be changed.
+--------------------
 contact
 Contact
 At least one <b>Contact</b> is required.

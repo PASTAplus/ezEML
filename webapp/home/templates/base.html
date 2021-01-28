@@ -1,10 +1,14 @@
 {% extends 'bootstrap/base.html' %}
 {% import '_macros.html' as macros %}
 
+{# The following should agree with RELEASE_NUMBER in metapype_client.py #}
+{% set release_number = '2021.01.28' %}
+{% set optional = 'Black' %}
+
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version='2021-01-13') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}

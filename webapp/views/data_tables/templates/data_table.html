@@ -44,6 +44,9 @@
     {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[13] %}
     {% set help_data_table_online_url_btn = help_data_table_online_url_id ~ '_btn' %}
     {% set help_data_table_online_url_dialog = help_data_table_online_url_id ~ '_dialog' %}
+    {% set help_clone_attributes_general_id, help_clone_attributes_general_title, help_clone_attributes_general_content = help[14] %}
+    {% set help_clone_attributes_general_btn = help_clone_attributes_general_id ~ '_btn' %}
+    {% set help_clone_attributes_general_dialog = help_clone_attributes_general_id ~ '_dialog' %}
 
     <table>
         <td><h2>Data Table</h2></td>
@@ -52,8 +55,6 @@
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                {{ form.csrf_token }}
-                {{ wtf.form_field(form.md5) }}
                 <h5>Enter information about the data table object:</h5>
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}
@@ -74,11 +75,15 @@
                 <table>
                 <tr>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.field_delimiter) }}{{ macros.item_end(help_data_table_field_delimiter_btn) }}
+                </span>
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.record_delimiter) }}{{ macros.item_end(help_data_table_record_delimiter_btn) }}
+                </span>
                 </td>
                 </tr>
                 </table>
@@ -86,11 +91,15 @@
                 <table>
                 <tr>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.quote_character) }}{{ macros.item_end(help_data_table_quote_character_btn) }}
+                </span>
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.case_sensitive) }}{{ macros.item_end(help_data_table_case_sensitive_btn) }}
+                </span>
                 </td>
                 </tr>
                 </table>
@@ -98,11 +107,15 @@
                 <table>
                 <tr>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.size) }}{{ macros.item_end(help_data_table_size_btn) }}
+                </span>
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.md5_hash) }}{{ macros.item_end(help_data_table_checksum_btn) }}
+                </span>
                 </td>
                 </tr>
                 </table>
@@ -110,22 +123,36 @@
                 <table>
                 <tr>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.number_of_records) }}{{ macros.item_end(help_data_table_number_of_records_btn) }}
+                </span>
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
+                <span style="color:{{ optional }};">
                 {{ macros.item_start() }}{{ wtf.form_field(form.online_url) }}{{ macros.item_end(help_data_table_online_url_btn) }}
+                </span>
                 </td>
                 </tr>
                 </table>
 
-                <br/>
+{#                <br/>#}
                 <h4>Columns:</h4>
                 {{ atts }}
                 <br/><br/>
-                <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Column Properties"/>&nbsp;
-{#                <input class="btn btn-primary" name="Clone" type="submit" value="Clone Attributes from Another Data Table"/>#}
-                <br/><br/><br/>
+{#                <input class="btn btn-primary" name="Attributes" type="submit" value="Edit Column Properties"/>&nbsp;#}
+{#                <input class="btn btn-primary" name="Clone" type="submit" value="Clone Column Properties from Another Data Table"/>#}
+
+
+                <table>
+                    <td><input class="btn btn-primary"
+                               name="Attributes" type="submit" value="Edit Column Properties"/>&nbsp;
+                        <input class="btn btn-primary" name="Clone" type="submit" value="Clone Column Properties from Another Data Table"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_clone_attributes_general_btn) }}
+                    </td>
+                </table>
+
+                <br/><br/>
 {#                <h4>Data Table Coverage (Optional):</h4>#}
 {#                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>#}
 {#                <br/><br/>#}
@@ -136,9 +163,13 @@
 {#                <h4>Data Table Methods (Optional):</h4>#}
 {#                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>#}
 {#                <br/><br/>#}
+
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>&nbsp;
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+
                 {{ macros.hidden_new_open_close_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
             </form>
             <p>&nbsp;</p>
         </div>
@@ -157,7 +188,7 @@
     {{ macros.help_dialog(help_data_table_case_sensitive_dialog, help_data_table_case_sensitive_title, help_data_table_case_sensitive_content) }}
     {{ macros.help_dialog(help_data_table_number_of_records_dialog, help_data_table_number_of_records_title, help_data_table_number_of_records_content) }}
     {{ macros.help_dialog(help_data_table_online_url_dialog, help_data_table_online_url_title, help_data_table_online_url_content) }}
-
+    {{ macros.help_dialog(help_clone_attributes_general_dialog, help_clone_attributes_general_title, help_clone_attributes_general_content) }}
 
 {% endblock %}
 
@@ -205,6 +236,9 @@
     {% set help_data_table_online_url_id, help_data_table_online_url_title, help_data_table_online_url_content = help[13] %}
     {% set help_data_table_online_url_btn = help_data_table_online_url_id ~ '_btn' %}
     {% set help_data_table_online_url_dialog = help_data_table_online_url_id ~ '_dialog' %}
+    {% set help_clone_attributes_general_id, help_clone_attributes_general_title, help_clone_attributes_general_content = help[14] %}
+    {% set help_clone_attributes_general_btn = help_clone_attributes_general_id ~ '_btn' %}
+    {% set help_clone_attributes_general_dialog = help_clone_attributes_general_id ~ '_dialog' %}
     <script>
     $(function()
     {
@@ -222,6 +256,7 @@
         {{ macros.help_script(help_data_table_case_sensitive_dialog, help_data_table_case_sensitive_btn) }}
         {{ macros.help_script(help_data_table_number_of_records_dialog, help_data_table_number_of_records_btn) }}
         {{ macros.help_script(help_data_table_online_url_dialog, help_data_table_online_url_btn) }}
+        {{ macros.help_script(help_clone_attributes_general_dialog, help_clone_attributes_general_btn) }}
 
     });
     </script>

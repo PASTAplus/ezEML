@@ -57,6 +57,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
+RELEASE_NUMBER = '2021.01.28'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -189,7 +190,7 @@ def move_down(parent_node:Node, child_node:Node):
         parent_node.shift(child_node, Shift.RIGHT)
 
 
-def list_data_tables(eml_node:Node=None):
+def list_data_tables(eml_node:Node=None, to_skip:str=None):
     dt_list = []
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
@@ -202,6 +203,8 @@ def list_data_tables(eml_node:Node=None):
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
                 label, object_name = compose_entity_label(dt_node)
+                if to_skip and object_name == to_skip:
+                    continue
                 was_uploaded = data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
@@ -213,6 +216,16 @@ def list_data_tables(eml_node:Node=None):
                                     downval=downval)
                 dt_list.append(dt_entry)
     return dt_list
+
+
+def list_data_table_columns(dt_node:Node=None):
+    dt_columns_list = []
+    if dt_node:
+        attribute_name_nodes = []
+        dt_node.find_all_descendants(names.ATTRIBUTENAME, attribute_name_nodes)
+        for attribute_name_node in attribute_name_nodes:
+            dt_columns_list.append([attribute_name_node.id, attribute_name_node.content])
+    return dt_columns_list
 
 
 def list_other_entities(eml_node:Node=None):
@@ -1004,7 +1017,8 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
 def save_both_formats(filename:str=None, eml_node:Node=None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
-    get_check_metadata_status(eml_node, filename)
+    get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
+    add_eml_editor_metadata(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
 
@@ -1375,6 +1389,17 @@ def create_numerical_attribute(
 
     except Exception as e:
         logger.error(e)
+
+
+def add_eml_editor_metadata(eml_node:Node=None):
+    eml_editor_node = eml_node.find_descendant('emlEditor')
+    if not eml_editor_node:
+        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, None, Optionality.REQUIRED)
+        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.REQUIRED)
+        eml_editor_node = add_node(metadata_node, 'emlEditor', None, Optionality.REQUIRED)
+    eml_editor_node.attributes.clear()
+    eml_editor_node.add_attribute('app', 'ezEML')
+    eml_editor_node.add_attribute('release', RELEASE_NUMBER)
 
 
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):

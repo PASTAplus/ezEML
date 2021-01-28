@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_clone_attributes_4_id, help_clone_attributes_4_title, help_clone_attributes_4_content = help[0] %}
+    {% set help_clone_attributes_4_btn = help_clone_attributes_4_id ~ '_btn' %}
+    {% set help_clone_attributes_4_dialog = help_clone_attributes_4_id ~ '_dialog' %}
+
+    <table border="0">
+    <tr>
+        <td colspan="2"><h2>Clone Column Properties</h2></td>
+        <td width="50px" valign="middle" style="padding-top: 20px;padding-left: 5px;">{{ macros.help_button(help_clone_attributes_4_btn) }}</td>
+        <td></td>
+    </tr>
+    </table>
+    <table height="40px">
+    <tr valign="top">
+        <td width="30px">&nbsp;</td>
+        <td width="165px"><h5 style="color: gray">From source data table:</h5></td>
+        <td><h5>{{ table_name_in }}</h5></td>
+    </tr>
+    <tr valign="top">
+        <td width="30px">&nbsp;</td>
+        <td width="165px"><h5 style="color: gray">To target data table:</h5></td>
+        <td><h5>{{ table_name_out }}</h5></td>
+    </tr>
+    <tr><td>&nbsp;</td></tr>
+    </table>
+
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table>
+                    <tr><td style="padding: 5px;"><b>Source Column</b></td style="padding: 5px;"><td style="padding: 5px;color: black;"><b>&#8594;</b></td><td style="padding: 5px;"><b>Target Column</b></td></tr>
+                    {% for source_attr in source_attrs: %}
+                    <tr><td style="padding: 5px;">{{ source_attr[0] }}</td><td></td><td style="padding: 5px;"><select name="##{{ source_attr[0] }}##" id="##{{ source_attr[0] }}##">
+                        <option value="">- select target column -</option>
+                        {% for target_attr in target_attrs: %}
+                        <option value="{{ target_attr[1] }}">{{ target_attr[0] }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                </table>
+{#                <table>#}
+{#                    <tr><td style="padding: 5px;"><b>Source Column</b></td style="padding: 5px;"><td style="padding: 5px;color: black;"><b>&#8594;</b></td><td style="padding: 5px;"><b>Target Column</b></td></tr>#}
+{#                    <tr><td style="padding: 5px;">YEAR</td><td></td><td style="padding: 5px;"><select name="column_1" id="column_1">#}
+{#                        <option value="(YEAR, 1)">YEAR</option>#}
+{#                        <option value="(ARM, 2)" selected>ARM</option>#}
+{#                    </select></td></tr>#}
+{#                    <tr><td style="padding: 5px;">ARM</td><td></td><td style="padding: 5px;"><select name="column_2" id="column_2">#}
+{#                        <option value="YEAR" selected>YEAR</option>#}
+{#                        <option value="ARM">ARM</option>#}
+{#                    </select></td></tr>#}
+{#                </table>#}
+{#                <h5>Select the columns whose properties to clone:</h5>#}
+{#                {{ form.source(style="list-style:none;") }}#}
+                <p>&nbsp;</p>
+                <input class="btn btn-primary" name="Clone" type="submit" value="Clone Column Properties"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_clone_attributes_4_dialog, help_clone_attributes_4_title, help_clone_attributes_4_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_clone_attributes_4_id, help_clone_attributes_4_title, help_clone_attributes_4_content = help[0] %}
+    {% set help_clone_attributes_4_btn = help_clone_attributes_4_id ~ '_btn' %}
+    {% set help_clone_attributes_4_dialog = help_clone_attributes_4_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_clone_attributes_4_dialog, help_clone_attributes_4_btn) }}
+    });
+    </script>
+{% endblock %}

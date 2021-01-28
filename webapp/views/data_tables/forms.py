@@ -12,8 +12,9 @@ from wtforms.validators import (
     URL, Optional
 )
 
-from webapp.home.forms import EDIForm
-
+from webapp.home.forms import (
+    EDIForm, MultiCheckboxField
+)
 
 class AttributeSelectForm(EDIForm):
     pass
@@ -258,3 +259,7 @@ class CodeDefinitionForm(EDIForm):
 
 class SelectDataTableForm(FlaskForm):
     source = RadioField('Source Data Table', choices=[])
+
+
+class SelectDataTableColumnsForm(FlaskForm):
+    source = MultiCheckboxField('Source Data Table Columns', choices=[])

@@ -22,21 +22,25 @@
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                {{ form.csrf_token }}
-                {{ wtf.form_field(form.md5) }}
                 <h5>Enter the dataset maintenance information below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_maintenance_description_btn) }}</td>
                 </table>
                 <table>
-                    <td width="100%">{{ wtf.form_field(form.update_frequency, cols=100) }}</td>
+                    <td width="100%">
+                        <span style="color:{{ optional }};">
+                        {{ wtf.form_field(form.update_frequency, cols=100) }}
+                        </span>
+                    </td>
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_maintenance_freq_btn) }}</td>
                 </table>
                 <br>
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
             </form>
         </div>
     </div>

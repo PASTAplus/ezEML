@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_clone_attributes_3_id, help_clone_attributes_3_title, help_clone_attributes_3_content = help[0] %}
+    {% set help_clone_attributes_3_btn = help_clone_attributes_3_id ~ '_btn' %}
+    {% set help_clone_attributes_3_dialog = help_clone_attributes_3_id ~ '_dialog' %}
+
+    <table border="0">
+    <tr>
+        <td colspan="2"><h2>Clone Column Properties</h2></td>
+        <td width="50px" valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_clone_attributes_3_btn) }}</td>
+        <td></td>
+    </tr>
+    </table>
+    <table height="50px">
+    <tr valign="top">
+        <td width="30px">&nbsp;</td>
+        <td width="160px"><h5 style="color: Gray;">From source data table:</h5></td>
+        <td><h5>{{ table_name_in }}</h5></td>
+    </tr>
+{#    <tr valign="top">#}
+{#        <td width="30px">&nbsp;</td>#}
+{#        <td width="60px"><h5 style="color: gray">to:</h5></td>#}
+{#        <td><h5>{{ table_name_out }}</h5></td>#}
+{#    </tr>#}
+    </table>
+
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <h5>Select the columns whose properties you wish to clone:</h5>
+                {{ form.source(style="list-style:none;") }}
+                <p>&nbsp;</p>
+                <input class="btn btn-primary" name="Open" type="submit" value="Select Columns"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_clone_attributes_3_dialog, help_clone_attributes_3_title, help_clone_attributes_3_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_clone_attributes_3_id, help_clone_attributes_3_title, help_clone_attributes_3_content = help[0] %}
+    {% set help_clone_attributes_3_btn = help_clone_attributes_3_id ~ '_btn' %}
+    {% set help_clone_attributes_3_dialog = help_clone_attributes_3_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_clone_attributes_3_dialog, help_clone_attributes_3_btn) }}
+    });
+    </script>
+{% endblock %}

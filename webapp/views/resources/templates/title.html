@@ -21,8 +21,6 @@
 {#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
-                {{ form.csrf_token }}
-                {{ wtf.form_field(form.md5) }}
                 <h5>Enter a title for the data package:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.title, size=100) }}</td>
@@ -39,6 +37,8 @@
                     </td>
                 </table>
                 {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
             </form>
         </div>
 {#    </div>#}

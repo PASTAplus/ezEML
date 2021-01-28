@@ -35,8 +35,6 @@
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                {{ form.csrf_token }}
-                {{ wtf.form_field(form.md5) }}
                 <h5>Enter the funding award information below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.funder_name, size=100) }}</td>
@@ -62,6 +60,8 @@
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" formnovalidate="formnovalidate" value="Cancel"/>
                 {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
             </form>
         </div>
     </div>

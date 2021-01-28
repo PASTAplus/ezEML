@@ -1717,6 +1717,8 @@ def populate_code_definition_form(form: CodeDefinitionForm, cd_node: Node):
 @dt_bp.route('/clone_attributes/<filename>/<dt_node_id>/', methods=['GET', 'POST'])
 @login_required
 def clone_attributes(filename, dt_node_id):
+    eml_node = load_eml(filename=filename)
+
     target_filename = filename
     target_dt_id = dt_node_id
 
@@ -1742,6 +1744,7 @@ def clone_attributes(filename, dt_node_id):
 def clone_attributes_2(target_filename, target_dt_id, source_filename):
     form = SelectDataTableForm()
 
+    eml_node = load_eml(filename=target_filename)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_object_name = target_dt_node.find_descendant(names.OBJECTNAME).content
 
@@ -1842,6 +1845,7 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
 def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids):
     form = SelectDataTableColumnsForm()
 
+    source_eml_node = load_eml(source_filename)
     source_attr_ids_list = source_attr_ids.strip('][').split(', ')
     source_attrs = []
     for source_attr_id in source_attr_ids_list:
@@ -1850,6 +1854,8 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         source_attr_name = source_attr_name_node.content
         source_attr_node = source_attr_name_node.parent
         source_attrs.append((source_attr_name, source_attr_node.id))
+
+    target_eml_node = load_eml(target_filename)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_attrs = []
     target_dt_attr_nodes = []

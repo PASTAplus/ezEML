@@ -182,6 +182,8 @@ Clone Column Properties
 Having selected the source data table, the next step is to select the particular columns in the source data table whose properties you wish to clone.
 
 Select one or more columns, then click <b>Select Columns</b>.
+
+<b>Note:</b> If you want to clone a number of columns, you can do them all in the same pass, or you can do one or a few columns at a time if that seems more manageable. I.e., you can clone some columns, take a look at the result, then clone some more columns, etc., by going through the <b>Clone Column Properties from Another Data Table</b> process repeatedly.
 --------------------
 clone_attributes_4
 Clone Column Properties
@@ -190,6 +192,8 @@ Having selected the particular columns whose properties you wish to clone, the n
 For each Source Column, select a Target Column in the target data table, then click <b>Clone Column Properties</b>. Note that the source and target columns do not have to have the same names in the two tables or appear in the same order.
 
 The properties of the source columns will be copied into the target columns, except that the <b>Name</b> of each target column will not be changed.
+
+Categorical columns get special handling: codes in the target column are preserved, but if a code exists in the source column, the source column's definition for the code is used.
 --------------------
 contact
 Contact

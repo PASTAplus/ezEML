@@ -1823,17 +1823,47 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
                            help=help, form=form)
 
 
+def clone_categorical_attribute(source_node_copy, target_node):
+    enumerated_domain_source_node = source_node_copy.find_descendant(names.ENUMERATEDDOMAIN)
+    enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
+    if enumerated_domain_source_node and enumerated_domain_target_node:
+        # Both are categorical; so far, so good
+        # Collect the codes and definitions in the source column
+        source_codes_and_definitions = {}
+        for code_definition_source_node in enumerated_domain_source_node.find_all_children(names.CODEDEFINITION):
+            code_source_node = code_definition_source_node.find_child(names.CODE)
+            definition_source_node = code_definition_source_node.find_child(names.DEFINITION)
+            code = code_source_node.content
+            definition = definition_source_node.content
+            source_codes_and_definitions[code] = definition
+        # Go thru the target and fix up the definitions
+        for code_definition_target_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
+            code_target_node = code_definition_target_node.find_child(names.CODE)
+            definition_target_node = code_definition_target_node.find_child(names.DEFINITION)
+            code = code_target_node.content
+            if code in source_codes_and_definitions:
+                definition_target_node.content = source_codes_and_definitions[code]
+        return True
+    else:
+        return False
+
+
 def clone_column_properties(source_table_id, source_attr_ids, target_table_id, target_attr_ids):
+
     for source_attr_id, target_attr_id in zip(source_attr_ids, target_attr_ids):
         source_node = Node.get_node_instance(source_attr_id)
         source_node_copy = source_node.copy()
         target_node = Node.get_node_instance(target_attr_id)
         # We want to preserve the column name
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
-        target_parent = target_node.parent
-        target_parent.replace_child(target_node, source_node_copy, False)  # don't delete the target_node yet because we may need it again
-        source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
-        source_copy_name_node.content = target_name
+        # If we're doing a Categorical variable, it gets special handling
+        if not clone_categorical_attribute(source_node_copy, target_node):
+            target_parent = target_node.parent
+            target_parent.replace_child(target_node, source_node_copy, False)  # don't delete the target_node yet because we may need it again
+            source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
+            source_copy_name_node.content = target_name
+        else:
+            pass
     # Now that we're done, we can delete the nodes we've replaced
     for target_attr_id in target_attr_ids:
         Node.delete_node_instance(target_attr_id, True)
@@ -1863,6 +1893,9 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
     for target_dt_attr_node in target_dt_attr_nodes:
         target_attr_name_node = target_dt_attr_node.find_descendant(names.ATTRIBUTENAME)
         target_attrs.append((target_attr_name_node.content, target_dt_attr_node.id))
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
 
     if request.method == 'POST':
         form_value = request.form

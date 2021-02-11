@@ -1391,11 +1391,20 @@ def create_numerical_attribute(
         logger.error(e)
 
 
+def add_additional_metadata_nodes(eml_node:Node=None):
+    additional_metadata_node = eml_node.find_descendant(names.ADDITIONALMETADATA)
+    if not additional_metadata_node:
+        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, None, Optionality.REQUIRED)
+    metadata_node = additional_metadata_node.find_child(names.METADATA)
+    if not metadata_node:
+        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.REQUIRED)
+    return metadata_node
+
+
 def add_eml_editor_metadata(eml_node:Node=None):
     eml_editor_node = eml_node.find_descendant('emlEditor')
     if not eml_editor_node:
-        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, None, Optionality.REQUIRED)
-        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.REQUIRED)
+        metadata_node = add_additional_metadata_nodes(eml_node)
         eml_editor_node = add_node(metadata_node, 'emlEditor', None, Optionality.REQUIRED)
     eml_editor_node.attributes.clear()
     eml_editor_node.add_attribute('app', 'ezEML')
@@ -1403,32 +1412,30 @@ def add_eml_editor_metadata(eml_node:Node=None):
 
 
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
-    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
-    if not additional_metadata_node:
-        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, None, Optionality.REQUIRED)
-    # do we already have the metadata node?
-    metadata_node = additional_metadata_node.find_child(names.METADATA)
-    if not metadata_node:
-        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.REQUIRED)
-    # de we already have the unitList node?
-    unit_list_node = metadata_node.find_child(names.UNITLIST)
-    if not unit_list_node:
-        unit_list_node = add_node(metadata_node, names.UNITLIST, None, Optionality.FORCE)
-    # do we already have a node for this custom unit?
-    unit_node = None
-    unit_nodes = unit_list_node.find_all_children(names.UNIT)
-    for child in unit_nodes:
-        if child.attribute_value('name') == custom_unit_name:
-            unit_node = child
+    metadata_node = add_additional_metadata_nodes(eml_node)
+    unitlist_node = metadata_node.find_descendant(names.UNITLIST)
+    if not unitlist_node:
+        unitlist_node = add_node(metadata_node, names.UNITLIST, None, Optionality.FORCE)
+    unit_nodes = []
+    unitlist_node.find_all_descendants(names.UNIT, unit_nodes)
+
+    found = False
+    for unit_node in unit_nodes:
+        if unit_node.attribute_value('id') == custom_unit_name:
+            unit_node.add_attribute('name', custom_unit_name)
+            description_node = unit_node.find_child(names.DESCRIPTION)
+            if description_node:
+                unit_node.remove_child(description_node)
+            add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
+            found = True
             break
-    if not unit_node:
-        unit_node = add_node(unit_list_node, names.UNIT, None, Optionality.FORCE)
-    unit_node.add_attribute('id', custom_unit_name)
-    unit_node.add_attribute('name', custom_unit_name)
-    description_node = unit_node.find_child(names.DESCRIPTION)
-    if description_node:
-        unit_node.remove_child(description_node)
-    add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
+    if not found:
+        unit_node = Node(names.UNIT, parent=unitlist_node)
+        unitlist_node.add_child(unit_node)
+        unit_node.add_attribute('id', custom_unit_name)
+        unit_node.add_attribute('name', custom_unit_name)
+        add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
+
     # save custom unit names and descriptions in session so we can do some javascript magic
     custom_units = session.get("custom_units", {})
     custom_units[custom_unit_name] = custom_unit_description

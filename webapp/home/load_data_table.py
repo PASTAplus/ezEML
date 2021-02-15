@@ -129,7 +129,7 @@ def infer_col_type(data_frame, col):
     num_codes = len(codes)
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
-    is_categorical = float(num_codes) / float(col_size) < 0.1 and num_codes < 15
+    is_categorical = float(num_codes) / float(col_size) < 0.2 and num_codes < 15
     if is_categorical:
         col_type = metapype_client.VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)

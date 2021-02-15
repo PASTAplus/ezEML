@@ -1018,6 +1018,7 @@ def save_both_formats(filename:str=None, eml_node:Node=None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
+    fix_up_custom_units(eml_node)
     add_eml_editor_metadata(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
@@ -1391,29 +1392,57 @@ def create_numerical_attribute(
         logger.error(e)
 
 
-def add_additional_metadata_nodes(eml_node:Node=None):
-    additional_metadata_node = eml_node.find_descendant(names.ADDITIONALMETADATA)
-    if not additional_metadata_node:
-        additional_metadata_node = add_node(eml_node, names.ADDITIONALMETADATA, None, Optionality.REQUIRED)
-    metadata_node = additional_metadata_node.find_child(names.METADATA)
-    if not metadata_node:
-        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.REQUIRED)
-    return metadata_node
-
-
 def add_eml_editor_metadata(eml_node:Node=None):
     eml_editor_node = eml_node.find_descendant('emlEditor')
-    if not eml_editor_node:
-        metadata_node = add_additional_metadata_nodes(eml_node)
-        eml_editor_node = add_node(metadata_node, 'emlEditor', None, Optionality.REQUIRED)
+    if eml_editor_node:
+        metadata_node = eml_editor_node.parent
+        additional_metadata_node = metadata_node.parent
+        eml_node.remove_child(additional_metadata_node)
+    additional_metadata_node = new_child_node(names.ADDITIONALMETADATA, parent=eml_node)
+    metadata_node = new_child_node(names.METADATA, parent=additional_metadata_node)
+    # For the emlEditor node, we need to bypass Metapype validity checking
+    eml_editor_node = Node('emlEditor', parent=metadata_node)
+    metadata_node.add_child(eml_editor_node)
     eml_editor_node.attributes.clear()
     eml_editor_node.add_attribute('app', 'ezEML')
     eml_editor_node.add_attribute('release', RELEASE_NUMBER)
 
 
+def fix_up_custom_units(eml_node:Node=None):
+    # The additionalMetadata nodes are handled differently from how they were handled initially.
+    # Pre-existing data packages need to be fixed up. Newly-created data packages will be correct, but
+    #  we need to check if this package needs fixup.
+    # In addition, we check here whether we have custom units in the additionalMetadata that are no
+    #  longer needed, because they no longer appear in a data table.
+    unitlist_node = eml_node.find_descendant(names.UNITLIST)
+    if unitlist_node:
+        metadata_node = unitlist_node.parent
+        # If there's an emlEditor node that's a sibling to unitlist_node, remove it
+        eml_editor_node = metadata_node.find_child('emlEditor')
+        if eml_editor_node:
+            metadata_node.remove_child(eml_editor_node)
+        # Remove custom unit nodes that are no longer needed
+        custom_unit_nodes = []
+        eml_node.find_all_descendants(names.CUSTOMUNIT, custom_unit_nodes)
+        custom_units = []
+        for custom_unit_node in custom_unit_nodes:
+            custom_units.append(custom_unit_node.content)
+        unit_nodes = unitlist_node.find_all_children(names.UNIT)
+        for unit_node in unit_nodes:
+            if unit_node.attribute_value('id') not in custom_units:
+                unitlist_node.remove_child(unit_node)
+
+
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
-    metadata_node = add_additional_metadata_nodes(eml_node)
-    unitlist_node = metadata_node.find_descendant(names.UNITLIST)
+    additional_metadata_nodes = []
+    eml_node.find_all_descendants(names.ADDITIONALMETADATA, additional_metadata_nodes)
+    metadata_node = None
+    unitlist_node = None
+    for additional_metadata_node in additional_metadata_nodes:
+        metadata_node = additional_metadata_node.find_child(names.METADATA)
+        unitlist_node = metadata_node.find_child(names.UNITLIST)
+        if unitlist_node:
+            break
     if not unitlist_node:
         unitlist_node = add_node(metadata_node, names.UNITLIST, None, Optionality.FORCE)
     unit_nodes = []
@@ -1490,16 +1519,6 @@ def create_categorical_or_text_attribute(
             if enforced:
                 enumerated_domain_node.add_attribute('enforced', enforced)
 
-            for key, code_explanation in code_dict.items():
-                if code_dict[key]:
-                    code = key
-                    if code is not None:
-                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                        code_node = new_child_node(names.CODE, parent=mvc_node)
-                        code_node.content = code
-                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                        code_explanation_node.content = code_explanation
-
         elif mscale == VariableType.TEXT.name:
 
             text_domain_node = new_child_node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
@@ -1511,6 +1530,15 @@ def create_categorical_or_text_attribute(
             if enumerated_domain_node:
                 non_numeric_domain_node.remove_child(enumerated_domain_node)
 
+        for key, code_explanation in code_dict.items():
+            if code_dict[key]:
+                code = key
+                if code is not None:
+                    mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                    code_node = new_child_node(names.CODE, parent=mvc_node)
+                    code_node.content = code
+                    code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                    code_explanation_node.content = code_explanation
 
     except Exception as e:
         logger.error(e)

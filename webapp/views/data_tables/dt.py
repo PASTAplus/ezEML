@@ -1823,12 +1823,49 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
                            help=help, form=form)
 
 
+# def clone_categorical_attribute(source_node_copy, target_node):
+#     enumerated_domain_source_node = source_node_copy.find_descendant(names.ENUMERATEDDOMAIN)
+#     enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
+#     if enumerated_domain_source_node and enumerated_domain_target_node:
+#         # Both are categorical; so far, so good
+#         # Collect the codes and definitions in the source column
+#         source_codes_and_definitions = {}
+#         for code_definition_source_node in enumerated_domain_source_node.find_all_children(names.CODEDEFINITION):
+#             code_source_node = code_definition_source_node.find_child(names.CODE)
+#             definition_source_node = code_definition_source_node.find_child(names.DEFINITION)
+#             code = code_source_node.content
+#             definition = definition_source_node.content
+#             source_codes_and_definitions[code] = definition
+#         # Go thru the target and fix up the definitions
+#         for code_definition_target_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
+#             code_target_node = code_definition_target_node.find_child(names.CODE)
+#             definition_target_node = code_definition_target_node.find_child(names.DEFINITION)
+#             code = code_target_node.content
+#             if code in source_codes_and_definitions:
+#                 definition_target_node.content = source_codes_and_definitions[code]
+#         # Target gets source's missing value codes
+#         source_missing_value_code_nodes = source_node_copy.find_all_children(names.MISSINGVALUECODE)
+#         target_missing_value_code_nodes = target_node.find_all_children(names.MISSINGVALUECODE)
+#         for target_missing_value_code_node in target_missing_value_code_nodes:
+#             target_node.remove(target_missing_value_code_node)
+#         for source_missing_value_code_node in source_missing_value_code_nodes:
+#             source_missing_value_code_node.parent = target_node
+#             add_child(target_node, source_missing_value_code_node)
+#         return True
+#     else:
+#         return False
+
+# Capture source's missing value codes and definitions
+# Copy target's missing value code nodes
+# Replace target with copy of source
+# Replace missing value code nodes with the copies we made
+# Go thru the missing value code nodes and fix the definitions
 def clone_categorical_attribute(source_node_copy, target_node):
     enumerated_domain_source_node = source_node_copy.find_descendant(names.ENUMERATEDDOMAIN)
     enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
     if enumerated_domain_source_node and enumerated_domain_target_node:
         # Both are categorical; so far, so good
-        # Collect the codes and definitions in the source column
+        # Collect the source's codes and definitions
         source_codes_and_definitions = {}
         for code_definition_source_node in enumerated_domain_source_node.find_all_children(names.CODEDEFINITION):
             code_source_node = code_definition_source_node.find_child(names.CODE)
@@ -1836,10 +1873,31 @@ def clone_categorical_attribute(source_node_copy, target_node):
             code = code_source_node.content
             definition = definition_source_node.content
             source_codes_and_definitions[code] = definition
-        # Go thru the target and fix up the definitions
-        for code_definition_target_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
-            code_target_node = code_definition_target_node.find_child(names.CODE)
-            definition_target_node = code_definition_target_node.find_child(names.DEFINITION)
+
+        # We want to preserve the column name
+        target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
+
+        # Caoture the target's code nodes
+        target_code_definition_nodes = enumerated_domain_target_node.find_all_children(names.CODEDEFINITION)
+
+        # Replace the target with copy of the source
+        target_parent = target_node.parent
+        target_parent.replace_child(target_node, source_node_copy,
+                                    False)  # don't delete the target_node yet because we may need it again
+
+        # But preserve the original name for the target attribute
+        source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
+        source_copy_name_node.content = target_name
+
+        # Replace the target code definition nodes with the ones we saved
+        target_node = source_node_copy
+        enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
+        for code_definition_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
+            enumerated_domain_target_node.remove_child(code_definition_node)
+        for code_definition_node in target_code_definition_nodes:
+            add_child(enumerated_domain_target_node, code_definition_node)
+            code_target_node = code_definition_node.find_child(names.CODE)
+            definition_target_node = code_definition_node.find_child(names.DEFINITION)
             code = code_target_node.content
             if code in source_codes_and_definitions:
                 definition_target_node.content = source_codes_and_definitions[code]
@@ -1856,9 +1914,9 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
         target_node = Node.get_node_instance(target_attr_id)
         # We want to preserve the column name
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
+        target_parent = target_node.parent
         # If we're doing a Categorical variable, it gets special handling
         if not clone_categorical_attribute(source_node_copy, target_node):
-            target_parent = target_node.parent
             target_parent.replace_child(target_node, source_node_copy, False)  # don't delete the target_node yet because we may need it again
             source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
             source_copy_name_node.content = target_name
@@ -1912,7 +1970,6 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         save_both_formats(target_filename, target_eml_node)
         help = get_helps(['import_responsible_parties_2'])  # FIX_ME
         return redirect(url_for('dt.data_table_select', filename=target_filename))
-
 
     help = get_helps(['clone_attributes_4'])
 

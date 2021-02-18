@@ -78,7 +78,7 @@ class TaxonomicCoverageForm(EDIForm):
         ('Superdomain', 'Superdomain')
     ], default=''
     )
-    taxon_value = StringField('Taxon Name', validators=[])
+    taxon_value = StringField('Taxon Scientific Name', validators=[])
     hierarchy = HiddenField('')
     taxonomic_authority = SelectField("Taxonomic Authority", choices=[
         ("ITIS", "ITIS - Integrated Taxonomic Information System"),

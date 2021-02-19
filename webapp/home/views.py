@@ -38,15 +38,6 @@ from webapp.config import Config
 
 import csv
 
-from webapp.auth.user_data import (
-    delete_eml, download_eml, get_user_document_list, get_active_packageid,
-    get_user_uploads_folder_name, get_document_uploads_folder_name,
-    get_active_document, discard_data_table_upload_filename, get_user_folder_name,
-    discard_data_table_upload_filenames_for_package, remove_active_file,
-    add_data_table_upload_filename, clear_data_table_upload_filenames,
-    add_uploaded_table_properties, get_uploaded_table_column_properties
-)
-
 from webapp.home.forms import ( 
     CreateEMLForm,
     DownloadEMLForm,
@@ -79,6 +70,7 @@ from metapype.model import mp_io
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
+import webapp.auth.user_data as user_data
 
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -121,7 +113,7 @@ def fixup_upload_management():
         if user_folder_name == 'uploads':
             continue
         if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
-            clear_data_table_upload_filenames(user_folder_name)
+            user_data.clear_data_table_upload_filenames(user_folder_name)
             full_path = os.path.join(USER_DATA_DIR, user_folder_name)
             uploads_path = os.path.join(full_path, 'uploads')
             # look at the EML model json files
@@ -178,7 +170,7 @@ def fixup_upload_management():
                 if os.path.isdir(uploads_folder):
                     # add the uploaded files to the user data
                     for uploaded_file in os.listdir(uploads_folder):
-                        add_data_table_upload_filename(uploaded_file, user_folder_name, file)
+                        user_data.add_data_table_upload_filename(uploaded_file, user_folder_name, file)
 
             # clean up temp files
             for path in os.listdir(full_path):
@@ -266,13 +258,13 @@ def get_helps(ids):
 @home.route('/')
 def index():
     if current_user.is_authenticated:
-        current_document = get_active_document()
+        current_document = user_data.get_active_document()
         if current_document:
             eml_node = load_eml(filename=current_document)
             if eml_node:
                 new_page = PAGE_TITLE
             else:
-                remove_active_file()
+                user_data.remove_active_file()
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=current_document))
     return render_template('index.html')
@@ -286,7 +278,7 @@ def edit(page:str=None):
     specified page, passing the packageid as the only parameter.
     '''
     if current_user.is_authenticated and page:
-        current_filename = get_active_document()
+        current_filename = user_data.get_active_document()
         if current_filename:
             eml_node = load_eml(filename=current_filename)
             new_page = page if eml_node else PAGE_FILE_ERROR
@@ -298,7 +290,7 @@ def get_back_url():
     url = url_for(PAGE_INDEX)
     if current_user.is_authenticated:
         new_page = get_redirect_target_page()
-        filename = get_active_document()
+        filename = user_data.get_active_document()
         if new_page and filename:
             url = url_for(new_page, filename=filename)
     return url
@@ -341,9 +333,9 @@ def delete():
             return redirect(get_back_url())
         if form.validate_on_submit():
             filename = form.filename.data
-            discard_data_table_upload_filenames_for_package(filename)
-            return_value = delete_eml(filename=filename)
-            if filename == get_active_document():
+            user_data.discard_data_table_upload_filenames_for_package(filename)
+            return_value = user_data.delete_eml(filename=filename)
+            if filename == user_data.get_active_document():
                 current_user.set_filename(None)
             if isinstance(return_value, str):
                 flash(return_value)
@@ -377,13 +369,13 @@ def save():
 
 
 def copy_uploads(from_package, to_package):
-    from_folder = get_document_uploads_folder_name(from_package)
-    to_folder = get_document_uploads_folder_name(to_package)
+    from_folder = user_data.get_document_uploads_folder_name(from_package)
+    to_folder = user_data.get_document_uploads_folder_name(to_package)
     for filename in os.listdir(from_folder):
         from_path = os.path.join(from_folder, filename)
         to_path = os.path.join(to_folder, filename)
         copyfile(from_path, to_path)
-        add_data_table_upload_filename(filename, document_name=to_package)
+        user_data.add_data_table_upload_filename(filename, document_name=to_package)
 
 
 @home.route('/save_as', methods=['GET', 'POST'])
@@ -460,7 +452,7 @@ def download():
     # Process POST
     if form.validate_on_submit():
         filename = form.filename.data
-        return_value = download_eml(filename=filename)
+        return_value = user_data.download_eml(filename=filename)
         if isinstance(return_value, str):
             flash(return_value)
         else:
@@ -473,7 +465,7 @@ def download():
 @home.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 def check_metadata(filename:str):
-    current_document = get_active_document()
+    current_document = user_data.get_active_document()
     if not current_document:
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document)
@@ -495,14 +487,14 @@ def zip_package():
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document)
 
-    user_folder = get_user_folder_name()
+    user_folder = user_data.get_user_folder_name()
 
     zipfile_name = f'{current_document}.zip'
     zipfile_path = os.path.join(user_folder, zipfile_name)
     zip_object = ZipFile(zipfile_path, 'w')
 
     pathname = f'{user_folder}/{current_document}.xml'
-    package_id = get_active_packageid()
+    package_id = user_data.get_active_packageid()
     if package_id:
         arcname = f'{package_id}.xml'
     else:
@@ -512,7 +504,7 @@ def zip_package():
     arcname = f'{current_document}.json'
     zip_object.write(pathname, arcname)
     # get data files
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
     data_table_nodes = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     entity_nodes = []
@@ -532,13 +524,13 @@ def zip_package():
 @home.route('/download_current', methods=['GET', 'POST'])
 @login_required
 def download_current():
-    current_document = get_active_document()
+    current_document = user_data.get_active_document()
     if current_document:
         # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
         # Do the download
-        return_value = download_eml(filename=current_document)
+        return_value = user_data.download_eml(filename=current_document)
 
         if isinstance(return_value, str):
             flash(return_value)
@@ -610,7 +602,7 @@ def create():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            user_filenames = get_user_document_list()
+            user_filenames = user_data.get_user_document_list()
             if user_filenames and filename and filename in user_filenames:
                 flash(f'{filename} already exists')
                 return render_template('create_eml.html', help=help,
@@ -1106,11 +1098,11 @@ def submit_package():
 
 def get_column_properties(dt_node, object_name):
     data_file = object_name
-    column_vartypes, _, _ = get_uploaded_table_column_properties(data_file)
+    column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(data_file)
     if column_vartypes:
         return column_vartypes
 
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
     num_header_rows = 1
     field_delimiter_node = dt_node.find_descendant(names.FIELDDELIMITER)
     if field_delimiter_node:
@@ -1126,7 +1118,7 @@ def get_column_properties(dt_node, object_name):
         new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes = load_data_table(
             uploads_folder, data_file, num_header_rows, delimiter, quote_char)
 
-        add_uploaded_table_properties(data_file,
+        user_data.add_uploaded_table_properties(data_file,
                                       new_column_vartypes,
                                       new_column_names,
                                       new_column_categorical_codes)
@@ -1154,7 +1146,7 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     old_object_name = old_object_name_node.content
     if not old_object_name:
         raise Exception('Internal error 102')
-    old_column_vartypes, _, _ = get_uploaded_table_column_properties(old_object_name)
+    old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
     if not old_column_vartypes:
         # column properties weren't saved. compute them anew.
         old_column_vartypes = get_column_properties(old_dt_node, old_object_name)
@@ -1199,7 +1191,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
         if new_quote_char_node:
             new_child_node(names.QUOTECHARACTER, old_field_delimiter_node.parent).content = new_quote_char_node.content
 
-    _, old_column_names, old_column_categorical_codes = get_uploaded_table_column_properties(old_object_name)
+    _, old_column_names, old_column_categorical_codes = user_data.get_uploaded_table_column_properties(old_object_name)
     if old_column_names != new_column_names:
         # substitute the new column names
         old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
@@ -1260,7 +1252,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
 
 
 def backup_metadata(filename):
-    user_folder = get_user_folder_name()
+    user_folder = user_data.get_user_folder_name()
     if not user_folder:
         flash('User folder not found', 'error')
         return
@@ -1291,7 +1283,7 @@ def load_data(dt_node_id=None):
 
     form = LoadDataForm()
     document = current_user.get_filename()
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
     doing_reupload = dt_node_id != None
 
     # Process POST
@@ -1366,9 +1358,9 @@ def load_data(dt_node_id=None):
                 if not doing_reupload:
                     dataset_node.add_child(dt_node)
 
-                add_data_table_upload_filename(data_file)
+                user_data.add_data_table_upload_filename(data_file)
                 if new_column_vartypes:
-                    add_uploaded_table_properties(data_file,
+                    user_data.add_uploaded_table_properties(data_file,
                                                   new_column_vartypes,
                                                   new_column_names,
                                                   new_column_categorical_codes)
@@ -1400,7 +1392,7 @@ def reupload_data(filename, node_id):
 
     form = LoadDataForm()
     document = current_user.get_filename()
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
     eml_node = load_eml(filename=document)
 
     data_table_name = ''
@@ -1432,7 +1424,7 @@ def reupload_data(filename, node_id):
 def reupload_other_entity(filename, node_id):
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
     eml_node = load_eml(filename=document)
 
     other_entity_name = ''
@@ -1461,7 +1453,7 @@ def reupload_other_entity(filename, node_id):
 def load_entity(node_id=None):
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -1503,7 +1495,7 @@ def load_entity(node_id=None):
 def load_metadata():
     form = LoadMetadataForm()
     document = current_user.get_filename()
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
 
     # Process POST
     if  request.method == 'POST' and form.validate_on_submit():
@@ -1597,7 +1589,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 #     if object_name_node:
                 #         object_name = object_name_node.content
                 #         if object_name:
-                #             discard_data_table_upload_filename(object_name)
+                #             user_data.discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
                 node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)

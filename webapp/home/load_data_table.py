@@ -28,9 +28,7 @@ from flask import Flask, current_app
 
 from webapp.config import Config
 
-from webapp.auth.user_data import (
-    add_data_table_upload_filename
-)
+import webapp.auth.user_data as user_data
 
 
 def get_file_size(full_path:str=''):
@@ -125,6 +123,7 @@ def infer_datetime_format(dt):
 def infer_col_type(data_frame, col):
     col_type = None
     sorted_codes = None
+    # codes = data_frame[col].unique()
     codes = data_frame[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
@@ -162,7 +161,7 @@ def infer_col_type(data_frame, col):
             except:
                 pass
 
-        if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 missing value codes
+        if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 distinct missing value codes
             return metapype_client.VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
@@ -252,10 +251,13 @@ def load_data_table(uploads_path:str=None, data_file:str='',
         attribute_list_node = Node(names.ATTRIBUTELIST, parent=datatable_node)
         metapype_client.add_child(datatable_node, attribute_list_node)
 
+        # data_frame = data_frame.convert_dtypes()
+
         columns = data_frame.columns
 
         for col in columns:
             dtype = data_frame[col][1:].infer_objects().dtype
+            # dtype = data_frame.dtypes[col]
 
             var_type, codes = infer_col_type(data_frame, col)
 
@@ -395,7 +397,7 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
 
     entity_type_node.content = format_name_from_data_file(data_file)
 
-    add_data_table_upload_filename(data_file)
+    user_data.add_data_table_upload_filename(data_file)
 
     delete_data_files(uploads_path)
 

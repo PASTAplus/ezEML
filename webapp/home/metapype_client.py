@@ -30,10 +30,6 @@ from flask_login import (
     current_user
 )
 
-from webapp.auth.user_data import (
-    get_user_document_list, get_user_folder_name, data_table_was_uploaded
-)
-
 from webapp.config import Config
 
 from metapype.eml import export, evaluate, validate, names, rule
@@ -41,6 +37,8 @@ from metapype.model.node import Node, Shift
 from metapype.model import mp_io
 
 from webapp.home.check_metadata import check_metadata_status
+
+import webapp.auth.user_data as user_data
 
 
 if Config.LOG_DEBUG:
@@ -93,7 +91,7 @@ def sort_package_ids(packages):
 
 def list_data_packages(flag_current=False, include_current=True):
     choices = []
-    user_documents = sorted(get_user_document_list(), key=str.casefold)
+    user_documents = sorted(user_data.get_user_document_list(), key=str.casefold)
     current_annotation = ' (current data package)' if flag_current else ''
     for document in user_documents:
         pid_tuple = (document, document)
@@ -205,7 +203,7 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
                 if to_skip and id == to_skip:
                     continue
                 label, object_name = compose_entity_label(dt_node)
-                was_uploaded = data_table_was_uploaded(object_name)
+                was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
                 dt_entry = DT_Entry(id=id,
@@ -861,7 +859,7 @@ def load_eml(filename:str=None):
         with app.app_context():
             current_app.logger.info(f'load_eml (json)')
     eml_node = None
-    user_folder = get_user_folder_name()
+    user_folder = user_data.get_user_folder_name()
     if not user_folder:
         user_folder = '.'
     if Config.LOG_DEBUG:
@@ -1046,7 +1044,7 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 metadata_str = xml_declaration + xml_str
             
             if metadata_str:
-                user_folder = get_user_folder_name()
+                user_folder = user_data.get_user_folder_name()
                 if not user_folder:
                     user_folder = '.'
                 filename = f'{user_folder}/{filename}.{format}'

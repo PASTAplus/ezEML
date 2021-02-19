@@ -27,10 +27,7 @@ from metapype.eml.evaluation_warnings import EvaluationWarning
 from metapype.model.node import Node
 import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
-from webapp.auth.user_data import (
-    get_document_uploads_folder_name
-)
-# from webapp.home.load_data_table import get_md5_hash
+import webapp.auth.user_data as user_data
 import webapp.home.load_data_table as load_data_table
 
 app = Flask(__name__)
@@ -370,7 +367,7 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
 def check_data_table_md5_checksum(data_table_node, link):
     object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
     data_file = object_name_node.content
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
     full_path = f'{uploads_folder}/{data_file}'
     try:
         computed_md5_hash = load_data_table.get_md5_hash(full_path)

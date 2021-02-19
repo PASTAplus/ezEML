@@ -15,6 +15,7 @@
 import json
 import os
 import os.path
+from json import JSONDecodeError
 from pathlib import Path
 import pickle
 
@@ -23,7 +24,7 @@ from flask import send_file
 from flask_login import current_user
 
 from webapp.config import Config
-
+import webapp.home.views as views
 
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
@@ -102,11 +103,15 @@ def get_user_properties(folder_name=None):
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     user_properties = {}
     # if properties file doesn't exist, create one with an empty dict
-    foo = os.getcwd()
     if not os.path.isfile(user_properties_filename):
         save_user_properties(user_properties, folder_name)
     with open(user_properties_filename, 'r') as user_properties_file:
-        user_properties = json.load(user_properties_file)
+        try:
+            user_properties = json.load(user_properties_file)
+        except JSONDecodeError:
+            # something's wrong with the user properties file. make a new one and initialize it.
+            save_user_properties(user_properties, folder_name)
+            views.fixup_upload_management()
     return user_properties
 
 

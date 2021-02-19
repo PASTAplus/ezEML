@@ -140,7 +140,7 @@ def add_data_table_upload_filename(filename, user_folder_name=None, document_nam
     user_properties = get_user_properties(user_folder_name)
     uploaded_files = user_properties.get('data_table_upload_filenames', [])
     if not document_name:
-        document_name = get_active_document
+        document_name = get_active_document()
     this_upload = [document_name, filename.lower()]  # list rather than tuple because JSON
     if this_upload not in uploaded_files:
         uploaded_files.append(this_upload)

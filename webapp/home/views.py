@@ -43,7 +43,8 @@ from webapp.auth.user_data import (
     get_user_uploads_folder_name, get_document_uploads_folder_name,
     get_active_document, discard_data_table_upload_filename, get_user_folder_name,
     discard_data_table_upload_filenames_for_package, remove_active_file,
-    add_data_table_upload_filename, add_uploaded_table_properties, get_uploaded_table_column_properties
+    add_data_table_upload_filename, clear_data_table_upload_filenames,
+    add_uploaded_table_properties, get_uploaded_table_column_properties
 )
 
 from webapp.home.forms import ( 
@@ -117,7 +118,10 @@ def fixup_upload_management():
     to_delete = set()
     # loop on the various users' data directories
     for user_folder_name in os.listdir(USER_DATA_DIR):
+        if user_folder_name == 'uploads':
+            continue
         if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
+            clear_data_table_upload_filenames(user_folder_name)
             full_path = os.path.join(USER_DATA_DIR, user_folder_name)
             uploads_path = os.path.join(full_path, 'uploads')
             # look at the EML model json files
@@ -151,8 +155,6 @@ def fixup_upload_management():
                             if os.path.isfile(object_path):
                                 to_delete.add(object_path)
                                 copyfile(object_path, target_path)
-                            if os.path.isfile(target_path):
-                                add_data_table_upload_filename(object_name, os.path.join('user-data', user_folder_name))
                     # look at other entities
                     other_entity_nodes = []
                     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
@@ -164,13 +166,19 @@ def fixup_upload_management():
                             if os.path.isfile(object_path):
                                 to_delete.add(object_path)
                                 copyfile(object_path, os.path.join(subdir_name, object_name))
-                            if os.path.isfile(target_path):
-                                add_data_table_upload_filename(object_name, os.path.join('user-data', user_folder_name))
                     # clean up temp files
                     for path in os.listdir(subdir_name):
                         path = os.path.join(subdir_name, path)
                         if os.path.isfile(path) and path.endswith('ezeml_tmp'):
                             to_delete.add(path)
+
+            # now capture all uploaded file names in the user data
+            for file in os.listdir(uploads_path):
+                uploads_folder = os.path.join(uploads_path, file)
+                if os.path.isdir(uploads_folder):
+                    # add the uploaded files to the user data
+                    for uploaded_file in os.listdir(uploads_folder):
+                        add_data_table_upload_filename(uploaded_file, user_folder_name, file)
 
             # clean up temp files
             for path in os.listdir(full_path):
@@ -368,6 +376,16 @@ def save():
     return redirect(url_for(PAGE_TITLE, filename=current_document))
 
 
+def copy_uploads(from_package, to_package):
+    from_folder = get_document_uploads_folder_name(from_package)
+    to_folder = get_document_uploads_folder_name(to_package)
+    for filename in os.listdir(from_folder):
+        from_path = os.path.join(from_folder, filename)
+        to_path = os.path.join(to_folder, filename)
+        copyfile(from_path, to_path)
+        add_data_table_upload_filename(filename, document_name=to_package)
+
+
 @home.route('/save_as', methods=['GET', 'POST'])
 @login_required
 def save_as():
@@ -410,6 +428,7 @@ def save_as():
                 flash(return_value)
                 new_filename = current_document  # Revert back to the old filename
             else:
+                copy_uploads(current_document, new_document)
                 current_user.set_filename(filename=new_document)
                 flash(f'Saved as {new_document}')
             new_page = PAGE_TITLE   # Return the Response object
@@ -1295,7 +1314,11 @@ def load_data(dt_node_id=None):
         file = request.files['file']
         dt_node = None
         if file:
-            filename = secure_filename(file.filename)
+            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
+            #  separately keeping track of the original filename and the possibly modified filename.
+            # filename = secure_filename(file.filename)
+            filename = file.filename
+
             if doing_reupload:
                 dt_node = Node.get_node_instance(dt_node_id)
                 filename += '.ezeml_tmp'
@@ -1452,7 +1475,10 @@ def load_entity(node_id=None):
 
         file = request.files['file']
         if file:
-            filename = secure_filename(file.filename)
+            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
+            #  separately keeping track of the original filename and the possibly modified filename.
+            # filename = secure_filename(file.filename)
+            filename = file.filename
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
@@ -1488,6 +1514,10 @@ def load_metadata():
 
         file = request.files['file']
         if file:
+            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
+            #  separately keeping track of the original filename and the possibly modified filename.
+            # filename = secure_filename(file.filename)
+            # filename = file.filename
             filename = secure_filename(file.filename)
             
             if filename is None or filename == '':

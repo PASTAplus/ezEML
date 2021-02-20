@@ -104,8 +104,6 @@ def init_session_vars():
 
 @home.before_app_first_request
 def fixup_upload_management():
-    if not current_user.is_authenticated:
-        return
     USER_DATA_DIR = 'user-data'
     to_delete = set()
     # loop on the various users' data directories

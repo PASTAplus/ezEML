@@ -95,7 +95,6 @@ def initialize_user_data(cname, uid):
 
 
 def get_user_properties(folder_name=None):
-    foo = get_user_folder_name()
     if not folder_name:
         user_folder_name = get_user_folder_name()
     else:
@@ -121,7 +120,6 @@ def save_user_properties(user_properties, user_folder_name=None):
     else:
         user_folder_name = f'{USER_DATA_DIR}/{user_folder_name}'
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
-    foo = os.getcwd()
     with open(user_properties_filename, 'w') as user_properties_file:
         json.dump(user_properties, user_properties_file)
 
@@ -135,7 +133,6 @@ def is_first_usage():
 
 
 def clear_data_table_upload_filenames(user_folder_name=None):
-    foo = os.getcwd()
     user_properties = get_user_properties(user_folder_name)
     user_properties['data_table_upload_filenames'] = []
     save_user_properties(user_properties, user_folder_name)
@@ -173,8 +170,8 @@ def discard_data_table_upload_filenames_for_package(package_filename):
 
 def get_uploaded_table_properties_dict():
     user_folder = get_user_folder_name()
-    foobar = '__uploaded_table_properties__.pkl'
-    properties_file = f'{user_folder}/{foobar}'
+    table_props_filename = '__uploaded_table_properties__.pkl'
+    properties_file = f'{user_folder}/{table_props_filename}'
     try:
         with open(properties_file, 'rb') as f:
             return pickle.load(f)
@@ -184,8 +181,8 @@ def get_uploaded_table_properties_dict():
 
 def save_uploaded_table_properties_dict(properties):
     user_folder = get_user_folder_name()
-    foobar = '__uploaded_table_properties__.pkl'
-    properties_file = f'{user_folder}/{foobar}'
+    table_props_filename = '__uploaded_table_properties__.pkl'
+    properties_file = f'{user_folder}/{table_props_filename}'
     with open(properties_file, 'wb') as f:
         pickle.dump(properties, f)
 

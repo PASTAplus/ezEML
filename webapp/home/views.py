@@ -1113,7 +1113,7 @@ def get_column_properties(dt_node, object_name):
     else:
         quote_char = '"'
     try:
-        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes = load_data_table(
+        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, _ = load_data_table(
             uploads_folder, data_file, num_header_rows, delimiter, quote_char)
 
         user_data.add_uploaded_table_properties(data_file,
@@ -1325,7 +1325,7 @@ def load_data(dt_node_id=None):
                 delimiter = form.delimiter.data
                 quote_char = form.quote.data
                 try:
-                    new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes = load_data_table(uploads_folder, data_file, num_header_rows, delimiter, quote_char)
+                    new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, _ = load_data_table(uploads_folder, data_file, num_header_rows, delimiter, quote_char)
                     if not dt_node:  # i.e., if not doing a re-upload
                         dt_node = new_dt_node
                     else:

@@ -55,7 +55,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.02.20'
+RELEASE_NUMBER = '2021.02.22'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1031,6 +1031,11 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                     current_app.logger.info(f'save_eml (json)... eml_node.id={eml_node.id}')
                 else:
                     current_app.logger.info(f'save_eml (json)... eml_node is None')
+            if format == 'xml':
+                if eml_node:
+                    current_app.logger.info(f'save_eml (xml)... eml_node.id={eml_node.id}')
+                else:
+                    current_app.logger.info(f'save_eml (xml)... eml_node is None')
 
     if filename:
         if eml_node is not None:
@@ -1058,6 +1063,8 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                     with app.app_context():
                         if format == 'json':
                             current_app.logger.info(f'save_eml (json)... done')
+                        if format == 'xml':
+                            current_app.logger.info(f'save_eml (xml)... done')
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:

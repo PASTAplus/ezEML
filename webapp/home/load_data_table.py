@@ -324,7 +324,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
         with app.app_context():
             current_app.logger.info(f'Leaving load_data_table')
 
-    return datatable_node, column_vartypes, column_names, column_categorical_codes
+    return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame
 
 
 def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_file: str = '', node_id: str = None):

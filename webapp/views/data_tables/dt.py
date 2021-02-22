@@ -1,4 +1,5 @@
 import hashlib
+import pandas as pd
 
 from flask import (
     Blueprint, Flask, flash, render_template, redirect, request, session, url_for, app, current_app
@@ -25,7 +26,7 @@ from webapp.views.data_tables.forms import (
 
 from webapp.home.forms import (
     form_md5, is_dirty_form,
-    ImportEMLForm, ImportEMLItemsForm
+    ImportEMLForm
 )
 
 from webapp.home.metapype_client import (
@@ -45,15 +46,16 @@ from webapp.home.views import (
 
 from metapype.eml import names
 from metapype.model.node import Node
+from webapp.home.metapype_client import VariableType, new_child_node
 
 from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
-from webapp.auth.user_data import (
-    data_table_was_uploaded
-)
+from webapp.home.load_data_table import load_data_table, sort_codes
+
+from webapp.auth.user_data import data_table_was_uploaded, get_document_uploads_folder_name
 
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
 
@@ -481,6 +483,42 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
 
 
+def force_categorical_type(attribute_node, enumerated_domain_node):
+    # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
+    attribute_list_node = attribute_node.parent
+    data_table_node = attribute_list_node.parent
+    data_file = data_table_node.find_descendant(names.OBJECTNAME).content
+
+    uploads_folder = get_document_uploads_folder_name()
+    full_path = f'{uploads_folder}/{data_file}'
+
+    field_delimiter_node = data_table_node.find_descendant(names.FIELDDELIMITER)
+    if field_delimiter_node:
+        delimiter = field_delimiter_node.content
+    else:
+        delimiter = ','
+    quote_char_node = data_table_node.find_descendant(names.QUOTECHARACTER)
+    if quote_char_node:
+        quote_char = quote_char_node.content
+    else:
+        quote_char = '"'
+
+    data_frame = pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+
+    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    codes = data_frame[column_name].unique().tolist()
+    sorted_codes = sort_codes(codes)
+
+    for child in enumerated_domain_node.children:
+        enumerated_domain_node.remove_child(child)
+
+    for code in sorted_codes:
+        code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
+        code_node = new_child_node(names.CODE, code_definition_node)
+        code_node.content = code
+        definition_node = new_child_node(names.DEFINITION, code_definition_node)
+
+
 def change_measurement_scale(att_node, old_mscale, new_mscale):
     if not att_node:
         return
@@ -504,6 +542,7 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
         enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
+        force_categorical_type(att_node, enumerated_domain_node)
 
     elif new_mscale == VariableType.TEXT.name:
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)

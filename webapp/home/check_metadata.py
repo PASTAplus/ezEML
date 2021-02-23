@@ -480,16 +480,22 @@ def check_project_award(award_node, filename, related_project_id=None):
 
 
 def check_project_node(project_node, filename, related_project_id=None):
-    link = url_for(PAGE_PROJECT, filename=filename)
+    if not related_project_id:
+        link = url_for(PAGE_PROJECT, filename=filename)
+    else:
+        link = url_for(PAGE_PROJECT, filename=filename, node_id=related_project_id)
     validation_errors = validate_via_metapype(project_node)
-    if find_min_unmet(validation_errors, names.PROJECT, names.TITLE) or \
-        find_content_empty(validation_errors, names.TITLE):
+    name = project_node.name
+    if find_min_unmet(validation_errors, name, names.TITLE):
         add_to_evaluation('project_01', link)
-    if find_min_unmet(validation_errors, names.PROJECT, names.PERSONNEL):
+    if find_content_empty(validation_errors, names.TITLE):
+        # We need to distinguish between a missing title for the project itself or one of its related projects
+        found = find_content_empty(validation_errors, names.TITLE)
+        for err_code, msg, node, *args in found:
+            if node.parent.name == name:
+                add_to_evaluation('project_01', link)
+    if find_min_unmet(validation_errors, name, names.PERSONNEL):
         add_to_evaluation('project_02', link)
-    related_project_nodes = project_node.find_all_children(names.RELATED_PROJECT)
-    for related_project_node in related_project_nodes:
-        check_project_node(related_project_node, filename, related_project_node.id)
 
     project_personnel_nodes = project_node.find_all_children(names.PERSONNEL)
     for project_personnel_node in project_personnel_nodes:
@@ -500,6 +506,10 @@ def check_project_node(project_node, filename, related_project_id=None):
     project_award_nodes = project_node.find_all_children(names.AWARD)
     for project_award_node in project_award_nodes:
         check_project_award(project_award_node, filename, related_project_id)
+
+    related_project_nodes = project_node.find_all_children(names.RELATED_PROJECT)
+    for related_project_node in related_project_nodes:
+        check_project_node(related_project_node, filename, related_project_node.id)
 
 
 def check_project(eml_node, filename):

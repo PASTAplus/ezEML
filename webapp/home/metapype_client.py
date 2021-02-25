@@ -239,7 +239,7 @@ def list_other_entities(eml_node:Node=None):
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
                 label, object_name = compose_entity_label(oe_node)
-                was_uploaded = data_table_was_uploaded(object_name)
+                was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
                 oe_entry = OE_Entry(id=id,

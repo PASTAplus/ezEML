@@ -1137,6 +1137,12 @@ def export_package_2(package_name, download_url):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    current_document = current_user.get_filename()
+    if not current_document:
+        raise FileNotFoundError
+    # Call load_eml here to get the check_metadata status set correctly
+    eml_node = load_eml(filename=current_document)
+
     return render_template('export_package_2.html', back_url=get_back_url(), title='Export Data Package',
                            package_name=package_name, download_url=download_url)
 

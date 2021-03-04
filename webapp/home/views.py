@@ -1401,7 +1401,7 @@ def import_package_2(package_name):
 
     # Process GET
     return render_template('import_package_2.html', title='Import an ezEML Data Package',
-                           package=package_name, form=form)
+                           package_name=package_name, form=form)
 
 
 @home.route('/load_data', methods=['GET', 'POST'])

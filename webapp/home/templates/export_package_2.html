@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+
+{% block app_content %}
+    <h2>ezEML Data Package Download</h2>
+        <div class="col-md-10">
+    <p>&nbsp;</p>
+    <p>Your ezEML Data Package is available for download. To download it to your browser's download directory,
+        click the Download Link below.
+    </p><p></p>
+            <b>Package Archive Name</b><br>
+            {{ package_name }}
+    <p></p>
+            <b>Download Link</b><br>
+            <a href="{{ download_url }}">Download the package to your browser</a>
+    <p></p>
+    It may be that you wish to send the package to someone else (e.g., the EDI data repository). In such cases, you could
+            download the package and attach it to an email. Alternatively, you can click the button below to copy
+            the package archive's URL to your clipboard, paste the URL into
+            an email, and the email's recipients will be able to download the file for themselves.
+{#    <p></p>#}
+{#            <b>URL Address</b><br>#}
+{#            {{ download_url }}#}
+{#    <p></p>#}
+            The package archive will continue to be available at that URL address for at least two weeks.
+    <br><br>
+            <form method="POST" action="" class="form" role="form">
+                <input class="btn btn-primary" style="width: 200px;" onclick="copy_to_clipboard('{{ download_url }}');" value="Copy URL to Clipboard"/>
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Continue"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+
+    <script>
+    function copy_to_clipboard(copyText) {
+        {#alert(copyText);#}
+        let $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val(copyText).select();
+        document.execCommand("copy");
+        $temp.remove();
+    }
+    </script>
+{% endblock %}

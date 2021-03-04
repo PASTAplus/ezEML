@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h2>Import an ezEML Data Package</h2>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                <table>
+                    <tr><td colspan="2">Package <b>{{ package_name }}</b> already exists in your account.</td></tr>
+                    <tr><td>&nbsp;</td></tr>
+                    <tr><td colspan="2">Would you like to replace it or make a copy?</td></tr>
+                    <tr><td width="5%"></td><td><input type="radio" id="replace" name="replace_copy" value="replace">
+                        <label for="replace">Replace it</label></td></tr>
+                    <tr><td width="5%"></td><td><input type="radio" id="copy" name="replace_copy" value="copy">
+                        <label for="copy">Make a copy</label></td></tr>
+                </table>
+                <br>
+
+                <input class="btn btn-primary" style="width: 100px;" name="Import" type="submit" value="Import"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+

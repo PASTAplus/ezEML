@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following should agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2021.02.23' %}
+{% set release_number = '2021.03.03' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -21,10 +21,11 @@
         '/load_data', 'load_other_entity', 'check_metadata',
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
-        'about', 'news', 'user_guide'] %}
+        'about', 'news', 'user_guide', 'import_package', 'export_package'] %}
 {% set non_saving_contains = ['/check_metadata/',
         '/import_parties_2/', '/import_geo_coverage_2/',
-        '/import_taxonomic_coverage_2/', '/import_funding_awards_2/'] %}
+        '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
+        'import_package_2', 'export_package_2'] %}
 {% set ns = namespace(is_non_saving = false) %}
 {% for page in non_saving_endswith %}
     {% if request.path.endswith(page) %}
@@ -116,7 +117,7 @@
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">Import<span class="caret"></span>
+                       role="button">Import/Export<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
                         <li>
@@ -133,6 +134,18 @@
                         </li>
                         <li>
                             <a href="{{ url_for('home.import_related_projects') }}" title="Import Related Projects">Import Related Projects</a>
+                        </li>
+                        <li>
+                            <hr color="darkgrey">
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('home.import_package') }}" title="Import ezEML Data Package">Import ezEML Data Package...</a>
                         </li>
                     </ul>
                 </li>
@@ -254,8 +267,8 @@
             {% set other_entity_style = '""' %}
             {% set data_package_id_style = '""' %}
             {% set check_metadata_style = '""' %}
-            {% set download_eml_style = '""' %}
-            {% set export_package_style = '""' %}
+{#            {% set download_eml_style = '""' %}#}
+{#            {% set export_package_style = '""' %}#}
             {% set submit_package_style = '""' %}
 
             {% set page = session['current_page'] %}
@@ -281,7 +294,7 @@
             {% if page == 'other_entity' %}{% set other_entity_style = current %}{% endif %}
             {% if page == 'data_package_id' %}{% set data_package_id_style = current %}{% endif %}
             {% if page == 'check_metadata' %}{% set check_metadata_style = current %}{% endif %}
-            {% if page == 'export_package' %}{% set export_package_style = current %}{% endif %}
+{#            {% if page == 'export_package' %}{% set export_package_style = current %}{% endif %}#}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
@@ -307,8 +320,8 @@
         <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>
             <br>
-        <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>
-        <a class="nav_link" style={{ export_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.export_package') }}" title="Edit">Export Data Package</a><br>
+{#        <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>#}
+{#        <a class="nav_link" style={{ export_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.export_package') }}" title="Edit">Export Data Package</a><br>#}
         <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Submit to EDI</a><br>
 
         {% endif %}

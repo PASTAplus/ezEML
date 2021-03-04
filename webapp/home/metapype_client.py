@@ -55,7 +55,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.02.23'
+RELEASE_NUMBER = '2021.03.03'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -110,10 +110,7 @@ def post_process_text_type_node(text_node:Node=None):
     content = remove_paragraph_tags(text_node.content)
     paras = []
     if content:
-        if '\n' not in content:
-            paras = [content]
-        else:
-            paras = content.split('\n')
+        paras = [content] if '\n' not in content else content.split('\n')
         for para in paras:
             para_node = new_child_node(names.PARA, text_node)
             para_node.content = para
@@ -239,7 +236,7 @@ def list_other_entities(eml_node:Node=None):
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
                 label, object_name = compose_entity_label(oe_node)
-                was_uploaded = data_table_was_uploaded(object_name)
+                was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
                 oe_entry = OE_Entry(id=id,

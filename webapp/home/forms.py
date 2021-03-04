@@ -96,6 +96,10 @@ class ImportEMLForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
 
 
+class ImportPackageForm(FlaskForm):
+    pass
+
+
 class ImportItemsForm(FlaskForm):
     to_import = MultiCheckboxField('Import', choices=[], validators=[])
 

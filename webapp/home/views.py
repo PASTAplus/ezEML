@@ -21,6 +21,7 @@ import os.path
 from pathlib import Path
 import pickle
 from shutil import copyfile
+from urllib.parse import urlparse, quote
 from zipfile import ZipFile
 
 
@@ -39,8 +40,7 @@ from webapp.config import Config
 import csv
 
 from webapp.home.forms import ( 
-    CreateEMLForm,
-    DownloadEMLForm,
+    CreateEMLForm, DownloadEMLForm, ImportPackageForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportItemsForm
@@ -48,6 +48,9 @@ from webapp.home.forms import (
 
 from webapp.home.load_data_table import (
     load_data_table, load_other_entity, delete_data_files
+)
+from webapp.home.import_package import (
+    copy_ezeml_package, upload_ezeml_package, import_ezeml_package
 )
 
 from webapp.home.metapype_client import ( 
@@ -108,7 +111,7 @@ def fixup_upload_management():
     to_delete = set()
     # loop on the various users' data directories
     for user_folder_name in os.listdir(USER_DATA_DIR):
-        if user_folder_name == 'uploads':
+        if user_folder_name == 'uploads' or user_folder_name == 'zip_temp':
             continue
         if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
             user_data.clear_data_table_upload_filenames(user_folder_name)
@@ -477,46 +480,6 @@ def check_metadata(filename:str):
     else:
         set_current_page('check_metadata')
         return render_template('check_metadata.html', content=content, title='Check Metadata')
-
-
-def zip_package():
-    current_document = current_user.get_filename()
-    if not current_document:
-        raise FileNotFoundError
-    eml_node = load_eml(filename=current_document)
-
-    user_folder = user_data.get_user_folder_name()
-
-    zipfile_name = f'{current_document}.zip'
-    zipfile_path = os.path.join(user_folder, zipfile_name)
-    zip_object = ZipFile(zipfile_path, 'w')
-
-    pathname = f'{user_folder}/{current_document}.xml'
-    package_id = user_data.get_active_packageid()
-    if package_id:
-        arcname = f'{package_id}.xml'
-    else:
-        arcname = f'{current_document}.xml'
-    zip_object.write(pathname, arcname)
-    pathname = f'{user_folder}/{current_document}.json'
-    arcname = f'{current_document}.json'
-    zip_object.write(pathname, arcname)
-    # get data files
-    uploads_folder = user_data.get_document_uploads_folder_name()
-    data_table_nodes = []
-    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-    entity_nodes = []
-    eml_node.find_all_descendants(names.OTHERENTITY, entity_nodes)
-    data_nodes = data_table_nodes + entity_nodes
-    for data_node in data_nodes:
-        object_name_node = data_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
-        if object_name_node:
-            object_name = object_name_node.content
-            pathname = f'{uploads_folder}/{object_name}'
-            arcname = f'data/{object_name}'
-            zip_object.write(pathname, arcname)
-    zip_object.close()
-    return zipfile_path
 
 
 @home.route('/download_current', methods=['GET', 'POST'])
@@ -1055,36 +1018,127 @@ def display_decode_error_lines(filename):
     return errors
 
 
+def zip_package(current_document=None, eml_node=None):
+    if not current_document:
+        current_document = current_user.get_filename()
+    if not current_document:
+        raise FileNotFoundError
+    if not eml_node:
+        eml_node = load_eml(filename=current_document)
+
+    user_folder = user_data.get_user_folder_name()
+
+    zipfile_name = f'{current_document}.ezeml'
+    zipfile_path = os.path.join(user_folder, zipfile_name)
+    zip_object = ZipFile(zipfile_path, 'w')
+
+    pathname = f'{user_folder}/{current_document}.json'
+    arcname = f'{current_document}.json'
+    zip_object.write(pathname, arcname)
+
+    package_id = user_data.get_active_packageid()
+    if package_id:
+        arcname = f'{package_id}.xml'
+    else:
+        arcname = f'{current_document}.xml'
+    pathname = f'{user_folder}/{arcname}'
+    zip_object.write(pathname, arcname)
+
+    # get data files
+    uploads_folder = user_data.get_document_uploads_folder_name()
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    entity_nodes = []
+    eml_node.find_all_descendants(names.OTHERENTITY, entity_nodes)
+    data_nodes = data_table_nodes + entity_nodes
+    for data_node in data_nodes:
+        object_name_node = data_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+        if object_name_node:
+            object_name = object_name_node.content
+            pathname = f'{uploads_folder}/{object_name}'
+            arcname = f'data/{object_name}'
+            zip_object.write(pathname, arcname)
+    zip_object.close()
+    return zipfile_path
+
+
+def save_as_ezeml_package_export(archive_file):
+    current_document = current_user.get_filename()
+    if not current_document:
+        raise FileNotFoundError
+
+    user_folder = user_data.get_user_folder_name()
+
+    # Create the exports folder
+    timestamp = datetime.now().date().strftime('%Y_%m_%d') + '_' + datetime.now().time().strftime('%H_%M_%S')
+    export_folder = os.path.join(user_folder, 'exports', current_document, timestamp)
+    os.makedirs(export_folder, exist_ok=True)
+
+    _, archive_basename = os.path.split(archive_file)
+    src = archive_file
+    dest = f'{export_folder}/{archive_basename}'
+    copyfile(src, dest)
+
+    parsed_url = urlparse(request.base_url)
+    download_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{dest}"
+    return archive_basename, download_url
+
+
 @home.route('/export_package', methods=['GET', 'POST'])
 @login_required
 def export_package():
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    current_document = current_user.get_filename()
+    if not current_document:
+        raise FileNotFoundError
+    # Call load_eml here to get the check_metadata status set correctly
+    eml_node = load_eml(filename=current_document)
+
     if request.method == 'POST':
-        zipfile_path = zip_package()
+        zipfile_path = zip_package(current_document, eml_node)
+        archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
+        if download_url:
 
-        path, filename = os.path.split(zipfile_path)
+            # return redirect(url_for('home.export_package_2', package_name=archive_basename, download_url='foo'))
+            # foo = quote(download_url, safe='')
+            # return redirect(url_for('home.export_package_2', package_name=archive_basename,
+            #                         download_url=quote(download_url, safe='')))
+            return redirect(url_for('home.export_package_2', package_name=archive_basename,
+                                    download_url=download_url, safe=''))
 
-        relative_pathname = '../' + zipfile_path
-        mimetype = 'application/xml'
-        try:
-            return send_file(relative_pathname,
-                             mimetype=mimetype,
-                             as_attachment=True,
-                             attachment_filename=filename,
-                             add_etags=True,
-                             cache_timeout=None,
-                             conditional=False,
-                             last_modified=None)
-        except Exception as e:
-            return str(e)
+        # path, filename = os.path.split(zipfile_path)
+        #
+        # relative_pathname = '../' + zipfile_path
+        # mimetype = 'application/xml'
+        # try:
+        #     return send_file(relative_pathname,
+        #                      mimetype=mimetype,
+        #                      as_attachment=True,
+        #                      attachment_filename=filename,
+        #                      add_etags=True,
+        #                      cache_timeout=None,
+        #                      conditional=False,
+        #                      last_modified=None)
+        # except Exception as e:
+        #     return str(e)
 
     # Process GET
-    help = get_helps(['import_funding_awards_2'])  # FIXME
-    set_current_page('export_package')
+    # help = get_helps(['import_funding_awards_2'])  # FIXME
+    # set_current_page('export_package')
 
     return render_template('export_package.html', back_url=get_back_url(), title='Export Data Package')
+
+
+@home.route('/export_package_2/<package_name>/<path:download_url>', methods=['GET', 'POST'])
+@login_required
+def export_package_2(package_name, download_url):
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    return render_template('export_package_2.html', back_url=get_back_url(), title='Export Data Package',
+                           package_name=package_name, download_url=download_url)
 
 
 @home.route('/submit_package', methods=['GET', 'POST'])
@@ -1267,6 +1321,81 @@ def backup_metadata(filename):
         copyfile(filename, backup_filename)
     except:
         flash(f'Error backing up file {filename}.json', 'error')
+
+
+@home.route('/import_package', methods=['GET', 'POST'])
+@login_required
+def import_package():
+    form = ImportPackageForm()
+
+    package_list = user_data.get_user_document_list()
+
+    # Process POST
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST' and form.validate_on_submit():
+
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
+            #  separately keeping track of the original filename and the possibly modified filename.
+            # filename = secure_filename(file.filename)
+            filename = file.filename
+
+            if not os.path.splitext(filename)[1] == '.ezeml':
+            # if not filename.endswith('.ezeml'):
+                flash('Please select a file with file extension ".ezeml".', 'error')
+                return redirect(request.url)
+
+            package_base_filename = os.path.basename(filename)
+            package_name = os.path.splitext(package_base_filename)[0]
+
+            # See if package with that name already exists
+            if package_name in user_data.get_user_document_list():
+                upload_ezeml_package(file, package_name)
+                return redirect(url_for('home.import_package_2', package_name=package_name))
+            else:
+                upload_ezeml_package(file, package_name)
+                import_ezeml_package(package_name)
+                fixup_upload_management()
+                current_user.set_filename(filename=package_name)
+                return redirect(url_for(PAGE_TITLE, filename=package_name))
+
+    # Process GET
+    return render_template('import_package.html', title='Import an ezEML Data Package',
+                           packages=package_list, form=form)
+
+
+@home.route('/import_package_2/<package_name>', methods=['GET', 'POST'])
+@login_required
+def import_package_2(package_name):
+    form = ImportPackageForm()
+
+    # Process POST
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST' and form.validate_on_submit():
+        form = request.form
+        if form['replace_copy'] == 'copy':
+            package_name = copy_ezeml_package(package_name)
+
+        import_ezeml_package(package_name)
+        fixup_upload_management()
+        current_user.set_filename(filename=package_name)
+        return redirect(url_for(PAGE_TITLE, filename=package_name))
+
+    # Process GET
+    return render_template('import_package_2.html', title='Import an ezEML Data Package',
+                           package=package_name, form=form)
 
 
 @home.route('/load_data', methods=['GET', 'POST'])

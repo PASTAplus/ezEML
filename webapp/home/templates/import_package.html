@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h2>Import an ezEML Data Package</h2>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                <h4>Select the ezEML data package file to import:</h4>
+                {# We'd like to use accept=".ezeml" but that doesn't work. Only standard file extensions work, #}
+                {#  apparently. To make matters worse, on Chrome this includes MS Word docs, unfortunately. #}
+                <input class="file_select" type="file" name="file" accept=".ezeml">
+                <p></p>
+                <br>
+
+                <input class="btn btn-primary" style="width: 100px;" name="Import" type="submit" value="Import"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+

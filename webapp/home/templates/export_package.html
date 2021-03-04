@@ -2,25 +2,27 @@
 
 
 {% block app_content %}
-    <h2>Export Data Package</h2>
+    <h2>Export ezEML Data Package</h2>
         <div class="col-md-10">
     <p>&nbsp;</p>
-    <p>After you have completed entering the EML metadata and uploaded all associated data files (data tables and other entities) to ezEML,
-    <b>Export Data Package</b> creates a zip file containing the EML file (in both XML format and ezEML's JSON format) and
-    the data files. This zip file will be downloaded to your browser's download directory. You can then submit it to
-    the data repository of your choosing.
+    <p>When you have entered the EML metadata and uploaded all associated data files (data tables and other entities) to ezEML,
+        you're ready to export the data package.</p>
+            <p>
+    <b>Export ezEML Data Package</b> creates an archive file containing the EML file (in both XML format and ezEML's JSON format) and
+    the data files. This archive file, with a '.ezeml' file extension, can be downloaded to your computer or you can send its URL to EDI
+        to submit the data package to the EDI data repository (see <b>Submit to EDI</b>).
     </p>
     <br>
     <div style="border: 1px solid steelblue;padding: 10px;">
-        <b>Note:</b> The versions of the data files that will be incorporated in the zip file are the versions you've
+        <b>Note:</b> The versions of the data files that will be incorporated in the archive file are the versions you've
         uploaded to ezEML. If you've modified a data file since it was uploaded, you will need to use <b>Re-upload</b>
         to provide ezEML with the updated version. Go to <b><a href="edit/dt.data_table_select">Data Tables</a></b> and/or
         <b><a href="edit/ent.other_entity_select">Other Entities</a></b> to do any needed re-uploads. Then return to this page to
-        <b>Export Data Package</b>.
+        <b>Export ezEML Data Package</b>.
         </div>
     <br><br>
             <form method="POST" action="" class="form" role="form">
-                <input class="btn btn-primary" style="width: 200px;" name="Export" type="submit" value="Export Data Package"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 200px;" name="Export" type="submit" value="Export ezEML Data Package"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons() }}
             </form>

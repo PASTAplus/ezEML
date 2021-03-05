@@ -1153,7 +1153,7 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, d
         '   Sender\'s name: ' + name + '\n\n' + \
         '   Sender\'s email: ' + email_address + '\n\n' + \
         '   Package name: ' + archive_name + '\n\n' + \
-        '   Download URL: ' + download_url + '\n\n'
+        '   Download URL: ' + download_url.replace(' ', '%20') + '\n\n'
     if notes:
         msg += '   Sender\'s Notes: ' + notes
     return msg

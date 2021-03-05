@@ -19,15 +19,21 @@
     <br>
     <form method="POST" action="" class="form" role="form" novalidate>
         {{ form.csrf_token }}
+    <table>
+        <tr><td>
         <table>
             <td>{{ wtf.form_field(form.name, size=100) }}</td>
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </table>
-        <p></p>
+        </td>
+            <td width="5%">&nbsp;</td>
+        <td>
         <table>
             <td>{{ wtf.form_field(form.email_address, size=100) }}</td>
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </table>
+        </td></tr>
+    </table>
         <p></p>
 {#        <h5>If you have any notes for EDI data curators, enter them below.</h5>#}
         <table>

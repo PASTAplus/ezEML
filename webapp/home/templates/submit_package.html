@@ -1,25 +1,52 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2 align="left">Submitting Your Data Package to EDI</h2>
+    <h2 align="left">Submit to EDI</h2>
+        <div class="col-md-10">
 
-    <p>&nbsp;</p>
-    <p>After you have created and downloaded your EML metadata file, you may want to submit your data package to the data repository
+        <p>When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML,
+        you're ready to submit your data package to the data repository
         hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
-        There are a couple of ways to do this.</p>
 
-    <p>The easier way is to use <b>Export Data Package</b>, which zips up your EML file and all of the data files comprising your data package
-        and downloads the zip file to your browser's download directory. You can then send an email to
-        <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a> with the zip file attached,
-        requesting our assistance in publishing your data package in the EDI repository. We will be glad to help.</p>
-
-    <p>Alternatively, you can submit the data package yourself via the <a href="https://portal.edirepository.org/nis/home.jsp" target="_blank"><b>EDI Data Portal</b></a>.
-        You will need to log in there, then go to "Evaluate/Upload Data Packages" under the "Tools" menu. You will want to select the option to manually upload data from your
-    local file system. If you have never used the Data Portal before, we will be happy to walk you through the process. Just email us at
-        <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a>.</p>
+    <div style="border: 1px solid steelblue;padding: 10px;">
+        <b>Note:</b> The versions of the data files that will be sent to EDI are the versions you've
+        uploaded to ezEML. If you've modified a data file since it was uploaded, you will need to use <b>Re-upload</b>
+        to provide ezEML with the updated version prior to submitting. Go to <b><a href="edit/dt.data_table_select">Data Tables</a></b> and/or
+        <b><a href="edit/ent.other_entity_select">Other Entities</a></b> to do any needed re-uploads. Then return to this page to
+        <b>Submit to EDI</b>.
+        </div>
     <br>
-    <b><a href={{ back_url }}>Back</a></b>
+    <form method="POST" action="" class="form" role="form" novalidate>
+        {{ form.csrf_token }}
+        <table>
+            <td>{{ wtf.form_field(form.name, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        <p></p>
+        <table>
+            <td>{{ wtf.form_field(form.email_address, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        <p></p>
+{#        <h5>If you have any notes for EDI data curators, enter them below.</h5>#}
+        <table>
+            <td>{{ wtf.form_field(form.notes, rows=5, cols=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        {% if check_metadata_status == 'red' %}
+            <p><span style="color:red;">Your metadata contains one or more errors.</span><span style="color:steelblue;"> To see what the errors
+                are, click <b><a href="edit/home.check_metadata">Check Metadata</a></b>.
+            We encourage you to correct the errors before submitting, but you may go ahead and submit your package as is,
+                if you choose, for example if there are errors you're not sure how to handle. In that case, please leave
+            an explanation in the Notes text area above so we can assist you better.</span></p>
+        {% endif %}
+    <p></p>If you have any questions, please email us at
+        <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a>.</p>
 
-                    {{ macros.hidden_buttons() }}
-
+                <input class="btn btn-primary" style="width: 200px;" name="Submit" type="submit" value="Submit to EDI"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
+                {{ macros.hidden_buttons() }}
+    </form>
+        </div>
 {% endblock %}

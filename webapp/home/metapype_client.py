@@ -1007,6 +1007,7 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
     else:
         status = "green"
     session["check_metadata_status"] = status
+    return status
 
 
 def save_both_formats(filename:str=None, eml_node:Node=None):

@@ -9,9 +9,9 @@
                 {{ form.csrf_token }}
                 <br>
                 <h4>Select the ezEML data package file to import:</h4>
-                {# We'd like to use accept=".ezeml" but that doesn't work. Only standard file extensions work, #}
+                {# We'd like to use accept=".ezeml.zip" but that doesn't work. Only standard file extensions work, #}
                 {#  apparently. To make matters worse, on Chrome this includes MS Word docs, unfortunately. #}
-                <input class="file_select" type="file" name="file" accept=".ezeml">
+                <input class="file_select" type="file" name="file" accept=".ezeml.zip">
                 <p></p>
                 <br>
 

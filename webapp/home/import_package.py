@@ -20,7 +20,7 @@ def upload_ezeml_package(file, package_name=None):
     except FileExistsError:
         pass
 
-    dest = os.path.join(work_path, package_name) + '.ezeml'
+    dest = os.path.join(work_path, package_name) + '.ezeml.zip'
     file.save(dest)
 
 
@@ -44,8 +44,8 @@ def copy_ezeml_package(package_name=None):
             break
         i += 1
 
-    src_file = os.path.join(work_path, package_name) + '.ezeml'
-    dest_file = os.path.join(work_path, output_package_name) + '.ezeml'
+    src_file = os.path.join(work_path, package_name) + '.ezeml.zip'
+    dest_file = os.path.join(work_path, output_package_name) + '.ezeml.zip'
     shutil.move(src_file, dest_file)
     return output_package_name
 
@@ -53,7 +53,7 @@ def copy_ezeml_package(package_name=None):
 def import_ezeml_package(output_package_name=None):
     user_path = user_data.get_user_folder_name() # os.path.join(current_path, USER_DATA_DIR)
     work_path = os.path.join(user_path, 'zip_temp')
-    dest = os.path.join(work_path, output_package_name) + '.ezeml'
+    dest = os.path.join(work_path, output_package_name) + '.ezeml.zip'
 
     try:
         zip_object = ZipFile(dest, 'r')

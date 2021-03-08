@@ -1031,7 +1031,7 @@ def zip_package(current_document=None, eml_node=None):
 
     user_folder = user_data.get_user_folder_name()
 
-    zipfile_name = f'{current_document}.ezeml'
+    zipfile_name = f'{current_document}.ezeml.zip'
     zipfile_path = os.path.join(user_folder, zipfile_name)
     zip_object = ZipFile(zipfile_path, 'w')
 
@@ -1399,9 +1399,9 @@ def import_package():
             # filename = secure_filename(file.filename)
             filename = file.filename
 
-            if not os.path.splitext(filename)[1] == '.ezeml':
-            # if not filename.endswith('.ezeml'):
-                flash('Please select a file with file extension ".ezeml".', 'error')
+            if not os.path.splitext(filename)[1] == '.ezeml.zip':
+            # if not filename.endswith('.ezeml.zip'):
+                flash('Please select a file with file extension ".ezeml.zip".', 'error')
                 return redirect(request.url)
 
             package_base_filename = os.path.basename(filename)

@@ -24,6 +24,8 @@ from logging.handlers import RotatingFileHandler
 from xml.sax.saxutils import escape, unescape
 
 import os
+from os import listdir
+from os.path import isfile, join
 
 from flask import Flask, flash, session, current_app
 from flask_login import (
@@ -55,7 +57,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.03.03'
+RELEASE_NUMBER = '2021.03.12'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -101,6 +103,10 @@ def list_data_packages(flag_current=False, include_current=True):
             pid_tuple = (document, f'{document}{current_annotation}')
         choices.append(pid_tuple)
     return choices
+
+
+def list_files_in_dir(dirpath):
+    return [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
 
 
 def post_process_text_type_node(text_node:Node=None):

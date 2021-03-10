@@ -2,16 +2,21 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Import an ezEML Data Package</h2>
+    {% set help_import_package_id, help_import_package_title, help_import_package_content = help[0] %}
+    {% set help_import_package_btn = help_import_package_id ~ '_btn' %}
+    {% set help_import_package_dialog = help_import_package_id ~ '_dialog' %}
+    
+    <table>
+        <td><h2>Import an ezEML Data Package</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_package_btn) }}</td>
+    </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 {{ form.csrf_token }}
                 <br>
                 <h4>Select the ezEML data package file to import:</h4>
-                {# We'd like to use accept=".ezeml.zip" but that doesn't work. Only standard file extensions work, #}
-                {#  apparently. To make matters worse, on Chrome this includes MS Word docs, unfortunately. #}
-                <input class="file_select" type="file" name="file" accept=".ezeml.zip">
+                <input class="file_select" type="file" name="file" accept=".zip">
                 <p></p>
                 <br>
 
@@ -21,6 +26,20 @@
             </form>
         </div>
     </div>
+    {{ macros.help_dialog(help_import_package_dialog, help_import_package_title, help_import_package_content) }}
 {% endblock %}
 
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_import_package_id, help_import_package_title, help_import_package_content = help[0] %}
+    {% set help_import_package_btn = help_import_package_id ~ '_btn' %}
+    {% set help_import_package_dialog = help_import_package_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_import_package_dialog, help_import_package_btn) }}
+    });
+    </script>
+{% endblock %}
 

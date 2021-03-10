@@ -2,15 +2,25 @@
 
 
 {% block app_content %}
-    <h2>Export ezEML Data Package</h2>
-        <div class="col-md-10">
+    {% set help_export_package_id, help_export_package_title, help_export_package_content = help[0] %}
+    {% set help_export_package_btn = help_export_package_id ~ '_btn' %}
+    {% set help_export_package_dialog = help_export_package_id ~ '_dialog' %}
+    
+    <table>
+        <td><h2>Export ezEML Data Package</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_export_package_btn) }}</td>
+    </table>
+    <div class="col-md-10">
     <p>&nbsp;</p>
-    <p>When you have entered the EML metadata and uploaded all associated data files (data tables and other entities) to ezEML,
+    <p>When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML,
         you're ready to export the data package.</p>
             <p>
-    <b>Export ezEML Data Package</b> creates an archive file containing the EML file (in both XML format and ezEML's JSON format) and
-    the data files. This archive file, with a '.ezeml.zip' file extension, can be downloaded to your computer or you can send its URL to EDI
-        to submit the data package to the EDI data repository (see <b>Submit to EDI</b>).
+    <b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and
+    the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for the archive,
+                which you can then share with collaborators, for example.
+            </p><p>
+         To submit the data package to the EDI data repository, you can go directly to <b><a href="edit/home.submit_package">Submit to EDI</a></b>,
+                which will take care of creating the archive and sending it to EDI for submission.
     </p>
     <br>
     <div style="border: 1px solid steelblue;padding: 10px;">
@@ -27,4 +37,19 @@
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
+    {{ macros.help_dialog(help_export_package_dialog, help_export_package_title, help_export_package_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_export_package_id, help_export_package_title, help_export_package_content = help[0] %}
+    {% set help_export_package_btn = help_export_package_id ~ '_btn' %}
+    {% set help_export_package_dialog = help_export_package_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_export_package_dialog, help_export_package_btn) }}
+    });
+    </script>
 {% endblock %}

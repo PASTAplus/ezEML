@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following should agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2021.03.03' %}
+{% set release_number = '2021.03.12' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -137,7 +137,7 @@
                             <a href="{{ url_for('home.import_related_projects') }}" title="Import Related Projects">Import Related Projects</a>
                         </li>
                         <li>
-                            <hr color="darkgrey">
+                            <hr style="border-top: 1px solid #B0B0B0;">
                         </li>
                         <li>
                             <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File</a>

@@ -19,6 +19,11 @@ def check_ezeml_manifest(zipfile_name):
     files = zip_object.namelist()
     flash(files)
 
+    # Unzip into the work path
+    user_path = user_data.get_user_folder_name() # os.path.join(current_path, USER_DATA_DIR)
+    work_path = os.path.join(user_path, 'zip_temp')
+    zip_object.extractall(path=work_path)
+
     MANIFEST = 'ezEML_manifest.txt'
     if MANIFEST not in files:
         raise FileNotFoundError(MANIFEST)
@@ -34,7 +39,9 @@ def check_ezeml_manifest(zipfile_name):
         # checksum
         filename = manifest[i+1]
         checksum = manifest[i+2]
-        if checksum != get_md5_hash(f'{user_path}/{filename}'):
+        found = get_md5_hash(f'{work_path}/{filename}')
+        if checksum != found:
+            flash(f'Checksum error: {filename} Expected:{checksum} Found:{found}')
             raise ValueError(filename)
         i += 3
         if i + 2 >= len(manifest):
@@ -69,6 +76,7 @@ def upload_ezeml_package(file, package_name=None):
     try:
         zip_object = ZipFile(dest, 'r')
     except FileNotFoundError:
+        flash(f'FileNotFoundError: {dest}')
         raise FileNotFoundError(dest)
 
     # Get list of files in the archive
@@ -84,6 +92,7 @@ def upload_ezeml_package(file, package_name=None):
             break
 
     if not renamed_zip:
+        flash(f'FileNotFoundError: {unversioned_package_name}.zip')
         raise FileNotFoundError
     check_ezeml_manifest(renamed_zip)
 

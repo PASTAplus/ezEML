@@ -1069,7 +1069,7 @@ def zip_package(current_document=None, eml_node=None):
         arcname = f'{current_document}.xml'
     # pathname = f'{user_folder}/{current_document}.xml'
     pathname = f'{user_folder}/{arcname}'
-    manifest_files.append(('XML', f'{current_document}/{arcname}', pathname))
+    manifest_files.append(('XML', arcname, pathname))
     zip_object.write(pathname, arcname)
 
     create_ezeml_package_manifest(user_folder, manifest_files)

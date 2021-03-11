@@ -17,7 +17,7 @@ def check_ezeml_manifest(zipfile_name):
 
     # Get list of files in the archive
     files = zip_object.namelist()
-    flash(files)
+    # flash(files)
 
     # Unzip into the work path
     user_path = user_data.get_user_folder_name() # os.path.join(current_path, USER_DATA_DIR)

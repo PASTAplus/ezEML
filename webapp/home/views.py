@@ -1077,8 +1077,6 @@ def zip_package(current_document=None, eml_node=None):
     arcname = 'ezEML_manifest.txt'
     zip_object.write(pathname, arcname)
 
-    zip_object.write(pathname, arcname)
-
     # get data files
     uploads_folder = user_data.get_document_uploads_folder_name()
     data_table_nodes = []

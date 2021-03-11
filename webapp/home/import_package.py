@@ -2,6 +2,9 @@ import os
 import shutil
 from zipfile import ZipFile
 
+
+from flask import flash
+
 import webapp.auth.user_data as user_data
 
 from webapp.home.load_data_table import get_md5_hash
@@ -14,6 +17,7 @@ def check_ezeml_manifest(zipfile_name):
 
     # Get list of files in the archive
     files = zip_object.namelist()
+    flash(files)
 
     MANIFEST = 'ezEML_manifest.txt'
     if MANIFEST not in files:

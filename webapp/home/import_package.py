@@ -41,7 +41,7 @@ def check_ezeml_manifest(zipfile_name):
         checksum = manifest[i+2]
         found = get_md5_hash(f'{work_path}/{filename}')
         if checksum != found:
-            flash(f'Checksum error: {filename} Expected:{checksum} Found:{found}')
+            # flash(f'Checksum error: {filename} Expected:{checksum} Found:{found}')
             raise ValueError(filename)
         i += 3
         if i + 2 >= len(manifest):

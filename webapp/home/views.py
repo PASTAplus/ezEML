@@ -1202,7 +1202,7 @@ def submit_package():
         to_address = 'support@environmentaldatainitiative.org'
         sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
         if sent:
-            flash(f'Package {current_document} has been submitted to EDI. We will notify you when it has been added to the repository.')
+            flash(f'Package {current_document} has been sent to EDI. We will notify you when it has been added to the repository.')
         else:
             flash(f'Email failed to send', 'error')
         return redirect(get_back_url())

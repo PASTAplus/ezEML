@@ -76,7 +76,7 @@ def upload_ezeml_package(file, package_name=None):
     try:
         zip_object = ZipFile(dest, 'r')
     except FileNotFoundError:
-        flash(f'FileNotFoundError: {dest}')
+        # flash(f'FileNotFoundError: {dest}')
         raise FileNotFoundError(dest)
 
     # Get list of files in the archive
@@ -92,7 +92,7 @@ def upload_ezeml_package(file, package_name=None):
             break
 
     if not renamed_zip:
-        flash(f'FileNotFoundError: {unversioned_package_name}.zip')
+        # flash(f'FileNotFoundError: {unversioned_package_name}.zip')
         raise FileNotFoundError
     check_ezeml_manifest(renamed_zip)
 

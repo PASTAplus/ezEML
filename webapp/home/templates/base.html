@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following should agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2021.03.12' %}
+{% set release_number = '2021.03.17' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -140,7 +140,7 @@
                             <hr style="border-top: 1px solid #B0B0B0;">
                         </li>
                         <li>
-                            <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File</a>
+                            <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File (XML)</a>
                         </li>
                         <li>
                             <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>

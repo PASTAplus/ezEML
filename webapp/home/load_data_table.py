@@ -88,10 +88,8 @@ def sort_codes(codes):
         else:
             text.append(code)
     sorted_nums = sorted(nums)
-    all_sorted = sorted(text, key=sort_codes_key)
-    for num in sorted_nums:
-        all_sorted.append(str(num))
-    return all_sorted
+    sorted_text = sorted(text, key=sort_codes_key)
+    return sorted_nums + sorted_text
 
 
 def is_datetime(data_frame, col):

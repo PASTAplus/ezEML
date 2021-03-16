@@ -2,9 +2,9 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Variable Type for Attribute {{ entity_name }}</h2>
+    <h2>Variable Type for Column <i>{{ entity_name }}</i></h2>
     <div class="row">
-        <div class="col-md-10">
+        <div class="col-md-4">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.mscale_choice) }}<br/>

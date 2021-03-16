@@ -12,7 +12,7 @@ add_load_data_tables
 Add/Load Data Tables
 You can create a data table's metadata "from scratch" via <b>Add Data Table from Scratch</b>, or you can load an existing data table CSV file via <b>Load Data Table from CSV File</b>.
 
-In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
+In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 
 CSV files are assumed to contain a single header row.
 --------------------
@@ -20,7 +20,7 @@ add_load_other_entities
 Add/Load Other Entities
 You can create an other entity's metadata "from scratch" via <b>Add Other Entity from Scratch</b>, or you can load an existing other entity file via <b>Load Other Entity from File</b>.
 
-In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
+In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 --------------------
 associatedParty
 Associated Party

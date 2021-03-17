@@ -1013,6 +1013,11 @@ def clean_model(eml_node):
         taxonomic_classification_nodes = taxonomic_coverage_node.find_all_children(names.TAXONOMICCLASSIFICATION)
         if len(taxonomic_classification_nodes) == 0:
             taxonomic_coverage_node.parent.remove_child(taxonomic_coverage_node)
+    # Some documents lack the 'unit' attribute for the names.SIZE node
+    size_nodes = []
+    eml_node.find_all_descendants(names.SIZE, size_nodes)
+    for size_node in size_nodes:
+        size_node.add_attribute('unit', 'byte')
 
 
 def get_check_metadata_status(eml_node:Node=None, filename:str=None):
@@ -1196,6 +1201,7 @@ def create_data_table(
 
         if size:
             size_node = new_child_node(names.SIZE, parent=physical_node)
+            size_node.add_attribute('unit', 'byte')
             size_node.content = str(size)
 
         if md5_hash:

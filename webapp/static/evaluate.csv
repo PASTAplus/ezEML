@@ -32,6 +32,7 @@ attributes_03,Data Tables,Format String,ERROR,REQUIRED,A DateTime variable requi
 attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable is required is required to have at least one <b>Code</b> defined.,For Categorical variables
 attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical variables
 attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables
+attributes_07,Data Tables,Explanation,ERROR,REQUIRED,A Missing Value Code <b>Explanation</b> is required.,For Missing Value Codes
 methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,
 project_01,Project,Project Title,ERROR,REQUIRED,The <b>Project Title</b> is required.,

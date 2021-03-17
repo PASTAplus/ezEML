@@ -12,7 +12,7 @@ add_load_data_tables
 Add/Load Data Tables
 You can create a data table's metadata "from scratch" via <b>Add Data Table from Scratch</b>, or you can load an existing data table CSV file via <b>Load Data Table from CSV File</b>.
 
-In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
+In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 
 CSV files are assumed to contain a single header row.
 --------------------
@@ -20,7 +20,7 @@ add_load_other_entities
 Add/Load Other Entities
 You can create an other entity's metadata "from scratch" via <b>Add Other Entity from Scratch</b>, or you can load an existing other entity file via <b>Load Other Entity from File</b>.
 
-In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually.
+In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 --------------------
 associatedParty
 Associated Party
@@ -337,6 +337,14 @@ data_table_online_url
 Online Distribution URL
 If the data table is available online, its URL address.
 --------------------
+export_package
+Export ezEML Data Package
+When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.
+
+<b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for downloading the archive, which you can share with collaborators, for example.
+
+To submit the data package to the EDI data repository, you can go directly to <b><a href="edit/home.submit_package">Submit to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission.
+--------------------
 funder_identifiers
 Funder Identifier(s)
 One or more canonical identifiers that reference the funder. If entering more than one identifier, separate them by commas.
@@ -409,6 +417,20 @@ Import Geographic Coverage
 Select the geographic coverages to import.
 
 If none are shown, none are available in the selected data package.
+--------------------
+import_package
+Import an ezEML Data Package
+<b>Import an ezEML Data Package</b> lets you import a data package archive file that was exported from ezEML (see <b>Export ezEML Data Package</b>).
+
+The data package archive file may have been sent to you by a collaborator, for example. Alternatively, you may have submitted a data package to EDI (see <b>Submit to EDI</b>), and EDI's data curators may have found it necessary to make corrections or other changes to your data package. In that case, EDI's data curators will send you an updated data package archive file so you can import it and keep your ezEML account up to date.
+--------------------
+import_package_2
+Import an ezEML Data Package
+If the data package you are importing has the same name as one that already exists in your ezEML account, ezEML asks you whether you'd like to replace the existing package or import the package as a copy, instead. This is similar to what happens when you use "Save As" in a program like Microsoft Word, for example.
+
+If you elect to <b>Replace</b> the package, the existing version will be overwritten by the new version.
+
+Suppose, instead, that you elect to <b>Copy</b> the package. If the existing package is called my_data_package, then the new version will be saved as my_data_package_COPY (or my_data_package_COPY2,  my_data_package_COPY3, etc., as needed).
 --------------------
 import_related_projects
 Import Related Projects
@@ -668,6 +690,14 @@ Examples:
   java
   C
   Oracle 8i
+--------------------
+submit_package
+Submit to EDI
+When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
+
+When you click <b>Submit to EDI</b>, an ezEML Data Package archive file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
+
+Please provide your name and email so that EDI's data curators can contact you with any questions they have and to let you know when the submission has been completed. If you have questions (about particular entries in your metadata, for example), please use the <b>Notes</b> text area to describe them so EDI can assist you better.
 --------------------
 taxonomic_coverages
 Taxonomic Coverage

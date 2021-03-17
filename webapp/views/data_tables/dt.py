@@ -1,4 +1,6 @@
 import hashlib
+import math
+import numpy as np
 import pandas as pd
 
 from flask import (
@@ -36,7 +38,7 @@ from webapp.home.metapype_client import (
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
     create_datetime_attribute, create_numerical_attribute,
-    create_categorical_or_text_attribute, VariableType,
+    create_categorical_or_text_attribute, force_missing_value_codes,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute
 )
 
@@ -53,7 +55,7 @@ from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
-from webapp.home.load_data_table import load_data_table, sort_codes
+from webapp.home.load_data_table import load_data_table, sort_codes, infer_datetime_format
 
 from webapp.auth.user_data import data_table_was_uploaded, get_document_uploads_folder_name
 
@@ -483,8 +485,7 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
 
 
-def force_categorical_type(attribute_node, enumerated_domain_node):
-    # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
+def load_df(attribute_node):
     attribute_list_node = attribute_node.parent
     data_table_node = attribute_list_node.parent
     data_file = data_table_node.find_descendant(names.OBJECTNAME).content
@@ -503,20 +504,43 @@ def force_categorical_type(attribute_node, enumerated_domain_node):
     else:
         quote_char = '"'
 
-    data_frame = pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+    return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+
+
+def force_datetime_type(attribute_node):
+    # If we are changing a column to datetime type, go to the data table file and pick up the datetime format
+    data_frame = load_df(attribute_node)
+
+    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    return infer_datetime_format(data_frame[column_name][1])
+
+
+def force_categorical_codes(attribute_node):
+    # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
+    data_frame = load_df(attribute_node)
 
     column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     codes = data_frame[column_name].unique().tolist()
-    sorted_codes = sort_codes(codes)
+    if data_frame.dtypes[column_name] == np.float64:
+        # See if the codes can be treated as ints
+        ok = True
+        int_codes = []
+        for code in codes:
+            if not math.isnan(code):
+                try:
+                    int_codes.append(int(code))
+                except:
+                    ok = False
+                    break
+            else:
+                int_codes.append(code)
+        if ok:
+            codes = int_codes
 
-    for child in enumerated_domain_node.children:
-        enumerated_domain_node.remove_child(child)
+    # Apply the missing value code, if any. This will apply the first missing value code.
+    force_missing_value_codes(attribute_node, codes)
 
-    for code in sorted_codes:
-        code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
-        code_node = new_child_node(names.CODE, code_definition_node)
-        code_node.content = code
-        definition_node = new_child_node(names.DEFINITION, code_definition_node)
+    return sort_codes(codes)
 
 
 def change_measurement_scale(att_node, old_mscale, new_mscale):
@@ -541,8 +565,17 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
     elif new_mscale == VariableType.CATEGORICAL.name:
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
+        sorted_codes = force_categorical_codes(att_node)
+
         enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
-        force_categorical_type(att_node, enumerated_domain_node)
+        for child in enumerated_domain_node.children:
+            enumerated_domain_node.remove_child(child)
+
+        for code in sorted_codes:
+            code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
+            code_node = new_child_node(names.CODE, code_definition_node)
+            code_node.content = code
+            definition_node = new_child_node(names.DEFINITION, code_definition_node)
 
     elif new_mscale == VariableType.TEXT.name:
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)
@@ -556,7 +589,7 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
     elif new_mscale == VariableType.DATETIME.name:
         new_scale_node = new_child_node(names.DATETIME, mscale_node)
         format_string_node = new_child_node(names.FORMATSTRING, new_scale_node)
-        format_string_node.content = ''
+        format_string_node.content = force_datetime_type(att_node)
 
 
 def attribute_select_post(filename=None, form=None, form_dict=None,

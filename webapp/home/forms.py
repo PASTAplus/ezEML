@@ -17,12 +17,14 @@ import hashlib
 from flask_wtf import FlaskForm
 
 from wtforms import (
-    IntegerField, StringField, SelectField, SelectMultipleField, HiddenField, RadioField, widgets
+    StringField, SelectField, SelectMultipleField, HiddenField, RadioField, widgets
 )
 
 from wtforms.validators import (
-    DataRequired, Regexp
+    DataRequired, Email, Optional
 )
+
+from wtforms.widgets import TextArea
 
 
 class EDIForm(FlaskForm):
@@ -96,6 +98,10 @@ class ImportEMLForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
 
 
+class ImportPackageForm(FlaskForm):
+    pass
+
+
 class ImportItemsForm(FlaskForm):
     to_import = MultiCheckboxField('Import', choices=[], validators=[])
 
@@ -152,3 +158,9 @@ class OpenEMLDocumentForm(FlaskForm):
 
 class SaveAsForm(FlaskForm):
     filename = StringField('Document Name', validators=[DataRequired()])
+
+
+class SubmitToEDIForm(FlaskForm):
+    name = StringField('Your Name *', validators=[DataRequired()])
+    email_address = StringField('Your Email Address *', validators=[Email(), DataRequired()])
+    notes = StringField('Notes for EDI Data Curators (Optional)', widget=TextArea(), validators=[Optional()])

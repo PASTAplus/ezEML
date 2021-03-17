@@ -17,6 +17,7 @@ import daiquiri
 from enum import Enum
 import html
 import json
+import math
 
 import logging
 from logging import Formatter
@@ -24,6 +25,8 @@ from logging.handlers import RotatingFileHandler
 from xml.sax.saxutils import escape, unescape
 
 import os
+from os import listdir
+from os.path import isfile, join
 
 from flask import Flask, flash, session, current_app
 from flask_login import (
@@ -55,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.02.23'
+RELEASE_NUMBER = '2021.03.17'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -103,6 +106,10 @@ def list_data_packages(flag_current=False, include_current=True):
     return choices
 
 
+def list_files_in_dir(dirpath):
+    return [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
+
+
 def post_process_text_type_node(text_node:Node=None):
     if not text_node:
         return
@@ -110,10 +117,7 @@ def post_process_text_type_node(text_node:Node=None):
     content = remove_paragraph_tags(text_node.content)
     paras = []
     if content:
-        if '\n' not in content:
-            paras = [content]
-        else:
-            paras = content.split('\n')
+        paras = [content] if '\n' not in content else content.split('\n')
         for para in paras:
             para_node = new_child_node(names.PARA, text_node)
             para_node.content = para
@@ -186,6 +190,16 @@ def move_up(parent_node:Node, child_node:Node):
 def move_down(parent_node:Node, child_node:Node):
     if parent_node and child_node:
         parent_node.shift(child_node, Shift.RIGHT)
+
+
+def force_missing_value_codes(attribute_node, codes):
+    # Apply the missing value code, if any. This will apply the first missing value code.
+    missing_value_code_node = attribute_node.find_descendant(names.CODE)
+    if missing_value_code_node:
+        missing_value = missing_value_code_node.content
+        for index, item in enumerate(codes):
+            if math.isnan(item):
+                codes[index] = missing_value
 
 
 def list_data_tables(eml_node:Node=None, to_skip:str=None):
@@ -999,6 +1013,11 @@ def clean_model(eml_node):
         taxonomic_classification_nodes = taxonomic_coverage_node.find_all_children(names.TAXONOMICCLASSIFICATION)
         if len(taxonomic_classification_nodes) == 0:
             taxonomic_coverage_node.parent.remove_child(taxonomic_coverage_node)
+    # Some documents lack the 'unit' attribute for the names.SIZE node
+    size_nodes = []
+    eml_node.find_all_descendants(names.SIZE, size_nodes)
+    for size_node in size_nodes:
+        size_node.add_attribute('unit', 'byte')
 
 
 def get_check_metadata_status(eml_node:Node=None, filename:str=None):
@@ -1010,6 +1029,7 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
     else:
         status = "green"
     session["check_metadata_status"] = status
+    return status
 
 
 def save_both_formats(filename:str=None, eml_node:Node=None):
@@ -1181,6 +1201,7 @@ def create_data_table(
 
         if size:
             size_node = new_child_node(names.SIZE, parent=physical_node)
+            size_node.add_attribute('unit', 'byte')
             size_node.content = str(size)
 
         if md5_hash:
@@ -1236,6 +1257,19 @@ def create_data_table(
 
     except Exception as e:
         logger.error(e)
+
+
+def create_missing_values(attribute_node, code_dict):
+    if code_dict:
+        for key, code_explanation in code_dict.items():
+            if code_dict[key]:
+                code = key
+                if code is not None:
+                    mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                    code_node = new_child_node(names.CODE, parent=mvc_node)
+                    code_node.content = code
+                    code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                    code_explanation_node.content = code_explanation
 
 
 def create_datetime_attribute(
@@ -1297,16 +1331,7 @@ def create_datetime_attribute(
             else:
                 bounds_maximum_node.add_attribute('exclusive', 'false')
 
-        if code_dict:
-            for key, code_explanation in code_dict.items():
-                if code_dict[key]:
-                    code = key
-                    if code is not None:
-                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                        code_node = new_child_node(names.CODE, parent=mvc_node)
-                        code_node.content = code
-                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                        code_explanation_node.content = code_explanation
+        create_missing_values(attribute_node, code_dict)
 
     except Exception as e:
         logger.error(e)
@@ -1382,16 +1407,7 @@ def create_numerical_attribute(
             else:
                 bounds_maximum_node.add_attribute('exclusive', 'false')
 
-        if code_dict:
-            for key, code_explanation in code_dict.items():
-                if code_dict[key]:
-                    code = key
-                    if code is not None:
-                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                        code_node = new_child_node(names.CODE, parent=mvc_node)
-                        code_node.content = code
-                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                        code_explanation_node.content = code_explanation
+        create_missing_values(attribute_node, code_dict)
 
     except Exception as e:
         logger.error(e)
@@ -1535,15 +1551,7 @@ def create_categorical_or_text_attribute(
             if enumerated_domain_node:
                 non_numeric_domain_node.remove_child(enumerated_domain_node)
 
-        for key, code_explanation in code_dict.items():
-            if code_dict[key]:
-                code = key
-                if code is not None:
-                    mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                    code_node = new_child_node(names.CODE, parent=mvc_node)
-                    code_node.content = code
-                    code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                    code_explanation_node.content = code_explanation
+        create_missing_values(attribute_node, code_dict)
 
     except Exception as e:
         logger.error(e)

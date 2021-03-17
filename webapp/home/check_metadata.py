@@ -339,6 +339,8 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     validation_errs = validate_via_metapype(attrib_node)
     if find_content_empty(validation_errs, names.ATTRIBUTEDEFINITION):
         add_to_evaluation('attributes_01', link)
+    if find_min_unmet(validation_errs, names.MISSINGVALUECODE, names.CODEEXPLANATION):
+        add_to_evaluation('attributes_07', link)
 
     # Categorical
     if attr_type == metapype_client.VariableType.CATEGORICAL:

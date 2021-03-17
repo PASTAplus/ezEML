@@ -17,6 +17,7 @@ import daiquiri
 from enum import Enum
 import html
 import json
+import math
 
 import logging
 from logging import Formatter
@@ -189,6 +190,16 @@ def move_up(parent_node:Node, child_node:Node):
 def move_down(parent_node:Node, child_node:Node):
     if parent_node and child_node:
         parent_node.shift(child_node, Shift.RIGHT)
+
+
+def force_missing_value_codes(attribute_node, codes):
+    # Apply the missing value code, if any. This will apply the first missing value code.
+    missing_value_code_node = attribute_node.find_descendant(names.CODE)
+    if missing_value_code_node:
+        missing_value = missing_value_code_node.content
+        for index, item in enumerate(codes):
+            if math.isnan(item):
+                codes[index] = missing_value
 
 
 def list_data_tables(eml_node:Node=None, to_skip:str=None):
@@ -1242,6 +1253,19 @@ def create_data_table(
         logger.error(e)
 
 
+def create_missing_values(attribute_node, code_dict):
+    if code_dict:
+        for key, code_explanation in code_dict.items():
+            if code_dict[key]:
+                code = key
+                if code is not None:
+                    mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                    code_node = new_child_node(names.CODE, parent=mvc_node)
+                    code_node.content = code
+                    code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                    code_explanation_node.content = code_explanation
+
+
 def create_datetime_attribute(
                     attribute_node:Node=None, 
                     attribute_name:str=None,
@@ -1301,16 +1325,7 @@ def create_datetime_attribute(
             else:
                 bounds_maximum_node.add_attribute('exclusive', 'false')
 
-        if code_dict:
-            for key, code_explanation in code_dict.items():
-                if code_dict[key]:
-                    code = key
-                    if code is not None:
-                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                        code_node = new_child_node(names.CODE, parent=mvc_node)
-                        code_node.content = code
-                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                        code_explanation_node.content = code_explanation
+        create_missing_values(attribute_node, code_dict)
 
     except Exception as e:
         logger.error(e)
@@ -1386,16 +1401,7 @@ def create_numerical_attribute(
             else:
                 bounds_maximum_node.add_attribute('exclusive', 'false')
 
-        if code_dict:
-            for key, code_explanation in code_dict.items():
-                if code_dict[key]:
-                    code = key
-                    if code is not None:
-                        mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                        code_node = new_child_node(names.CODE, parent=mvc_node)
-                        code_node.content = code
-                        code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                        code_explanation_node.content = code_explanation
+        create_missing_values(attribute_node, code_dict)
 
     except Exception as e:
         logger.error(e)
@@ -1539,15 +1545,7 @@ def create_categorical_or_text_attribute(
             if enumerated_domain_node:
                 non_numeric_domain_node.remove_child(enumerated_domain_node)
 
-        for key, code_explanation in code_dict.items():
-            if code_dict[key]:
-                code = key
-                if code is not None:
-                    mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                    code_node = new_child_node(names.CODE, parent=mvc_node)
-                    code_node.content = code
-                    code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                    code_explanation_node.content = code_explanation
+        create_missing_values(attribute_node, code_dict)
 
     except Exception as e:
         logger.error(e)

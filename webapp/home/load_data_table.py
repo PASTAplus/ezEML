@@ -13,9 +13,12 @@
     5/9/19
 """
 
+import csv
 import hashlib
+import math
 import os
 import re
+import numpy as np
 import pandas as pd
 import time
 
@@ -119,14 +122,13 @@ def infer_datetime_format(dt):
 
 
 def infer_col_type(data_frame, col):
-    col_type = None
     sorted_codes = None
-    # codes = data_frame[col].unique()
     codes = data_frame[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
-    is_categorical = float(num_codes) / float(col_size) < 0.2 and num_codes < 15
+    fraction = float(num_codes) / float(col_size)
+    is_categorical = (fraction < 0.1 and num_codes < 15) or (fraction < 0.25 and num_codes < 10) or num_codes <= 5
     if is_categorical:
         col_type = metapype_client.VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)
@@ -163,6 +165,70 @@ def infer_col_type(data_frame, col):
             return metapype_client.VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
+
+
+def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
+    col_values = set()
+    with open(filepath, 'r') as csv_file:
+        csv_reader = csv.DictReader(csv_file, delimiter=delimiter, quotechar=quotechar)
+        for line in csv_reader:
+            col_values.add(line[colname])
+    return sorted(col_values)
+
+
+def guess_missing_value_code(filepath, delimiter, quotechar, colname):
+    col_values = get_raw_csv_column_values(filepath, delimiter, quotechar, colname)
+    mvcode = None
+    mvcodes = ['NA', 'na', 'N/A', 'n/a', 'Nan', 'nan']
+    for code in mvcodes:
+        if code in col_values:
+            mvcode = code
+            break
+    return mvcode
+
+
+def force_missing_value_code(missing_value_code, dtype, codes):
+    # If we're doing a categorical column where the codes are numerical, pandas will
+    #  have replaced missing value codes with nan. If we've detected a missing value
+    #  code, we substitute it for nan.
+    if dtype != np.float64:
+        return codes
+    if not True in np.isnan(codes):
+        return codes
+
+    if missing_value_code:
+        for code in codes:
+            if math.isnan(code):
+                codes.remove(code)
+                return codes
+    return codes
+
+
+def force_categorical_codes(attribute_node, dtype, codes):
+    # If we're doing a categorical column where the codes are numerical, pandas will
+    #  treat them as floats. Codes 1, 2, 3, for example, will be interpreted as 1.0, 2.0, 3.0.
+    #  If the codes are
+    if dtype == np.float64:
+        # See if the codes can be treated as ints
+        ok = True
+        int_codes = []
+        for code in codes:
+            if not math.isnan(code):
+                try:
+                    if code == int(code):
+                        int_codes.append(int(code))
+                    else:
+                        ok = False
+                        break
+                except:
+                    ok = False
+                    break
+            else:
+                int_codes.append(code)
+        if ok:
+            codes = int_codes
+
+    return sort_codes(codes)
 
 
 def load_data_table(uploads_path:str=None, data_file:str='',
@@ -272,13 +338,24 @@ def load_data_table(uploads_path:str=None, data_file:str='',
             att_label_node.content = col
         
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
-            att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             metapype_client.add_child(attribute_node, att_def_node)
 
             ms_node = Node(names.MEASUREMENTSCALE, parent=attribute_node)
             metapype_client.add_child(attribute_node, ms_node)
 
+            missing_value_code = guess_missing_value_code(full_path, delimiter, quote_char, col)
+
+            if missing_value_code:
+                mv_node = Node(names.MISSINGVALUECODE, parent=attribute_node)
+                metapype_client.add_child(attribute_node, mv_node)
+                code_node = Node(names.CODE, parent=mv_node)
+                metapype_client.add_child(mv_node, code_node)
+                code_node.content = missing_value_code
+
             if var_type == metapype_client.VariableType.CATEGORICAL:
+                codes = force_categorical_codes(attribute_node, dtype, codes)
+                codes = force_missing_value_code(missing_value_code, dtype, codes)
+
                 # nominal / nonNumericDomain / enumeratedDomain / ...codes...
                 nominal_node = metapype_client.new_child_node(names.NOMINAL, ms_node)
                 non_numeric_domain_node = metapype_client.new_child_node(names.NONNUMERICDOMAIN, nominal_node)
@@ -322,7 +399,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
         with app.app_context():
             current_app.logger.info(f'Leaving load_data_table')
 
-    return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame
+    return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame, missing_value_code
 
 
 def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_file: str = '', node_id: str = None):

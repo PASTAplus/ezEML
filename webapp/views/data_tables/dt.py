@@ -38,7 +38,7 @@ from webapp.home.metapype_client import (
     list_codes_and_definitions, enumerated_domain_from_attribute,
     create_code_definition, mscale_from_attribute,
     create_datetime_attribute, create_numerical_attribute,
-    create_categorical_or_text_attribute, VariableType,
+    create_categorical_or_text_attribute, force_missing_value_codes,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute
 )
 
@@ -515,7 +515,7 @@ def force_datetime_type(attribute_node):
     return infer_datetime_format(data_frame[column_name][1])
 
 
-def force_categorical_type(attribute_node, enumerated_domain_node):
+def force_categorical_codes(attribute_node):
     # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
     data_frame = load_df(attribute_node)
 
@@ -538,23 +538,9 @@ def force_categorical_type(attribute_node, enumerated_domain_node):
             codes = int_codes
 
     # Apply the missing value code, if any. This will apply the first missing value code.
-    missing_value_code_node = attribute_node.find_descendant(names.CODE)
-    if missing_value_code_node:
-        missing_value = missing_value_code_node.content
-        for index, item in enumerate(codes):
-            if math.isnan(item):
-                codes[index] = missing_value
+    force_missing_value_codes(attribute_node, codes)
 
-    sorted_codes = sort_codes(codes)
-
-    for child in enumerated_domain_node.children:
-        enumerated_domain_node.remove_child(child)
-
-    for code in sorted_codes:
-        code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
-        code_node = new_child_node(names.CODE, code_definition_node)
-        code_node.content = code
-        definition_node = new_child_node(names.DEFINITION, code_definition_node)
+    return sort_codes(codes)
 
 
 def change_measurement_scale(att_node, old_mscale, new_mscale):
@@ -579,8 +565,17 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
     elif new_mscale == VariableType.CATEGORICAL.name:
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
+        sorted_codes = force_categorical_codes(att_node)
+
         enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
-        force_categorical_type(att_node, enumerated_domain_node)
+        for child in enumerated_domain_node.children:
+            enumerated_domain_node.remove_child(child)
+
+        for code in sorted_codes:
+            code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
+            code_node = new_child_node(names.CODE, code_definition_node)
+            code_node.content = code
+            definition_node = new_child_node(names.DEFINITION, code_definition_node)
 
     elif new_mscale == VariableType.TEXT.name:
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)

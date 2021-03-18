@@ -188,6 +188,8 @@ def guess_missing_value_code(filepath, delimiter, quotechar, colname):
             if code in col_values:
                 mvcode = code
                 break
+        if mvcode:
+            break
     if not mvcode:
         for val in col_values:
             if re.match(r'-?999*(.0+)?$', val):

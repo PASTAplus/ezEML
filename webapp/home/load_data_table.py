@@ -179,11 +179,20 @@ def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
 def guess_missing_value_code(filepath, delimiter, quotechar, colname):
     col_values = get_raw_csv_column_values(filepath, delimiter, quotechar, colname)
     mvcode = None
-    mvcodes = ['NA', 'na', 'N/A', 'n/a', 'Nan', 'nan']
-    for code in mvcodes:
-        if code in col_values:
-            mvcode = code
-            break
+    candidate_codes = [
+        ['NA', 'na', 'N/A', 'n/a', 'NAN', 'NaN', 'nan', '#N/A'],  # These take precedence
+        ['Inf', 'inf', '-Inf', '-inf', 'NULL', 'Null', 'null', 'None', 'none', '-', '.']
+    ]
+    for codes in candidate_codes:
+        for code in codes:
+            if code in col_values:
+                mvcode = code
+                break
+    if not mvcode:
+        for val in col_values:
+            if re.match(r'-?999*(.0+)?$', val):
+                mvcode = val
+                break
     return mvcode
 
 

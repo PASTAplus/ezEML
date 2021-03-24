@@ -128,12 +128,16 @@ def infer_col_type(data_frame, col):
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
     fraction = float(num_codes) / float(col_size)
-    is_categorical = (fraction < 0.1 and num_codes < 15) or (fraction < 0.25 and num_codes < 10) or num_codes <= 5
+    dtype = data_frame[col][1:].infer_objects().dtype
+    if dtype == np.float64 or dtype == np.int64:
+        # If the values are numbers, we require 5 or fewer values to call it categorical
+        is_categorical = num_codes <= 5
+    else:
+        is_categorical = (fraction < 0.1 and num_codes < 15) or (fraction < 0.25 and num_codes < 10) or num_codes <= 5
     if is_categorical:
         col_type = metapype_client.VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)
     else:
-        dtype = data_frame[col][1:].infer_objects().dtype
         if dtype == object:
             if is_datetime(data_frame, col):
                 return metapype_client.VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
@@ -179,11 +183,22 @@ def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
 def guess_missing_value_code(filepath, delimiter, quotechar, colname):
     col_values = get_raw_csv_column_values(filepath, delimiter, quotechar, colname)
     mvcode = None
-    mvcodes = ['NA', 'na', 'N/A', 'n/a', 'Nan', 'nan']
-    for code in mvcodes:
-        if code in col_values:
-            mvcode = code
+    candidate_codes = [
+        ['NA', 'na', 'N/A', 'n/a', 'NAN', 'NaN', 'nan', '#N/A'],  # These take precedence
+        ['Inf', 'inf', '-Inf', '-inf', 'NULL', 'Null', 'null', 'None', 'none', '-', '.']
+    ]
+    for codes in candidate_codes:
+        for code in codes:
+            if code in col_values:
+                mvcode = code
+                break
+        if mvcode:
             break
+    if not mvcode:
+        for val in col_values:
+            if re.match(r'-?999*(.0+)?$', val):
+                mvcode = val
+                break
     return mvcode
 
 

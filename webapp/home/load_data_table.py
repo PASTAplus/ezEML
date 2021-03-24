@@ -128,12 +128,16 @@ def infer_col_type(data_frame, col):
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
     fraction = float(num_codes) / float(col_size)
-    is_categorical = (fraction < 0.1 and num_codes < 15) or (fraction < 0.25 and num_codes < 10) or num_codes <= 5
+    dtype = data_frame[col][1:].infer_objects().dtype
+    if dtype == np.float64 or dtype == np.int64:
+        # If the values are numbers, we require 5 or fewer values to call it categorical
+        is_categorical = num_codes <= 5
+    else:
+        is_categorical = (fraction < 0.1 and num_codes < 15) or (fraction < 0.25 and num_codes < 10) or num_codes <= 5
     if is_categorical:
         col_type = metapype_client.VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)
     else:
-        dtype = data_frame[col][1:].infer_objects().dtype
         if dtype == object:
             if is_datetime(data_frame, col):
                 return metapype_client.VariableType.DATETIME, infer_datetime_format(data_frame[col][1])

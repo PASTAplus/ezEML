@@ -27,6 +27,8 @@ from metapype.model.node import Node
 
 import webapp.home.metapype_client as metapype_client
 
+from webapp.home.exceptions import DataTableError
+
 from flask import Flask, current_app
 
 from webapp.config import Config
@@ -172,6 +174,9 @@ def infer_col_type(data_frame, col):
 
 
 def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
+    if colname.startswith('Unnamed:'):
+        raise DataTableError('Missing column header')
+
     col_values = set()
     with open(filepath, 'r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=delimiter, quotechar=quotechar)

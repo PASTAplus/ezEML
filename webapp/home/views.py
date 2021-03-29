@@ -41,6 +41,8 @@ from webapp.config import Config
 
 import csv
 
+from webapp.home.exceptions import DataTableError
+
 from webapp.home.forms import ( 
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
@@ -1564,6 +1566,10 @@ def load_data(dt_node_id=None):
                 except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
                     return render_template('encoding_error.html', filename=filename, errors=errors)
+                except DataTableError as err:
+                    flash(f'Data table has an error: {err.message}', 'error')
+                    return redirect(request.url)
+
                 data_file = data_file.replace('.ezeml_tmp', '')
                 flash(f"Loaded {data_file}")
 

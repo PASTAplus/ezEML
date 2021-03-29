@@ -173,7 +173,7 @@ def infer_col_type(data_frame, col):
 
 def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
     col_values = set()
-    with open(filepath, 'r') as csv_file:
+    with open(filepath, 'r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=delimiter, quotechar=quotechar)
         for line in csv_reader:
             col_values.add(line[colname])
@@ -313,7 +313,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     metapype_client.add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
-    data_frame = pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+    data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
 
     column_vartypes = []
     column_names = []

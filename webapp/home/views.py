@@ -1066,7 +1066,9 @@ def zip_package(current_document=None, eml_node=None):
 
     package_id = user_data.get_active_packageid()
     if package_id:
+        # copy the EML file using the package_id as name
         arcname = f'{package_id}.xml'
+        copyfile(f'{user_folder}/{current_document}.xml', f'{user_folder}/{arcname}')
     else:
         arcname = f'{current_document}.xml'
     # pathname = f'{user_folder}/{current_document}.xml'

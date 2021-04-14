@@ -1199,6 +1199,8 @@ def submit_package():
 
         msg = submit_package_mail_body(name, email_address, current_document, download_url, notes)
         subject = 'ezEML-Generated Data Submission Request'
+        to_address = 'jride@wisc.edu'
+        sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
         to_address = 'support@environmentaldatainitiative.org'
         sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
         if sent:

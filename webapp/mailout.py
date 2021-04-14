@@ -27,7 +27,7 @@ def send_mail(subject, msg, to):
     # Convert subject and msg to byte array
     body = (
         ("Subject: " + subject + "\n").encode()
-        + ("To: " + to + "\n").encode()
+        + ("To: " + str(to) + "\n").encode()
         + ("From: " + Config.HOVER_MAIL + "\n\n").encode()
         + (msg + "\n").encode()
     )

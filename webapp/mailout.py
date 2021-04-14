@@ -32,13 +32,14 @@ def send_mail(subject, msg, to):
         + (msg + "\n").encode()
     )
 
-    smtpObj = smtplib.SMTP("mail.hover.com", 587)
+    smtpObj = smtplib.SMTP_SSL("mail.hover.com", 465)
+    logger.warn("Created smtpObj")
     try:
         smtpObj.ehlo()
-        smtpObj.starttls()
         smtpObj.login(Config.HOVER_MAIL, Config.HOVER_PASSWORD)
         smtpObj.sendmail(from_addr=Config.HOVER_MAIL, to_addrs=to, msg=body)
         success = True
+        logger.warn(f"Sending email to: {to}")
     except Exception as e:
         response = "Sending email failed - " + str(e)
         logger.error(response)

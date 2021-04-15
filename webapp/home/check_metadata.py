@@ -44,6 +44,7 @@ class EvalType(Enum):
     REQUIRED = 1
     RECOMMENDED = 2
     BEST_PRACTICE = 3
+    OPTIONAL = 4
 
 
 def get_eval_entry(id, link=None, section=None, item=None):

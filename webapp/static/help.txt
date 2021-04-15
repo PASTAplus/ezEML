@@ -227,11 +227,7 @@ Citations generally list creator names in the order given in the EML metadata.
 --------------------
 data_package_id
 Data Package ID
-EML requires a data package to have a <b>Data Package ID</b>. The particular form and value of the Data Package ID is determined by the data repository where the data package will be published.
-
-If your data package will be submitted to EDI's repository, you must reserve a Data Package ID prior to submission. To reserve an ID, <a href="https://portal.edirepository.org/nis/login.jsp">login</a> to the repository and select "Data Package Identifier Reservations" under the "Tools" menu. Select “Reserve Next Available Identifier(s)” and an ID will be returned. If you need assistance, please email us at <a href="mailto:info@environmentaldatainitiative.org" style="color:steelblue">info@environmentaldatainitiative.org</a>.
-
-<b>Please note:</b> If you reserve a Data Package ID on EDI's data repository, the provided ID will be of the form "edi.100.1". The last segment is a “revision” number specifying the version of the data package you are now publishing (e.g., “edi.100<span style="color:red">.1</span>”). Future updates to this data package will require new revision values (e.g., “edi.100<span style="color:red">.2</span>”, “edi.100<span style="color:red">.3</span>”, etc.).
+EML requires a data package to have a <b>Data Package ID</b>, but if your data package is going to be submitted to EDI's data repository, you can leave the Data Package ID blank. Our data curators will supply an ID when the package is submitted.
 
 For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
 --------------------

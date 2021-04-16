@@ -227,7 +227,7 @@ Citations generally list creator names in the order given in the EML metadata.
 --------------------
 data_package_id
 Data Package ID
-EML requires a data package to have a <b>Data Package ID</b>, but if your data package is going to be submitted to EDI's data repository, you can leave the Data Package ID blank. Our data curators will supply an ID when the package is submitted.
+EML requires a data package to have a <b>Data Package ID</b>, but if your data package is going to be submitted to EDI's data repository by using <b>Submit to EDI</b>, you can leave the Data Package ID blank. Our data curators will supply an ID when they receive your data package.
 
 For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
 --------------------

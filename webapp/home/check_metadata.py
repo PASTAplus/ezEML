@@ -47,6 +47,47 @@ class EvalType(Enum):
     OPTIONAL = 4
 
 
+scopes = [
+    'ecotrends',
+    'edi',
+    'knb-lter-and',
+    'knb-lter-arc',
+    'knb-lter-bes',
+    'knb-lter-ble',
+    'knb-lter-bnz',
+    'knb-lter-cap',
+    'knb-lter-cce',
+    'knb-lter-cdr',
+    'knb-lter-cwt',
+    'knb-lter-fce',
+    'knb-lter-gce',
+    'knb-lter-hbr',
+    'knb-lter-hfr',
+    'knb-lter-jrn',
+    'knb-lter-kbs',
+    'knb-lter-knz',
+    'knb-lter-luq',
+    'knb-lter-mcm',
+    'knb-lter-mcr',
+    'knb-lter-nes',
+    'knb-lter-nin',
+    'knb-lter-ntl',
+    'knb-lter-nwk',
+    'knb-lter-nwt',
+    'knb-lter-pal',
+    'knb-lter-pie',
+    'knb-lter-sbc',
+    'knb-lter-sev',
+    'knb-lter-sgs',
+    'knb-lter-vcr',
+    'lter-landsat',
+    'lter-landsat-ledaps',
+    'msb-cap',
+    'msb-paleon',
+    'msb-tempbiodev'
+]
+
+
 def get_eval_entry(id, link=None, section=None, item=None):
     try:
         vals = session[f'__eval__{id}']
@@ -131,7 +172,7 @@ def check_dataset_title(eml_node, filename):
 def check_id_for_EDI(package_id):
     try:
         scope, identifier, revision = package_id.split('.')
-        if len(scope) != 3:
+        if scope not in scopes:
             raise ValueError
         identifier = int(identifier)
         revision = int(revision)

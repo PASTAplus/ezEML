@@ -1970,7 +1970,7 @@ def clone_categorical_attribute(source_node_copy, target_node):
             add_child(enumerated_domain_target_node, code_definition_node)
             code_target_node = code_definition_node.find_child(names.CODE)
             definition_target_node = code_definition_node.find_child(names.DEFINITION)
-            code = code_target_node.content
+            code = str(code_target_node.content)
             if code in source_codes_and_definitions:
                 definition_target_node.content = source_codes_and_definitions[code]
         return True

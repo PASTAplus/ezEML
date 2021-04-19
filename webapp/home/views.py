@@ -108,7 +108,8 @@ def debug_None(x, msg):
 def reload_metadata():
     current_document = current_user.get_filename()
     if not current_document:
-        raise FileNotFoundError
+        # if we've just deleted the current document, it won't exist
+        return redirect(url_for(PAGE_INDEX))
     # Call load_eml here to get the check_metadata status set correctly
     eml_node = load_eml(filename=current_document)
     return current_document, eml_node

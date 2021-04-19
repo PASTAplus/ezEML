@@ -92,6 +92,7 @@ class TaxonomicCoverageForm(EDIForm):
     def field_data(self)->tuple:
         return (self.general_taxonomic_coverage.data,
                 self.taxon_value,
+                self.taxon_rank,
                 self.hierarchy)
                 # self.kingdom_value.data,
                 # self.kingdom_common_name.data,

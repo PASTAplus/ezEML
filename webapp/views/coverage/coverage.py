@@ -482,7 +482,10 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
         source = WORMSTaxonomy()
     if not source:
         raise ValueError('No source specified')
-    hierarchy = source.fill_common_names(source.fill_hierarchy(taxon))
+    try:
+        hierarchy = source.fill_common_names(source.fill_hierarchy(taxon))
+    except:
+        raise ValueError(f'A network error occurred. Please try again.')
     if not hierarchy:
         in_str = ''
         if source_name:
@@ -576,6 +579,16 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
             if isinstance(form_value.get('hierarchy'), str) and form_value.get('hierarchy'):
                 # convert hierarchy string to list
                 submitted_hierarchy = ast.literal_eval(form_value.get('hierarchy'))
+
+                # if we're fixing up a failed hierarchy, we take the entered values as gospel
+                if len(submitted_hierarchy) == 1:
+                    hierarchy = list(submitted_hierarchy[0])
+                    if form.taxon_rank.data:
+                        hierarchy[0] = form.taxon_rank.data
+                    if form.taxon_value.data:
+                        hierarchy[1] = form.taxon_value.data
+                    submitted_hierarchy = [tuple(hierarchy)]
+
                 form.hierarchy.data = submitted_hierarchy
 
             # if we're saving after doing 'Fill Hierarchy', fill in the values we've been passed
@@ -667,18 +680,21 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
     populate_taxonomic_coverage_form_aux(hierarchy, taxonomic_classification_node)
     form.hierarchy.data = hierarchy[::-1]
 
-    first_taxon = hierarchy[-1]
-    form.taxon_value.data = first_taxon[1]
-    taxon_rank = first_taxon[0].capitalize()
-    if (taxon_rank, taxon_rank) in form.taxon_rank.choices:
-        form.taxon_rank.data = taxon_rank
-    if first_taxon[5]:
-        form.taxonomic_authority.data = first_taxon[5]
     have_links = False
-    for taxon in hierarchy:
-        if taxon[4]:
-            have_links = True
-            break
+    if hierarchy:
+        taxon_rank, taxon_value, _, _, link, authority = hierarchy[-1]
+        # first_taxon = hierarchy[-1]
+        form.taxon_value.data = taxon_value
+        if taxon_rank:
+            taxon_rank = taxon_rank.capitalize()
+        if (taxon_rank, taxon_rank) in form.taxon_rank.choices:
+            form.taxon_rank.data = taxon_rank
+        if authority:
+            form.taxonomic_authority.data = authority
+        for *_, link, _ in hierarchy:
+            if link:
+                have_links = True
+                break
     form.md5.data = form_md5(form)
     return have_links
 
@@ -690,11 +706,11 @@ def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
         taxon_common_name_node = node.find_child(names.COMMONNAME)
         taxon_id_node = node.find_child(names.TAXONID)
 
-        if taxon_rank_name_node:
+        if taxon_rank_name_node and taxon_rank_name_node.content:
             taxon_rank_name = taxon_rank_name_node.content
         else:
             taxon_rank_name = None
-        if taxon_rank_value_node:
+        if taxon_rank_value_node and taxon_rank_value_node.content:
             taxon_rank_value = taxon_rank_value_node.content
         else:
             taxon_rank_value = None
@@ -709,9 +725,9 @@ def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
             taxon_id = None
             provider_uri = None
 
+        link = None
+        provider = None
         if taxon_rank_name and taxon_rank_value:
-            link = None
-            provider = None
             if taxon_id:
                 if provider_uri == "https://www.itis.gov":
                     link = f'https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value={taxon_id}'
@@ -722,7 +738,7 @@ def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
                 elif provider_uri == "http://www.marinespecies.org":
                     link = f'http://marinespecies.org/aphia.php?p=taxdetails&id={taxon_id}'
                     provider = 'WORMS'
-            hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_name, taxon_id, link, provider))
+        hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_name, taxon_id, link, provider))
 
         taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
         if taxonomic_classification_node:

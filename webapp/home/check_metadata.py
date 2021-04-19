@@ -297,14 +297,31 @@ def check_intellectual_rights(eml_node, filename):
         return
 
 
+def check_taxonomic_coverage(node, filename):
+
+    link = url_for(PAGE_TAXONOMIC_COVERAGE, filename=filename, node_id=node.id)
+
+    validation_errs = validate_via_metapype(node)
+    if find_content_empty(validation_errs, names.TAXONRANKNAME):
+        add_to_evaluation('taxonomic_coverage_01', link)
+    if find_content_empty(validation_errs, names.TAXONRANKVALUE):
+        add_to_evaluation('taxonomic_coverage_02', link)
+
+
 def check_coverage(eml_node, filename):
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
+
+    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+
     evaluation_warnings = evaluate_via_metapype(dataset_node)
 
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
         add_to_evaluation('coverage_01', link)
-        return
+
+    taxonomic_classification_nodes = []
+    dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
+    for taxonomic_classification_node in taxonomic_classification_nodes:
+        check_taxonomic_coverage(taxonomic_classification_node, filename)
 
 
 def check_geographic_coverage(eml_node, filename):

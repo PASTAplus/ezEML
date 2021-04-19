@@ -114,13 +114,13 @@
                 </li>
             {% endif %}
             {% if current_user.is_authenticated %}
-                {% if current_user.get_filename() %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
                        role="button">Import/Export<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
+                        {% if current_user.get_filename() %}
                         <li>
                             <a href="{{ url_for('home.import_parties') }}" title="Import Responsible Parties">Import Responsible Parties (Creators, Contacts, etc.)</a>
                         </li>
@@ -145,12 +145,13 @@
                         <li>
                             <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>
                         </li>
+                {% endif %}
+
                         <li>
                             <a href="{{ url_for('home.import_package') }}" title="Import ezEML Data Package">Import ezEML Data Package...</a>
                         </li>
                     </ul>
                 </li>
-                {% endif %}
             {% endif %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"

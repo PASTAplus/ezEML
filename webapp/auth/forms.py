@@ -22,7 +22,7 @@ from wtforms.validators import DataRequired
 
 class LoginForm(FlaskForm):
     # domain_choices = [('edi', 'EDI'), ('lter', 'LTER')]
-    username = StringField('Username', validators=[DataRequired()])
+    username = StringField('EDI Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     # domain = SelectField('Domain', choices=domain_choices)
-    submit = SubmitField('Login')
+    submit = SubmitField('Login Using EDI Account')

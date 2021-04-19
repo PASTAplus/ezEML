@@ -3,26 +3,32 @@
 
 {% block app_content %}
     <h2>Login</h2>
-    <div class="row">
-        <div class="col-md-6">
-            {{ wtf.quick_form(form) }}
-        </div>
-    </div>
-
-    <div style="padding-top: 4em">
-    <h4>Or use an alternate identity provider:</h4>
+{#    <div style="padding-top: 4em">#}
+    <p>&nbsp;</p>
+    <h4>Click one of the icons below to log in using your Google, GitHub, or ORCID login credentials.</h4>
 	<p>
         <a href="{{ auth }}/login/google?target={{ target }}"><img src="/static/btn_google_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
 	    <a href="{{ auth }}/login/github?target={{ target }}"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
 	    <a href="{{ auth }}/login/orcid?target={{ target }}"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
     </p>
-
+    <p>&nbsp;</p>
+    <hr style="border:1px solid grey;">
+    <p>&nbsp;</p>
+    <h5>Alternatively, if you have an EDI account, you may log in using your EDI credentials instead, below.<br>Note: you are not
+        required to have an EDI account to use ezEML or to submit data to the EDI repository.</h5>
+    <p>&nbsp;</p>
+    <div class="row">
+        <div class="col-md-6">
+            {{ wtf.quick_form(form) }}
+        </div>
     </div>
 	<div style="padding-top: 2em">
         <p>
             Please read our <a class="searchsubcat" href="https://environmentaldatainitiative.org/environmental-data-initiative-privacy-policy">
             privacy policy</a> to know what information we collect about you and to understand your privacy rights.
         </p>
+    </div>
+
     </div>
 
 {% endblock %}

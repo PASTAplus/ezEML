@@ -45,5 +45,5 @@ other_entity_02,Other Entities,Entity Type,ERROR,REQUIRED,<b>Entity Type</b> is 
 other_entity_03,Other Entities,Entity Description,WARNING,RECOMMENDED,Entity <b>Description</b> is highly recommended.,
 contacts_01,Contacts,Contacts,ERROR,REQUIRED,At least one <b>Contact</b> is required.,
 maintenance_01,Maintenance,Maintenance,ERROR,REQUIRED,Maintenance <b>Description</b> is required.,
-data_package_id_01,Data Package ID,Data Package ID,ERROR,REQUIRED,A <b>Data Package ID</b> is required.,
+data_package_id_01,Data Package ID,Data Package ID,WARNING,OPTIONAL,A <b>Data Package ID</b> is required by EML but if you are going to submit your data to EDI you may leave it blank and we will provide one.,
 data_package_id_02,Data Package ID,Data Package ID,WARNING,RECOMMENDED,The <b>Data Package ID</b> does not conform to EDI's requirements.

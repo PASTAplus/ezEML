@@ -10,9 +10,12 @@
 {#    <div class="row">#}
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                A <b>Data Package ID</b> is required. The particular form and value of the Data Package ID is determined by the data repository where the data package will be published.
+                EML requires a data package to have a <b>Data Package ID</b>, but if you are going to submit
+                to EDI you can leave it blank. Then, when you use <a href="{{ url_for('home.submit_package') }}">
+                <b>Submit to EDI</b></a> to send your package to EDI, our data curation team will take care of assigning an
+                ID and adding it to the metadata for you.
                 <p></p>
-                For details on obtaining Data Package IDs for EDI's data repository, click the Help button below.
+                In the event that you've already obtained a Data Package ID (e.g., from your site data manager), enter it here.
                 <p></p>
                 For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
                 <p>&nbsp;</p>

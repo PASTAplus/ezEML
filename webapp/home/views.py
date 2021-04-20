@@ -1368,7 +1368,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     code_node = old_code_definition_node.find_child(names.CODE)
                     code = None
                     if code_node:
-                        code = code_node.content
+                        code = str(code_node.content)
                     definition_node = old_code_definition_node.find_child(names.DEFINITION)
                     definition = None
                     if definition_node:

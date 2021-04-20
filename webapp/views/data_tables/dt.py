@@ -1942,14 +1942,14 @@ def clone_categorical_attribute(source_node_copy, target_node):
         for code_definition_source_node in enumerated_domain_source_node.find_all_children(names.CODEDEFINITION):
             code_source_node = code_definition_source_node.find_child(names.CODE)
             definition_source_node = code_definition_source_node.find_child(names.DEFINITION)
-            code = code_source_node.content
+            code = str(code_source_node.content)
             definition = definition_source_node.content
             source_codes_and_definitions[code] = definition
 
         # We want to preserve the column name
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
 
-        # Caoture the target's code nodes
+        # Capture the target's code nodes
         target_code_definition_nodes = enumerated_domain_target_node.find_all_children(names.CODEDEFINITION)
 
         # Replace the target with copy of the source

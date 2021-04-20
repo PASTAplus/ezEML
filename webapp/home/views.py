@@ -17,6 +17,7 @@ import daiquiri
 from datetime import date, datetime
 import html
 import json
+import math
 import os.path
 from pathlib import Path
 import pickle
@@ -1279,6 +1280,27 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     debug_msg(f'Leaving check_data_table_similarity')
 
 
+def substitute_nans(codes):
+    substituted = []
+    if codes:
+        for code in codes:
+            if isinstance(code, list):
+                substituted.append(substitute_nans(code))
+            elif not isinstance(code, float) or not math.isnan(code):
+                substituted.append(code)
+            else:
+                substituted.append('NAN')
+    else:
+        substituted.append(None)
+    return substituted
+
+
+def compare_codes(old_codes, new_codes):
+    old_substituted = substitute_nans(old_codes)
+    new_substituted = substitute_nans(new_codes)
+    return old_substituted == new_substituted
+
+
 def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes):
     debug_msg(f'Entering update_data_table')
 
@@ -1325,7 +1347,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
             if old_name != new_name:
                 debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
                 old_attribute_names_node.content = new_name
-    if old_column_categorical_codes != new_column_categorical_codes:
+    if not compare_codes(old_column_categorical_codes, new_column_categorical_codes):
         # need to fix up the categorical codes
         old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
         old_aattribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)
@@ -1335,7 +1357,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                                                                                 old_column_categorical_codes,
                                                                                 new_attribute_nodes,
                                                                                 new_column_categorical_codes):
-            if old_codes != new_codes:
+            if not compare_codes(old_codes, new_codes):
                 # use the new_codes, preserving any relevant code definitions
                 # first, get the old codes and their definitions
                 old_code_definition_nodes = []
@@ -1365,7 +1387,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     clone.parent = parent_node
                     code_node = clone.find_child(names.CODE)
                     if code_node:
-                        code = code_node.content
+                        code = str(code_node.content)
                     else:
                         code = None
                     definition_node = clone.find_child(names.DEFINITION)

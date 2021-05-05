@@ -58,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.04.19'
+RELEASE_NUMBER = '2021.05.05'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -2088,27 +2088,28 @@ def create_taxonomic_coverage(
         logger.error(e)
 
 
-def create_responsible_party(
-                   responsible_party_node:Node=None,
-                   filename:str=None,
-                   salutation:str=None,
-                   gn:str=None,
-                   mn:str=None,
-                   sn:str=None,
-                   user_id:str=None,
-                   organization:str=None,
-                   position_name:str=None,
-                   address_1:str=None,
-                   address_2:str=None,
-                   city:str=None,
-                   state:str=None,
-                   postal_code:str=None,
-                   country:str=None,
-                   phone:str=None,
-                   fax:str=None,
-                   email:str=None,
-                   online_url:str=None,
-                   role:str=None):
+def create_responsible_party(responsible_party_node:Node=None,
+                             filename:str=None,
+                             salutation:str=None,
+                             gn:str=None,
+                             mn:str=None,
+                             sn:str=None,
+                             user_id:str=None,
+                             organization:str=None,
+                             org_id:str=None,
+                             org_id_type:str=None,
+                             position_name:str=None,
+                             address_1:str=None,
+                             address_2:str=None,
+                             city:str=None,
+                             state:str=None,
+                             postal_code:str=None,
+                             country:str=None,
+                             phone:str=None,
+                             fax:str=None,
+                             email:str=None,
+                             online_url:str=None,
+                             role:str=None):
     try:
         if salutation or gn or mn or sn:
             individual_name_node = new_child_node(names.INDIVIDUALNAME, parent=responsible_party_node)
@@ -2128,11 +2129,17 @@ def create_responsible_party(
         if user_id:
             user_id_node = new_child_node(names.USERID, parent=responsible_party_node)
             user_id_node.content = user_id
-            user_id_node.add_attribute('directory', 'https://orcid.org')  # FIXME - temporary
+            user_id_node.add_attribute('directory', 'https://orcid.org')
 
         if organization:
             organization_name_node = new_child_node(names.ORGANIZATIONNAME, parent=responsible_party_node)
             organization_name_node.content = organization
+
+        if org_id:
+            user_id_node = new_child_node(names.USERID, parent=responsible_party_node)
+            user_id_node.content = org_id
+            if org_id_type:
+                user_id_node.add_attribute('directory', org_id_type)
 
         if position_name:
             position_name_node = new_child_node(names.POSITIONNAME, parent=responsible_party_node)

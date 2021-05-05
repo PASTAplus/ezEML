@@ -148,6 +148,15 @@ def find_err_code(errs, err_code_to_find, node_name):
     return found
 
 
+def find_missing_attribute(errs, node_name, attribute_name):
+    errs_found = find_err_code(errs, ValidationError.ATTRIBUTE_REQUIRED, node_name)
+    for err in errs_found:
+        errcode, msg, node, attribute = err
+        if attribute == attribute_name:
+            return err
+    return None
+
+
 def check_dataset_title(eml_node, filename):
     link = url_for(PAGE_TITLE, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
@@ -184,14 +193,9 @@ def check_id_for_EDI(package_id):
 def check_data_package_id(eml_node, filename):
     link = url_for(PAGE_DATA_PACKAGE_ID, filename=filename)
     validation_errs = validate_via_metapype(eml_node)
-    errs_found = find_err_code(validation_errs, ValidationError.ATTRIBUTE_REQUIRED, 'eml')
-    err_found = False
-    for err in errs_found:
-        errcode, msg, node, attribute = err
-        if attribute == 'packageId':
-            err_found = True
-            add_to_evaluation('data_package_id_01', link)
-    if not err_found:
+    if find_missing_attribute(validation_errs, 'eml', 'packageId'):
+        add_to_evaluation('data_package_id_01', link)
+    else:
         # check if data package ID has correct form for EDI data repository
         data_package_id = eml_node.attribute_value("packageId")
         if not check_id_for_EDI(data_package_id):
@@ -214,6 +218,10 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
     # At least one of surname, organization name, or position name is required
     if find_min_unmet_for_list(validation_errs, rp_node.name, [names.INDIVIDUALNAME, names.ORGANIZATIONNAME, names.POSITIONNAME]):
         add_to_evaluation('responsible_party_01', link, section, item)
+
+    # Organization ID requires a directory attribute
+    if find_missing_attribute(validation_errs, 'userId', 'directory'):
+        add_to_evaluation('responsible_party_06', link, section, item)
 
     # Role, if required
     if find_min_unmet(validation_errs, rp_node.name, names.ROLE) or find_content_empty(validation_errs, names.ROLE):

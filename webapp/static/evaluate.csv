@@ -7,6 +7,7 @@ responsible_party_02,Party,Party,WARNING,RECOMMENDED,An <b>ORCID ID</b> is recom
 responsible_party_03,Party,Party,ERROR,REQUIRED,A <b>Role</b> is required.,Applies only to parties that require Role.
 responsible_party_04,Party,Party,ERROR,REQUIRED,<b>Last Name</b> is required if First Name or Middle Name/Initial  is given.,"Applies if first or middle name is provided, but no last name."
 responsible_party_05,Party,Party,WARNING,RECOMMENDED,An <b>Email</b> address should be provided.,
+responsible_party_06,Party,Party,ERROR,REQUIRED,An <b>Org ID Type</b> is required if an Org ID is provided.,
 abstract_01,Abstract,Abstract,WARNING,RECOMMENDED,A dataset <b>Abstract</b> should be provided.,
 abstract_02,Abstract,Abstract,WARNING,RECOMMENDED,Consider increasing the length of the dataset's <b>Abstract</b>. 20 or more words is a recommended length.,"Currently, shown if number of words < 20."
 keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be provided to make the dataset more discoverable.,

@@ -34,10 +34,15 @@
                         <td>
                         <table width="100%">
                         <tr>
-                            <td style="padding: 10px 20px;">{{ wtf.form_field(form.sn) }}</td>
+                            <td style="padding: 10px 20px;" width="66%">{{ wtf.form_field(form.sn) }}</td>
+                            <td width="1%">&nbsp;</td>
+                            <td class="table_cell">
+                            {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}
+                            </td>
+                            <td width="3%">&nbsp;</td>
                         </tr>
                         <tr>
-                            <td>
+                            <td colspan="4">
                             <table>
                             <tr>
                             <td width="3%">&nbsp;</td>
@@ -60,7 +65,17 @@
                         </table>
                         </td>
                     </tr><tr>
-                    <td style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.organization) }}</td>
+                    <td style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;">
+                        <table width="100%">
+                            <tr>
+                                <td width="44%">{{ wtf.form_field(form.organization) }}</td>
+                            <td width="3%">&nbsp;</td>
+                                <td width="18%">{{ wtf.form_field(form.org_id) }}</td>
+                            <td width="3%">&nbsp;</td>
+                                <td width="31%">{{ wtf.form_field(form.org_id_type) }}</td>
+                            </tr>
+                        </table>
+                    </td>
                     </tr><tr>
                     <td style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.position_name) }}</td>
                     </tr>
@@ -72,12 +87,13 @@
 
                 <table>
                 <tr>
+
                 <td class="table_cell">
-                {{ wtf.form_field(form.user_id, placeholder="e.g., 0000-0002-5143-7857") }}
+                {{ wtf.form_field(form.email) }}
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
-                {{ wtf.form_field(form.email) }}
+                {{ wtf.form_field(form.online_url) }}
                 </td>
                 </tr>
                 </table>
@@ -117,8 +133,6 @@
                 </tr>
                 </table>
 
-
-                <span style="color:{{ optional }};">{{ wtf.form_field(form.online_url) }}</span>
                 {% if not save_and_continue %}
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>

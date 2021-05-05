@@ -162,6 +162,8 @@ def responsible_party(filename=None, node_id=None, method=None,
             sn = form.sn.data
             user_id = form.user_id.data
             organization = form.organization.data
+            org_id = form.org_id.data
+            org_id_type = form.org_id_type.data
             position_name = form.position_name.data
             address_1 = form.address_1.data
             address_2 = form.address_2.data
@@ -186,6 +188,8 @@ def responsible_party(filename=None, node_id=None, method=None,
                 sn,
                 user_id,
                 organization,
+                org_id,
+                org_id_type,
                 position_name,
                 address_1,
                 address_2,
@@ -379,9 +383,14 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
         if sn_node:
             form.sn.data = sn_node.content
 
-    user_id_node = node.find_child(names.USERID)
-    if user_id_node:
-        form.user_id.data = user_id_node.content
+    user_id_nodes = node.find_all_children(names.USERID)
+    for user_id_node in user_id_nodes:
+        directory = user_id_node.attribute_value('directory')
+        if directory == 'https://orcid.org':
+            form.user_id.data = user_id_node.content
+        else:
+            form.org_id.data = user_id_node.content
+            form.org_id_type.data = directory
 
     organization_node = node.find_child(names.ORGANIZATIONNAME)
     if organization_node:

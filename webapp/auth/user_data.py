@@ -284,6 +284,7 @@ def read_active_dict():
             current_app.logger.info(f'read_active_dict: {active_file}')
 
         with open(active_file, 'rb') as f:
+            current_app.logger.info(f'read_active_dict: {active_file} opened')
             return pickle.load(f)
     except FileNotFoundError:
         return dict()

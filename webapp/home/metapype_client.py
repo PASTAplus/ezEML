@@ -1262,14 +1262,13 @@ def create_data_table(
 def create_missing_values(attribute_node, code_dict):
     if code_dict:
         for key, code_explanation in code_dict.items():
-            if code_dict[key]:
-                code = key
-                if code is not None:
-                    mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                    code_node = new_child_node(names.CODE, parent=mvc_node)
-                    code_node.content = code
-                    code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                    code_explanation_node.content = code_explanation
+            code = key
+            if code is not None:
+                mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                code_node = new_child_node(names.CODE, parent=mvc_node)
+                code_node.content = code
+                code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                code_explanation_node.content = code_explanation
 
 
 def create_datetime_attribute(

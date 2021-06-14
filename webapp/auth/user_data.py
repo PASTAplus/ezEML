@@ -33,14 +33,7 @@ USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
 def get_user_folder_name():
     user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
-
-    app = Flask(__name__)
-    with app.app_context():
-        current_app.logger.info(f'Entering get_user_folder_name')
-
     user_org = current_user.get_user_org()
-    with app.app_context():
-        current_app.logger.info(user_org)
     if user_org:
         user_folder_name = f'{USER_DATA_DIR}/{user_org}'
 
@@ -278,13 +271,7 @@ def read_active_dict():
     user_folder = get_user_folder_name()
     active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
     try:
-
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'read_active_dict: {active_file}')
-
         with open(active_file, 'rb') as f:
-            current_app.logger.info(f'read_active_dict: {active_file} opened')
             return pickle.load(f)
     except FileNotFoundError:
         return dict()

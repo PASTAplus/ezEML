@@ -27,7 +27,7 @@ from zipfile import ZipFile
 
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, session, send_file
+    Blueprint, flash, render_template, redirect, request, url_for, session,
 )
 
 from flask_login import (

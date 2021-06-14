@@ -2,7 +2,17 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Load Geographic Coverage from CSV File</h2>
+    {% if help %}
+    {% set help_geographic_coverage_csv_file_id, help_geographic_coverage_csv_file_title, help_geographic_coverage_csv_file_content = help[0] %}
+    {% set help_geographic_coverage_csv_file_btn = help_geographic_coverage_csv_file_id ~ '_btn' %}
+    {% set help_geographic_coverage_csv_file_dialog = help_geographic_coverage_csv_file_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Load Geographic Coverage from CSV File</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_csv_file_btn) }}</td>
+    </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
@@ -13,8 +23,28 @@
                 <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Upload" type="submit" value="Upload"/>&nbsp;
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset"/>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
     </div>
+    {{ macros.help_dialog(help_geographic_coverage_csv_file_dialog, help_geographic_coverage_csv_file_title, help_geographic_coverage_csv_file_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_geographic_coverage_csv_file_id, help_geographic_coverage_csv_file_title, help_geographic_coverage_csv_file_content = help[0] %}
+    {% set help_geographic_coverage_csv_file_btn = help_geographic_coverage_csv_file_id ~ '_btn' %}
+    {% set help_geographic_coverage_csv_file_dialog = help_geographic_coverage_csv_file_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_geographic_coverage_csv_file_dialog, help_geographic_coverage_csv_file_btn) }}
+    });
+    </script>
 {% endblock %}

@@ -89,7 +89,33 @@ def load_geo_coverage(filename):
     uploads_folder = get_document_uploads_folder_name()
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+        return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
+
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = None
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+
+                if val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                    break
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                    break
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+                    break
+
+        if new_page:
+            url = url_for(new_page, filename=filename)
+            return redirect(url)
+
         # Check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -114,8 +140,10 @@ def load_geo_coverage(filename):
                 return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
 
     # Process GET
+    help = [get_help('geographic_coverages_csv_file')]
     return render_template('load_geo_coverage.html',
-                           form=form)
+                           form=form,
+                           help=help)
 
 
 def load_geo_coverage_from_csv(csv_filename, filename):

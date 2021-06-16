@@ -1096,7 +1096,13 @@ def zip_package(current_document=None, eml_node=None):
             object_name = object_name_node.content
             pathname = f'{uploads_folder}/{object_name}'
             arcname = f'data/{object_name}'
-            zip_object.write(pathname, arcname)
+            try:
+                zip_object.write(pathname, arcname)
+            except FileNotFoundError as err:
+                filename = os.path.basename(err.filename)
+                msg = f"Unable to archive the package. Missing file: {filename}."
+                flash(msg, category='error')
+                return None
     zip_object.close()
     return zipfile_path
 
@@ -1134,10 +1140,11 @@ def export_package():
     if request.method == 'POST':
         save_both_formats(current_document, eml_node)
         zipfile_path = zip_package(current_document, eml_node)
-        archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
-        if download_url:
-            return redirect(url_for('home.export_package_2', package_name=archive_basename,
-                                    download_url=download_url, safe=''))
+        if zipfile_path:
+            archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
+            if download_url:
+                return redirect(url_for('home.export_package_2', package_name=archive_basename,
+                                        download_url=download_url, safe=''))
 
     # Process GET
     help = get_helps(['export_package'])

@@ -543,8 +543,11 @@ def list_geographic_coverages(parent_node:Node=None):
                     gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
                 if geographic_description_node:
                     description = geographic_description_node.content
-                    if description and len(description) > max_len:
-                        description = description[0:max_len]
+                    try:
+                        if description and len(description) > max_len:
+                            description = description[0:max_len]
+                    except:
+                        pass
                 label = compose_gc_label(gc_node)
                 gc_entry = GC_Entry(id=id,
                             geographic_description=description,

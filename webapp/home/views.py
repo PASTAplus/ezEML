@@ -1132,28 +1132,12 @@ def export_package():
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST':
+        save_both_formats(current_document, eml_node)
         zipfile_path = zip_package(current_document, eml_node)
         archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
         if download_url:
-
             return redirect(url_for('home.export_package_2', package_name=archive_basename,
                                     download_url=download_url, safe=''))
-
-        # path, filename = os.path.split(zipfile_path)
-        #
-        # relative_pathname = '../' + zipfile_path
-        # mimetype = 'application/xml'
-        # try:
-        #     return send_file(relative_pathname,
-        #                      mimetype=mimetype,
-        #                      as_attachment=True,
-        #                      attachment_filename=filename,
-        #                      add_etags=True,
-        #                      cache_timeout=None,
-        #                      conditional=False,
-        #                      last_modified=None)
-        # except Exception as e:
-        #     return str(e)
 
     # Process GET
     help = get_helps(['export_package'])

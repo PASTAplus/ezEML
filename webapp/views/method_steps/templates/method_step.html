@@ -8,12 +8,15 @@
     {% set help_method_step_instrumentation_id, help_method_step_instrumentation_title, help_method_step_instrumentation_content = help[1] %}
     {% set help_method_step_instrumentation_btn = help_method_step_instrumentation_id ~ '_btn' %}
     {% set help_method_step_instrumentation_dialog = help_method_step_instrumentation_id ~ '_dialog' %}
+    {% set help_method_step_data_sources_id, help_method_step_data_sources_title, help_method_step_data_sources_content = help[2] %}
+    {% set help_method_step_data_sources_btn = help_method_step_data_sources_id ~ '_btn' %}
+    {% set help_method_step_data_sources_dialog = help_method_step_data_sources_id ~ '_dialog' %}
 
     <h2>Method Step</h2>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                <h5>Enter the method step description and (optionally) instrumentation below:</h5>
+                <h5>Enter the method step description and (optionally) instrumentation and data sources below:</h5>
                 <table width="100%">
                     <td width="90%">{{ wtf.form_field(form.description, rows=8) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_description_btn) }}</td>
@@ -21,6 +24,10 @@
                 <table width="100%">
                     <td width="90%">{{ wtf.form_field(form.instrumentation, rows=2) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_instrumentation_btn) }}</td>
+                </table>
+                <table width="100%">
+                    <td width="90%">{{ wtf.form_field(form.data_sources, rows=5) }}</td>
+                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_data_sources_btn) }}</td>
                 </table>
                 <br>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
@@ -34,6 +41,7 @@
 
     {{ macros.help_dialog(help_method_step_description_dialog, help_method_step_description_title, help_method_step_description_content) }}
     {{ macros.help_dialog(help_method_step_instrumentation_dialog, help_method_step_instrumentation_title, help_method_step_instrumentation_content) }}
+    {{ macros.help_dialog(help_method_step_data_sources_dialog, help_method_step_data_sources_title, help_method_step_data_sources_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -44,11 +52,15 @@
     {% set help_method_step_instrumentation_id, help_method_step_instrumentation_title, help_method_step_instrumentation_content = help[1] %}
     {% set help_method_step_instrumentation_btn = help_method_step_instrumentation_id ~ '_btn' %}
     {% set help_method_step_instrumentation_dialog = help_method_step_instrumentation_id ~ '_dialog' %}
+    {% set help_method_step_data_sources_id, help_method_step_data_sources_title, help_method_step_data_sources_content = help[2] %}
+    {% set help_method_step_data_sources_btn = help_method_step_data_sources_id ~ '_btn' %}
+    {% set help_method_step_data_sources_dialog = help_method_step_data_sources_id ~ '_dialog' %}
     <script>
     $(function()
     {
         {{ macros.help_script(help_method_step_description_dialog, help_method_step_description_btn) }}
         {{ macros.help_script(help_method_step_instrumentation_dialog, help_method_step_instrumentation_btn) }}
+        {{ macros.help_script(help_method_step_data_sources_dialog, help_method_step_data_sources_btn) }}
     });
     </script>
 {% endblock %}

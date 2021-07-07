@@ -58,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.05.05'
+RELEASE_NUMBER = '2021.07.07'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -115,7 +115,6 @@ def post_process_text_type_node(text_node:Node=None):
         return
     text_node.children = []
     content = remove_paragraph_tags(text_node.content)
-    paras = []
     if content:
         paras = [content] if '\n' not in content else content.split('\n')
         for para in paras:
@@ -2380,9 +2379,15 @@ def compose_method_step_instrumentation(method_step_node:Node=None):
     return instrumentation
 
 
-def create_method_step(method_step_node:Node=None, description:str=None, instrumentation:str=None):
+def create_method_step(method_step_node:Node=None, description:str=None, instrumentation:str=None, data_sources:str=None,
+                       data_sources_marker_begin:str='', data_sources_marker_end:str=''):
     if method_step_node:
         description_node = new_child_node(names.DESCRIPTION, parent=method_step_node)
+
+        if data_sources:
+            if not description:
+                description = ''  # TODO: Handle cases with empty description but non-empty data_sources
+            description = f"{description}\n{data_sources_marker_begin}\n{data_sources}\n{data_sources_marker_end}"
 
         if description:
             description_node.content = add_paragraph_tags(description)

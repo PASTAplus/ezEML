@@ -1,0 +1,19 @@
+name: ezeml
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - flask
+  - flask-login
+  - flask-wtf
+  - pandas
+  - requests
+  - asn1crypto
+  - libsodium
+  - flask-bootstrap
+  - email_validator
+  - lxml
+  - uwsgi
+  - pytest
+prefix: /home/servilla/anaconda3/envs/ezeml

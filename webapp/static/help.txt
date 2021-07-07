@@ -568,10 +568,10 @@ For each dataset used, include, if possible:<br>
 If you will be submitting your data package to the EDI data repository, our data curators will use this information to fill out data provenance entries in the data package's metadata.
 
 Example:<br>
-Title: DEEP Bureau of Water Protection and Land Reuse Lake Surveys, 1997-2009<br>
-URL: https://pasta.lternet.edu/package/metadata/eml/edi/54/1<br>
-Creator: Mike Beauchene mike.beauchene@ct.gov<br>
-Contact: Mike Beauchene mike.beauchene@ct.gov
+Title: Data for Lake Mendota Phosphorus Cycling Model<br>
+DOI: doi:10.6073/pasta/36d0ee7bf67d9dabade404c92be73917<br>
+Creator: Paul C Hanson pchanson@wisc.edu<br>
+Contact: Paul C Hanson pchanson@wisc.edu
 --------------------
 name_org_position
 Last Name, Organization, Position Name

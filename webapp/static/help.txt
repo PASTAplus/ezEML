@@ -555,6 +555,24 @@ This may include any instruments used in the data collection or quality control 
 
 Example: LACHAT analyzer, model XYX.
 --------------------
+method_step_data_sources
+Method Step Data Sources
+If you used other datasets in this method step, please document them here.
+
+For each dataset used, include, if possible:<br>
+&nbsp;&nbsp;- the datasets's title<br>
+&nbsp;&nbsp;- a URL, DOI, or other globally unique identifier<br>
+&nbsp;&nbsp;- a creator's name and email<br>
+&nbsp;&nbsp;- a contact's name and email.
+
+If you will be submitting your data package to the EDI data repository, our data curators will use this information to fill out data provenance entries in the data package's metadata.
+
+Example:<br>
+Title: Data for Lake Mendota Phosphorus Cycling Model<br>
+DOI: doi:10.6073/pasta/36d0ee7bf67d9dabade404c92be73917<br>
+Creator: Paul C Hanson pchanson@wisc.edu<br>
+Contact: Paul C Hanson pchanson@wisc.edu
+--------------------
 name_org_position
 Last Name, Organization, Position Name
 place holder

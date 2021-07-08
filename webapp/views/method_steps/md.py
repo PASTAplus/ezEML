@@ -33,6 +33,8 @@ from webapp.home.metapype_client import (
 
 
 md_bp = Blueprint('md', __name__, template_folder='templates')
+data_sources_marker_begin = '==================== Data Sources ========================='
+data_sources_marker_end = '==========================================================='
 
 
 @md_bp.route('/method_step_select/<filename>', methods=['GET', 'POST'])
@@ -173,8 +175,10 @@ def method_step(filename=None, node_id=None):
         if submit_type == 'Save Changes':
             description = form.description.data
             instrumentation = form.instrumentation.data
+            data_sources = form.data_sources.data
             method_step_node = Node(names.METHODSTEP, parent=methods_node)
-            create_method_step(method_step_node, description, instrumentation)
+            create_method_step(method_step_node, description, instrumentation, data_sources,
+                               data_sources_marker_begin, data_sources_marker_end)
 
             if node_id and len(node_id) != 1:
                 old_method_step_node = Node.get_node_instance(node_id)
@@ -206,18 +210,24 @@ def method_step(filename=None, node_id=None):
                     break
 
     set_current_page('method_step')
-    help = [get_help('method_step_description'), get_help('method_step_instrumentation')]
+    help = [get_help('method_step_description'), get_help('method_step_instrumentation'), get_help('method_step_data_sources')]
     return render_template('method_step.html', title='Method Step', form=form, filename=filename, help=help)
 
 
 def populate_method_step_form(form: MethodStepForm, ms_node: Node):
     description = ''
     instrumentation = ''
+    data_sources = ''
 
     if ms_node:
         description_node = ms_node.find_child(names.DESCRIPTION)
         if description_node:
             description = display_text_type_node(description_node)
+            if data_sources_marker_begin in description and data_sources_marker_end in description:
+                begin = description.find(data_sources_marker_begin)
+                end = description.find(data_sources_marker_end)
+                data_sources = description[begin+len(data_sources_marker_begin)+1:end-1]
+                description = description[0:begin-1]
 
         instrumentation_node = ms_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node:
@@ -225,5 +235,6 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
 
         form.description.data = description
         form.instrumentation.data = instrumentation
+        form.data_sources.data = data_sources
     form.md5.data = form_md5(form)
 

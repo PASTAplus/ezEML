@@ -24,6 +24,15 @@
         <b>Submit to EDI</b>.
         </div>
     <br>
+    <div style="border: 1px solid steelblue;padding: 10px;">
+        <b>Note:</b> To send your package to a recipient other than EDI (e.g., to send it to your LTER Information Manager), use
+        <b><a href="export_package">Export ezEML Data Package</a></b>. This will create an archive file containing
+        your metadata and data files and provide you with a URL that points to the archive file. You can then email the URL to the
+        target recipient, who can use it to download the archive to their local system. The archive can then be imported into ezEML,
+        or it can be opened and processed manually (it contains the EML XML file and data files). For more details, see <b>Sending Your
+        Package to a Colleague</b> in the User Guide.
+        </div>
+    <br>
     <form method="POST" action="" class="form" role="form" novalidate>
         {{ form.csrf_token }}
     <table>

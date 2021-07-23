@@ -123,6 +123,7 @@ def init_session_vars():
 
 @home.before_app_first_request
 def fixup_upload_management():
+    return
     USER_DATA_DIR = 'user-data'
     to_delete = set()
     # loop on the various users' data directories
@@ -691,6 +692,8 @@ def get_redirect_target_page():
         return PAGE_EXPORT_DATA_PACKAGE
     elif current_page == 'data_package_id':
         return PAGE_DATA_PACKAGE_ID
+    elif current_page == 'submit_package':
+        return PAGE_SUBMIT_TO_EDI
     else:
         return PAGE_TITLE
 

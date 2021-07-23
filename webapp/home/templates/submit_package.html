@@ -8,24 +8,31 @@
     
     <table>
         <td><h2>Submit to EDI</h2></td>
-        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_submit_package_btn) }}</td>
+        <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_submit_package_btn) }}</td>
     </table>
-        <div class="col-md-10">
+{#        <div class="col-md-10">#}
 {##}
 {#        <p>When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML,#}
 {#        you're ready to submit your data package to the data repository#}
 {#        hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.#}
 
-    <div style="border: 1px solid steelblue;padding: 10px;">
-        <b>Note:</b> The versions of the data files that will be sent to EDI are the versions you've
+    <div class="col-md-5" style="border: 1px solid steelblue;padding: 10px;margin-left:15px;">
+        <b>Important:</b> The versions of the data files that will be included in your submission are the versions you've
         uploaded to ezEML. If you've modified a data file since it was uploaded, you will need to use <b>Re-upload</b>
         to provide ezEML with the updated version prior to submitting. Go to <b><a href="edit/dt.data_table_select">Data Tables</a></b> and/or
         <b><a href="edit/ent.other_entity_select">Other Entities</a></b> to do any needed re-uploads. Then return to this page to
-        <b>Submit to EDI</b>.
-        </div>
-    <br>
+        submit your data.
+    </div>
+    <div class="col-md-4" style="border: 1px solid steelblue;padding: 10px;margin-left:43px;">
+        <b>Note:</b> To send your current data and metadata to a recipient <i>other than EDI</i>, go to
+        <b><a href="export_package">Export ezEML Data Package</a></b>. It creates a zip file containing
+        your metadata and data files and provides you with a URL you can email to the recipient. See also <b>Sending Your
+        Package to a Colleague</b> in the <b><a href="user_guide">User Guide</a></b>.
+    </div>
+        <div class="col-md-10">
     <form method="POST" action="" class="form" role="form" novalidate>
         {{ form.csrf_token }}
+    <br>
     <table>
         <tr><td>
         <table>

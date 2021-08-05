@@ -58,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.08.04'
+RELEASE_NUMBER = '2021.08.05'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1267,8 +1267,9 @@ def create_missing_values(attribute_node, code_dict):
                 mvc_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
                 code_node = new_child_node(names.CODE, parent=mvc_node)
                 code_node.content = code
-                code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
-                code_explanation_node.content = code_explanation
+                if code_explanation:
+                    code_explanation_node = new_child_node(names.CODEEXPLANATION, parent=mvc_node)
+                    code_explanation_node.content = code_explanation
 
 
 def create_datetime_attribute(

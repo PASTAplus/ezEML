@@ -118,7 +118,7 @@ def load_geo_coverage(filename):
 
         # Check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
+            flash('No file part', 'error')
             return redirect(request.url)
 
         file = request.files['file']
@@ -126,7 +126,7 @@ def load_geo_coverage(filename):
             filename = secure_filename(file.filename)
 
             if filename is None or filename == '':
-                flash('No selected file')
+                flash('No selected file', 'error')
             elif allowed_data_file(filename):
                 filepath = os.path.join(uploads_folder, filename)
                 file.save(filepath)
@@ -254,11 +254,11 @@ def geographic_coverage(filename=None, node_id=None):
                 add_child(coverage_node, gc_node)
 
             if nbc and sbc and nbc < sbc:
-                flash('North should be greater than or equal to South')
+                flash('North should be greater than or equal to South', 'error')
                 url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=gc_node.id))
 
             if ebc and wbc and ebc < wbc:
-                flash('East should be greater than or equal to West')
+                flash('East should be greater than or equal to West', 'error')
                 url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=gc_node.id))
 
             save_both_formats(filename=filename, eml_node=eml_node)
@@ -415,7 +415,7 @@ def temporal_coverage(filename=None, node_id=None):
 
             flash_msg = compare_begin_end_dates(begin_date_str, end_date_str)
             if flash_msg:
-                flash(flash_msg)
+                flash(flash_msg, 'error')
                 url = (url_for(PAGE_TEMPORAL_COVERAGE, filename=filename, node_id=tc_node_id))
 
             save_both_formats(filename=filename, eml_node=eml_node)
@@ -567,7 +567,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                             have_links = True
                             break
             except ValueError as e:
-                flash(str(e))
+                flash(str(e), 'error')
                 hierarchy = [(form.taxon_rank.data, form.taxon_value.data, '', '')]
             form.hierarchy.data = hierarchy
             form.hidden_taxon_rank.data = form.taxon_rank.data
@@ -636,7 +636,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                 )]
 
             if not form_value.get('taxon_rank'):
-                flash('Taxon Rank is required.')
+                flash('Taxon Rank is required.', 'error')
                 return redirect(url_for(PAGE_TAXONOMIC_COVERAGE, filename=filename, node_id=node_id, taxon=form.taxon_value.data))
 
             eml_node = load_eml(filename=filename)

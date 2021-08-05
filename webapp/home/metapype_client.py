@@ -2066,7 +2066,7 @@ def create_taxonomic_coverage(
                 taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = taxon_rank
                 taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
-                taxon_rank_value_node.content = taxon_name
+                taxon_rank_value_node.content = taxon_name.strip()
                 if common_name:
                     common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = common_name

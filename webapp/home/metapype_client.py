@@ -58,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.07.23'
+RELEASE_NUMBER = '2021.08.04'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1194,7 +1194,6 @@ def create_data_table(
         if object_name or size or md5_hash or num_header_lines or \
            record_delimiter or attribute_orientation or \
            field_delimiter or online_url:
-
             physical_node = new_child_node(names.PHYSICAL, parent=data_table_node)
 
         if object_name:
@@ -1214,7 +1213,6 @@ def create_data_table(
 
         if num_header_lines or record_delimiter or \
                attribute_orientation or field_delimiter:
-
             data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
             text_format_node = new_child_node(names.TEXTFORMAT, parent=data_format_node)
 

@@ -1295,6 +1295,13 @@ def compare_codes(old_codes, new_codes):
     return old_substituted == new_substituted
 
 
+def add_node_if_missing(parent_node, child_name):
+    child = parent_node.find_descendant(child_name)
+    if not child:
+        child = new_child_node(child_name, parent=parent_node)
+    return child
+
+
 def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes):
     debug_msg(f'Entering update_data_table')
 
@@ -1306,6 +1313,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     old_records_node = old_dt_node.find_descendant(names.NUMBEROFRECORDS)
     old_md5_node = old_dt_node.find_descendant(names.AUTHENTICATION)
     old_field_delimiter_node = old_dt_node.find_descendant(names.FIELDDELIMITER)
+    old_record_delimiter_node = old_dt_node.find_descendant(names.RECORDDELIMITER)
     old_quote_char_node = old_dt_node.find_descendant(names.QUOTECHARACTER)
 
     new_object_name_node = new_dt_node.find_descendant(names.OBJECTNAME)
@@ -1313,6 +1321,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     new_records_node = new_dt_node.find_descendant(names.NUMBEROFRECORDS)
     new_md5_node = new_dt_node.find_descendant(names.AUTHENTICATION)
     new_field_delimiter_node = new_dt_node.find_descendant(names.FIELDDELIMITER)
+    new_record_delimiter_node = new_dt_node.find_descendant(names.RECORDDELIMITER)
     new_quote_char_node = new_dt_node.find_descendant(names.QUOTECHARACTER)
 
     old_object_name = old_object_name_node.content
@@ -1321,6 +1330,19 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     old_records_node.content = new_records_node.content
     old_md5_node.content = new_md5_node.content
     old_field_delimiter_node.content = new_field_delimiter_node.content
+    # record delimiter node is not required, so may be missing
+    if old_record_delimiter_node:
+        if new_record_delimiter_node:
+            old_record_delimiter_node.content = new_record_delimiter_node.content
+        else:
+            old_record_delimiter_node.parent.remove_child(old_record_delimiter_node)
+    else:
+        if new_record_delimiter_node:
+            # make sure needed ancestor nodes exist
+            physical_node = add_node_if_missing(old_dt_node, names.PHYSICAL)
+            data_format_node = add_node_if_missing(physical_node, names.DATAFORMAT)
+            text_format_node = add_node_if_missing(data_format_node, names.TEXTFORMAT)
+            new_child_node(names.RECORDDELIMITER, text_format_node).content = new_record_delimiter_node.content
     # quote char node is not required, so may be missing
     if old_quote_char_node:
         if new_quote_char_node:

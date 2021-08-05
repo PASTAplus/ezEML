@@ -348,6 +348,12 @@ def check_geographic_coverage(eml_node, filename):
             add_to_evaluation('geographic_coverage_05', link)
         if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_RANGE, names.SOUTHBOUNDINGCOORDINATE):
             add_to_evaluation('geographic_coverage_06', link)
+        # special case to combine missing bounding coordinates into a single error
+        if find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.WESTBOUNDINGCOORDINATE) or \
+            find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.EASTBOUNDINGCOORDINATE) or \
+            find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.NORTHBOUNDINGCOORDINATE) or \
+            find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.SOUTHBOUNDINGCOORDINATE):
+            add_to_evaluation('geographic_coverage_02', link)
 
 
 def get_attribute_type(attrib_node:Node):

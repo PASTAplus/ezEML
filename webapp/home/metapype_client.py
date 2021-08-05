@@ -1999,17 +1999,21 @@ def create_geographic_coverage(
 
         bounding_coordinates_node = new_child_node(names.BOUNDINGCOORDINATES, parent=geographic_coverage_node)
 
-        wbc_node = new_child_node(names.WESTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-        wbc_node.content = wbc
+        if wbc:
+            wbc_node = new_child_node(names.WESTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+            wbc_node.content = wbc
 
-        ebc_node = new_child_node(names.EASTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-        ebc_node.content = ebc
+        if ebc:
+            ebc_node = new_child_node(names.EASTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+            ebc_node.content = ebc
 
-        nbc_node = new_child_node(names.NORTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-        nbc_node.content = nbc
+        if nbc:
+            nbc_node = new_child_node(names.NORTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+            nbc_node.content = nbc
 
-        sbc_node = new_child_node(names.SOUTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-        sbc_node.content = sbc
+        if sbc:
+            sbc_node = new_child_node(names.SOUTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+            sbc_node.content = sbc
 
         return geographic_coverage_node
 

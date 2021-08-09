@@ -27,7 +27,7 @@ from zipfile import ZipFile
 
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, session,
+    Blueprint, flash, render_template, redirect, request, url_for, session, Markup
 )
 
 from flask_login import (
@@ -79,6 +79,7 @@ from metapype.model import mp_io
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
+import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -1190,22 +1191,25 @@ def submit_package():
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if form.validate_on_submit():
-        name = form.data['name']
-        email_address = form.data['email_address']
-        notes = form.data['notes']
+        # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
+        #  programmatically generated Submit
+        if request.form.get(BTN_SUBMIT) == BTN_SUBMIT_TO_EDI:
+            name = form.data['name']
+            email_address = form.data['email_address']
+            notes = form.data['notes']
 
-        zipfile_path = zip_package(current_document, eml_node)
-        _, download_url = save_as_ezeml_package_export(zipfile_path)
+            zipfile_path = zip_package(current_document, eml_node)
+            _, download_url = save_as_ezeml_package_export(zipfile_path)
 
-        msg = submit_package_mail_body(name, email_address, current_document, download_url, notes)
-        subject = 'ezEML-Generated Data Submission Request'
-        to_address = ['support@environmentaldatainitiative.org']
-        sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
-        if sent:
-            flash(f'Package {current_document} has been sent to EDI. We will notify you when it has been added to the repository.')
-        else:
-            flash(f'Email failed to send', 'error')
-        return redirect(get_back_url())
+            msg = submit_package_mail_body(name, email_address, current_document, download_url, notes)
+            subject = 'ezEML-Generated Data Submission Request'
+            to_address = ['support@environmentaldatainitiative.org']
+            sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
+            if sent:
+                flash(f'Package {current_document} has been sent to EDI. We will notify you when it has been added to the repository.')
+            else:
+                flash(f'Email failed to send', 'error')
+            return redirect(get_back_url())
 
     set_current_page('submit_package')
     help = get_helps(['submit_package'])
@@ -1251,7 +1255,6 @@ def get_column_properties(dt_node, object_name):
 
 
 def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
-    debug_msg(f'Entering check_data_table_similarity')
     if not old_dt_node or not new_dt_node:
         raise Exception('Internal error 100')
     old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
@@ -1270,8 +1273,11 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
         # column properties weren't saved. compute them anew.
         old_column_vartypes = get_column_properties(old_dt_node, old_object_name)
     if old_column_vartypes != new_column_vartypes:
-        raise Exception("The variable types of the new table's columns are different from the original table.")
-    debug_msg(f'Leaving check_data_table_similarity')
+        diffs = []
+        for col_name, old_type, new_type, attr_node in zip(new_column_names, old_column_vartypes, new_column_vartypes, old_attribute_list.children):
+            if old_type != new_type:
+                diffs.append((col_name, old_type, new_type, attr_node))
+        raise ValueError(diffs)
 
 
 def substitute_nans(codes):
@@ -1598,6 +1604,14 @@ def load_data(dt_node_id=None):
                             update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
                             # rename the temp file
                             os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
+                        except ValueError as err:
+                            err_string = 'Please note: One or more columns in the new table have a different data type than they had in the old table.<ul>'
+                            for col_name, old_type, new_type, attr_node in err.args[0]:
+                                dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
+                                err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
+                            err_string += '</ul>'
+                            flash(Markup(err_string))
+                            pass
                         except Exception as err:
                             # display error
                             error = err.args[0]
@@ -1617,6 +1631,10 @@ def load_data(dt_node_id=None):
                 dt_node.parent = dataset_node
                 if not doing_reupload:
                     dataset_node.add_child(dt_node)
+                else:
+                    object_name_node = dt_node.find_descendant(names.OBJECTNAME)
+                    if object_name_node:
+                        object_name_node.content = data_file
 
                 user_data.add_data_table_upload_filename(data_file)
                 if new_column_vartypes:

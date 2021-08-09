@@ -13,10 +13,7 @@ from flask_login import (
 
 from webapp.config import Config
 
-from webapp.home.views import (
-    process_up_button, process_down_button,
-    backup_metadata, set_current_page
-)
+import webapp.home.views as views
 
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
@@ -42,10 +39,6 @@ from webapp.home.metapype_client import (
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute
 )
 
-from webapp.home.views import (
-    get_back_url
-)
-
 from metapype.eml import names
 from metapype.model.node import Node
 from webapp.home.metapype_client import VariableType, new_child_node
@@ -53,11 +46,9 @@ from webapp.home.metapype_client import VariableType, new_child_node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, get_help, get_helps
-
 from webapp.home.load_data_table import load_data_table, sort_codes, infer_datetime_format
 
-from webapp.auth.user_data import data_table_was_uploaded, get_document_uploads_folder_name
+import webapp.auth.user_data as user_data
 
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
 
@@ -70,7 +61,7 @@ def data_table_select(filename=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(filename, form, form_dict,
+        url = views.select_post(filename, form, form_dict,
                           'POST',
                           PAGE_DATA_TABLE_SELECT,
                           PAGE_PROJECT,
@@ -80,12 +71,11 @@ def data_table_select(filename=None):
 
     # Process GET
     eml_node = load_eml(filename=filename)
-    eml_node = load_eml(filename=filename)
     dt_list = list_data_tables(eml_node)
     title = 'Data Tables'
 
-    set_current_page('data_table')
-    help = [get_help('data_tables'), get_help('add_load_data_tables'), get_help('data_table_reupload')]
+    views.set_current_page('data_table')
+    help = [views.get_help('data_tables'), views.get_help('add_load_data_tables'), views.get_help('data_table_reupload')]
     return render_template('data_table_select.html', title=title,
                            dt_list=dt_list, form=form, help=help)
 
@@ -257,13 +247,13 @@ def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
                             if object_name_node:
                                 object_name = object_name_node.content
                                 if object_name:
-                                    was_uploaded = data_table_was_uploaded(object_name)
+                                    was_uploaded = user_data.data_table_was_uploaded(object_name)
 
         else:
             flash('eml_node is None')
 
-    set_current_page('data_table')
-    help = get_helps([
+    views.set_current_page('data_table')
+    help = views.get_helps([
         'data_table',
         'data_table_name',
         'data_table_description',
@@ -426,10 +416,10 @@ def attribute_select_get(filename=None, form=None, dt_node_id=None):
             if object_name_node:
                 object_name = object_name_node.content
                 if object_name:
-                    was_uploaded = data_table_was_uploaded(object_name)
+                    was_uploaded = user_data.data_table_was_uploaded(object_name)
 
-    set_current_page('data_table')
-    help = [get_help('measurement_scale')]
+    views.set_current_page('data_table')
+    help = [views.get_help('measurement_scale')]
     return render_template('attribute_select.html',
                            title=title,
                            entity_name=entity_name,
@@ -481,7 +471,7 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
     if mscale is not None:
         form.mscale_choice.data = mscale
 
-    set_current_page('data_table')
+    views.set_current_page('data_table')
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
 
 
@@ -490,7 +480,7 @@ def load_df(attribute_node):
     data_table_node = attribute_list_node.parent
     data_file = data_table_node.find_descendant(names.OBJECTNAME).content
 
-    uploads_folder = get_document_uploads_folder_name()
+    uploads_folder = user_data.get_document_uploads_folder_name()
     full_path = f'{uploads_folder}/{data_file}'
 
     field_delimiter_node = data_table_node.find_descendant(names.FIELDDELIMITER)
@@ -646,11 +636,11 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(filename, node_id)
+                views.process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(filename, node_id)
+                views.process_down_button(filename, node_id)
             elif val == BTN_HIDDEN_CHECK:
                 new_page = PAGE_CHECK
             elif val == BTN_HIDDEN_SAVE:
@@ -849,8 +839,8 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
                                         populate_attribute_datetime_form(form, att_node)
                                         break
 
-    set_current_page('data_table')
-    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
+    views.set_current_page('data_table')
+    help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
                       'attribute_datetime_precision', 'attribute_datetime_format'])
     return render_template('attribute_datetime.html', title='Attribute', form=form, help=help)
 
@@ -1094,14 +1084,14 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
-    set_current_page('data_table')
+    views.set_current_page('data_table')
     custom_unit_names = []
     custom_unit_descriptions = []
     if 'custom_units' in session:
         for name, desc in session['custom_units'].items():
             custom_unit_names.append(name)
             custom_unit_descriptions.append(desc)
-    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
+    help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
                       'attribute_number_type', 'attribute_numerical_precision'])
     return render_template('attribute_numerical.html',
                            title='Attribute: Numerical',
@@ -1406,8 +1396,8 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                                         break
 
     # if mscale
-    set_current_page('data_table')
-    help = get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
+    views.set_current_page('data_table')
+    help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
     if mscale == VariableType.CATEGORICAL.name:
         return render_template('attribute_categorical.html',
                                title='Categorical Attribute',
@@ -1552,7 +1542,7 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
     if att_node:
         attribute_name = attribute_name_from_attribute(att_node)
         codes_list = list_codes_and_definitions(att_node)
-    set_current_page('data_table')
+    views.set_current_page('data_table')
     return render_template('code_definition_select.html', title=title,
                            attribute_name=attribute_name, codes_list=codes_list,
                            form=form)
@@ -1762,7 +1752,7 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
                         populate_code_definition_form(form, cd_node)
                         break
 
-    set_current_page('data_table')
+    views.set_current_page('data_table')
     return render_template('code_definition.html', title='Code Definition', form=form, attribute_name=attribute_name)
 
 
@@ -1800,14 +1790,14 @@ def clone_attributes(filename, dt_node_id):
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
+            return redirect(views.get_back_url())
 
         if form.validate_on_submit():
             source_filename = form.filename.data
             return redirect(url_for('dt.clone_attributes_2', target_filename=target_filename, target_dt_id=target_dt_id, source_filename=source_filename))
 
     # Process GET
-    help = get_helps(['clone_attributes_1'])
+    help = views.get_helps(['clone_attributes_1'])
     return render_template('clone_attributes.html', filename=filename, dt_id=dt_node_id, help=help, form=form)
 
 
@@ -1826,14 +1816,14 @@ def clone_attributes_2(target_filename, target_dt_id, source_filename):
     choices = [[data_table[0], data_table[1]] for data_table in source_data_tables]
     form.source.choices = choices
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
+        return redirect(views.get_back_url())
 
     if request.method == 'POST' and form.validate_on_submit():
 
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         source_dt_id = form_dict['source'][0]
-        help = get_helps(['clone_attributes_3'])
+        help = views.get_helps(['clone_attributes_3'])
 
         source_dt_node = Node.get_node_instance(source_dt_id)
         source_dt_name_node = source_dt_node.find_descendant(names.ENTITYNAME)
@@ -1849,7 +1839,7 @@ def clone_attributes_2(target_filename, target_dt_id, source_filename):
                                 help=help, form=form))
 
     # Process GET
-    help = get_helps(['clone_attributes_2'])
+    help = views.get_helps(['clone_attributes_2'])
     return render_template('clone_attributes_2.html', target_filename=target_filename, target_dt_id=target_dt_id, source_filename=source_filename, help=help, form=form)
 
 
@@ -1862,7 +1852,7 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
     source_dt_node = Node.get_node_instance(source_dt_id)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
+        return redirect(views.get_back_url())
 
     # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
@@ -1873,7 +1863,7 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
 
         if source_attr_ids: # If no option was selected, we'll fall thru and go the GET again
 
-            help = get_helps(['import_responsible_parties_2'])  # FIX_ME
+            help = views.get_helps(['import_responsible_parties_2'])  # FIX_ME
             return redirect(url_for('dt.clone_attributes_4', target_filename=target_filename, target_dt_id=target_dt_id,
                                     source_filename=source_filename, source_dt_id=source_dt_id,
                                     table_name_in=table_name_in, table_name_out=table_name_out,
@@ -1881,7 +1871,7 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
                                     help=help, form=form))
 
     # Process GET
-    help = get_helps(['clone_attributes_3'])
+    help = views.get_helps(['clone_attributes_3'])
 
     source_dt_node = Node.get_node_instance(source_dt_id)
     source_data_table_columns = list_data_table_columns(source_dt_node)
@@ -2025,13 +2015,13 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         target_attrs.append((target_attr_name_node.content, target_dt_attr_node.id))
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
+        return redirect(views.get_back_url())
 
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         # Save a backup of metadata
-        backup_metadata(target_filename)
+        views.backup_metadata(target_filename)
         source_attr_ids = [x[1] for x in source_attrs]
         target_attr_ids = []
         for key, val in form_dict.items():
@@ -2040,10 +2030,10 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         target_eml_node = load_eml(target_filename)
         clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)
         save_both_formats(target_filename, target_eml_node)
-        help = get_helps(['import_responsible_parties_2'])  # FIX_ME
+        help = views.get_helps(['import_responsible_parties_2'])  # FIX_ME
         return redirect(url_for('dt.data_table_select', filename=target_filename))
 
-    help = get_helps(['clone_attributes_4'])
+    help = views.get_helps(['clone_attributes_4'])
 
     return render_template('clone_attributes_4.html', target_filename=target_filename, target_dt_id=target_dt_id,
                            source_filename=source_filename, source_dt_id=source_dt_id,

@@ -1401,6 +1401,8 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     parent_node = old_code_definition_node.parent
                     parent_node.remove_child(old_code_definition_node)
                 # add clones of new definition nodes and set their definitions, if known
+                if not parent_node:
+                    continue
                 new_code_definition_nodes = []
                 new_attribute_node.find_all_descendants(names.CODEDEFINITION, new_code_definition_nodes)
                 for new_code_definition_node in new_code_definition_nodes:
@@ -1593,25 +1595,30 @@ def load_data(dt_node_id=None):
                     if not dt_node:  # i.e., if not doing a re-upload
                         dt_node = new_dt_node
                     else:
+                        types_changed = None
                         try:
                             check_data_table_similarity(dt_node,
                                                         new_dt_node,
                                                         new_column_vartypes,
                                                         new_column_names,
                                                         new_column_categorical_codes)
+                        except ValueError as err:
+                            types_changed = err.args[0]
+
+                        try:
                             # use the existing dt_node, but update objectName, size, rows, MD5, etc.
                             # also, update column names and categorical codes, as needed
                             update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
                             # rename the temp file
                             os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
-                        except ValueError as err:
-                            err_string = 'Please note: One or more columns in the new table have a different data type than they had in the old table.<ul>'
-                            for col_name, old_type, new_type, attr_node in err.args[0]:
-                                dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
-                                err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
-                            err_string += '</ul>'
-                            flash(Markup(err_string))
-                            pass
+
+                            if types_changed:
+                                err_string = 'Please note: One or more columns in the new table have a different data type than they had in the old table.<ul>'
+                                for col_name, old_type, new_type, attr_node in types_changed:
+                                    dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
+                                    err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
+                                err_string += '</ul>'
+                                flash(Markup(err_string))
                         except Exception as err:
                             # display error
                             error = err.args[0]

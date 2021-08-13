@@ -9,7 +9,6 @@ import click
 @click.option('--ext', default='zip', help='Remove only files with this file extension.')
 @click.option('--base', default='../user-data', help='Base directory from which to crawl the file system.')
 def GC(days, ext, base):
-	print(days, ext, base)
 	today = datetime.datetime.today()
 	os.chdir(base)
 

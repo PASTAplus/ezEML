@@ -1,9 +1,8 @@
 import datetime
-import glob
 import os
 
-
 import click
+
 
 @click.command()
 @click.option('--days', default=30, help='Remove files older than this number of days')
@@ -21,7 +20,7 @@ def GC(days, ext, base):
 
 			if filetime.days >= days and name.endswith(f'.{ext}'):
 				print(os.path.join(root, name), filetime.days)
-				# os.remove(os.path.join(root, name))
+				os.remove(os.path.join(root, name))
 
 
 

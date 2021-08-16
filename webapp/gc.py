@@ -24,7 +24,7 @@ def GC(days, base, logonly):
 	))
 	logger = daiquiri.getLogger(__name__)
 
-	logger.info(f'Start run: ----------------------------------------------------------------------------- days={days}')
+	logger.info(f'Start run: ------------------------------------------------------------------------ days={days} logonly={logonly}')
 	today = datetime.datetime.today()
 
 	os.chdir(base)

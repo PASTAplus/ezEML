@@ -12,7 +12,8 @@ import daiquiri
 @click.command()
 @click.option('--days', default=30, help='Remove files if JSON last-modified date greater than this number of days')
 @click.option('--base', default='/home/pasta/ezeml/user-data', help='Base directory from which to crawl the file system.')
-def GC(days, base):
+@click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing.')
+def GC(days, base, logonly):
 	logfile = os.path.join(base, 'ezEML_GC.log')
 	daiquiri.setup(level=logging.INFO, outputs=(
 		daiquiri.output.Stream(sys.stdout),
@@ -23,8 +24,8 @@ def GC(days, base):
 	))
 	logger = daiquiri.getLogger(__name__)
 
+	logger.info(f'Start run: ----------------------------------------------------------------------------- days={days}')
 	today = datetime.datetime.today()
-	logger.info(f'Start run: {today}...  days={days}')
 
 	os.chdir(base)
 
@@ -45,11 +46,10 @@ def GC(days, base):
 				# Iterate over the list of filepaths & remove each file.
 				for fpath in filelist:
 					try:
-						print('Removing', fpath)
 						logger.info(f'Removing file {fpath}')
-						os.remove(fpath)
+						if not logonly:
+							os.remove(fpath)
 					except:
-						print("Error while deleting file: ", fpath)
 						logger.error(f'Error while deleting file: {fpath}')
 			except FileNotFoundError:
 				pass
@@ -70,11 +70,10 @@ def GC(days, base):
 					uploads_dir = os.path.join(base, user_dir, 'uploads', package_name)
 					if os.path.exists(uploads_dir) and os.path.isdir(uploads_dir):
 						try:
-							print('Removing uploads', uploads_dir)
 							logger.info(f'Removing directory {uploads_dir}')
-							shutil.rmtree(uploads_dir)
+							if not logonly:
+								shutil.rmtree(uploads_dir)
 						except FileNotFoundError as err:
-							print(err)
 							logger.error(err)
 							pass
 
@@ -87,11 +86,10 @@ def GC(days, base):
 						for fpath in filelist:
 							if os.path.exists(os.path.join(backups_dir, fpath)):
 								try:
-									print('Removing', fpath)
 									logger.info(f'Removing file {fpath}')
-									os.remove(fpath)
+									if not logonly:
+										os.remove(fpath)
 								except:
-									print("Error while deleting file : ", fpath)
 									logger.error(f'Error while deleting file {fpath}')
 					except FileNotFoundError:
 						pass
@@ -100,9 +98,9 @@ def GC(days, base):
 					exports_dir = os.path.join(user_dir, 'exports', package_name)
 					if os.path.exists(exports_dir) and os.path.isdir(exports_dir):
 						try:
-							print('Removing', exports_dir)
 							logger.info(f'Removing directory {exports_dir}')
-							shutil.rmtree(exports_dir)
+							if not logonly:
+								shutil.rmtree(exports_dir)
 						except FileNotFoundError:
 							pass
 

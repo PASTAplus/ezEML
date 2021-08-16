@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import shutil
+import sys
 
 import click
 import daiquiri
@@ -13,11 +14,17 @@ import daiquiri
 @click.option('--base', default='/home/pasta/ezeml/user-data', help='Base directory from which to crawl the file system.')
 def GC(days, base):
 	logfile = os.path.join(base, 'ezEML_GC.log')
-	daiquiri.setup(level=logging.INFO, outputs=(daiquiri.output.File(logfile)))
-	logger = daiquiri.getLogger()
+	daiquiri.setup(level=logging.INFO, outputs=(
+		daiquiri.output.Stream(sys.stdout),
+		daiquiri.output.File(logfile,
+							 formatter=daiquiri.formatter.ColorFormatter(
+								 fmt="%(asctime)s "
+									 "%(name)s -> %(message)s")), 'stdout',
+	))
+	logger = daiquiri.getLogger(__name__)
 
 	today = datetime.datetime.today()
-	logger.info(f'Start run: {today}')
+	logger.info(f'Start run: {today}...  days={days}')
 
 	os.chdir(base)
 

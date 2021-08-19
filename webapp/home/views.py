@@ -1249,7 +1249,7 @@ def get_column_properties(dt_node, object_name):
         return new_column_vartypes
 
     except FileNotFoundError:
-        raise Exception('The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
+        raise FileNotFoundError('The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
 
     except Exception as err:
         raise Exception('Internal error 103')

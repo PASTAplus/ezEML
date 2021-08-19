@@ -19,6 +19,7 @@ import html
 import json
 import math
 import os.path
+import pandas as pd
 from pathlib import Path
 import pickle
 from shutil import copyfile
@@ -1535,10 +1536,53 @@ def import_package_2(package_name):
                            package_name=package_name, form=form, help=help)
 
 
-@home.route('/load_data', methods=['GET', 'POST'])
-@home.route('/load_data/<dt_node_id>', methods=['GET', 'POST']) # will have dt_node in re-upload case
+def column_names_changed(filepath, delimiter, quote_char, dt_node):
+    # Assumes CSV file has been saved to the file system
+    # This function is called only in the reupload case.
+
+    data_frame = pd.read_csv(filepath, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=1)
+    columns = data_frame.columns
+    new_column_names = []
+    for col in columns:
+        new_column_names.append(col)
+
+    old_column_names = []
+    if dt_node:
+        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+        if attribute_list_node:
+            for attribute_node in attribute_list_node.children:
+                attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+                if attribute_name_node:
+                    old_column_names.append(attribute_name_node.content)
+
+    return old_column_names != new_column_names
+
+
+@home.route('/reupload_data_with_col_names_changed/<filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
-def load_data(dt_node_id=None):
+def reupload_data_with_col_names_changed(filename, dt_node_id):
+
+    form = LoadDataForm()
+    document = current_user.get_filename()
+
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if BTN_CONTINUE in request.form:
+            return redirect(url_for(PAGE_LOAD_DATA, filename=filename, dt_node_id=dt_node_id, name_chg_ok=True), code=307) # 307 keeps it a POST
+
+        help = get_helps(['data_table_reupload_full'])
+        return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
+                               form=form, filename=filename, dt_node_id=dt_node_id, help=help)
+
+
+@home.route('/load_data', methods=['GET', 'POST'])
+@home.route('/load_data/<dt_node_id>/<filename>', methods=['GET', 'POST']) # will have dt_node in re-upload case
+@home.route('/load_data/<dt_node_id>/<filename>/<name_chg_ok>', methods=['GET', 'POST']) # will have dt_node in re-upload case
+@login_required
+def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
 
     if Config.LOG_DEBUG:
         app = Flask(__name__)
@@ -1558,7 +1602,7 @@ def load_data(dt_node_id=None):
     if request.method == 'POST' and form.validate_on_submit():
 
         # Check if the post request has the file part
-        if 'file' not in request.files:
+        if not filename and 'file' not in request.files:
             flash('No file part', 'error')
             return redirect(request.url)
 
@@ -1567,31 +1611,35 @@ def load_data(dt_node_id=None):
         if not dataset_node:
             dataset_node = new_child_node(names.DATASET, eml_node)
 
-        file = request.files['file']
-        dt_node = None
-        if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
-            filename = file.filename
+        if not filename:
+            file = request.files['file']
+            if file:
+                filename = file.filename
 
+        dt_node = None
+        if filename:
             if doing_reupload:
                 dt_node = Node.get_node_instance(dt_node_id)
-                filename += '.ezeml_tmp'
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_data_file(filename):
                 Path(uploads_folder).mkdir(parents=True, exist_ok=True)
                 filepath = os.path.join(uploads_folder, filename)
-                file.save(filepath)
-                data_file = filename
-                data_file_path = f'{uploads_folder}/{data_file}'
                 num_header_rows = 1
                 delimiter = form.delimiter.data
                 quote_char = form.quote.data
+
+                if doing_reupload and not name_chg_ok:
+                    if column_names_changed(filepath, delimiter, quote_char, dt_node):
+                        # Go get confirmation
+                        return redirect(url_for(PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED,
+                                                filename=filename,
+                                                dt_node_id=dt_node_id),
+                                        code=307)
+
                 try:
-                    new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(uploads_folder, data_file, num_header_rows, delimiter, quote_char)
+                    new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char)
                     if not dt_node:  # i.e., if not doing a re-upload
                         dt_node = new_dt_node
                     else:
@@ -1604,6 +1652,11 @@ def load_data(dt_node_id=None):
                                                         new_column_categorical_codes)
                         except ValueError as err:
                             types_changed = err.args[0]
+
+                        except FileNotFoundError as err:
+                            error = err.args[0]
+                            flash(error, 'error')
+                            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
 
                         try:
                             # use the existing dt_node, but update objectName, size, rows, MD5, etc.
@@ -1632,7 +1685,7 @@ def load_data(dt_node_id=None):
                     flash(f'Data table has an error: {err.message}', 'error')
                     return redirect(request.url)
 
-                data_file = data_file.replace('.ezeml_tmp', '')
+                data_file = filename.replace('.ezeml_tmp', '')
                 flash(f"Loaded {data_file}")
 
                 dt_node.parent = dataset_node
@@ -1696,7 +1749,13 @@ def reupload_data(filename, node_id):
     if request.method == 'POST':
         dt_node = Node.get_node_instance(node_id)
         if dt_node:
-            return redirect(url_for(PAGE_LOAD_DATA, dt_node_id=node_id), code=307) # 307 keeps it a POST
+            file = request.files['file']
+            if file:
+                filename = f"{file.filename}.ezeml_tmp"
+                filepath = os.path.join(uploads_folder, filename)
+                file.save(filepath)
+
+            return redirect(url_for(PAGE_LOAD_DATA, dt_node_id=node_id, filename=filename), code=307) # 307 keeps it a POST
 
     # Process GET
     help = get_helps(['data_table_reupload_full'])

@@ -1261,7 +1261,7 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
     new_attribute_list = new_dt_node.find_child(names.ATTRIBUTELIST)
     if len(old_attribute_list.children) != len(new_attribute_list.children):
-        raise Exception('The new table has a different number of columns from the original table.')
+        raise IndexError('The new table has a different number of columns from the original table.')
     document = current_user.get_filename()
     old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
     if not old_object_name_node:
@@ -1654,6 +1654,11 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
                             types_changed = err.args[0]
 
                         except FileNotFoundError as err:
+                            error = err.args[0]
+                            flash(error, 'error')
+                            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+
+                        except IndexError as err:
                             error = err.args[0]
                             flash(error, 'error')
                             return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))

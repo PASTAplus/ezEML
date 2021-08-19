@@ -1660,7 +1660,7 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
 
                         except IndexError as err:
                             error = err.args[0]
-                            flash(error, 'error')
+                            flash(f'Re-upload not done. {error}', 'error')
                             return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
 
                         try:

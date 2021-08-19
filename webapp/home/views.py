@@ -1611,6 +1611,7 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
         if not dataset_node:
             dataset_node = new_child_node(names.DATASET, eml_node)
 
+        file = None
         if not filename:
             file = request.files['file']
             if file:
@@ -1626,6 +1627,9 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
             elif allowed_data_file(filename):
                 Path(uploads_folder).mkdir(parents=True, exist_ok=True)
                 filepath = os.path.join(uploads_folder, filename)
+                if file:
+                    file.save(filepath)
+
                 num_header_rows = 1
                 delimiter = form.delimiter.data
                 quote_char = form.quote.data
@@ -1643,6 +1647,7 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
                     if not dt_node:  # i.e., if not doing a re-upload
                         dt_node = new_dt_node
                     else:
+                        # handle the re-upload
                         types_changed = None
                         try:
                             check_data_table_similarity(dt_node,

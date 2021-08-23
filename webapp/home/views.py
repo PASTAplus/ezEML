@@ -1181,29 +1181,35 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, d
     return msg
 
 
-def insert_data_table_urls(current_document, eml_node):
-    user_folder = user_data.get_user_folder_name()
-    uploads_folder = f'{user_folder}/uploads/{current_document}/'
-
-    parsed_url = urlparse(request.base_url)
-    uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{uploads_folder}"
-    # uploads_url_prefix = f"https://ezeml-d.edirepository.org/{uploads_folder}" # FIXME
-
-    data_table_nodes = []
-    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-    for data_table_node in data_table_nodes:
+def insert_urls(uploads_url_prefix, eml_node, node_type):
+    upload_nodes = []
+    eml_node.find_all_descendants(node_type, upload_nodes)
+    for upload_node in upload_nodes:
         try:
-            physical_node = data_table_node.find_descendant(names.PHYSICAL)
+            physical_node = upload_node.find_descendant(names.PHYSICAL)
             object_name_node = physical_node.find_child(names.OBJECTNAME)
             object_name = object_name_node.content
             distribution_node = physical_node.find_child(names.DISTRIBUTION)
             if distribution_node:
                 physical_node.remove_child(distribution_node)
             distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
-            url_node = new_child_node(names.URL, distribution_node)
+            online_node = new_child_node(names.ONLINE, distribution_node)
+            url_node = new_child_node(names.URL, online_node)
             url_node.content = f"{uploads_url_prefix}/{object_name}"
-        except:
+        except Exception as err:
+            flash(err)
             continue
+
+
+def insert_upload_urls(current_document, eml_node):
+    user_folder = user_data.get_user_folder_name()
+    uploads_folder = f'{user_folder}/uploads/{current_document}'
+
+    parsed_url = urlparse(request.base_url)
+    uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{uploads_folder}"
+
+    insert_urls(uploads_url_prefix, eml_node, names.DATATABLE)
+    insert_urls(uploads_url_prefix, eml_node, names.OTHERENTITY)
 
 
 @home.route('/submit_package', methods=['GET', 'POST'])
@@ -1224,20 +1230,23 @@ def submit_package():
             email_address = form.data['email_address']
             notes = form.data['notes']
 
-            # update the EML to include URLs to data table files
-            insert_data_table_urls(current_document, eml_node)
+            # update the EML to include URLs to data table files and other entity files
+            insert_upload_urls(current_document, eml_node)
+            save_both_formats(filename=current_document, eml_node=eml_node)
 
             zipfile_path = zip_package(current_document, eml_node)
-            _, download_url = save_as_ezeml_package_export(zipfile_path)
+            if zipfile_path:
+                _, download_url = save_as_ezeml_package_export(zipfile_path)
 
-            msg = submit_package_mail_body(name, email_address, current_document, download_url, notes)
-            subject = 'ezEML-Generated Data Submission Request'
-            to_address = ['support@environmentaldatainitiative.org']
-            sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
-            if sent:
-                flash(f'Package {current_document} has been sent to EDI. We will notify you when it has been added to the repository.')
-            else:
-                flash(f'Email failed to send', 'error')
+                msg = submit_package_mail_body(name, email_address, current_document, download_url, notes)
+                subject = 'ezEML-Generated Data Submission Request'
+                to_address = ['support@environmentaldatainitiative.org']
+                sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
+                if sent:
+                    flash(f'Package {current_document} has been sent to EDI. We will notify you when it has been added to the repository.')
+                else:
+                    flash(f'Email failed to send', 'error')
+
             return redirect(get_back_url())
 
     set_current_page('submit_package')

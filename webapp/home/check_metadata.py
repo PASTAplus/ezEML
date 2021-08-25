@@ -457,7 +457,7 @@ def check_data_table_md5_checksum(data_table_node, link):
 
 
 def check_data_table(eml_node, filename, data_table_node:Node):
-    link = url_for(PAGE_DATA_TABLE, filename=filename, node_id=data_table_node.id)
+    link = url_for(PAGE_DATA_TABLE, filename=filename, dt_node_id=data_table_node.id)
     validation_errs = validate_via_metapype(data_table_node)
 
     check_data_table_md5_checksum(data_table_node, link)

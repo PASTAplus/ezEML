@@ -1,9 +1,13 @@
-class Error(Exception):
+class ezEMLError(Exception):
     """Base class for exceptions in this module."""
-    pass
-
-class DataTableError(Error):
 
     def __init__(self, message):
         self.message = message
 
+
+class DataTableError(ezEMLError):
+    pass
+
+
+class MissingFileError(ezEMLError):
+    pass

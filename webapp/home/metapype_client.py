@@ -58,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.08.23'
+RELEASE_NUMBER = '2021.08.25'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -870,47 +870,19 @@ def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
 
 
 def load_eml(filename:str=None):
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'load_eml (json)')
     eml_node = None
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         user_folder = '.'
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'user_folder = {user_folder}')
     filename = f"{user_folder}/{filename}.json"
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'filename = {filename}')
     if os.path.isfile(filename):
         try:
-            if Config.FLASH_DEBUG:
-                flash(f'Loading eml from {filename}')
-            if Config.LOG_DEBUG:
-                app = Flask(__name__)
-                with app.app_context():
-                    current_app.logger.info(f'load_eml (json)... loading {filename}')
-
             with open(filename, "r") as json_file:
                 json_obj = json.load(json_file)
                 eml_node = mp_io.from_json(json_obj)
 
-            if Config.LOG_DEBUG:
-                app = Flask(__name__)
-                with app.app_context():
-                    current_app.logger.info(f'load_eml (json)... done')
-
         except Exception as e:
             logger.error(e)
-            if Config.LOG_DEBUG:
-                app = Flask(__name__)
-                with app.app_context():
-                    current_app.logger.info(f'e = {repr(e)}')
 
     if eml_node:
         get_check_metadata_status(eml_node, filename)

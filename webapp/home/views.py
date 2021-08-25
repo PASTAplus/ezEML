@@ -43,7 +43,7 @@ from webapp.config import Config
 
 import csv
 
-from webapp.home.exceptions import DataTableError
+from webapp.home.exceptions import DataTableError, MissingFileError
 
 from webapp.home.forms import ( 
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
@@ -1595,9 +1595,9 @@ def column_names_changed(filepath, delimiter, quote_char, dt_node):
     return old_column_names != new_column_names
 
 
-@home.route('/reupload_data_with_col_names_changed/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+@home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
-def reupload_data_with_col_names_changed(filename, dt_node_id):
+def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
 
     form = LoadDataForm()
     document = current_user.get_filename()
@@ -1608,28 +1608,23 @@ def reupload_data_with_col_names_changed(filename, dt_node_id):
             return redirect(get_back_url())
 
         if BTN_CONTINUE in request.form:
-            return redirect(url_for(PAGE_LOAD_DATA, filename=filename, dt_node_id=dt_node_id, name_chg_ok=True), code=307) # 307 keeps it a POST
+            return redirect(url_for(PAGE_REUPLOAD, filename=document, dt_node_id=dt_node_id, saved_filename=saved_filename, name_chg_ok=True), code=307) # 307 keeps it a POST
 
         help = get_helps(['data_table_reupload_full'])
         return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
-                               form=form, filename=filename, dt_node_id=dt_node_id, help=help)
+                               form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
 
 
-@home.route('/load_data', methods=['GET', 'POST'])
-@home.route('/load_data/<dt_node_id>/<filename>', methods=['GET', 'POST']) # will have dt_node in re-upload case
-@home.route('/load_data/<dt_node_id>/<filename>/<name_chg_ok>', methods=['GET', 'POST']) # will have dt_node in re-upload case
+@home.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
-def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
-
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering load_data')
+def load_data(filename=None):
+    # filename that's passed in is actually the document name, for historical reasons.
+    # We'll clear it to avoid misunderstandings...
+    filename = None
 
     form = LoadDataForm()
     document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
-    doing_reupload = dt_node_id != None
 
     # Process POST
 
@@ -1639,7 +1634,7 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
     if request.method == 'POST' and form.validate_on_submit():
 
         # Check if the post request has the file part
-        if not filename and 'file' not in request.files:
+        if 'file' not in request.files:
             flash('No file part', 'error')
             return redirect(request.url)
 
@@ -1648,82 +1643,28 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
         if not dataset_node:
             dataset_node = new_child_node(names.DATASET, eml_node)
 
-        file = None
-        if not filename:
-            file = request.files['file']
-            if file:
-                filename = file.filename
+        file = request.files['file']
+        if file:
+            filename = file.filename
 
-        dt_node = None
         if filename:
-            if doing_reupload:
-                dt_node = Node.get_node_instance(dt_node_id)
-
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_data_file(filename):
+                # Make sure the user's uploads directory exists
                 Path(uploads_folder).mkdir(parents=True, exist_ok=True)
                 filepath = os.path.join(uploads_folder, filename)
                 if file:
+                    # Upload the file to the uploads directory
                     file.save(filepath)
 
                 num_header_rows = 1
                 delimiter = form.delimiter.data
                 quote_char = form.quote.data
 
-                if doing_reupload and not name_chg_ok:
-                    if column_names_changed(filepath, delimiter, quote_char, dt_node):
-                        # Go get confirmation
-                        return redirect(url_for(PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED,
-                                                filename=filename,
-                                                dt_node_id=dt_node_id),
-                                        code=307)
-
                 try:
-                    new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char)
-                    if not dt_node:  # i.e., if not doing a re-upload
-                        dt_node = new_dt_node
-                    else:
-                        # handle the re-upload
-                        types_changed = None
-                        try:
-                            check_data_table_similarity(dt_node,
-                                                        new_dt_node,
-                                                        new_column_vartypes,
-                                                        new_column_names,
-                                                        new_column_categorical_codes)
-                        except ValueError as err:
-                            types_changed = err.args[0]
-
-                        except FileNotFoundError as err:
-                            error = err.args[0]
-                            flash(error, 'error')
-                            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
-
-                        except IndexError as err:
-                            error = err.args[0]
-                            flash(f'Re-upload not done. {error}', 'error')
-                            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
-
-                        try:
-                            # use the existing dt_node, but update objectName, size, rows, MD5, etc.
-                            # also, update column names and categorical codes, as needed
-                            update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
-                            # rename the temp file
-                            os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
-
-                            if types_changed:
-                                err_string = 'Please note: One or more columns in the new table have a different data type than they had in the old table.<ul>'
-                                for col_name, old_type, new_type, attr_node in types_changed:
-                                    dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
-                                    err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
-                                err_string += '</ul>'
-                                flash(Markup(err_string))
-                        except Exception as err:
-                            # display error
-                            error = err.args[0]
-                            flash(f"Data table could not be re-uploaded. {error}", 'error')
-                            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+                    dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = \
+                        load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char)
 
                 except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
@@ -1732,48 +1673,140 @@ def load_data(dt_node_id=None, filename=None, name_chg_ok=False):
                     flash(f'Data table has an error: {err.message}', 'error')
                     return redirect(request.url)
 
-                data_file = filename.replace('.ezeml_tmp', '')
-                flash(f"Loaded {data_file}")
+                flash(f"Loaded {filename}")
 
                 dt_node.parent = dataset_node
-                if not doing_reupload:
-                    dataset_node.add_child(dt_node)
-                else:
-                    object_name_node = dt_node.find_descendant(names.OBJECTNAME)
-                    if object_name_node:
-                        object_name_node.content = data_file
+                dataset_node.add_child(dt_node)
 
-                user_data.add_data_table_upload_filename(data_file)
+                user_data.add_data_table_upload_filename(filename)
                 if new_column_vartypes:
-                    user_data.add_uploaded_table_properties(data_file,
+                    user_data.add_uploaded_table_properties(filename,
                                                   new_column_vartypes,
                                                   new_column_names,
                                                   new_column_categorical_codes)
 
                 delete_data_files(uploads_folder)
 
-                if doing_reupload:
-                    backup_metadata(filename=document)
-
                 save_both_formats(filename=document, eml_node=eml_node)
-                return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
+                return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
+
             else:
                 flash(f'{filename} is not a supported data file type')
                 return redirect(request.url)
 
     # Process GET
-    return render_template('load_data.html', title='Load Data', 
+    return render_template('load_data.html', title='Load Data',
                            form=form)
 
 
-@home.route('/reupload_data/<filename>/<node_id>', methods=['GET', 'POST'])
-@login_required
-def reupload_data(filename, node_id):
+def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
+                    eml_node=None, uploads_folder=None, name_chg_ok=False,
+                    delimiter=None, quote_char=None):
 
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering reupload_data')
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = new_child_node(names.DATASET, eml_node)
+
+    if not saved_filename:
+        raise MissingFileError('Unexpected error: file not found')
+
+    dt_node = Node.get_node_instance(dt_node_id)
+
+    num_header_rows = 1
+    filepath = os.path.join(uploads_folder, saved_filename)
+
+    if not name_chg_ok:
+        if column_names_changed(filepath, delimiter, quote_char, dt_node):
+            # Go get confirmation
+            return redirect(url_for(PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED,
+                                    saved_filename=saved_filename,
+                                    dt_node_id=dt_node_id),
+                            code=307)
+
+    try:
+        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
+            uploads_folder, saved_filename, num_header_rows, delimiter, quote_char)
+
+        types_changed = None
+        try:
+            check_data_table_similarity(dt_node,
+                                        new_dt_node,
+                                        new_column_vartypes,
+                                        new_column_names,
+                                        new_column_categorical_codes)
+        except ValueError as err:
+            types_changed = err.args[0]
+
+        except FileNotFoundError as err:
+            error = err.args[0]
+            flash(error, 'error')
+            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+
+        except IndexError as err:
+            error = err.args[0]
+            flash(f'Re-upload not done. {error}', 'error')
+            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+
+        try:
+            # use the existing dt_node, but update objectName, size, rows, MD5, etc.
+            # also, update column names and categorical codes, as needed
+            update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
+            # rename the temp file
+            os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
+
+            if types_changed:
+                err_string = 'Please note: One or more columns in the new table have a different data type than they had in the old table.<ul>'
+                for col_name, old_type, new_type, attr_node in types_changed:
+                    dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
+                    err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
+                err_string += '</ul>'
+                flash(Markup(err_string))
+
+        except Exception as err:
+            # display error
+            error = err.args[0]
+            flash(f"Data table could not be re-uploaded. {error}", 'error')
+            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+
+    except UnicodeDecodeError as err:
+        errors = display_decode_error_lines(filepath)
+        return render_template('encoding_error.html', filename=filename, errors=errors)
+
+    except DataTableError as err:
+        flash(f'Data table has an error: {err.message}', 'error')
+        return redirect(request.url)
+
+    data_file = saved_filename.replace('.ezeml_tmp', '')
+    flash(f"Loaded {data_file}")
+
+    dt_node.parent = dataset_node
+    object_name_node = dt_node.find_descendant(names.OBJECTNAME)
+    if object_name_node:
+        object_name_node.content = data_file
+
+    user_data.add_data_table_upload_filename(data_file)
+    if new_column_vartypes:
+        user_data.add_uploaded_table_properties(data_file,
+                                                new_column_vartypes,
+                                                new_column_names,
+                                                new_column_categorical_codes)
+
+    delete_data_files(uploads_folder)
+
+    backup_metadata(filename=document)
+
+    save_both_formats(filename=document, eml_node=eml_node)
+    return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter,
+                            quote_char=quote_char))
+
+
+@home.route('/reupload_data/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+@home.route('/reupload_data/<filename>/<dt_node_id>/<saved_filename>/<name_chg_ok>', methods=['GET', 'POST'])
+@login_required
+def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_ok=False):
+    # filename that's passed in is actually the document name, for historical reasons.
+    # We'll clear it to avoid misunderstandings...
+    filename = None
 
     form = LoadDataForm()
     document = current_user.get_filename()
@@ -1781,28 +1814,50 @@ def reupload_data(filename, node_id):
     eml_node = load_eml(filename=document)
 
     data_table_name = ''
-    dt_node = Node.get_node_instance(node_id)
+    dt_node = Node.get_node_instance(dt_node_id)
     if dt_node:
         entity_name_node = dt_node.find_child(names.ENTITYNAME)
         if entity_name_node:
             data_table_name = entity_name_node.content
             if not data_table_name:
-                raise ValueError('Data table name not found')
+                flash(f'Data table name not found in the metadata.', 'error')
+                return redirect(request.url)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_DATA_TABLE_SELECT, filename=filename)
+        url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
         return redirect(url)
 
     if request.method == 'POST':
-        dt_node = Node.get_node_instance(node_id)
         if dt_node:
-            file = request.files['file']
-            if file:
-                filename = f"{file.filename}.ezeml_tmp"
-                filepath = os.path.join(uploads_folder, filename)
-                file.save(filepath)
+            if saved_filename:
+                filename = saved_filename
+            else:
+                file = request.files['file']
+                if file:
+                    filename = f"{file.filename}"
+                    if allowed_data_file(filename):
+                        # We upload the new version of the CSV file under a temp name so we have both files to inspect.
+                        filename = f"{filename}.ezeml_tmp"
+                        filepath = os.path.join(uploads_folder, filename)
+                        file.save(filepath)
+                    else:
+                        flash(f'{filename} is not a supported data file type', 'error')
+                        return redirect(request.url)
 
-            return redirect(url_for(PAGE_LOAD_DATA, dt_node_id=node_id, filename=filename), code=307) # 307 keeps it a POST
+            delimiter = form.delimiter.data
+            quote_char = form.quote.data
+
+            try:
+                return handle_reupload(dt_node_id=dt_node_id, saved_filename=filename, document=document,
+                                       eml_node=eml_node, uploads_folder=uploads_folder, name_chg_ok=name_chg_ok,
+                                       delimiter=delimiter, quote_char=quote_char)
+
+            except MissingFileError as err:
+                flash(err.message, 'error')
+                return redirect(request.url)
+
+            except Exception as err:
+                return redirect(request.url)
 
     # Process GET
     help = get_helps(['data_table_reupload_full'])
@@ -2028,7 +2083,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 node_id = '1'
 
     if form.validate_on_submit():   
-        return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
+        return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
 
 
 def process_up_button(filename:str=None, node_id:str=None):

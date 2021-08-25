@@ -505,7 +505,7 @@ def delete_data_files(data_folder:str=None):
             file_path = os.path.join(data_folder, data_file)
             try:
                 if os.path.isfile(file_path):
-                    # Keep files that under 1 GB except for temp files
+                    # Keep files that are under 1 GB except for temp files
                     if os.path.getsize(file_path) > 1024**3 or file_path.endswith('.ezeml_tmp'):
                         os.unlink(file_path)
             except Exception as e:

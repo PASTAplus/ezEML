@@ -80,10 +80,9 @@ def data_table_select(filename=None):
                            dt_list=dt_list, form=form, help=help)
 
 
-@dt_bp.route('/data_table/<filename>/<node_id>', methods=['GET', 'POST'])
-def data_table(filename=None, node_id=None, delimiter=None, quote_char=None):
+@dt_bp.route('/data_table/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
     form = DataTableForm(filename=filename)
-    dt_node_id = node_id
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:

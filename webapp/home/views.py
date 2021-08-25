@@ -2083,7 +2083,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 node_id = '1'
 
     if form.validate_on_submit():
-        if new_page in [PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
+        if new_page in [PAGE_DATA_TABLE, PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
             return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
         else:
             return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)

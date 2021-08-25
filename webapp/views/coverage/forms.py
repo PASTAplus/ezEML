@@ -6,6 +6,7 @@ from wtforms import (
 )
 
 from wtforms.validators import (
+    InputRequired,
     Optional,
     Regexp
 )
@@ -25,7 +26,7 @@ class GeographicCoverageSelectForm(EDIForm):
 
 class GeographicCoverageForm(EDIForm):
     geographic_description = StringField('Geographic Description *', widget=TextArea(),
-                                         validators=[])
+                                         validators=[Optional()])
     wbc = FloatField('West Bounding Coordinate *', validators=[valid_longitude(), Optional()])
     ebc = FloatField('East Bounding Coordinate *', validators=[valid_longitude(), Optional()])
     nbc = FloatField('North Bounding Coordinate *', validators=[valid_latitude(), Optional()])

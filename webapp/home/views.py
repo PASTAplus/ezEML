@@ -2082,8 +2082,11 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = PAGE_IMPORT_PARTY
                 node_id = '1'
 
-    if form.validate_on_submit():   
-        return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
+    if form.validate_on_submit():
+        if new_page in [PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
+            return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
+        else:
+            return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
 
 
 def process_up_button(filename:str=None, node_id:str=None):

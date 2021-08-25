@@ -670,7 +670,7 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
         if new_page == back_page:
             return url_for(new_page,
                            filename=filename,
-                           node_id=dt_node_id)
+                           dt_node_id=dt_node_id)
         elif new_page == PAGE_ATTRIBUTE_DATETIME:
             # dateTime doesn't need to pass mscale value
             return url_for(new_page,

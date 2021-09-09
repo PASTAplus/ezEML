@@ -58,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.09.01'
+RELEASE_NUMBER = '2021.09.10'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -992,6 +992,20 @@ def clean_model(eml_node):
     eml_node.find_all_descendants(names.SIZE, size_nodes)
     for size_node in size_nodes:
         size_node.add_attribute('unit', 'byte')
+    # Some documents have codes for categorical attributes that are ints, not strings
+    code_nodes = []
+    eml_node.find_all_descendants(names.CODE, code_nodes)
+    for code_node in code_nodes:
+        code = code_node.content
+        if isinstance(code, int):
+            code_node.content = str(code)
+    # Some documents have taxonIds that are ints, not strings
+    taxonid_nodes = []
+    eml_node.find_all_descendants(names.TAXONID, taxonid_nodes)
+    for taxonid_node in taxonid_nodes:
+        taxonid = taxonid_node.content
+        if isinstance(taxonid, int):
+            taxonid_node.content = str(taxonid)
 
 
 def get_check_metadata_status(eml_node:Node=None, filename:str=None):

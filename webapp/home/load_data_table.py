@@ -384,7 +384,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
                 for code in codes:
                     code_definition_node = metapype_client.new_child_node(names.CODEDEFINITION, enumerated_domain_node)
                     code_node = metapype_client.new_child_node(names.CODE, code_definition_node)
-                    code_node.content = code
+                    code_node.content = str(code)
                     definition_node = metapype_client.new_child_node(names.DEFINITION, code_definition_node)
 
             elif var_type == metapype_client.VariableType.NUMERICAL:

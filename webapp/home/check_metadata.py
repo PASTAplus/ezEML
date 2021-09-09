@@ -116,7 +116,7 @@ def find_min_unmet(errs, node_name, child_name):
     for err_code, msg, node, *args in errs:
         if err_code == ValidationError.MIN_OCCURRENCE_UNMET:
             children, min = args
-            if node.name == node_name and child_name in children:
+            if node.name == node_name and children and child_name in children:
                 return True
     return False
 
@@ -135,6 +135,15 @@ def find_content_empty(errs, node_name):
     for err in errs:
         err_code, _, node, *_ = err
         if err_code == ValidationError.CONTENT_EXPECTED_NONEMPTY and node.name == node_name:
+            found.append(err)
+    return found
+
+
+def find_content_enum(errs, node_name):
+    found = []
+    for err in errs:
+        err_code, _, node, *_ = err
+        if err_code == ValidationError.CONTENT_EXPECTED_ENUM and node.name == node_name:
             found.append(err)
     return found
 
@@ -167,8 +176,9 @@ def check_dataset_title(eml_node, filename):
         return
     # Is title node content empty?
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
-    validation_errs = validate_via_metapype(title_node)
-    if find_content_empty(validation_errs, names.TITLE):
+    if title_node:
+        validation_errs = validate_via_metapype(title_node)
+    if not title_node or find_content_empty(validation_errs, names.TITLE):
         add_to_evaluation('title_01', link)
         return
 

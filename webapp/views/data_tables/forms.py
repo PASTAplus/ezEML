@@ -9,7 +9,7 @@ from wtforms import (
 from wtforms.widgets import TextArea
 
 from wtforms.validators import (
-    URL, Optional
+    URL, Optional, DataRequired
 )
 
 from webapp.home.forms import (
@@ -200,7 +200,7 @@ class DataTableSelectForm(EDIForm):
 
 
 class DataTableForm(EDIForm):
-    entity_name = StringField('Name *', validators=[])
+    entity_name = StringField('Name *', validators=[DataRequired()])
     entity_description = StringField('Description (Recommended)', validators=[])
     object_name = StringField('Filename *', validators=[])
     size = IntegerField('Size (Optional)', validators=[Optional()])

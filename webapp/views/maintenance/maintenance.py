@@ -36,6 +36,10 @@ def maintenance(filename=None):
             add_child(eml_node, dataset_node)
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_MAINTENANCE, filename=filename)
+        return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
         save = False
         if is_dirty_form(form):

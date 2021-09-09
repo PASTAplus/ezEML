@@ -2,13 +2,17 @@ from wtforms import (
     StringField, SelectField, HiddenField, validators
 )
 
+from wtforms.validators import (
+    InputRequired
+)
+
 from wtforms.widgets import TextArea
 
 from webapp.home.forms import EDIForm
 
 
 class MaintenanceForm(EDIForm):
-    description = StringField('Description *', widget=TextArea(), validators=[])
+    description = StringField('Description *', widget=TextArea(), validators=[InputRequired(message='This field is required')])
     update_frequency = SelectField('Maintenance Update Frequency (Optional)',
                                    choices=[("", ""),
                                             ("annually", "annually"),

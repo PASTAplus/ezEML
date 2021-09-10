@@ -12,7 +12,7 @@
     </table>
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter information about the data entity object:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}

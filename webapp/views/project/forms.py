@@ -2,13 +2,17 @@ from wtforms import (
     StringField, HiddenField, validators
 )
 
+from wtforms.validators import (
+    InputRequired
+)
+
 from wtforms.widgets import TextArea
 
 from webapp.home.forms import EDIForm
 
 
 class ProjectForm(EDIForm):
-    title = StringField('Project Title *', validators=[])  # validators.DataRequired()])
+    title = StringField('Project Title *', validators=[InputRequired(message='Project Title is required')])
     abstract = StringField('Project Abstract (Optional)', widget=TextArea(), validators=[])
     md5 = HiddenField('')
     init_str = ""

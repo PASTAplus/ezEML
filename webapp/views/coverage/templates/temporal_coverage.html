@@ -5,7 +5,7 @@
     <h2>Temporal Coverage</h2>
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter the begin and end dates in year (YYYY) or date (YYYY-MM-DD) format. To enter a single date, you may leave the end date blank.</h5>
                 {{ wtf.form_field(form.begin_date, placeholder="YYYY or YYYY-MM-DD") }}
                 <span style="color:{{ optional }};">

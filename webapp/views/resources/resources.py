@@ -48,8 +48,8 @@ def title(filename=None):
     form = TitleForm()
 
     # Process POST
-    # if request.method == 'POST' and form.validate_on_submit():
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST':
         new_page = PAGE_DATA_TABLE_SELECT
         save = False
         if is_dirty_form(form):

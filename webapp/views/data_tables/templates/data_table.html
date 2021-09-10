@@ -54,7 +54,7 @@
     </table>
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter information about the data table object:</h5>
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}

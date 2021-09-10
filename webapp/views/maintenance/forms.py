@@ -12,7 +12,7 @@ from webapp.home.forms import EDIForm
 
 
 class MaintenanceForm(EDIForm):
-    description = StringField('Description *', widget=TextArea(), validators=[InputRequired(message='This field is required')])
+    description = StringField('Description *', widget=TextArea(), validators=[InputRequired(message='Description is required')])
     update_frequency = SelectField('Maintenance Update Frequency (Optional)',
                                    choices=[("", ""),
                                             ("annually", "annually"),

@@ -115,18 +115,16 @@ evaluation = []
 def find_min_unmet(errs, node_name, child_name):
     for err_code, msg, node, *args in errs:
         if err_code == ValidationError.MIN_OCCURRENCE_UNMET:
-            children, min = args
-            if node.name == node_name and children and child_name in children:
+            err_cause, min = args
+            if node.name == node_name and err_cause == child_name:
                 return True
     return False
 
 
-def find_min_unmet_for_list(errs, node_name, child_names):
+def find_min_unmet_for_choice(errs, node_name):
     for err_code, msg, node, *args in errs:
-        if err_code == ValidationError.MIN_OCCURRENCE_UNMET and node.name == node_name:
-            children, min = args
-            if set(child_names) == set(children):
-                return True
+        if err_code == ValidationError.MIN_CHOICE_UNMET and node.name == node_name:
+            return True
     return False
 
 
@@ -226,7 +224,7 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
         add_to_evaluation('responsible_party_04', link, section, item)
 
     # At least one of surname, organization name, or position name is required
-    if find_min_unmet_for_list(validation_errs, rp_node.name, [names.INDIVIDUALNAME, names.ORGANIZATIONNAME, names.POSITIONNAME]):
+    if find_min_unmet_for_choice(validation_errs, rp_node.name):
         add_to_evaluation('responsible_party_01', link, section, item)
 
     # Organization ID requires a directory attribute
@@ -440,7 +438,7 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     if attr_type == metapype_client.VariableType.NUMERICAL:
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
             add_to_evaluation('attributes_02', link)
-        if find_min_unmet_for_list(validation_errs, names.UNIT, [names.STANDARDUNIT, names.CUSTOMUNIT]):
+        if find_min_unmet_for_choice(validation_errs, names.UNIT):
             add_to_evaluation('attributes_02', link)
 
     # DateTime

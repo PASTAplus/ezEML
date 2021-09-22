@@ -53,9 +53,9 @@ def concat_str(form):
         if field_data:
             i = 0  # we interleave the field index so we can detect if a field's value is cut-and-pasted to another field
             for val in field_data:
-                if val:
-                    concat_str += str(i) + str(val)
-                    i += 1
+                # if val:
+                concat_str += str(i) + str(val)
+                i += 1
     return concat_str
 
 

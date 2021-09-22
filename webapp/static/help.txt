@@ -149,6 +149,12 @@ Each funding award is described by the name of the funding agency and the title 
 
 Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
 --------------------
+bounding_altitudes
+Bounding Altitudes
+<b>Bounding Altitudes</b> lets you specify altitudinal (elevation) measurements for the bounding box being described. The minimum and maximum altitudes should be in reference to a known datum (e.g., Mean Sea Level), which should be specified as part of the Geographic Description.
+
+If any of the fields (Altitude Minimum, Altitude Maximum, Altitude Units) are filled in, they all must be.
+--------------------
 bounding_coordinates
 Bounding Coordinates
 <b>Bounding Coordinates</b> are the four margins (N, S, E, W) of a bounding box, or when considered in lat-lon pairs, the corners of the box. These elements are meant to convey general information and are not for accurate mapping.
@@ -360,16 +366,19 @@ You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in e
 In the latter case, the CSV file is required to have the following format:
 <ul>
 <li>A header row consisting of:&nbsp;
-"geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate"
+"geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate,minimumAltitude,maximumAltitude,altitudeUnits"
 <li>The geographicDescription column contains strings (text).
 <li>The bounding coordinate columns contain latitude/longitude coordinates in decimal degrees format.
 <li>For latitudes (north/south coordinates), use a minus sign for latitudes south of the equator.
 <li>For longitudes (east/west coordinates), use a minus sign for longitudes west of the prime meridian.
+<li>Altitude Minimum and Altitude Maximum need to be in decimal format (e.g., 0.0 rather than 0).
+<li>Altitude Units must be one of the following: meter, nanometer, micrometer, micron, millimeter, centimeter, decimeter, dekameter, hectameter, kilometer, megameter, angstrom, inch, foot, Foot_US, yard, mile, nauticalMile, fathom, Foot_Gold_Coast, Yard_Indian, Link_Clarke, Yard_Sears.
+<li>If you are not specifying Bounding Altitudes, leave the corresponding table cells blank.
 </ul>
 
 Example:<br>
 geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate<br>
-Lake Wingra,43.062543,43.058787,-89.415478,-89.432468<br>
+Lake Wingra,43.062543,43.058787,-89.415478,-89.432468,0.00,2.50,meter<br>
 Lake Kegonsa,42.987536,42.958923,-89.223452,-89.283877<br>
 --------------------
 geographic_description

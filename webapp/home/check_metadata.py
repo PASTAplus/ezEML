@@ -356,13 +356,19 @@ def check_geographic_coverage(eml_node, filename):
             add_to_evaluation('geographic_coverage_05', link)
         if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_RANGE, names.SOUTHBOUNDINGCOORDINATE):
             add_to_evaluation('geographic_coverage_06', link)
+        if find_content_enum(validation_errs, names.ALTITUDEUNITS):
+            add_to_evaluation('geographic_coverage_08', link)
         # special case to combine missing bounding coordinates into a single error
         if find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.WESTBOUNDINGCOORDINATE) or \
             find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.EASTBOUNDINGCOORDINATE) or \
             find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.NORTHBOUNDINGCOORDINATE) or \
             find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.SOUTHBOUNDINGCOORDINATE):
             add_to_evaluation('geographic_coverage_02', link)
-
+        # special case to cover the three bounding altitudes fields
+        if find_content_empty(validation_errs, names.ALTITUDEMINIMUM) or \
+            find_content_empty(validation_errs, names.ALTITUDEMAXIMUM) or \
+            find_content_empty(validation_errs, names.ALTITUDEUNITS):
+            add_to_evaluation('geographic_coverage_07', link)
 
 def get_attribute_type(attrib_node:Node):
     mscale_node = attrib_node.find_child(names.MEASUREMENTSCALE)

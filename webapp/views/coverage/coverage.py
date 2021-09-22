@@ -151,23 +151,49 @@ def load_geo_coverage_from_csv(csv_filename, filename):
 
     data_frame = pd.read_csv(csv_filename, comment='#', encoding='utf8')
 
-    if list(data_frame.columns) != ['geographicDescription',
-                                    'northBoundingCoordinate',
-                                    'southBoundingCoordinate',
-                                    'eastBoundingCoordinate',
-                                    'westBoundingCoordinate']:
+    required_columns = ['geographicDescription',
+                        'northBoundingCoordinate',
+                        'southBoundingCoordinate',
+                        'eastBoundingCoordinate',
+                        'westBoundingCoordinate']
+    optional_columns = ['minimumAltitude',
+                        'maximumAltitude',
+                        'altitudeUnits']
+    has_required_columns = False
+    has_optional_columns = False
+
+    if list(data_frame.columns) == required_columns:
+        has_required_columns = True
+    if list(data_frame.columns) == required_columns + optional_columns:
+        has_required_columns = True
+        has_optional_columns = True
+
+    if not has_required_columns:
         raise ValueError('Geographic coverage file does not have expected column names.')
 
-    if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
-        raise ValueError('Geographic coverage file does not have expected variable types in columns.')
+    expected_types_error_msg = 'Geographic coverage file does not have expected variable types in columns. Note that ' \
+        'numerical values must be written with a decimal point.'
+    if not has_optional_columns:
+        if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
+            raise ValueError(expected_types_error_msg)
+    else:
+        if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64,
+                                       np.float64, np.float64, np.object]:
+            raise ValueError(expected_types_error_msg)
 
     for index, row in data_frame.iterrows():
-        add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
+        if has_optional_columns:
+            add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4],
+                                  row[5] if not pd.isna(row[5]) else None,
+                                  row[6] if not pd.isna(row[6]) else None,
+                                  row[7] if not pd.isna(row[7]) else None)
+        else:
+            add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
 
     save_both_formats(filename=filename, eml_node=eml_node)
 
 
-def add_geo_coverage_node(eml_node, description, north, south, east, west):
+def add_geo_coverage_node(eml_node, description, north, south, east, west, amin=None, amax=None, aunits=None):
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
         dataset_node = Node(names.DATASET)
@@ -181,7 +207,7 @@ def add_geo_coverage_node(eml_node, description, north, south, east, west):
     add_child(coverage_node, gc_node)
 
     create_geographic_coverage(
-        gc_node, description, west, east, north, south)
+        gc_node, description, west, east, north, south, amin, amax, aunits)
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
@@ -234,13 +260,16 @@ def geographic_coverage(filename=None, node_id=None):
             ebc = form.ebc.data if form.ebc.data is not None else ''
             nbc = form.nbc.data if form.nbc.data is not None else ''
             sbc = form.sbc.data if form.sbc.data is not None else ''
+            amin = form.amin.data if form.amin.data is not None else ''
+            amax = form.amax.data if form.amax.data is not None else ''
+            aunits = form.aunits.data if form.aunits.data is not None else ''
 
             gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
 
             create_geographic_coverage(
                 gc_node,
                 geographic_description,
-                wbc, ebc, nbc, sbc)
+                wbc, ebc, nbc, sbc, amin, amax, aunits)
 
             if node_id and len(node_id) != 1:
                 old_gc_node = Node.get_node_instance(node_id)
@@ -281,7 +310,7 @@ def geographic_coverage(filename=None, node_id=None):
                             populate_geographic_coverage_form(form, gc_node)
 
     set_current_page('geographic_coverage')
-    help = [get_help('geographic_coverages'), get_help('geographic_description'), get_help('bounding_coordinates')]
+    help = get_helps(['geographic_coverages', 'geographic_description', 'bounding_coordinates', 'bounding_altitudes'])
     return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, help=help)
 
 
@@ -314,6 +343,30 @@ def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
     ])
     if sbc_node:
         form.sbc.data = sbc_node.content
+
+    amin_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.BOUNDINGALTITUDES,
+        names.ALTITUDEMINIMUM
+    ])
+    if amin_node:
+        form.amin.data = amin_node.content
+
+    amax_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.BOUNDINGALTITUDES,
+        names.ALTITUDEMAXIMUM
+    ])
+    if amax_node:
+        form.amax.data = amax_node.content
+
+    aunits_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.BOUNDINGALTITUDES,
+        names.ALTITUDEUNITS
+    ])
+    if aunits_node:
+        form.aunits.data = aunits_node.content
 
     form.md5.data = form_md5(form)
 

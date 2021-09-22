@@ -20,6 +20,8 @@ geographic_coverage_03,Geographic Coverage,West Bounding Coordinate,ERROR,REQUIR
 geographic_coverage_04,Geographic Coverage,East Bounding Coordinate,ERROR,REQUIRED,<b>East Bounding Coordinate</b> must be a decimal value between -180.0 and +180.0.,
 geographic_coverage_05,Geographic Coverage,North Bounding Coordinate,ERROR,REQUIRED,<b>North Bounding Coordinate</b> must be a decimal value between -90.0 and +90.0.,
 geographic_coverage_06,Geographic Coverage,South Bounding Coordinate,ERROR,REQUIRED,<b>South Bounding Coordinate</b> must be a decimal value between -90.0 and +90.0.,
+geographic_coverage_07,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,If a <b>Bounding Altitude</b> is specified all three fields are required.,
+geographic_coverage_08,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,An invalid value was encountered for <b>Altitude Units</b>. See the Help for a list of permitted values.,
 taxonomic_coverage_01,Taxonomic Coverage,Taxon Rank,ERROR,REQUIRED,Taxon Rank is required,
 taxonomic_coverage_02,Taxonomic Coverage,Taxon Scientific Name,ERROR,REQUIRED,Taxon Scientific Name is required,
 data_table_01,Data Tables,Name,ERROR,REQUIRED,A data table <b>Name</b> is required.,

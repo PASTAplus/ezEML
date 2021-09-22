@@ -11,6 +11,9 @@
     {% set help_bounding_coordinates_id, help_bounding_coordinates_title, help_bounding_coordinates_content = help[2] %}
     {% set help_bounding_coordinates_btn = help_bounding_coordinates_id ~ '_btn' %}
     {% set help_bounding_coordinates_dialog = help_bounding_coordinates_id ~ '_dialog' %}
+    {% set help_bounding_altitudes_id, help_bounding_altitudes_title, help_bounding_altitudes_content = help[3] %}
+    {% set help_bounding_altitudes_btn = help_bounding_altitudes_id ~ '_btn' %}
+    {% set help_bounding_altitudes_dialog = help_bounding_altitudes_id ~ '_dialog' %}
 
     <table>
         <td><h2>Geographic Coverage</h2></td>
@@ -25,7 +28,7 @@
                     <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_geographic_description_btn) }}</td>
                 </table>
 
-                <table>
+                <table style="border: 0px solid red;">
                 <tr>
                 <td class="table_cell">
                 <table width="100%">
@@ -42,7 +45,7 @@
                 </tr>
                 </table>
 
-                <table>
+                <table style="border: 0px solid red;">
                 <tr>
                 <td class="table_cell">
                 <table width="98%">
@@ -58,6 +61,31 @@
                 </td>
                 </tr>
                 </table>
+                <table style="border: 0px solid green;" width="100%">
+                    <tr><td>&nbsp;</td></tr>
+                    <tr><td colspan="3">
+
+                        <h5 ><span style="color: black;font-style: normal;font-weight: bold">Bounding Altitudes (Optional)</span>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <span style="color: steelblue;font-style: italic">Bounding Altitudes is optional, but if any fields are filled in, they all must be.</span>
+                        </h5>
+                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                    <tr><td>&nbsp;</td></tr>
+                    <tr>
+                        <td style="width: 3%">&nbsp;</td>
+                        <td>{{ wtf.form_field(form.amin) }}</td>
+                        <td style="width: 3%">&nbsp;</td>
+                        <td>{{ wtf.form_field(form.amax) }}</td>
+                        <td style="width: 3%">&nbsp;</td>
+                        <td>{{ wtf.form_field(form.aunits) }}</td>
+                        <td style="width: 3%">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+                    <td valign="middle" style="padding-top: 15px;padding-left: 5px;">{{ macros.help_button(help_bounding_altitudes_btn) }}</td>
+                </table>
 
                 <br>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
@@ -71,6 +99,7 @@
     {{ macros.help_dialog(help_geographic_coverage_dialog, help_geographic_coverage_title, help_geographic_coverage_content) }}
     {{ macros.help_dialog(help_geographic_description_dialog, help_geographic_description_title, help_geographic_description_content) }}
     {{ macros.help_dialog(help_bounding_coordinates_dialog, help_bounding_coordinates_title, help_bounding_coordinates_content) }}
+    {{ macros.help_dialog(help_bounding_altitudes_dialog, help_bounding_altitudes_title, help_bounding_altitudes_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -84,6 +113,9 @@
     {% set help_bounding_coordinates_id, help_bounding_coordinates_title, help_bounding_coordinates_content = help[2] %}
     {% set help_bounding_coordinates_btn = help_bounding_coordinates_id ~ '_btn' %}
     {% set help_bounding_coordinates_dialog = help_bounding_coordinates_id ~ '_dialog' %}
+    {% set help_bounding_altitudes_id, help_bounding_altitudes_title, help_bounding_altitudes_content = help[3] %}
+    {% set help_bounding_altitudes_btn = help_bounding_altitudes_id ~ '_btn' %}
+    {% set help_bounding_altitudes_dialog = help_bounding_altitudes_id ~ '_dialog' %}
 
     <script>
     $(function()
@@ -91,6 +123,7 @@
         {{ macros.help_script(help_geographic_coverage_dialog, help_geographic_coverage_btn) }}
         {{ macros.help_script(help_geographic_description_dialog, help_geographic_description_btn) }}
         {{ macros.help_script(help_bounding_coordinates_dialog, help_bounding_coordinates_btn) }}
+        {{ macros.help_script(help_bounding_altitudes_dialog, help_bounding_altitudes_btn) }}
     });
     </script>
 {% endblock %}

@@ -58,7 +58,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.09.15'
+RELEASE_NUMBER = '2021.09.22'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1972,34 +1972,56 @@ def create_keywords(filename:str=None, keywords_list:list=[]):
         logger.error(e)
 
 
+def is_float(val):
+    try:
+        float(val)
+        return True
+    except Exception as e:
+        return False
+
+
 def create_geographic_coverage(
-                   geographic_coverage_node:Node=None,
-                   geographic_description:str=None,
-                   wbc:str=None,
-                   ebc:str=None,
-                   nbc:str=None,
-                   sbc:str=None):
+        geographic_coverage_node:Node=None,
+        geographic_description:str=None,
+        wbc:str=None,
+        ebc:str=None,
+        nbc:str=None,
+        sbc:str=None,
+        amin:str=None,
+        amax:str=None,
+        aunits:str=None
+    ):
     try:
         geographic_description_node = new_child_node(names.GEOGRAPHICDESCRIPTION, parent=geographic_coverage_node)
         geographic_description_node.content = geographic_description
 
         bounding_coordinates_node = new_child_node(names.BOUNDINGCOORDINATES, parent=geographic_coverage_node)
 
-        if wbc:
-            wbc_node = new_child_node(names.WESTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-            wbc_node.content = wbc
+        wbc_node = new_child_node(names.WESTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+        wbc_node.content = wbc
 
-        if ebc:
-            ebc_node = new_child_node(names.EASTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-            ebc_node.content = ebc
+        ebc_node = new_child_node(names.EASTBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+        ebc_node.content = ebc
 
-        if nbc:
-            nbc_node = new_child_node(names.NORTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-            nbc_node.content = nbc
+        nbc_node = new_child_node(names.NORTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+        nbc_node.content = nbc
 
-        if sbc:
-            sbc_node = new_child_node(names.SOUTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
-            sbc_node.content = sbc
+        sbc_node = new_child_node(names.SOUTHBOUNDINGCOORDINATE, parent=bounding_coordinates_node)
+        sbc_node.content = sbc
+
+        if is_float(amin) or is_float(amax) or aunits:
+            bounding_altitudes_node = new_child_node(names.BOUNDINGALTITUDES, parent=bounding_coordinates_node)
+
+        if is_float(amin):
+            amin_node = new_child_node(names.ALTITUDEMINIMUM, parent=bounding_altitudes_node)
+            amin_node.content = amin
+
+        if is_float(amax):
+            amax_node = new_child_node(names.ALTITUDEMAXIMUM, parent=bounding_altitudes_node)
+            amax_node.content = amax
+
+        aunits_node = new_child_node(names.ALTITUDEUNITS, parent=bounding_altitudes_node)
+        aunits_node.content = aunits
 
         return geographic_coverage_node
 

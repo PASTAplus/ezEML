@@ -377,7 +377,7 @@ In the latter case, the CSV file is required to have the following format:
 </ul>
 
 Example:<br>
-geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate<br>
+geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate,minimumAltitude,maximumAltitude,altitudeUnits<br>
 Lake Wingra,43.062543,43.058787,-89.415478,-89.432468,0.00,2.50,meter<br>
 Lake Kegonsa,42.987536,42.958923,-89.223452,-89.283877<br>
 --------------------

@@ -184,9 +184,9 @@ def load_geo_coverage_from_csv(csv_filename, filename):
     for index, row in data_frame.iterrows():
         if has_optional_columns:
             add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4],
-                                  row[5] if not pd.isna(row[5]) else None,
-                                  row[6] if not pd.isna(row[6]) else None,
-                                  row[7] if not pd.isna(row[7]) else None)
+                                  str(row[5]) if not pd.isna(row[5]) else None,
+                                  str(row[6]) if not pd.isna(row[6]) else None,
+                                  str(row[7]) if not pd.isna(row[7]) else None)
         else:
             add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
 

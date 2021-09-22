@@ -365,7 +365,10 @@ def check_geographic_coverage(eml_node, filename):
             find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.SOUTHBOUNDINGCOORDINATE):
             add_to_evaluation('geographic_coverage_02', link)
         # special case to cover the three bounding altitudes fields
-        if find_content_empty(validation_errs, names.ALTITUDEMINIMUM) or \
+        if find_min_unmet(validation_errs, names.BOUNDINGALTITUDES, names.ALTITUDEMINIMUM) or \
+            find_min_unmet(validation_errs, names.BOUNDINGALTITUDES, names.ALTITUDEMAXIMUM) or \
+            find_min_unmet(validation_errs, names.BOUNDINGALTITUDES, names.ALTITUDEUNITS) or \
+            find_content_empty(validation_errs, names.ALTITUDEMINIMUM) or \
             find_content_empty(validation_errs, names.ALTITUDEMAXIMUM) or \
             find_content_empty(validation_errs, names.ALTITUDEUNITS):
             add_to_evaluation('geographic_coverage_07', link)

@@ -564,6 +564,23 @@ def get_downval(i:int, n:int):
     return NO_OP if i >= n else DOWN_ARROW
 
 
+def massage_altitude_units(units):
+    retval = units
+    if units == 'Foot_US':
+        retval = 'foot (US)'
+    elif units == 'nauticalMile':
+        retval = 'nautical mile'
+    elif units == 'Foot_Gold_Coast':
+        retval = 'foot (Gold Coast)'
+    elif units == 'Yard_Indian':
+        retval = 'yard (India)'
+    elif units == 'Link_Clarke':
+        retval = 'Clarke link'
+    elif units == 'Yard_Sears':
+        retval = 'Sears yard'
+    return retval
+
+
 def compose_gc_label(gc_node:Node=None):
     '''
     Composes a label for a geographic coverage table entry
@@ -576,11 +593,18 @@ def compose_gc_label(gc_node:Node=None):
             ebc_node = bc_node.find_child(names.EASTBOUNDINGCOORDINATE)
             nbc_node = bc_node.find_child(names.NORTHBOUNDINGCOORDINATE)
             sbc_node = bc_node.find_child(names.SOUTHBOUNDINGCOORDINATE)
+            amin_node = bc_node.find_descendant(names.ALTITUDEMINIMUM)
+            amax_node = bc_node.find_descendant(names.ALTITUDEMAXIMUM)
+            aunits_node = bc_node.find_descendant(names.ALTITUDEUNITS)
             if wbc_node and ebc_node and nbc_node and sbc_node:
                 coordinate_list = [str(wbc_node.content),
                                    str(ebc_node.content),
                                    str(nbc_node.content),
                                    str(sbc_node.content)]
+                if amin_node and amax_node and aunits_node:
+                    coordinate_list.extend([str(amin_node.content),
+                                            str(amax_node.content),
+                                            massage_altitude_units(str(aunits_node.content))])
                 label = ', '.join(coordinate_list)
     return label
 

@@ -164,3 +164,8 @@ class SubmitToEDIForm(FlaskForm):
     name = StringField('Your Name *', validators=[DataRequired()])
     email_address = StringField('Your Email Address *', validators=[Email(), DataRequired()])
     notes = StringField('Notes for EDI Data Curators (Optional)', widget=TextArea(), validators=[Optional()])
+
+
+class SendToColleagueForm(FlaskForm):
+    colleague_name = StringField("Colleague's Name *", validators=[DataRequired()])
+    email_address = StringField("Colleague's Email Address *", validators=[Email(), DataRequired()])

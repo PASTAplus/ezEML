@@ -20,6 +20,7 @@ import json
 import os.path
 from pathlib import Path
 import pickle
+import requests
 from shutil import copyfile
 from urllib.parse import urlparse, quote
 from zipfile import ZipFile
@@ -46,7 +47,7 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportItemsForm,
-    SubmitToEDIForm
+    SubmitToEDIForm, SendToColleagueForm
 )
 
 from webapp.home.load_data_table import (
@@ -1134,7 +1135,7 @@ def export_package():
         if download_url:
 
             return redirect(url_for('home.export_package_2', package_name=archive_basename,
-                                    download_url=download_url, safe=''))
+                                    download_url=get_shortened_url(download_url), safe=''))
 
         # path, filename = os.path.split(zipfile_path)
         #
@@ -1213,7 +1214,81 @@ def submit_package():
     set_current_page('submit_package')
     help = get_helps(['submit_package'])
     return render_template('submit_package.html',
-                           title='Submit to EDI',
+                           title='Send to EDI',
+                           check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                           form=form, help=help)
+
+
+def get_shortened_url(long_url):
+    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': long_url})
+    try:
+        r.raise_for_status()
+        return r.json()['result_url']
+    except requests.exceptions.HTTPError as e:
+        return long_url
+
+
+def send_to_other_email(name, email_address, title, url):
+    name = quote(name)
+    email_address = quote(email_address)
+    title = quote(title)
+    url = quote(url)
+    msg = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
+          f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
+          f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
+          f'available%20for%20download%20here%3A%20{url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
+          f'After%20you%20download%20the%20package%2C%20you%20can%20import%20it%20into%20ezEML%2C%20or%20you%20can%20' \
+          f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
+          f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
+          f'%0D%0A%0D%0AThanks!'
+
+
+    return msg
+
+
+@home.route('/send_to_other/<filename>/', methods=['GET', 'POST'])
+@home.route('/send_to_other/<filename>/<mailto>/', methods=['GET', 'POST'])
+@login_required
+def send_to_other(filename=None, mailto=None):
+    form = SendToColleagueForm()
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if form.validate_on_submit():
+        colleague_name = form.data['colleague_name']
+        email_address = form.data['email_address']
+
+        eml_node = load_eml(filename=filename)
+        dataset_node = eml_node.find_child(child_name=names.DATASET)
+        title_node = dataset_node.find_child(names.TITLE)
+        title = ''
+        if title_node:
+            title = title_node.content
+        if not title:
+            flash('The data package requires a Title', 'error')
+            return redirect(get_back_url())
+
+        zipfile_path = zip_package(current_document, eml_node)
+        _, download_url = save_as_ezeml_package_export(zipfile_path)
+
+        if not mailto:
+            mailto = send_to_other_email(colleague_name, email_address, title, get_shortened_url(download_url))
+        else:
+            mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
+
+    eml_node = load_eml(filename=filename)
+    title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
+    if not title_node or not title_node.content:
+        flash('The data package must have a Title before it can be sent.', 'error')
+
+    set_current_page('send_to_other')
+    help = get_helps(['submit_package'])
+    return render_template('send_to_other.html',
+                           title='Send to Other',
+                           mailto=mailto if mailto else None,
                            check_metadata_status=get_check_metadata_status(eml_node, current_document),
                            form=form, help=help)
 

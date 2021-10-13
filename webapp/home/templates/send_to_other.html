@@ -7,7 +7,7 @@
     {% set help_submit_package_dialog = help_submit_package_id ~ '_dialog' %}
     
     <table>
-        <td><h2>Send Data Package to EDI</h2></td>
+        <td><h2>Send Data Package to a Colleague</h2></td>
         <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_submit_package_btn) }}</td>
     </table>
 {#        <div class="col-md-10">#}
@@ -24,9 +24,9 @@
         send your package.
     </div>
     <div class="col-md-3" style="border: 1px solid steelblue;padding: 10px;margin-left:43px;">
-        <b>Note:</b> To send your current data and metadata to a recipient <i>other than EDI</i>, go to
-        <b><a href="edit/home.send_to_other">Send to Colleague</a></b>. See also <b>Sending Your
-        Package to a Colleague</b> in the <b><a href="user_guide">User Guide</a></b>.
+        <b>Note:</b> To send your current data and metadata <i>to EDI</i>, go to
+        <b><a href="edit/home.submit_package">Send to EDI</a></b>. See also <b>Sending Your
+        Package to EDI</b> in the <b><a href="user_guide">User Guide</a></b>.
     </div>
         <div class="col-md-10">
     <form method="POST" action="" class="form" role="form" novalidate>
@@ -35,7 +35,7 @@
     <table>
         <tr><td>
         <table>
-            <td>{{ wtf.form_field(form.name, size=100) }}</td>
+            <td>{{ wtf.form_field(form.colleague_name, size=100) }}</td>
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </table>
         </td>
@@ -49,25 +49,33 @@
     </table>
         <p></p>
 {#        <h5>If you have any notes for EDI data curators, enter them below.</h5>#}
-        <table>
-            <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>
+{#        <table>#}
+{#            <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>#}
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
-        </table>
+{#        </table>#}
         {% if check_metadata_status == 'red' %}
             <p><span style="color:red;">Your metadata contains one or more errors.</span><span style="color:black;"> To see what the errors
-                are, click <b><a href="edit/home.check_metadata">Check Metadata</a></b>.
-            We encourage you to correct the errors before submitting, but you may go ahead and submit your package as is,
-                if you choose, for example if there are errors you're not sure how to handle. In that case, please leave
-            an explanation in the Notes text area above so we can assist you better.</span></p>
+                are, click <b><a href=""{{ url_for('home.edit', page='home.check_metadata') }}">Check Metadata</a></b>.
+            You may wish to correct the errors before sending, but you can go ahead and send your package as is,
+                if you choose. The one exception is that the data package must have a
+                <b><a href="{{ url_for('home.edit', page='res.title') }}">Title</a></b>. </span></p>
         {% endif %}
-    <p></p>If you have any questions, please email us at
-        <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a>.</p>
+    <p></p>
+        Click the <b>Prepare Package for Colleague</b> button to prepare the package to be sent. An email containing a download
+        link for the package will be opened in your default email client. You will have the opportunity to edit the email
+        as you see fit before sending it to your colleague.<p></p>&nbsp;<br>
 
-                <input class="btn btn-primary" style="width: 130px;" name="Submit" type="submit" value="Send to EDI"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Prepare Package for Colleague"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
     </form>
         </div>
+    <a id="mail_link" style="visibility:hidden;" href="{{ mailto }}">Click me</a>
+
+<script>
+	document.getElementById("mail_link").click();
+</script>
+
     {{ macros.help_dialog(help_submit_package_dialog, help_submit_package_title, help_submit_package_content) }}
 {% endblock %}
 

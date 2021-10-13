@@ -22,7 +22,7 @@
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package',
-        'export_package', 'submit_package'] %}
+        'export_package', 'submit_package', 'send_to_other'] %}
 {% set non_saving_contains = ['/check_metadata/',
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
@@ -271,6 +271,7 @@
 {#            {% set download_eml_style = '""' %}#}
 {#            {% set export_package_style = '""' %}#}
             {% set submit_package_style = '""' %}
+            {% set send_to_other_style = '""' %}
 
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
@@ -297,6 +298,7 @@
             {% if page == 'check_metadata' %}{% set check_metadata_style = current %}{% endif %}
 {#            {% if page == 'export_package' %}{% set export_package_style = current %}{% endif %}#}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
+            {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
         <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
@@ -323,7 +325,8 @@
             <br>
 {#        <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>#}
 {#        <a class="nav_link" style={{ export_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.export_package') }}" title="Edit">Export Data Package</a><br>#}
-        <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Submit to EDI</a><br>
+        <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>
+        <a class="nav_link" style={{ send_to_other_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
 
         {% endif %}
     </div>

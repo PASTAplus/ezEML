@@ -35,6 +35,8 @@ from webapp.config import Config
 
 import webapp.auth.user_data as user_data
 
+MAX_ROWS_TO_CHECK = 10**5
+
 
 def get_file_size(full_path:str=''):
     file_size = None
@@ -98,7 +100,8 @@ def sort_codes(codes):
 
 
 def is_datetime(data_frame, col):
-    s = pd.to_datetime(data_frame[col][1:], errors='coerce')
+    rows_to_check = min(len(col), MAX_ROWS_TO_CHECK)
+    s = pd.to_datetime(data_frame[col][1:rows_to_check], errors='coerce')
     missing = sum(1 for i in range(len(s)) if s.iloc[i] is pd.NaT)
     # see how many missing values... arbitrary cutoff allowing for missing values
     return float(missing) / float(len(s)) < 0.2
@@ -130,7 +133,9 @@ def infer_col_type(data_frame, col):
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
     fraction = float(num_codes) / float(col_size)
-    dtype = data_frame[col][1:].infer_objects().dtype
+    # for very large tables, this can take a very long time, so we limit to MAX_ROWS_TO_CHECK values
+    rows_to_check = min(col_size, MAX_ROWS_TO_CHECK)
+    dtype = data_frame[col][1:rows_to_check].infer_objects().dtype
     if dtype == np.float64 or dtype == np.int64:
         # If the values are numbers, we require 5 or fewer values to call it categorical
         is_categorical = num_codes <= 5
@@ -180,8 +185,12 @@ def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
     col_values = set()
     with open(filepath, 'r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=delimiter, quotechar=quotechar)
+        rows = 0
         for line in csv_reader:
             col_values.add(line[colname])
+            rows += 1
+            if rows > MAX_ROWS_TO_CHECK:
+                break
     return sorted(col_values)
 
 
@@ -505,8 +514,8 @@ def delete_data_files(data_folder:str=None):
             file_path = os.path.join(data_folder, data_file)
             try:
                 if os.path.isfile(file_path):
-                    # Keep files that are under 1 GB except for temp files
-                    if os.path.getsize(file_path) > 1024**3 or file_path.endswith('.ezeml_tmp'):
+                    # Keep files that are under 1.5 GB except for temp files
+                    if os.path.getsize(file_path) > 1.5 * 1024**3 or file_path.endswith('.ezeml_tmp'):
                         os.unlink(file_path)
             except Exception as e:
                 print(e)

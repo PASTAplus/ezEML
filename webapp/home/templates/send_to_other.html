@@ -70,11 +70,13 @@
                 {{ macros.hidden_buttons() }}
     </form>
         </div>
-    <a id="mail_link" style="visibility:hidden;" href="{{ mailto }}">Click me</a>
 
-<script>
-	document.getElementById("mail_link").click();
-</script>
+    {% if mailto %}
+    <a id="mail_link" style="visibility:hidden;" href="{{ mailto }}">Click me</a>
+    <script>
+        document.getElementById("mail_link").click();
+    </script>
+    {% endif %}
 
     {{ macros.help_dialog(help_submit_package_dialog, help_submit_package_title, help_submit_package_content) }}
 {% endblock %}

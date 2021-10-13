@@ -1347,6 +1347,8 @@ def send_to_other(filename=None, mailto=None):
     set_current_page('send_to_other')
     help = get_helps(['submit_package'])
     if mailto:
+        form.colleague_name.data = ''
+        form.email_address.data = ''
         return render_template('send_to_other.html',
                                title='Send to Other',
                                mailto=mailto,

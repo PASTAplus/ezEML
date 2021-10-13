@@ -1346,12 +1346,17 @@ def send_to_other(filename=None, mailto=None):
 
     set_current_page('send_to_other')
     help = get_helps(['submit_package'])
-    return render_template('send_to_other.html',
-                           title='Send to Other',
-                           mailto=mailto if mailto else None,
-                           check_metadata_status=get_check_metadata_status(eml_node, current_document),
-                           form=form, help=help)
-
+    if mailto:
+        return render_template('send_to_other.html',
+                               title='Send to Other',
+                               mailto=mailto,
+                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                               form=form, help=help)
+    else:
+        return render_template('send_to_other.html',
+                               title='Send to Other',
+                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                               form=form, help=help)
 
 def get_column_properties(dt_node, object_name):
     data_file = object_name

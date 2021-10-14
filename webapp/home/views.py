@@ -1270,7 +1270,7 @@ def submit_package():
 
 
 def get_shortened_url(long_url):
-    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': long_url})
+    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': long_url.replace(' ', '%20')})
     try:
         r.raise_for_status()
         return r.json()['result_url']

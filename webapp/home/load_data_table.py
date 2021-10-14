@@ -270,9 +270,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
                     num_header_rows:int=1, delimiter:str=',', quote_char:str='"'):
 
     if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering load_data_table')
+        log_info(f'Entering load_data_table')
 
     full_path = f'{uploads_path}/{data_file}'
 
@@ -333,6 +331,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     metapype_client.add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
+    log_info('pd.read_csv')
     data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
 
     column_vartypes = []

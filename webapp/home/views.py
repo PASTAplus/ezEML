@@ -90,6 +90,12 @@ help_dict = {}
 keywords = {}
 
 
+def log_info(msg):
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.info(msg)
+
+
 def non_breaking(_str):
     return _str.replace(' ', html.unescape('&nbsp;'))
 
@@ -1705,6 +1711,7 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
 @home.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_data(filename=None):
+    log_info('Entering load_data')
     # filename that's passed in is actually the document name, for historical reasons.
     # We'll clear it to avoid misunderstandings...
     filename = None

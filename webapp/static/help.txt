@@ -682,6 +682,16 @@ Provide a document name for the data package. This is the name by which the docu
 
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 --------------------
+send_to_colleague
+Send to Colleague
+When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you can send the entire package to a colleague (e.g., an LTER Information Manager) via <b>Send to Colleague</b>.
+
+When you click <b>Prepare Package for Colleague</b>, an ezEML Data Package zip file is generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
+
+After the zip file has been created, your default email client will open with an email message ready to be sent to your colleague. This email contains a link to the zip file for downloading. You can edit the email message as you see fit and then send it.
+
+To send your package to the EDI Data Repository instead, use <b>Send to EDI</b>.
+--------------------
 storage_type
 Storage Type
 This element describes the storage type for data in a RDBMS (or other data management system) field.
@@ -707,12 +717,16 @@ Examples:
   Oracle 8i
 --------------------
 submit_package
-Submit to EDI
+Send to EDI
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
 
-When you click <b>Submit to EDI</b>, an ezEML Data Package archive file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
+When you click <b>Send to EDI</b>, an ezEML Data Package archive file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
 
 Please provide your name and email so that EDI's data curators can contact you with any questions they have and to let you know when the submission has been completed. If you have questions (about particular entries in your metadata, for example), please use the <b>Notes</b> text area to describe them so EDI can assist you better.
+
+<b>Please note:</b> When you click <b>Send to EDI</b>, your data package is sent to EDI's data curators for review. There will be some amount of delay before your package appears in EDI's Data Portal. EDI's data curators will email you when the package has been added to the repository.
+
+To send your package to someone other than EDI, use <b>Send to Colleague</b>.
 --------------------
 taxonomic_coverages
 Taxonomic Coverage

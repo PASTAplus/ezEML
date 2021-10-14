@@ -269,8 +269,8 @@ def force_categorical_codes(attribute_node, dtype, codes):
 def load_data_table(uploads_path:str=None, data_file:str='',
                     num_header_rows:int=1, delimiter:str=',', quote_char:str='"'):
 
-    if Config.LOG_DEBUG:
-        log_info(f'Entering load_data_table')
+    # if Config.LOG_DEBUG:
+    log_info(f'Entering load_data_table')
 
     full_path = f'{uploads_path}/{data_file}'
 
@@ -429,10 +429,8 @@ def load_data_table(uploads_path:str=None, data_file:str='',
                 metapype_client.add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
 
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Leaving load_data_table')
+    # if Config.LOG_DEBUG:
+    log_info(f'Leaving load_data_table')
 
     return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame, missing_value_code
 

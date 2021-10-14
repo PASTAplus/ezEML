@@ -1335,7 +1335,7 @@ def send_to_other(filename=None, mailto=None):
         flash('The data package must have a Title before it can be sent.', 'error')
 
     set_current_page('send_to_other')
-    help = get_helps(['submit_package'])
+    help = get_helps(['send_to_colleague'])
     if mailto:
         form.colleague_name.data = ''
         form.email_address.data = ''

@@ -1711,7 +1711,7 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
 @home.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_data(filename=None):
-    log_info('Entering load_data')
+    log_info(f'Entering load_data: request.method={request.method}')
     # filename that's passed in is actually the document name, for historical reasons.
     # We'll clear it to avoid misunderstandings...
     filename = None

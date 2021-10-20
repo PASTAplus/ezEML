@@ -1187,7 +1187,7 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, d
         '   Sender\'s name: ' + name + '\n\n' + \
         '   Sender\'s email: ' + email_address + '\n\n' + \
         '   Package name: ' + archive_name + '\n\n' + \
-        '   Download URL: ' + get_shortened_url(download_url) + '\n\n'  # Note: get_shortened_url calls quote
+        '   Download URL: ' + get_shortened_url(download_url) + '\n\n'  # Note: get_shortened_url handles blanks
     if notes:
         msg += '   Sender\'s Notes: ' + notes
     return msg
@@ -1208,7 +1208,7 @@ def insert_urls(uploads_url_prefix, eml_node, node_type):
             online_node = new_child_node(names.ONLINE, distribution_node)
             url_node = new_child_node(names.URL, online_node)
             url_node.add_attribute('function', 'download')
-            url_node.content = quote(f"{uploads_url_prefix}/{object_name}")
+            url_node.content = f"{uploads_url_prefix}/{object_name}".replace(' ', '%20')
         except Exception as err:
             flash(err)
             continue
@@ -1285,7 +1285,7 @@ def send_to_other_email(name, email_address, title, url):
     name = quote(name)
     email_address = quote(email_address)
     title = quote(title)
-    url = get_shortened_url(url)  # Note; get_shortened_url calls quote
+    url = get_shortened_url(url)  # Note; get_shortened_url calls blank chars
     msg = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
           f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
           f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \

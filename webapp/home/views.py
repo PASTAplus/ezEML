@@ -1187,7 +1187,7 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, d
         '   Sender\'s name: ' + name + '\n\n' + \
         '   Sender\'s email: ' + email_address + '\n\n' + \
         '   Package name: ' + archive_name + '\n\n' + \
-        '   Download URL: ' + download_url.replace(' ', '%20') + '\n\n'
+        '   Download URL: ' + get_shortened_url(download_url) + '\n\n'  # Note: get_shortened_url calls quote
     if notes:
         msg += '   Sender\'s Notes: ' + notes
     return msg
@@ -1283,7 +1283,7 @@ def send_to_other_email(name, email_address, title, url):
     name = quote(name)
     email_address = quote(email_address)
     title = quote(title)
-    url = quote(url)
+    url = get_shortened_url(url)  # Note; get_shortened_url calls quote
     msg = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
           f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
           f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
@@ -1292,8 +1292,6 @@ def send_to_other_email(name, email_address, title, url):
           f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
           f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
           f'%0D%0A%0D%0AThanks!'
-
-
     return msg
 
 
@@ -1326,7 +1324,7 @@ def send_to_other(filename=None, mailto=None):
         _, download_url = save_as_ezeml_package_export(zipfile_path)
 
         if not mailto:
-            mailto = send_to_other_email(colleague_name, email_address, title, get_shortened_url(download_url))
+            mailto = send_to_other_email(colleague_name, email_address, title, download_url)
         else:
             mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
 

@@ -1207,7 +1207,8 @@ def insert_urls(uploads_url_prefix, eml_node, node_type):
             distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
             online_node = new_child_node(names.ONLINE, distribution_node)
             url_node = new_child_node(names.URL, online_node)
-            url_node.content = f"{uploads_url_prefix}/{object_name}"
+            url_node.add_attribute('function', 'download')
+            url_node.content = quote(f"{uploads_url_prefix}/{object_name}")
         except Exception as err:
             flash(err)
             continue
@@ -1270,7 +1271,7 @@ def submit_package():
 
 
 def get_shortened_url(long_url):
-    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': long_url.replace(' ', '%20')})
+    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': quote(long_url)})
     try:
         r.raise_for_status()
         return r.json()['result_url']

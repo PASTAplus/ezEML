@@ -703,6 +703,8 @@ def get_redirect_target_page():
         return PAGE_DATA_PACKAGE_ID
     elif current_page == 'submit_package':
         return PAGE_SUBMIT_TO_EDI
+    elif current_page == 'send_to_other':
+        return PAGE_SEND_TO_OTHER
     else:
         return PAGE_TITLE
 

@@ -1294,7 +1294,7 @@ def send_to_other_email(name, email_address, title, url):
           f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
           f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
           f'%0D%0A%0D%0AThanks!'
-    msg_html = Markup(f'Dear {name}:<p><br>'
+    msg_html = Markup(f'Dear {name}:<p>'
           f'I have created a data package containing EML metadata and associated data files '
           f'for your inspection.<p>Title: "{title}"<p>The data package is '
           f'available for download here: {url}.<p>The package was created using ezEML. '

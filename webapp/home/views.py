@@ -1282,11 +1282,11 @@ def get_shortened_url(long_url):
 
 
 def send_to_other_email(name, email_address, title, url):
-    name = quote(name)
-    email_address = quote(email_address)
-    title = quote(title)
-    url = get_shortened_url(url)  # Note; get_shortened_url calls blank chars
-    msg = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
+    name_quoted = quote(name)
+    email_address_quoted = quote(email_address)
+    title_quoted = quote(title)
+    url = get_shortened_url(url)  # Note; get_shortened_url handles blank chars
+    msg_quoted = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
           f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
           f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
           f'available%20for%20download%20here%3A%20{url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
@@ -1294,7 +1294,23 @@ def send_to_other_email(name, email_address, title, url):
           f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
           f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
           f'%0D%0A%0D%0AThanks!'
-    return msg
+    msg_html = Markup(f'Dear {name}:<p><br>'
+          f'I have created a data package containing EML metadata and associated data files '
+          f'for your inspection.<p>Title: "{title}"<p>The data package is '
+          f'available for download here: {url}.<p>The package was created using ezEML. '
+          f'After you download the package, you can import it into ezEML, or you can '
+          f'unzip it to extract the EML file and associated data files to work with them '
+          f'directly.<p>To learn more about ezEML, go to https://ezeml.edirepository.org.'
+          f'<p>Thanks!')
+    msg_raw = f'Dear {name}:\n\n' \
+          f'I have created a data package containing EML metadata and associated data files ' \
+          f'for your inspection.\n\nTitle: "{title}"\n\nThe data package is ' \
+          f'available for download here: {url}.\n\nThe package was created using ezEML. ' \
+          f'After you download the package, you can import it into ezEML, or you can ' \
+          f'unzip it to extract the EML file and associated data files to work with them ' \
+          f'directly.\n\nTo learn more about ezEML, go to https://ezeml.edirepository.org.' \
+          f'\n\nThanks!'
+    return msg_quoted, msg_html, msg_raw
 
 
 @home.route('/send_to_other/<filename>/', methods=['GET', 'POST'])
@@ -1326,9 +1342,11 @@ def send_to_other(filename=None, mailto=None):
         _, download_url = save_as_ezeml_package_export(zipfile_path)
 
         if not mailto:
-            mailto = send_to_other_email(colleague_name, email_address, title, download_url)
+            mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
         else:
             mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
+            mailto_html = None
+            mailto_raw=None
 
     eml_node = load_eml(filename=filename)
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
@@ -1340,9 +1358,11 @@ def send_to_other(filename=None, mailto=None):
     if mailto:
         form.colleague_name.data = ''
         form.email_address.data = ''
-        return render_template('send_to_other.html',
+        return render_template('send_to_other_2.html',
                                title='Send to Other',
                                mailto=mailto,
+                               mailto_html=mailto_html,
+                               mailto_raw=mailto_raw,
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
     else:
@@ -1350,6 +1370,7 @@ def send_to_other(filename=None, mailto=None):
                                title='Send to Other',
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
+
 
 def get_column_properties(dt_node, object_name):
     data_file = object_name

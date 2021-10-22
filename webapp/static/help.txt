@@ -688,9 +688,15 @@ When you've entered all required metadata and uploaded all associated data files
 
 When you click <b>Prepare Package for Colleague</b>, an ezEML Data Package zip file is generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
 
-After the zip file has been created, a suggested email message is generated for you to send to your colleague. This email contains a link to the zip file for downloading it. You can either copy-paste the message into an email, or if you have a default email client configured in your browser, you can click <b>Open in Email Client</b> to open the message in your email client directly. Either way, you can edit the email message as you see fit and then send it.
+After the zip file has been created, a suggested email message is generated for you to send to your colleague. This email contains the link that your colleague will need to use to download the zip file. You will have the opportunity to edit the email message as you see fit before sending it.
 
 To send your package to the EDI Data Repository instead, use <b>Send to EDI</b>.
+--------------------
+send_to_colleague_2
+Send to Colleague
+An ezEML Data Package zip file has been generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
+
+A suggested email message to your colleague is displayed. This email contains the link that your colleague will need to use to download the zip file. You can either copy-paste the message into an email, or if you have a default email client configured in your browser, you can click <b>Open in Email Client</b> to open the message in your email client directly. Either way, you can edit the email message as you see fit and then send it.
 --------------------
 storage_type
 Storage Type

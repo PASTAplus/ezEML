@@ -1356,10 +1356,10 @@ def send_to_other(filename=None, mailto=None):
         flash('The data package must have a Title before it can be sent.', 'error')
 
     set_current_page('send_to_other')
-    help = get_helps(['send_to_colleague'])
     if mailto:
         form.colleague_name.data = ''
         form.email_address.data = ''
+        help = get_helps(['send_to_colleague_2'])
         return render_template('send_to_other_2.html',
                                title='Send to Other',
                                mailto=mailto,
@@ -1368,6 +1368,7 @@ def send_to_other(filename=None, mailto=None):
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
     else:
+        help = get_helps(['send_to_colleague'])
         return render_template('send_to_other.html',
                                title='Send to Other',
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),

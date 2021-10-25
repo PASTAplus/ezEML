@@ -177,8 +177,7 @@ def load_geo_coverage_from_csv(csv_filename, filename):
         if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
             raise ValueError(expected_types_error_msg)
     else:
-        if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64,
-                                       np.float64, np.float64, np.object]:
+        if list(data_frame.dtypes)[1:-1] != [np.float64, np.float64, np.float64, np.float64, np.float64, np.float64]:
             raise ValueError(expected_types_error_msg)
 
     for index, row in data_frame.iterrows():

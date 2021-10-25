@@ -2044,8 +2044,9 @@ def create_geographic_coverage(
             amax_node = new_child_node(names.ALTITUDEMAXIMUM, parent=bounding_altitudes_node)
             amax_node.content = amax
 
-        aunits_node = new_child_node(names.ALTITUDEUNITS, parent=bounding_altitudes_node)
-        aunits_node.content = aunits
+        if aunits:
+            aunits_node = new_child_node(names.ALTITUDEUNITS, parent=bounding_altitudes_node)
+            aunits_node.content = aunits
 
         return geographic_coverage_node
 

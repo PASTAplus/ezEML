@@ -37,7 +37,7 @@ from webapp.config import Config
 
 from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
-from metapype.model import mp_io
+from metapype.model import mp_io, metapype_io
 
 from webapp.home.check_metadata import check_metadata_status
 
@@ -893,6 +893,26 @@ def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
     return label
 
 
+def from_json(filename):
+    eml_node = None
+    try:
+        with open(filename, "r") as json_file:
+            json_text = json_file.read()
+            # The JSON may be in one of two formats
+            try:
+                eml_node = metapype_io.from_json(json_text)
+            except KeyError as e:
+                # Must be in the old format. When saved, the JSON will be written in the new format.
+                try:
+                    json_dict = json.loads(json_text)
+                    eml_node = mp_io.from_json(json_dict)
+                except KeyError as e:
+                    logger.error(e)
+    except Exception as e:
+         logger.error(e)
+    return eml_node
+
+
 def load_eml(filename:str=None):
     eml_node = None
     user_folder = user_data.get_user_folder_name()
@@ -900,13 +920,7 @@ def load_eml(filename:str=None):
         user_folder = '.'
     filename = f"{user_folder}/{filename}.json"
     if os.path.isfile(filename):
-        try:
-            with open(filename, "r") as json_file:
-                json_obj = json.load(json_file)
-                eml_node = mp_io.from_json(json_obj)
-
-        except Exception as e:
-            logger.error(e)
+        eml_node = from_json(filename)
 
     if eml_node:
         get_check_metadata_status(eml_node, filename)
@@ -1074,7 +1088,7 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
             metadata_str = None
 
             if format == 'json':
-                metadata_str = mp_io.to_json(eml_node)
+                metadata_str = metapype_io.to_json(eml_node)
             elif format == 'xml':
                 xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
                 xml_str = export.to_xml(eml_node)

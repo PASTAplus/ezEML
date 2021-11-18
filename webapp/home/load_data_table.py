@@ -193,8 +193,11 @@ def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
         csv_reader = csv.DictReader(csv_file, delimiter=delimiter, quotechar=quotechar)
         rows = 0
         for line in csv_reader:
-            col_values.add(line[colname])
-            rows += 1
+            val = line[colname]
+            if val is not None:
+                # Sorting will fail if None values are allowed
+                col_values.add(val)
+                rows += 1
             if rows > MAX_ROWS_TO_CHECK:
                 break
     return sorted(col_values)

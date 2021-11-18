@@ -14,7 +14,7 @@ You can create a data table's metadata "from scratch" via <b>Add Data Table from
 
 In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 
-CSV files are assumed to contain a single header row.
+CSV files are assumed to contain a single header row and no footer rows.
 --------------------
 add_load_other_entities
 Add/Load Other Entities

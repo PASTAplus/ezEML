@@ -51,7 +51,7 @@ from webapp.home.metapype_client import (
     entity_name_from_data_table, UP_ARROW, DOWN_ARROW,
     list_access_rules, create_access_rule,
     list_other_entities, create_other_entity,
-    create_access
+    create_access, handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from metapype.eml import names
@@ -118,18 +118,7 @@ def other_entity(filename=None, node_id=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
             auto_save = True
-        elif 'Hidden_Check' in request.form:
-            new_page = PAGE_CHECK
-        elif 'Hidden_Save' in request.form:
-            new_page = PAGE_OTHER_ENTITY
-        elif 'Hidden_Download' in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif BTN_HIDDEN_NEW in request.form:
-            new_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            new_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            new_page = PAGE_CLOSE
+        next_page = handle_hidden_buttons(next_page, PAGE_OTHER_ENTITY)
 
         eml_node = load_eml(filename=filename)
 
@@ -873,19 +862,6 @@ def entity_select_post(filename=None, form=None, form_dict=None,
                 eml_node = load_eml(filename=filename)
                 remove_child(node_id=node_id)
                 save_both_formats(filename=filename, eml_node=eml_node)
-            elif val == BTN_HIDDEN_CHECK:
-                new_page = PAGE_CHECK
-            elif val == BTN_HIDDEN_SAVE:
-                new_page = this_page
-                node_id = key
-            elif val == BTN_HIDDEN_DOWNLOAD:
-                new_page = PAGE_DOWNLOAD
-            elif BTN_HIDDEN_NEW in request.form:
-                new_page = PAGE_CREATE
-            elif BTN_HIDDEN_OPEN in request.form:
-                new_page = PAGE_OPEN
-            elif BTN_HIDDEN_CLOSE in request.form:
-                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
@@ -899,6 +875,9 @@ def entity_select_post(filename=None, form=None, form_dict=None,
                 node_id = '1'
             elif val == '[  ]':
                 new_page = this_page
+                node_id = key
+            new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+            if val == BTN_HIDDEN_SAVE:
                 node_id = key
 
     if form.validate_on_submit():

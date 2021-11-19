@@ -28,7 +28,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-from flask import Flask, flash, session, current_app
+from flask import Flask, flash, session, current_app, request
 from flask_login import (
     current_user
 )
@@ -42,6 +42,9 @@ from metapype.model import mp_io, metapype_io
 from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
+
+from webapp.buttons import *
+from webapp.pages import *
 
 
 if Config.LOG_DEBUG:
@@ -58,7 +61,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.10.27'
+RELEASE_NUMBER = '2021.11.20'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -76,6 +79,44 @@ class VariableType(Enum):
     DATETIME = 2
     NUMERICAL = 3
     TEXT = 4
+
+
+def handle_hidden_buttons(new_page, this_page):
+    # If none of the hidden buttons is found, leave new_page as we found it
+    if BTN_HIDDEN_CHECK in request.form:
+        new_page = PAGE_CHECK
+    elif BTN_HIDDEN_SAVE in request.form:
+        new_page = this_page
+    elif BTN_HIDDEN_DOWNLOAD in request.form:
+        new_page = PAGE_DOWNLOAD
+    elif BTN_HIDDEN_NEW in request.form:
+        new_page = PAGE_CREATE
+    elif BTN_HIDDEN_NEW_FROM_TEMPLATE in request.form:
+        new_page = PAGE_IMPORT_TEMPLATE
+    elif BTN_HIDDEN_OPEN in request.form:
+        new_page = PAGE_OPEN
+    elif BTN_HIDDEN_CLOSE in request.form:
+        new_page = PAGE_CLOSE
+    return new_page
+
+
+def check_val_for_hidden_buttons(val, new_page, this_page):
+    # If none of the hidden buttons is found, leave new_page as we found it
+    if val == BTN_HIDDEN_CHECK:
+        new_page = PAGE_CHECK
+    elif val == BTN_HIDDEN_SAVE:
+        new_page = this_page
+    elif val == BTN_HIDDEN_DOWNLOAD:
+        new_page = PAGE_DOWNLOAD
+    elif val == BTN_HIDDEN_NEW:
+        new_page = PAGE_CREATE
+    elif val == BTN_HIDDEN_NEW_FROM_TEMPLATE:
+        new_page = PAGE_IMPORT_TEMPLATE
+    elif val == BTN_HIDDEN_OPEN:
+        new_page = PAGE_OPEN
+    elif val == BTN_HIDDEN_CLOSE:
+        new_page = PAGE_CLOSE
+    return new_page
 
 
 def parse_package_id(package_id: str):
@@ -493,19 +534,19 @@ def compose_attribute_mscale(att_node:Node=None):
     return mscale
 
 
-def list_responsible_parties(eml_node:Node=None, node_name:str=None, node_id:str=None):
+def list_responsible_parties(eml_node:Node=None, node_name:str=None, project_node_id:str=None):
     rp_list = []
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             parent_node = dataset_node
             if node_name == 'personnel':
-                if not node_id:
+                if not project_node_id:
                     project_node = dataset_node.find_child(names.PROJECT)
                     if project_node:
                         parent_node = project_node
-                elif node_id != '1':
-                    parent_node = Node.get_node_instance(node_id)
+                elif project_node_id != '1':
+                    parent_node = Node.get_node_instance(project_node_id)
 
             rp_nodes = parent_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
@@ -513,7 +554,7 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None, node_id:str
                  rename=False)
             for i, rp_node in enumerate(rp_nodes):
                 label = compose_rp_label(rp_node)
-                id = rp_node.id
+                id = f"{rp_node.id}|{project_node_id}"
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(rp_nodes))
                 rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval)

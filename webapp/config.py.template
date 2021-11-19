@@ -42,3 +42,5 @@ class Config(object):
     # Email configuration
     HOVER_MAIL = "MAIL_USER"
     HOVER_PASSWORD = "MAIL_PASSWORD"
+
+    TEMPLATE_DIR = "/home/pasta/ezeml/templates"

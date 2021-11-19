@@ -2,13 +2,14 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2021.10.27' %}
+{% set release_number = '2021.11.20' %}
 {% set optional = 'Black' %}
 
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/directory-list.css', version=release_number) }}">
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 {% endblock %}
@@ -17,16 +18,23 @@
 {% if title %}{{ title }} - ezEML Metadata Editor{% endif %}
 {% endblock %}
 
+{# Some pages do not require content to be saved before leaving the page, because there is
+   nothing entered on that page that needs to be saved. The action invoked by a menu item can
+   be different depending on whether or not we are on such a page. If we are, the "New" menu
+   item, for example, can go directly to the home.create page. Otherwise, it needs first to
+   go to the handler for the page so it can save the content, after which the hidden button is
+   handled in that other page's handler. See, for example, the EML Documents dropdown menu, below. #}
 {% set non_saving_endswith = ['/eml/', '/create', '/open_eml_document', '/close',
         '/load_data', 'load_other_entity', 'check_metadata',
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
-        'about', 'news', 'user_guide', 'import_package',
-        'export_package', 'submit_package', 'send_to_other'] %}
+        'about', 'news', 'user_guide', 'import_package', 'import_xml',
+        'export_package', '/submit_package'] %}
 {% set non_saving_contains = ['/check_metadata/',
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
-        'import_package_2', 'export_package_2'] %}
+        'import_package_2', 'import_xml_2', 'export_package_2',
+        '/send_to_other', '_select', '/load_geo_coverage'] %}
 {% set ns = namespace(is_non_saving = false) %}
 {% for page in non_saving_endswith %}
     {% if request.path.endswith(page) %}
@@ -70,12 +78,23 @@
                        role="button">EML Documents<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
-{#                    <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
+                        {# The following <li> is for debugging. Uncomment it to display in the
+                            dropdown menu the state of is_non_saving and the request path. This
+                            is helpful if debugging something related to is_non_saving. See the
+                            explanation in the vicinity of line 20, above. #}
+{#                        <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
                         <li>
                             {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.create') }}" title="New">New...</a>
                             {% else %}
                             <a href="#" onclick="$('#hidden_new').click();">New...</a>
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if ns.is_non_saving %}
+                            <a href="{{ url_for('home.import_template') }}" title="New from Template">New from Template...</a>
+                            {% else %}
+                            <a href="#" onclick="$('#hidden_new_from_template').click();">New from Template...</a>
                             {% endif %}
                         </li>
                         <li>
@@ -142,6 +161,13 @@
                         <li>
                             <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File (XML)</a>
                         </li>
+
+{#                {% endif %}#}
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.import_xml') }}" title="Import EML File (XML)">Import EML File (XML)...</a>#}
+{#                        </li>#}
+{#                {% if current_user.is_authenticated %}#}
+
                         <li>
                             <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>
                         </li>
@@ -354,6 +380,7 @@
         let hidden_save = $("#hidden_save");
         let hidden_download = $("#hidden_download");
         let hidden_new = $("#hidden_new");
+        let hidden_new_from_template = $("#hidden_new_from_template");
         let hidden_open = $("#hidden_open");
         let hidden_close = $("#hidden_close");
         let nav_link = $('.nav_link');
@@ -395,7 +422,7 @@
         {#    alert('clicked hidden new');#}
         {#})#}
         nav_close.on("click", function() {
-            alert('click');
+            {#alert('click');#}
             if (hidden_close.length) {
                 hidden_close.click();
             }

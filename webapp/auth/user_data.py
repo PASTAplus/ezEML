@@ -29,6 +29,11 @@ import webapp.home.views as views
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
+TEMPLATE_DIR = 'templates'
+
+
+def get_template_folder_name():
+    return TEMPLATE_DIR
 
 
 def get_user_folder_name():

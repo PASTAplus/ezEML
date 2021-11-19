@@ -12,7 +12,8 @@ from webapp.home.forms import (
 
 from webapp.home.metapype_client import (
     load_eml, list_responsible_parties, save_both_formats,
-    add_child, create_responsible_party
+    add_child, create_responsible_party,
+    handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from metapype.eml import names
@@ -59,12 +60,12 @@ def creator(filename=None, node_id=None):
 
 
 def rp_select_get(filename=None, form=None, rp_name=None,
-                  rp_singular=None, rp_plural=None, help=None, node_id=None):
+                  rp_singular=None, rp_plural=None, help=None, node_id=None, project_node_id=None):
     # Process GET
     eml_node = load_eml(filename=filename)
-    rp_list = list_responsible_parties(eml_node, rp_name, node_id)
+    rp_list = list_responsible_parties(eml_node, rp_name, project_node_id=project_node_id)
     title = rp_plural # rp_name.capitalize()
-    related_project = node_id is not None
+    related_project = project_node_id is not None
     if related_project:
         rp_singular = 'Related ' + rp_singular
         rp_plural = 'Related ' + rp_plural
@@ -89,15 +90,8 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
             elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
                 new_page = next_page
                 break
-            elif val == BTN_HIDDEN_NEW:
-                new_page = PAGE_CREATE
-                break
-            elif val == BTN_HIDDEN_OPEN:
-                new_page = PAGE_OPEN
-                break
-            elif val == BTN_HIDDEN_CLOSE:
-                new_page = PAGE_CLOSE
-                break
+            else:
+                new_page = check_val_for_hidden_buttons(val, new_page, back_page)
 
     return new_page
 
@@ -111,7 +105,7 @@ def responsible_party(filename=None, node_id=None, method=None,
         if not project_node_id:
             url = url_for(back_page, filename=filename)
         else:
-            url = url_for(back_page, filename=filename, node_id=project_node_id)
+            url = url_for(back_page, filename=filename, project_node_id=project_node_id)
         return redirect(url)
 
     form = ResponsiblePartyForm(filename=filename)

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% set target_name = '' %}
+
+{% block app_content %}
+    <body onload="displayDirectory();">
+    <script>
+        function setTarget(targetName, targetPath) {
+            $("#target_prefix").css('visibility', 'visible');
+            $("#submit_button").prop('disabled', false);
+            $("#target_name").text(targetName);
+            $("#target_path").text(targetPath);
+            $("#submit_button").attr('name', targetPath + '/' + targetName);
+            $('target_name').val()
+        }
+        function displayDirectory() {
+            {#alert('hello');#}
+            // get all folders in our .directory-list
+            let allFolders = $(".directory-list li > ul");
+            allFolders.each(function() {
+
+              // add the folder class to the parent <li>
+              let folderAndName = $(this).parent();
+              folderAndName.addClass("folder");
+
+              // backup this inner <ul>
+              let backupOfThisFolder = $(this);
+              // then delete it
+              $(this).remove();
+              // add an <a> tag to whats left ie. the folder name
+              folderAndName.wrapInner("<a href='#' />");
+              // then put the inner <ul> back
+              folderAndName.append(backupOfThisFolder);
+
+              // now add a slideToggle to the <a> we just added
+              folderAndName.find("a").click(function(e) {
+                $(this).siblings("ul").slideToggle("fast");
+                e.preventDefault();
+              });
+            });
+        }
+    </script>
+    <h2>New EML Document from a Template</h2>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                <br>
+                <h4>Select a template:</h4>
+                {{ directory_list | safe }}
+
+                <span id="target_prefix" style="font-size: 12pt;visibility: hidden;">Selected: </span>
+                <span id="target_name" style="font-size: 12pt;font-style: italic;color: steelblue;"></span>
+                <span id="target_path" style="display:none;font-size: 12pt;font-style: italic;color: steelblue;"></span>
+                <br>&nbsp;<br>
+
+                <input class="btn btn-primary" id="submit_button" disabled="true" style="width: 100px;" name="" type="submit" value="OK"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    </body>
+{% endblock %}
+
+
+{% block app_scripts %}
+    {{ super() }}
+
+    <script>
+
+    </script>
+{% endblock %}
+

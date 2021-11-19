@@ -10,7 +10,8 @@ from webapp.home.metapype_client import (
     add_paragraph_tags, remove_paragraph_tags,
     list_funding_awards, create_funding_award,
     remove_child, UP_ARROW, DOWN_ARROW,
-    get_upval, get_downval
+    get_upval, get_downval,
+    handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -34,8 +35,8 @@ proj_bp = Blueprint('proj', __name__, template_folder='templates')
 
 
 @proj_bp.route('/project/<filename>', methods=['GET', 'POST'])
-@proj_bp.route('/project/<filename>/<node_id>', methods=['GET', 'POST'])
-def project(filename=None, node_id=None):
+@proj_bp.route('/project/<filename>/<project_node_id>', methods=['GET', 'POST'])
+def project(filename=None, project_node_id=None):
     form = ProjectForm(filename=filename)
     eml_node = load_eml(filename=filename)
     if eml_node:
@@ -44,15 +45,24 @@ def project(filename=None, node_id=None):
             dataset_node = Node(names.DATASET, parent=eml_node)
             add_child(eml_node, dataset_node)
 
+    doing_related_project = project_node_id
+
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
         save = False
         if is_dirty_form(form):
             save = True
-        # flash(f'save: {save}')
+
+        # if not node_id:
+        if not doing_related_project:
+            this_page = PAGE_PROJECT
+        else:
+            this_page = PAGE_RELATED_PROJECT_SELECT
+        new_page = None
 
         if 'Next' in request.form:
-            if not node_id:
+            # if not node_id:
+            if not doing_related_project:
                 new_page = PAGE_OTHER_ENTITY_SELECT
             else:
                 new_page = PAGE_RELATED_PROJECT_SELECT
@@ -62,50 +72,44 @@ def project(filename=None, node_id=None):
             new_page = PAGE_FUNDING_AWARD_SELECT
         elif BTN_RELATED_PROJECTS in request.form:
             new_page = PAGE_RELATED_PROJECT_SELECT
-        elif BTN_HIDDEN_CHECK in request.form:
-            new_page = PAGE_CHECK
-        elif BTN_HIDDEN_SAVE in request.form:
-            new_page = PAGE_PROJECT
-        elif BTN_HIDDEN_DOWNLOAD in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif BTN_HIDDEN_NEW in request.form:
-            new_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            new_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            new_page = PAGE_CLOSE
+            doing_related_project = True
+        else:
+            new_page = handle_hidden_buttons(new_page, this_page)
 
         if save:
             title = form.title.data
             abstract = add_paragraph_tags(form.abstract.data)
-            if not node_id:
+            # if not node_id:
+            if not doing_related_project:
                 create_project(dataset_node, title, abstract)
             else:
-                related_project_node = create_related_project(dataset_node, title, abstract, node_id)
-                node_id = related_project_node.id
+                related_project_node = create_related_project(dataset_node, title, abstract, project_node_id)
+                project_node_id = related_project_node.id
             save_both_formats(filename=filename, eml_node=eml_node)
 
-        if not node_id:
+        # if not node_id:
+        if not doing_related_project:
             return redirect(url_for(new_page, filename=filename))
         else:
-            return redirect(url_for(new_page, filename=filename, node_id=node_id))
+            # return redirect(url_for(new_page, filename=filename, node_id=None, project_node_id=project_node_id))
+            return redirect(url_for(new_page, filename=filename, node_id='None', project_node_id=project_node_id))
 
     # Process GET
-    if node_id == '1':
+    if project_node_id == '1':
         form.init_md5()
-    elif node_id:
-        related_project_node = Node.get_node_instance(node_id)
+    elif doing_related_project:
+        related_project_node = Node.get_node_instance(project_node_id)
         populate_project_form(form, related_project_node)
     elif dataset_node:
         project_node = dataset_node.find_child(names.PROJECT)
         populate_project_form(form, project_node)
 
     set_current_page('project')
-    if not node_id:
+    if not doing_related_project:
         help = [get_help('project'), get_help('project_title')]
     else:
         help = [get_help('related_project'), get_help('project_title')]
-    if not node_id:
+    if not project_node_id:
         page_title = 'Project'
     else:
         page_title = 'Related Project'
@@ -145,8 +149,14 @@ def populate_project_form(form: ProjectForm, project_node: Node):
 
 @proj_bp.route('/project_personnel_select/<filename>', methods=['GET', 'POST'])
 @proj_bp.route('/project_personnel_select/<filename>/<node_id>', methods=['GET', 'POST'])
-def project_personnel_select(filename=None, node_id=None):
+@proj_bp.route('/project_personnel_select/<filename>/<node_id>/<project_node_id>', methods=['GET', 'POST'])
+def project_personnel_select(filename=None, node_id=None, project_node_id=None):
     form = ResponsiblePartySelectForm(filename=filename)
+
+    # If the request has a project_node_id and no node_id, url_for puts the project_node_id in
+    #  a query string
+    if request.args.get('project_node_id'):
+        project_node_id = request.args.get('project_node_id')
 
     # Process POST
     if request.method == 'POST':
@@ -154,14 +164,14 @@ def project_personnel_select(filename=None, node_id=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_PROJECT_PERSONNEL_SELECT, PAGE_PROJECT,
-                          PAGE_PROJECT, PAGE_PROJECT_PERSONNEL, project_node_id=node_id)
+                          PAGE_PROJECT, PAGE_PROJECT_PERSONNEL, project_node_id=project_node_id)
         return redirect(url)
 
     # Process GET
     help = [get_help('project_personnel')]
     return rp_select_get(filename=filename, form=form, rp_name='personnel',
                          rp_singular=non_breaking('Project Personnel'), rp_plural=non_breaking('Project Personnel'),
-                         node_id=node_id, help=help)
+                         node_id=node_id, project_node_id=project_node_id, help=help)
 
 
 @proj_bp.route('/funding_award_select/<filename>', methods=['GET', 'POST'])
@@ -175,6 +185,7 @@ def funding_award_select(filename=None, node_id=None):
         form_dict = form_value.to_dict(flat=False)
         project_node_id = None
 
+        new_page = PAGE_FUNDING_AWARD_SELECT
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
@@ -194,18 +205,6 @@ def funding_award_select(filename=None, node_id=None):
                     eml_node = load_eml(filename=filename)
                     remove_child(node_id=node_id)
                     save_both_formats(filename=filename, eml_node=eml_node)
-                elif val == BTN_HIDDEN_CHECK:
-                    new_page = PAGE_CHECK
-                elif val == BTN_HIDDEN_SAVE:
-                    new_page = PAGE_FUNDING_AWARD_SELECT
-                elif val == BTN_HIDDEN_DOWNLOAD:
-                    new_page = PAGE_DOWNLOAD
-                elif val == BTN_HIDDEN_NEW:
-                    new_page = PAGE_CREATE
-                elif val == BTN_HIDDEN_OPEN:
-                    new_page = PAGE_OPEN
-                elif val == BTN_HIDDEN_CLOSE:
-                    new_page = PAGE_CLOSE
                 elif val == UP_ARROW:
                     new_page = PAGE_FUNDING_AWARD_SELECT
                     node_id = key
@@ -218,6 +217,8 @@ def funding_award_select(filename=None, node_id=None):
                     new_page = PAGE_FUNDING_AWARD
                     project_node_id = node_id
                     node_id = '1'
+                else:
+                    new_page = check_val_for_hidden_buttons(val, new_page, PAGE_FUNDING_AWARD_SELECT)
 
         if form.validate_on_submit():
             if node_id and project_node_id:
@@ -421,7 +422,7 @@ def related_project_select_get(filename=None, form=None):
 def related_project_select_post(filename=None, form=None, form_dict=None,
                         method=None, this_page=None, back_page=None,
                         next_page=None, edit_page=None):
-    node_id = None
+    project_node_id = None
     new_page = None
     if form_dict:
         for key in form_dict:
@@ -432,23 +433,11 @@ def related_project_select_post(filename=None, form=None, form_dict=None,
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
-                node_id = key
+                project_node_id = key
             elif val == BTN_REMOVE:
                 new_page = this_page
-                node_id = key
-                remove_related_project(filename, node_id)
-            elif val == BTN_HIDDEN_CHECK:
-                new_page = PAGE_CHECK
-            elif val == BTN_HIDDEN_SAVE:
-                new_page = this_page
-            elif val == BTN_HIDDEN_DOWNLOAD:
-                new_page = PAGE_DOWNLOAD
-            elif val == BTN_HIDDEN_NEW:
-                new_page = PAGE_CREATE
-            elif val == BTN_HIDDEN_OPEN:
-                new_page = PAGE_OPEN
-            elif val == BTN_HIDDEN_CLOSE:
-                new_page = PAGE_CLOSE
+                project_node_id = key
+                remove_related_project(filename, project_node_id)
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
@@ -459,16 +448,18 @@ def related_project_select_post(filename=None, form=None, form_dict=None,
                 process_down_button(filename, node_id)
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
-                node_id = '1'
+                project_node_id = '1'
             elif val[0:4] == BTN_BACK:
                 new_page = edit_page
-                node_id = None
+                project_node_id = None
+            else:
+                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
 
     if form.validate_on_submit():
         if new_page == edit_page:
             return url_for(new_page,
                            filename=filename,
-                           node_id=node_id,
+                           project_node_id=project_node_id,
                            title='Related Project')
         else:
             return url_for(new_page,

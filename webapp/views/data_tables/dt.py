@@ -36,7 +36,8 @@ from webapp.home.metapype_client import (
     create_code_definition, mscale_from_attribute,
     create_datetime_attribute, create_numerical_attribute,
     create_categorical_or_text_attribute, force_missing_value_codes,
-    UP_ARROW, DOWN_ARROW, code_definition_from_attribute
+    UP_ARROW, DOWN_ARROW, code_definition_from_attribute,
+    handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from metapype.eml import names
@@ -110,12 +111,9 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
             next_page = PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
-        elif BTN_HIDDEN_NEW in request.form:
-            next_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            next_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            next_page = PAGE_CLOSE
+
+        this_page = PAGE_DATA_TABLE
+        next_page = handle_hidden_buttons(next_page, this_page)
 
     if form.validate_on_submit():
         eml_node = load_eml(filename=filename)
@@ -640,18 +638,6 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 views.process_down_button(filename, node_id)
-            elif val == BTN_HIDDEN_CHECK:
-                new_page = PAGE_CHECK
-            elif val == BTN_HIDDEN_SAVE:
-                new_page = this_page
-            elif val == BTN_HIDDEN_DOWNLOAD:
-                new_page = PAGE_DOWNLOAD
-            elif val == BTN_HIDDEN_NEW:
-                new_page = PAGE_CREATE
-            elif val == BTN_HIDDEN_OPEN:
-                new_page = PAGE_OPEN
-            elif val == BTN_HIDDEN_CLOSE:
-                new_page = PAGE_CLOSE
             elif val.startswith('Add Attribute'):
                 if 'Numerical' in val:
                     mscale = 'NUMERICAL'
@@ -665,6 +651,8 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
                 elif 'Datetime' in val:
                     new_page = PAGE_ATTRIBUTE_DATETIME
                 node_id = '1'
+            else:
+                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
 
     if form.validate_on_submit():
         if new_page == back_page:
@@ -719,14 +707,9 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
             # flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measurement scale page
-        if BTN_DONE in request.form:
-            next_page = PAGE_ATTRIBUTE_SELECT
-        elif BTN_HIDDEN_NEW in request.form:
-            next_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            next_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            next_page = PAGE_CLOSE
+        next_page = PAGE_ATTRIBUTE_SELECT
+        this_page = PAGE_ATTRIBUTE_DATETIME
+        next_page = handle_hidden_buttons(next_page, this_page)
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -951,14 +934,9 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
             # flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measurement scale page
-        if BTN_DONE in request.form:  # FIXME
-            next_page = PAGE_ATTRIBUTE_SELECT
-        elif BTN_HIDDEN_NEW in request.form:
-            next_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            next_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            next_page = PAGE_CLOSE
+        next_page = PAGE_ATTRIBUTE_SELECT
+        this_page = PAGE_ATTRIBUTE_NUMERICAL
+        next_page = handle_hidden_buttons(next_page, this_page)
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1255,16 +1233,13 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             # flash(f"is_dirty_form: False")
 
         # Go back to data table or go to the appropriate measurement scale page
+        next_page = None
         if BTN_DONE in request.form:
-            next_page = PAGE_ATTRIBUTE_SELECT  # FIXME
+            next_page = PAGE_ATTRIBUTE_SELECT
         elif 'Codes' in request.form:
             next_page = PAGE_CODE_DEFINITION_SELECT
-        elif BTN_HIDDEN_NEW in request.form:
-            next_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            next_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            next_page = PAGE_CLOSE
+        this_page = PAGE_ATTRIBUTE_CATEGORICAL
+        next_page = handle_hidden_buttons(next_page, this_page)
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1583,29 +1558,20 @@ def code_definition_select_post(filename=None,
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
-                process_up_button(filename, node_id)
+                views.process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
                 node_id = key
-                process_down_button(filename, node_id)
-            elif val == BTN_HIDDEN_CHECK:
-                new_page = PAGE_CHECK
-            elif val == BTN_HIDDEN_SAVE:
-                new_page = this_page
-            elif val == BTN_HIDDEN_DOWNLOAD:
-                new_page = PAGE_DOWNLOAD
-            elif val == BTN_HIDDEN_NEW:
-                new_page = PAGE_CREATE
-            elif val == BTN_HIDDEN_OPEN:
-                new_page = PAGE_OPEN
-            elif val == BTN_HIDDEN_CLOSE:
-                new_page = PAGE_CLOSE
+                views.process_down_button(filename, node_id)
             elif val[0:3] == 'Add':
                 new_page = edit_page
                 node_id = '1'
             elif val == '[  ]':
                 new_page = this_page
                 node_id = key
+            else:
+                new_page = handle_hidden_buttons(new_page, this_page)
+
 
     if form.validate_on_submit():
         if new_page == back_page:  # attribute_nominal_ordinal
@@ -1660,13 +1626,8 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
 
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_CODE_DEFINITION_SELECT  # Save or Back sends us back to the list of attributes
-
-        if BTN_HIDDEN_NEW in request.form:
-            next_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            next_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            next_page = PAGE_CLOSE
+        this_page = PAGE_CODE_DEFINITION
+        next_page = handle_hidden_buttons(next_page, this_page)
 
         # if 'Back' in request.form:
         if is_dirty_form(form):

@@ -12,8 +12,8 @@ from webapp.home.metapype_client import (
     load_eml, save_both_formats,
     add_child, remove_child,
     UP_ARROW, DOWN_ARROW,
-    add_paragraph_tags, remove_paragraph_tags,
-    display_text_type_node
+    display_text_type_node,
+    handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from webapp.views.method_steps.forms import (
@@ -69,18 +69,6 @@ def method_step_select(filename=None):
                     eml_node = load_eml(filename=filename)
                     remove_child(node_id=node_id)
                     save_both_formats(filename=filename, eml_node=eml_node)
-                elif val == BTN_HIDDEN_CHECK:
-                    new_page = PAGE_CHECK
-                elif val == BTN_HIDDEN_SAVE:
-                    new_page = this_page
-                elif val == BTN_HIDDEN_DOWNLOAD:
-                    new_page = PAGE_DOWNLOAD
-                elif val == BTN_HIDDEN_NEW:
-                    new_page = PAGE_CREATE
-                elif val == BTN_HIDDEN_OPEN:
-                    new_page = PAGE_OPEN
-                elif val == BTN_HIDDEN_CLOSE:
-                    new_page = PAGE_CLOSE
                 elif val == UP_ARROW:
                     new_page = this_page
                     node_id = key
@@ -95,6 +83,8 @@ def method_step_select(filename=None):
                 elif val == '[  ]':
                     new_page = this_page
                     node_id = key
+                else:
+                    new_page = check_val_for_hidden_buttons(val, new_page, this_page)
 
         if form.validate_on_submit():
             if new_page in [edit_page, this_page]:
@@ -158,15 +148,7 @@ def method_step(filename=None, node_id=None):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                if val == BTN_HIDDEN_NEW:
-                    new_page = PAGE_CREATE
-                    break
-                elif val == BTN_HIDDEN_OPEN:
-                    new_page = PAGE_OPEN
-                    break
-                elif val == BTN_HIDDEN_CLOSE:
-                    new_page = PAGE_CLOSE
-                    break
+                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_METHOD_STEP)
 
         submit_type = None
         if is_dirty_form(form):

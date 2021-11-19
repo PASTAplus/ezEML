@@ -68,7 +68,8 @@ from webapp.home.metapype_client import (
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_nodes, get_check_metadata_status
+    import_project_nodes, get_check_metadata_status,
+    handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from webapp.home.check_metadata import check_eml
@@ -591,7 +592,7 @@ def create():
             filename = form.filename.data
             user_filenames = user_data.get_user_document_list()
             if user_filenames and filename and filename in user_filenames:
-                flash(f'{filename} already exists')
+                flash(f'{filename} already exists. Please select another name.', 'error')
                 return render_template('create_eml.html', help=help,
                                 form=form)
             create_eml(filename=filename)
@@ -634,6 +635,136 @@ def open_eml_document():
                            form=form)
 
 
+def get_subdirs(dir):
+    print(f"get_subdirs: {dir}")
+    subdirs = []
+    for fname in sorted(os.listdir(dir), key=str.lower):
+        if os.path.isdir(os.path.join(dir, fname)):
+            subdirs.append(os.path.join(dir, fname))
+    return subdirs
+
+
+def get_files(dir):
+    print(f"get_files: {dir}")
+    files = []
+    for fname in sorted(os.listdir(dir), key=str.lower):
+        if os.path.isdir(os.path.join(dir, fname)) or fname.endswith('.json'):
+            files.append(os.path.join(dir, fname))
+    return files
+
+
+def add_file(fname, output):
+    dir = os.path.dirname(fname)
+    dir = dir.replace(f"{Config.TEMPLATE_DIR}/", '')
+    fname = os.path.splitext(os.path.basename(fname))[0]
+    output += f'<li onclick="setTarget(\'{fname}\', \'{dir}\');" style="color:steelblue;cursor:pointer;">{fname}</li>\n'
+
+    return output
+
+
+def form_template_tree(file, output):
+    # print(f"form_template_tree: file={file}, output={output}")
+
+    if file == Config.TEMPLATE_DIR:
+        subdirs = get_subdirs(file)
+        if not subdirs:
+            return "<i>No templates are available at this time.</i>"
+
+    have_ul = False
+    if os.path.isdir(file):
+        files = get_files(file)
+        if file != Config.TEMPLATE_DIR:
+            output += f'<li>{os.path.basename(os.path.normpath(file))}\n'
+            if files:
+                output += f'<ul style="display: none;">\n'
+                have_ul = True
+        for file in files:
+            output = form_template_tree(file, output)
+    else:
+        if file:
+            output = add_file(file, output)
+    if have_ul:
+        output += "</ul>\n"
+    output += "</li>\n"
+
+    # print(f"form_template_tree: returns output={output}")
+    return output
+
+
+def import_selected_template(template_filename, output_filename):
+    # Copy the template into the user's directory
+    user_folder = user_data.get_user_folder_name()
+    copyfile(f"{Config.TEMPLATE_DIR}/{template_filename}", f"{user_folder}/{output_filename}.json")
+    create_eml(filename=output_filename)
+
+
+@home.route('/import_template', methods=['GET', 'POST'])
+@login_required
+def import_template():
+    if request.method == 'POST':
+        form = request.form
+        if BTN_CANCEL in form:
+            return redirect(get_back_url())
+
+        form_dict = form.to_dict(flat=False)
+        # Find the key with value = 'OK'. That gives the path of the template.
+        template_path = ''
+        for key, val in form_dict.items():
+            if val == ['OK']:
+                template_path = key
+                break
+        if template_path:
+            template_path = template_path.replace('/', '\\')
+            return redirect(url_for(PAGE_IMPORT_TEMPLATE_2, template_filename=template_path))
+        else:
+            new_page = PAGE_IMPORT_TEMPLATE_2
+            this_page = PAGE_IMPORT_TEMPLATE
+            new_page = handle_hidden_buttons(new_page, this_page)
+            return redirect(url_for(new_page))
+
+    # Process GET
+    output = '<ul class="directory-list">\n'
+    output = form_template_tree(Config.TEMPLATE_DIR, output)
+    output += '</ul>'
+
+    help = get_helps(['import_responsible_parties_2'])
+    return render_template('import_template.html', directory_list=output, help=help)
+
+
+@home.route('/import_template_2/<template_filename>/', methods=['GET', 'POST'])
+@login_required
+def import_template_2(template_filename):
+    form = CreateEMLForm()
+
+    # Process POST
+    help = get_helps(['new_eml_document'])
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+            user_filenames = user_data.get_user_document_list()
+            if user_filenames and filename and filename in user_filenames:
+                flash(f'{filename} already exists. Please select another name.', 'error')
+                return render_template('create_eml.html', help=help,
+                                form=form)
+
+            template_folder = user_data.get_template_folder_name()
+            template_filename = template_filename.replace('\\', '/')
+            template_path = f'{template_filename}.json'
+
+            import_selected_template(template_path, filename)
+            current_user.set_filename(filename)
+            current_user.set_packageid(None)
+            new_page = PAGE_TITLE
+            return redirect(url_for(new_page, filename=filename))
+
+    # Process GET
+    return render_template('import_template_2.html', help=help, form=form)
+
+
 @home.route('/import_parties', methods=['GET', 'POST'])
 @login_required
 def import_parties():
@@ -644,9 +775,6 @@ def import_parties():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-            # new_page = get_redirect_target_page()
-            # url = url_for(new_page, filename=current_user.get_filename())
-            # return redirect(url)
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1327,28 +1455,32 @@ def send_to_other(filename=None, mailto=None):
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if form.validate_on_submit():
-        colleague_name = form.data['colleague_name']
-        email_address = form.data['email_address']
+        # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
+        #  programmatically generated Submit
+        if request.form.get(BTN_SUBMIT) == BTN_SEND_TO_OTHER:
 
-        eml_node = load_eml(filename=filename)
-        dataset_node = eml_node.find_child(child_name=names.DATASET)
-        title_node = dataset_node.find_child(names.TITLE)
-        title = ''
-        if title_node:
-            title = title_node.content
-        if not title:
-            flash('The data package requires a Title', 'error')
-            return redirect(get_back_url())
+            colleague_name = form.data['colleague_name']
+            email_address = form.data['email_address']
 
-        zipfile_path = zip_package(current_document, eml_node)
-        _, download_url = save_as_ezeml_package_export(zipfile_path)
+            eml_node = load_eml(filename=filename)
+            dataset_node = eml_node.find_child(child_name=names.DATASET)
+            title_node = dataset_node.find_child(names.TITLE)
+            title = ''
+            if title_node:
+                title = title_node.content
+            if not title:
+                flash('The data package requires a Title', 'error')
+                return redirect(get_back_url())
 
-        if not mailto:
-            mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
-        else:
-            mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
-            mailto_html = None
-            mailto_raw=None
+            zipfile_path = zip_package(current_document, eml_node)
+            _, download_url = save_as_ezeml_package_export(zipfile_path)
+
+            if not mailto:
+                mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
+            else:
+                mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
+                mailto_html = None
+                mailto_raw=None
 
     eml_node = load_eml(filename=filename)
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
@@ -1595,6 +1727,100 @@ def backup_metadata(filename):
         copyfile(filename, backup_filename)
     except:
         flash(f'Error backing up file {filename}.json', 'error')
+
+
+@home.route('/import_xml', methods=['GET', 'POST'])
+@login_required
+def import_xml():
+    form = ImportPackageForm()
+
+    package_list = user_data.get_user_document_list()
+
+    # Process POST
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and form.validate_on_submit():
+
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
+            #  separately keeping track of the original filename and the possibly modified filename.
+            # filename = secure_filename(file.filename)
+            filename = file.filename
+
+            if not os.path.splitext(filename)[1] == '.xml':
+                flash('Please select a file with file extension ".xml".', 'error')
+                return redirect(request.url)
+
+            package_base_filename = os.path.basename(filename)
+            package_name = os.path.splitext(package_base_filename)[0]
+
+            # See if package with that name already exists
+            try:
+                unversioned_package_name = upload_ezeml_package(file, package_name)
+            except FileNotFoundError as err:
+                # Manifest file is missing
+                flash(f'The selected file does not appear to be a valid ezEML data package file. '
+                      'Please select a different file or check with the package provider for a corrected file.',
+                      'error')
+                return redirect(request.url)
+            except ValueError as err:
+                # A bad checksum
+                filename = err.args[0]
+                flash(f'The selected package appears to have been modified manually outside of ezEML. '
+                      'Please ask the package provider to provide a package file exported directly '
+                      'from ezEML.', 'error')
+                return redirect(request.url)
+
+            if unversioned_package_name in user_data.get_user_document_list():
+                return redirect(url_for('home.import_xml_2', package_name=unversioned_package_name))
+            else:
+                import_ezeml_package(unversioned_package_name)
+                fixup_upload_management()
+                current_user.set_filename(filename=unversioned_package_name)
+                return redirect(url_for(PAGE_TITLE, filename=unversioned_package_name))
+
+    # Process GET
+    help = get_helps(['import_package'])
+    return render_template('import_xml.html', title='Import an XML File (XML)',
+                           packages=package_list, form=form, help=help)
+
+
+@home.route('/import_xml_2/<package_name>', methods=['GET', 'POST'])
+@login_required
+def import_xml_2(package_name):
+    form = ImportPackageForm()
+
+    # Process POST
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and form.validate_on_submit():
+        form = request.form
+        if form['replace_copy'] == 'copy':
+            package_name = copy_ezeml_package(package_name)
+
+        import_ezeml_package(package_name)
+        fixup_upload_management()
+        current_user.set_filename(filename=package_name)
+        return redirect(url_for(PAGE_TITLE, filename=package_name))
+
+    # Process GET
+    help = get_helps(['import_package_2'])
+    return render_template('import_package_2.html', title='Import an ezEML Data Package',
+                           package_name=package_name, form=form, help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])
@@ -2127,8 +2353,20 @@ def close():
 def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
                 next_page=None, edit_page=None, project_node_id=None, reupload_page=None):
+
+    def extract_ids(key):
+        if '|' not in key:
+            node_id = key
+            project_node_id = None
+        else:
+            node_id, project_node_id = key.split('|')
+            if project_node_id == 'None':
+                project_node_id = None
+        return node_id, project_node_id
+
     node_id = None
     new_page = None
+
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
@@ -2142,10 +2380,10 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
-                node_id = key
+                node_id, project_node_id = extract_ids(key)
             elif val == BTN_REMOVE:
                 new_page = this_page
-                node_id = key
+                node_id, project_node_id = extract_ids(key)
                 eml_node = load_eml(filename=filename)
                 # Get the data table filename, if any, so we can remove it from the uploaded list
                 # dt_node = Node.get_node_instance(node_id)
@@ -2156,34 +2394,22 @@ def select_post(filename=None, form=None, form_dict=None,
                 #         if object_name:
                 #             user_data.discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
-                node_id = project_node_id  # for relatedProject case
+                # node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_REUPLOAD:
-                node_id = key
+                node_id, project_node_id = extract_ids(key)
                 if reupload_page:
                     new_page = reupload_page
                 else:
-                    node_id = key
+                    # node_id = key
                     new_page = PAGE_REUPLOAD
-            elif val == BTN_HIDDEN_CHECK:
-                new_page = PAGE_CHECK
-            elif val == BTN_HIDDEN_SAVE:
-                new_page = this_page
-            elif val == BTN_HIDDEN_DOWNLOAD:
-                new_page = PAGE_DOWNLOAD
-            elif val == BTN_HIDDEN_NEW:
-                new_page = PAGE_CREATE
-            elif val == BTN_HIDDEN_OPEN:
-                new_page = PAGE_OPEN
-            elif val == BTN_HIDDEN_CLOSE:
-                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
-                node_id = key
+                node_id, project_node_id = extract_ids(key)
                 process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
-                node_id = key
+                node_id, project_node_id = extract_ids(key)
                 process_down_button(filename, node_id)
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
@@ -2200,6 +2426,7 @@ def select_post(filename=None, form=None, form_dict=None,
             elif val == BTN_REUSE:
                 new_page = PAGE_IMPORT_PARTY
                 node_id = '1'
+            new_page = check_val_for_hidden_buttons(val, new_page, this_page)
 
     if form.validate_on_submit():
         if new_page in [PAGE_DATA_TABLE, PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:

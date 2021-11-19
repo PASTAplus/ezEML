@@ -11,8 +11,7 @@ from webapp.home.metapype_client import (
     create_keyword, create_pubinfo, create_data_package_id,
     create_title, list_keywords, load_eml, remove_child,
     save_both_formats, DOWN_ARROW, UP_ARROW,
-    add_paragraph_tags, remove_paragraph_tags,
-    post_process_text_type_node, display_text_type_node
+    display_text_type_node, handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -49,8 +48,6 @@ def title(filename=None):
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
-    # if request.method == 'POST':
-        new_page = PAGE_DATA_TABLE_SELECT
         save = False
         if is_dirty_form(form):
             save = True
@@ -59,20 +56,9 @@ def title(filename=None):
             create_title(title=form.title.data, filename=filename)
             form.md5.data = form_md5(form)
 
-        if 'Next' in request.form:
-            new_page = PAGE_DATA_TABLE_SELECT
-        elif BTN_HIDDEN_CHECK in request.form:
-            new_page = PAGE_CHECK
-        elif BTN_HIDDEN_SAVE in request.form:
-            new_page = PAGE_TITLE
-        elif BTN_HIDDEN_DOWNLOAD in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif BTN_HIDDEN_NEW in request.form:
-            new_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            new_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            new_page = PAGE_CLOSE
+        new_page = PAGE_DATA_TABLE_SELECT
+        this_page = PAGE_TITLE
+        new_page = handle_hidden_buttons(new_page, this_page)
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -98,7 +84,6 @@ def data_package_id(filename=None):
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
-        new_page = PAGE_TITLE
         save = False
         if is_dirty_form(form):
             save = True
@@ -109,20 +94,9 @@ def data_package_id(filename=None):
             set_active_packageid(data_package_id)
             form.md5.data = form_md5(form)
 
-        if 'Next' in request.form:
-            new_page = PAGE_CHECK
-        elif BTN_HIDDEN_CHECK in request.form:
-            new_page = PAGE_CHECK
-        elif BTN_HIDDEN_SAVE in request.form:
-            new_page = PAGE_DATA_PACKAGE_ID
-        elif BTN_HIDDEN_DOWNLOAD in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif BTN_HIDDEN_NEW in request.form:
-            new_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            new_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            new_page = PAGE_CLOSE
+        new_page = PAGE_TITLE
+        this_page = PAGE_DATA_PACKAGE_ID
+        new_page = handle_hidden_buttons(new_page, this_page)
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -143,22 +117,10 @@ def publication_info(filename=None):
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
-        if 'Next' in request.form:
-            new_page = PAGE_METHOD_STEP_SELECT
-        elif BTN_HIDDEN_CHECK in request.form:
-            new_page = PAGE_CHECK
-        elif BTN_HIDDEN_SAVE in request.form:
-            new_page = PAGE_PUBLICATION_INFO
-        elif BTN_HIDDEN_DOWNLOAD in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif BTN_HIDDEN_NEW in request.form:
-            new_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            new_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            new_page = PAGE_CLOSE
-        else:
-            new_page = PAGE_PUBLISHER
+
+        new_page = PAGE_METHOD_STEP_SELECT
+        this_page = PAGE_PUBLICATION_INFO
+        new_page = handle_hidden_buttons(new_page, this_page)
 
         save = False
         if is_dirty_form(form):
@@ -231,23 +193,10 @@ def abstract(filename=None):
 
     # Process POST
     if request.method == 'POST':
-        if 'Next' in request.form:
-            new_page = PAGE_KEYWORD_SELECT
-        elif BTN_HIDDEN_CHECK in request.form:
-            new_page = PAGE_CHECK
-        elif BTN_HIDDEN_SAVE in request.form:
-            new_page = PAGE_ABSTRACT
-        elif BTN_HIDDEN_DOWNLOAD in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif BTN_HIDDEN_NEW in request.form:
-            new_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            new_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            new_page = PAGE_CLOSE
-        else:
-            submit_type = None
-            new_page = PAGE_KEYWORD_SELECT
+
+        new_page = PAGE_KEYWORD_SELECT
+        this_page = PAGE_ABSTRACT
+        new_page = handle_hidden_buttons(new_page, this_page)
 
         if form.validate_on_submit():
             if is_dirty_form(form):
@@ -276,8 +225,8 @@ def intellectual_rights(filename=None):
     form = IntellectualRightsForm(filename=filename)
 
     # Process POST
-    # if request.method == 'POST' and form.validate_on_submit():
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate_on_submit():
+    # if request.method == 'POST':
         submit_type = None
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -292,20 +241,10 @@ def intellectual_rights(filename=None):
 
             create_intellectual_rights(filename=filename, intellectual_rights=intellectual_rights)
 
-        if BTN_HIDDEN_CHECK in request.form:
-            new_page = PAGE_CHECK
-        elif BTN_HIDDEN_SAVE in request.form:
-            new_page = PAGE_INTELLECTUAL_RIGHTS
-        elif BTN_HIDDEN_DOWNLOAD in request.form:
-            new_page = PAGE_DOWNLOAD
-        elif BTN_HIDDEN_NEW in request.form:
-            new_page = PAGE_CREATE
-        elif BTN_HIDDEN_OPEN in request.form:
-            new_page = PAGE_OPEN
-        elif BTN_HIDDEN_CLOSE in request.form:
-            new_page = PAGE_CLOSE
-        else:
-            new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
+
+        new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
+        this_page = PAGE_INTELLECTUAL_RIGHTS
+        new_page = handle_hidden_buttons(new_page, this_page)
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -388,7 +327,7 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
                         method=None, this_page=None, back_page=None,
                         next_page=None, edit_page=None):
     node_id = ''
-    new_page = ''
+    new_page = None
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
@@ -403,18 +342,6 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
                 new_page = this_page
                 node_id = key
                 remove_keyword(filename, node_id)
-            elif val == BTN_HIDDEN_CHECK:
-                new_page = PAGE_CHECK
-            elif val == BTN_HIDDEN_SAVE:
-                new_page = this_page
-            elif val == BTN_HIDDEN_DOWNLOAD:
-                new_page = PAGE_DOWNLOAD
-            elif val == BTN_HIDDEN_NEW:
-                new_page = PAGE_CREATE
-            elif val == BTN_HIDDEN_OPEN:
-                new_page = PAGE_OPEN
-            elif val == BTN_HIDDEN_CLOSE:
-                new_page = PAGE_CLOSE
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id = key
@@ -426,6 +353,7 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'
+            new_page = check_val_for_hidden_buttons(val, new_page, this_page)
 
     if form.validate_on_submit():
         if new_page == edit_page:
@@ -481,15 +409,7 @@ def keyword(filename=None, node_id=None):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                if val == BTN_HIDDEN_NEW:
-                    new_page = PAGE_CREATE
-                    break
-                elif val == BTN_HIDDEN_OPEN:
-                    new_page = PAGE_OPEN
-                    break
-                elif val == BTN_HIDDEN_CLOSE:
-                    new_page = PAGE_CLOSE
-                    break
+                new_page = check_val_for_hidden_buttons(val, new_page, new_page)
 
         submit_type = None
         if is_dirty_form(form):

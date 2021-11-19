@@ -5,7 +5,8 @@ from flask import (
 from webapp.home.metapype_client import (
     add_child, create_maintenance,
     load_eml, save_both_formats,
-    add_paragraph_tags, remove_paragraph_tags
+    add_paragraph_tags, remove_paragraph_tags,
+    handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -55,23 +56,14 @@ def maintenance(filename=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
 
+        new_page = PAGE_MAINTENANCE
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
                 if val == BTN_SAVE_AND_CONTINUE:
                     new_page = PAGE_PUBLISHER
-                elif val == BTN_HIDDEN_CHECK:
-                    new_page = PAGE_CHECK
-                elif val == BTN_HIDDEN_SAVE:
-                    new_page = PAGE_PROJECT
-                elif val == BTN_HIDDEN_DOWNLOAD:
-                    new_page = PAGE_DOWNLOAD
-                elif val == BTN_HIDDEN_NEW:
-                    new_page = PAGE_CREATE
-                elif val == BTN_HIDDEN_OPEN:
-                    new_page = PAGE_OPEN
-                elif val == BTN_HIDDEN_CLOSE:
-                    new_page = PAGE_CLOSE
+                else:
+                    new_page = handle_hidden_buttons(new_page, PAGE_MAINTENANCE)
 
         return redirect(url_for(new_page, filename=filename))
 

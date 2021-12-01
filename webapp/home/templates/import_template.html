@@ -4,6 +4,12 @@
 {% set target_name = '' %}
 
 {% block app_content %}
+    {% if help %}
+    {% set help_import_template_id, help_import_template_title, help_import_template_content = help[0] %}
+    {% set help_import_template_btn = help_import_template_id ~ '_btn' %}
+    {% set help_import_template_dialog = help_import_template_id ~ '_dialog' %}
+    {% endif %}
+    
     <body onload="displayDirectory();">
     <script>
         function setTarget(targetName, targetPath) {
@@ -41,12 +47,22 @@
             });
         }
     </script>
-    <h2>New EML Document from a Template</h2>
+
+    <table>
+        <td><h2>New EML Document from a Template</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_import_template_btn) }}</td>
+    </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 <br>
-                <h4>Select a template:</h4>
+
+                <table>
+                    <td><h4>Select a template:</h4></td>
+{#                    <td valign="middle" style="padding-top: 5px;padding-left: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+                </table>
+
                 {{ directory_list | safe }}
 
                 <span id="target_prefix" style="font-size: 12pt;visibility: hidden;">Selected: </span>
@@ -61,14 +77,23 @@
         </div>
     </div>
     </body>
+
+    {{ macros.help_dialog(help_import_template_dialog, help_import_template_title, help_import_template_content) }}
 {% endblock %}
 
 
 {% block app_scripts %}
     {{ super() }}
+    {% if help %}
+    {% set help_import_template_id, help_import_template_title, help_import_template_content = help[0] %}
+    {% set help_import_template_btn = help_import_template_id ~ '_btn' %}
+    {% set help_import_template_dialog = help_import_template_id ~ '_dialog' %}
+    {% endif %}
 
     <script>
-
+    $(function()
+    {
+        {{ macros.help_script(help_import_template_dialog, help_import_template_btn) }}
+    });
     </script>
 {% endblock %}
-

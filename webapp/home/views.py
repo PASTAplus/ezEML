@@ -727,7 +727,7 @@ def import_template():
     output = form_template_tree(Config.TEMPLATE_DIR, output)
     output += '</ul>'
 
-    help = get_helps(['import_responsible_parties_2'])
+    help = get_helps(['import_template'])
     return render_template('import_template.html', directory_list=output, help=help)
 
 

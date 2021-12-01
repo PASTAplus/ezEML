@@ -469,6 +469,16 @@ Select the taxonomic coverages to import.
 
 If none are shown, none are available in the selected data package.
 --------------------
+import_template
+New EML Document from a Template
+A particular research site or organization may find it useful to create templates that can serve as starting points for EML documents to be created by people in their organization. Such templates reside in their own space on the ezEML server, rather than in an individual ezEML login account, so they are accessible to everyone.
+
+A typical template might contain a selection of Creators, Geographic Coverages, and Keywords, for example. When a new document is created from the template, it is pre-populated with all of the items in the template. This saves work, but it also assists in standardizing spellings, addresses, etc., so they are consistent across documents.
+
+Templates are organized in a folder structure defined by their creators. To expand a folder, click on its name (not the icon). Template names are displayed in blue italics. Click a template name to select the template, then click <b>OK</b>. You will then be asked to provide a name for the new EML document to be created from the template.
+
+See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf" target="_ezeml_user_guide">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+--------------------
 intellectual_rights
 Intellectual Rights
 Intellectual rights are controlled at the source, however it is recommended that data be released with as few restrictions as possible.

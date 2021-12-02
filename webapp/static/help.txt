@@ -602,9 +602,11 @@ See also <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" t
 --------------------
 new_eml_document
 Document Name
-Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
+Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). Choose a name that will be meaningful to you, for example if you come back to ezEML at a later time.
 
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
+
+If the data package is submitted to the EDI data repository, it will be assigned a Data Package ID, but that process happens outside of ezEML and is unknown to ezEML. ezEML will know the document by the name you provide here.
 --------------------
 other_entities
 Other Entities

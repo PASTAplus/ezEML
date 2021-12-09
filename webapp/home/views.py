@@ -517,9 +517,11 @@ def check_metadata(filename:str):
 def download_current():
     current_document = user_data.get_active_document()
     if current_document:
-        # Force the document to be saved, so it gets cleaned
+        # Force the document to be saved, so it gets cleaned, and incorporate the upload URLs for the data
         eml_node = load_eml(filename=current_document)
+        insert_upload_urls(current_document, eml_node)
         save_both_formats(filename=current_document, eml_node=eml_node)
+
         # Do the download
         return_value = user_data.download_eml(filename=current_document)
 
@@ -1293,6 +1295,7 @@ def export_package():
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST':
+        insert_upload_urls(current_document, eml_node)
         save_both_formats(current_document, eml_node)
         zipfile_path = zip_package(current_document, eml_node)
         if zipfile_path:
@@ -1482,6 +1485,7 @@ def send_to_other(filename=None, mailto=None):
             email_address = form.data['email_address']
 
             eml_node = load_eml(filename=filename)
+            insert_upload_urls(current_document, eml_node)
             dataset_node = eml_node.find_child(child_name=names.DATASET)
             title_node = dataset_node.find_child(names.TITLE)
             title = ''

@@ -9,7 +9,9 @@ import webapp.auth.user_data as user_data
 
 from webapp.home.load_data_table import get_md5_hash
 
-from webapp.home.metapype_client import list_files_in_dir
+from webapp.home.metapype_client import list_files_in_dir, load_eml
+
+from metapype.eml import names
 
 
 def check_ezeml_manifest(zipfile_name):
@@ -124,23 +126,34 @@ def copy_ezeml_package(package_name=None):
         suffix = str(max_copy + 1)
     output_package_name = name_with_copy + suffix
 
-    # index = package_name.rfind('_COPY')
-    # if index > -1:
-    #     base_package_name = package_name[:index]
-    # i = 1
-    # while True:
-    #     if i == 1:
-    #         output_package_name = base_package_name + '_COPY'
-    #     else:
-    #         output_package_name = base_package_name + '_COPY' + str(i)
-    #     if not os.path.isfile(os.path.join(user_path, output_package_name) + '.json'):
-    #         break
-    #     i += 1
-
     src_file = os.path.join(work_path, package_name) + '.zip'
     dest_file = os.path.join(work_path, output_package_name) + '.zip'
     shutil.move(src_file, dest_file)
     return output_package_name
+
+
+def cull_uploads(package_name=None):
+    # Remove uploads not represented in the metadata.
+    # Formerly, Import Package removed all uploads on the assumption that it was a new package.
+    # But, we may want to replace the metadata without losing the uploads. This is especially
+    #  true when the "without data" form of the package is being used to replace the existing
+    #  package in order to update the metadata without losing the uploads.
+    eml_node = load_eml(filename=package_name)
+
+    # Get all of the uploads represented in the metadata
+    object_names = []
+    object_name_nodes = []
+    eml_node.find_all_descendants(names.OBJECTNAME, object_name_nodes)
+    for object_name_node in object_name_nodes:
+        if object_name_node.content:
+            object_names.append(object_name_node.content)
+
+    # Remove any uploads that aren't in the list
+    user_path = user_data.get_user_folder_name() # os.path.join(current_path, USER_DATA_DIR)
+    upload_folder = os.path.join(user_path, 'uploads', package_name)
+    to_delete = [file for file in os.listdir(upload_folder) if file not in object_names]
+    for file in to_delete:
+        os.remove(os.path.join(user_path, 'uploads', package_name, file))
 
 
 def import_ezeml_package(output_package_name=None):
@@ -159,12 +172,7 @@ def import_ezeml_package(output_package_name=None):
     os.remove(dest)
 
     # Create the uploads folder
-    # If it already exists, remove it first so we get a clean folder
     upload_folder = os.path.join(user_path, 'uploads', output_package_name)
-    try:
-        shutil.rmtree(upload_folder)
-    except FileNotFoundError:
-        pass
     try:
         os.mkdir(upload_folder)
     except FileExistsError:

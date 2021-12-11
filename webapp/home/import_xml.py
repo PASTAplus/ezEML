@@ -9,6 +9,8 @@ from metapype.eml.validation_errors import ValidationError
 
 import webapp.auth.user_data as user_data
 
+from webapp.home.metapype_client import list_files_in_dir
+
 
 def extract_eml_errors(errs):
     attribute_unrecognized_errs = set()
@@ -34,7 +36,39 @@ def extract_eml_errors(errs):
             sorted(other_errs))
 
 
-def upload_xml_file(file, filename, package_name):
+def determine_package_name(package_name=None):
+    user_path = user_data.get_user_folder_name()
+    work_path = os.path.join(user_path, 'zip_temp')
+
+    # Determine the output package name to use
+    # package_name may already be of the form foobar_COPYn
+    files = list_files_in_dir(user_path)
+    base_package_name = package_name
+    name_with_copy = base_package_name + '_COPY'
+    name_with_copy_len = len(name_with_copy)
+    max_copy = 0
+    for file in files:
+        if file.startswith(name_with_copy) and file.lower().endswith('.json'):
+            max_copy = max(max_copy, 1)
+            i = file[name_with_copy_len:-5]  # 5 is len('.json')
+            try:
+                i = int(i)
+                if i > max_copy:
+                    max_copy = i
+            except:
+                pass
+    suffix = ''
+    if max_copy >= 1:
+        suffix = str(max_copy + 1)
+    output_package_name = name_with_copy + suffix
+
+    # src_file = os.path.join(work_path, package_name) + '.zip'
+    # dest_file = os.path.join(work_path, output_package_name) + '.zip'
+    # shutil.move(src_file, dest_file)
+    return output_package_name
+
+
+def save_xml_file(file):
     user_path = user_data.get_user_folder_name()
     work_path = os.path.join(user_path, 'zip_temp')
 
@@ -48,11 +82,15 @@ def upload_xml_file(file, filename, package_name):
     except FileExistsError:
         pass
 
-    dest = os.path.join(work_path, package_name) + '.xml'
-    file.save(dest)
+    filename = file.filename
+    filepath = os.path.join(work_path, filename)
+    file.save(filepath)
+    return filepath
 
+
+def parse_xml_file(filename, filepath):
     eml_version = ''
-    with open(dest, "r") as f:
+    with open(filepath, "r") as f:
         lines = f.readlines()
         for line in lines:
             if 'xmlns:eml' in line:

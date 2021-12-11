@@ -58,10 +58,10 @@ from webapp.home.load_data_table import (
     load_data_table, load_other_entity, delete_data_files, get_md5_hash
 )
 from webapp.home.import_package import (
-    copy_ezeml_package, upload_ezeml_package, import_ezeml_package
+    copy_ezeml_package, upload_ezeml_package, import_ezeml_package, cull_uploads
 )
 from webapp.home.import_xml import (
-    upload_xml_file
+    save_xml_file, parse_xml_file, determine_package_name
 )
 
 from webapp.home.metapype_client import ( 
@@ -1786,15 +1786,17 @@ def import_xml():
             package_base_filename = os.path.basename(filename)
             package_name = os.path.splitext(package_base_filename)[0]
 
-            # See if package with that name already exists``
-            # try:
-            eml_node, pruned_nodes = upload_xml_file(file, filename, package_name)
-            # except
+            filepath = save_xml_file(file)
+            # See if package with that name already exists
+            if package_name in user_data.get_user_document_list():
+                return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
+
+            eml_node, pruned_nodes = parse_xml_file(filename, filepath)
 
             if eml_node:
-                save_both_formats(filename=filename, eml_node=eml_node)
-                current_user.set_filename(filename=filename)
-                return redirect(url_for(PAGE_TITLE, filename=filename))
+                save_both_formats(filename=package_name, eml_node=eml_node)
+                current_user.set_filename(filename=package_name)
+                return redirect(url_for(PAGE_TITLE, filename=package_name))
             else:
                 raise Exception  # TODO: Error handling
 
@@ -1804,32 +1806,41 @@ def import_xml():
                            form=form, help=help)
 
 
-# @home.route('/import_xml_2/<package_name>', methods=['GET', 'POST'])
-# @login_required
-# def import_xml_2(package_name):
-#     form = ImportPackageForm()
-#
-#     # Process POST
-#
-#     if request.method == 'POST' and BTN_CANCEL in request.form:
-#         return redirect(get_back_url())
-#
-#     reload_metadata()  # So check_metadata status is correct
-#
-#     if request.method == 'POST' and form.validate_on_submit():
-#         form = request.form
-#         if form['replace_copy'] == 'copy':
-#             package_name = copy_ezeml_package(package_name)
-#
-#         import_ezeml_package(package_name)
-#         fixup_upload_management()
-#         current_user.set_filename(filename=package_name)
-#         return redirect(url_for(PAGE_TITLE, filename=package_name))
-#
-#     # Process GET
-#     help = get_helps(['import_package_2'])
-#     return render_template('import_package_2.html', title='Import an ezEML Data Package',
-#                            package_name=package_name, form=form, help=help)
+@home.route('/import_xml_2/<package_name>/<filename>', methods=['GET', 'POST'])
+@login_required
+def import_xml_2(package_name, filename):
+    form = ImportPackageForm()
+
+    # Process POST
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and form.validate_on_submit():
+        form = request.form
+        if form['replace_copy'] == 'copy':
+            # package_name = copy_ezeml_package(filename)
+            package_name = determine_package_name(package_name)
+
+        user_path = user_data.get_user_folder_name()
+        work_path = os.path.join(user_path, 'zip_temp')
+        filepath = os.path.join(work_path, filename)
+
+        eml_node, pruned_nodes = parse_xml_file(filename, filepath)
+
+        if eml_node:
+            save_both_formats(filename=package_name, eml_node=eml_node)
+            current_user.set_filename(filename=package_name)
+            return redirect(url_for(PAGE_TITLE, filename=package_name))
+        else:
+            raise Exception  # TODO: Error handling
+
+    # Process GET
+    help = get_helps(['import_package_2'])  # FIXME
+    return render_template('import_xml_2.html', title='Import an EML XML File',
+                           package_name=package_name, form=form, help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])
@@ -1889,6 +1900,7 @@ def import_package():
             else:
                 import_ezeml_package(unversioned_package_name)
                 fixup_upload_management()
+                cull_uploads(unversioned_package_name)
                 current_user.set_filename(filename=unversioned_package_name)
                 return redirect(url_for(PAGE_TITLE, filename=unversioned_package_name))
 
@@ -1917,6 +1929,7 @@ def import_package_2(package_name):
 
         import_ezeml_package(package_name)
         fixup_upload_management()
+        cull_uploads(package_name)
         current_user.set_filename(filename=package_name)
         return redirect(url_for(PAGE_TITLE, filename=package_name))
 

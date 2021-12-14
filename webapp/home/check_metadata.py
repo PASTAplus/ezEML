@@ -15,8 +15,9 @@
 import collections
 from enum import Enum
 
+import daiquiri
 from flask import (
-    Blueprint, Flask, url_for, render_template, session, app
+    Blueprint, Flask, url_for, session, current_app
 )
 
 from metapype.eml import names
@@ -32,6 +33,13 @@ import webapp.home.load_data_table as load_data_table
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
+logger = daiquiri.getLogger('check_metadata: ' + __name__)
+
+
+def log_error(msg):
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.error(msg)
 
 
 class EvalSeverity(Enum):
@@ -412,6 +420,7 @@ def generate_code_definition_errs(eml_node, filename, err_code, errs_found):
 def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     attr_type = get_attribute_type(attrib_node)
     mscale = None
+    page = None
     if attr_type == metapype_client.VariableType.CATEGORICAL:
         page = PAGE_ATTRIBUTE_CATEGORICAL
         mscale = metapype_client.VariableType.CATEGORICAL.name
@@ -424,6 +433,15 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     elif attr_type == metapype_client.VariableType.DATETIME:
         page = PAGE_ATTRIBUTE_DATETIME
         mscale = metapype_client.VariableType.DATETIME.name
+    # This section is temporary code to track down a bug
+    if not page:
+        attrib_name = None
+        if attrib_node:
+            attrib_name_node = attrib_node.find_child(names.ATTRIBUTENAME)
+            if attrib_name_node:
+                attrib_name = attrib_name_node.content
+        log_error(f"page not initialized... attr_name={attrib_name}  attr_type={attr_type}")
+        return
     link = url_for(page, filename=filename, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
 
     validation_errs = validate_via_metapype(attrib_node)
@@ -464,8 +482,14 @@ def check_data_table_md5_checksum(data_table_node, link):
     try:
         computed_md5_hash = load_data_table.get_md5_hash(full_path)
     except FileNotFoundError:
-        add_to_evaluation('data_table_07', link)
-        return
+        # If there is a URL in Online Distribution node, we don't treat a missing CSV file as an error
+        url_node = data_table_node.find_single_node_by_path([names.PHYSICAL,
+                                                             names.DISTRIBUTION,
+                                                             names.ONLINE,
+                                                             names.URL])
+        if not url_node or not url_node.content:
+            add_to_evaluation('data_table_07', link)
+
     authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
     if authentication_node:
         found_md5_hash = authentication_node.content

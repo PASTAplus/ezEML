@@ -489,6 +489,8 @@ def check_data_table_md5_checksum(data_table_node, link):
                                                              names.URL])
         if not url_node or not url_node.content:
             add_to_evaluation('data_table_07', link)
+        else:
+            return
 
     authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
     if authentication_node:

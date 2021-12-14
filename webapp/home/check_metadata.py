@@ -435,12 +435,15 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
         mscale = metapype_client.VariableType.DATETIME.name
     # This section is temporary code to track down a bug
     if not page:
+        data_table_name = None
+        if data_table_node:
+            data_table_name = data_table_node.find_child(names.ENTITYNAME).content
         attrib_name = None
         if attrib_node:
             attrib_name_node = attrib_node.find_child(names.ATTRIBUTENAME)
             if attrib_name_node:
                 attrib_name = attrib_name_node.content
-        log_error(f"page not initialized... attr_name={attrib_name}  attr_type={attr_type}")
+        log_error(f"page not initialized... filename={filename}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
         return
     link = url_for(page, filename=filename, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
 

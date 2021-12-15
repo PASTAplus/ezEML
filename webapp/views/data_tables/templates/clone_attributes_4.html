@@ -41,19 +41,6 @@
                         {% endfor %}
                     {% endfor %}
                 </table>
-{#                <table>#}
-{#                    <tr><td style="padding: 5px;"><b>Source Column</b></td style="padding: 5px;"><td style="padding: 5px;color: black;"><b>&#8594;</b></td><td style="padding: 5px;"><b>Target Column</b></td></tr>#}
-{#                    <tr><td style="padding: 5px;">YEAR</td><td></td><td style="padding: 5px;"><select name="column_1" id="column_1">#}
-{#                        <option value="(YEAR, 1)">YEAR</option>#}
-{#                        <option value="(ARM, 2)" selected>ARM</option>#}
-{#                    </select></td></tr>#}
-{#                    <tr><td style="padding: 5px;">ARM</td><td></td><td style="padding: 5px;"><select name="column_2" id="column_2">#}
-{#                        <option value="YEAR" selected>YEAR</option>#}
-{#                        <option value="ARM">ARM</option>#}
-{#                    </select></td></tr>#}
-{#                </table>#}
-{#                <h5>Select the columns whose properties to clone:</h5>#}
-{#                {{ form.source(style="list-style:none;") }}#}
                 <p>&nbsp;</p>
                 <input class="btn btn-primary" onclick="return confirm('Are you sure?');" name="Clone" type="submit" value="Clone Column Properties"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>

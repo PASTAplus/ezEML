@@ -102,6 +102,10 @@ def parse_xml_file(filename, filepath):
     assert isinstance(eml, Node) # TODO: error-handling
     pruned_nodes = set()
     errs = []
+    unknown_nodes = None
+    attr_errs = None
+    child_errs = None
+    other_errs = None
     try:
         validate.tree(eml, errs)
         validate.tree(eml)
@@ -113,6 +117,7 @@ def parse_xml_file(filename, filepath):
             pruned = validate.prune(eml, strict=True)
             for x in pruned:
                 pruned_nodes.add(x.name)
+            pruned_nodes = sorted(pruned_nodes)
             unknown_nodes, attr_errs, child_errs, other_errs = extract_eml_errors(errs)
             if unknown_nodes:
                 print(f"Unknown nodes: {unknown_nodes}")
@@ -123,7 +128,7 @@ def parse_xml_file(filename, filepath):
             if other_errs:
                 print(f"Other errors: {other_errs}")
             if pruned:
-                print(f"Pruned nodes: {sorted(pruned_nodes)}")
+                print(f"Pruned nodes: {pruned_nodes}")
             else:
                 err_set = set()
                 for err in errs:
@@ -131,6 +136,6 @@ def parse_xml_file(filename, filepath):
                 print('***', sorted(err_set))
         except Exception as e:
             print(f'validate.prune FAILED: {e}')
-    return eml, sorted(pruned_nodes)
+    return eml, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes
 
 

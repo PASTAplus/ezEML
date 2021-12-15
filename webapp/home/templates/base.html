@@ -162,11 +162,11 @@
                             <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File (XML)</a>
                         </li>
 
-{#                {% endif %}#}
+                {% endif %}
 {#                        <li>#}
 {#                            <a href="{{ url_for('home.import_xml') }}" title="Import EML File (XML)">Import EML File (XML)...</a>#}
 {#                        </li>#}
-{#                {% if current_user.is_authenticated %}#}
+                {% if current_user.is_authenticated %}
 
                         <li>
                             <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>

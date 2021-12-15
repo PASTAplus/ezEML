@@ -1791,12 +1791,16 @@ def import_xml():
             if package_name in user_data.get_user_document_list():
                 return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
 
-            eml_node, pruned_nodes = parse_xml_file(filename, filepath)
+            eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
 
             if eml_node:
                 save_both_formats(filename=package_name, eml_node=eml_node)
                 current_user.set_filename(filename=package_name)
-                return redirect(url_for(PAGE_TITLE, filename=package_name))
+                if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
+                    return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
+                                            child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes))
+                else:
+                    return redirect(url_for(PAGE_TITLE, filename=package_name))
             else:
                 raise Exception  # TODO: Error handling
 
@@ -1828,12 +1832,16 @@ def import_xml_2(package_name, filename):
         work_path = os.path.join(user_path, 'zip_temp')
         filepath = os.path.join(work_path, filename)
 
-        eml_node, pruned_nodes = parse_xml_file(filename, filepath)
+        eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
 
         if eml_node:
             save_both_formats(filename=package_name, eml_node=eml_node)
             current_user.set_filename(filename=package_name)
-            return redirect(url_for(PAGE_TITLE, filename=package_name))
+            if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
+                return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
+                                        child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes))
+            else:
+                return redirect(url_for(PAGE_TITLE, filename=package_name))
         else:
             raise Exception  # TODO: Error handling
 
@@ -1841,6 +1849,18 @@ def import_xml_2(package_name, filename):
     help = get_helps(['import_package_2'])  # FIXME
     return render_template('import_xml_2.html', title='Import an EML XML File',
                            package_name=package_name, form=form, help=help)
+
+
+@home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>', methods=['GET', 'POST'])
+@login_required
+def import_xml_3(unknown_nodes=None, attr_errs=None,
+                        child_errs=None, other_errs=None, pruned_nodes=None):
+
+    # Process GET
+    help = get_helps(['import_package_2'])  # FIXME
+    return render_template('import_xml_3.html', unknown_nodes=unknown_nodes, attr_errs=attr_errs,
+                           child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
+                           help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])

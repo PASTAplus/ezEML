@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 
+import daiquiri
 from flask import (
     Blueprint, Flask, flash, render_template, redirect, request, session, url_for, app, current_app
 )
@@ -52,6 +53,20 @@ from webapp.home.load_data_table import load_data_table, sort_codes, infer_datet
 import webapp.auth.user_data as user_data
 
 dt_bp = Blueprint('dt', __name__, template_folder='templates')
+
+
+def log_info(msg):
+    return
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.info(msg)
+
+
+def log_error(msg):
+    return
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.error(msg)
 
 
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])
@@ -1928,7 +1943,37 @@ def clone_categorical_attribute(source_node_copy, target_node):
         return False
 
 
+def display_children_nodes(parent_node, level='info'):
+    i = 0
+    for child_node in parent_node.children:
+        attr_name = None
+        attr_name_node = child_node.find_child(names.ATTRIBUTENAME)
+        if attr_name_node:
+            attr_name = attr_name_node.content
+        outstr = f"{i}: {child_node.id}  {attr_name}"
+        if level == 'error':
+            log_error(outstr)
+        else:
+            log_info(outstr)
+        i = i+1
+
+
 def clone_column_properties(source_table_id, source_attr_ids, target_table_id, target_attr_ids):
+    log_info("******************************************")
+    log_info(f"clone_column_properties: target_attr_ids={target_attr_ids}")
+
+    target_attr_id = target_attr_ids[0]
+    target_node = Node.get_node_instance(target_attr_id)
+    target_parent = target_node.parent
+    display_children_nodes(target_parent)
+    log_info('')
+
+    child_ids = [child.id for child in target_parent.children]
+    i = 0
+    for target_id, child_id in zip(target_attr_ids, child_ids):
+        if target_id != child_id:
+            log_error(f"**** Discrepancy: i={i}  target_id={target_id}  child_id={child_id} ")
+        i = i+1
 
     for source_attr_id, target_attr_id in zip(source_attr_ids, target_attr_ids):
         source_node = Node.get_node_instance(source_attr_id)
@@ -1938,14 +1983,21 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
         target_parent = target_node.parent
         # If we're doing a Categorical variable, it gets special handling
+
         if not clone_categorical_attribute(source_node_copy, target_node):
-            target_parent.replace_child(target_node, source_node_copy, False)  # don't delete the target_node yet because we may need it again
+            try:
+                target_parent.replace_child(target_node, source_node_copy, False)  # don't delete the target_node yet because we may need it again
+            except:
+                log_error(f"\ntarget: {target_node.id}  {target_name}")
+                display_children_nodes(target_parent, level='error')
+                raise Exception("Missing child in clone_column_properties")
             source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
             source_copy_name_node.content = target_name
         else:
             pass
     # Now that we're done, we can delete the nodes we've replaced
     for target_attr_id in target_attr_ids:
+        # log_info(f"deleting Node {target_attr_id}")
         Node.delete_node_instance(target_attr_id, True)
 
 
@@ -1990,7 +2042,7 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         target_eml_node = load_eml(target_filename)
         clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)
         save_both_formats(target_filename, target_eml_node)
-        help = views.get_helps(['import_responsible_parties_2'])  # FIX_ME
+        help = views.get_helps(['import_responsible_parties_2'])  # FIXME
         return redirect(url_for('dt.data_table_select', filename=target_filename))
 
     help = views.get_helps(['clone_attributes_4'])

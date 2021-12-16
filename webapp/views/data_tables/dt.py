@@ -482,6 +482,8 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
     mscale = mscale_from_attribute(node_to_change)
     if mscale is not None:
         form.mscale_choice.data = mscale
+    else:
+        ijk = 123
 
     views.set_current_page('data_table')
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
@@ -548,8 +550,9 @@ def force_categorical_codes(attribute_node):
 def change_measurement_scale(att_node, old_mscale, new_mscale):
     if not att_node:
         return
-    if old_mscale == new_mscale:
-        return
+    # if old_mscale == new_mscale:
+    #     FIXME TEMP
+    #     return
     # flash(f'Changing from {old_mscale} to {new_mscale}')
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
@@ -634,6 +637,11 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
                     new_page = PAGE_ATTRIBUTE_CATEGORICAL
                 elif mscale == VariableType.TEXT.name:
                     new_page = PAGE_ATTRIBUTE_TEXT
+                else:
+                    # FIXME TEMP - we have a bug that makes some Categorical variables have None type
+                    # This is a temporary bandaid.
+                    mscale = VariableType.CATEGORICAL.name
+                    new_page = PAGE_ATTRIBUTE_CATEGORICAL
             elif val == BTN_REMOVE:
                 new_page = this_page
                 node_id = key
@@ -644,6 +652,10 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
                 node_id = key
                 node_to_change = Node.get_node_instance(node_id)
                 mscale = mscale_from_attribute(node_to_change)
+                if not mscale:
+                    # FIXME TEMP - we have a bug that makes some Categorical variables have None type
+                    # This is a temporary bandaid.
+                    mscale = 'CATEGORICAL'
                 new_page = PAGE_ATTRIBUTE_MEASUREMENT_SCALE
             elif val == UP_ARROW:
                 new_page = this_page
@@ -665,6 +677,11 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
                     new_page = PAGE_ATTRIBUTE_TEXT
                 elif 'Datetime' in val:
                     new_page = PAGE_ATTRIBUTE_DATETIME
+                else:
+                    # FIXME TEMP - we have a bug that makes some Categorical variables have None type
+                    # This is a temporary bandaid.
+                    mscale = 'CATEGORICAL'
+                    new_page = PAGE_ATTRIBUTE_CATEGORICAL
                 node_id = '1'
             else:
                 new_page = check_val_for_hidden_buttons(val, new_page, this_page)

@@ -42,6 +42,12 @@ def log_error(msg):
         current_app.logger.error(msg)
 
 
+def log_info(msg):
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.info(msg)
+
+
 class EvalSeverity(Enum):
     ERROR = 1
     WARNING = 2
@@ -381,6 +387,7 @@ def check_geographic_coverage(eml_node, filename):
             find_content_empty(validation_errs, names.ALTITUDEUNITS):
             add_to_evaluation('geographic_coverage_07', link)
 
+
 def get_attribute_type(attrib_node:Node):
     mscale_node = attrib_node.find_child(names.MEASUREMENTSCALE)
     nominal_node = mscale_node.find_child(names.NOMINAL)
@@ -424,6 +431,15 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     if attr_type == metapype_client.VariableType.CATEGORICAL:
         page = PAGE_ATTRIBUTE_CATEGORICAL
         mscale = metapype_client.VariableType.CATEGORICAL.name
+        data_table_name = None
+        if data_table_node:
+            data_table_name = data_table_node.find_child(names.ENTITYNAME).content
+        attrib_name = None
+        if attrib_node:
+            attrib_name_node = attrib_node.find_child(names.ATTRIBUTENAME)
+            if attrib_name_node:
+                attrib_name = attrib_name_node.content
+        log_info(f"CATEGORICAL... filename={filename}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
     elif attr_type == metapype_client.VariableType.NUMERICAL:
         page = PAGE_ATTRIBUTE_NUMERICAL
         mscale = metapype_client.VariableType.NUMERICAL.name

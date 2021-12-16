@@ -500,6 +500,11 @@ def check_data_table_md5_checksum(data_table_node, link):
     full_path = f'{uploads_folder}/{data_file}'
     try:
         computed_md5_hash = load_data_table.get_md5_hash(full_path)
+        authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
+        if authentication_node:
+            found_md5_hash = authentication_node.content
+            if found_md5_hash != computed_md5_hash:
+                add_to_evaluation('data_table_06', link)
     except FileNotFoundError:
         # If there is a URL in Online Distribution node, we don't treat a missing CSV file as an error
         url_node = data_table_node.find_single_node_by_path([names.PHYSICAL,
@@ -510,12 +515,6 @@ def check_data_table_md5_checksum(data_table_node, link):
             add_to_evaluation('data_table_07', link)
         else:
             return
-
-    authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
-    if authentication_node:
-        found_md5_hash = authentication_node.content
-        if found_md5_hash != computed_md5_hash:
-            add_to_evaluation('data_table_06', link)
 
 
 def check_data_table(eml_node, filename, data_table_node:Node):

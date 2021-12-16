@@ -13,6 +13,7 @@
 :Created:
     7/23/18
 """
+import ast
 import daiquiri
 from datetime import date, datetime
 import html
@@ -1851,16 +1852,75 @@ def import_xml_2(package_name, filename):
                            package_name=package_name, form=form, help=help)
 
 
+'''
+            {% if unknown_nodes %}
+                The following node types are unknown to ezEML:
+                {{ unknown_nodes }}
+            {% endif %}
+            <p>&nbsp;</p>
+            {% if attr_errs %}
+                The following errors involving node attributes have been detected:
+                {{ attr_errs }}
+            {% endif %}
+            <p>&nbsp;</p>
+            {% if child_errs %}
+                The following errors involving child nodes have been detected:
+                {{ child_errs }}
+            {% endif %}
+            <p>&nbsp;</p>
+            {% if child_errs %}
+                The following errors involving child nodes have been detected:
+                {{ child_errs }}
+            {% endif %}
+            <p>&nbsp;</p>
+            {% if pruned_nodes %}
+                The following types of nodes have been pruned, either because they are themselves in error
+                or because they have descendant nodes that are in error:
+                {{ pruned_nodes }}
+            {% endif %}
+            <p>&nbsp;</p>
+            {% if other_errs %}
+                The following additional errors have been detected:
+                {{ other_errs }}
+            {% endif %}
+'''
+
+def display_list(ll_str, explanation):
+    err_desc = ''
+    ll = ast.literal_eval(ll_str)
+    if ll:
+        err_desc += f"{explanation}<ul>"
+        for node in ll:
+            err_desc += f"<li>{node}"
+        err_desc += "</ul><p>"
+    return err_desc
+
+
+def construct_xml_error_description(unknown_nodes=None, attr_errs=None, child_errs=None,
+                                    other_errs=None, pruned_nodes=None):
+    err_desc = ''
+
+    err_desc += display_list(unknown_nodes, "The following node types are unknown to ezEML:")
+    err_desc += display_list(attr_errs, "The following errors involving node attributes have been detected:")
+    err_desc += display_list(child_errs, "The following errors involving child nodes have been detected:")
+    err_desc += display_list(pruned_nodes, "The following types of nodes have been pruned from the model, " \
+                                           "either because they are themselves in error " \
+                                           "or because they have descendant nodes that are in error:")
+    err_desc += display_list(other_errs, "The following additional errors have been detected:")
+    return err_desc
+
 @home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>', methods=['GET', 'POST'])
 @login_required
 def import_xml_3(unknown_nodes=None, attr_errs=None,
                         child_errs=None, other_errs=None, pruned_nodes=None):
 
+    err_desc = construct_xml_error_description(unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes)
+
     # Process GET
     help = get_helps(['import_package_2'])  # FIXME
     return render_template('import_xml_3.html', unknown_nodes=unknown_nodes, attr_errs=attr_errs,
                            child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
-                           help=help)
+                           err_desc=err_desc, help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])

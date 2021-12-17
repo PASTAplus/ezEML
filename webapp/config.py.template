@@ -44,3 +44,5 @@ class Config(object):
     HOVER_PASSWORD = "MAIL_PASSWORD"
 
     TEMPLATE_DIR = "/home/pasta/ezeml/templates"
+
+    PRIVILEGED_LOGINS = []

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_import_package_2_id, help_import_package_2_title, help_import_package_2_content = help[0] %}
+    {% set help_import_package_2_btn = help_import_package_2_id ~ '_btn' %}
+    {% set help_import_package_2_dialog = help_import_package_2_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Import an EML XML File</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_package_2_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                <table>
+                    <tr><td colspan="2">Package <b>{{ package_name }}</b> already exists in your account.</td></tr>
+                    <tr><td>&nbsp;</td></tr>
+                    <tr><td colspan="2">Would you like to replace it or make a copy?</td></tr>
+                    <tr><td width="5%"></td><td><input type="radio" id="replace" name="replace_copy" value="replace">
+                        <label for="replace">Replace it</label></td></tr>
+                    <tr><td width="5%"></td><td><input type="radio" id="copy" name="replace_copy" value="copy">
+                        <label for="copy">Make a copy</label></td></tr>
+                </table>
+                <br>
+
+                <input class="btn btn-primary" style="width: 100px;" name="Import" type="submit" value="Import"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_import_package_2_dialog, help_import_package_2_title, help_import_package_2_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_import_package_2_id, help_import_package_2_title, help_import_package_2_content = help[0] %}
+    {% set help_import_package_2_btn = help_import_package_2_id ~ '_btn' %}
+    {% set help_import_package_2_dialog = help_import_package_2_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_import_package_2_dialog, help_import_package_2_btn) }}
+    });
+    </script>
+{% endblock %}
+

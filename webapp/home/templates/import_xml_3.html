@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_import_package_2_id, help_import_package_2_title, help_import_package_2_content = help[0] %}
+    {% set help_import_package_2_btn = help_import_package_2_id ~ '_btn' %}
+    {% set help_import_package_2_dialog = help_import_package_2_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Import an EML XML File</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_package_2_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
+                {{ form.csrf_token }}
+                <br>
+            The XML file contains nodes that ezEML is unable to process, so the metadata as imported
+            into ezEML is incomplete. Details of the errors are listed below.
+            <p><br>
+        {{ err_desc | safe }}
+
+                <br>
+                <input class="btn btn-primary" style="width: 200px;" onclick="copy_to_clipboard();"
+                       value="Copy Errors to Clipboard"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Continue"/>
+                {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_import_package_2_dialog, help_import_package_2_title, help_import_package_2_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_import_package_2_id, help_import_package_2_title, help_import_package_2_content = help[0] %}
+    {% set help_import_package_2_btn = help_import_package_2_id ~ '_btn' %}
+    {% set help_import_package_2_dialog = help_import_package_2_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_import_package_2_dialog, help_import_package_2_btn) }}
+    });
+
+    function copy_to_clipboard() {
+        let $temp = $("<textarea>");
+        $("body").append($temp);
+        let s = `{{ err_text | safe }}`;
+        s = s.replace(/&#34;/g, '"');
+        $temp.val(s).select();
+        document.execCommand("copy");
+        $temp.remove();
+        alert('Copied to clipboard')
+     }
+    </script>
+{% endblock %}

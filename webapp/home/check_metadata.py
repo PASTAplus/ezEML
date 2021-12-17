@@ -19,6 +19,9 @@ import daiquiri
 from flask import (
     Blueprint, Flask, url_for, session, current_app
 )
+from flask_login import (
+    current_user
+)
 
 from metapype.eml import names
 import metapype.eml.validate as validate
@@ -439,7 +442,7 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
             attrib_name_node = attrib_node.find_child(names.ATTRIBUTENAME)
             if attrib_name_node:
                 attrib_name = attrib_name_node.content
-        log_info(f"CATEGORICAL... filename={filename}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
+        # log_info(f"CATEGORICAL... filename={filename}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
     elif attr_type == metapype_client.VariableType.NUMERICAL:
         page = PAGE_ATTRIBUTE_NUMERICAL
         mscale = metapype_client.VariableType.NUMERICAL.name

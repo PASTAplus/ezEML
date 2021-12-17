@@ -102,6 +102,10 @@ class ImportPackageForm(FlaskForm):
     pass
 
 
+class ImportXmlForm(FlaskForm):
+    pass
+
+
 class ImportItemsForm(FlaskForm):
     to_import = MultiCheckboxField('Import', choices=[], validators=[])
 

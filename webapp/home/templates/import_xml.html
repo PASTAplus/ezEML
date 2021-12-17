@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_import_package_id, help_import_package_title, help_import_package_content = help[0] %}
+    {% set help_import_package_btn = help_import_package_id ~ '_btn' %}
+    {% set help_import_package_dialog = help_import_package_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Import an EML XML File</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_package_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                <h4>Select the ezEML data package file to import:</h4>
+                <input class="file_select" type="file" name="file" accept=".xml">
+                <p></p>
+                <br>
+
+                <input class="btn btn-primary" style="width: 100px;" onclick="stand_by();" name="Import" type="submit" value="Import"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                &nbsp;
+                <span id="stand_by_hint" style="visibility: hidden;"><i>Please stand by...</i></span>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_import_package_dialog, help_import_package_title, help_import_package_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_import_package_id, help_import_package_title, help_import_package_content = help[0] %}
+    {% set help_import_package_btn = help_import_package_id ~ '_btn' %}
+    {% set help_import_package_dialog = help_import_package_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_import_package_dialog, help_import_package_btn) }}
+    });
+
+    function stand_by() {
+        let x = document.getElementById("stand_by_hint");
+        x.style.visibility = "visible";
+    }
+    </script>
+{% endblock %}
+

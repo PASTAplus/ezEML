@@ -52,7 +52,7 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportItemsForm,
-    SubmitToEDIForm, SendToColleagueForm
+    SubmitToEDIForm, SendToColleagueForm, EDIForm
 )
 
 from webapp.home.load_data_table import (
@@ -77,6 +77,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.home.check_metadata import check_eml
+from webapp.home.forms import form_md5
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -133,6 +134,7 @@ def reload_metadata():
 @home.before_app_first_request
 def init_session_vars():
     session["check_metadata_status"] = "green"
+    session["privileged_logins"] = Config.PRIVILEGED_LOGINS
 
 
 @home.before_app_first_request
@@ -1799,7 +1801,8 @@ def import_xml():
                 current_user.set_filename(filename=package_name)
                 if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
                     return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
-                                            child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes))
+                                            child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
+                                            filename=package_name))
                 else:
                     return redirect(url_for(PAGE_TITLE, filename=package_name))
             else:
@@ -1826,7 +1829,6 @@ def import_xml_2(package_name, filename):
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
         if form['replace_copy'] == 'copy':
-            # package_name = copy_ezeml_package(filename)
             package_name = determine_package_name(package_name)
 
         user_path = user_data.get_user_folder_name()
@@ -1840,8 +1842,10 @@ def import_xml_2(package_name, filename):
             current_user.set_filename(filename=package_name)
             if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
                 return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
-                                        child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes))
+                                        child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
+                                        filename=package_name))
             else:
+                flash(f"{package_name} was imported without errors")
                 return redirect(url_for(PAGE_TITLE, filename=package_name))
         else:
             raise Exception  # TODO: Error handling
@@ -1852,75 +1856,53 @@ def import_xml_2(package_name, filename):
                            package_name=package_name, form=form, help=help)
 
 
-'''
-            {% if unknown_nodes %}
-                The following node types are unknown to ezEML:
-                {{ unknown_nodes }}
-            {% endif %}
-            <p>&nbsp;</p>
-            {% if attr_errs %}
-                The following errors involving node attributes have been detected:
-                {{ attr_errs }}
-            {% endif %}
-            <p>&nbsp;</p>
-            {% if child_errs %}
-                The following errors involving child nodes have been detected:
-                {{ child_errs }}
-            {% endif %}
-            <p>&nbsp;</p>
-            {% if child_errs %}
-                The following errors involving child nodes have been detected:
-                {{ child_errs }}
-            {% endif %}
-            <p>&nbsp;</p>
-            {% if pruned_nodes %}
-                The following types of nodes have been pruned, either because they are themselves in error
-                or because they have descendant nodes that are in error:
-                {{ pruned_nodes }}
-            {% endif %}
-            <p>&nbsp;</p>
-            {% if other_errs %}
-                The following additional errors have been detected:
-                {{ other_errs }}
-            {% endif %}
-'''
-
-def display_list(ll_str, explanation):
-    err_desc = ''
+def display_list(err_desc, err_text, ll_str, explanation):
     ll = ast.literal_eval(ll_str)
     if ll:
         err_desc += f"{explanation}<ul>"
+        err_text += f"{explanation}\n"
         for node in ll:
             err_desc += f"<li>{node}"
+            err_text += f"   • {node}\n"
         err_desc += "</ul><p>"
-    return err_desc
+        err_text += "\n"
+    return err_desc, err_text
 
 
-def construct_xml_error_description(unknown_nodes=None, attr_errs=None, child_errs=None,
+def construct_xml_error_descriptions(unknown_nodes=None, attr_errs=None, child_errs=None,
                                     other_errs=None, pruned_nodes=None):
     err_desc = ''
+    err_text = ''
 
-    err_desc += display_list(unknown_nodes, "The following node types are unknown to ezEML:")
-    err_desc += display_list(attr_errs, "The following errors involving node attributes have been detected:")
-    err_desc += display_list(child_errs, "The following errors involving child nodes have been detected:")
-    err_desc += display_list(pruned_nodes, "The following types of nodes have been pruned from the model, " \
+    err_desc, err_text = display_list(err_desc, err_text, unknown_nodes, "The following node types are unknown to ezEML:")
+    err_desc, err_text = display_list(err_desc, err_text, attr_errs, "The following errors involving node attributes have been detected:")
+    err_desc, err_text = display_list(err_desc, err_text, child_errs, "The following errors involving child nodes have been detected:")
+    err_desc, err_text = display_list(err_desc, err_text, pruned_nodes, "The following types of nodes have been pruned from the model, " \
                                            "either because they are themselves in error " \
                                            "or because they have descendant nodes that are in error:")
-    err_desc += display_list(other_errs, "The following additional errors have been detected:")
-    return err_desc
+    err_desc, err_text = display_list(err_desc, err_text, other_errs, "The following additional errors have been detected:")
+    return err_desc, err_text
 
-@home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>', methods=['GET', 'POST'])
+
+@home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>', methods=['GET', 'POST'])
 @login_required
-def import_xml_3(unknown_nodes=None, attr_errs=None,
-                        child_errs=None, other_errs=None, pruned_nodes=None):
+def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
+                 other_errs=None, pruned_nodes=None, filename=None):
 
-    err_desc = construct_xml_error_description(unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes)
+    form = EDIForm()
+
+    err_desc, err_text = construct_xml_error_descriptions(unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes)
+
+    # Process POST
+    if request.method == 'POST':
+        return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
+    form.md5.data = form_md5(form)
     help = get_helps(['import_package_2'])  # FIXME
     return render_template('import_xml_3.html', unknown_nodes=unknown_nodes, attr_errs=attr_errs,
                            child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
-                           err_desc=err_desc, help=help)
+                           err_desc=err_desc, err_text=err_text, form=form, help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])

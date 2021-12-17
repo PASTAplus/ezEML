@@ -1800,6 +1800,8 @@ def import_xml():
                 save_both_formats(filename=package_name, eml_node=eml_node)
                 current_user.set_filename(filename=package_name)
                 if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
+                    log_info(f"unknown_nodes={unknown_nodes}  attr_errs={attr_errs}  child_errs={child_errs}")
+                    log_info(f"other_errs={other_errs}  pruned_nodes={pruned_nodes}  package_name={package_name}")
                     return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
                                             child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
                                             filename=package_name))
@@ -1902,9 +1904,7 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
     # Process GET
     form.md5.data = form_md5(form)
     help = get_helps(['import_package_2'])  # FIXME
-    return render_template('import_xml_3.html', unknown_nodes=unknown_nodes, attr_errs=attr_errs,
-                           child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
-                           err_desc=err_desc, err_text=err_text, form=form, help=help)
+    return render_template('import_xml_3.html', err_desc=err_desc, err_text=err_text, form=form, help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])

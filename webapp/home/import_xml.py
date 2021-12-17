@@ -115,7 +115,7 @@ def parse_xml_file(filename, filepath):
         print(f'{filename} - {eml_version}: ', end='')
         try:
             pruned = validate.prune(eml, strict=True)
-            for x in pruned:
+            for x, _ in pruned:
                 pruned_nodes.add(x.name)
             pruned_nodes = sorted(pruned_nodes)
             unknown_nodes, attr_errs, child_errs, other_errs = extract_eml_errors(errs)

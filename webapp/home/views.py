@@ -30,7 +30,8 @@ from zipfile import ZipFile
 
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, session, Markup
+    Blueprint, flash, render_template, redirect, request, url_for,
+    session, Markup
 )
 
 from flask_login import (
@@ -81,6 +82,8 @@ from webapp.home.forms import form_md5
 
 from webapp.buttons import *
 from webapp.pages import *
+
+# from webapp.home.url_fixup import url_for
 
 from metapype.eml import names
 from metapype.model import mp_io
@@ -1800,14 +1803,10 @@ def import_xml():
                 save_both_formats(filename=package_name, eml_node=eml_node)
                 current_user.set_filename(filename=package_name)
                 if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
-                    log_info(f"1: unknown_nodes={unknown_nodes}  attr_errs={attr_errs}  child_errs={child_errs}")
-                    log_info(f"other_errs={other_errs}  pruned_nodes={pruned_nodes}  package_name={package_name}")
-                    log_info(
-                        f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=1, attr_errs=2, child_errs=3, other_errs=4, pruned_nodes=5, filename=package_name)}")
-                    log_info(
-                        f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs, child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes, filename=package_name)}")
-                    return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
-                                            child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
+                    # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
+                    #  string representations.
+                    return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=repr(unknown_nodes), attr_errs=repr(attr_errs),
+                                            child_errs=repr(child_errs), other_errs=repr(other_errs), pruned_nodes=repr(pruned_nodes),
                                             filename=package_name))
                 else:
                     return redirect(url_for(PAGE_TITLE, filename=package_name))
@@ -1847,14 +1846,13 @@ def import_xml_2(package_name, filename):
             save_both_formats(filename=package_name, eml_node=eml_node)
             current_user.set_filename(filename=package_name)
             if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
-                log_info(f"2: unknown_nodes={unknown_nodes}  attr_errs={attr_errs}  child_errs={child_errs}")
-                log_info(f"other_errs={other_errs}  pruned_nodes={pruned_nodes}  package_name={package_name}")
-                log_info(f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=1, attr_errs=2, child_errs=3, other_errs=4, pruned_nodes=5, filename=package_name)}")
-                log_info(f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=[], attr_errs=[], child_errs=[], other_errs=4, pruned_nodes=5, filename=package_name)}")
-                log_info(f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs, child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes, filename=package_name)}")
-                return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
-                                        child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,
+                # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
+                #  string representations.
+                return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=repr(unknown_nodes), attr_errs=repr(attr_errs),
+                                        child_errs=repr(child_errs), other_errs=repr(other_errs),
+                                        pruned_nodes=repr(pruned_nodes),
                                         filename=package_name))
+
             else:
                 flash(f"{package_name} was imported without errors")
                 return redirect(url_for(PAGE_TITLE, filename=package_name))

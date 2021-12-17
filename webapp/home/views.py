@@ -1850,6 +1850,7 @@ def import_xml_2(package_name, filename):
                 log_info(f"2: unknown_nodes={unknown_nodes}  attr_errs={attr_errs}  child_errs={child_errs}")
                 log_info(f"other_errs={other_errs}  pruned_nodes={pruned_nodes}  package_name={package_name}")
                 log_info(f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=1, attr_errs=2, child_errs=3, other_errs=4, pruned_nodes=5, filename=package_name)}")
+                log_info(f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=[], attr_errs=[], child_errs=[], other_errs=4, pruned_nodes=5, filename=package_name)}")
                 log_info(f"{url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs, child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes, filename=package_name)}")
                 return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=unknown_nodes, attr_errs=attr_errs,
                                         child_errs=child_errs, other_errs=other_errs, pruned_nodes=pruned_nodes,

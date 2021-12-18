@@ -233,7 +233,7 @@ Citations generally list creator names in the order given in the EML metadata.
 --------------------
 data_package_id
 Data Package ID
-EML requires a data package to have a <b>Data Package ID</b>, but if your data package is going to be submitted to EDI's data repository by using <b>Submit to EDI</b>, you can leave the Data Package ID blank. Our data curators will supply an ID when they receive your data package.
+EML requires a data package to have a <b>Data Package ID</b>, but if your data package is going to be submitted to EDI's data repository by using <b>Send to EDI</b>, you can leave the Data Package ID blank. Our data curators will supply an ID when they receive your data package.
 
 In the event that you've already obtained a Data Package ID (e.g., from an LTER site information manager), however, go ahead and enter it here.
 
@@ -337,7 +337,7 @@ When you have entered all required metadata and uploaded all associated data fil
 
 <b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for downloading the archive, which you can share with collaborators, for example.
 
-To submit the data package to the EDI data repository, you can go directly to <b><a href="edit/home.submit_package">Submit to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission.
+To submit the data package to the EDI data repository, you can go directly to <b><a href="edit/home.submit_package">Send to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission.
 --------------------
 funder_identifiers
 Funder Identifier(s)
@@ -419,7 +419,7 @@ import_package
 Import an ezEML Data Package
 <b>Import an ezEML Data Package</b> lets you import a data package archive file that was exported from ezEML (see <b>Export ezEML Data Package</b>).
 
-The data package archive file may have been sent to you by a collaborator, for example. Alternatively, you may have submitted a data package to EDI (see <b>Submit to EDI</b>), and EDI's data curators may have found it necessary to make corrections or other changes to your data package. In that case, EDI's data curators will send you an updated data package archive file so you can import it and keep your ezEML account up to date.
+The data package archive file may have been sent to you by a collaborator, for example. Alternatively, you may have submitted a data package to EDI (see <b>Send to EDI</b>), and EDI's data curators may have found it necessary to make corrections or other changes to your data package. In that case, EDI's data curators will send you an updated data package archive file so you can import it and keep your ezEML account up to date.
 --------------------
 import_package_2
 Import an ezEML Data Package

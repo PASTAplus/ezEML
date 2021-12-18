@@ -479,6 +479,34 @@ Templates are organized in a folder structure defined by their creators. To expa
 
 See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf" target="_ezeml_user_guide">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 --------------------
+import_xml
+Import an EML XML File
+Use <b>Import an EML XML File</b> to read an EML <i>XML</i> file (as opposed to a data package exported from ezEML) into ezEML. You may, for example, wish to use ezEML to create a revision of an existing EML XML file that was created outside of ezEML.
+
+ezEML supports only a subset of the EML metadata standard, so an EML XML file that was created outside of ezEML may contain some EML features (EML nodes) that ezEML is unable to process. When such a file is imported into ezEML, the resulting metadata will be incomplete, but it may still be useful. ezEML will list any errors it encounters, and it will "prune" the metadata, removing nodes it considers invalid in order to make the resulting metadata valid for processing within ezEML.
+
+To start the process, click <b>Choose File</b>, select the EML XML file you wish to import, then click <b>Import</b>.
+--------------------
+import_xml_2
+Import an EML XML File
+When you import an EML XML File, the ezEML EML document that is created is given the same name as the XML file, minus the ".xml" file extension.
+
+You may already have an EML document by that name in your ezEML account. In such cases, ezEML gives you the option of replacing the existing document or creating a copy. In the latter case, ezEML appends "_COPY", "_COPY2", or "_COPY3", etc., to the name to create a name that is unique in your ezEML account.
+--------------------
+import_xml_3
+Import an EML XML File
+ezEML supports only a subset of the EML metadata standard, so an EML XML file that was created outside of ezEML may contain some EML features (EML "nodes") that ezEML is unable to process. When such a file is imported into ezEML, the resulting metadata will be incomplete, but it may still be useful. ezEML lists any errors it has encountered, and it "prunes" the metadata, removing nodes it considers invalid in order to make the resulting metadata valid for processing within ezEML.
+
+Note that what ezEML considers "errors" may not actually be errors from the perspective of the EML metadata standard. The XML may be valid EML, but if it was created outside of ezEML it may contain EML features that ezEML cannot process.
+
+There are various kinds of such "errors".
+
+The XML document may use some EML tags that are unknown to ezEML. Some examples include changeDate, changeHistory, changeScope, gRing, and datasetGPolygon. Some EML tags (nodes) may incorporate attributes that ezEML is unable to process. Some nodes may have "child" nodes that ezEML doesn't understand. And various other kinds of errors may be encountered (e.g., an empty node where ezEML requires a non-empty string).
+
+When nodes are encountered that are invalid from ezEML's perspective, they are removed ("pruned") from the metadata model created in ezEML. The "parent" of a removed node may then become invalid if the removed child was a required node, and so on. ezEML prunes nodes as needed to arrive at a metadata model that satisfies its internal rules for the subset of the EML standard it supports.
+
+All such errors and subsequent pruning are listed so you can decide if the model will still be useful for your purposes. To make it easy for you to make a record of the errors, the <b>Copy Errors to Clipboard</b> button is provided. Click it to copy the error list to the system clipboard, then paste it into a text document to save it. Click <b>Continue</b> to go to the <b>Title</b> page to begin editing the ezEML document as you see fit.
+--------------------
 intellectual_rights
 Intellectual Rights
 Intellectual rights are controlled at the source, however it is recommended that data be released with as few restrictions as possible.

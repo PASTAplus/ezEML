@@ -1814,7 +1814,7 @@ def import_xml():
                 raise Exception  # TODO: Error handling
 
     # Process GET
-    help = get_helps(['import_package'])  # FIXME
+    help = get_helps(['import_xml'])
     return render_template('import_xml.html', title='Import an XML File (XML)',
                            form=form, help=help)
 
@@ -1860,7 +1860,7 @@ def import_xml_2(package_name, filename):
             raise Exception  # TODO: Error handling
 
     # Process GET
-    help = get_helps(['import_package_2'])  # FIXME
+    help = get_helps(['import_xml_2'])
     return render_template('import_xml_2.html', title='Import an EML XML File',
                            package_name=package_name, form=form, help=help)
 
@@ -1908,7 +1908,7 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
 
     # Process GET
     form.md5.data = form_md5(form)
-    help = get_helps(['import_package_2'])  # FIXME
+    help = get_helps(['import_xml_3'])
     return render_template('import_xml_3.html', err_desc=err_desc, err_text=err_text, form=form, help=help)
 
 
@@ -2325,7 +2325,7 @@ def reupload_other_entity(filename, node_id):
     if request.method == 'POST':
         return redirect(url_for(PAGE_LOAD_OTHER_ENTITY, node_id=node_id), code=307) # 307 keeps it a POST
 
-    help = get_helps(['data_table_reupload_full']) # FIXME
+    help = get_helps(['other_entity_reupload'])
     return render_template('reupload_other_entity.html', title='Re-upload Other Entity',
                            form=form, name=other_entity_name, help=help)
 

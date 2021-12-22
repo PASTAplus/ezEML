@@ -1348,7 +1348,21 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, d
     return msg
 
 
-def insert_urls(uploads_url_prefix, eml_node, node_type):
+def keep_existing_url(distribution_node, uploads_folder):
+    # If a distribution node exists, check to see if there's a URL and, if so, whether it points to a different
+    #  user's account or a different package. The case we want to guard against is one where we've imported a
+    #  "without data" ezEML Data Package and all we're doing is modifying the EML (e.g., changing the data package ID)
+    #  before uploading to PASTA. In such a case, we want to leave existing distribution nodes as we've found them, so
+    #  they will point to the original user's ezEML account and package.
+    url_node = distribution_node.find_descendant(names.URL)
+    if url_node:
+        url = url_node.content
+        if uploads_folder.replace(' ', '%20') not in url:
+            return True
+    return False
+
+
+def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
     upload_nodes = []
     eml_node.find_all_descendants(node_type, upload_nodes)
     for upload_node in upload_nodes:
@@ -1358,6 +1372,8 @@ def insert_urls(uploads_url_prefix, eml_node, node_type):
             object_name = object_name_node.content
             distribution_node = physical_node.find_child(names.DISTRIBUTION)
             if distribution_node:
+                if keep_existing_url(distribution_node, uploads_folder):
+                    return
                 physical_node.remove_child(distribution_node)
             distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
             online_node = new_child_node(names.ONLINE, distribution_node)
@@ -1376,8 +1392,8 @@ def insert_upload_urls(current_document, eml_node):
     parsed_url = urlparse(request.base_url)
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{uploads_folder}"
 
-    insert_urls(uploads_url_prefix, eml_node, names.DATATABLE)
-    insert_urls(uploads_url_prefix, eml_node, names.OTHERENTITY)
+    insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.DATATABLE)
+    insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.OTHERENTITY)
 
 
 @home.route('/submit_package', methods=['GET', 'POST'])

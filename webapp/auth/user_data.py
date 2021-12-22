@@ -248,6 +248,10 @@ def download_eml(filename:str=''):
         filename_xml = f'{filename}.xml'
         pathname = f'{user_folder}/{filename_xml}'
         if os.path.exists(pathname):
+            # If we have a PID, we use that for the EML filename. The idea is that an ezEML EML document can be
+            #   created under a filename that differs from the data package id, but then when a data package id is
+            #   set later on, if the user downloads the EML file they'll want it named using the PID, like it would
+            #   be in the data repository.
             package_id = get_active_packageid()
             if package_id:
                 filename_xml = f'{package_id}.xml'

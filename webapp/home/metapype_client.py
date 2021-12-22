@@ -954,6 +954,15 @@ def from_json(filename):
     return eml_node
 
 
+def save_package_id(eml_node):
+    # There are various ways of opening a new package, and we want to ensure that no matter what path we took,
+    #   the package ID is updated in the current user.
+    if eml_node:
+        data_package_id = eml_node.attribute_value('packageId')
+        if data_package_id:
+            user_data.set_active_packageid(data_package_id)
+
+
 def load_eml(filename:str=None):
     eml_node = None
     user_folder = user_data.get_user_folder_name()
@@ -965,6 +974,7 @@ def load_eml(filename:str=None):
 
     if eml_node:
         get_check_metadata_status(eml_node, filename)
+        save_package_id(eml_node)
     return eml_node
 
 

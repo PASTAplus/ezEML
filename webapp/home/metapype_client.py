@@ -61,7 +61,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2021.12.22'
+RELEASE_NUMBER = '2022.01.05'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -154,9 +154,10 @@ def list_files_in_dir(dirpath):
 def post_process_text_type_node(text_node:Node=None):
     if not text_node:
         return
-    text_node.children = []
     content = remove_paragraph_tags(text_node.content)
     if content:
+        # If we have content, we're saving a node that's been modified. We remake the children.
+        text_node.children = []
         paras = [content] if '\n' not in content else content.split('\n')
         for para in paras:
             para_node = new_child_node(names.PARA, text_node)
@@ -1843,7 +1844,7 @@ def create_abstract(filename:str=None, abstract:str=None):
         dataset_node = new_child_node(names.DATASET, parent=eml_node)
         abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
 
-    abstract_node.content = add_paragraph_tags(abstract)
+    abstract_node.content = abstract
     post_process_text_type_node(abstract_node)
 
     try:
@@ -1877,6 +1878,8 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
         if dataset_node:
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
             description_node = add_node(maintenance_node, names.DESCRIPTION, description)
+            post_process_text_type_node(description_node)
+
             if update_frequency:
                 update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
 
@@ -1901,6 +1904,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
             abstract_node = new_child_node(names.ABSTRACT, parent=project_node)
         if abstract:
             abstract_node.content = abstract
+            post_process_text_type_node(abstract_node)
         else:
             project_node.remove_child(abstract_node)
 
@@ -1929,6 +1933,7 @@ def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=
             abstract_node = new_child_node(names.ABSTRACT, parent=related_project_node)
         if abstract:
             abstract_node.content = abstract
+            post_process_text_type_node(abstract_node)
         else:
             related_project_node.remove_child(abstract_node)
         return related_project_node
@@ -2493,7 +2498,7 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
             description = f"{description}\n{data_sources_marker_begin}\n{data_sources}\n{data_sources_marker_end}"
 
         if description:
-            description_node.content = add_paragraph_tags(description)
+            description_node.content = description
             post_process_text_type_node(description_node)
 
         if instrumentation:

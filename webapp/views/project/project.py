@@ -7,10 +7,10 @@ from flask import (
 from webapp.home.metapype_client import (
     add_child, create_project, create_related_project,
     remove_related_project, load_eml, save_both_formats,
-    add_paragraph_tags, remove_paragraph_tags,
     list_funding_awards, create_funding_award,
     remove_child, UP_ARROW, DOWN_ARROW,
     get_upval, get_downval,
+    display_text_type_node, post_process_text_type_node,
     handle_hidden_buttons, check_val_for_hidden_buttons
 )
 
@@ -72,13 +72,13 @@ def project(filename=None, project_node_id=None):
             new_page = PAGE_FUNDING_AWARD_SELECT
         elif BTN_RELATED_PROJECTS in request.form:
             new_page = PAGE_RELATED_PROJECT_SELECT
-            doing_related_project = True
+            # doing_related_project = True
         else:
             new_page = handle_hidden_buttons(new_page, this_page)
 
         if save:
             title = form.title.data
-            abstract = add_paragraph_tags(form.abstract.data)
+            abstract = form.abstract.data
             # if not node_id:
             if not doing_related_project:
                 create_project(dataset_node, title, abstract)
@@ -130,20 +130,21 @@ def populate_project_form(form: ProjectForm, project_node: Node):
             title = title_node.content
 
         abstract_node = project_node.find_child(names.ABSTRACT)
-        if abstract_node:
-            abstract = abstract_node.content
-            if not abstract:
-                para_node = abstract_node.find_child(names.PARA)
-                if para_node:
-                    abstract = para_node.content
-                else:
-                    section_node = abstract_node.find_child(names.SECTION)
-                    if section_node:
-                        abstract = section_node.content
-            abstract = abstract
+        post_process_text_type_node(abstract_node)
+        # if abstract_node:
+        #     abstract = abstract_node.content
+        #     if not abstract:
+        #         para_node = abstract_node.find_child(names.PARA)
+        #         if para_node:
+        #             abstract = para_node.content
+        #         else:
+        #             section_node = abstract_node.find_child(names.SECTION)
+        #             if section_node:
+        #                 abstract = section_node.content
+        #     abstract = abstract
 
         form.title.data = title
-        form.abstract.data = remove_paragraph_tags(abstract)
+        form.abstract.data = display_text_type_node(abstract_node)
     form.md5.data = form_md5(form)
 
 

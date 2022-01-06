@@ -6,7 +6,8 @@ from webapp.home.metapype_client import (
     add_child, create_maintenance,
     load_eml, save_both_formats,
     add_paragraph_tags, remove_paragraph_tags,
-    handle_hidden_buttons, check_val_for_hidden_buttons
+    handle_hidden_buttons,
+    post_process_text_type_node, display_text_type_node
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -48,9 +49,8 @@ def maintenance(filename=None):
         # flash(f'save: {save}')
 
         if save:
-            description = add_paragraph_tags(form.description.data)
             update_frequency = form.update_frequency.data
-            create_maintenance(dataset_node, description, update_frequency)
+            create_maintenance(dataset_node, form.description.data, update_frequency)
             save_both_formats(filename=filename, eml_node=eml_node)
 
         form_value = request.form
@@ -90,7 +90,7 @@ def populate_maintenance_form(form: MaintenanceForm, maintenance_node: Node):
     if maintenance_node:
         description_node = maintenance_node.find_child(names.DESCRIPTION)
         if description_node:
-            description = remove_paragraph_tags(description_node.content)
+            description = display_text_type_node(description_node)
 
         update_frequency_node = maintenance_node.find_child(names.MAINTENANCEUPDATEFREQUENCY)
         if update_frequency_node:

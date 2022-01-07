@@ -20,9 +20,13 @@
                 <td valign="bottom" width="45%">{{ wtf.form_field(form.lter_keyword_select) }}</td>
                 </table>
                 <br/>
+                <table border="0">
+                <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword_thesaurus, size="100") }}</td>
+                <td width="2%"></td>
                 <span style="color:{{ optional }};">
-                {{ wtf.form_field(form.keyword_type) }}
+                <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword_type) }}</td>
                 </span>
+                </table>
                 <br/>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
@@ -47,16 +51,23 @@
         $('#lter_keyword_select').on('change', function() {
             let selected = $('#lter_keyword_select').val();
             $('#keyword').val(selected);
+            $('#keyword_thesaurus').val('LTER Controlled Vocabulary')
         });
         $('#keyword').on('input', function() {
             $('#lter_keyword_select').val("");
         });
 
         $('#keyword').on('input', function() {
+            if ($('#keyword_thesaurus').val() == 'LTER Controlled Vocabulary') {
+                $('#keyword_thesaurus').val('')
+            }
             $('#lter_keyword_select').val("");
             $('#lter_keyword_select option').each(function() {
                 if (this.value == $('#keyword').val()) {
                     $('#lter_keyword_select').val(this.value);
+                    if ($('#keyword_thesaurus').val() == '') {
+                        $('#keyword_thesaurus').val('LTER Controlled Vocabulary')
+                    }
                     return;
                 }
             })

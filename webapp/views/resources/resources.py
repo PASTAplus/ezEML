@@ -1,9 +1,13 @@
+import daiquiri
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for
+    Blueprint, flash, render_template, redirect, request, url_for, session
+)
+from flask_login import (
+    current_user, login_required
 )
 
 from webapp.auth.user_data import (
-    is_first_usage, set_active_packageid
+    is_first_usage, set_active_packageid, get_user_folder_name
 )
 
 from webapp.home.metapype_client import (
@@ -39,12 +43,22 @@ from webapp.home.intellectual_rights import (
 
 from webapp.home.views import set_current_page, get_keywords
 
+logger = daiquiri.getLogger('views: ' + __name__)
 res_bp = Blueprint('res', __name__, template_folder='templates')
 
 
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 def title(filename=None):
+    # from webapp.home.retrieve_from_edi import test_retrieve_from_edi
+    # user_path = get_user_folder_name()
+    # pid = 'edi.501.1'
+    # pid = 'knb-lter-nin.1.1'
+    # test_retrieve_from_edi(user_path, pid)
+
     form = TitleForm()
+
+    # logger.info(f"Logged in user:'{current_user.get_username()}'")
+    # logger.info(f"Privileged users:{session['privileged_logins']}")
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
@@ -275,16 +289,21 @@ def intellectual_rights(filename=None):
                            filename=filename, form=form, help=help)
 
 
-def populate_keyword_form(form: KeywordForm, kw_node: Node):
+def populate_keyword_form(form: KeywordForm, kw_node: Node, keyword_thesaurus_node: Node):
     keyword = ''
     keyword_type = ''
+    keyword_thesaurus = ''
 
     if kw_node:
         keyword = kw_node.content if kw_node.content else ''
         kw_type = kw_node.attribute_value('keywordType')
         keyword_type = kw_type if kw_type else ''
 
+    if keyword_thesaurus_node:
+        keyword_thesaurus = keyword_thesaurus_node.content
+
     form.keyword.data = keyword
+    form.keyword_thesaurus.data = keyword_thesaurus
     form.keyword_type.data = keyword_type
     form.md5.data = form_md5(form)
 
@@ -419,12 +438,13 @@ def keyword(filename=None, node_id=None):
         if submit_type == 'Save Changes':
             keyword = form.keyword.data
             keyword_type = form.keyword_type.data
+            keyword_thesaurus = form.keyword_thesaurus.data
 
-            # Does the keyword belong to a keywordSet with a thesaurus?
-            keyword_thesaurus = None
-            lter_keywords = get_keywords('LTER')
-            if keyword in lter_keywords:
-                keyword_thesaurus = 'LTER Controlled Vocabulary'
+            # If so thesaurus was specified, see if the LTER Controlled Vocabulary applies
+            if not keyword_thesaurus:
+                lter_keywords = get_keywords('LTER')
+                if keyword in lter_keywords:
+                    keyword_thesaurus = 'LTER Controlled Vocabulary'
 
             keyword_set_nodes = []
             eml_node.find_all_descendants(names.KEYWORDSET, keyword_set_nodes)
@@ -476,10 +496,11 @@ def keyword(filename=None, node_id=None):
         found = False
         for keyword_set_node in keyword_set_nodes:
             keyword_nodes = keyword_set_node.find_all_children(names.KEYWORD)
+            keyword_thesaurus_node = keyword_set_node.find_child(names.KEYWORDTHESAURUS)
             if keyword_nodes:
                 for kw_node in keyword_nodes:
                     if node_id == kw_node.id:
-                        populate_keyword_form(form, kw_node)
+                        populate_keyword_form(form, kw_node, keyword_thesaurus_node)
                         found = True
                         break
             if found:

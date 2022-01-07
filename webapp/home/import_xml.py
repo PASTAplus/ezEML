@@ -10,6 +10,16 @@ from metapype.eml.validation_errors import ValidationError
 import webapp.auth.user_data as user_data
 
 from webapp.home.metapype_client import list_files_in_dir
+import daiquiri
+from flask import Flask, current_app
+
+logger = daiquiri.getLogger('views: ' + __name__)
+
+
+def log_info(msg):
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.info(msg)
 
 
 def extract_eml_errors(errs):
@@ -89,6 +99,7 @@ def save_xml_file(file):
 
 
 def parse_xml_file(filename, filepath):
+    log_info(f"parse_xml_file: {filename}")
     eml_version = ''
     with open(filepath, "r") as f:
         lines = f.readlines()
@@ -110,6 +121,7 @@ def parse_xml_file(filename, filepath):
         validate.tree(eml, errs)
         validate.tree(eml)
         print(f'{filename} - {eml_version}: valid')
+        log_info(f'{filename} - {eml_version}: valid')
 #         return None
     except Exception as e:
         print(f'{filename} - {eml_version}: ', end='')
@@ -121,14 +133,19 @@ def parse_xml_file(filename, filepath):
             unknown_nodes, attr_errs, child_errs, other_errs = extract_eml_errors(errs)
             if unknown_nodes:
                 print(f"Unknown nodes: {unknown_nodes}")
+                log_info(f"Unknown nodes: {unknown_nodes}")
             if attr_errs:
                 print(f"Attribute errors: {attr_errs}")
+                log_info(f"Attribute errors: {attr_errs}")
             if child_errs:
                 print(f"Child errors: {child_errs}")
+                log_info(f"Child errors: {child_errs}")
             if other_errs:
                 print(f"Other errors: {other_errs}")
+                log_info(f"Other errors: {other_errs}")
             if pruned:
                 print(f"Pruned nodes: {pruned_nodes}")
+                log_info(f"Pruned nodes: {pruned_nodes}")
             else:
                 err_set = set()
                 for err in errs:
@@ -136,6 +153,7 @@ def parse_xml_file(filename, filepath):
                 print('***', sorted(err_set))
         except Exception as e:
             print(f'validate.prune FAILED: {e}')
+            log_info(f'validate.prune FAILED: {e}')
     return eml, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes
 
 

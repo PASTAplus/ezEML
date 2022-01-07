@@ -331,8 +331,8 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     quote_character_node.content = quote_char
 
     if file_size == 0:
-        raise DataTableError("File is empty.")
-    
+        raise DataTableError("The CSV file is empty.")
+
     with open(full_path) as file:
         next(file)
         line_terminator = repr(file.newlines).replace("'", "")

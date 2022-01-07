@@ -126,7 +126,7 @@ def parse_xml_file(filename, filepath):
     except Exception as e:
         print(f'{filename} - {eml_version}: ', end='')
         try:
-            pruned = validate.prune(eml, strict=True)
+            pruned = validate.prune(eml, strict=False)
             for x, _ in pruned:
                 pruned_nodes.add(x.name)
             pruned_nodes = sorted(pruned_nodes)

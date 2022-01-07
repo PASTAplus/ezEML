@@ -29,7 +29,7 @@ import webapp.home.metapype_client as metapype_client
 
 from webapp.home.exceptions import DataTableError
 
-from flask import Flask, current_app
+from flask import Flask, current_app, flash
 
 from webapp.config import Config
 
@@ -330,6 +330,9 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     metapype_client.add_child(simple_delimited_node, quote_character_node)
     quote_character_node.content = quote_char
 
+    if file_size == 0:
+        raise DataTableError("File is empty.")
+    
     with open(full_path) as file:
         next(file)
         line_terminator = repr(file.newlines).replace("'", "")
@@ -338,7 +341,10 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     record_delimiter_node.content = line_terminator
 
     log_info('pd.read_csv')
-    data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
+    try:
+        data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
+    except pd.errors.ParserError as e:
+        raise DataTableError(e.args[0])
 
     column_vartypes = []
     column_names = []

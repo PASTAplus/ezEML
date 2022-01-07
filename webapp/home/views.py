@@ -1825,6 +1825,7 @@ def import_xml():
                                             child_errs=repr(child_errs), other_errs=repr(other_errs), pruned_nodes=repr(pruned_nodes),
                                             filename=package_name))
                 else:
+                    flash(f"{package_name} was imported without errors")
                     return redirect(url_for(PAGE_TITLE, filename=package_name))
             else:
                 raise Exception  # TODO: Error handling
@@ -1881,8 +1882,7 @@ def import_xml_2(package_name, filename):
                            package_name=package_name, form=form, help=help)
 
 
-def display_list(err_desc, err_text, ll_str, explanation):
-    ll = ast.literal_eval(ll_str)
+def display_list(err_desc, err_text, ll, explanation):
     if ll:
         err_desc += f"{explanation}<ul>"
         err_text += f"{explanation}\n"
@@ -1899,13 +1899,43 @@ def construct_xml_error_descriptions(unknown_nodes=None, attr_errs=None, child_e
     err_desc = ''
     err_text = ''
 
-    err_desc, err_text = display_list(err_desc, err_text, unknown_nodes, "The following node types are unknown to ezEML:")
-    err_desc, err_text = display_list(err_desc, err_text, attr_errs, "The following errors involving node attributes have been detected:")
-    err_desc, err_text = display_list(err_desc, err_text, child_errs, "The following errors involving child nodes have been detected:")
-    err_desc, err_text = display_list(err_desc, err_text, pruned_nodes, "The following types of nodes have been pruned from the model, " \
-                                           "either because they are themselves in error " \
-                                           "or because they have descendant nodes that are in error:")
-    err_desc, err_text = display_list(err_desc, err_text, other_errs, "The following additional errors have been detected:")
+    unknown_nodes = ast.literal_eval(unknown_nodes)
+    attr_errs = ast.literal_eval(attr_errs)
+    child_errs = ast.literal_eval(child_errs)
+    other_errs = ast.literal_eval(other_errs)
+    pruned_nodes = ast.literal_eval(pruned_nodes)
+
+    excluded_nodes = set(unknown_nodes)
+
+    err_desc, err_text = display_list(err_desc, err_text, unknown_nodes,
+        "The following EML elements are unknown to ezEML, so they have been excluded:")
+
+    processed_child_errs = []
+    for err in child_errs:
+        _, child_name, _, parent_name, *_ = err.split("'")
+        if child_name not in unknown_nodes:
+            excluded_nodes.add(child_name)
+            processed_child_errs.append(f"{child_name} within {parent_name}")
+
+    err_desc, err_text = display_list(err_desc, err_text, processed_child_errs,
+        "The following EML elements occur in unexpected locations in the EML, so they have been excluded:")
+
+    # err_desc, err_text = display_list(err_desc, err_text, attr_errs, "The following errors involving node attributes have been detected:")
+
+    pruned_nodes = sorted(list(set(pruned_nodes) - excluded_nodes))
+    excluded_nodes = excluded_nodes | set(pruned_nodes)
+
+    err_desc, err_text = display_list(err_desc, err_text, pruned_nodes,
+        f"The following EML elements been excluded because of errors:")
+
+    insert1 = ' '
+    insert2 = ' errors have'
+    if len(excluded_nodes) > 1:
+        insert1 = 'additional'
+    if len(other_errs) == 1:
+        insert2 = ' error has'
+    err_desc, err_text = display_list(err_desc, err_text, other_errs,
+        f"The following {insert1}{insert2} been detected:")
     return err_desc, err_text
 
 

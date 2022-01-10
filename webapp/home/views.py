@@ -1882,21 +1882,34 @@ def import_xml_2(package_name, filename):
                            package_name=package_name, form=form, help=help)
 
 
-def display_list(err_desc, err_text, ll, explanation):
+def display_list(err_html, err_text, ll, explanation):
     if ll:
-        err_desc += f"{explanation}<ul>"
+        err_html += f"{explanation}<ul>"
         err_text += f"{explanation}\n"
         for node in ll:
-            err_desc += f"<li>{node}"
+            err_html += f"<li>{node}"
             err_text += f"   • {node}\n"
-        err_desc += "</ul><p>"
+        err_html += "</ul><p>"
         err_text += "\n"
-    return err_desc, err_text
+    return err_html, err_text
 
 
-def construct_xml_error_descriptions(unknown_nodes=None, attr_errs=None, child_errs=None,
+def process_other_errors(filename, other_errs):
+    eml_node = load_eml(filename=filename)
+    processed_errs = []
+    for err in other_errs:
+        if "content should not be empty" in err:
+            _, node_name, _ = err.split('"')
+            nodes = []
+            eml_node.find_all_descendants(node_name, nodes)
+            for node in nodes:
+                pass
+    pass
+
+
+def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_errs=None, child_errs=None,
                                     other_errs=None, pruned_nodes=None):
-    err_desc = ''
+    err_html = ''
     err_text = ''
 
     unknown_nodes = ast.literal_eval(unknown_nodes)
@@ -1907,8 +1920,8 @@ def construct_xml_error_descriptions(unknown_nodes=None, attr_errs=None, child_e
 
     excluded_nodes = set(unknown_nodes)
 
-    err_desc, err_text = display_list(err_desc, err_text, unknown_nodes,
-        "The following EML elements are unknown to ezEML, so they have been excluded:")
+    err_html, err_text = display_list(err_html, err_text, unknown_nodes,
+        "The following EML element types are unknown to ezEML, so they have been omitted:")
 
     processed_child_errs = []
     for err in child_errs:
@@ -1917,16 +1930,16 @@ def construct_xml_error_descriptions(unknown_nodes=None, attr_errs=None, child_e
             excluded_nodes.add(child_name)
             processed_child_errs.append(f"{child_name} within {parent_name}")
 
-    err_desc, err_text = display_list(err_desc, err_text, processed_child_errs,
-        "The following EML elements occur in unexpected locations in the EML, so they have been excluded:")
+    err_html, err_text = display_list(err_html, err_text, processed_child_errs,
+        "The following EML elements occur in unexpected locations in the EML, so they have been omitted:")
 
-    # err_desc, err_text = display_list(err_desc, err_text, attr_errs, "The following errors involving node attributes have been detected:")
+    # err_html, err_text = display_list(err_html, err_text, attr_errs, "The following errors involving node attributes have been detected:")
 
     pruned_nodes = sorted(list(set(pruned_nodes) - excluded_nodes))
     excluded_nodes = excluded_nodes | set(pruned_nodes)
 
-    err_desc, err_text = display_list(err_desc, err_text, pruned_nodes,
-        f"The following EML elements been excluded because of errors:")
+    err_html, err_text = display_list(err_html, err_text, pruned_nodes,
+        f"The following EML elements been omitted because of errors:")
 
     insert1 = ' '
     insert2 = ' errors have'
@@ -1934,9 +1947,15 @@ def construct_xml_error_descriptions(unknown_nodes=None, attr_errs=None, child_e
         insert1 = 'additional'
     if len(other_errs) == 1:
         insert2 = ' error has'
-    err_desc, err_text = display_list(err_desc, err_text, other_errs,
+    err_html, err_text = display_list(err_html, err_text, other_errs,
         f"The following {insert1}{insert2} been detected:")
-    return err_desc, err_text
+
+    err_heading = ""
+    if len(excluded_nodes) > 0:
+        err_heading = "<br>ezEML does not cover the complete EML standard. It imports as much of the EML " \
+                      "as possible, but in this case it had to omit some EML elements. Details follow:<p><br>"
+
+    return err_html, err_text, err_heading
 
 
 @home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>', methods=['GET', 'POST'])
@@ -1946,7 +1965,8 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
 
     form = EDIForm()
 
-    err_desc, err_text = construct_xml_error_descriptions(unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes)
+    err_html, err_text, err_heading = construct_xml_error_descriptions(filename, unknown_nodes, attr_errs,
+                                                                       child_errs, other_errs, pruned_nodes)
 
     # Process POST
     if request.method == 'POST':
@@ -1955,7 +1975,8 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
     # Process GET
     form.md5.data = form_md5(form)
     help = get_helps(['import_xml_3'])
-    return render_template('import_xml_3.html', err_desc=err_desc, err_text=err_text, form=form, help=help)
+    return render_template('import_xml_3.html', err_html=err_html, err_text=err_text, err_heading=err_heading,
+                           form=form, help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])

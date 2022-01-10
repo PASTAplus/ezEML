@@ -14,11 +14,8 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 {{ form.csrf_token }}
-                <br>
-            The XML file contains nodes that ezEML is unable to process, so the metadata as imported
-            into ezEML is incomplete. Details of the errors are listed below.
-            <p><br>
-        {{ err_desc | safe }}
+        {{ err_heading | safe }}
+        {{ err_html | safe }}
 
                 <br>
                 <input class="btn btn-primary" style="width: 200px;" onclick="copy_to_clipboard();"

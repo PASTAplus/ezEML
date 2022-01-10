@@ -1895,16 +1895,16 @@ def display_list(err_html, err_text, ll, explanation):
 
 
 def process_other_errors(filename, other_errs):
-    eml_node = load_eml(filename=filename)
+    # eml_node = load_eml(filename=filename)
     processed_errs = []
     for err in other_errs:
-        if "content should not be empty" in err:
-            _, node_name, _ = err.split('"')
-            nodes = []
-            eml_node.find_all_descendants(node_name, nodes)
-            for node in nodes:
-                pass
-    pass
+        if "Minimum occurrence" in err:
+            # We suppress this kind of error because it presumably results from nodes being pruned, and such
+            #  nodes will be covered by other errors reported to the user. This "Minimum occurrence" error
+            #  would be cryptic.
+            continue
+        processed_errs.append(err)
+    return processed_errs
 
 
 def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_errs=None, child_errs=None,
@@ -1945,6 +1945,7 @@ def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_err
     insert2 = ' errors have'
     if len(excluded_nodes) > 1:
         insert1 = 'additional'
+    other_errs = process_other_errors(filename, other_errs)
     if len(other_errs) == 1:
         insert2 = ' error has'
     err_html, err_text = display_list(err_html, err_text, other_errs,

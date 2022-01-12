@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 import time
 
+import daiquiri
+
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -30,6 +32,7 @@ import webapp.home.metapype_client as metapype_client
 from webapp.home.exceptions import DataTableError
 
 from flask import Flask, current_app, flash
+from flask_login import current_user
 
 from webapp.config import Config
 
@@ -38,10 +41,27 @@ import webapp.auth.user_data as user_data
 MAX_ROWS_TO_CHECK = 10**5
 
 
+logger = daiquiri.getLogger('load_data_table: ' + __name__)
+
+
+def log_error(msg):
+    if current_user:
+        logger.error(msg, USER=current_user.get_username())
+    else:
+        logger.error(msg)
+
+
 def log_info(msg):
-    app = Flask(__name__)
-    with app.app_context():
-        current_app.logger.info(msg)
+    if current_user:
+        logger.info(msg, USER=current_user.get_username())
+    else:
+        logger.info(msg)
+
+
+# def log_info(msg):
+#     app = Flask(__name__)
+#     with app.app_context():
+#         current_app.logger.info(msg)
 
 
 def get_file_size(full_path:str=''):

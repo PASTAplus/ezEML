@@ -15,6 +15,8 @@ import logging
 import os
 
 import daiquiri
+import daiquiri.formatter
+
 from flask import Flask, session
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
@@ -23,14 +25,14 @@ from webapp.config import Config
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 logfile = cwd + '/metadata-eml.log'
-# daiquiri.setup(level=logging.INFO,
-#                outputs=(daiquiri.output.File(logfile), 'stdout',))
 daiquiri.setup(level=logging.INFO,
-               outputs=(daiquiri.output.File(logfile,
-                                             formatter=daiquiri.formatter.ColorFormatter(
-                                                fmt="%(asctime)s [PID %(process)d] [%(levelname)s] "
-                                                        "%(name)s -> %(message)s")), 'stdout',
-                        ))
+               outputs=[
+                   daiquiri.output.File(logfile,
+                                             formatter=daiquiri.formatter.ExtrasFormatter(
+                                                fmt=("%(asctime)s [PID %(process)d] [%(levelname)s]" +
+                                                     "%(extras)s %(name)s -> %(message)s"),
+                                                keywords=None)), 'stdout'
+                ])
 logger = daiquiri.getLogger(__name__)
 
 app = Flask(__name__)

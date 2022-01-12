@@ -99,10 +99,18 @@ help_dict = {}
 keywords = {}
 
 
+def log_error(msg):
+    if current_user:
+        logger.error(msg, USER=current_user.get_username())
+    else:
+        logger.error(msg)
+
+
 def log_info(msg):
-    app = Flask(__name__)
-    with app.app_context():
-        current_app.logger.info(msg)
+    if current_user:
+        logger.info(msg, USER=current_user.get_username())
+    else:
+        logger.info(msg)
 
 
 def non_breaking(_str):
@@ -138,6 +146,7 @@ def reload_metadata():
 def init_session_vars():
     session["check_metadata_status"] = "green"
     session["privileged_logins"] = Config.PRIVILEGED_LOGINS
+    log_info(f'Session init... privileged_logins={session["privileged_logins"]}')
 
 
 @home.before_app_first_request
@@ -247,7 +256,6 @@ def get_keywords(which):
 @home.before_app_request
 @home.before_app_first_request
 def init_help():
-    lines = []
     with open('webapp/static/help.txt') as help:
         lines = help.readlines()
     index = 0

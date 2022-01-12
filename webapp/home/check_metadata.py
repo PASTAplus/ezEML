@@ -40,15 +40,17 @@ logger = daiquiri.getLogger('check_metadata: ' + __name__)
 
 
 def log_error(msg):
-    app = Flask(__name__)
-    with app.app_context():
-        current_app.logger.error(msg)
+    if current_user:
+        logger.error(msg, USER=current_user.get_username())
+    else:
+        logger.error(msg)
 
 
 def log_info(msg):
-    app = Flask(__name__)
-    with app.app_context():
-        current_app.logger.info(msg)
+    if current_user:
+        logger.info(msg, USER=current_user.get_username())
+    else:
+        logger.info(msg)
 
 
 class EvalSeverity(Enum):

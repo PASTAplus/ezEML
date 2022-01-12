@@ -2,6 +2,9 @@
 import os
 import shutil
 
+import daiquiri
+from flask_login import current_user
+
 from metapype.eml import validate
 from metapype.model import metapype_io
 from metapype.model.node import Node
@@ -10,16 +13,22 @@ from metapype.eml.validation_errors import ValidationError
 import webapp.auth.user_data as user_data
 
 from webapp.home.metapype_client import list_files_in_dir
-import daiquiri
-from flask import Flask, current_app
 
 logger = daiquiri.getLogger('views: ' + __name__)
 
 
+def log_error(msg):
+    if current_user:
+        logger.error(msg, USER=current_user.get_username())
+    else:
+        logger.error(msg)
+
+
 def log_info(msg):
-    app = Flask(__name__)
-    with app.app_context():
-        current_app.logger.info(msg)
+    if current_user:
+        logger.info(msg, USER=current_user.get_username())
+    else:
+        logger.info(msg)
 
 
 def extract_eml_errors(errs):

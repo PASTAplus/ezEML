@@ -47,6 +47,20 @@ logger = daiquiri.getLogger('views: ' + __name__)
 res_bp = Blueprint('res', __name__, template_folder='templates')
 
 
+def log_error(msg):
+    if current_user:
+        logger.error(msg, USER=current_user.get_username())
+    else:
+        logger.error(msg)
+
+
+def log_info(msg):
+    if current_user:
+        logger.info(msg, USER=current_user.get_username())
+    else:
+        logger.info(msg)
+
+
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 def title(filename=None):
     # from webapp.home.retrieve_from_edi import test_retrieve_from_edi
@@ -57,8 +71,7 @@ def title(filename=None):
 
     form = TitleForm()
 
-    # logger.info(f"Logged in user:'{current_user.get_username()}'")
-    # logger.info(f"Privileged users:{session['privileged_logins']}")
+    log_info(f'Title... privileged_logins={session["privileged_logins"]}')
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():

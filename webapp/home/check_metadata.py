@@ -40,14 +40,14 @@ logger = daiquiri.getLogger('check_metadata: ' + __name__)
 
 
 def log_error(msg):
-    if current_user:
+    if current_user and hasattr(current_user, 'get_username'):
         logger.error(msg, USER=current_user.get_username())
     else:
         logger.error(msg)
 
 
 def log_info(msg):
-    if current_user:
+    if current_user and hasattr(current_user, 'get_username'):
         logger.info(msg, USER=current_user.get_username())
     else:
         logger.info(msg)

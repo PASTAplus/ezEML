@@ -71,8 +71,6 @@ def title(filename=None):
 
     form = TitleForm()
 
-    log_info(f'Title... privileged_logins={session["privileged_logins"]}')
-
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
         save = False

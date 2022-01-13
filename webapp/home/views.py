@@ -25,7 +25,7 @@ from pathlib import Path
 import pickle
 import requests
 from shutil import copyfile
-from urllib.parse import urlparse, quote
+from urllib.parse import urlencode, urlparse, quote
 from zipfile import ZipFile
 
 
@@ -1453,12 +1453,11 @@ def submit_package():
 
 
 def get_shortened_url(long_url):
-    # Note: full URL encoding via urllib.parse.quote causes hideuri to throw an error that URL is invalid.
-    #  So, we just encode blanks.
-    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': long_url.replace(' ', '%20')})
+    encoded_url = urlencode({'url':long_url})
+    r = requests.get(f'https://tinyurl.com/api-create.php?{encoded_url}')
     try:
         r.raise_for_status()
-        return r.json()['result_url']
+        return r.text
     except requests.exceptions.HTTPError as e:
         return long_url
 

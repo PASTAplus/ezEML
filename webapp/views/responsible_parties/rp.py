@@ -218,10 +218,12 @@ def responsible_party(filename=None, node_id=None, method=None,
             if node_name == names.PUBLISHER:
                 new_page = PAGE_PUBLICATION_INFO
 
-        if node_name != names.PUBLISHER:
-            return redirect(url_for(new_page, filename=filename, node_id=project_node_id))
-        else:
+        if node_name == names.PUBLISHER:
             return redirect(url)
+        elif new_page == PAGE_PROJECT_PERSONNEL_SELECT:
+            return redirect(url_for(new_page, filename=filename, project_node_id=project_node_id))
+        else:
+            return redirect(url_for(new_page, filename=filename, node_id=project_node_id))
 
     # Process GET
     if node_id == '1':

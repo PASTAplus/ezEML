@@ -57,7 +57,7 @@ def project(filename=None, project_node_id=None):
         if not doing_related_project:
             this_page = PAGE_PROJECT
         else:
-            this_page = PAGE_RELATED_PROJECT_SELECT
+            this_page = PAGE_RELATED_PROJECT_SELECT  # FIXME?
         new_page = None
 
         if 'Next' in request.form:
@@ -176,15 +176,15 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
 
 
 @proj_bp.route('/funding_award_select/<filename>', methods=['GET', 'POST'])
-@proj_bp.route('/funding_award_select/<filename>/<node_id>', methods=['GET', 'POST'])
-def funding_award_select(filename=None, node_id=None):
+@proj_bp.route('/funding_award_select/<filename>/<project_node_id>', methods=['GET', 'POST'])
+def funding_award_select(filename=None, project_node_id=None):
     form = AwardSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        project_node_id = None
+        node_id = None
 
         new_page = PAGE_FUNDING_AWARD_SELECT
         if form_dict:
@@ -194,14 +194,11 @@ def funding_award_select(filename=None, node_id=None):
                     new_page = PAGE_PROJECT
                 elif val[0:4] == 'Back':
                     new_page = PAGE_PROJECT
-                    project_node_id = node_id
                 elif val == BTN_EDIT:
                     new_page = PAGE_FUNDING_AWARD
-                    project_node_id = node_id
                     node_id = key
                 elif val == BTN_REMOVE:
                     new_page = PAGE_FUNDING_AWARD_SELECT
-                    project_node_id = node_id
                     node_id = key
                     eml_node = load_eml(filename=filename)
                     remove_child(node_id=node_id)
@@ -216,7 +213,6 @@ def funding_award_select(filename=None, node_id=None):
                     process_down_button(filename, node_id)
                 elif val[0:3] == 'Add':
                     new_page = PAGE_FUNDING_AWARD
-                    project_node_id = node_id
                     node_id = '1'
                 else:
                     new_page = check_val_for_hidden_buttons(val, new_page, PAGE_FUNDING_AWARD_SELECT)
@@ -227,28 +223,29 @@ def funding_award_select(filename=None, node_id=None):
                               filename=filename,
                               node_id=node_id,
                               project_node_id=project_node_id)
-            elif node_id:
+            elif project_node_id:
+                url = url_for(new_page,
+                              filename=filename,
+                              project_node_id=project_node_id)
+            else:
                 url = url_for(new_page,
                               filename=filename,
                               node_id=node_id)
-            else:
-                url = url_for(new_page,
-                              filename=filename)
             return redirect(url)
 
     # Process GET
-    return funding_award_select_get(filename=filename, form=form, node_id=node_id)
+    return funding_award_select_get(filename=filename, form=form, project_node_id=project_node_id)
 
 
-def funding_award_select_get(filename=None, form=None, node_id=None):
+def funding_award_select_get(filename=None, form=None, project_node_id=None):
     # Process GET
     title = 'Funding Awards'
     # entity_name = ''
     eml_node = load_eml(filename=filename)
 
-    funding_award_list = list_funding_awards(eml_node, node_id)
+    funding_award_list = list_funding_awards(eml_node, project_node_id)
     set_current_page('project')
-    related_project = node_id is not None
+    related_project = project_node_id is not None
     help = [get_help('awards')]
     return render_template('award_select.html', title=title,
                            filename=filename,

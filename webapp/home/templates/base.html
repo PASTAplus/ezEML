@@ -163,7 +163,7 @@
                         </li>
 
                 {% endif %}
-                {% if current_user.is_authenticated and current_user.get_username() in session["privileged_logins"] %}
+                {% if current_user.is_authenticated and current_user.get_username() in session.get("privileged_logins") %}
                         <li>
                             <a href="{{ url_for('home.import_xml') }}" title="Import EML File (XML)">Import EML File (XML)...</a>
                         </li>

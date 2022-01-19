@@ -68,6 +68,7 @@ def title(filename=None):
     # pid = 'edi.501.1'
     # pid = 'knb-lter-nin.1.1'
     # test_retrieve_from_edi(user_path, pid)
+    log_info(f'Title... privileged_logins={session["privileged_logins"]}')
 
     form = TitleForm()
 

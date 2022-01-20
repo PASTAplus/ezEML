@@ -1387,7 +1387,7 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             distribution_node = physical_node.find_child(names.DISTRIBUTION)
             if distribution_node:
                 if keep_existing_url(distribution_node, uploads_folder):
-                    return
+                    continue
                 physical_node.remove_child(distribution_node)
             distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
             online_node = new_child_node(names.ONLINE, distribution_node)

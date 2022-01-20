@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2022.01.10' %}
+{% set release_number = '2022.01.19' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -163,7 +163,7 @@
                         </li>
 
                 {% endif %}
-                {% if current_user.is_authenticated and current_user.get_username() in session.get("privileged_logins") %}
+                {% if current_user and current_user.is_authenticated and current_user.get_username() in session.get("privileged_logins", []) %}
                         <li>
                             <a href="{{ url_for('home.import_xml') }}" title="Import EML File (XML)">Import EML File (XML)...</a>
                         </li>

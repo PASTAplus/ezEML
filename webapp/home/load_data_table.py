@@ -158,7 +158,10 @@ def infer_col_type(data_frame, col):
     num_codes = len(codes)
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
-    fraction = float(num_codes) / float(col_size)
+    if col_size > 0:
+        fraction = float(num_codes) / float(col_size)
+    else:
+        fraction = 1.0
     # for very large tables, this can take a very long time, so we limit to MAX_ROWS_TO_CHECK values
     rows_to_check = min(col_size, MAX_ROWS_TO_CHECK)
     dtype = data_frame[col][1:rows_to_check].infer_objects().dtype

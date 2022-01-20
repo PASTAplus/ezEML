@@ -61,7 +61,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.01.10'
+RELEASE_NUMBER = '2022.01.19'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -966,7 +966,11 @@ def save_package_id(eml_node):
 
 def load_eml(filename:str=None):
     eml_node = None
-    user_folder = user_data.get_user_folder_name()
+    user_folder = None
+    try:
+        user_folder = user_data.get_user_folder_name()
+    except Exception as e:
+        logger.error(f"load_eml: {e}")
     if not user_folder:
         user_folder = '.'
     filename = f"{user_folder}/{filename}.json"

@@ -145,6 +145,10 @@ def reload_metadata():
 @home.before_app_first_request
 def init_session_vars():
     session["check_metadata_status"] = "green"
+
+
+@home.before_app_request
+def init_session_vars_2():
     session["privileged_logins"] = Config.PRIVILEGED_LOGINS
     log_info(f'Session init... privileged_logins={session["privileged_logins"]}')
 

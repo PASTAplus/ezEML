@@ -1369,8 +1369,9 @@ def keep_existing_url(distribution_node, uploads_folder):
     url_node = distribution_node.find_descendant(names.URL)
     if url_node:
         url = url_node.content
-        if uploads_folder.replace(' ', '%20') not in url:
-            return True
+        if url:
+            if uploads_folder.replace(' ', '%20') not in url :
+                return True
     return False
 
 
@@ -1563,7 +1564,7 @@ def send_to_other(filename=None, mailto=None):
                                form=form, help=help)
 
 
-def get_column_properties(dt_node, object_name):
+def get_column_properties(eml_node, document, dt_node, object_name):
     data_file = object_name
     column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(data_file)
     if column_vartypes:
@@ -1589,6 +1590,10 @@ def get_column_properties(dt_node, object_name):
                                       new_column_vartypes,
                                       new_column_names,
                                       new_column_categorical_codes)
+
+        clear_distribution_url(dt_node)
+        insert_upload_urls(document, eml_node)
+
         return new_column_vartypes
 
     except FileNotFoundError:
@@ -1615,7 +1620,8 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
     if not old_column_vartypes:
         # column properties weren't saved. compute them anew.
-        old_column_vartypes = get_column_properties(old_dt_node, old_object_name)
+        eml_node = load_eml(filename=document)
+        old_column_vartypes = get_column_properties(eml_node, document, old_dt_node, old_object_name)
     if old_column_vartypes != new_column_vartypes:
         diffs = []
         for col_name, old_type, new_type, attr_node in zip(new_column_names, old_column_vartypes, new_column_vartypes, old_attribute_list.children):
@@ -2109,6 +2115,14 @@ def column_names_changed(filepath, delimiter, quote_char, dt_node):
     return old_column_names != new_column_names
 
 
+def clear_distribution_url(entity_node):
+    distribution_node = entity_node.find_descendant(names.DISTRIBUTION)
+    if distribution_node:
+        url_node = distribution_node.find_descendant(names.URL)
+        if url_node:
+            url_node.content = None
+
+
 @home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
@@ -2202,7 +2216,11 @@ def load_data(filename=None):
 
                 delete_data_files(uploads_folder)
 
+                clear_distribution_url(dt_node)
+                insert_upload_urls(document, eml_node)
+
                 save_both_formats(filename=document, eml_node=eml_node)
+
                 return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
 
             else:
@@ -2307,6 +2325,9 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
                                                 new_column_categorical_codes)
 
     delete_data_files(uploads_folder)
+
+    clear_distribution_url(dt_node)
+    insert_upload_urls(document, eml_node)
 
     backup_metadata(filename=document)
 
@@ -2443,6 +2464,9 @@ def load_entity(node_id=None):
                 eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file, node_id=node_id)
+                clear_distribution_url(other_entity_node)
+                insert_upload_urls(document, eml_node)
+
                 save_both_formats(filename=document, eml_node=eml_node)
                 return redirect(url_for(PAGE_OTHER_ENTITY, filename=document, node_id=other_entity_node.id))
 

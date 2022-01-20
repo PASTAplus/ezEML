@@ -150,7 +150,7 @@ def init_session_vars():
 @home.before_app_request
 def init_session_vars_2():
     session["privileged_logins"] = Config.PRIVILEGED_LOGINS
-    log_info(f'Session init... privileged_logins={session["privileged_logins"]}')
+    # log_info(f'Session init... privileged_logins={session["privileged_logins"]}')
 
 
 @home.before_app_first_request
@@ -1376,6 +1376,7 @@ def keep_existing_url(distribution_node, uploads_folder):
 
 
 def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
+    log_info(f"insert_urls... node_type={node_type}")
     upload_nodes = []
     eml_node.find_all_descendants(node_type, upload_nodes)
     for upload_node in upload_nodes:
@@ -1393,6 +1394,7 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             url_node = new_child_node(names.URL, online_node)
             url_node.add_attribute('function', 'download')
             url_node.content = f"{uploads_url_prefix}/{object_name}".replace(' ', '%20')
+            log_info(f"  object_name={object_name_node.content}... url={url_node.content}")
         except Exception as err:
             flash(err)
             continue

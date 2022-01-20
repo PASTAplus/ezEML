@@ -1370,7 +1370,8 @@ def keep_existing_url(distribution_node, uploads_folder):
     if url_node:
         url = url_node.content
         if url:
-            if uploads_folder.replace(' ', '%20') not in url :
+            if uploads_folder.replace(' ', '%20') not in url:
+                log_info(f"keep_existing_url returning True for {url}")
                 return True
     return False
 

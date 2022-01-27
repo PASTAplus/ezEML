@@ -28,10 +28,10 @@ from webapp.config import Config
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
-auth = Blueprint('auth', __name__, template_folder='templates')
+auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
 
-@auth.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         flash(current_user.get_username() + ', you are already logged in...')
@@ -51,7 +51,7 @@ def login():
             session_id = cname + "*" + pasta_token.uid
             user = User(session_id)
             login_user(user)
-            initialize_user_data(cname, pasta_token.uid)
+            initialize_user_data(cname, pasta_token.uid, auth_token)
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 current_document = get_active_document()
@@ -74,7 +74,7 @@ def login():
         session_id = cname + "*" + uid
         user = User(session_id)
         login_user(user)
-        initialize_user_data(cname, pasta_token.uid)
+        initialize_user_data(cname, pasta_token.uid, auth_token)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             current_document = get_active_document()
@@ -88,7 +88,7 @@ def login():
     )
 
 
-@auth.route('/logout', methods=['GET'])
+@auth_bp.route('/logout', methods=['GET'])
 def logout():
     logout_user()
     return redirect(url_for(PAGE_INDEX))

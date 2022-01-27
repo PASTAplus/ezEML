@@ -14,7 +14,7 @@ import webapp.auth.user_data as user_data
 
 from webapp.home.metapype_client import list_files_in_dir
 
-logger = daiquiri.getLogger('views: ' + __name__)
+logger = daiquiri.getLogger('import_xml: ' + __name__)
 
 
 def log_error(msg):

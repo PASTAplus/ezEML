@@ -7,26 +7,19 @@
     {% set help_import_package_2_dialog = help_import_package_2_id ~ '_dialog' %}
 
     <table>
-        <td><h2>Import an EML XML File</h2></td>
+        <td><h2>Fetch a Data Package from EDI</h2></td>
         <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_package_2_btn) }}</td>
     </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 {{ form.csrf_token }}
-        {{ err_heading | safe }}
-        {{ err_html | safe }}
+                Select a data package <i>scope.identifier</i> value to fetch the most current revision of the data package:<br>
+        {{ package_links | safe }}
 
                 <br>
-                <input class="btn btn-primary" style="width: 200px;" onclick="copy_to_clipboard();"
-                       value="Copy Errors to Clipboard"/><br>&nbsp;<br>&nbsp;<br>
-                If the EML file contains links to data tables and other data entities, ezEML can use those links to
-                retrieve the data. {{ mb | safe }}<br>Select an option below.
                 <p></p><br>
-                <input class="btn btn-primary" style="width: 200px;" onclick="stand_by();" name="RetrieveData" type="submit" value="Get Associated Data Files"/>
-                <input class="btn btn-primary" style="width: 260px;" name="Cancel" type="submit" value="Continue Without Getting Data Files"/>
-                &nbsp;
-                <span id="stand_by_hint" style="visibility: hidden;"><i>Please stand by...</i></span>
+                <input class="btn btn-primary" style="width: 260px;" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
@@ -47,22 +40,5 @@
     {
         {{ macros.help_script(help_import_package_2_dialog, help_import_package_2_btn) }}
     });
-
-    function copy_to_clipboard() {
-        let $temp = $("<textarea>");
-        $("body").append($temp);
-        let s = `{{ err_text | safe }}`;
-        s = s.replace(/&#34;/g, '"');
-        $temp.val(s).select();
-        document.execCommand("copy");
-        $temp.remove();
-        alert('Copied to clipboard')
-     }
-
-    function stand_by() {
-        let x = document.getElementById("stand_by_hint");
-        x.style.visibility = "visible";
-    }
-
     </script>
 {% endblock %}

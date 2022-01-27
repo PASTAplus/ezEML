@@ -46,8 +46,8 @@ login.login_view = 'auth.login'
 # the bottom of the webapp/__init__.py script to avoid errors due to circular 
 # dependencies.
 
-from webapp.auth.views import auth
-app.register_blueprint(auth, url_prefix='/eml/auth')
+from webapp.auth.views import auth_bp
+app.register_blueprint(auth_bp, url_prefix='/eml/auth')
 
 from webapp.errors.handler import errors
 app.register_blueprint(errors, url_prefix='/eml/error')

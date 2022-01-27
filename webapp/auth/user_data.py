@@ -80,7 +80,7 @@ def get_user_document_list():
     return packageids
 
 
-def initialize_user_data(cname, uid):
+def initialize_user_data(cname, uid, auth_token):
     user_folder_name = get_user_folder_name()
     user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(USER_DATA_DIR):
@@ -95,6 +95,7 @@ def initialize_user_data(cname, uid):
     user_properties = get_user_properties()
     user_properties['cname'] = cname
     user_properties['uid'] = uid
+    user_properties['auth_token'] = auth_token
     save_user_properties(user_properties)
 
 
@@ -331,3 +332,7 @@ def remove_active_file():
     if os.path.exists(active_file):
         os.remove(active_file)
 
+
+def get_auth_token():
+    user_properties = get_user_properties()
+    return user_properties.get('auth_token', '')

@@ -63,11 +63,6 @@ def log_info(msg):
 
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 def title(filename=None):
-    # from webapp.home.retrieve_from_edi import test_retrieve_from_edi
-    # user_path = get_user_folder_name()
-    # pid = 'edi.501.1'
-    # pid = 'knb-lter-nin.1.1'
-    # test_retrieve_from_edi(user_path, pid)
     log_info(f'Title... privileged_logins={session.get("privileged_logins")}')
 
     form = TitleForm()

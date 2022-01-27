@@ -90,6 +90,11 @@ from metapype.model import mp_io
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
+from webapp.home.import_data import (
+    import_data, get_pasta_identifiers, get_newest_metadata_revision_from_pasta,
+    get_data_entity_sizes, convert_file_size
+)
+
 import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
 
@@ -1846,7 +1851,7 @@ def import_xml():
                                             filename=package_name))
                 else:
                     flash(f"{package_name} was imported without errors")
-                    return redirect(url_for(PAGE_TITLE, filename=package_name))
+                    return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name))
             else:
                 raise Exception  # TODO: Error handling
 
@@ -1882,6 +1887,7 @@ def import_xml_2(package_name, filename):
         if eml_node:
             save_both_formats(filename=package_name, eml_node=eml_node)
             current_user.set_filename(filename=package_name)
+
             if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
                 # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
                 #  string representations.
@@ -1892,7 +1898,7 @@ def import_xml_2(package_name, filename):
 
             else:
                 flash(f"{package_name} was imported without errors")
-                return redirect(url_for(PAGE_TITLE, filename=package_name))
+                return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name))
         else:
             raise Exception  # TODO: Error handling
 
@@ -1979,6 +1985,16 @@ def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_err
     return err_html, err_text, err_heading
 
 
+def get_data_size(filename):
+    try:
+        scope, identifier, revision = filename.split('.')
+        _, total = get_data_entity_sizes(scope, identifier, revision)
+        kb, mb, gb = convert_file_size(total)
+        return round(mb)
+    except:
+        return 0
+
+
 @home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>', methods=['GET', 'POST'])
 @login_required
 def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
@@ -1986,18 +2002,183 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
 
     form = EDIForm()
 
-    err_html, err_text, err_heading = construct_xml_error_descriptions(filename, unknown_nodes, attr_errs,
-                                                                       child_errs, other_errs, pruned_nodes)
-
     # Process POST
-    if request.method == 'POST':
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(url_for(PAGE_TITLE, filename=filename))
+
+    if request.method == 'POST' and form.validate_on_submit():
+        form = request.form
+        eml_node = load_eml(filename=filename)
+        import_data(eml_node)
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
     form.md5.data = form_md5(form)
+
+    err_html, err_text, err_heading = construct_xml_error_descriptions(filename, unknown_nodes, attr_errs,
+                                                                       child_errs, other_errs, pruned_nodes)
+
+    mb = get_data_size(filename)
+    if mb > 100:
+        mb = f' This package has <b>{mb} MB</b> of associated data.<br>&nbsp;'
+    else:
+        mb = ''
+
     help = get_helps(['import_xml_3'])
     return render_template('import_xml_3.html', err_html=err_html, err_text=err_text, err_heading=err_heading,
-                           form=form, help=help)
+                           mb=mb, form=form, help=help)
+
+
+@home.route('/import_xml_4/<filename>', methods=['GET', 'POST'])
+@login_required
+def import_xml_4(filename=None):
+
+    form = EDIForm()
+
+    # Process POST
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(url_for(PAGE_TITLE, filename=filename))
+
+    if request.method == 'POST' and form.validate_on_submit():
+        form = request.form
+        eml_node = load_eml(filename=filename)
+        import_data(eml_node)
+        return redirect(url_for(PAGE_TITLE, filename=filename))
+
+    # Process GET
+    form.md5.data = form_md5(form)
+
+    mb = get_data_size(filename)
+    if mb > 100:
+        mb = f' This package has <b>{mb} MB</b> of associated data.<br>&nbsp;'
+    else:
+        mb = ''
+
+    help = get_helps(['import_xml_3'])
+    return render_template('import_xml_4.html', mb=mb, form=form, help=help)
+
+
+@home.route('/fetch_xml/', methods=['GET', 'POST'])
+@login_required
+def fetch_xml(scope=''):
+
+    form = EDIForm()
+
+    # Process POST
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(url_for(PAGE_TITLE, filename=None))
+
+    # Process GET
+    form.md5.data = form_md5(form)
+
+    ids = get_pasta_identifiers(scope)
+    package_links = ''
+    parsed_url = urlparse(request.base_url)
+    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
+    for id in ids:
+        new_link = f"{base_url}/fetch_xml_2/{id}"
+        new_anchor = f'<br><a href="{new_link}">{id}</a>'
+        package_links = package_links + new_anchor
+
+    help = get_helps(['import_xml_3'])
+    return render_template('fetch_xml.html', package_links=package_links, form=form, help=help)
+
+
+@home.route('/fetch_xml_2/<scope>', methods=['GET', 'POST'])
+@login_required
+def fetch_xml_2(scope=''):
+
+    form = EDIForm()
+
+    # Process POST
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(url_for(PAGE_TITLE, filename=None))
+
+    # Process GET
+    form.md5.data = form_md5(form)
+
+    ids = get_pasta_identifiers(scope)
+    package_links = ''
+    parsed_url = urlparse(request.base_url)
+    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
+    for id in ids:
+        new_link = f"{base_url}/fetch_xml_3/{scope}.{id}"
+        new_anchor = f'<br><a href="{new_link}">{scope}.{id}</a>'
+        package_links = package_links + new_anchor
+
+    help = get_helps(['import_xml_3'])
+    return render_template('fetch_xml_2.html', package_links=package_links, form=form, help=help)
+
+
+@home.route('/fetch_xml_3/<scope_identifier>', methods=['GET', 'POST'])
+@login_required
+def fetch_xml_3(scope_identifier=''):
+
+    form = EDIForm()
+
+    # Process POST
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(url_for(PAGE_TITLE, filename=None))
+
+    # Process GET
+    form.md5.data = form_md5(form)
+
+    scope, identifier = scope_identifier.split('.')
+    revision, metadata = get_newest_metadata_revision_from_pasta(scope, identifier)
+
+    filename = f"{scope}.{identifier}.{revision}.xml"
+    user_data_dir = user_data.get_user_folder_name()
+    work_path = os.path.join(user_data_dir, 'zip_temp')
+    save_path = os.path.join(work_path, filename)
+    with open(save_path, 'wb') as metadata_file:
+        metadata_file.write(metadata)
+
+    package_base_filename = os.path.basename(filename)
+    package_name = os.path.splitext(package_base_filename)[0]
+
+    # See if package with that name already exists
+    if package_name in user_data.get_user_document_list():
+        return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
+
+    user_data_dir = user_data.get_user_folder_name()
+    work_path = os.path.join(user_data_dir, 'zip_temp')
+    filepath = os.path.join(work_path, filename)
+
+    eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+
+    if eml_node:
+        save_both_formats(filename=package_name, eml_node=eml_node)
+        current_user.set_filename(filename=package_name)
+        if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
+            # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
+            #  string representations.
+            return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=repr(unknown_nodes), attr_errs=repr(attr_errs),
+                                    child_errs=repr(child_errs), other_errs=repr(other_errs),
+                                    pruned_nodes=repr(pruned_nodes),
+                                    filename=package_name))
+        else:
+            flash(f"{package_name} was imported without errors")
+            return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name))
+    else:
+        raise Exception  # TODO: Error handling
+
+    help = get_helps(['import_xml_3'])
+    return render_template('fetch_xml_3.html', package_links=package_links, form=form, help=help)
 
 
 @home.route('/import_package', methods=['GET', 'POST'])

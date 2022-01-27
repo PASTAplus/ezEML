@@ -26,8 +26,6 @@ from webapp.auth.user_data import (
     set_active_document, get_active_document
 )
 
-from webapp.config import Config
-
 logger = daiquiri.getLogger('user.py: ' + __name__)
 
 

@@ -14,6 +14,7 @@
 """
 import collections
 import daiquiri
+from datetime import date
 from enum import Enum
 import html
 import json
@@ -1510,6 +1511,22 @@ def add_eml_editor_metadata(eml_node:Node=None):
     eml_editor_node.attributes.clear()
     eml_editor_node.add_attribute('app', 'ezEML')
     eml_editor_node.add_attribute('release', RELEASE_NUMBER)
+
+
+def add_fetched_from_edi_metadata(eml_node:Node=None, pid:str=None):
+    fetched_from_edi_node = eml_node.find_descendant('fetchedFromEDI')
+    if fetched_from_edi_node:
+        metadata_node = fetched_from_edi_node.parent
+        additional_metadata_node = metadata_node.parent
+        eml_node.remove_child(additional_metadata_node)
+    additional_metadata_node = new_child_node(names.ADDITIONALMETADATA, parent=eml_node)
+    metadata_node = new_child_node(names.METADATA, parent=additional_metadata_node)
+    # For the fetchedFromEDI node, we need to bypass Metapype validity checking
+    fetched_from_edi_node = Node('fetchedFromEDI', parent=metadata_node)
+    metadata_node.add_child(fetched_from_edi_node)
+    fetched_from_edi_node.attributes.clear()
+    fetched_from_edi_node.add_attribute('packageID', pid)
+    fetched_from_edi_node.add_attribute('dateFetched', str(date.today()))
 
 
 def fix_up_custom_units(eml_node:Node=None):

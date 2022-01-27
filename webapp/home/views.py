@@ -74,7 +74,8 @@ from webapp.home.metapype_client import (
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
     import_project_nodes, get_check_metadata_status,
-    handle_hidden_buttons, check_val_for_hidden_buttons
+    handle_hidden_buttons, check_val_for_hidden_buttons,
+    add_fetched_from_edi_metadata
 )
 
 from webapp.home.check_metadata import check_eml
@@ -1862,8 +1863,9 @@ def import_xml():
 
 
 @home.route('/import_xml_2/<package_name>/<filename>', methods=['GET', 'POST'])
+@home.route('/import_xml_2/<package_name>/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
-def import_xml_2(package_name, filename):
+def import_xml_2(package_name, filename, fetched=False):
     form = ImportPackageForm()
 
     # Process POST
@@ -1885,6 +1887,8 @@ def import_xml_2(package_name, filename):
         eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
 
         if eml_node:
+            # save fact that EML was fetched from EDI in additional metadata
+            add_fetched_from_edi_metadata(eml_node, package_name)
             save_both_formats(filename=package_name, eml_node=eml_node)
             current_user.set_filename(filename=package_name)
 
@@ -2153,7 +2157,7 @@ def fetch_xml_3(scope_identifier=''):
 
     # See if package with that name already exists
     if package_name in user_data.get_user_document_list():
-        return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
+        return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename, fetched=True))
 
     user_data_dir = user_data.get_user_folder_name()
     work_path = os.path.join(user_data_dir, 'zip_temp')
@@ -2162,6 +2166,8 @@ def fetch_xml_3(scope_identifier=''):
     eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
 
     if eml_node:
+        # save fact that EML was fetched from EDI in additional metadata
+        add_fetched_from_edi_metadata(eml_node, package_name)
         save_both_formats(filename=package_name, eml_node=eml_node)
         current_user.set_filename(filename=package_name)
         if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:

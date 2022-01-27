@@ -2017,7 +2017,14 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
         eml_node = load_eml(filename=filename)
-        import_data(eml_node)
+
+        try:
+            import_data(eml_node)
+        except Exception as e:
+            flash(f'Unable to fetch package data: {str(e)}', 'error')
+            help = get_helps(['import_xml_3'])
+            return redirect(url_for('home.import_xml', form=form, help=help))
+
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
@@ -2144,7 +2151,12 @@ def fetch_xml_3(scope_identifier=''):
     form.md5.data = form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
-    revision, metadata = get_newest_metadata_revision_from_pasta(scope, identifier)
+    try:
+        revision, metadata = get_newest_metadata_revision_from_pasta(scope, identifier)
+    except Exception as e:
+        flash(f'Unable to fetch package {scope}.{identifier}: {str(e)}', 'error')
+        help = get_helps(['import_xml_3'])
+        return redirect(url_for('home.fetch_xml', form=form, help=help))
 
     filename = f"{scope}.{identifier}.{revision}.xml"
     user_data_dir = user_data.get_user_folder_name()

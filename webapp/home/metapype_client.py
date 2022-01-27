@@ -1529,6 +1529,17 @@ def add_fetched_from_edi_metadata(eml_node:Node=None, pid:str=None):
     fetched_from_edi_node.add_attribute('dateFetched', str(date.today()))
 
 
+def get_fetched_from_edi_metadata(eml_node:Node=None):
+    fetched_from_edi_node = eml_node.find_descendant('fetchedFromEDI')
+    msg = ''
+    if fetched_from_edi_node:
+        pid = fetched_from_edi_node.attribute_value('packageID')
+        date = fetched_from_edi_node.attribute_value('dateFetched')
+        if pid and date:
+            msg = f'\n\n\nThis metadata is derived from package {pid} fetched from EDI on {date}.'
+    return msg
+
+
 def fix_up_custom_units(eml_node:Node=None):
     # The additionalMetadata nodes are handled differently from how they were handled initially.
     # Pre-existing data packages need to be fixed up. Newly-created data packages will be correct, but

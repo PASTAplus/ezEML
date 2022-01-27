@@ -75,7 +75,7 @@ from webapp.home.metapype_client import (
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
     import_project_nodes, get_check_metadata_status,
     handle_hidden_buttons, check_val_for_hidden_buttons,
-    add_fetched_from_edi_metadata
+    add_fetched_from_edi_metadata, get_fetched_from_edi_metadata
 )
 
 from webapp.home.check_metadata import check_eml
@@ -1242,7 +1242,7 @@ def zip_package(current_document=None, eml_node=None, include_data=True):
     manifest_files.append(('JSON', f'{current_document}.json', pathname))
 
     package_id = user_data.get_active_packageid()
-    if package_id:
+    if package_id and package_id != current_document:
         # copy the EML file using the package_id as name
         arcname = f'{package_id}.xml'
         copyfile(f'{user_folder}/{current_document}.xml', f'{user_folder}/{arcname}')
@@ -1448,6 +1448,7 @@ def submit_package():
 
                 msg = submit_package_mail_body(name, email_address, current_document, download_url,
                                                download_url_without_data, notes)
+                msg += get_fetched_from_edi_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
                 to_address = ['support@environmentaldatainitiative.org']
                 sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)

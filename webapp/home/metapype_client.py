@@ -62,7 +62,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.01.26'
+RELEASE_NUMBER = '2022.01.31'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1536,7 +1536,7 @@ def get_fetched_from_edi_metadata(eml_node:Node=None):
         pid = fetched_from_edi_node.attribute_value('packageID')
         date = fetched_from_edi_node.attribute_value('dateFetched')
         if pid and date:
-            msg = f'\n\n\nThis metadata is derived from package {pid} fetched from EDI on {date}.'
+            msg = f'\n\n\nThis data package is based on package {pid} fetched from EDI on {date}.'
     return msg
 
 
@@ -1901,6 +1901,7 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
         intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
 
     intellectual_rights_node.content = intellectual_rights
+    post_process_text_type_node(intellectual_rights_node)
 
     try:
         save_both_formats(filename=filename, eml_node=eml_node)

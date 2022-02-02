@@ -2163,6 +2163,10 @@ def fetch_xml_3(scope_identifier=''):
     filename = f"{scope}.{identifier}.{revision}.xml"
     user_data_dir = user_data.get_user_folder_name()
     work_path = os.path.join(user_data_dir, 'zip_temp')
+    try:
+        os.mkdir(work_path)
+    except FileExistsError:
+        pass
     save_path = os.path.join(work_path, filename)
     with open(save_path, 'wb') as metadata_file:
         metadata_file.write(metadata)

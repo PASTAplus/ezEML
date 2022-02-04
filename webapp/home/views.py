@@ -637,7 +637,7 @@ def create():
 @login_required
 def open_eml_document():
     form = OpenEMLDocumentForm()
-    form.filename.choices = list_data_packages(False, False)
+    form.filename.choices = list_data_packages(True, True)
 
     # Process POST
     if request.method == 'POST':
@@ -2021,7 +2021,7 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
         eml_node = load_eml(filename=filename)
 
         try:
-            import_data(eml_node)
+            import_data(filename, eml_node)
         except Exception as e:
             flash(f'Unable to fetch package data: {str(e)}', 'error')
             help = get_helps(['import_xml_3'])
@@ -2062,7 +2062,7 @@ def import_xml_4(filename=None):
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
         eml_node = load_eml(filename=filename)
-        import_data(eml_node)
+        import_data(filename, eml_node)
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET

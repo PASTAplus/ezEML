@@ -15,6 +15,7 @@ import webapp.exceptions as exceptions
 from webapp.home.import_xml import parse_xml_file
 
 from webapp.home.load_data_table import load_data_table, load_other_entity
+from webapp.home.metapype_client import save_both_formats
 
 logger = daiquiri.getLogger('import_data: ' + __name__)
 
@@ -149,12 +150,13 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
         quote_char = quote_char_node.content
     else:
         quote_char = '"'
-    load_data_table(upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
+    data_entity_node, *_ = load_data_table(upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
     user_data.add_data_table_upload_filename(object_name)
+    return data_entity_node
 
 
 def ingest_other_entity(dataset_node, upload_dir, object_name):
-    load_other_entity(dataset_node, upload_dir, object_name)
+    return load_other_entity(dataset_node, upload_dir, object_name)
 
 
 def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
@@ -163,10 +165,12 @@ def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
     for data_entity_node, data_entity_type, object_name, *_ in entities_with_sizes:
         if data_entity_type == names.DATATABLE:
             # upload the data table
-            ingest_data_table(data_entity_node, upload_dir, object_name)
+            new_data_entity_node = ingest_data_table(data_entity_node, upload_dir, object_name)
+            dataset_node.replace_child(data_entity_node, new_data_entity_node)
         if data_entity_type == names.OTHERENTITY:
             # upload the other_entity
-            ingest_other_entity(dataset_node, upload_dir, object_name)
+            new_data_entity_node = ingest_other_entity(dataset_node, upload_dir, object_name)
+            dataset_node.replace_child(data_entity_node, new_data_entity_node)
 
 
 def retrieve_data_entity(upload_dir, object_name, url):
@@ -199,11 +203,12 @@ def list_data_entities_and_sizes(eml_node):
     return entities_with_sizes
 
 
-def import_data(eml_node):
+def import_data(filename, eml_node):
     entities_with_sizes = list_data_entities_and_sizes(eml_node)
     upload_dir = user_data.get_document_uploads_folder_name()
     retrieve_data_entities(upload_dir, entities_with_sizes)
     ingest_data_entities(eml_node, upload_dir, entities_with_sizes)
+    save_both_formats(filename, eml_node)
 
 
 def get_newest_metadata_revision_from_pasta(scope, identifier):

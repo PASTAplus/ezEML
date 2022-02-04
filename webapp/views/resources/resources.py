@@ -276,11 +276,11 @@ def intellectual_rights(filename=None):
         names.INTELLECTUALRIGHTS
     ])
     if intellectual_rights_node:
-        ir_content = intellectual_rights_node.content
-        if ir_content == INTELLECTUAL_RIGHTS_CC0:
+        ir_content = display_text_type_node(intellectual_rights_node)
+        if INTELLECTUAL_RIGHTS_CC0 in ir_content:
             form.intellectual_rights_radio.data = 'CC0'
             form.intellectual_rights.data = ''
-        elif ir_content == INTELLECTUAL_RIGHTS_CC_BY:
+        elif INTELLECTUAL_RIGHTS_CC_BY in ir_content:
             form.intellectual_rights_radio.data = 'CCBY'
             form.intellectual_rights.data = ''
         else:

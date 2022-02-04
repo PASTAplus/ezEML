@@ -76,7 +76,7 @@ class PublicationInfoForm(EDIForm):
 
 
 class TitleForm(EDIForm):
-    title = StringField('Title *', validators=[InputRequired(message='Title is required')])
+    title = StringField('Title *', widget=TextArea(), validators=[])
     md5 = HiddenField('')
 
 

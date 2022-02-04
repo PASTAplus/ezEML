@@ -285,7 +285,7 @@ def intellectual_rights(filename=None):
             form.intellectual_rights.data = ''
         else:
             form.intellectual_rights_radio.data = "Other"
-            form.intellectual_rights.data = intellectual_rights_node.content
+            form.intellectual_rights.data = display_text_type_node(intellectual_rights_node)
 
     form.md5.data = form_md5(form)
 

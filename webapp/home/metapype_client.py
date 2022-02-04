@@ -62,7 +62,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.01.31'
+RELEASE_NUMBER = '2022.02.03'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -168,15 +168,47 @@ def post_process_text_type_node(text_node:Node=None):
         text_node.content = content
 
 
+# def post_process_text_type_node_imported_from_xml(text_node:Node=None):
+#     if not text_node:
+#         return
+#     '''
+#     The following descendants of TextType nodes are encountered in various EML files:
+#         'citetitle', 'emphasis', 'itemizedlist', 'listitem', 'literalLayout', 'markdown',
+#         'orderedlist', 'para', 'section', 'subscript', 'superscript', 'title', 'ulink'
+#     For the purposes
+#     '''
+
+
+# def post_process_text_type_nodes_imported_from_xml(eml_node:Node=None):
+#     TEXT_TYPE_NODES = [
+#         names.ABSTRACT,
+#         names.ACKNOWLEDGEMENTS,
+#         names.ADDITIONALINFO,
+#         names.DESCRIPTION,
+#         # names.EXAMPLE,
+#         names.FUNDING,
+#         names.GETTINGSTARTED,
+#         names.INTELLECTUALRIGHTS,
+#         names.INTRODUCTION,
+#         # names.MODULEDESCRIPTION,
+#         names.PURPOSE,
+#         names.SAMPLINGDESCRIPTION,
+#         # names.TEXT
+#     ]
+
+
 def display_text_type_node(text_node:Node=None) -> str:
+    # Currently, this handles simple cases with paras only (paras may be contained in sections)
     if not text_node:
         return ''
     if text_node.content:
         return text_node.content
     text = ''
-    para_nodes = text_node.find_all_children(names.PARA)
+    para_nodes = []
+    text_node.find_all_descendants(names.PARA, para_nodes)
     for para_node in para_nodes:
-        text += f'{para_node.content}\n'
+        if para_node.content:
+            text += f'{para_node.content}\n'
     return text
 
 

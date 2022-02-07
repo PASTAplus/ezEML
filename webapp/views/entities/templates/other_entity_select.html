@@ -14,7 +14,7 @@
     {% set ns=namespace(reupload_help_displayed=false) %}
 
     <table>
-        <td><h2>Other Entities</h2></td>
+        <td><h2>Images</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entities_btn) }}</td>
     </table>
     <div class="row">
@@ -23,7 +23,7 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th colspan="7">Entity Name</th>
+                        <th colspan="7">Image Name</th>
                     </tr>
                     {% for oe_entry in oe_list %}
                     <tr>

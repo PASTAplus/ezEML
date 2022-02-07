@@ -312,13 +312,13 @@
         <a class="nav_link" style={{ geographic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a><br>
         <a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
         <a class="nav_link" style={{ taxonomic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
-        <a class="nav_link" style={{ maintenance_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>
-        <a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>
+        {#<a class="nav_link" style={{ maintenance_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>#}
+        {#<a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>#}
         <a class="nav_link" style={{ publication_info_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.publication_info') }}" title="Edit">Publication Info</a><br>
         <a class="nav_link" style={{ method_step_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='md.method_step_select') }}" title="Edit">Methods</a><br>
         <a class="nav_link" style={{ project_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
-        <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
-        <a class="nav_link" style={{ data_package_id_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>
+        <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Image</a><br>
+        {#<a class="nav_link" style={{ data_package_id_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>#}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>

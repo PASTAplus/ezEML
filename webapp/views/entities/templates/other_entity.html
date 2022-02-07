@@ -7,13 +7,13 @@
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
 
     <table>
-        <td><h2>Other Entity</h2></td>
+        <td><h2>Image</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entity_btn) }}</td>
     </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                <h5>Enter information about the data entity object:</h5>
+                <h5>Enter information about the image:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.entity_description) }}

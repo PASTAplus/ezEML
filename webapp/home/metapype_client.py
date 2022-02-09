@@ -35,6 +35,7 @@ from flask_login import (
 )
 
 from webapp.config import Config
+from webapp.home.intellectual_rights import INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
 
 from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
@@ -62,7 +63,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.02.04'
+RELEASE_NUMBER = '2022.02.09'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1136,6 +1137,17 @@ def clean_model(eml_node):
         taxonid = taxonid_node.content
         if isinstance(taxonid, int):
             taxonid_node.content = str(taxonid)
+    # Some documents have extra tags under intellectualRights that confuse metapype's evaluation function.
+    intellectual_rights_nodes = []
+    eml_node.find_all_descendants(names.INTELLECTUALRIGHTS, intellectual_rights_nodes)
+    for intellectual_rights_node in intellectual_rights_nodes:
+        ir_content = display_text_type_node(intellectual_rights_node)
+        if INTELLECTUAL_RIGHTS_CC0 in ir_content:
+            intellectual_rights_node.content = INTELLECTUAL_RIGHTS_CC0
+            intellectual_rights_node.remove_children()
+        elif INTELLECTUAL_RIGHTS_CC_BY in ir_content:
+            intellectual_rights_node.content = INTELLECTUAL_RIGHTS_CC_BY
+            intellectual_rights_node.remove_children()
 
 
 def get_check_metadata_status(eml_node:Node=None, filename:str=None):
@@ -1933,7 +1945,8 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
         intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
 
     intellectual_rights_node.content = intellectual_rights
-    post_process_text_type_node(intellectual_rights_node)
+    if intellectual_rights != INTELLECTUAL_RIGHTS_CC0 and intellectual_rights != INTELLECTUAL_RIGHTS_CC_BY:
+        post_process_text_type_node(intellectual_rights_node)
 
     try:
         save_both_formats(filename=filename, eml_node=eml_node)

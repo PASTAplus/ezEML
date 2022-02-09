@@ -328,6 +328,12 @@ def check_intellectual_rights(eml_node, filename):
     evaluation_warnings = evaluate_via_metapype(dataset_node)
 
     if find_err_code(evaluation_warnings, EvaluationWarning.INTELLECTUAL_RIGHTS_MISSING, names.DATASET):
+        # We need to check this case. Metapype currently thinks it's an error if intellectualRights node has no
+        #  content. It may, however, have content in children. This is a case that will be ironed out when all the
+        #  dust settles regarding handling of TextType nodes.
+        intellectual_rights_node = eml_node.find_descendant(names.INTELLECTUALRIGHTS)
+        if intellectual_rights_node and intellectual_rights_node.children:
+            return
         add_to_evaluation('intellectual_rights_01', link)
         return
 

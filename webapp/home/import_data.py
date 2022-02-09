@@ -16,6 +16,7 @@ from webapp.home.import_xml import parse_xml_file
 
 from webapp.home.load_data_table import load_data_table, load_other_entity
 from webapp.home.metapype_client import save_both_formats
+import webapp.home.views as views
 
 logger = daiquiri.getLogger('import_data: ' + __name__)
 
@@ -150,7 +151,15 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
         quote_char = quote_char_node.content
     else:
         quote_char = '"'
-    data_entity_node, *_ = load_data_table(upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
+
+    new_data_entity_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
+        upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
+
+    # use the existing dt_node, but update objectName, size, rows, MD5, etc.
+    # also, update column names and categorical codes, as needed
+    views.update_data_table(data_entity_node, new_data_entity_node, new_column_names, new_column_categorical_codes,
+                            doing_xml_import=True)
+
     user_data.add_data_table_upload_filename(object_name)
     return data_entity_node
 

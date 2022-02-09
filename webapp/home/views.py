@@ -1670,19 +1670,24 @@ def add_node_if_missing(parent_node, child_name):
     return child
 
 
-def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes):
+def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes, doing_xml_import=False):
     debug_msg(f'Entering update_data_table')
 
     if not old_dt_node or not new_dt_node:
         return
 
     old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
-    old_size_node = old_dt_node.find_descendant(names.SIZE)
-    old_records_node = old_dt_node.find_descendant(names.NUMBEROFRECORDS)
-    old_md5_node = old_dt_node.find_descendant(names.AUTHENTICATION)
-    old_field_delimiter_node = old_dt_node.find_descendant(names.FIELDDELIMITER)
-    old_record_delimiter_node = old_dt_node.find_descendant(names.RECORDDELIMITER)
-    old_quote_char_node = old_dt_node.find_descendant(names.QUOTECHARACTER)
+    old_physical_node = add_node_if_missing(old_dt_node, names.PHYSICAL)
+    old_data_format_node = add_node_if_missing(old_physical_node, names.DATAFORMAT)
+    old_text_format_node = add_node_if_missing(old_data_format_node, names.TEXTFORMAT)
+    old_simple_delimited_node = add_node_if_missing(old_text_format_node, names.SIMPLEDELIMITED)
+
+    old_size_node = add_node_if_missing(old_physical_node, names.SIZE)
+    old_records_node = add_node_if_missing(old_dt_node, names.NUMBEROFRECORDS)
+    old_md5_node = add_node_if_missing(old_physical_node, names.AUTHENTICATION)
+    old_field_delimiter_node = add_node_if_missing(old_simple_delimited_node, names.FIELDDELIMITER)
+    old_record_delimiter_node = add_node_if_missing(old_text_format_node, names.RECORDDELIMITER)
+    old_quote_char_node = add_node_if_missing(old_simple_delimited_node, names.QUOTECHARACTER)
 
     new_object_name_node = new_dt_node.find_descendant(names.OBJECTNAME)
     new_size_node = new_dt_node.find_descendant(names.SIZE)
@@ -1694,92 +1699,84 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
 
     old_object_name = old_object_name_node.content
     old_object_name_node.content = new_object_name_node.content.replace('.ezeml_tmp', '')
+
     old_size_node.content = new_size_node.content
     old_records_node.content = new_records_node.content
     old_md5_node.content = new_md5_node.content
     old_field_delimiter_node.content = new_field_delimiter_node.content
-    # record delimiter node is not required, so may be missing
-    if old_record_delimiter_node:
-        if new_record_delimiter_node:
-            old_record_delimiter_node.content = new_record_delimiter_node.content
-        else:
-            old_record_delimiter_node.parent.remove_child(old_record_delimiter_node)
-    else:
-        if new_record_delimiter_node:
-            # make sure needed ancestor nodes exist
-            physical_node = add_node_if_missing(old_dt_node, names.PHYSICAL)
-            data_format_node = add_node_if_missing(physical_node, names.DATAFORMAT)
-            text_format_node = add_node_if_missing(data_format_node, names.TEXTFORMAT)
-            new_child_node(names.RECORDDELIMITER, text_format_node).content = new_record_delimiter_node.content
-    # quote char node is not required, so may be missing
-    if old_quote_char_node:
-        if new_quote_char_node:
-            old_quote_char_node.content = new_quote_char_node.content
-        else:
-            old_quote_char_node.parent.remove_child(old_quote_char_node)
-    else:
-        if new_quote_char_node:
-            new_child_node(names.QUOTECHARACTER, old_field_delimiter_node.parent).content = new_quote_char_node.content
 
-    _, old_column_names, old_column_categorical_codes = user_data.get_uploaded_table_column_properties(old_object_name)
-    if old_column_names != new_column_names:
-        # substitute the new column names
-        old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
-        old_attribute_names_nodes = []
-        old_attribute_list_node.find_all_descendants(names.ATTRIBUTENAME, old_attribute_names_nodes)
-        for old_attribute_names_node, old_name, new_name in zip(old_attribute_names_nodes, old_column_names, new_column_names):
-            if old_name != new_name:
-                debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
-                old_attribute_names_node.content = new_name
-    if not compare_codes(old_column_categorical_codes, new_column_categorical_codes):
-        # need to fix up the categorical codes
-        old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
-        old_aattribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)
-        new_attribute_list_node = new_dt_node.find_child(names.ATTRIBUTELIST)
-        new_attribute_nodes = new_attribute_list_node.find_all_children(names.ATTRIBUTE)
-        for old_attribute_node, old_codes, new_attribute_node, new_codes in zip(old_aattribute_nodes,
-                                                                                old_column_categorical_codes,
-                                                                                new_attribute_nodes,
-                                                                                new_column_categorical_codes):
-            if not compare_codes(old_codes, new_codes):
-                # use the new_codes, preserving any relevant code definitions
-                # first, get the old codes and their definitions
-                old_code_definition_nodes = []
-                old_attribute_node.find_all_descendants(names.CODEDEFINITION, old_code_definition_nodes)
-                code_definitions = {}
-                parent_node = None
-                for old_code_definition_node in old_code_definition_nodes:
-                    code_node = old_code_definition_node.find_child(names.CODE)
-                    code = None
-                    if code_node:
-                        code = str(code_node.content)
-                    definition_node = old_code_definition_node.find_child(names.DEFINITION)
-                    definition = None
-                    if definition_node:
-                        definition = definition_node.content
-                    if code and definition:
-                        code_definitions[code] = definition
-                    # remove the old code definition node
-                    parent_node = old_code_definition_node.parent
-                    parent_node.remove_child(old_code_definition_node)
-                # add clones of new definition nodes and set their definitions, if known
-                if not parent_node:
-                    continue
-                new_code_definition_nodes = []
-                new_attribute_node.find_all_descendants(names.CODEDEFINITION, new_code_definition_nodes)
-                for new_code_definition_node in new_code_definition_nodes:
-                    clone = new_code_definition_node.copy()
-                    parent_node.add_child(clone)
-                    clone.parent = parent_node
-                    code_node = clone.find_child(names.CODE)
-                    if code_node:
-                        code = str(code_node.content)
-                    else:
+    # record delimiter node is not required, so may be missing
+    if new_record_delimiter_node:
+        old_record_delimiter_node.content = new_record_delimiter_node.content
+    else:
+        old_record_delimiter_node.parent.remove_child(old_record_delimiter_node)
+
+    # quote char node is not required, so may be missing
+    if new_quote_char_node:
+        old_quote_char_node.content = new_quote_char_node.content
+    else:
+        old_quote_char_node.parent.remove_child(old_quote_char_node)
+
+    if not doing_xml_import:
+        _, old_column_names, old_column_categorical_codes = user_data.get_uploaded_table_column_properties(old_object_name)
+        if old_column_names and old_column_names != new_column_names:
+            # substitute the new column names
+            old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
+            old_attribute_names_nodes = []
+            old_attribute_list_node.find_all_descendants(names.ATTRIBUTENAME, old_attribute_names_nodes)
+            for old_attribute_names_node, old_name, new_name in zip(old_attribute_names_nodes, old_column_names, new_column_names):
+                if old_name != new_name:
+                    debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
+                    old_attribute_names_node.content = new_name
+        if not compare_codes(old_column_categorical_codes, new_column_categorical_codes):
+            # need to fix up the categorical codes
+            old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
+            old_aattribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)
+            new_attribute_list_node = new_dt_node.find_child(names.ATTRIBUTELIST)
+            new_attribute_nodes = new_attribute_list_node.find_all_children(names.ATTRIBUTE)
+            for old_attribute_node, old_codes, new_attribute_node, new_codes in zip(old_aattribute_nodes,
+                                                                                    old_column_categorical_codes,
+                                                                                    new_attribute_nodes,
+                                                                                    new_column_categorical_codes):
+                if not compare_codes(old_codes, new_codes):
+                    # use the new_codes, preserving any relevant code definitions
+                    # first, get the old codes and their definitions
+                    old_code_definition_nodes = []
+                    old_attribute_node.find_all_descendants(names.CODEDEFINITION, old_code_definition_nodes)
+                    code_definitions = {}
+                    parent_node = None
+                    for old_code_definition_node in old_code_definition_nodes:
+                        code_node = old_code_definition_node.find_child(names.CODE)
                         code = None
-                    definition_node = clone.find_child(names.DEFINITION)
-                    definition = code_definitions.get(code)
-                    if definition:
-                        definition_node.content = definition
+                        if code_node:
+                            code = str(code_node.content)
+                        definition_node = old_code_definition_node.find_child(names.DEFINITION)
+                        definition = None
+                        if definition_node:
+                            definition = definition_node.content
+                        if code and definition:
+                            code_definitions[code] = definition
+                        # remove the old code definition node
+                        parent_node = old_code_definition_node.parent
+                        parent_node.remove_child(old_code_definition_node)
+                    # add clones of new definition nodes and set their definitions, if known
+                    if not parent_node:
+                        continue
+                    new_code_definition_nodes = []
+                    new_attribute_node.find_all_descendants(names.CODEDEFINITION, new_code_definition_nodes)
+                    for new_code_definition_node in new_code_definition_nodes:
+                        clone = new_code_definition_node.copy()
+                        parent_node.add_child(clone)
+                        clone.parent = parent_node
+                        code_node = clone.find_child(names.CODE)
+                        if code_node:
+                            code = str(code_node.content)
+                        else:
+                            code = None
+                        definition_node = clone.find_child(names.DEFINITION)
+                        definition = code_definitions.get(code)
+                        if definition:
+                            definition_node.content = definition
     debug_msg(f'Leaving update_data_table')
 
 

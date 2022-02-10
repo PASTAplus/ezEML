@@ -301,23 +301,23 @@
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
-        <a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
-        <a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>
+        <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Image</a><br>
+        {#<a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>#}
+        {#<a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>#}
         <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
-        <a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>
+        {#<a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>#}
         <a class="nav_link" style={{ metadata_provider_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
-        <a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>
-        <a class="nav_link" style={{ keyword_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>
+        {#<a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>#}
+        {#<a class="nav_link" style={{ keyword_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>#}
         <a class="nav_link" style={{ intellectual_rights_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.intellectual_rights') }}" title="Edit">Intellectual Rights</a><br>
         <a class="nav_link" style={{ geographic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a><br>
-        <a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
+        {#<a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>#}
         <a class="nav_link" style={{ taxonomic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
         {#<a class="nav_link" style={{ maintenance_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>#}
         {#<a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>#}
-        <a class="nav_link" style={{ publication_info_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.publication_info') }}" title="Edit">Publication Info</a><br>
+        {#<a class="nav_link" style={{ publication_info_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.publication_info') }}" title="Edit">Publication Info</a><br>#}
         <a class="nav_link" style={{ method_step_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='md.method_step_select') }}" title="Edit">Methods</a><br>
         <a class="nav_link" style={{ project_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
-        <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Image</a><br>
         {#<a class="nav_link" style={{ data_package_id_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>#}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;

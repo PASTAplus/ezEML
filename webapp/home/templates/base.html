@@ -121,7 +121,7 @@
                        role="button">Import/Export<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
-                        <li>
+                        {#<li>
                             <a href="{{ url_for('home.import_parties') }}" title="Import Responsible Parties">Import Responsible Parties (Creators, Contacts, etc.)</a>
                         </li>
                         <li>
@@ -138,7 +138,7 @@
                         </li>
                         <li>
                             <hr style="border-top: 1px solid #B0B0B0;">
-                        </li>
+                        </li>#}
                         <li>
                             <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File (XML)</a>
                         </li>

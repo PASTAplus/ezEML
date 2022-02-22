@@ -138,9 +138,9 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
     # Get the number of header rows, delimiter, and quote char
     num_header_lines_node = data_entity_node.find_descendant(names.NUMHEADERLINES)
     if num_header_lines_node:
-        num_header_lines = int(num_header_lines_node.content)
+        num_header_lines = num_header_lines_node.content
     else:
-        num_header_lines = 1
+        num_header_lines = '1'
     field_delimiter_node = data_entity_node.find_descendant(names.FIELDDELIMITER)
     if field_delimiter_node:
         field_delimiter = field_delimiter_node.content

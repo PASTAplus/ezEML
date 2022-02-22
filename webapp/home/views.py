@@ -1583,7 +1583,7 @@ def get_column_properties(eml_node, document, dt_node, object_name):
         return column_vartypes
 
     uploads_folder = user_data.get_document_uploads_folder_name()
-    num_header_rows = 1
+    num_header_rows = '1'
     field_delimiter_node = dt_node.find_descendant(names.FIELDDELIMITER)
     if field_delimiter_node:
         delimiter = field_delimiter_node.content
@@ -2393,7 +2393,7 @@ def load_data(filename=None):
                     # Upload the file to the uploads directory
                     file.save(filepath)
 
-                num_header_rows = 1
+                num_header_rows = '1'
                 delimiter = form.delimiter.data
                 quote_char = form.quote.data
 
@@ -2451,7 +2451,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
 
     dt_node = Node.get_node_instance(dt_node_id)
 
-    num_header_rows = 1
+    num_header_rows = '1'
     filepath = os.path.join(uploads_folder, saved_filename)
 
     if not name_chg_ok:

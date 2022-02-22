@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 
 from wtforms import (
     StringField, BooleanField, SelectField, RadioField,
-    FloatField, IntegerField, HiddenField
+    HiddenField
 )
 
 from wtforms.widgets import TextArea
@@ -13,7 +13,7 @@ from wtforms.validators import (
 )
 
 from webapp.home.forms import (
-    EDIForm, MultiCheckboxField
+    EDIForm, MultiCheckboxField, validate_integer, validate_float
 )
 
 class AttributeSelectForm(EDIForm):
@@ -39,7 +39,7 @@ class AttributeDateTimeForm(EDIForm):
     storage_type = StringField('Storage Type (Optional)', validators=[])
     storage_type_system = StringField('Storage Type System (Optional)', validators=[])
     format_string = StringField('Format String *', validators=[])
-    datetime_precision = FloatField('DateTime Precision (Optional)', validators=[Optional()])
+    datetime_precision = StringField('DateTime Precision (Optional)', validators=[Optional(), validate_float])
     bounds_minimum = StringField('Bounds Minimum', validators=[])
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
     bounds_maximum = StringField('Bounds Maximum', validators=[])
@@ -150,15 +150,15 @@ class AttributeIntervalRatioForm(EDIForm):
                                 choices=[(unit, unit) for unit in standard_units])
     custom_unit = StringField('Custom Unit', validators=[])
     custom_unit_description = StringField('Description (Recommended)', widget=TextArea(), validators=[])
-    precision = FloatField('Precision (Optional)', validators=[Optional()])
+    precision = StringField('Precision (Optional)', validators=[Optional(), validate_float])
     number_type = SelectField('Number Type',
                                choices=[("real", "real"),
                                         ("integer", "integer"),
                                         ("natural", "natural"),
                                         ("whole", "whole")])
-    bounds_minimum = FloatField('Bounds Minimum', validators=[Optional()])
+    bounds_minimum = StringField('Bounds Minimum', validators=[Optional(), validate_float])
     bounds_minimum_exclusive = BooleanField('Bounds Minimum is Exclusive', validators=[])
-    bounds_maximum = FloatField('Bounds Maximum', validators=[Optional()])
+    bounds_maximum = StringField('Bounds Maximum', validators=[Optional(), validate_float])
     bounds_maximum_exclusive = BooleanField('Bounds Maximum is Exclusive', validators=[])
     code_1 = StringField('Missing Value Code', validators=[])
     code_explanation_1 = StringField('Explanation', validators=[]) 
@@ -201,11 +201,11 @@ class DataTableSelectForm(EDIForm):
 
 class DataTableForm(EDIForm):
     entity_name = StringField('Name *', validators=[InputRequired(message='Name is required')])
-    entity_description = StringField('Description (Recommended)', validators=[])
+    entity_description = StringField('Description (Recommended)', widget=TextArea(), validators=[])
     object_name = StringField('Filename *', validators=[])
-    size = IntegerField('Size (Optional)', validators=[Optional()])
+    size = StringField('Size (Optional)', validators=[Optional(), validate_integer])
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
-    num_header_lines = IntegerField('Number of Header Lines (Optional)', validators=[Optional()])
+    num_header_lines = StringField('Number of Header Lines (Optional)', validators=[Optional(), validate_integer])
     record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
     quote_character = SelectField('Quote Character', choices=[
         ('"', 'double quote - "'),
@@ -222,7 +222,7 @@ class DataTableForm(EDIForm):
     ], default=','
     )
     case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
-    number_of_records = IntegerField('Number of Records (Optional)', validators=[Optional()])
+    number_of_records = StringField('Number of Records (Optional)', validators=[Optional(), validate_integer])
     online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
     md5 = HiddenField('')
     init_str = '"column,no'
@@ -250,7 +250,7 @@ class CodeDefinitionSelectForm(EDIForm):
 class CodeDefinitionForm(EDIForm):
     code = StringField('Code *', validators=[])
     definition = StringField('Definition *', validators=[])
-    order = IntegerField('Order (Optional)', validators=[Optional()])
+    order = StringField('Order (Optional)', validators=[Optional(), validate_integer])
     md5 = HiddenField('')
 
     def field_data(self)->tuple:

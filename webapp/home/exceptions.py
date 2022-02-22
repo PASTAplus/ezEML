@@ -9,5 +9,9 @@ class DataTableError(ezEMLError):
     pass
 
 
+class InvalidXMLError(ezEMLError):
+    pass
+
+
 class MissingFileError(ezEMLError):
     pass

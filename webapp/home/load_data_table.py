@@ -307,7 +307,7 @@ def check_column_name_uniqueness(csv_file_path, delimiter):
 
 
 def load_data_table(uploads_path:str=None, data_file:str='',
-                    num_header_rows:int=1, delimiter:str=',', quote_char:str='"'):
+                    num_header_rows:str='1', delimiter:str=',', quote_char:str='"'):
 
     # if Config.LOG_DEBUG:
     log_info(f'Entering load_data_table')

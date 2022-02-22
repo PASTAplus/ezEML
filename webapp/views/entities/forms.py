@@ -1,13 +1,12 @@
 from wtforms import (
-    StringField, SelectField, IntegerField, HiddenField
+    StringField, SelectField, HiddenField
 )
 
 from wtforms.validators import (
     URL, Optional, InputRequired
 )
 
-from webapp.home.forms import EDIForm
-
+from webapp.home.forms import EDIForm, validate_integer
 
 class OtherEntitySelectForm(EDIForm):
     pass
@@ -19,7 +18,7 @@ class OtherEntityForm(EDIForm):
     entity_description = StringField('Description (Recommended)', validators=[])
     object_name = StringField('Source Name (e.g., filename)', validators=[])
     format_name = StringField('Data Format (e.g., PNG) *', validators=[])
-    size = IntegerField('Size (Optional)', validators=[Optional()])
+    size = StringField('Size (Optional)', validators=[Optional(), validate_integer])
     md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
     md5 = HiddenField('')

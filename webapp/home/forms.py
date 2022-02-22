@@ -21,7 +21,7 @@ from wtforms import (
 )
 
 from wtforms.validators import (
-    DataRequired, Email, Optional
+    DataRequired, Email, Optional, ValidationError
 )
 
 from wtforms.widgets import TextArea
@@ -78,6 +78,20 @@ def is_dirty_form(form):
     return is_dirty
 
 
+def validate_float(form, field):
+    try:
+        _ = float(field.data)
+    except ValueError:
+        raise ValidationError('A numeric value is required')
+
+
+def validate_integer(form, field):
+    try:
+        _ = int(field.data)
+    except ValueError:
+        raise ValidationError('An integer value is required')
+
+
 class CheckboxField(SelectField):
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
@@ -132,7 +146,6 @@ class DownloadEMLForm(FlaskForm):
 
 
 class LoadDataForm(FlaskForm):
-    # num_header_rows = IntegerField('Number of Header Lines', default=1)
     delimiter = SelectField('Field Delimiter', choices=[
         (',', 'comma'),
         ('\\t', 'tab'),

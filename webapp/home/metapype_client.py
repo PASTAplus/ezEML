@@ -37,7 +37,7 @@ from flask_login import (
 from webapp.config import Config
 from webapp.home.intellectual_rights import INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
 
-from metapype.eml import export, evaluate, validate, names, rule
+from metapype.eml import evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io, metapype_io
 
@@ -984,6 +984,15 @@ def from_json(filename):
                     eml_node = mp_io.from_json(json_dict)
                 except KeyError as e:
                     logger.error(e)
+
+        try:
+            check_for_nonstring_content(eml_node)
+        except ValueError as e:
+            logger.error(f'Nonstring content found: {str(e)}')
+            fix_nonstring_content(eml_node)
+            basename, ext = os.path.splitext(os.path.basename(filename))
+            save_both_formats(filename=basename, eml_node=eml_node)
+
     except Exception as e:
          logger.error(e)
     return eml_node
@@ -1030,7 +1039,7 @@ def remove_child(node_id:str=None):
 
 
 def log_as_xml(node: Node):
-    xml_str = export.to_xml(node)
+    xml_str = metapype_io.to_xml(node)
     logger.info("\n\n" + xml_str)
 
 
@@ -1162,6 +1171,24 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
     return status
 
 
+def check_for_nonstring_content(node):
+    if node and node.content is not None:
+        if not type(node.content) is str:
+            raise ValueError(f"{node.name} - {type(node.content)} - {node.content}")
+    if node.children:
+        for child in node.children:
+            check_for_nonstring_content(child)
+
+
+def fix_nonstring_content(node):
+    if node and node.content is not None:
+        if not type(node.content) is str:
+            node.content = str(node.content)
+    if node.children:
+        for child in node.children:
+            fix_nonstring_content(child)
+
+
 def save_both_formats(filename:str=None, eml_node:Node=None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
@@ -1195,7 +1222,7 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 metadata_str = metapype_io.to_json(eml_node)
             elif format == 'xml':
                 xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
-                xml_str = export.to_xml(eml_node)
+                xml_str = metapype_io.to_xml(eml_node)
                 metadata_str = xml_declaration + xml_str
             
             if metadata_str:

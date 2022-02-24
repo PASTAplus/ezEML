@@ -1189,6 +1189,19 @@ def fix_nonstring_content(node):
             fix_nonstring_content(child)
 
 
+def create_full_xml(eml_node):
+    eml_node.nsmap = {
+        "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
+      }
+    eml_node.prefix = 'eml'
+    eml_node.extras = {
+        "xsi:schemaLocation": "https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/"
+    }
+    return metapype_io.to_xml(eml_node)
+
+
 def save_both_formats(filename:str=None, eml_node:Node=None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
@@ -1222,7 +1235,7 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 metadata_str = metapype_io.to_json(eml_node)
             elif format == 'xml':
                 xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
-                xml_str = metapype_io.to_xml(eml_node)
+                xml_str = create_full_xml(eml_node)
                 metadata_str = xml_declaration + xml_str
             
             if metadata_str:

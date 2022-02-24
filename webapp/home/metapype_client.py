@@ -1449,7 +1449,7 @@ def add_eml_editor_metadata(eml_node:Node=None):
     eml_editor_node = Node('emlEditor', parent=metadata_node)
     metadata_node.add_child(eml_editor_node)
     eml_editor_node.attributes.clear()
-    eml_editor_node.add_attribute('app', 'ezEML')
+    eml_editor_node.add_attribute('app', 'MotherDB')
     eml_editor_node.add_attribute('release', RELEASE_NUMBER)
 
 

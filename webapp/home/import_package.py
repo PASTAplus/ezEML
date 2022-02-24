@@ -144,16 +144,19 @@ def copy_ezeml_package(package_name=None):
 
 
 def import_ezeml_package(output_package_name=None):
-    user_path = user_data.get_user_folder_name() # os.path.join(current_path, USER_DATA_DIR)
-    work_path = os.path.join(user_path, 'zip_temp')
-    dest = os.path.join(work_path, output_package_name) + '.zip'
+    user_path = user_data.get_user_folder_name()
+    # os.path.join(current_path, USER_DATA_DIR)
+    #work_path = os.path.join(user_path, 'zip_temp')
+    #dest = os.path.join(work_path, output_package_name) + '.zip'
+    work_path = os.path.join(user_path, 'xml_temp')
+    dest = os.path.join(work_path, output_package_name) + '.xml'
 
-    try:
-        zip_object = ZipFile(dest, 'r')
-    except FileNotFoundError:
-        raise FileNotFoundError
+    #try:
+    #    zip_object = ZipFile(dest, 'r')
+    #except FileNotFoundError:
+    #    raise FileNotFoundError
 
-    zip_object.extractall(path=work_path)
+    #zip_object.extractall(path=work_path)
 
     # Remove the data package zip file
     os.remove(dest)
@@ -171,19 +174,22 @@ def import_ezeml_package(output_package_name=None):
         pass
 
     # Get list of files
-    files = zip_object.namelist()
+    #files = zip_object.namelist()
+    files = output_package_name
 
     # Copy the files to their proper destinations
     for filename in files:
         src_file = os.path.join(work_path, filename)
-        if filename.startswith('data/'):
-            dest_file = os.path.join(upload_folder, filename[5:])
-        else:
-            if filename.endswith('.json'):
-                # Use the output package name
-                dest_file = os.path.join(user_path, output_package_name) + '.json'
-            else:
-                dest_file = os.path.join(user_path, filename)
+        if filename.endswith('.xml'):
+            dest_file = os.path.join(user_path, output_package_name) + '.xml'
+        #if filename.startswith('data/'):
+        #    dest_file = os.path.join(upload_folder, filename[5:])
+        #else:
+        #    if filename.endswith('.json'):
+        #        # Use the output package name
+        #        dest_file = os.path.join(user_path, output_package_name) + '.json'
+        #    else:
+        #        dest_file = os.path.join(user_path, filename)
         shutil.copyfile(src_file, dest_file)
 
 

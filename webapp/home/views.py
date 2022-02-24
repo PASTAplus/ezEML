@@ -1625,8 +1625,8 @@ def import_package():
             # filename = secure_filename(file.filename)
             filename = file.filename
 
-            if not os.path.splitext(filename)[1] == '.zip':
-                flash('Please select a file with file extension ".zip".', 'error')
+            if not os.path.splitext(filename)[1] == '.xml':
+                flash('Please select a file with file extension ".xml".', 'error')
                 return redirect(request.url)
 
             package_base_filename = os.path.basename(filename)

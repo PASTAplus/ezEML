@@ -16,4 +16,8 @@ dependencies:
   - lxml
   - uwsgi
   - pytest
+  - pendulum
+  - pip
+  - pip:
+      - metapype==0.0.16
 prefix: /home/servilla/anaconda3/envs/ezeml

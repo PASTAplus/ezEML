@@ -43,14 +43,14 @@ from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
 
-
 if Config.LOG_DEBUG:
     app = Flask(__name__)
     with app.app_context():
         cwd = os.path.dirname(os.path.realpath(__file__))
         logfile = cwd + '/metadata-eml-threads.log'
         file_handler = RotatingFileHandler(logfile, maxBytes=1000000000, backupCount=10)
-        file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s [pid:%(process)d tid:%(thread)d]: %(message)s [in %(pathname)s:%(lineno)d]'))
+        file_handler.setFormatter(Formatter(
+            '%(asctime)s %(levelname)s [pid:%(process)d tid:%(thread)d]: %(message)s [in %(pathname)s:%(lineno)d]'))
         file_handler.setLevel(logging.INFO)
         current_app.logger.addHandler(file_handler)
         current_app.logger.setLevel(logging.INFO)
@@ -110,7 +110,7 @@ def list_files_in_dir(dirpath):
     return [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
 
 
-def post_process_text_type_node(text_node:Node=None):
+def post_process_text_type_node(text_node: Node = None):
     if not text_node:
         return
     text_node.children = []
@@ -125,7 +125,7 @@ def post_process_text_type_node(text_node:Node=None):
         text_node.content = content
 
 
-def display_text_type_node(text_node:Node=None) -> str:
+def display_text_type_node(text_node: Node = None) -> str:
     if not text_node:
         return ''
     if text_node.content:
@@ -148,18 +148,19 @@ def add_paragraph_tags(s):
 
 def remove_paragraph_tags(s):
     if s:
-        return unescape(s).strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
+        return unescape(s).strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>',
+                                                                                                  '').replace('\r', '')
     else:
         return ''
 
 
-def new_child_node(child_name:str, parent:Node):
+def new_child_node(child_name: str, parent: Node):
     child_node = Node(child_name, parent=parent)
     add_child(parent, child_node)
     return child_node
 
 
-def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Optionality.REQUIRED):
+def add_node(parent_node: Node, child_name: str, content: str = None, optionality=Optionality.REQUIRED):
     if optionality == Optionality.OPTIONAL and not content:
         return
     child_node = parent_node.find_child(child_name)
@@ -174,19 +175,19 @@ def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Opt
     return child_node
 
 
-def add_child(parent_node:Node, child_node:Node):
+def add_child(parent_node: Node, child_node: Node):
     if parent_node and child_node:
         parent_rule = rule.get_rule(parent_node.name)
         index = parent_rule.child_insert_index(parent_node, child_node)
         parent_node.add_child(child_node, index=index)
 
 
-def move_up(parent_node:Node, child_node:Node):
+def move_up(parent_node: Node, child_node: Node):
     if parent_node and child_node:
         parent_node.shift(child_node, Shift.LEFT)
 
 
-def move_down(parent_node:Node, child_node:Node):
+def move_down(parent_node: Node, child_node: Node):
     if parent_node and child_node:
         parent_node.shift(child_node, Shift.RIGHT)
 
@@ -201,16 +202,16 @@ def force_missing_value_codes(attribute_node, codes):
                 codes[index] = missing_value
 
 
-def list_data_tables(eml_node:Node=None, to_skip:str=None):
+def list_data_tables(eml_node: Node = None, to_skip: str = None):
     dt_list = []
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             DT_Entry = collections.namedtuple(
-                'DT_Entry', 
+                'DT_Entry',
                 ["id", "label", "object_name", "was_uploaded", "upval", "downval"],
-                 rename=False)
+                rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
                 if to_skip and id == to_skip:
@@ -218,18 +219,18 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
                 label, object_name = compose_entity_label(dt_node)
                 was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(dt_nodes))
+                downval = get_downval(i + 1, len(dt_nodes))
                 dt_entry = DT_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
                                     was_uploaded=was_uploaded,
-                                    upval=upval, 
+                                    upval=upval,
                                     downval=downval)
                 dt_list.append(dt_entry)
     return dt_list
 
 
-def list_data_table_columns(dt_node:Node=None):
+def list_data_table_columns(dt_node: Node = None):
     dt_columns_list = []
     if dt_node:
         attribute_name_nodes = []
@@ -239,14 +240,14 @@ def list_data_table_columns(dt_node:Node=None):
     return dt_columns_list
 
 
-def list_other_entities(eml_node:Node=None):
+def list_other_entities(eml_node: Node = None):
     oe_list = []
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             oe_nodes = dataset_node.find_all_children(names.OTHERENTITY)
             OE_Entry = collections.namedtuple(
-                'OE_Entry', 
+                'OE_Entry',
                 ["id", "label", "object_name", "was_uploaded", "upval", "downval"],
                 rename=False)
             for i, oe_node in enumerate(oe_nodes):
@@ -254,7 +255,7 @@ def list_other_entities(eml_node:Node=None):
                 label, object_name = compose_entity_label(oe_node)
                 was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(oe_nodes))
+                downval = get_downval(i + 1, len(oe_nodes))
                 oe_entry = OE_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
@@ -265,7 +266,7 @@ def list_other_entities(eml_node:Node=None):
     return oe_list
 
 
-def compose_entity_label(entity_node:Node=None):
+def compose_entity_label(entity_node: Node = None):
     label = ''
     object_name = ''
     if entity_node:
@@ -278,7 +279,7 @@ def compose_entity_label(entity_node:Node=None):
     return label, object_name
 
 
-def nominal_ordinal_from_attribute(att_node:Node=None):
+def nominal_ordinal_from_attribute(att_node: Node = None):
     if att_node:
         nominal_node = att_node.find_single_node_by_path([
             names.MEASUREMENTSCALE, names.NOMINAL
@@ -291,7 +292,7 @@ def nominal_ordinal_from_attribute(att_node:Node=None):
     return None
 
 
-def list_codes_and_definitions(att_node:Node=None):
+def list_codes_and_definitions(att_node: Node = None):
     codes_list = []
     nominal_ordinal_node = nominal_ordinal_from_attribute(att_node)
 
@@ -304,27 +305,27 @@ def list_codes_and_definitions(att_node:Node=None):
         if code_definition_nodes:
 
             Code_Definition_Entry = collections.namedtuple(
-                            'Code_Definition_Entry',
-                            ["id", "code", "definition", "upval", "downval"],
+                'Code_Definition_Entry',
+                ["id", "code", "definition", "upval", "downval"],
 
-                            rename=False)
+                rename=False)
 
             for i, cd_node in enumerate(code_definition_nodes):
                 id = cd_node.id
                 code, definition = compose_code_definition(cd_node)
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(code_definition_nodes))
+                downval = get_downval(i + 1, len(code_definition_nodes))
                 cd_entry = Code_Definition_Entry(
-                                id=id,
-                                code=code,
-                                definition=definition,
-                                upval=upval,
-                                downval=downval)
+                    id=id,
+                    code=code,
+                    definition=definition,
+                    upval=upval,
+                    downval=downval)
                 codes_list.append(cd_entry)
         return codes_list
 
 
-def compose_code_definition(code_definition_node:Node=None):
+def compose_code_definition(code_definition_node: Node = None):
     code = ''
     definition = ''
 
@@ -341,7 +342,7 @@ def compose_code_definition(code_definition_node:Node=None):
     return code, definition
 
 
-def entity_name_from_data_table(dt_node:Node=None):
+def entity_name_from_data_table(dt_node: Node = None):
     entity_name = ''
 
     if dt_node:
@@ -350,9 +351,9 @@ def entity_name_from_data_table(dt_node:Node=None):
             entity_name = entity_name_node.content
 
     return entity_name
-    
 
-def attribute_name_from_attribute(att_node:Node=None):
+
+def attribute_name_from_attribute(att_node: Node = None):
     attribute_name = ''
 
     if att_node:
@@ -363,7 +364,7 @@ def attribute_name_from_attribute(att_node:Node=None):
     return attribute_name
 
 
-def code_definition_from_attribute(att_node:Node=None):
+def code_definition_from_attribute(att_node: Node = None):
     nominal_ordinal_node = nominal_ordinal_from_attribute(att_node)
     if nominal_ordinal_node:
         return nominal_ordinal_node.find_single_node_by_path([
@@ -375,7 +376,7 @@ def code_definition_from_attribute(att_node:Node=None):
         return None
 
 
-def enumerated_domain_from_attribute(att_node:Node=None):
+def enumerated_domain_from_attribute(att_node: Node = None):
     nominal_ordinal_node = nominal_ordinal_from_attribute(att_node)
     if nominal_ordinal_node:
         return nominal_ordinal_node.find_single_node_by_path([
@@ -385,26 +386,26 @@ def enumerated_domain_from_attribute(att_node:Node=None):
         return None
 
 
-def non_numeric_domain_from_measurement_scale(ms_node:Node=None):
+def non_numeric_domain_from_measurement_scale(ms_node: Node = None):
     nnd_node = None
 
     if ms_node:
         nominal_or_ordinal_node = ms_node.find_child(names.NOMINAL)
         if not nominal_or_ordinal_node:
             nominal_or_ordinal_node = ms_node.find_child(names.ORDINAL)
-        
+
         if nominal_or_ordinal_node:
             nnd_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
 
     return nnd_node
 
 
-def mscale_from_attribute(att_node:Node=None):
+def mscale_from_attribute(att_node: Node = None):
     if att_node:
         mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
         if mscale_node:
-        
+
             nominal_node = mscale_node.find_child(names.NOMINAL)
             if nominal_node:
                 non_numeric_domain_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
@@ -427,28 +428,28 @@ def mscale_from_attribute(att_node:Node=None):
     return None
 
 
-def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=None):
+def list_attributes(data_table_node: Node = None, caller: str = None, dt_node_id: str = None):
     att_list = []
     if data_table_node:
         attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
         if attribute_list_node:
             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
             ATT_Entry = collections.namedtuple(
-                'ATT_Entry', 
+                'ATT_Entry',
                 ["id", "column_number", "label", "mscale", "upval", "downval"],
-                 rename=False)
+                rename=False)
             for i, att_node in enumerate(att_nodes):
                 id = att_node.id
-                column_number = str(i+1)
+                column_number = str(i + 1)
                 label = compose_attribute_label(att_node)
                 mscale = compose_attribute_mscale(att_node)
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(att_nodes))
+                downval = get_downval(i + 1, len(att_nodes))
                 att_entry = ATT_Entry(id=id,
                                       column_number=column_number,
                                       label=label,
                                       mscale=mscale,
-                                      upval=upval, 
+                                      upval=upval,
                                       downval=downval)
                 att_list.append(att_entry)
     if Config.LOG_DEBUG:
@@ -468,17 +469,17 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
     return att_list
 
 
-def compose_attribute_label(att_node:Node=None):
+def compose_attribute_label(att_node: Node = None):
     label = ''
     if att_node:
         attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
         if attribute_name_node:
-            attribute_name = attribute_name_node.content 
+            attribute_name = attribute_name_node.content
             label = attribute_name
     return label
 
 
-def compose_attribute_mscale(att_node:Node=None):
+def compose_attribute_mscale(att_node: Node = None):
     mscale = ''
     if att_node:
         mscale = mscale_from_attribute(att_node)
@@ -493,7 +494,7 @@ def compose_attribute_mscale(att_node:Node=None):
     return mscale
 
 
-def list_responsible_parties(eml_node:Node=None, node_name:str=None, node_id:str=None):
+def list_responsible_parties(eml_node: Node = None, node_name: str = None, node_id: str = None):
     rp_list = []
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
@@ -510,18 +511,18 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None, node_id:str
             rp_nodes = parent_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
                 'RP_Entry', ["id", "label", "upval", "downval"],
-                 rename=False)
+                rename=False)
             for i, rp_node in enumerate(rp_nodes):
                 label = compose_rp_label(rp_node)
                 id = rp_node.id
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(rp_nodes))
+                downval = get_downval(i + 1, len(rp_nodes))
                 rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval)
                 rp_list.append(rp_entry)
     return rp_list
 
 
-def list_geographic_coverages(parent_node:Node=None):
+def list_geographic_coverages(parent_node: Node = None):
     gc_list = []
     max_len = 40
     if parent_node:
@@ -530,14 +531,14 @@ def list_geographic_coverages(parent_node:Node=None):
             gc_nodes = \
                 coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
             GC_Entry = collections.namedtuple(
-                'GC_Entry', 
+                'GC_Entry',
                 ["id", "geographic_description", "label", "upval", "downval"],
                 rename=False)
             for i, gc_node in enumerate(gc_nodes):
                 description = ''
                 id = gc_node.id
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(gc_nodes))
+                downval = get_downval(i + 1, len(gc_nodes))
                 geographic_description_node = \
                     gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
                 if geographic_description_node:
@@ -549,18 +550,18 @@ def list_geographic_coverages(parent_node:Node=None):
                         pass
                 label = compose_gc_label(gc_node)
                 gc_entry = GC_Entry(id=id,
-                            geographic_description=description,
-                            label=label,
-                            upval=upval, downval=downval)
+                                    geographic_description=description,
+                                    label=label,
+                                    upval=upval, downval=downval)
                 gc_list.append(gc_entry)
     return gc_list
 
 
-def get_upval(i:int):
+def get_upval(i: int):
     return NO_OP if i == 0 else UP_ARROW
 
 
-def get_downval(i:int, n:int):
+def get_downval(i: int, n: int):
     return NO_OP if i >= n else DOWN_ARROW
 
 
@@ -581,7 +582,7 @@ def massage_altitude_units(units):
     return retval
 
 
-def compose_gc_label(gc_node:Node=None):
+def compose_gc_label(gc_node: Node = None):
     '''
     Composes a label for a geographic coverage table entry
     '''
@@ -609,7 +610,7 @@ def compose_gc_label(gc_node:Node=None):
     return label
 
 
-def compose_full_gc_label(gc_node:Node=None):
+def compose_full_gc_label(gc_node: Node = None):
     description = ''
     if gc_node:
         description_node = gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
@@ -619,7 +620,7 @@ def compose_full_gc_label(gc_node:Node=None):
     return ': '.join([description, bounding_coordinates_label])
 
 
-def list_temporal_coverages(parent_node:Node=None):
+def list_temporal_coverages(parent_node: Node = None):
     tc_list = []
     if parent_node:
         coverage_node = parent_node.find_child(names.COVERAGE)
@@ -627,11 +628,11 @@ def list_temporal_coverages(parent_node:Node=None):
             tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
             TC_Entry = collections.namedtuple(
                 'TC_Entry', ["id", "begin_date", "end_date", "upval", "downval"],
-                    rename=False)
+                rename=False)
             for i, tc_node in enumerate(tc_nodes):
                 id = tc_node.id
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(tc_nodes))
+                downval = get_downval(i + 1, len(tc_nodes))
 
                 single_datetime_nodes = tc_node.find_all_children(names.SINGLEDATETIME)
                 if single_datetime_nodes:
@@ -640,7 +641,8 @@ def list_temporal_coverages(parent_node:Node=None):
                         if calendar_date_node:
                             begin_date = calendar_date_node.content
                             end_date = ''
-                            tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
+                            tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval,
+                                                downval=downval)
                             tc_list.append(tc_entry)
 
                 range_of_dates_nodes = tc_node.find_all_children(names.RANGEOFDATES)
@@ -658,12 +660,13 @@ def list_temporal_coverages(parent_node:Node=None):
                             calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
                             if calendar_date_node:
                                 end_date = calendar_date_node.content
-                        tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
+                        tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval,
+                                            downval=downval)
                         tc_list.append(tc_entry)
     return tc_list
 
 
-def list_taxonomic_coverages(parent_node:Node=None):
+def list_taxonomic_coverages(parent_node: Node = None):
     txc_list = []
     if parent_node:
         coverage_node = parent_node.find_child(names.COVERAGE)
@@ -676,7 +679,7 @@ def list_taxonomic_coverages(parent_node:Node=None):
             for i, txc_node in enumerate(txc_nodes):
                 id = txc_node.id
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(txc_nodes))
+                downval = get_downval(i + 1, len(txc_nodes))
                 label = truncate_middle(compose_taxonomic_label(txc_node, label=''), 70, ' ... ')
                 txc_entry = TXC_Entry(
                     id=id, label=label, upval=upval, downval=downval)
@@ -696,7 +699,7 @@ def truncate_middle(s, n, mid='...'):
     return f'{s[:n_1]}{mid}{s[-n_2:]}'
 
 
-def compose_taxonomic_label(txc_node:Node=None, label:str=''):
+def compose_taxonomic_label(txc_node: Node = None, label: str = ''):
     if not txc_node:
         return label
     tc_node = txc_node.find_child(names.TAXONOMICCLASSIFICATION)
@@ -786,7 +789,7 @@ def import_funding_award_nodes(target_package, node_ids_to_import):
     save_both_formats(target_package, target_eml_node)
 
 
-def compose_funding_award_label(award_node:Node=None):
+def compose_funding_award_label(award_node: Node = None):
     if not award_node:
         return ''
     title = ''
@@ -800,7 +803,7 @@ def compose_funding_award_label(award_node:Node=None):
     return f'{title}: {funder_name}'
 
 
-def compose_project_label(project_node:Node=None):
+def compose_project_label(project_node: Node = None):
     if not project_node:
         return ''
     title = ''
@@ -829,7 +832,7 @@ def import_project_nodes(target_package, node_ids_to_import):
     save_both_formats(target_package, target_eml_node)
 
 
-def compose_rp_label(rp_node:Node=None):
+def compose_rp_label(rp_node: Node = None):
     label = ''
     if rp_node:
         individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
@@ -862,7 +865,7 @@ def compose_rp_label(rp_node:Node=None):
     return label
 
 
-def compose_individual_name_label(rp_node:Node=None):
+def compose_individual_name_label(rp_node: Node = None):
     label = ''
     if rp_node:
         salutation_nodes = rp_node.find_all_children(names.SALUTATION)
@@ -870,13 +873,13 @@ def compose_individual_name_label(rp_node:Node=None):
             for salutation_node in salutation_nodes:
                 if salutation_node and salutation_node.content:
                     label = label + " " + salutation_node.content
-        
+
         given_name_nodes = rp_node.find_all_children(names.GIVENNAME)
         if given_name_nodes:
             for given_name_node in given_name_nodes:
                 if given_name_node and given_name_node.content:
                     label = label + " " + given_name_node.content
-        
+
         surname_node = rp_node.find_child(names.SURNAME)
         if surname_node and surname_node.content:
             label = label + " " + surname_node.content
@@ -884,7 +887,7 @@ def compose_individual_name_label(rp_node:Node=None):
     return label
 
 
-def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
+def compose_simple_label(rp_node: Node = None, child_node_name: str = ''):
     label = ''
     if rp_node and child_node_name:
         child_node = rp_node.find_child(child_node_name)
@@ -895,8 +898,20 @@ def compose_simple_label(rp_node:Node=None, child_node_name:str=''):
 
 def from_json(filename):
     eml_node = None
+    # Converted XML file to JSON format -NM 3/2/2022
+    if filename.lower().endswith(".xml"):
+        with open(filename, "r") as file:
+            data = file.read()
+
+        xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
+        converted_file = filename.replace(".xml", ".json")
+
+        with open(converted_file, "w") as file:
+            file.write(xml_to_json)
+            file.close()
+
     try:
-        with open(filename, "r") as json_file:
+        with open(converted_file, "r") as json_file:
             json_text = json_file.read()
             # The JSON may be in one of two formats
             try:
@@ -909,16 +924,17 @@ def from_json(filename):
                 except KeyError as e:
                     logger.error(e)
     except Exception as e:
-         logger.error(e)
+        logger.error(e)
     return eml_node
 
 
-def load_eml(filename:str=None):
+def load_eml(filename: str = None):
     eml_node = None
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         user_folder = '.'
-    filename = f"{user_folder}/{filename}.json"
+    # Changed filename extension from json to xml format -NM 2022
+    filename = f"{user_folder}/{filename}.xml"
     if os.path.isfile(filename):
         eml_node = from_json(filename)
 
@@ -927,7 +943,7 @@ def load_eml(filename:str=None):
     return eml_node
 
 
-def remove_child(node_id:str=None):
+def remove_child(node_id: str = None):
     if node_id:
         child_node = Node.get_node_instance(node_id)
         if child_node:
@@ -941,7 +957,7 @@ def log_as_xml(node: Node):
     logger.info("\n\n" + xml_str)
 
 
-def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=None):
+def save_old_to_new(old_filename: str = None, new_filename: str = None, eml_node: Node = None):
     msg = None
     if new_filename and eml_node and new_filename != old_filename:
         save_both_formats(filename=new_filename, eml_node=eml_node)
@@ -953,11 +969,11 @@ def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=
     return msg
 
 
-def collect_children(parent_node:Node, child_name:str, children:list):
+def collect_children(parent_node: Node, child_name: str, children: list):
     children.extend(parent_node.find_all_children(child_name))
 
 
-def enforce_dataset_sequence(eml_node:Node=None):
+def enforce_dataset_sequence(eml_node: Node = None):
     if eml_node:
         # Children of dataset node need to be in sequence. This happens "naturally" when ezEML is used as a
         #  wizard, but not when jumping around between sections
@@ -1046,7 +1062,7 @@ def clean_model(eml_node):
             taxonid_node.content = str(taxonid)
 
 
-def get_check_metadata_status(eml_node:Node=None, filename:str=None):
+def get_check_metadata_status(eml_node: Node = None, filename: str = None):
     errors, warnings = check_metadata_status(eml_node, filename)
     if errors > 0:
         status = "red"
@@ -1058,17 +1074,17 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
     return status
 
 
-def save_both_formats(filename:str=None, eml_node:Node=None):
+def save_both_formats(filename: str = None, eml_node: Node = None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
-    get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
+    get_check_metadata_status(eml_node, filename)  # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
     add_eml_editor_metadata(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
 
 
-def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
+def save_eml(filename: str = None, eml_node: Node = None, format: str = 'json'):
     if Config.LOG_DEBUG:
         app = Flask(__name__)
         with app.app_context():
@@ -1093,7 +1109,7 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
                 xml_str = export.to_xml(eml_node)
                 metadata_str = xml_declaration + xml_str
-            
+
             if metadata_str:
                 user_folder = user_data.get_user_folder_name()
                 if not user_folder:
@@ -1117,14 +1133,14 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
         raise Exception(f"No filename value was supplied for saving EML.")
 
 
-def evaluate_node(node:Node):
+def evaluate_node(node: Node):
     msg = 'pass'
     if node:
         msg = evaluate.node(node)
     return msg
 
 
-def validate_tree(node:Node):
+def validate_tree(node: Node):
     msg = ''
     if node:
         try:
@@ -1136,7 +1152,7 @@ def validate_tree(node:Node):
     return msg
 
 
-def create_access(parent_node:Node=None):
+def create_access(parent_node: Node = None):
     access_node = new_child_node(names.ACCESS, parent=parent_node)
     access_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
     access_node.add_attribute('scope', Config.SCOPE_ATTRIBUTE_VALUE)
@@ -1163,7 +1179,7 @@ def create_eml(filename=None):
             logger.error(e)
 
 
-def initialize_access_rules(access_node:Node):
+def initialize_access_rules(access_node: Node):
     ''' 
     Initialize the access element with default access rules for user and public
     '''
@@ -1187,21 +1203,20 @@ def initialize_access_rules(access_node:Node):
 
 
 def create_data_table(
-    data_table_node:Node=None, 
-    entity_name:str=None,
-    entity_description:str=None,
-    object_name:str=None,
-    size:str=None,
-    md5_hash:str=None,
-    num_header_lines:str=None,
-    record_delimiter:str=None,
-    quote_character:str=None,
-    attribute_orientation:str=None,
-    field_delimiter:str=None,
-    case_sensitive:str=None,
-    number_of_records:str=None,
-    online_url:str=None):
-
+        data_table_node: Node = None,
+        entity_name: str = None,
+        entity_description: str = None,
+        object_name: str = None,
+        size: str = None,
+        md5_hash: str = None,
+        num_header_lines: str = None,
+        record_delimiter: str = None,
+        quote_character: str = None,
+        attribute_orientation: str = None,
+        field_delimiter: str = None,
+        case_sensitive: str = None,
+        number_of_records: str = None,
+        online_url: str = None):
     try:
 
         if not data_table_node:
@@ -1216,8 +1231,8 @@ def create_data_table(
             entity_description_node.content = entity_description
 
         if object_name or size or md5_hash or num_header_lines or \
-           record_delimiter or attribute_orientation or \
-           field_delimiter or online_url:
+                record_delimiter or attribute_orientation or \
+                field_delimiter or online_url:
             physical_node = new_child_node(names.PHYSICAL, parent=data_table_node)
 
         if object_name:
@@ -1236,7 +1251,7 @@ def create_data_table(
             md5_hash_node.content = str(md5_hash)
 
         if num_header_lines or record_delimiter or \
-               attribute_orientation or field_delimiter:
+                attribute_orientation or field_delimiter:
             data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
             text_format_node = new_child_node(names.TEXTFORMAT, parent=data_format_node)
 
@@ -1297,19 +1312,19 @@ def create_missing_values(attribute_node, code_dict):
 
 
 def create_datetime_attribute(
-                    attribute_node:Node=None, 
-                    attribute_name:str=None,
-                    attribute_label:str=None,
-                    attribute_definition:str=None,
-                    storage_type:str=None,
-                    storage_type_system:str=None,
-                    format_string:str=None, 
-                    datetime_precision:str=None,
-                    bounds_minimum:str=None, 
-                    bounds_minimum_exclusive:str=None, 
-                    bounds_maximum:str=None, 
-                    bounds_maximum_exclusive:str=None,
-                    code_dict:dict=None):
+        attribute_node: Node = None,
+        attribute_name: str = None,
+        attribute_label: str = None,
+        attribute_definition: str = None,
+        storage_type: str = None,
+        storage_type_system: str = None,
+        format_string: str = None,
+        datetime_precision: str = None,
+        bounds_minimum: str = None,
+        bounds_minimum_exclusive: str = None,
+        bounds_maximum: str = None,
+        bounds_maximum_exclusive: str = None,
+        code_dict: dict = None):
     if not attribute_node:
         return
     try:
@@ -1362,24 +1377,24 @@ def create_datetime_attribute(
 
 
 def create_numerical_attribute(
-                    eml_node:Node=None,
-                    attribute_node:Node=None, 
-                    attribute_name:str=None,
-                    attribute_label:str=None,
-                    attribute_definition:str=None,
-                    storage_type:str=None,
-                    storage_type_system:str=None,
-                    standard_unit:str=None, 
-                    custom_unit:str=None,
-                    custom_unit_description:str=None,
-                    precision:str=None, 
-                    number_type:str=None, 
-                    bounds_minimum=None,
-                    bounds_minimum_exclusive:str=None, 
-                    bounds_maximum=None,
-                    bounds_maximum_exclusive:str=None,
-                    code_dict:dict=None,
-                    mscale:str=None):
+        eml_node: Node = None,
+        attribute_node: Node = None,
+        attribute_name: str = None,
+        attribute_label: str = None,
+        attribute_definition: str = None,
+        storage_type: str = None,
+        storage_type_system: str = None,
+        standard_unit: str = None,
+        custom_unit: str = None,
+        custom_unit_description: str = None,
+        precision: str = None,
+        number_type: str = None,
+        bounds_minimum=None,
+        bounds_minimum_exclusive: str = None,
+        bounds_maximum=None,
+        bounds_maximum_exclusive: str = None,
+        code_dict: dict = None,
+        mscale: str = None):
     if not attribute_node:
         return
     try:
@@ -1437,7 +1452,7 @@ def create_numerical_attribute(
         logger.error(e)
 
 
-def add_eml_editor_metadata(eml_node:Node=None):
+def add_eml_editor_metadata(eml_node: Node = None):
     eml_editor_node = eml_node.find_descendant('emlEditor')
     if eml_editor_node:
         metadata_node = eml_editor_node.parent
@@ -1449,11 +1464,12 @@ def add_eml_editor_metadata(eml_node:Node=None):
     eml_editor_node = Node('emlEditor', parent=metadata_node)
     metadata_node.add_child(eml_editor_node)
     eml_editor_node.attributes.clear()
+    # NM 3/1/2022 changed text from "ezEML" to "MotherDB"
     eml_editor_node.add_attribute('app', 'MotherDB')
     eml_editor_node.add_attribute('release', RELEASE_NUMBER)
 
 
-def fix_up_custom_units(eml_node:Node=None):
+def fix_up_custom_units(eml_node: Node = None):
     # The additionalMetadata nodes are handled differently from how they were handled initially.
     # Pre-existing data packages need to be fixed up. Newly-created data packages will be correct, but
     #  we need to check if this package needs fixup.
@@ -1478,7 +1494,8 @@ def fix_up_custom_units(eml_node:Node=None):
                 unitlist_node.remove_child(unit_node)
 
 
-def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):
+def handle_custom_unit_additional_metadata(eml_node: Node = None, custom_unit_name: str = None,
+                                           custom_unit_description: str = None):
     additional_metadata_nodes = []
     eml_node.find_all_descendants(names.ADDITIONALMETADATA, additional_metadata_nodes)
     metadata_node = None
@@ -1517,16 +1534,16 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
 
 
 def create_categorical_or_text_attribute(
-                    attribute_node:Node=None, 
-                    attribute_name:str=None,
-                    attribute_label:str=None,
-                    attribute_definition:str=None,
-                    storage_type:str=None,
-                    storage_type_system:str=None,
-                    enforced:str=None, 
-                    code_dict:dict=None,
-                    mscale:str=None,
-                    enumerated_domain_node:Node=None):
+        attribute_node: Node = None,
+        attribute_name: str = None,
+        attribute_label: str = None,
+        attribute_definition: str = None,
+        storage_type: str = None,
+        storage_type_system: str = None,
+        enforced: str = None,
+        code_dict: dict = None,
+        mscale: str = None,
+        enumerated_domain_node: Node = None):
     if not attribute_node:
         return
     try:
@@ -1581,10 +1598,10 @@ def create_categorical_or_text_attribute(
         logger.error(e)
 
 
-def create_code_definition(code_definition_node:Node=None,
-                           code:str='',
-                           definition:str='',
-                           order:str=''):
+def create_code_definition(code_definition_node: Node = None,
+                           code: str = '',
+                           definition: str = '',
+                           order: str = ''):
     if code_definition_node:
         code_node = new_child_node(names.CODE, parent=code_definition_node)
         code_node.content = code
@@ -1716,17 +1733,17 @@ def create_pubdate(pubdate=None, filename=None):
     except Exception as e:
         logger.error(e)
 
-def create_other_entity(
-    entity_node:Node=None, 
-    entity_name:str=None,
-    entity_type:str=None,
-    entity_description:str=None,
-    object_name:str=None,
-    format_name:str=None,
-    size:str=None,
-    md5_hash:str=None,
-    online_url:str=None):
 
+def create_other_entity(
+        entity_node: Node = None,
+        entity_name: str = None,
+        entity_type: str = None,
+        entity_description: str = None,
+        object_name: str = None,
+        format_name: str = None,
+        size: str = None,
+        md5_hash: str = None,
+        online_url: str = None):
     try:
 
         if not entity_node:
@@ -1780,7 +1797,7 @@ def create_other_entity(
         logger.error(e)
 
 
-def create_abstract(filename:str=None, abstract:str=None):
+def create_abstract(filename: str = None, abstract: str = None):
     eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
@@ -1801,7 +1818,7 @@ def create_abstract(filename:str=None, abstract:str=None):
         logger.error(e)
 
 
-def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
+def create_intellectual_rights(filename: str = None, intellectual_rights: str = None):
     eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
@@ -1821,7 +1838,7 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
         logger.error(e)
 
 
-def create_maintenance(dataset_node:Node=None, description:str=None, update_frequency:str=None):
+def create_maintenance(dataset_node: Node = None, description: str = None, update_frequency: str = None):
     try:
         if dataset_node:
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
@@ -1833,7 +1850,7 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
         logger.error(e)
 
 
-def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
+def create_project(dataset_node: Node = None, title: str = None, abstract: str = None):
     try:
         if dataset_node:
             project_node = dataset_node.find_child(names.PROJECT)
@@ -1857,7 +1874,8 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
         logger.error(e)
 
 
-def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=None, project_node_id:str=None):
+def create_related_project(dataset_node: Node = None, title: str = None, abstract: str = None,
+                           project_node_id: str = None):
     try:
         if project_node_id != '1':
             related_project_node = Node.get_node_instance(project_node_id)
@@ -1887,13 +1905,12 @@ def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=
 
 
 def create_funding_award(
-        award_node:Node=None,
-        funder_name:str=None,
-        award_title:str=None,
-        funder_identifier:str=None,
-        award_number:str=None,
-        award_url:str=None):
-
+        award_node: Node = None,
+        funder_name: str = None,
+        award_title: str = None,
+        funder_identifier: str = None,
+        award_number: str = None,
+        award_url: str = None):
     try:
         funder_name_node = new_child_node(names.FUNDERNAME, parent=award_node)
         funder_name_node.content = funder_name
@@ -1919,7 +1936,7 @@ def create_funding_award(
         logger.error(e)
 
 
-def add_keyword(filename:str=None, keyword:str=None, keyword_type:str=None):
+def add_keyword(filename: str = None, keyword: str = None, keyword_type: str = None):
     if keyword:
         eml_node = load_eml(filename=filename)
 
@@ -1932,14 +1949,14 @@ def add_keyword(filename:str=None, keyword:str=None, keyword_type:str=None):
             keywordset_node = new_child_node(names.KEYWORDSET, parent=dataset_node)
 
         keyword_node = None
-        
+
         # Does a matching keyword node already exist?
         keyword_nodes = keywordset_node.find_all_children(names.KEYWORD)
         for child_node in keyword_nodes:
             if child_node.content == keyword:
                 keyword_node = child_node
                 break
-        
+
         if not keyword_node:
             keyword_node = new_child_node(names.KEYWORD, parent=keywordset_node)
             keyword_node.content = keyword
@@ -1953,7 +1970,7 @@ def add_keyword(filename:str=None, keyword:str=None, keyword_type:str=None):
         logger.error(e)
 
 
-def remove_keyword(filename:str=None, keyword:str=None):
+def remove_keyword(filename: str = None, keyword: str = None):
     if keyword:
         eml_node = load_eml(filename=filename)
         keywordset_node = eml_node.find_single_node_by_path([
@@ -1972,7 +1989,7 @@ def remove_keyword(filename:str=None, keyword:str=None):
         logger.error(e)
 
 
-def remove_related_project(filename:str=None, node_id:str=None):
+def remove_related_project(filename: str = None, node_id: str = None):
     eml_node = load_eml(filename=filename)
     related_project_node = Node.get_node_instance(node_id)
     if related_project_node:
@@ -1986,7 +2003,7 @@ def remove_related_project(filename:str=None, node_id:str=None):
                 logger.error(e)
 
 
-def create_keywords(filename:str=None, keywords_list:list=[]):
+def create_keywords(filename: str = None, keywords_list: list = []):
     eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
@@ -2019,16 +2036,16 @@ def is_float(val):
 
 
 def create_geographic_coverage(
-        geographic_coverage_node:Node=None,
-        geographic_description:str=None,
-        wbc:str=None,
-        ebc:str=None,
-        nbc:str=None,
-        sbc:str=None,
-        amin:str=None,
-        amax:str=None,
-        aunits:str=None
-    ):
+        geographic_coverage_node: Node = None,
+        geographic_description: str = None,
+        wbc: str = None,
+        ebc: str = None,
+        nbc: str = None,
+        sbc: str = None,
+        amin: str = None,
+        amax: str = None,
+        aunits: str = None
+):
     try:
         geographic_description_node = new_child_node(names.GEOGRAPHICDESCRIPTION, parent=geographic_coverage_node)
         geographic_description_node.content = geographic_description
@@ -2069,9 +2086,9 @@ def create_geographic_coverage(
 
 
 def create_temporal_coverage(
-                   temporal_coverage_node:Node=None,
-                   begin_date:str=None,
-                   end_date:str=None):
+        temporal_coverage_node: Node = None,
+        begin_date: str = None,
+        end_date: str = None):
     try:
         if begin_date and end_date:
             range_of_dates_node = new_child_node(names.RANGEOFDATES, parent=temporal_coverage_node)
@@ -2096,20 +2113,21 @@ def create_temporal_coverage(
 
 
 def create_taxonomic_coverage(
-                taxonomic_coverage_node:Node,
-                general_taxonomic_coverage:str,
-                hierarchy,
-                authority):
+        taxonomic_coverage_node: Node,
+        general_taxonomic_coverage: str,
+        hierarchy,
+        authority):
     try:
         if taxonomic_coverage_node:
             if general_taxonomic_coverage:
                 general_taxonomic_coverage_node = new_child_node(names.GENERALTAXONOMICCOVERAGE,
-                                                       parent=taxonomic_coverage_node)
+                                                                 parent=taxonomic_coverage_node)
                 general_taxonomic_coverage_node.content = general_taxonomic_coverage
 
             taxonomic_classification_parent_node = taxonomic_coverage_node
             for taxon_rank, taxon_name, common_name, taxon_id, *_ in hierarchy[::-1]:
-                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
+                taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION,
+                                                               parent=taxonomic_classification_parent_node)
                 taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = taxon_rank
                 taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
@@ -2139,28 +2157,28 @@ def create_taxonomic_coverage(
         logger.error(e)
 
 
-def create_responsible_party(responsible_party_node:Node=None,
-                             filename:str=None,
-                             salutation:str=None,
-                             gn:str=None,
-                             mn:str=None,
-                             sn:str=None,
-                             user_id:str=None,
-                             organization:str=None,
-                             org_id:str=None,
-                             org_id_type:str=None,
-                             position_name:str=None,
-                             address_1:str=None,
-                             address_2:str=None,
-                             city:str=None,
-                             state:str=None,
-                             postal_code:str=None,
-                             country:str=None,
-                             phone:str=None,
-                             fax:str=None,
-                             email:str=None,
-                             online_url:str=None,
-                             role:str=None):
+def create_responsible_party(responsible_party_node: Node = None,
+                             filename: str = None,
+                             salutation: str = None,
+                             gn: str = None,
+                             mn: str = None,
+                             sn: str = None,
+                             user_id: str = None,
+                             organization: str = None,
+                             org_id: str = None,
+                             org_id_type: str = None,
+                             position_name: str = None,
+                             address_1: str = None,
+                             address_2: str = None,
+                             city: str = None,
+                             state: str = None,
+                             postal_code: str = None,
+                             country: str = None,
+                             phone: str = None,
+                             fax: str = None,
+                             email: str = None,
+                             online_url: str = None,
+                             role: str = None):
     try:
         if salutation or gn or mn or sn:
             individual_name_node = new_child_node(names.INDIVIDUALNAME, parent=responsible_party_node)
@@ -2251,7 +2269,7 @@ def create_responsible_party(responsible_party_node:Node=None,
         logger.error(e)
 
 
-def list_funding_awards(eml_node:Node=None, node_id=None):
+def list_funding_awards(eml_node: Node = None, node_id=None):
     award_list = []
     if eml_node:
         if node_id:
@@ -2267,7 +2285,8 @@ def list_funding_awards(eml_node:Node=None, node_id=None):
             for i, award_node in enumerate(award_nodes):
                 Awards_Entry = collections.namedtuple(
                     "AwardEntry",
-                    ["id", "funder_name", "funder_identifier", "award_number", "award_title", "award_url", "upval", "downval"],
+                    ["id", "funder_name", "funder_identifier", "award_number", "award_title", "award_url", "upval",
+                     "downval"],
                     rename=False)
                 id = award_node.id
                 funder_name = ''
@@ -2293,26 +2312,26 @@ def list_funding_awards(eml_node:Node=None, node_id=None):
                 upval = get_upval(i)
                 downval = get_downval(i + 1, len(award_nodes))
                 award_entry = Awards_Entry(id=id,
-                                        funder_name=funder_name,
-                                        funder_identifier=funder_identifier,
-                                        award_number=award_number,
-                                        award_title=award_title,
-                                        award_url=award_url,
-                                        upval=upval,
-                                        downval=downval)
+                                           funder_name=funder_name,
+                                           funder_identifier=funder_identifier,
+                                           award_number=award_number,
+                                           award_title=award_title,
+                                           award_url=award_url,
+                                           upval=upval,
+                                           downval=downval)
                 award_list.append(award_entry)
 
     return award_list
 
 
-def list_method_steps(parent_node:Node=None):
+def list_method_steps(parent_node: Node = None):
     ms_list = []
     if parent_node:
         methods_node = parent_node.find_child(names.METHODS)
         if methods_node:
             method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
             MS_Entry = collections.namedtuple(
-                'MS_Entry', 
+                'MS_Entry',
                 ["id", "description", "instrumentation", "upval", "downval"],
                 rename=False)
             for i, method_step_node in enumerate(method_step_nodes):
@@ -2320,17 +2339,17 @@ def list_method_steps(parent_node:Node=None):
                 method_step_description = compose_method_step_description(method_step_node)
                 method_step_instrumentation = compose_method_step_instrumentation(method_step_node)
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(method_step_nodes))
+                downval = get_downval(i + 1, len(method_step_nodes))
                 ms_entry = MS_Entry(id=id,
                                     description=method_step_description,
                                     instrumentation=method_step_instrumentation,
-                                    upval=upval, 
+                                    upval=upval,
                                     downval=downval)
                 ms_list.append(ms_entry)
     return ms_list
 
 
-def list_keywords(eml_node:Node=None):
+def list_keywords(eml_node: Node = None):
     kw_list = []
     if eml_node:
         kw_nodes = eml_node.find_all_nodes_by_path([
@@ -2347,7 +2366,7 @@ def list_keywords(eml_node:Node=None):
                 kt = kw_node.attribute_value('keywordType')
                 keyword_type = kt if kt else ''
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(kw_nodes))
+                downval = get_downval(i + 1, len(kw_nodes))
                 kw_entry = KW_Entry(id=id,
                                     keyword=keyword,
                                     keyword_type=keyword_type,
@@ -2357,43 +2376,43 @@ def list_keywords(eml_node:Node=None):
     return kw_list
 
 
-def list_access_rules(parent_node:Node=None):
+def list_access_rules(parent_node: Node = None):
     ar_list = []
     if parent_node:
         access_node = parent_node.find_child(names.ACCESS)
         if access_node:
             allow_nodes = access_node.find_all_children(names.ALLOW)
             AR_Entry = collections.namedtuple(
-                    'AR_Entry', 
-                    ["id", "userid", "permission", "upval", "downval"],
-                    rename=False)
+                'AR_Entry',
+                ["id", "userid", "permission", "upval", "downval"],
+                rename=False)
             for i, allow_node in enumerate(allow_nodes):
                 id = allow_node.id
                 userid = get_child_content(allow_node, names.PRINCIPAL)
                 permission = get_child_content(allow_node, names.PERMISSION)
                 upval = get_upval(i)
-                downval = get_downval(i+1, len(allow_nodes))
+                downval = get_downval(i + 1, len(allow_nodes))
                 ar_entry = AR_Entry(id=id,
                                     userid=userid,
                                     permission=permission,
-                                    upval=upval, 
+                                    upval=upval,
                                     downval=downval)
                 ar_list.append(ar_entry)
     return ar_list
 
 
-def get_child_content(parent_node:Node=None, child_name:str=None):
+def get_child_content(parent_node: Node = None, child_name: str = None):
     content = ''
 
     if parent_node and child_name:
         child_node = parent_node.find_child(child_name)
         if child_node:
-            content = child_node.content 
+            content = child_node.content
 
     return content
 
 
-def compose_method_step_description(method_step_node:Node=None):
+def compose_method_step_description(method_step_node: Node = None):
     description = ''
     MAX_LEN = 40
 
@@ -2417,22 +2436,23 @@ def compose_method_step_description(method_step_node:Node=None):
     return description
 
 
-def compose_method_step_instrumentation(method_step_node:Node=None):
+def compose_method_step_instrumentation(method_step_node: Node = None):
     instrumentation = ''
     MAX_LEN = 40
 
     if method_step_node:
         instrumentation_node = method_step_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node:
-            instrumentation = instrumentation_node.content 
+            instrumentation = instrumentation_node.content
             if instrumentation and len(instrumentation) > MAX_LEN:
                 instrumentation = instrumentation[0:MAX_LEN]
 
     return instrumentation
 
 
-def create_method_step(method_step_node:Node=None, description:str=None, instrumentation:str=None, data_sources:str=None,
-                       data_sources_marker_begin:str='', data_sources_marker_end:str=''):
+def create_method_step(method_step_node: Node = None, description: str = None, instrumentation: str = None,
+                       data_sources: str = None,
+                       data_sources_marker_begin: str = '', data_sources_marker_end: str = ''):
     if method_step_node:
         description_node = new_child_node(names.DESCRIPTION, parent=method_step_node)
 
@@ -2450,25 +2470,25 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
             instrumentation_node.content = instrumentation
 
 
-def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=None):
+def create_keyword(keyword_node: Node = None, keyword: str = None, keyword_type: str = None):
     if keyword_node:
         keyword_node.content = keyword
         if keyword_type:
             keyword_node.add_attribute(name='keywordType', value=keyword_type)
 
 
-def create_access_rule(allow_node:Node=None, userid:str=None, permission:str=None):
+def create_access_rule(allow_node: Node = None, userid: str = None, permission: str = None):
     if allow_node:
         if userid:
             principal_node = new_child_node(names.PRINCIPAL, parent=allow_node)
             principal_node.content = userid
-        
+
         if permission:
             permission_node = new_child_node(names.PERMISSION, parent=allow_node)
             permission_node.content = permission
 
 
-def nominal_to_ordinal(nominal_node:Node=None):
+def nominal_to_ordinal(nominal_node: Node = None):
     if nominal_node:
         if nominal_node.name == names.NOMINAL:
             nominal_node.name = names.ORDINAL
@@ -2478,7 +2498,7 @@ def nominal_to_ordinal(nominal_node:Node=None):
         raise Exception("Expected nominal node object but a None value was passed.")
 
 
-def ordinal_to_nominal(ordinal_node:Node=None):
+def ordinal_to_nominal(ordinal_node: Node = None):
     if ordinal_node:
         if ordinal_node.name == names.ORDINAL:
             ordinal_node.name = names.NOMINAL
@@ -2488,7 +2508,7 @@ def ordinal_to_nominal(ordinal_node:Node=None):
         raise Exception("Expected ordinal node object but a None value was passed.")
 
 
-def inteval_to_ratio(interval_node:Node=None):
+def inteval_to_ratio(interval_node: Node = None):
     if interval_node:
         if interval_node.name == names.INTERVAL:
             interval_node.name = names.RATIO
@@ -2498,7 +2518,7 @@ def inteval_to_ratio(interval_node:Node=None):
         raise Exception("Expected interval node object but a None value was passed.")
 
 
-def ratio_to_interval(ratio_node:Node=None):
+def ratio_to_interval(ratio_node: Node = None):
     if ratio_node:
         if ratio_node.name == names.RATIO:
             ratio_node.name = names.INTERVAL
@@ -2508,7 +2528,7 @@ def ratio_to_interval(ratio_node:Node=None):
         raise Exception("Expected ratio node object but a None value was passed.")
 
 
-def read_xml(xml:str=None):
+def read_xml(xml: str = None):
     eml_node = None
     if xml:
         try:

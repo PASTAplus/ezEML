@@ -57,7 +57,7 @@ def upload_ezeml_package(file, package_name=None):
     # Also checks the ezEML manifest. If the manifest is missing or indicates that files have
     # been changed outside of ezEML, this function raises ValueError.
     user_path = user_data.get_user_folder_name()
-    work_path = os.path.join(user_path, 'zip_temp')
+    work_path = os.path.join(user_path, 'xml_temp')
 
     try:
         shutil.rmtree(work_path)
@@ -69,39 +69,43 @@ def upload_ezeml_package(file, package_name=None):
     except FileExistsError:
         pass
 
-    dest = os.path.join(work_path, package_name) + '.zip'
+    #Changed dest to just work_path -NM 3/1/2022
+    dest = os.path.join(work_path, package_name)
+    #dest = work_path
     file.save(dest)
 
     # Get the package name
-    try:
-        zip_object = ZipFile(dest, 'r')
-    except FileNotFoundError:
-        # flash(f'FileNotFoundError: {dest}')
-        raise FileNotFoundError(dest)
+    #try:
+    #    zip_object = ZipFile(dest, 'r')
+    #except FileNotFoundError:
+    #    # flash(f'FileNotFoundError: {dest}')
+    #    raise FileNotFoundError(dest)
 
     # Get list of files in the archive
-    files = zip_object.namelist()
+    #files = zip_object.namelist()
 
-    unversioned_package_name = None
-    renamed_zip = None
-    for filename in files:
-        if filename.lower().endswith('.json'):
-            unversioned_package_name = filename.replace('.json', '')
-            renamed_zip = os.path.join(work_path, unversioned_package_name) + '.zip'
-            shutil.move(dest, renamed_zip)
-            break
+    #unversioned_package_name = None
+    unversioned_package_name = os.path.basename(dest)
+    #renamed_zip = None
+    #for filename in files:
+    #    if filename.lower().endswith('.json'):
+    #        unversioned_package_name = filename.replace('.json', '')
+    #        renamed_zip = os.path.join(work_path, unversioned_package_name) + '.zip'
+    #        shutil.move(dest, renamed_zip)
+    #        break
 
-    if not renamed_zip:
+    #if not renamed_zip:
         # flash(f'FileNotFoundError: {unversioned_package_name}.zip')
-        raise FileNotFoundError
-    check_ezeml_manifest(renamed_zip)
+    #    raise FileNotFoundError
+    #check_ezeml_manifest(renamed_zip)
 
     return unversioned_package_name
 
 
 def copy_ezeml_package(package_name=None):
     user_path = user_data.get_user_folder_name() # os.path.join(current_path, USER_DATA_DIR)
-    work_path = os.path.join(user_path, 'zip_temp')
+    #Changed zip_temp to xml_temp -NM 3/1/2022
+    work_path = os.path.join(user_path, 'xml_temp')
 
     # Determine the output package name to use
     # package_name may already be of the form foobar_COPYn
@@ -124,21 +128,21 @@ def copy_ezeml_package(package_name=None):
         suffix = str(max_copy + 1)
     output_package_name = name_with_copy + suffix
 
-    # index = package_name.rfind('_COPY')
-    # if index > -1:
-    #     base_package_name = package_name[:index]
-    # i = 1
-    # while True:
-    #     if i == 1:
-    #         output_package_name = base_package_name + '_COPY'
-    #     else:
-    #         output_package_name = base_package_name + '_COPY' + str(i)
-    #     if not os.path.isfile(os.path.join(user_path, output_package_name) + '.json'):
-    #         break
-    #     i += 1
+    index = package_name.rfind('_COPY')
+    if index > -1:
+         base_package_name = package_name[:index]
+    i = 1
+    while True:
+        if i == 1:
+            output_package_name = base_package_name + '_COPY'
+        else:
+            output_package_name = base_package_name + '_COPY' + str(i)
+        if not os.path.isfile(os.path.join(user_path, output_package_name) + '.json'):
+            break
+        i += 1
 
-    src_file = os.path.join(work_path, package_name) + '.zip'
-    dest_file = os.path.join(work_path, output_package_name) + '.zip'
+    src_file = os.path.join(user_path, package_name)
+    dest_file = os.path.join(work_path, output_package_name)
     shutil.move(src_file, dest_file)
     return output_package_name
 
@@ -149,17 +153,19 @@ def import_ezeml_package(output_package_name=None):
     #work_path = os.path.join(user_path, 'zip_temp')
     #dest = os.path.join(work_path, output_package_name) + '.zip'
     work_path = os.path.join(user_path, 'xml_temp')
-    dest = os.path.join(work_path, output_package_name) + '.xml'
+    #dest = os.path.join(work_path, output_package_name) + '.xml'
 
+    #Creates zip file object at folder -NM 3/1/2022
     #try:
     #    zip_object = ZipFile(dest, 'r')
     #except FileNotFoundError:
     #    raise FileNotFoundError
 
+    #Extracts contents of zip file into the working path -NM 3/1/2022
     #zip_object.extractall(path=work_path)
 
     # Remove the data package zip file
-    os.remove(dest)
+    #os.remove(dest) -NM 3/1/2022
 
     # Create the uploads folder
     # If it already exists, remove it first so we get a clean folder
@@ -174,14 +180,16 @@ def import_ezeml_package(output_package_name=None):
         pass
 
     # Get list of files
-    #files = zip_object.namelist()
-    files = output_package_name
+    #files = zip_object.namelist() -Commented out NM 3/1/2022
+    files = os.listdir(work_path)
 
     # Copy the files to their proper destinations
     for filename in files:
         src_file = os.path.join(work_path, filename)
-        if filename.endswith('.xml'):
-            dest_file = os.path.join(user_path, output_package_name) + '.xml'
+        dest_file = os.path.join(user_path, filename + ".xml")
+        #Commented out block -NM 3/2/2022
+        #if filename.endswith('.xml'):
+        #    dest_file = os.path.join(user_path, output_package_name)
         #if filename.startswith('data/'):
         #    dest_file = os.path.join(upload_folder, filename[5:])
         #else:
@@ -190,7 +198,7 @@ def import_ezeml_package(output_package_name=None):
         #        dest_file = os.path.join(user_path, output_package_name) + '.json'
         #    else:
         #        dest_file = os.path.join(user_path, filename)
-        shutil.copyfile(src_file, dest_file)
+    shutil.copyfile(src_file, dest_file)
 
 
 

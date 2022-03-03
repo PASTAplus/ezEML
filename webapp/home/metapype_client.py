@@ -933,7 +933,7 @@ def load_eml(filename: str = None):
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         user_folder = '.'
-    # Changed filename extension from json to xml format -NM 2022
+    # Changed filename extension from json to xml format -NM 3/2/2022
     filename = f"{user_folder}/{filename}.xml"
     if os.path.isfile(filename):
         eml_node = from_json(filename)

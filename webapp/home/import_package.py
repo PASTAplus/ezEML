@@ -128,20 +128,20 @@ def copy_ezeml_package(package_name=None):
         suffix = str(max_copy + 1)
     output_package_name = name_with_copy + suffix
 
-    index = package_name.rfind('_COPY')
-    if index > -1:
-         base_package_name = package_name[:index]
-    i = 1
-    while True:
-        if i == 1:
-            output_package_name = base_package_name + '_COPY'
-        else:
-            output_package_name = base_package_name + '_COPY' + str(i)
-        if not os.path.isfile(os.path.join(user_path, output_package_name) + '.json'):
-            break
-        i += 1
+    #index = package_name.rfind('_COPY')
+    #if index > -1:
+    #     base_package_name = package_name[:index]
+    #i = 1
+    #while True:
+    #    if i == 1:
+    #        output_package_name = base_package_name + '_COPY'
+    #    else:
+    #        output_package_name = base_package_name + '_COPY' + str(i)
+    #    if not os.path.isfile(os.path.join(user_path, output_package_name) + '.json'):
+    #        break
+    #    i += 1
 
-    src_file = os.path.join(user_path, package_name)
+    src_file = os.path.join(work_path, package_name)
     dest_file = os.path.join(work_path, output_package_name)
     shutil.move(src_file, dest_file)
     return output_package_name

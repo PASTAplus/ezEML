@@ -171,6 +171,14 @@ def sample_text(texttype_node):
     if title_node:
         title = title_node.content
     text = display_simple_texttype_node(texttype_node)
+    # if we didn't get anything, let's see if what we have is markdown
+    if not text:
+        markdown_nodes = []
+        texttype_node.find_all_descendants(names.MARKDOWN, markdown_nodes)
+        for markdown_node in markdown_nodes:
+            if markdown_node.content:
+                text += f'{markdown_node.content}\n'
+        text = text.replace('#', '')
     return title, text
 
 
@@ -192,9 +200,19 @@ def construct_texttype_node(text, parent_name=None):
     try:
         subtree = metapype_io.from_xml(remove_escapes(text), clean=True, literals=['literalLayout', 'markdown'])
         validate.tree(subtree)
+        return subtree
     except Exception as e:
+        if e.__class__.__name__ == 'XMLSyntaxError':
+            if str(e).startswith('Start tag expected'):
+                try:
+                    # We may have a naked string. Try adding the root node.
+                    text = f"<{parent_name}>{text}</{parent_name}>"
+                    subtree = metapype_io.from_xml(text, clean=True, literals=['literalLayout', 'markdown'])
+                    validate.tree(subtree)
+                    return subtree
+                except Exception as e2:
+                    raise InvalidXMLError(str(e2))
         raise InvalidXMLError(str(e))
-    return subtree
 
 
 def check_xml_validity(xml:str=None, parent_name:str=None):

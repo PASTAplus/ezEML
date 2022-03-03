@@ -10,8 +10,15 @@ from webapp.home.metapype_client import (
     list_funding_awards, create_funding_award,
     remove_child, UP_ARROW, DOWN_ARROW,
     get_upval, get_downval,
-    display_text_type_node, post_process_text_type_node,
+    post_process_texttype_node,
     handle_hidden_buttons, check_val_for_hidden_buttons
+)
+
+from webapp.home.texttype_node_processing import(
+    display_texttype_node,
+    model_has_complex_texttypes,
+    is_valid_xml_fragment,
+    invalid_xml_error_message
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -77,13 +84,24 @@ def project(filename=None, project_node_id=None):
             new_page = handle_hidden_buttons(new_page, this_page)
 
         if save:
-            title = form.title.data
             abstract = form.abstract.data
-            # if not node_id:
+            valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
+            if not valid:
+                flash(invalid_xml_error_message(msg, False, names.ABSTRACT), 'error')
+                return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id)
+
+            funding = form.funding.data
+            valid, msg = is_valid_xml_fragment(funding, names.FUNDING)
+            if not valid:
+                flash(invalid_xml_error_message(msg, False, names.FUNDING), 'error')
+                return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id)
+
+            title = form.title.data
+
             if not doing_related_project:
-                create_project(dataset_node, title, abstract)
+                create_project(dataset_node, title, abstract, funding)
             else:
-                related_project_node = create_related_project(dataset_node, title, abstract, project_node_id)
+                related_project_node = create_related_project(dataset_node, title, abstract, funding, project_node_id)
                 project_node_id = related_project_node.id
             save_both_formats(filename=filename, eml_node=eml_node)
 
@@ -103,7 +121,10 @@ def project(filename=None, project_node_id=None):
     elif dataset_node:
         project_node = dataset_node.find_child(names.PROJECT)
         populate_project_form(form, project_node)
+    return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id)
 
+
+def render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id):
     set_current_page('project')
     if not doing_related_project:
         help = [get_help('project'), get_help('project_title')]
@@ -116,6 +137,7 @@ def project(filename=None, project_node_id=None):
     return render_template('project.html',
                            title=page_title,
                            filename=filename,
+                           model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
                            form=form,
                            help=help)
 
@@ -130,21 +152,14 @@ def populate_project_form(form: ProjectForm, project_node: Node):
             title = title_node.content
 
         abstract_node = project_node.find_child(names.ABSTRACT)
-        post_process_text_type_node(abstract_node)
-        # if abstract_node:
-        #     abstract = abstract_node.content
-        #     if not abstract:
-        #         para_node = abstract_node.find_child(names.PARA)
-        #         if para_node:
-        #             abstract = para_node.content
-        #         else:
-        #             section_node = abstract_node.find_child(names.SECTION)
-        #             if section_node:
-        #                 abstract = section_node.content
-        #     abstract = abstract
+        post_process_texttype_node(abstract_node)
+
+        funding_node = project_node.find_child(names.FUNDING)
+        post_process_texttype_node(funding_node)
 
         form.title.data = title
-        form.abstract.data = display_text_type_node(abstract_node)
+        form.abstract.data = display_texttype_node(abstract_node)
+        form.funding.data = display_texttype_node(funding_node)
     form.md5.data = form_md5(form)
 
 

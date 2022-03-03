@@ -19,6 +19,7 @@ from enum import Enum
 import html
 import json
 import math
+import pickle
 
 import logging
 from logging import Formatter
@@ -42,8 +43,18 @@ from metapype.model.node import Node, Shift
 from metapype.model import mp_io, metapype_io
 
 from webapp.home.check_metadata import check_metadata_status
+from webapp.home.texttype_node_processing import (
+    model_has_complex_texttypes,
+    construct_texttype_node,
+    display_texttype_node,
+    is_valid_xml_fragment,
+    invalid_xml_error_message,
+    sample_text,
+    TEXTTYPE_NODES
+)
 
 import webapp.auth.user_data as user_data
+import webapp.home.exceptions as exceptions
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -63,7 +74,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.02.09'
+RELEASE_NUMBER = '2022.03.03'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -153,64 +164,19 @@ def list_files_in_dir(dirpath):
     return [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
 
 
-def post_process_text_type_node(text_node:Node=None):
+def post_process_texttype_node(text_node:Node=None):
     if not text_node:
         return
-    content = remove_paragraph_tags(text_node.content)
-    if content:
+    use_complex_representation = user_data.get_model_has_complex_texttypes()
+    if text_node.content and use_complex_representation and text_node.name in TEXTTYPE_NODES:
         # If we have content, we're saving a node that's been modified. We remake the children.
-        text_node.children = []
-        paras = [content] if '\n' not in content else content.split('\n')
-        for para in paras:
-            para_node = new_child_node(names.PARA, text_node)
-            para_node.content = para
-        text_node.content = None
+        new_node = construct_texttype_node(text_node.content, text_node.name)
+        text_node.content = new_node.content
+        text_node.tail = new_node.tail
+        text_node.children = new_node.children
     else:
+        content = remove_paragraph_tags(text_node.content)
         text_node.content = content
-
-
-# def post_process_text_type_node_imported_from_xml(text_node:Node=None):
-#     if not text_node:
-#         return
-#     '''
-#     The following descendants of TextType nodes are encountered in various EML files:
-#         'citetitle', 'emphasis', 'itemizedlist', 'listitem', 'literalLayout', 'markdown',
-#         'orderedlist', 'para', 'section', 'subscript', 'superscript', 'title', 'ulink'
-#     For the purposes
-#     '''
-
-
-# def post_process_text_type_nodes_imported_from_xml(eml_node:Node=None):
-#     TEXT_TYPE_NODES = [
-#         names.ABSTRACT,
-#         names.ACKNOWLEDGEMENTS,
-#         names.ADDITIONALINFO,
-#         names.DESCRIPTION,
-#         # names.EXAMPLE,
-#         names.FUNDING,
-#         names.GETTINGSTARTED,
-#         names.INTELLECTUALRIGHTS,
-#         names.INTRODUCTION,
-#         # names.MODULEDESCRIPTION,
-#         names.PURPOSE,
-#         names.SAMPLINGDESCRIPTION,
-#         # names.TEXT
-#     ]
-
-
-def display_text_type_node(text_node:Node=None) -> str:
-    # Currently, this handles simple cases with paras only (paras may be contained in sections)
-    if not text_node:
-        return ''
-    if text_node.content:
-        return text_node.content
-    text = ''
-    para_nodes = []
-    text_node.find_all_descendants(names.PARA, para_nodes)
-    for para_node in para_nodes:
-        if para_node.content:
-            text += f'{para_node.content}\n'
-    return text
 
 
 def add_paragraph_tags(s):
@@ -226,7 +192,7 @@ def remove_paragraph_tags(s):
     if s:
         return unescape(s).strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>', '').replace('\r', '')
     else:
-        return ''
+        return s
 
 
 def new_child_node(child_name:str, parent:Node):
@@ -977,6 +943,7 @@ def from_json(filename):
             # The JSON may be in one of two formats
             try:
                 eml_node = metapype_io.from_json(json_text)
+
             except KeyError as e:
                 # Must be in the old format. When saved, the JSON will be written in the new format.
                 try:
@@ -1007,7 +974,7 @@ def save_package_id(eml_node):
             user_data.set_active_packageid(data_package_id)
 
 
-def load_eml(filename:str=None, folder_name=None):
+def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False):
     eml_node = None
     if folder_name:
         user_folder = folder_name
@@ -1019,13 +986,22 @@ def load_eml(filename:str=None, folder_name=None):
             logger.error(f"load_eml: {e}")
     if not user_folder:
         user_folder = '.'
-    filename = f"{user_folder}/{filename}.json"
+    ext = 'json' if not use_pickle else 'pkl'
+    filename = f"{user_folder}/{filename}.{ext}"
     if os.path.isfile(filename):
-        eml_node = from_json(filename)
+        if use_pickle:
+            eml_node = pickle.load(open(filename, 'rb'))
+        else:
+            eml_node = from_json(filename)
+    elif use_pickle:
+        filename = filename.replace('.pkl', '.json')
+        if os.path.isfile(filename):
+            eml_node = from_json(filename)
 
     if eml_node:
         get_check_metadata_status(eml_node, filename)
         save_package_id(eml_node)
+        user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
     return eml_node
 
 
@@ -1146,17 +1122,18 @@ def clean_model(eml_node):
         taxonid = taxonid_node.content
         if isinstance(taxonid, int):
             taxonid_node.content = str(taxonid)
-    # Some documents have extra tags under intellectualRights that confuse metapype's evaluation function.
-    intellectual_rights_nodes = []
-    eml_node.find_all_descendants(names.INTELLECTUALRIGHTS, intellectual_rights_nodes)
-    for intellectual_rights_node in intellectual_rights_nodes:
-        ir_content = display_text_type_node(intellectual_rights_node)
-        if INTELLECTUAL_RIGHTS_CC0 in ir_content:
-            intellectual_rights_node.content = INTELLECTUAL_RIGHTS_CC0
-            intellectual_rights_node.remove_children()
-        elif INTELLECTUAL_RIGHTS_CC_BY in ir_content:
-            intellectual_rights_node.content = INTELLECTUAL_RIGHTS_CC_BY
-            intellectual_rights_node.remove_children()
+
+    # # Some documents have extra tags under intellectualRights that confuse metapype's evaluation function.
+    # intellectual_rights_nodes = []
+    # eml_node.find_all_descendants(names.INTELLECTUALRIGHTS, intellectual_rights_nodes)
+    # for intellectual_rights_node in intellectual_rights_nodes:
+    #     ir_content = display_texttype_node(intellectual_rights_node)
+    #     if INTELLECTUAL_RIGHTS_CC0 in ir_content:
+    #         intellectual_rights_node.content = INTELLECTUAL_RIGHTS_CC0
+    #         intellectual_rights_node.remove_children()
+    #     elif INTELLECTUAL_RIGHTS_CC_BY in ir_content:
+    #         intellectual_rights_node.content = INTELLECTUAL_RIGHTS_CC_BY
+    #         intellectual_rights_node.remove_children()
 
 
 def get_check_metadata_status(eml_node:Node=None, filename:str=None):
@@ -1197,19 +1174,32 @@ def create_full_xml(eml_node):
       }
     eml_node.prefix = 'eml'
     eml_node.extras = {
-        "xsi:schemaLocation": "https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/"
+        "xsi:schemaLocation": "https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd"
     }
     return metapype_io.to_xml(eml_node)
 
 
-def save_both_formats(filename:str=None, eml_node:Node=None):
+def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=False):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
     add_eml_editor_metadata(eml_node)
+    if use_pickle:
+        pickle_eml(filename, eml_node)
+        return
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
+
+
+def pickle_eml(filename:str=None, eml_node:Node=None):
+    user_folder = user_data.get_user_folder_name()
+    if not user_folder:
+        user_folder = '.'
+    format = 'pkl'
+    filename = f'{user_folder}/{filename}.{format}'
+    with open(filename, 'wb') as f:
+        pickle.dump(eml_node, f)
 
 
 def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
@@ -1358,6 +1348,7 @@ def create_data_table(
         if entity_description:
             entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=data_table_node)
             entity_description_node.content = entity_description
+            post_process_texttype_node(entity_description_node)
 
         if object_name or size or md5_hash or num_header_lines or \
            record_delimiter or attribute_orientation or \
@@ -1964,12 +1955,20 @@ def create_abstract(filename:str=None, abstract:str=None):
         abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
 
     abstract_node.content = abstract
-    post_process_text_type_node(abstract_node)
-
-    try:
-        save_both_formats(filename=filename, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
+    valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
+    if valid:
+        try:
+            post_process_texttype_node(abstract_node)
+            try:
+                save_both_formats(filename=filename, eml_node=eml_node)
+            except Exception as e:
+                logger.error(e)
+        except exceptions.InvalidXMLError as e:
+            logger.error(e)
+            flash(invalid_xml_error_message(str(e)), 'error')
+            return
+    else:
+        flash(invalid_xml_error_message(msg), 'error')
 
 
 def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
@@ -1986,12 +1985,20 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
 
     intellectual_rights_node.content = intellectual_rights
     if intellectual_rights != INTELLECTUAL_RIGHTS_CC0 and intellectual_rights != INTELLECTUAL_RIGHTS_CC_BY:
-        post_process_text_type_node(intellectual_rights_node)
-
-    try:
-        save_both_formats(filename=filename, eml_node=eml_node)
-    except Exception as e:
-        logger.error(e)
+        valid, msg = is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
+        if valid:
+            try:
+                post_process_texttype_node(intellectual_rights_node)
+                try:
+                    save_both_formats(filename=filename, eml_node=eml_node)
+                except Exception as e:
+                    logger.error(e)
+            except exceptions.InvalidXMLError as e:
+                logger.error(e)
+                flash(invalid_xml_error_message(str(e)), 'error')
+                return
+        else:
+            flash(invalid_xml_error_message(msg), 'error')
 
 
 def create_maintenance(dataset_node:Node=None, description:str=None, update_frequency:str=None):
@@ -1999,7 +2006,7 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
         if dataset_node:
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
             description_node = add_node(maintenance_node, names.DESCRIPTION, description)
-            post_process_text_type_node(description_node)
+            post_process_texttype_node(description_node)
 
             if update_frequency:
                 update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
@@ -2008,7 +2015,7 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
         logger.error(e)
 
 
-def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
+def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, funding:str=None):
     try:
         if dataset_node:
             project_node = dataset_node.find_child(names.PROJECT)
@@ -2025,9 +2032,18 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None):
             abstract_node = new_child_node(names.ABSTRACT, parent=project_node)
         if abstract:
             abstract_node.content = abstract
-            post_process_text_type_node(abstract_node)
+            post_process_texttype_node(abstract_node)
         else:
             project_node.remove_child(abstract_node)
+
+        funding_node = project_node.find_child(names.FUNDING)
+        if not funding_node:
+            funding_node = new_child_node(names.FUNDING, parent=project_node)
+        if funding:
+            funding_node.content = funding
+            post_process_texttype_node(funding_node)
+        else:
+            project_node.remove_child(funding_node)
 
     except Exception as e:
         logger.error(e)
@@ -2054,7 +2070,7 @@ def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=
             abstract_node = new_child_node(names.ABSTRACT, parent=related_project_node)
         if abstract:
             abstract_node.content = abstract
-            post_process_text_type_node(abstract_node)
+            post_process_texttype_node(abstract_node)
         else:
             related_project_node.remove_child(abstract_node)
         return related_project_node
@@ -2209,6 +2225,7 @@ def create_geographic_coverage(
     try:
         geographic_description_node = new_child_node(names.GEOGRAPHICDESCRIPTION, parent=geographic_coverage_node)
         geographic_description_node.content = geographic_description
+        post_process_texttype_node(geographic_description_node)
 
         bounding_coordinates_node = new_child_node(names.BOUNDINGCOORDINATES, parent=geographic_coverage_node)
 
@@ -2577,18 +2594,12 @@ def compose_method_step_description(method_step_node:Node=None):
     if method_step_node:
         description_node = method_step_node.find_child(names.DESCRIPTION)
         if description_node:
-            if description_node.content:
-                description = description_node.content
+            title, text = sample_text(description_node)
+            if title:
+                description = title
             else:
-                section_node = description_node.find_child(names.SECTION)
-                if section_node:
-                    description = section_node.content
-                else:
-                    para_node = description_node.find_child(names.PARA)
-                    if para_node:
-                        description = para_node.content
+                description = text
 
-            description = remove_paragraph_tags(description)
             if description and len(description) > MAX_LEN:
                 description = description[0:MAX_LEN]
     return description
@@ -2620,7 +2631,7 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
 
         if description:
             description_node.content = description
-            post_process_text_type_node(description_node)
+            post_process_texttype_node(description_node)
 
         if instrumentation:
             instrumentation_node = new_child_node(names.INSTRUMENTATION, parent=method_step_node)

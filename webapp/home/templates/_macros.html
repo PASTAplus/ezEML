@@ -22,20 +22,30 @@
                 <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
 {% endmacro %}
 {% macro help_button(id, class) %}
-    <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;">
-        <svg class="bi bi-question-circle" width="1.2em" height="1.2em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" d="M8 15A7 7 0 108 1a7 7 0 000 14zm0 1A8 8 0 108 0a8 8 0 000 16z" clip-rule="evenodd"/>
-          <path d="M5.25 6.033h1.32c0-.781.458-1.384 1.36-1.384.685 0 1.313.343 1.313 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.007.463h1.307v-.355c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.326 0-2.786.647-2.754 2.533zm1.562 5.516c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
-        </svg>
+    <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;" title="Help">
+        <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="black"/>
+            <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-linejoin="round" stroke-width="1"/><path d="M12 14C12 13.8333 12 13.6667 12 13.5C12 13.5 12 12 14 11C16 10 15.5 7 12.5 7C9.5 7 9.5 9.5 9.5 9.5V10" stroke="black" stroke-width="2"/></svg>
+    </button>
+{% endmacro %}
+{% macro check_xml_button(id, class) %}
+    <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;" title="Check XML Validity">
+        <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16.5163 8.93451L11.0597 14.7023L8.0959 11.8984" stroke="black" stroke-width="2"/><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-width="1"/></svg>
     </button>
 {% endmacro %}
 {% macro help_dialog(id, title, content) %}
-    <div id="{{ id }}" title="{{ title }}" hidden="hidden">
-        {{ content|safe }}
+    <div id="{{ id }}" title="{{ title }}" style="
+-webkit-border-radius: 3px 3px 3px 3px;
+border-radius: 3px 3px 3px 3px;
+-webkit-box-shadow: 5px 8px 20px 1px #BFBFBF;
+box-shadow: 5px 8px 20px 1px #BFBFBF;
+" hidden="hidden">
+{{ content|safe }}
     </div>
 {% endmacro %}
-{% macro item_start() %}
-                <table width="100%">
+{% macro item_start(font_family) %}
+                <table width="100%" style="font-family:{{ font_family }}">
                     <td width="95%">
 {% endmacro %}
 {% macro item_end(help_id) %}
@@ -43,11 +53,57 @@
                     <td valign="top" style="padding-top: 30px;">{{ help_button(help_id) }}</td>
                 </table>
 {% endmacro %}
+{% macro check_xml_start(font_family) %}
+                <table width="100%" style="font-family:{{ font_family }}">
+                    <td width="95%">
+{% endmacro %}
+{% macro check_xml_end(check_xml_button_id, model_has_complex_texttypes) %}
+                    </td>
+                    <td valign="top" style="padding-top: 30px;">
+                        {% if model_has_complex_texttypes %}
+                        {{ check_xml_button(check_xml_button_id) }}
+                        {% endif %}
+                    </td>
+                </table>
+{% endmacro %}
+{% macro help_and_check_xml_buttons(help_btn_id, check_xml_button_id, model_has_complex_texttypes) %}
+                    </td>
+                    <td valign="top" style="padding-top: 30px;">
+                        <table>
+                            <tr><td style="text-align:center;">{{ help_button(help_btn_id) }}</td></tr>
+                            {% if model_has_complex_texttypes %}
+                            <tr><td style="text-align:center;">{{ check_xml_button(check_xml_button_id) }}</td></tr>
+                            {% endif %}
+                        </table>
+                        </td>
+                </table>
+                </span>
+{% endmacro %}
+{% macro check_xml_btn_handler(check_xml_button_id, form_field, parent_name) %}
+    $(document).ready(function(){
+      $('{{ check_xml_button_id }}').click(function(){
+          let url = 'http://localhost:5000/eml/check_xml/';
+        let xml = $('{{ form_field }}').val();
+        if (!xml){
+            alert("Nothing to check.");
+            return;
+        }
+        xml.replaceAll('\\<', '\\\\<').replaceAll('\\>', '\\\\>');
+        xml = encodeURIComponent(encodeURIComponent(xml));
+        url = url + xml + '/' + '{{ parent_name }}'
+        $.get(url,
+        function(response, status) {
+          alert(response['response']);
+        });
+      });
+    });
+{% endmacro %}
 {% macro taxon_link(link) %}
     {% if link %}
         <a href="{{ link }}" target="_taxon_link">External Link</a>
     {% endif %}
 {% endmacro %}
+
 {% macro help_script(dialog_id, btn_id) %}
         var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
             autoOpen: false,

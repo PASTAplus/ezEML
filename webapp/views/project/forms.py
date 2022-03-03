@@ -12,14 +12,16 @@ from webapp.home.forms import EDIForm
 
 
 class ProjectForm(EDIForm):
-    title = StringField('Project Title *', validators=[InputRequired(message='Project Title is required')])
+    title = StringField('Project Title *', validators=[])
     abstract = StringField('Project Abstract (Optional)', widget=TextArea(), validators=[])
+    funding = StringField('Funding (Deprecated. Superseded by Funding Awards.)', widget=TextArea(), validators=[])
     md5 = HiddenField('')
     init_str = ""
 
     def field_data(self)->tuple:
         return (self.title.data,
-                self.abstract.data)
+                self.abstract.data,
+                self.funding)
 
 
 class AwardSelectForm(EDIForm):

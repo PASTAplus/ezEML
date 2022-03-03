@@ -336,3 +336,14 @@ def remove_active_file():
 def get_auth_token():
     user_properties = get_user_properties()
     return user_properties.get('auth_token', '')
+
+
+def set_model_has_complex_texttypes(model_has_complex_texttypes=False):
+    user_properties = get_user_properties()
+    user_properties['model_has_complex_texttypes'] = model_has_complex_texttypes
+    save_user_properties(user_properties)
+
+
+def get_model_has_complex_texttypes():
+    user_properties = get_user_properties()
+    return user_properties.get('model_has_complex_texttypes', False)

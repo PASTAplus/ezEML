@@ -23,9 +23,20 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter the dataset maintenance information below:</h5>
+                {% if model_has_complex_texttypes %}
+                {% set font_family='Courier' %}
+                {% endif %}
+
                 <table>
-                    <td>{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>
-                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_maintenance_description_btn) }}</td>
+{#                    <td style="font-family: {{ font-family }}">{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>#}
+{#                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_maintenance_description_btn) }}</td>#}
+
+                    <td width="100%" style="font-family: {{ font_family }}">
+                        {{ macros.check_xml_start() }}{{ wtf.form_field(form.description, rows=10, cols=100) }}
+                        {{ macros.help_and_check_xml_buttons(help_maintenance_description_btn, 'check_xml', model_has_complex_texttypes) }}
+                </table>
+
+
                 </table>
                 <table>
                     <td width="100%">
@@ -71,5 +82,8 @@
         {{ macros.help_script(help_maintenance_description_dialog, help_maintenance_description_btn) }}
         {{ macros.help_script(help_maintenance_freq_dialog, help_maintenance_freq_btn) }}
     });
+    </script>
+    <script>
+        {{ macros.check_xml_btn_handler('#check_xml', '#description', 'description') }}
     </script>
 {% endblock %}

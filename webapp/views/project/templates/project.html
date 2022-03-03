@@ -24,8 +24,19 @@
                     <td>{{ wtf.form_field(form.title, size=100) }}</td>
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_project_title_btn) }}</td>
                 </table>
-                {{ wtf.form_field(form.abstract, rows=10, cols=100) }}
+
+                {% if model_has_complex_texttypes %}
+                {% set font_family='Courier' %}
+                {% endif %}
+                {{ macros.check_xml_start(font_family) }}{{ wtf.form_field(form.abstract, rows=6, cols=100) }}
+                {{ macros.check_xml_end('check_xml_1', model_has_complex_texttypes) }}
                 <br/>
+                {% if form.funding.data %}
+                {{ macros.check_xml_start(font_family) }}{{ wtf.form_field(form.funding, rows=4, cols=100) }}
+                {{ macros.check_xml_end('check_xml_2', model_has_complex_texttypes) }}
+                <br/>
+                {% endif %}
+
                 <input class="btn btn-primary" name="Project Personnel" type="submit" value="Project Personnel"/>
                 <input class="btn btn-primary" name="Funding Awards" type="submit" value="Funding Awards"/>
                 {% if title == 'Project' %}
@@ -68,4 +79,12 @@
         {{ macros.help_script(help_project_title_dialog, help_project_title_btn) }}
     });
     </script>
+    <script>
+        {{ macros.check_xml_btn_handler('#check_xml_1', '#abstract', 'abstract') }}
+    </script>
+    {% if form.funding.data %}
+    <script>
+        {{ macros.check_xml_btn_handler('#check_xml_2', '#funding', 'funding') }}
+    </script>
+    {% endif %}
 {% endblock %}

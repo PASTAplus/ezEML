@@ -7,14 +7,22 @@ from webapp.home.metapype_client import (
     load_eml, save_both_formats,
     add_paragraph_tags, remove_paragraph_tags,
     handle_hidden_buttons,
-    post_process_text_type_node, display_text_type_node
+    post_process_texttype_node
 )
+
+from webapp.home.texttype_node_processing import display_texttype_node
 
 from webapp.home.forms import is_dirty_form, form_md5
 from webapp.home.views import non_breaking, process_up_button, process_down_button
 
 from webapp.views.maintenance.forms import (
     MaintenanceForm
+)
+
+from webapp.home.texttype_node_processing import(
+    model_has_complex_texttypes,
+    invalid_xml_error_message,
+    is_valid_xml_fragment
 )
 
 from webapp.buttons import *
@@ -46,11 +54,16 @@ def maintenance(filename=None):
         save = False
         if is_dirty_form(form):
             save = True
-        # flash(f'save: {save}')
 
         if save:
+            maintenace_description = form.description.data
+            valid, msg = is_valid_xml_fragment(maintenace_description, names.MAINTENANCE)
+            if not valid:
+                flash(invalid_xml_error_message(msg, False, names.DESCRIPTION), 'error')
+                return render_get_maintenance_page(eml_node, form, filename)
+
             update_frequency = form.update_frequency.data
-            create_maintenance(dataset_node, form.description.data, update_frequency)
+            create_maintenance(dataset_node, maintenace_description, update_frequency)
             save_both_formats(filename=filename, eml_node=eml_node)
 
         form_value = request.form
@@ -74,11 +87,16 @@ def maintenance(filename=None):
         if maintenance_node:
             populate_maintenance_form(form, maintenance_node)
 
+    return render_get_maintenance_page(eml_node, form, filename)
+
+
+def render_get_maintenance_page(eml_node, form, filename):
     set_current_page('maintenance')
     help = [get_help('maintenance'), get_help('maintenance_description'), get_help('maintenance_freq')]
     return render_template('maintenance.html',
                            title='Maintenance',
                            filename=filename,
+                           model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
                            form=form,
                            help=help)
 
@@ -90,7 +108,7 @@ def populate_maintenance_form(form: MaintenanceForm, maintenance_node: Node):
     if maintenance_node:
         description_node = maintenance_node.find_child(names.DESCRIPTION)
         if description_node:
-            description = display_text_type_node(description_node)
+            description = display_texttype_node(description_node)
 
         update_frequency_node = maintenance_node.find_child(names.MAINTENANCEUPDATEFREQUENCY)
         if update_frequency_node:

@@ -15,11 +15,18 @@
             <form method="POST" action="" class="form" role="form">
                 <h5>Choose from one of the intellectual rights options shown below:</h5>
                 {{ wtf.form_field(form.intellectual_rights_radio) }}
-                {{ wtf.form_field(form.intellectual_rights, rows=6) }}
+
+                {% if model_has_complex_texttypes %}
+                {% set font_family='Courier' %}
+                {% endif %}
+
+                <span style="font-family:{{ font_family }}">
+                {{ macros.check_xml_start() }}{{ wtf.form_field(form.intellectual_rights, rows=6) }}
+                    {{ macros.check_xml_end('check_xml', model_has_complex_texttypes) }}
+
                 <br/>
-{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
+                <input class="btn btn-primary" name="Reset" type="submit" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
@@ -41,5 +48,8 @@
     {
         {{ macros.help_script(help_intellectual_rights_dialog, help_intellectual_rights_btn) }}
     });
+    </script>
+    <script>
+        {{ macros.check_xml_btn_handler('#check_xml', '#intellectual_rights', 'intellectualRights') }}
     </script>
 {% endblock %}

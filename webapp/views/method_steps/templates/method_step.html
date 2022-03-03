@@ -17,16 +17,17 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter the method step description and (optionally) instrumentation and data sources below:</h5>
+                {% if model_has_complex_texttypes %}
+                {% set font_family='Courier' %}
+                {% endif %}
+                {{ macros.item_start(font_family) }}{{ wtf.form_field(form.description, rows=8) }}
+                {{ macros.help_and_check_xml_buttons(help_method_step_description_btn, 'check_xml', model_has_complex_texttypes) }}
                 <table width="100%">
-                    <td width="90%">{{ wtf.form_field(form.description, rows=8) }}</td>
-                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_description_btn) }}</td>
-                </table>
-                <table width="100%">
-                    <td width="90%">{{ wtf.form_field(form.instrumentation, rows=2) }}</td>
+                    <td width="100%">{{ wtf.form_field(form.instrumentation, rows=2) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_instrumentation_btn) }}</td>
                 </table>
                 <table width="100%">
-                    <td width="90%">{{ wtf.form_field(form.data_sources, rows=5) }}</td>
+                    <td width="100%">{{ wtf.form_field(form.data_sources, rows=5) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_data_sources_btn) }}</td>
                 </table>
                 <br>
@@ -63,4 +64,8 @@
         {{ macros.help_script(help_method_step_data_sources_dialog, help_method_step_data_sources_btn) }}
     });
     </script>
+    <script>
+        {{ macros.check_xml_btn_handler('#check_xml', '#description', 'description') }}
+    </script>
+
 {% endblock %}

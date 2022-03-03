@@ -12,8 +12,14 @@ from webapp.home.metapype_client import (
     load_eml, save_both_formats,
     add_child, remove_child,
     UP_ARROW, DOWN_ARROW,
-    display_text_type_node,
     handle_hidden_buttons, check_val_for_hidden_buttons
+)
+
+from webapp.home.texttype_node_processing import (
+    display_texttype_node,
+    model_has_complex_texttypes,
+    invalid_xml_error_message,
+    is_valid_xml_fragment
 )
 
 from webapp.views.method_steps.forms import (
@@ -156,6 +162,11 @@ def method_step(filename=None, node_id=None):
 
         if submit_type == 'Save Changes':
             description = form.description.data
+            valid, msg = is_valid_xml_fragment(description, names.MAINTENANCE)
+            if not valid:
+                flash(invalid_xml_error_message(msg, False, names.DESCRIPTION), 'error')
+                return render_get_method_step_page(eml_node, form, filename)
+
             instrumentation = form.instrumentation.data
             data_sources = form.data_sources.data
             method_step_node = Node(names.METHODSTEP, parent=methods_node)
@@ -190,10 +201,15 @@ def method_step(filename=None, node_id=None):
                 if node_id == ms_node.id:
                     populate_method_step_form(form, ms_node)
                     break
+    return render_get_method_step_page(eml_node, form, filename)
 
+
+def render_get_method_step_page(eml_node, form, filename):
     set_current_page('method_step')
     help = [get_help('method_step_description'), get_help('method_step_instrumentation'), get_help('method_step_data_sources')]
-    return render_template('method_step.html', title='Method Step', form=form, filename=filename, help=help)
+    return render_template('method_step.html', title='Method Step',
+                           model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
+                           form=form, filename=filename, help=help)
 
 
 def populate_method_step_form(form: MethodStepForm, ms_node: Node):
@@ -204,7 +220,7 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
     if ms_node:
         description_node = ms_node.find_child(names.DESCRIPTION)
         if description_node:
-            description = display_text_type_node(description_node)
+            description = display_texttype_node(description_node)
             if data_sources_marker_begin in description and data_sources_marker_end in description:
                 begin = description.find(data_sources_marker_begin)
                 end = description.find(data_sources_marker_end)

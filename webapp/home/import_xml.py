@@ -117,8 +117,7 @@ def parse_xml_file(filename, filepath):
                 eml_version = line[-7:-2]
                 break
         xml = "".join(lines)
-    eml = metapype_io.from_xml(xml, clean=True)
-#     print(eml)
+    eml = metapype_io.from_xml(xml, clean=True, literals=['literalLayout', 'markdown'])
     assert isinstance(eml, Node) # TODO: error-handling
     pruned_nodes = set()
     errs = []

@@ -79,6 +79,8 @@ def is_dirty_form(form):
 
 
 def validate_float(form, field):
+    if len(field.data) == 0:
+        return
     try:
         _ = float(field.data)
     except ValueError:
@@ -86,6 +88,8 @@ def validate_float(form, field):
 
 
 def validate_integer(form, field):
+    if len(field.data) == 0:
+        return
     try:
         _ = int(field.data)
     except ValueError:

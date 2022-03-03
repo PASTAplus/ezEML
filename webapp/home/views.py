@@ -25,13 +25,13 @@ from pathlib import Path
 import pickle
 import requests
 from shutil import copyfile
-from urllib.parse import urlencode, urlparse, quote
+from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
 
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
-    session, Markup
+    session, Markup, jsonify
 )
 
 from flask_login import (
@@ -84,8 +84,6 @@ from webapp.home.forms import form_md5
 from webapp.buttons import *
 from webapp.pages import *
 
-# from webapp.home.url_fixup import url_for
-
 from metapype.eml import names
 from metapype.model import mp_io
 from metapype.model.node import Node
@@ -98,6 +96,12 @@ from webapp.home.import_data import (
 
 import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
+from webapp.home.texttype_node_processing import (
+    check_xml_validity,
+    invalid_xml_error_message,
+    is_valid_xml_fragment,
+    model_has_complex_texttypes
+)
 
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -146,6 +150,14 @@ def reload_metadata():
     # Call load_eml here to get the check_metadata status set correctly
     eml_node = load_eml(filename=current_document)
     return current_document, eml_node
+
+
+@home.route('/check_xml/<xml>/<parent_name>')
+def check_xml(xml:str=None, parent_name:str=None):
+    response = check_xml_validity(xml, parent_name)
+    response = jsonify({"response": response})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 @home.before_app_first_request
@@ -2005,6 +2017,7 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
                  other_errs=None, pruned_nodes=None, filename=None):
 
     form = EDIForm()
+    eml_node = load_eml(filename=filename)
 
     # Process POST
 
@@ -2015,7 +2028,6 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
-        eml_node = load_eml(filename=filename)
 
         try:
             import_data(filename, eml_node)
@@ -2038,9 +2050,10 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
     else:
         mb = ''
 
-    help = get_helps(['import_xml_3'])
+    help = get_helps(['import_xml_3', 'complex_xml'])
+    complex_xml = model_has_complex_texttypes(eml_node)
     return render_template('import_xml_3.html', err_html=err_html, err_text=err_text, err_heading=err_heading,
-                           mb=mb, form=form, help=help)
+                           mb=mb, complex_xml=complex_xml, form=form, help=help)
 
 
 @home.route('/import_xml_4/<filename>', methods=['GET', 'POST'])
@@ -2048,6 +2061,7 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
 def import_xml_4(filename=None):
 
     form = EDIForm()
+    eml_node = load_eml(filename=filename)
 
     # Process POST
 
@@ -2058,7 +2072,6 @@ def import_xml_4(filename=None):
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
-        eml_node = load_eml(filename=filename)
         import_data(filename, eml_node)
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
@@ -2071,8 +2084,9 @@ def import_xml_4(filename=None):
     else:
         mb = ''
 
-    help = get_helps(['import_xml_3'])
-    return render_template('import_xml_4.html', mb=mb, form=form, help=help)
+    help = get_helps(['import_xml_3', 'complex_xml'])
+    complex_xml = model_has_complex_texttypes(eml_node)
+    return render_template('import_xml_4.html', mb=mb, complex_xml=complex_xml, form=form, help=help)
 
 
 @home.route('/fetch_xml/', methods=['GET', 'POST'])

@@ -5,6 +5,9 @@
     {% set help_import_xml_4_id, help_import_xml_4_title, help_import_xml_4_content = help[0] %}
     {% set help_import_xml_4_btn = help_import_xml_4_id ~ '_btn' %}
     {% set help_import_xml_4_dialog = help_import_xml_4_id ~ '_dialog' %}
+    {% set help_complex_xml_id, help_complex_xml_title, help_complex_xml_content = help[1] %}
+    {% set help_complex_xml_btn = help_complex_xml_id ~ '_btn' %}
+    {% set help_complex_xml_dialog = help_complex_xml_id ~ '_dialog' %}
 
     <table>
         <td><h2>Import an EML XML File</h2></td>
@@ -21,6 +24,9 @@
                 <input class="btn btn-primary" style="width: 260px;" name="Cancel" type="submit" value="Continue Without Getting Data Files"/>
                 &nbsp;
                 <span id="stand_by_hint" style="visibility: hidden;"><i>Please stand by...</i></span>
+                <td valign="middle" style="padding-top: 5px;">
+                    <span hidden="hidden">{{ macros.help_button(help_complex_xml_btn) }}</span>
+                </td>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
@@ -28,6 +34,7 @@
         </div>
     </div>
     {{ macros.help_dialog(help_import_xml_4_dialog, help_import_xml_4_title, help_import_xml_4_content) }}
+    {{ macros.help_dialog(help_complex_xml_dialog, help_complex_xml_title, help_complex_xml_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -35,11 +42,34 @@
     {% set help_import_xml_4_id, help_import_xml_4_title, help_import_xml_4_content = help[0] %}
     {% set help_import_xml_4_btn = help_import_xml_4_id ~ '_btn' %}
     {% set help_import_xml_4_dialog = help_import_xml_4_id ~ '_dialog' %}
+    {% set help_complex_xml_id, help_complex_xml_title, help_complex_xml_content = help[1] %}
+    {% set help_complex_xml_btn = help_complex_xml_id ~ '_btn' %}
+    {% set help_complex_xml_dialog = help_complex_xml_id ~ '_dialog' %}
+    {% set complex_xml = complex_xml %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_import_xml_4_dialog, help_import_xml_4_btn) }}
+        {{ macros.help_script(help_complex_xml_dialog, help_complex_xml_btn) }}
+
+        {% if complex_xml %}
+            let complex_xml_dialog = $( '#{{ help_complex_xml_dialog }}' ).dialog({
+                autoOpen: true,
+                width: 800,
+                position: {my: "center", at: "center", of: window}
+            });
+            $( '#{{ help_complex_xml_btn }}' ).button().on('click', function() {
+                if (complex_xml_dialog.dialog('isOpen')) {
+                    {#alert('{{ dns_ns.do_not_show_cb }}');#}
+                    complex_xml_dialog.dialog('close');
+                } else {
+                    complex_xml_dialog.dialog('open');
+                }
+            });
+            $( '#{{ help_complex_xml_btn }}' ).click();
+            document.activeElement.blur();
+        {% endif %}
     });
 
     function stand_by() {

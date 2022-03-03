@@ -828,9 +828,9 @@ We hope you find ezEML useful, and we welcome your feedback at <a style="color: 
 complex_xml
 Editing Text Elements in Imported XML
 
-ezEML is designed to implement only a subset of the full EML standard. The goal always has been to keep ezEML simple and easy to use. However, now that ezEML supports importing EML files that were created outside of ezEML, ezEML needs to handle some additional complexity.
+To keep ezEML simple and easy to use, it implements only a subset of the full EML standard. However, ezEML now supports importing EML files that were created outside of ezEML, so it needs to handle some additional complexity.
 
-In particular, the EML standard allows for substantial complexity in the specification of text elements such as abstracts and descriptions. Text elements may, for example, contain itemized lists, ordered lists, subscripts, markdown, and so on, and text elements may be nested without limit. Not all EML files employ this kind of complexity, but the EML file you have imported does contain one or more complex text elements.
+In particular, the EML standard allows for substantial complexity in the specification of text elements such as abstracts and method step descriptions. Text elements may, for example, contain itemized lists, ordered lists, subscripts, markdown, and so on, and text elements may be nested without limit. Not all EML files employ this kind of complexity, but the EML file you have imported does contain one or more complex text elements.
 
 ezEML supports the editing of such text elements in the following way. Suppose, for example, that the dataset's abstract contains the following XML:<br>
 <pre>

@@ -1989,16 +1989,16 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
         if valid:
             try:
                 post_process_texttype_node(intellectual_rights_node)
-                try:
-                    save_both_formats(filename=filename, eml_node=eml_node)
-                except Exception as e:
-                    logger.error(e)
             except exceptions.InvalidXMLError as e:
                 logger.error(e)
                 flash(invalid_xml_error_message(str(e)), 'error')
                 return
         else:
             flash(invalid_xml_error_message(msg), 'error')
+    try:
+        save_both_formats(filename=filename, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
 
 
 def create_maintenance(dataset_node:Node=None, description:str=None, update_frequency:str=None):

@@ -265,18 +265,18 @@ def intellectual_rights(filename=None):
             valid, msg = is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
             if valid:
                 create_intellectual_rights(filename=filename, intellectual_rights=intellectual_rights)
-
-                new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
-                this_page = PAGE_INTELLECTUAL_RIGHTS
-                new_page = handle_hidden_buttons(new_page, this_page)
-
-                return redirect(url_for(new_page, filename=filename))
             else:
                 flash(invalid_xml_error_message(msg), 'error')
                 form.intellectual_rights.data = intellectual_rights
                 # We don't have valid XML, so we can't look for literal descendant nodes
                 font_family = ''
                 return render_get_intellectual_rights_page(form, filename, font_family)
+
+        new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
+        this_page = PAGE_INTELLECTUAL_RIGHTS
+        new_page = handle_hidden_buttons(new_page, this_page)
+
+        return redirect(url_for(new_page, filename=filename))
 
     # Process GET
     return get_intellectual_rights(filename=filename, form=form)

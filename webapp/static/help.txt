@@ -832,7 +832,7 @@ To make ezEML simple and easy to use, it implements only a subset of the full EM
 
 In particular, the EML standard allows for substantial complexity in the specification of text elements such as abstracts and method step descriptions. Such text elements may, for example, contain itemized lists, ordered lists, subscripts, markdown, and so on, and these text element constituents may be nested without limit. Not all EML files employ this kind of complexity, but the EML file you have imported does contain one or more complex text elements.
 
-ezEML supports the editing of such text elements in the following way. Suppose, for example, that the dataset's abstract element consists of the following XML:<br>
+For files of this type, ezEML supports the editing of such text elements in the following way. Suppose, for example, that the dataset's abstract element consists of the following XML:<br>
 <pre>
 &lt;abstract&gt;<br>
 &nbsp;&nbsp;&lt;section&gt;<br>

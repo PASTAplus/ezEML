@@ -93,6 +93,20 @@ class VariableType(Enum):
     NUMERICAL = 3
     TEXT = 4
 
+HIDDEN_BUTTONS = [
+    BTN_HIDDEN_CHECK,
+    BTN_HIDDEN_SAVE,
+    BTN_HIDDEN_DOWNLOAD,
+    BTN_HIDDEN_NEW,
+    BTN_HIDDEN_NEW_FROM_TEMPLATE,
+    BTN_HIDDEN_OPEN,
+    BTN_HIDDEN_CLOSE
+]
+
+
+def is_hidden_button():
+    return any(button in request.form for button in HIDDEN_BUTTONS)
+
 
 def handle_hidden_buttons(new_page, this_page):
     # If none of the hidden buttons is found, leave new_page as we found it

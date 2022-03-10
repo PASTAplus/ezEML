@@ -14,6 +14,7 @@
 
 import collections
 from enum import Enum
+import time
 
 import daiquiri
 from flask import (
@@ -183,10 +184,11 @@ def find_missing_attribute(errs, node_name, attribute_name):
     return None
 
 
-def check_dataset_title(eml_node, filename):
+def check_dataset_title(eml_node, filename, validation_errs=None):
     link = url_for(PAGE_TITLE, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    validation_errs = validate_via_metapype(dataset_node)
+    if validation_errs is None:
+        validation_errs = validate_via_metapype(dataset_node)
     # Is title node missing?
     if find_min_unmet(validation_errs, names.DATASET, names.TITLE):
         add_to_evaluation('title_01', link)
@@ -217,9 +219,10 @@ def check_id_for_EDI(package_id):
     return True
 
 
-def check_data_package_id(eml_node, filename):
+def check_data_package_id(eml_node, filename, validation_errs=None):
     link = url_for(PAGE_DATA_PACKAGE_ID, filename=filename)
-    validation_errs = validate_via_metapype(eml_node)
+    if validation_errs is None:
+        validation_errs = validate_via_metapype(eml_node)
     if find_missing_attribute(validation_errs, 'eml', 'packageId'):
         add_to_evaluation('data_package_id_01', link)
     else:
@@ -263,10 +266,11 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
     if find_err_code(evaluation_warnings, EvaluationWarning.EMAIL_MISSING, rp_node.name):
         add_to_evaluation('responsible_party_05', link, section, item)
 
-def check_creators(eml_node, filename):
+def check_creators(eml_node, filename, validation_errs=None):
     link = url_for(PAGE_CREATOR_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    validation_errs = validate_via_metapype(dataset_node)
+    if validation_errs is None:
+        validation_errs = validate_via_metapype(dataset_node)
 
     if find_min_unmet(validation_errs, names.DATASET, names.CREATOR):
         add_to_evaluation('creators_01', link)
@@ -294,10 +298,11 @@ def check_associated_parties(eml_node, filename):
                                     PAGE_ASSOCIATED_PARTY, filename, associated_party_node.id)
 
 
-def check_dataset_abstract(eml_node, filename):
+def check_dataset_abstract(eml_node, filename, evaluation_warnings=None):
     link = url_for(PAGE_ABSTRACT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if evaluation_warnings is None:
+        evaluation_warnings = evaluate_via_metapype(dataset_node)
 
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_ABSTRACT_MISSING, names.DATASET):
         add_to_evaluation('abstract_01', link)
@@ -308,10 +313,11 @@ def check_dataset_abstract(eml_node, filename):
         return
 
 
-def check_keywords(eml_node, filename):
+def check_keywords(eml_node, filename, evaluation_warnings=None):
     link = url_for(PAGE_KEYWORD_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if evaluation_warnings is None:
+        evaluation_warnings = evaluate_via_metapype(dataset_node)
 
     if find_err_code(evaluation_warnings, EvaluationWarning.KEYWORDS_MISSING, names.DATASET):
         add_to_evaluation('keywords_01', link)
@@ -322,10 +328,11 @@ def check_keywords(eml_node, filename):
         return
 
 
-def check_intellectual_rights(eml_node, filename):
+def check_intellectual_rights(eml_node, filename, evaluation_warnings=None):
     link = url_for(PAGE_INTELLECTUAL_RIGHTS, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if evaluation_warnings is None:
+        evaluation_warnings = evaluate_via_metapype(dataset_node)
 
     if find_err_code(evaluation_warnings, EvaluationWarning.INTELLECTUAL_RIGHTS_MISSING, names.DATASET):
         # We need to check this case. Metapype currently thinks it's an error if intellectualRights node has no
@@ -349,12 +356,13 @@ def check_taxonomic_coverage(node, filename):
         add_to_evaluation('taxonomic_coverage_02', link)
 
 
-def check_coverage(eml_node, filename):
+def check_coverage(eml_node, filename, evaluation_warnings=None):
     dataset_node = eml_node.find_child(names.DATASET)
 
     link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
 
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if evaluation_warnings is None:
+        evaluation_warnings = evaluate_via_metapype(dataset_node)
 
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
         add_to_evaluation('coverage_01', link)
@@ -554,10 +562,11 @@ def check_data_table(eml_node, filename, data_table_node:Node):
             check_attribute(eml_node, filename, data_table_node, attribute_node)
 
 
-def check_data_tables(eml_node, filename):
+def check_data_tables(eml_node, filename, evaluation_warnings=None):
     link = url_for(PAGE_DATA_TABLE_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if evaluation_warnings is None:
+        evaluation_warnings = evaluate_via_metapype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_MISSING, names.DATASET):
         add_to_evaluation('data_table_05', link)
 
@@ -566,18 +575,20 @@ def check_data_tables(eml_node, filename):
         check_data_table(eml_node, filename, data_table_node)
 
 
-def check_maintenance(eml_node, filename):
+def check_maintenance(eml_node, filename, evaluation_warnings=None):
     link = url_for(PAGE_MAINTENANCE, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if evaluation_warnings is None:
+        evaluation_warnings = evaluate_via_metapype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.MAINTENANCE_DESCRIPTION_MISSING, names.DESCRIPTION):
         add_to_evaluation('maintenance_01', link)
 
 
-def check_contacts(eml_node, filename):
+def check_contacts(eml_node, filename, validation_errs=None):
     link = url_for(PAGE_CONTACT_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    validation_errs = validate_via_metapype(dataset_node)
+    if validation_errs:
+        validation_errs = validate_via_metapype(dataset_node)
     if find_min_unmet(validation_errs, names.DATASET, names.CONTACT):
         add_to_evaluation('contacts_01', link=link)
     contact_nodes = eml_node.find_all_nodes_by_path([
@@ -596,10 +607,11 @@ def check_method_step(method_step_node, filename, node_id):
         add_to_evaluation('methods_02', link)
 
 
-def check_method_steps(eml_node, filename):
+def check_method_steps(eml_node, filename, evaluation_warnings=None):
     link = url_for(PAGE_METHOD_STEP_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    if evaluation_warnings is None:
+        evaluation_warnings = evaluate_via_metapype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_METHOD_STEPS_MISSING, names.DATASET):
         add_to_evaluation('methods_01', link)
 
@@ -659,14 +671,15 @@ def check_project_node(project_node, filename, related_project_id=None):
         check_project_node(related_project_node, filename, related_project_node.id)
 
 
-def check_project(eml_node, filename):
+def check_project(eml_node, filename, evaluation_warnings=None):
     link = url_for(PAGE_PROJECT, filename=filename)
     project_node = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if project_node:
         check_project_node(project_node, filename)
     else:
         dataset_node = eml_node.find_child(names.DATASET)
-        evaluation_warnings = evaluate_via_metapype(dataset_node)
+        if evaluation_warnings is None:
+            evaluation_warnings = evaluate_via_metapype(dataset_node)
         if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_PROJECT_MISSING, names.DATASET):
             add_to_evaluation('project_03', link)
 
@@ -749,24 +762,32 @@ def format_output(evaluation):
 def perform_evaluation(eml_node, filename):
     global evaluation
     evaluation = []
+    print('\nEntering perform_evaluation')
+    start = time.perf_counter()
 
-    check_dataset_title(eml_node, filename)
-    check_data_tables(eml_node, filename)
-    check_creators(eml_node, filename)
-    check_contacts(eml_node, filename)
+    validation_errs = validate_via_metapype(eml_node)
+    evaluation_warnings = evaluate_via_metapype(eml_node)
+
+    check_dataset_title(eml_node, filename, validation_errs)
+    check_data_tables(eml_node, filename, evaluation_warnings)
+    check_creators(eml_node, filename, validation_errs)
+    check_contacts(eml_node, filename, validation_errs)
     check_associated_parties(eml_node, filename)
     check_metadata_providers(eml_node, filename)
-    check_dataset_abstract(eml_node, filename)
-    check_keywords(eml_node, filename)
-    check_intellectual_rights(eml_node, filename)
-    check_coverage(eml_node, filename)
+    check_dataset_abstract(eml_node, filename, evaluation_warnings)
+    check_keywords(eml_node, filename, evaluation_warnings)
+    check_intellectual_rights(eml_node, filename, evaluation_warnings)
+    check_coverage(eml_node, filename, evaluation_warnings)
     check_geographic_coverage(eml_node, filename)
-    check_maintenance(eml_node, filename)
-    check_method_steps(eml_node, filename)
+    check_maintenance(eml_node, filename, evaluation_warnings)
+    check_method_steps(eml_node, filename, evaluation_warnings)
     check_project(eml_node, filename)
     check_other_entities(eml_node, filename)
-    check_data_package_id(eml_node, filename)
-    
+    check_data_package_id(eml_node, filename, validation_errs)
+
+    end = time.perf_counter()
+    print(f"Leaving perform_evaluation: {end - start}")
+
     return evaluation
 
 
@@ -791,7 +812,12 @@ def check_eml(eml_node, filename):
 def validate_via_metapype(node):
     errs = []
     try:
+        start = time.perf_counter()
         validate.tree(node, errs)
+        end = time.perf_counter()
+        elapsed = end - start
+        # if elapsed > 0.05:
+        #     print(f"validate: {node.name}  {elapsed}")
     except Exception as e:
         print(f'validate_via_metapype: node={node.name} exception={e}')
     return errs
@@ -800,7 +826,12 @@ def validate_via_metapype(node):
 def evaluate_via_metapype(node):
     eval = []
     try:
+        start = time.perf_counter()
         evaluate.tree(node, eval)
+        end = time.perf_counter()
+        elapsed = end - start
+        # if elapsed > 0.05:
+        #     print(f"evaluate: {node.name}  {elapsed}")
     except Exception as e:
         print(f'evaluate_via_metapype: node={node.name} exception={e}')
     return eval

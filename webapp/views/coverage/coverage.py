@@ -16,7 +16,8 @@ from webapp.home.metapype_client import (
     list_geographic_coverages, create_geographic_coverage,
     create_temporal_coverage, list_temporal_coverages,
     create_taxonomic_coverage, list_taxonomic_coverages,
-    handle_hidden_buttons, check_val_for_hidden_buttons
+    handle_hidden_buttons, check_val_for_hidden_buttons,
+    model_has_nested_taxonomic_classifications
 )
 
 from webapp.views.coverage.taxonomy import (
@@ -517,12 +518,15 @@ def taxonomic_coverage_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            txc_list = list_taxonomic_coverages(dataset_node)
+            if not model_has_nested_taxonomic_classifications(eml_node):
+                txc_list = list_taxonomic_coverages(dataset_node)
 
     set_current_page('taxonomic_coverage')
-    help = [get_help('taxonomic_coverages')]
+    help = [get_help('taxonomic_coverages'), get_help('nested_taxonomic_classifications')]
     return render_template('taxonomic_coverage_select.html', title=title,
-                           txc_list=txc_list, form=form, help=help)
+                           txc_list=txc_list,
+                           nested_taxonomic_classifications=model_has_nested_taxonomic_classifications(eml_node),
+                           form=form, help=help)
 
 
 def fill_taxonomic_coverage(taxon, source_type, source_name):

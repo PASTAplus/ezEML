@@ -719,6 +719,18 @@ def list_temporal_coverages(parent_node:Node=None):
     return tc_list
 
 
+def model_has_nested_taxonomic_classifications(eml_node):
+    if not eml_node:
+        return False
+    taxonomic_classification_nodes = []
+    eml_node.find_all_descendants(names.TAXONOMICCLASSIFICATION, taxonomic_classification_nodes)
+    for taxonomic_classification_node in taxonomic_classification_nodes:
+        nested = taxonomic_classification_node.find_child(names.TAXONOMICCLASSIFICATION)
+        if nested:
+            return True
+    return False
+
+
 def list_taxonomic_coverages(parent_node:Node=None):
     txc_list = []
     if parent_node:

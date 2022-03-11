@@ -6,6 +6,9 @@
     {% set help_taxonomic_coverage_id, help_taxonomic_coverage_title, help_taxonomic_coverage_content = help[0] %}
     {% set help_taxonomic_coverage_btn = help_taxonomic_coverage_id ~ '_btn' %}
     {% set help_taxonomic_coverage_dialog = help_taxonomic_coverage_id ~ '_dialog' %}
+    {% set help_nested_taxonomic_classifications_id, help_nested_taxonomic_classifications_title, help_nested_taxonomic_classifications_content = help[1] %}
+    {% set help_nested_taxonomic_classifications_btn = help_nested_taxonomic_classifications_id ~ '_btn' %}
+    {% set help_nested_taxonomic_classifications_dialog = help_nested_taxonomic_classifications_id ~ '_dialog' %}
     {% endif %}
 
     <table>
@@ -33,7 +36,7 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Taxonomic Coverage"/>
+                <input class="btn btn-primary" name="1" disabled={{ nested_taxonomic_classifications }} type="submit" value="Add Taxonomic Coverage"/>
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}
@@ -45,12 +48,16 @@
                         <input class="btn btn-primary" name="Back" type="submit" value="Back to Other Entity"/>
                     {% endif %}
                 {% endif %}
+                <td valign="middle" style="padding-top: 5px;">
+                    <span hidden="hidden">{{ macros.help_button(help_nested_taxonomic_classifications_btn) }}</span>
+                </td>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
     </div>
 
     {{ macros.help_dialog(help_taxonomic_coverage_dialog, help_taxonomic_coverage_title, help_taxonomic_coverage_content) }}
+    {{ macros.help_dialog(help_nested_taxonomic_classifications_dialog, help_nested_taxonomic_classifications_title, help_nested_taxonomic_classifications_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -59,12 +66,40 @@
     {% set help_taxonomic_coverage_id, help_taxonomic_coverage_title, help_taxonomic_coverage_content = help[0] %}
     {% set help_taxonomic_coverage_btn = help_taxonomic_coverage_id ~ '_btn' %}
     {% set help_taxonomic_coverage_dialog = help_taxonomic_coverage_id ~ '_dialog' %}
+    {% set help_nested_taxonomic_classifications_id, help_nested_taxonomic_classifications_title, help_nested_taxonomic_classifications_content = help[1] %}
+    {% set help_nested_taxonomic_classifications_btn = help_nested_taxonomic_classifications_id ~ '_btn' %}
+    {% set help_nested_taxonomic_classifications_dialog = help_nested_taxonomic_classifications_id ~ '_dialog' %}
+    {% set nested_taxonomic_classifications = nested_taxonomic_classifications %}
     {% endif %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_taxonomic_coverage_dialog, help_taxonomic_coverage_btn) }}
+        {{ macros.help_script(help_nested_taxonomic_classifications_dialog, help_nested_taxonomic_classifications_btn) }}
     });
+    
+
+    $(function()
+    {
+        {% if nested_taxonomic_classifications %}
+            let nested_taxonomic_classifications_dialog = $( '#{{ help_nested_taxonomic_classifications_dialog }}' ).dialog({
+                autoOpen: true,
+                width: 800,
+                position: {my: "center", at: "center", of: window}
+            });
+            $( '#{{ help_nested_taxonomic_classifications_btn }}' ).button().on('click', function() {
+                if (nested_taxonomic_classifications_dialog.dialog('isOpen')) {
+                    {#alert('{{ dns_ns.do_not_show_cb }}');#}
+                    nested_taxonomic_classifications_dialog.dialog('close');
+                } else {
+                    nested_taxonomic_classifications_dialog.dialog('open');
+                }
+            });
+            $( '#{{ help_nested_taxonomic_classifications_btn }}' ).click();
+            document.activeElement.blur();
+        {% endif %}
+    });    
     </script>
+    
 {% endblock %}

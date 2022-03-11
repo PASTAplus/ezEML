@@ -367,10 +367,11 @@ def check_coverage(eml_node, filename, evaluation_warnings=None):
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
         add_to_evaluation('coverage_01', link)
 
-    taxonomic_classification_nodes = []
-    dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
-    for taxonomic_classification_node in taxonomic_classification_nodes:
-        check_taxonomic_coverage(taxonomic_classification_node, filename)
+    if not metapype_client.model_has_nested_taxonomic_classifications(eml_node):
+        taxonomic_classification_nodes = []
+        dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
+        for taxonomic_classification_node in taxonomic_classification_nodes:
+            check_taxonomic_coverage(taxonomic_classification_node, filename)
 
 
 def check_geographic_coverage(eml_node, filename):
@@ -762,7 +763,7 @@ def format_output(evaluation):
 def perform_evaluation(eml_node, filename):
     global evaluation
     evaluation = []
-    print('\nEntering perform_evaluation')
+    # print('\nEntering perform_evaluation')
     start = time.perf_counter()
 
     validation_errs = validate_via_metapype(eml_node)
@@ -786,7 +787,7 @@ def perform_evaluation(eml_node, filename):
     check_data_package_id(eml_node, filename, validation_errs)
 
     end = time.perf_counter()
-    print(f"Leaving perform_evaluation: {end - start}")
+    # print(f"Leaving perform_evaluation: {end - start}")
 
     return evaluation
 

@@ -14,6 +14,9 @@
 
 import collections
 from enum import Enum
+import hashlib
+import os
+import pickle
 import time
 
 import daiquiri
@@ -760,14 +763,49 @@ def format_output(evaluation):
     return output
 
 
+def check_evaluation_memo(json_filename, eml_node):
+    # We save validation results in a pickle file and only recompute them when the json file's content has changed.
+    eval_filename = json_filename.replace('.json', '_eval.pkl')
+    try:
+        old_md5, validation_errs, evaluation_warnings = pickle.load(open(eval_filename, 'rb'))
+        with open(json_filename, 'rt') as json_file:
+            json = json_file.read()
+        new_md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
+        if new_md5 == old_md5:
+            return new_md5, validation_errs, evaluation_warnings
+        else:
+            return new_md5, None, None
+    except:
+        return None, None, None
+
+
+def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings):
+    eval_filename = json_filename.replace('.json', '_eval.pkl')
+    try:
+        if md5 == None:
+            with open(json_filename, 'rt') as json_file:
+                json = json_file.read()
+            md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
+        with open(eval_filename, 'wb') as f:
+            pickle.dump((md5, validation_errs, evaluation_warnings), f)
+    except:
+        if os.path.exists(eval_filename):
+            os.remove(eval_filename)
+
+
 def perform_evaluation(eml_node, filename):
     global evaluation
     evaluation = []
     # print('\nEntering perform_evaluation')
     start = time.perf_counter()
 
-    validation_errs = validate_via_metapype(eml_node)
-    evaluation_warnings = evaluate_via_metapype(eml_node)
+    md5, validation_errs, evaluation_warnings = check_evaluation_memo(filename, eml_node)
+    need_to_memoize = False
+    if validation_errs == None or evaluation_warnings == None:
+        # print('memoize')
+        need_to_memoize = True
+        validation_errs = validate_via_metapype(eml_node)
+        evaluation_warnings = evaluate_via_metapype(eml_node)
 
     check_dataset_title(eml_node, filename, validation_errs)
     check_data_tables(eml_node, filename, evaluation_warnings)
@@ -785,6 +823,9 @@ def perform_evaluation(eml_node, filename):
     check_project(eml_node, filename)
     check_other_entities(eml_node, filename)
     check_data_package_id(eml_node, filename, validation_errs)
+
+    if need_to_memoize:
+        memoize_evaluation(filename, eml_node, md5, validation_errs, evaluation_warnings)
 
     end = time.perf_counter()
     # print(f"Leaving perform_evaluation: {end - start}")
@@ -806,7 +847,9 @@ def check_metadata_status(eml_node, filename):
 
 
 def check_eml(eml_node, filename):
-    evaluations = perform_evaluation(eml_node, filename)
+    user_folder = user_data.get_user_folder_name()
+    json_filename = f'{user_folder}/{filename}.json'
+    evaluations = perform_evaluation(eml_node, json_filename)
     return format_output(evaluations)
 
 

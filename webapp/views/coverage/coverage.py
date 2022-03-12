@@ -496,6 +496,14 @@ def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
     form.md5.data = form_md5(form)
 
 
+def has_imported_taxonomic_coverage(eml_node):
+    if was_imported_from_xml(eml_node):
+        taxonomic_coverage_node = eml_node.find_descendant(names.TAXONOMICCOVERAGE)
+        if taxonomic_coverage_node:
+            return True
+    return False
+
+
 @cov_bp.route('/taxonomic_coverage_select/<filename>', methods=['GET', 'POST'])
 def taxonomic_coverage_select(filename=None):
     form = TaxonomicCoverageSelectForm(filename=filename)
@@ -518,14 +526,14 @@ def taxonomic_coverage_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            if not was_imported_from_xml(eml_node):
+            if not has_imported_taxonomic_coverage(eml_node):
                 txc_list = list_taxonomic_coverages(dataset_node)
 
     set_current_page('taxonomic_coverage')
     help = [get_help('taxonomic_coverages'), get_help('taxonomy_imported_from_xml')]
     return render_template('taxonomic_coverage_select.html', title=title,
                            txc_list=txc_list,
-                           imported_from_xml=was_imported_from_xml(eml_node),
+                           imported_from_xml=has_imported_taxonomic_coverage(eml_node),
                            form=form, help=help)
 
 

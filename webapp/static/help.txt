@@ -862,7 +862,7 @@ Imported Taxonomy
 
 The EML standard allows Taxonomic Coverage structures with complexity beyond what ezEML supports.
 
-Since this package was imported from an XML file, you will not be able to view or edit its taxonomic coverage within ezEML.
+Since this package contains Taxonomic Coverage that was imported from an XML file, you will not be able to view or edit its taxonomic coverage within ezEML.
 
-You can rest assured, however, that when you save your package as an EML XML file, the taxonomic coverage will have been preserved. In other words, it does not get lost, you just cannot use ezEML to display it and modify it.
+When you save your package as an EML XML file, however, the Taxonomic Coverage will be preserved intact.
 

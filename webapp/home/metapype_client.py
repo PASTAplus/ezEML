@@ -1645,6 +1645,17 @@ def add_imported_from_xml_metadata(eml_node:Node=None, xml_filename:str=None):
     imported_from_xml_node.add_attribute('dateImported', str(date.today()))
 
 
+def get_imported_from_xml_metadata(eml_node:Node=None):
+    imported_from_xml_node = eml_node.find_descendant('importedFromXML')
+    msg = ''
+    if imported_from_xml_node:
+        filename = imported_from_xml_node.attribute_value('filename')
+        date = imported_from_xml_node.attribute_value('dateImported')
+        if filename and date:
+            msg = f'\n\n\nThis data package is based on EML XML imported from {filename} on {date}.'
+    return msg
+
+
 def was_imported_from_xml(eml_node):
     imported_from_xml_node = eml_node.find_descendant('importedFromXML')
     if imported_from_xml_node:

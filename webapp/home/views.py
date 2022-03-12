@@ -76,7 +76,7 @@ from webapp.home.metapype_client import (
     import_project_nodes, get_check_metadata_status,
     handle_hidden_buttons, check_val_for_hidden_buttons,
     add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
-    add_imported_from_xml_metadata
+    add_imported_from_xml_metadata, get_imported_from_xml_metadata
 )
 
 from webapp.home.check_metadata import check_eml
@@ -1464,6 +1464,7 @@ def submit_package():
                 msg = submit_package_mail_body(name, email_address, current_document, download_url,
                                                download_url_without_data, notes)
                 msg += get_fetched_from_edi_metadata(eml_node)
+                msg += get_imported_from_xml_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
                 to_address = ['support@environmentaldatainitiative.org']
                 sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)

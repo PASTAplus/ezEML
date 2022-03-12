@@ -719,18 +719,6 @@ def list_temporal_coverages(parent_node:Node=None):
     return tc_list
 
 
-def model_has_nested_taxonomic_classifications(eml_node):
-    if not eml_node:
-        return False
-    taxonomic_classification_nodes = []
-    eml_node.find_all_descendants(names.TAXONOMICCLASSIFICATION, taxonomic_classification_nodes)
-    for taxonomic_classification_node in taxonomic_classification_nodes:
-        nested = taxonomic_classification_node.find_child(names.TAXONOMICCLASSIFICATION)
-        if nested:
-            return True
-    return False
-
-
 def list_taxonomic_coverages(parent_node:Node=None):
     txc_list = []
     if parent_node:
@@ -1639,6 +1627,30 @@ def get_fetched_from_edi_metadata(eml_node:Node=None):
         if pid and date:
             msg = f'\n\n\nThis data package is based on package {pid} fetched from EDI on {date}.'
     return msg
+
+
+def add_imported_from_xml_metadata(eml_node:Node=None, xml_filename:str=None):
+    imported_from_xml_node = eml_node.find_descendant('importedFromXML')
+    if imported_from_xml_node:
+        metadata_node = imported_from_xml_node.parent
+        additional_metadata_node = metadata_node.parent
+        eml_node.remove_child(additional_metadata_node)
+    additional_metadata_node = new_child_node(names.ADDITIONALMETADATA, parent=eml_node)
+    metadata_node = new_child_node(names.METADATA, parent=additional_metadata_node)
+    # For the importedFromXML node, we need to bypass Metapype validity checking
+    imported_from_xml_node = Node('importedFromXML', parent=metadata_node)
+    metadata_node.add_child(imported_from_xml_node)
+    imported_from_xml_node.attributes.clear()
+    imported_from_xml_node.add_attribute('filename', xml_filename)
+    imported_from_xml_node.add_attribute('dateImported', str(date.today()))
+
+
+def was_imported_from_xml(eml_node):
+    imported_from_xml_node = eml_node.find_descendant('importedFromXML')
+    if imported_from_xml_node:
+        return True
+    else:
+        return False
 
 
 def fix_up_custom_units(eml_node:Node=None):

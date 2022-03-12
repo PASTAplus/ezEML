@@ -117,8 +117,8 @@ def parse_xml_file(filename, filepath):
                 eml_version = line[-7:-2]
                 break
         xml = "".join(lines)
-    eml = metapype_io.from_xml(xml, clean=True, literals=['literalLayout', 'markdown'])
-    assert isinstance(eml, Node) # TODO: error-handling
+    eml_node = metapype_io.from_xml(xml, clean=True, literals=['literalLayout', 'markdown'])
+    assert isinstance(eml_node, Node) # TODO: error-handling
     pruned_nodes = set()
     errs = []
     unknown_nodes = None
@@ -126,15 +126,15 @@ def parse_xml_file(filename, filepath):
     child_errs = None
     other_errs = None
     try:
-        validate.tree(eml, errs)
-        validate.tree(eml)
+        validate.tree(eml_node, errs)
+        validate.tree(eml_node)
         print(f'{filename} - {eml_version}: valid')
         log_info(f'{filename} - {eml_version}: valid')
 #         return None
     except Exception as e:
         print(f'{filename} - {eml_version}: ', end='')
         try:
-            pruned = validate.prune(eml, strict=False)
+            pruned = validate.prune(eml_node, strict=False)
             for x, _ in pruned:
                 pruned_nodes.add(x.name)
             pruned_nodes = sorted(pruned_nodes)
@@ -162,6 +162,6 @@ def parse_xml_file(filename, filepath):
         except Exception as e:
             print(f'validate.prune FAILED: {e}')
             log_info(f'validate.prune FAILED: {e}')
-    return eml, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes
+    return eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes
 
 

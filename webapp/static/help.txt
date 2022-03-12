@@ -857,12 +857,12 @@ When you go to the Abstract page in ezEML, what you would see is the following:<
 The backslash "escape" characters before the &lt; and &gt; in each XML tag enable ezEML to distinguish XML tags from normal text that happens to contain &lt; or &gt; characters. If you edit the XML, you must adhere to this convention. Text elements that need to be handled this way are visually distinguished in two ways: 1) the text is displayed in a different (monospace) font, and 2) a checkmark button <svg style="position: relative;top:4px;" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16.5163 8.93451L11.0597 14.7023L8.0959 11.8984" stroke="black" stroke-width="2"/><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-width="1"/></svg> appears to the right of the element. Clicking the checkmark button causes the XML validity of the element's content to be checked. For further details, please see the "Editing Complex Text Elements in Imported XML" in the User Guide.
 --------------------
-nested_taxonomic_classifications
-Nested Taxonomic Classifications
+taxonomy_imported_from_xml
+Imported Taxonomy
 
-To make ezEML simple and easy to use, it implements only a subset of the full EML standard. ezEML's support for importing EML files that were created outside of ezEML, however, requires it to accommodate some additional complexity beyond what can be created in ezEML itself.
+The EML standard allows Taxonomic Coverage structures with complexity beyond what ezEML supports.
 
-In particular, the EML standard allows taxonomicClassification elements to be nested to an arbitrary depth. ezEML does not support such nesting, and the current document contains such nested taxonomicClassification elements.
+Since this package was imported from an XML file, you will not be able to view or edit its taxonomic coverage within ezEML.
 
-As a result, you will not be able to view or edit this document's taxonomic coverage within ezEML. You you can rest assured, however, that when you save your package as an EML XML file, the taxonomic coverage will have been preserved. In other words, it doesn't get lost, you just can't use ezEML to display it and modify it.
+You can rest assured, however, that when you save your package as an EML XML file, the taxonomic coverage will have been preserved. In other words, it does not get lost, you just cannot use ezEML to display it and modify it.
 

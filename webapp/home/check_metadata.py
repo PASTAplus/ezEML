@@ -367,7 +367,7 @@ def check_coverage(eml_node, filename, evaluation_warnings=None):
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
         add_to_evaluation('coverage_01', link)
 
-    if not metapype_client.model_has_nested_taxonomic_classifications(eml_node):
+    if not metapype_client.was_imported_from_xml(eml_node):
         taxonomic_classification_nodes = []
         dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
         for taxonomic_classification_node in taxonomic_classification_nodes:

@@ -100,7 +100,6 @@ def title(filename=None):
 
     set_current_page('title')
     help = get_helps(['title', 'nav', 'welcome'])
-    help = get_helps(['complex_xml', 'nav', 'welcome'])
     first_usage = is_first_usage()
     return render_template('title.html', title='Title', form=form, help=help, is_first_usage=first_usage)
 

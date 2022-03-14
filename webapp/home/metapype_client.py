@@ -2098,7 +2098,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         logger.error(e)
 
 
-def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=None, project_node_id:str=None):
+def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=None, funding:str=None, project_node_id:str=None):
     try:
         if project_node_id != '1':
             related_project_node = Node.get_node_instance(project_node_id)
@@ -2123,6 +2123,15 @@ def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=
         else:
             related_project_node.remove_child(abstract_node)
         return related_project_node
+
+        funding_node = related_project_node.find_child(names.FUNDING)
+        if not funding_node:
+            funding_node = new_child_node(names.FUNDING, parent=related_project_node)
+        if funding:
+            funding_node.content = funding
+            post_process_texttype_node(funding_node)
+        else:
+            project_node.remove_child(funding_node)
 
     except Exception as e:
         logger.error(e)

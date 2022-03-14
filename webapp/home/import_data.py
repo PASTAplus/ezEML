@@ -3,6 +3,7 @@ import shutil
 import uuid
 
 import daiquiri
+from flask import flash
 from flask_login import current_user
 import requests
 
@@ -57,10 +58,10 @@ def extract_data_entities_from_eml(eml_node, entity_name):
         url_node = data_entity_node.find_descendant(names.URL)
         if url_node:
             url = url_node.content
-        if object_name and url:
+        if object_name and url_node and url:
             data_entities.append((data_entity_node, entity_name, object_name, url))
-        else:
-            raise ValueError # TODO - use a custom exception
+        # else:
+        #     raise ValueError # TODO - use a custom exception
     return data_entities
 
 
@@ -77,7 +78,8 @@ def get_data_entity_size(url):
         response.raise_for_status()
         return response.text
     else:
-        raise exceptions.ezEMLAttemptToAccessNonPASTAData
+        # raise exceptions.ezEMLAttemptToAccessNonPASTAData
+        return '0'
 
 
 def get_data_entity(upload_dir, object_name, url):
@@ -152,8 +154,11 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
     else:
         quote_char = '"'
 
-    new_data_entity_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
-        upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
+    try:
+        new_data_entity_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
+            upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
+    except FileNotFoundError as e:
+        return None
 
     # use the existing dt_node, but update objectName, size, rows, MD5, etc.
     # also, update column names and categorical codes, as needed
@@ -175,6 +180,9 @@ def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
         if data_entity_type == names.DATATABLE:
             # upload the data table
             new_data_entity_node = ingest_data_table(data_entity_node, upload_dir, object_name)
+            if not new_data_entity_node:
+                flash(f'Data entity "{object_name}" file not found. Please check its Online Distribution URL in the metadata.', 'error')
+                continue
             dataset_node.replace_child(data_entity_node, new_data_entity_node)
         if data_entity_type == names.OTHERENTITY:
             # upload the other_entity

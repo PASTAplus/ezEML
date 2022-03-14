@@ -211,14 +211,15 @@ def check_dataset_title(eml_node, doc_name, validation_errs=None):
 
 
 def check_id_for_EDI(package_id):
-    try:
-        scope, identifier, revision = package_id.split('.')
-        if scope not in scopes:
-            raise ValueError
-        identifier = int(identifier)
-        revision = int(revision)
-    except ValueError:
-        return False
+    if package_id:
+        try:
+            scope, identifier, revision = package_id.split('.')
+            if scope not in scopes:
+                raise ValueError
+            identifier = int(identifier)
+            revision = int(revision)
+        except ValueError:
+            return False
     return True
 
 

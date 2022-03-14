@@ -15,3 +15,7 @@ class InvalidXMLError(ezEMLError):
 
 class MissingFileError(ezEMLError):
     pass
+
+
+class UnknownDistributionUrl(ezEMLError):
+    pass

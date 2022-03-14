@@ -1014,7 +1014,7 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False):
 
     if eml_node:
         get_check_metadata_status(eml_node, filename)
-        save_package_id(eml_node)
+        # save_package_id(eml_node)
         user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
     return eml_node
 

@@ -1412,6 +1412,10 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
                 if keep_existing_url(distribution_node, uploads_folder):
                     continue
                 physical_node.remove_child(distribution_node)
+            # See if file exists before adding a distribution URL pointing to our copy.
+            filepath = os.path.join(uploads_folder, object_name)
+            if not os.path.exists(filepath):
+                continue
             distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
             online_node = new_child_node(names.ONLINE, distribution_node)
             url_node = new_child_node(names.URL, online_node)

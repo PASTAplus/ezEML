@@ -560,7 +560,8 @@ def download_current():
         save_both_formats(filename=current_document, eml_node=eml_node)
 
         # Do the download
-        return_value = user_data.download_eml(filename=current_document)
+        package_id = eml_node.attribute_value("packageId")
+        return_value = user_data.download_eml(filename=current_document, package_id=package_id)
 
         if isinstance(return_value, str):
             flash(return_value)
@@ -1254,7 +1255,7 @@ def zip_package(current_document=None, eml_node=None, include_data=True):
     zip_object.write(pathname, arcname)
     manifest_files.append(('JSON', f'{current_document}.json', pathname))
 
-    package_id = user_data.get_active_packageid()
+    package_id = eml_node.attribute_value("packageId")
     if package_id and package_id != current_document:
         # copy the EML file using the package_id as name
         arcname = f'{package_id}.xml'

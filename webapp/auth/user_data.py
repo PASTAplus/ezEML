@@ -243,7 +243,7 @@ def delete_eml(filename:str=''):
         return msg
 
 
-def download_eml(filename:str=''):
+def download_eml(filename:str='', package_id:str=''):
     if filename:
         user_folder = get_user_folder_name()
         filename_xml = f'{filename}.xml'
@@ -253,7 +253,6 @@ def download_eml(filename:str=''):
             #   created under a filename that differs from the data package id, but then when a data package id is
             #   set later on, if the user downloads the EML file they'll want it named using the PID, like it would
             #   be in the data repository.
-            package_id = get_active_packageid()
             if package_id:
                 filename_xml = f'{package_id}.xml'
             relative_pathname = '../' + pathname

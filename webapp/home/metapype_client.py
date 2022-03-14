@@ -74,7 +74,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.03.12'
+RELEASE_NUMBER = '2022.03.13'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1001,16 +1001,16 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False):
     if not user_folder:
         user_folder = '.'
     ext = 'json' if not use_pickle else 'pkl'
-    filename = f"{user_folder}/{filename}.{ext}"
-    if os.path.isfile(filename):
+    ext_filename = f"{user_folder}/{filename}.{ext}"
+    if os.path.isfile(ext_filename):
         if use_pickle:
-            eml_node = pickle.load(open(filename, 'rb'))
+            eml_node = pickle.load(open(ext_filename, 'rb'))
         else:
-            eml_node = from_json(filename)
+            eml_node = from_json(ext_filename)
     elif use_pickle:
-        filename = filename.replace('.pkl', '.json')
-        if os.path.isfile(filename):
-            eml_node = from_json(filename)
+        ext_filename = filename.replace('.pkl', '.json')
+        if os.path.isfile(ext_filename):
+            eml_node = from_json(ext_filename)
 
     if eml_node:
         get_check_metadata_status(eml_node, filename)

@@ -187,8 +187,8 @@ def find_missing_attribute(errs, node_name, attribute_name):
     return None
 
 
-def check_dataset_title(eml_node, filename, validation_errs=None):
-    link = url_for(PAGE_TITLE, filename=filename)
+def check_dataset_title(eml_node, doc_name, validation_errs=None):
+    link = url_for(PAGE_TITLE, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if validation_errs is None:
         validation_errs = validate_via_metapype(dataset_node)
@@ -222,8 +222,8 @@ def check_id_for_EDI(package_id):
     return True
 
 
-def check_data_package_id(eml_node, filename, validation_errs=None):
-    link = url_for(PAGE_DATA_PACKAGE_ID, filename=filename)
+def check_data_package_id(eml_node, doc_name, validation_errs=None):
+    link = url_for(PAGE_DATA_PACKAGE_ID, filename=doc_name)
     if validation_errs is None:
         validation_errs = validate_via_metapype(eml_node)
     if find_missing_attribute(validation_errs, 'eml', 'packageId'):
@@ -236,12 +236,12 @@ def check_data_package_id(eml_node, filename, validation_errs=None):
 
 
 def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
-                            page:str=None, filename:str=None, node_id:str=None,
+                            page:str=None, doc_name:str=None, node_id:str=None,
                             related_project_node_id:str=None):
     if not related_project_node_id:
-        link = url_for(page, filename=filename, node_id=node_id)
+        link = url_for(page, filename=doc_name, node_id=node_id)
     else:
-        link = url_for(page, filename=filename, node_id=node_id, project_node_id=related_project_node_id)
+        link = url_for(page, filename=doc_name, node_id=node_id, project_node_id=related_project_node_id)
     validation_errs = validate_via_metapype(rp_node)
 
     # Last name is required if other parts of name are given
@@ -269,8 +269,9 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
     if find_err_code(evaluation_warnings, EvaluationWarning.EMAIL_MISSING, rp_node.name):
         add_to_evaluation('responsible_party_05', link, section, item)
 
-def check_creators(eml_node, filename, validation_errs=None):
-    link = url_for(PAGE_CREATOR_SELECT, filename=filename)
+
+def check_creators(eml_node, doc_name, validation_errs=None):
+    link = url_for(PAGE_CREATOR_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if validation_errs is None:
         validation_errs = validate_via_metapype(dataset_node)
@@ -280,29 +281,29 @@ def check_creators(eml_node, filename, validation_errs=None):
     else:
         creator_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR])
         for creator_node in creator_nodes:
-            check_responsible_party(creator_node, 'Creators', 'Creator', PAGE_CREATOR, filename, creator_node.id)
+            check_responsible_party(creator_node, 'Creators', 'Creator', PAGE_CREATOR, doc_name, creator_node.id)
 
 
-def check_metadata_providers(eml_node, filename):
-    link = url_for(PAGE_METADATA_PROVIDER_SELECT, filename=filename)
+def check_metadata_providers(eml_node, doc_name):
+    link = url_for(PAGE_METADATA_PROVIDER_SELECT, filename=doc_name)
     metadata_provider_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER])
     if metadata_provider_nodes and len(metadata_provider_nodes) > 0:
         for metadata_provider_node in metadata_provider_nodes:
             check_responsible_party(metadata_provider_node, 'Metadata Providers', 'Metadata Provider',
-                                    PAGE_METADATA_PROVIDER, filename, metadata_provider_node.id)
+                                    PAGE_METADATA_PROVIDER, doc_name, metadata_provider_node.id)
 
 
-def check_associated_parties(eml_node, filename):
-    link = url_for(PAGE_ASSOCIATED_PARTY_SELECT, filename=filename)
+def check_associated_parties(eml_node, doc_name):
+    link = url_for(PAGE_ASSOCIATED_PARTY_SELECT, filename=doc_name)
     associated_party_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY])
     if associated_party_nodes and len(associated_party_nodes) > 0:
         for associated_party_node in associated_party_nodes:
             check_responsible_party(associated_party_node, 'Associated Parties', 'Associated Party',
-                                    PAGE_ASSOCIATED_PARTY, filename, associated_party_node.id)
+                                    PAGE_ASSOCIATED_PARTY, doc_name, associated_party_node.id)
 
 
-def check_dataset_abstract(eml_node, filename, evaluation_warnings=None):
-    link = url_for(PAGE_ABSTRACT, filename=filename)
+def check_dataset_abstract(eml_node, doc_name, evaluation_warnings=None):
+    link = url_for(PAGE_ABSTRACT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
@@ -316,8 +317,8 @@ def check_dataset_abstract(eml_node, filename, evaluation_warnings=None):
         return
 
 
-def check_keywords(eml_node, filename, evaluation_warnings=None):
-    link = url_for(PAGE_KEYWORD_SELECT, filename=filename)
+def check_keywords(eml_node, doc_name, evaluation_warnings=None):
+    link = url_for(PAGE_KEYWORD_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
@@ -331,8 +332,8 @@ def check_keywords(eml_node, filename, evaluation_warnings=None):
         return
 
 
-def check_intellectual_rights(eml_node, filename, evaluation_warnings=None):
-    link = url_for(PAGE_INTELLECTUAL_RIGHTS, filename=filename)
+def check_intellectual_rights(eml_node, doc_name, evaluation_warnings=None):
+    link = url_for(PAGE_INTELLECTUAL_RIGHTS, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
@@ -348,9 +349,9 @@ def check_intellectual_rights(eml_node, filename, evaluation_warnings=None):
         return
 
 
-def check_taxonomic_coverage(node, filename):
+def check_taxonomic_coverage(node, doc_name):
 
-    link = url_for(PAGE_TAXONOMIC_COVERAGE, filename=filename, node_id=node.id)
+    link = url_for(PAGE_TAXONOMIC_COVERAGE, filename=doc_name, node_id=node.id)
 
     validation_errs = validate_via_metapype(node)
     if find_content_empty(validation_errs, names.TAXONRANKNAME):
@@ -359,10 +360,10 @@ def check_taxonomic_coverage(node, filename):
         add_to_evaluation('taxonomic_coverage_02', link)
 
 
-def check_coverage(eml_node, filename, evaluation_warnings=None):
+def check_coverage(eml_node, doc_name, evaluation_warnings=None):
     dataset_node = eml_node.find_child(names.DATASET)
 
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=doc_name)
 
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
@@ -374,14 +375,14 @@ def check_coverage(eml_node, filename, evaluation_warnings=None):
         taxonomic_classification_nodes = []
         dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
         for taxonomic_classification_node in taxonomic_classification_nodes:
-            check_taxonomic_coverage(taxonomic_classification_node, filename)
+            check_taxonomic_coverage(taxonomic_classification_node, doc_name)
 
 
-def check_geographic_coverage(eml_node, filename):
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+def check_geographic_coverage(eml_node, doc_name):
+    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=doc_name)
     geographic_coverage_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE])
     for geographic_coverage_node in geographic_coverage_nodes:
-        link = url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=geographic_coverage_node.id)
+        link = url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=doc_name, node_id=geographic_coverage_node.id)
         validation_errs = validate_via_metapype(geographic_coverage_node)
         if find_content_empty(validation_errs, names.GEOGRAPHICDESCRIPTION):
             add_to_evaluation('geographic_coverage_01', link)
@@ -430,7 +431,7 @@ def get_attribute_type(attrib_node:Node):
     return None
 
 
-def generate_code_definition_errs(eml_node, filename, err_code, errs_found):
+def generate_code_definition_errs(eml_node, doc_name, err_code, errs_found):
     mscale = metapype_client.VariableType.CATEGORICAL
     for err in errs_found:
         err_node = err[2]
@@ -442,12 +443,12 @@ def generate_code_definition_errs(eml_node, filename, err_code, errs_found):
         attribute_node = mscale_node.parent
         attribute_list_node = attribute_node.parent
         data_table_node = attribute_list_node.parent
-        link = url_for(PAGE_CODE_DEFINITION, filename=filename, dt_node_id=data_table_node.id, att_node_id=attribute_node.id,
+        link = url_for(PAGE_CODE_DEFINITION, filename=doc_name, dt_node_id=data_table_node.id, att_node_id=attribute_node.id,
                        nom_ord_node_id=nominal_node.id, node_id=code_definition_node.id, mscale=mscale)
         add_to_evaluation(err_code, link)
 
 
-def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
+def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node):
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     page = None
@@ -482,9 +483,9 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
             attrib_name_node = attrib_node.find_child(names.ATTRIBUTENAME)
             if attrib_name_node:
                 attrib_name = attrib_name_node.content
-        log_error(f"page not initialized... filename={filename}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
+        log_error(f"page not initialized... filename={doc_name}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
         return
-    link = url_for(page, filename=filename, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
+    link = url_for(page, filename=doc_name, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
 
     validation_errs = validate_via_metapype(attrib_node)
     if find_content_empty(validation_errs, names.ATTRIBUTEDEFINITION):
@@ -498,10 +499,10 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
             add_to_evaluation('attributes_04', link)
         found = find_content_empty(validation_errs, names.CODE)
         if found:
-            generate_code_definition_errs(eml_node, filename, 'attributes_05', found)
+            generate_code_definition_errs(eml_node, doc_name, 'attributes_05', found)
         found = find_content_empty(validation_errs, names.DEFINITION)
         if found:
-            generate_code_definition_errs(eml_node, filename, 'attributes_06', found)
+            generate_code_definition_errs(eml_node, doc_name, 'attributes_06', found)
 
     # Numerical
     if attr_type == metapype_client.VariableType.NUMERICAL:
@@ -540,8 +541,8 @@ def check_data_table_md5_checksum(data_table_node, link):
             return
 
 
-def check_data_table(eml_node, filename, data_table_node:Node):
-    link = url_for(PAGE_DATA_TABLE, filename=filename, dt_node_id=data_table_node.id)
+def check_data_table(eml_node, doc_name, data_table_node:Node):
+    link = url_for(PAGE_DATA_TABLE, filename=doc_name, dt_node_id=data_table_node.id)
     validation_errs = validate_via_metapype(data_table_node)
 
     check_data_table_md5_checksum(data_table_node, link)
@@ -563,11 +564,11 @@ def check_data_table(eml_node, filename, data_table_node:Node):
     if attribute_list_node:
         attribute_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
         for attribute_node in attribute_nodes:
-            check_attribute(eml_node, filename, data_table_node, attribute_node)
+            check_attribute(eml_node, doc_name, data_table_node, attribute_node)
 
 
-def check_data_tables(eml_node, filename, evaluation_warnings=None):
-    link = url_for(PAGE_DATA_TABLE_SELECT, filename=filename)
+def check_data_tables(eml_node, doc_name, evaluation_warnings=None):
+    link = url_for(PAGE_DATA_TABLE_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
@@ -576,11 +577,11 @@ def check_data_tables(eml_node, filename, evaluation_warnings=None):
 
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
     for data_table_node in data_table_nodes:
-        check_data_table(eml_node, filename, data_table_node)
+        check_data_table(eml_node, doc_name, data_table_node)
 
 
-def check_maintenance(eml_node, filename, evaluation_warnings=None):
-    link = url_for(PAGE_MAINTENANCE, filename=filename)
+def check_maintenance(eml_node, doc_name, evaluation_warnings=None):
+    link = url_for(PAGE_MAINTENANCE, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
@@ -588,8 +589,8 @@ def check_maintenance(eml_node, filename, evaluation_warnings=None):
         add_to_evaluation('maintenance_01', link)
 
 
-def check_contacts(eml_node, filename, validation_errs=None):
-    link = url_for(PAGE_CONTACT_SELECT, filename=filename)
+def check_contacts(eml_node, doc_name, validation_errs=None):
+    link = url_for(PAGE_CONTACT_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if validation_errs:
         validation_errs = validate_via_metapype(dataset_node)
@@ -601,18 +602,18 @@ def check_contacts(eml_node, filename, validation_errs=None):
     ])
     for contact_node in contact_nodes:
         check_responsible_party(contact_node, 'Contacts', 'Contact', PAGE_CONTACT,
-                                filename, contact_node.id)
+                                doc_name, contact_node.id)
 
 
-def check_method_step(method_step_node, filename, node_id):
-    link = url_for(PAGE_METHOD_STEP, filename=filename, node_id=node_id)
+def check_method_step(method_step_node, doc_name, node_id):
+    link = url_for(PAGE_METHOD_STEP, filename=doc_name, node_id=node_id)
     evaluation_warnings = evaluate_via_metapype(method_step_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.METHOD_STEP_DESCRIPTION_MISSING, names.DESCRIPTION):
         add_to_evaluation('methods_02', link)
 
 
-def check_method_steps(eml_node, filename, evaluation_warnings=None):
-    link = url_for(PAGE_METHOD_STEP_SELECT, filename=filename)
+def check_method_steps(eml_node, doc_name, evaluation_warnings=None):
+    link = url_for(PAGE_METHOD_STEP_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
@@ -625,14 +626,14 @@ def check_method_steps(eml_node, filename, evaluation_warnings=None):
         names.METHODSTEP
     ])
     for method_step_node in method_step_nodes:
-        check_method_step(method_step_node, filename, method_step_node.id)
+        check_method_step(method_step_node, doc_name, method_step_node.id)
 
 
-def check_project_award(award_node, filename, related_project_id=None):
+def check_project_award(award_node, doc_name, related_project_id=None):
     if not related_project_id:
-        link = url_for(PAGE_FUNDING_AWARD, filename=filename, node_id=award_node.id)
+        link = url_for(PAGE_FUNDING_AWARD, filename=doc_name, node_id=award_node.id)
     else:
-        link = url_for(PAGE_FUNDING_AWARD, filename=filename, node_id=award_node.id, project_node_id=related_project_id)
+        link = url_for(PAGE_FUNDING_AWARD, filename=doc_name, node_id=award_node.id, project_node_id=related_project_id)
     validation_errors = validate_via_metapype(award_node)
     if find_min_unmet(validation_errors, names.AWARD, names.FUNDERNAME) or \
             find_content_empty(validation_errors, names.FUNDERNAME):
@@ -642,11 +643,11 @@ def check_project_award(award_node, filename, related_project_id=None):
         add_to_evaluation('project_05', link)
 
 
-def check_project_node(project_node, filename, related_project_id=None):
+def check_project_node(project_node, doc_name, related_project_id=None):
     if not related_project_id:
-        link = url_for(PAGE_PROJECT, filename=filename)
+        link = url_for(PAGE_PROJECT, filename=doc_name)
     else:
-        link = url_for(PAGE_PROJECT, filename=filename, node_id=related_project_id)
+        link = url_for(PAGE_PROJECT, filename=doc_name, node_id=related_project_id)
     validation_errors = validate_via_metapype(project_node)
     name = project_node.name
     if find_min_unmet(validation_errors, name, names.TITLE):
@@ -663,23 +664,23 @@ def check_project_node(project_node, filename, related_project_id=None):
     project_personnel_nodes = project_node.find_all_children(names.PERSONNEL)
     for project_personnel_node in project_personnel_nodes:
         check_responsible_party(project_personnel_node, "Project", "Project Personnel",
-                                PAGE_PROJECT_PERSONNEL, filename, project_personnel_node.id,
+                                PAGE_PROJECT_PERSONNEL, doc_name, project_personnel_node.id,
                                 related_project_id)
 
     project_award_nodes = project_node.find_all_children(names.AWARD)
     for project_award_node in project_award_nodes:
-        check_project_award(project_award_node, filename, related_project_id)
+        check_project_award(project_award_node, doc_name, related_project_id)
 
     related_project_nodes = project_node.find_all_children(names.RELATED_PROJECT)
     for related_project_node in related_project_nodes:
-        check_project_node(related_project_node, filename, related_project_node.id)
+        check_project_node(related_project_node, doc_name, related_project_node.id)
 
 
-def check_project(eml_node, filename, evaluation_warnings=None):
-    link = url_for(PAGE_PROJECT, filename=filename)
+def check_project(eml_node, doc_name, evaluation_warnings=None):
+    link = url_for(PAGE_PROJECT, filename=doc_name)
     project_node = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if project_node:
-        check_project_node(project_node, filename)
+        check_project_node(project_node, doc_name)
     else:
         dataset_node = eml_node.find_child(names.DATASET)
         if evaluation_warnings is None:
@@ -688,8 +689,8 @@ def check_project(eml_node, filename, evaluation_warnings=None):
             add_to_evaluation('project_03', link)
 
 
-def check_other_entity(entity_node, filename):
-    link = url_for(PAGE_OTHER_ENTITY, filename=filename, node_id=entity_node.id)
+def check_other_entity(entity_node, doc_name):
+    link = url_for(PAGE_OTHER_ENTITY, filename=doc_name, node_id=entity_node.id)
 
     validation_errors = validate_via_metapype(entity_node)
     if find_min_unmet(validation_errors, names.OTHERENTITY, names.ENTITYNAME):
@@ -702,10 +703,10 @@ def check_other_entity(entity_node, filename):
         add_to_evaluation('other_entity_03', link)
 
 
-def check_other_entities(eml_node, filename):
+def check_other_entities(eml_node, doc_name):
     other_entity_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.OTHERENTITY])
     for other_entity_node in other_entity_nodes:
-        check_other_entity(other_entity_node, filename)
+        check_other_entity(other_entity_node, doc_name)
 
 
 def eval_entry_to_string(eval_entry):
@@ -793,13 +794,16 @@ def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation
             os.remove(eval_filename)
 
 
-def perform_evaluation(eml_node, filename):
+def perform_evaluation(eml_node, doc_name):
     global evaluation
     evaluation = []
     # print('\nEntering perform_evaluation')
     start = time.perf_counter()
 
-    md5, validation_errs, evaluation_warnings = check_evaluation_memo(filename, eml_node)
+    user_folder = user_data.get_user_folder_name()
+    json_filename = f'{user_folder}/{doc_name}.json'
+
+    md5, validation_errs, evaluation_warnings = check_evaluation_memo(json_filename, eml_node)
     need_to_memoize = False
     if validation_errs == None or evaluation_warnings == None:
         # print('memoize')
@@ -807,25 +811,25 @@ def perform_evaluation(eml_node, filename):
         validation_errs = validate_via_metapype(eml_node)
         evaluation_warnings = evaluate_via_metapype(eml_node)
 
-    check_dataset_title(eml_node, filename, validation_errs)
-    check_data_tables(eml_node, filename, evaluation_warnings)
-    check_creators(eml_node, filename, validation_errs)
-    check_contacts(eml_node, filename, validation_errs)
-    check_associated_parties(eml_node, filename)
-    check_metadata_providers(eml_node, filename)
-    check_dataset_abstract(eml_node, filename, evaluation_warnings)
-    check_keywords(eml_node, filename, evaluation_warnings)
-    check_intellectual_rights(eml_node, filename, evaluation_warnings)
-    check_coverage(eml_node, filename, evaluation_warnings)
-    check_geographic_coverage(eml_node, filename)
-    check_maintenance(eml_node, filename, evaluation_warnings)
-    check_method_steps(eml_node, filename, evaluation_warnings)
-    check_project(eml_node, filename)
-    check_other_entities(eml_node, filename)
-    check_data_package_id(eml_node, filename, validation_errs)
+    check_dataset_title(eml_node, doc_name, validation_errs)
+    check_data_tables(eml_node, doc_name, evaluation_warnings)
+    check_creators(eml_node, doc_name, validation_errs)
+    check_contacts(eml_node, doc_name, validation_errs)
+    check_associated_parties(eml_node, doc_name)
+    check_metadata_providers(eml_node, doc_name)
+    check_dataset_abstract(eml_node, doc_name, evaluation_warnings)
+    check_keywords(eml_node, doc_name, evaluation_warnings)
+    check_intellectual_rights(eml_node, doc_name, evaluation_warnings)
+    check_coverage(eml_node, doc_name, evaluation_warnings)
+    check_geographic_coverage(eml_node, doc_name)
+    check_maintenance(eml_node, doc_name, evaluation_warnings)
+    check_method_steps(eml_node, doc_name, evaluation_warnings)
+    check_project(eml_node, doc_name)
+    check_other_entities(eml_node, doc_name)
+    check_data_package_id(eml_node, doc_name, validation_errs)
 
     if need_to_memoize:
-        memoize_evaluation(filename, eml_node, md5, validation_errs, evaluation_warnings)
+        memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings)
 
     end = time.perf_counter()
     # print(f"Leaving perform_evaluation: {end - start}")
@@ -833,8 +837,8 @@ def perform_evaluation(eml_node, filename):
     return evaluation
 
 
-def check_metadata_status(eml_node, filename):
-    evaluations = perform_evaluation(eml_node, filename)
+def check_metadata_status(eml_node, doc_name):
+    evaluations = perform_evaluation(eml_node, doc_name)
     errors = 0
     warnings = 0
     for entry in evaluations:
@@ -846,10 +850,8 @@ def check_metadata_status(eml_node, filename):
     return errors, warnings
 
 
-def check_eml(eml_node, filename):
-    user_folder = user_data.get_user_folder_name()
-    json_filename = f'{user_folder}/{filename}.json'
-    evaluations = perform_evaluation(eml_node, json_filename)
+def check_eml(eml_node, doc_name):
+    evaluations = perform_evaluation(eml_node, doc_name)
     return format_output(evaluations)
 
 

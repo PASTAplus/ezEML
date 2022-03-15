@@ -169,7 +169,6 @@ def init_session_vars():
 @home.before_app_request
 def init_session_vars_2():
     session["privileged_logins"] = Config.PRIVILEGED_LOGINS
-    # log_info(f'Session init... privileged_logins={session["privileged_logins"]}')
 
 
 @home.before_app_first_request

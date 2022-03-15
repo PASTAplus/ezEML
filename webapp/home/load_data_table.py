@@ -126,11 +126,14 @@ def sort_codes(codes):
 
 
 def is_datetime(data_frame, col):
-    rows_to_check = min(len(col), MAX_ROWS_TO_CHECK)
+    rows_to_check = min(len(data_frame[col]), MAX_ROWS_TO_CHECK)
     s = pd.to_datetime(data_frame[col][1:rows_to_check], errors='coerce')
     missing = sum(1 for i in range(len(s)) if s.iloc[i] is pd.NaT)
     # see how many missing values... arbitrary cutoff allowing for missing values
-    return float(missing) / float(len(s)) < 0.2
+    if len(s) > 0:
+        return float(missing) / float(len(s)) < 0.2
+    else:
+        return False
 
 
 def infer_datetime_format(dt):

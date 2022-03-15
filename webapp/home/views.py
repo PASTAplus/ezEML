@@ -17,7 +17,9 @@ import daiquiri
 from datetime import date, datetime
 import html
 import json
+import math
 import os.path
+import pandas as pd
 from pathlib import Path
 import pickle
 import requests
@@ -27,7 +29,7 @@ from zipfile import ZipFile
 
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, session, send_file
+    Blueprint, flash, render_template, redirect, request, url_for, session, Markup
 )
 
 from flask_login import (
@@ -41,6 +43,8 @@ from webapp import mailout
 from webapp.config import Config
 
 import csv
+
+from webapp.home.exceptions import DataTableError, MissingFileError
 
 from webapp.home.forms import ( 
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
@@ -77,12 +81,19 @@ from metapype.model import mp_io
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
+import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
 
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
 keywords = {}
+
+
+def log_info(msg):
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.info(msg)
 
 
 def non_breaking(_str):
@@ -107,7 +118,8 @@ def debug_None(x, msg):
 def reload_metadata():
     current_document = current_user.get_filename()
     if not current_document:
-        raise FileNotFoundError
+        # if we've just deleted the current document, it won't exist
+        return redirect(url_for(PAGE_INDEX))
     # Call load_eml here to get the check_metadata status set correctly
     eml_node = load_eml(filename=current_document)
     return current_document, eml_node
@@ -691,6 +703,8 @@ def get_redirect_target_page():
         return PAGE_DATA_PACKAGE_ID
     elif current_page == 'submit_package':
         return PAGE_SUBMIT_TO_EDI
+    elif current_page == 'send_to_other':
+        return PAGE_SEND_TO_OTHER
     else:
         return PAGE_TITLE
 
@@ -1068,7 +1082,9 @@ def zip_package(current_document=None, eml_node=None):
 
     package_id = user_data.get_active_packageid()
     if package_id:
+        # copy the EML file using the package_id as name
         arcname = f'{package_id}.xml'
+        copyfile(f'{user_folder}/{current_document}.xml', f'{user_folder}/{arcname}')
     else:
         arcname = f'{current_document}.xml'
     # pathname = f'{user_folder}/{current_document}.xml'
@@ -1094,7 +1110,13 @@ def zip_package(current_document=None, eml_node=None):
             object_name = object_name_node.content
             pathname = f'{uploads_folder}/{object_name}'
             arcname = f'data/{object_name}'
-            zip_object.write(pathname, arcname)
+            try:
+                zip_object.write(pathname, arcname)
+            except FileNotFoundError as err:
+                filename = os.path.basename(err.filename)
+                msg = f"Unable to archive the package. Missing file: {filename}."
+                flash(msg, category='error')
+                return None
     zip_object.close()
     return zipfile_path
 
@@ -1130,28 +1152,18 @@ def export_package():
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST':
+        save_both_formats(current_document, eml_node)
         zipfile_path = zip_package(current_document, eml_node)
+        if zipfile_path:
+            archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
+            if download_url:
+                return redirect(url_for('home.export_package_2', package_name=archive_basename,
+                                        download_url=get_shortened_url(download_url), safe=''))
         archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
         if download_url:
 
             return redirect(url_for('home.export_package_2', package_name=archive_basename,
                                     download_url=get_shortened_url(download_url), safe=''))
-
-        # path, filename = os.path.split(zipfile_path)
-        #
-        # relative_pathname = '../' + zipfile_path
-        # mimetype = 'application/xml'
-        # try:
-        #     return send_file(relative_pathname,
-        #                      mimetype=mimetype,
-        #                      as_attachment=True,
-        #                      attachment_filename=filename,
-        #                      add_etags=True,
-        #                      cache_timeout=None,
-        #                      conditional=False,
-        #                      last_modified=None)
-        # except Exception as e:
-        #     return str(e)
 
     # Process GET
     help = get_helps(['export_package'])
@@ -1177,10 +1189,42 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, d
         '   Sender\'s name: ' + name + '\n\n' + \
         '   Sender\'s email: ' + email_address + '\n\n' + \
         '   Package name: ' + archive_name + '\n\n' + \
-        '   Download URL: ' + download_url.replace(' ', '%20') + '\n\n'
+        '   Download URL: ' + get_shortened_url(download_url) + '\n\n'  # Note: get_shortened_url handles blanks
     if notes:
         msg += '   Sender\'s Notes: ' + notes
     return msg
+
+
+def insert_urls(uploads_url_prefix, eml_node, node_type):
+    upload_nodes = []
+    eml_node.find_all_descendants(node_type, upload_nodes)
+    for upload_node in upload_nodes:
+        try:
+            physical_node = upload_node.find_descendant(names.PHYSICAL)
+            object_name_node = physical_node.find_child(names.OBJECTNAME)
+            object_name = object_name_node.content
+            distribution_node = physical_node.find_child(names.DISTRIBUTION)
+            if distribution_node:
+                physical_node.remove_child(distribution_node)
+            distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
+            online_node = new_child_node(names.ONLINE, distribution_node)
+            url_node = new_child_node(names.URL, online_node)
+            url_node.add_attribute('function', 'download')
+            url_node.content = f"{uploads_url_prefix}/{object_name}".replace(' ', '%20')
+        except Exception as err:
+            flash(err)
+            continue
+
+
+def insert_upload_urls(current_document, eml_node):
+    user_folder = user_data.get_user_folder_name()
+    uploads_folder = f'{user_folder}/uploads/{current_document}'
+
+    parsed_url = urlparse(request.base_url)
+    uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{uploads_folder}"
+
+    insert_urls(uploads_url_prefix, eml_node, names.DATATABLE)
+    insert_urls(uploads_url_prefix, eml_node, names.OTHERENTITY)
 
 
 @home.route('/submit_package', methods=['GET', 'POST'])
@@ -1194,22 +1238,31 @@ def submit_package():
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if form.validate_on_submit():
-        name = form.data['name']
-        email_address = form.data['email_address']
-        notes = form.data['notes']
+        # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
+        #  programmatically generated Submit
+        if request.form.get(BTN_SUBMIT) == BTN_SUBMIT_TO_EDI:
+            name = form.data['name']
+            email_address = form.data['email_address']
+            notes = form.data['notes']
 
-        zipfile_path = zip_package(current_document, eml_node)
-        _, download_url = save_as_ezeml_package_export(zipfile_path)
+            # update the EML to include URLs to data table files and other entity files
+            insert_upload_urls(current_document, eml_node)
+            save_both_formats(filename=current_document, eml_node=eml_node)
 
-        msg = submit_package_mail_body(name, email_address, current_document, download_url, notes)
-        subject = 'ezEML-Generated Data Submission Request'
-        to_address = ['support@environmentaldatainitiative.org']
-        sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
-        if sent:
-            flash(f'Package {current_document} has been sent to EDI. We will notify you when it has been added to the repository.')
-        else:
-            flash(f'Email failed to send', 'error')
-        return redirect(get_back_url())
+            zipfile_path = zip_package(current_document, eml_node)
+            if zipfile_path:
+                _, download_url = save_as_ezeml_package_export(zipfile_path)
+
+                msg = submit_package_mail_body(name, email_address, current_document, download_url, notes)
+                subject = 'ezEML-Generated Data Submission Request'
+                to_address = ['support@environmentaldatainitiative.org']
+                sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
+                if sent:
+                    flash(f'Package {current_document} has been sent to EDI. We will notify you when it has been added to the repository.')
+                else:
+                    flash(f'Email failed to send', 'error')
+
+            return redirect(get_back_url())
 
     set_current_page('submit_package')
     help = get_helps(['submit_package'])
@@ -1220,7 +1273,9 @@ def submit_package():
 
 
 def get_shortened_url(long_url):
-    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': long_url})
+    # Note: full URL encoding via urllib.parse.quote causes hideuri to throw an error that URL is invalid.
+    #  So, we just encode blanks.
+    r = requests.post('https://hideuri.com/api/v1/shorten', data={'url': long_url.replace(' ', '%20')})
     try:
         r.raise_for_status()
         return r.json()['result_url']
@@ -1229,11 +1284,11 @@ def get_shortened_url(long_url):
 
 
 def send_to_other_email(name, email_address, title, url):
-    name = quote(name)
-    email_address = quote(email_address)
-    title = quote(title)
-    url = quote(url)
-    msg = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
+    name_quoted = quote(name)
+    email_address_quoted = quote(email_address)
+    title_quoted = quote(title)
+    url = get_shortened_url(url)  # Note; get_shortened_url handles blank chars
+    msg_quoted = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
           f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
           f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
           f'available%20for%20download%20here%3A%20{url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
@@ -1241,9 +1296,23 @@ def send_to_other_email(name, email_address, title, url):
           f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
           f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
           f'%0D%0A%0D%0AThanks!'
-
-
-    return msg
+    msg_html = Markup(f'Dear {name}:<p><br>'
+          f'I have created a data package containing EML metadata and associated data files '
+          f'for your inspection.<p>Title: "{title}"<p>The data package is '
+          f'available for download here: {url}.<p>The package was created using ezEML. '
+          f'After you download the package, you can import it into ezEML, or you can '
+          f'unzip it to extract the EML file and associated data files to work with them '
+          f'directly.<p>To learn more about ezEML, go to https://ezeml.edirepository.org.'
+          f'<p>Thanks!')
+    msg_raw = f'Dear {name}:\n\n' \
+          f'I have created a data package containing EML metadata and associated data files ' \
+          f'for your inspection.\n\nTitle: "{title}"\n\nThe data package is ' \
+          f'available for download here: {url}.\n\nThe package was created using ezEML. ' \
+          f'After you download the package, you can import it into ezEML, or you can ' \
+          f'unzip it to extract the EML file and associated data files to work with them ' \
+          f'directly.\n\nTo learn more about ezEML, go to https://ezeml.edirepository.org.' \
+          f'\n\nThanks!'
+    return msg_quoted, msg_html, msg_raw
 
 
 @home.route('/send_to_other/<filename>/', methods=['GET', 'POST'])
@@ -1275,9 +1344,11 @@ def send_to_other(filename=None, mailto=None):
         _, download_url = save_as_ezeml_package_export(zipfile_path)
 
         if not mailto:
-            mailto = send_to_other_email(colleague_name, email_address, title, get_shortened_url(download_url))
+            mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
         else:
             mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
+            mailto_html = None
+            mailto_raw=None
 
     eml_node = load_eml(filename=filename)
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
@@ -1285,12 +1356,23 @@ def send_to_other(filename=None, mailto=None):
         flash('The data package must have a Title before it can be sent.', 'error')
 
     set_current_page('send_to_other')
-    help = get_helps(['submit_package'])
-    return render_template('send_to_other.html',
-                           title='Send to Other',
-                           mailto=mailto if mailto else None,
-                           check_metadata_status=get_check_metadata_status(eml_node, current_document),
-                           form=form, help=help)
+    if mailto:
+        form.colleague_name.data = ''
+        form.email_address.data = ''
+        help = get_helps(['send_to_colleague_2'])
+        return render_template('send_to_other_2.html',
+                               title='Send to Other',
+                               mailto=mailto,
+                               mailto_html=mailto_html,
+                               mailto_raw=mailto_raw,
+                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                               form=form, help=help)
+    else:
+        help = get_helps(['send_to_colleague'])
+        return render_template('send_to_other.html',
+                               title='Send to Other',
+                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                               form=form, help=help)
 
 
 def get_column_properties(dt_node, object_name):
@@ -1322,20 +1404,19 @@ def get_column_properties(dt_node, object_name):
         return new_column_vartypes
 
     except FileNotFoundError:
-        raise Exception('The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
+        raise FileNotFoundError('The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
 
     except Exception as err:
         raise Exception('Internal error 103')
 
 
 def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
-    debug_msg(f'Entering check_data_table_similarity')
     if not old_dt_node or not new_dt_node:
         raise Exception('Internal error 100')
     old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
     new_attribute_list = new_dt_node.find_child(names.ATTRIBUTELIST)
     if len(old_attribute_list.children) != len(new_attribute_list.children):
-        raise Exception('The new table has a different number of columns from the original table.')
+        raise IndexError('The new table has a different number of columns from the original table.')
     document = current_user.get_filename()
     old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
     if not old_object_name_node:
@@ -1348,8 +1429,39 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
         # column properties weren't saved. compute them anew.
         old_column_vartypes = get_column_properties(old_dt_node, old_object_name)
     if old_column_vartypes != new_column_vartypes:
-        raise Exception("The variable types of the new table's columns are different from the original table.")
-    debug_msg(f'Leaving check_data_table_similarity')
+        diffs = []
+        for col_name, old_type, new_type, attr_node in zip(new_column_names, old_column_vartypes, new_column_vartypes, old_attribute_list.children):
+            if old_type != new_type:
+                diffs.append((col_name, old_type, new_type, attr_node))
+        raise ValueError(diffs)
+
+
+def substitute_nans(codes):
+    substituted = []
+    if codes:
+        for code in codes:
+            if isinstance(code, list):
+                substituted.append(substitute_nans(code))
+            elif not isinstance(code, float) or not math.isnan(code):
+                substituted.append(code)
+            else:
+                substituted.append('NAN')
+    else:
+        substituted.append(None)
+    return substituted
+
+
+def compare_codes(old_codes, new_codes):
+    old_substituted = substitute_nans(old_codes)
+    new_substituted = substitute_nans(new_codes)
+    return old_substituted == new_substituted
+
+
+def add_node_if_missing(parent_node, child_name):
+    child = parent_node.find_descendant(child_name)
+    if not child:
+        child = new_child_node(child_name, parent=parent_node)
+    return child
 
 
 def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes):
@@ -1363,6 +1475,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     old_records_node = old_dt_node.find_descendant(names.NUMBEROFRECORDS)
     old_md5_node = old_dt_node.find_descendant(names.AUTHENTICATION)
     old_field_delimiter_node = old_dt_node.find_descendant(names.FIELDDELIMITER)
+    old_record_delimiter_node = old_dt_node.find_descendant(names.RECORDDELIMITER)
     old_quote_char_node = old_dt_node.find_descendant(names.QUOTECHARACTER)
 
     new_object_name_node = new_dt_node.find_descendant(names.OBJECTNAME)
@@ -1370,6 +1483,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     new_records_node = new_dt_node.find_descendant(names.NUMBEROFRECORDS)
     new_md5_node = new_dt_node.find_descendant(names.AUTHENTICATION)
     new_field_delimiter_node = new_dt_node.find_descendant(names.FIELDDELIMITER)
+    new_record_delimiter_node = new_dt_node.find_descendant(names.RECORDDELIMITER)
     new_quote_char_node = new_dt_node.find_descendant(names.QUOTECHARACTER)
 
     old_object_name = old_object_name_node.content
@@ -1378,6 +1492,19 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     old_records_node.content = new_records_node.content
     old_md5_node.content = new_md5_node.content
     old_field_delimiter_node.content = new_field_delimiter_node.content
+    # record delimiter node is not required, so may be missing
+    if old_record_delimiter_node:
+        if new_record_delimiter_node:
+            old_record_delimiter_node.content = new_record_delimiter_node.content
+        else:
+            old_record_delimiter_node.parent.remove_child(old_record_delimiter_node)
+    else:
+        if new_record_delimiter_node:
+            # make sure needed ancestor nodes exist
+            physical_node = add_node_if_missing(old_dt_node, names.PHYSICAL)
+            data_format_node = add_node_if_missing(physical_node, names.DATAFORMAT)
+            text_format_node = add_node_if_missing(data_format_node, names.TEXTFORMAT)
+            new_child_node(names.RECORDDELIMITER, text_format_node).content = new_record_delimiter_node.content
     # quote char node is not required, so may be missing
     if old_quote_char_node:
         if new_quote_char_node:
@@ -1398,7 +1525,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
             if old_name != new_name:
                 debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
                 old_attribute_names_node.content = new_name
-    if old_column_categorical_codes != new_column_categorical_codes:
+    if not compare_codes(old_column_categorical_codes, new_column_categorical_codes):
         # need to fix up the categorical codes
         old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
         old_aattribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)
@@ -1408,7 +1535,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                                                                                 old_column_categorical_codes,
                                                                                 new_attribute_nodes,
                                                                                 new_column_categorical_codes):
-            if old_codes != new_codes:
+            if not compare_codes(old_codes, new_codes):
                 # use the new_codes, preserving any relevant code definitions
                 # first, get the old codes and their definitions
                 old_code_definition_nodes = []
@@ -1419,7 +1546,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     code_node = old_code_definition_node.find_child(names.CODE)
                     code = None
                     if code_node:
-                        code = code_node.content
+                        code = str(code_node.content)
                     definition_node = old_code_definition_node.find_child(names.DEFINITION)
                     definition = None
                     if definition_node:
@@ -1430,6 +1557,8 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     parent_node = old_code_definition_node.parent
                     parent_node.remove_child(old_code_definition_node)
                 # add clones of new definition nodes and set their definitions, if known
+                if not parent_node:
+                    continue
                 new_code_definition_nodes = []
                 new_attribute_node.find_all_descendants(names.CODEDEFINITION, new_code_definition_nodes)
                 for new_code_definition_node in new_code_definition_nodes:
@@ -1438,7 +1567,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                     clone.parent = parent_node
                     code_node = clone.find_child(names.CODE)
                     if code_node:
-                        code = code_node.content
+                        code = str(code_node.content)
                     else:
                         code = None
                     definition_node = clone.find_child(names.DEFINITION)
@@ -1496,8 +1625,8 @@ def import_package():
             # filename = secure_filename(file.filename)
             filename = file.filename
 
-            if not os.path.splitext(filename)[1] == '.zip':
-                flash('Please select a file with file extension ".zip".', 'error')
+            if not os.path.splitext(filename)[1] == '.xml':
+                flash('Please select a file with file extension ".xml".', 'error')
                 return redirect(request.url)
 
             package_base_filename = os.path.basename(filename)
@@ -1562,20 +1691,59 @@ def import_package_2(package_name):
                            package_name=package_name, form=form, help=help)
 
 
-@home.route('/load_data', methods=['GET', 'POST'])
-@home.route('/load_data/<dt_node_id>', methods=['GET', 'POST']) # will have dt_node in re-upload case
-@login_required
-def load_data(dt_node_id=None):
+def column_names_changed(filepath, delimiter, quote_char, dt_node):
+    # Assumes CSV file has been saved to the file system
+    # This function is called only in the reupload case.
 
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering load_data')
+    data_frame = pd.read_csv(filepath, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=1)
+    columns = data_frame.columns
+    new_column_names = []
+    for col in columns:
+        new_column_names.append(col)
+
+    old_column_names = []
+    if dt_node:
+        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+        if attribute_list_node:
+            for attribute_node in attribute_list_node.children:
+                attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+                if attribute_name_node:
+                    old_column_names.append(attribute_name_node.content)
+
+    return old_column_names != new_column_names
+
+
+@home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
+@login_required
+def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
+
+    form = LoadDataForm()
+    document = current_user.get_filename()
+
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if BTN_CONTINUE in request.form:
+            return redirect(url_for(PAGE_REUPLOAD, filename=document, dt_node_id=dt_node_id, saved_filename=saved_filename, name_chg_ok=True), code=307) # 307 keeps it a POST
+
+        help = get_helps(['data_table_reupload_full'])
+        return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
+                               form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
+
+
+@home.route('/load_data/<filename>', methods=['GET', 'POST'])
+@login_required
+def load_data(filename=None):
+    log_info(f'Entering load_data: request.method={request.method}')
+    # filename that's passed in is actually the document name, for historical reasons.
+    # We'll clear it to avoid misunderstandings...
+    filename = None
 
     form = LoadDataForm()
     document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
-    doing_reupload = dt_node_id != None
 
     # Process POST
 
@@ -1595,91 +1763,169 @@ def load_data(dt_node_id=None):
             dataset_node = new_child_node(names.DATASET, eml_node)
 
         file = request.files['file']
-        dt_node = None
         if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
             filename = file.filename
 
-            if doing_reupload:
-                dt_node = Node.get_node_instance(dt_node_id)
-                filename += '.ezeml_tmp'
-
+        if filename:
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_data_file(filename):
+                # Make sure the user's uploads directory exists
                 Path(uploads_folder).mkdir(parents=True, exist_ok=True)
                 filepath = os.path.join(uploads_folder, filename)
-                file.save(filepath)
-                data_file = filename
-                data_file_path = f'{uploads_folder}/{data_file}'
+                if file:
+                    # Upload the file to the uploads directory
+                    file.save(filepath)
+
                 num_header_rows = 1
                 delimiter = form.delimiter.data
                 quote_char = form.quote.data
+
                 try:
-                    new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(uploads_folder, data_file, num_header_rows, delimiter, quote_char)
-                    if not dt_node:  # i.e., if not doing a re-upload
-                        dt_node = new_dt_node
-                    else:
-                        try:
-                            check_data_table_similarity(dt_node,
-                                                        new_dt_node,
-                                                        new_column_vartypes,
-                                                        new_column_names,
-                                                        new_column_categorical_codes)
-                            # use the existing dt_node, but update objectName, size, rows, MD5, etc.
-                            # also, update column names and categorical codes, as needed
-                            update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
-                            # rename the temp file
-                            os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
-                        except Exception as err:
-                            # display error
-                            error = err.args[0]
-                            flash(f"Data table could not be re-uploaded. {error}", 'error')
-                            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+                    dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = \
+                        load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char)
 
                 except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
                     return render_template('encoding_error.html', filename=filename, errors=errors)
-                data_file = data_file.replace('.ezeml_tmp', '')
-                flash(f"Loaded {data_file}")
+                except DataTableError as err:
+                    flash(f'Data table has an error: {err.message}', 'error')
+                    return redirect(request.url)
+
+                flash(f"Loaded {filename}")
 
                 dt_node.parent = dataset_node
-                if not doing_reupload:
-                    dataset_node.add_child(dt_node)
+                dataset_node.add_child(dt_node)
 
-                user_data.add_data_table_upload_filename(data_file)
+                user_data.add_data_table_upload_filename(filename)
                 if new_column_vartypes:
-                    user_data.add_uploaded_table_properties(data_file,
+                    user_data.add_uploaded_table_properties(filename,
                                                   new_column_vartypes,
                                                   new_column_names,
                                                   new_column_categorical_codes)
 
                 delete_data_files(uploads_folder)
 
-                if doing_reupload:
-                    backup_metadata(filename=document)
-
                 save_both_formats(filename=document, eml_node=eml_node)
-                return redirect(url_for(PAGE_DATA_TABLE, filename=document, node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
+                return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
+
             else:
                 flash(f'{filename} is not a supported data file type')
                 return redirect(request.url)
 
     # Process GET
-    return render_template('load_data.html', title='Load Data', 
+    return render_template('load_data.html', title='Load Data',
                            form=form)
 
 
-@home.route('/reupload_data/<filename>/<node_id>', methods=['GET', 'POST'])
-@login_required
-def reupload_data(filename, node_id):
+def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
+                    eml_node=None, uploads_folder=None, name_chg_ok=False,
+                    delimiter=None, quote_char=None):
 
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering reupload_data')
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = new_child_node(names.DATASET, eml_node)
+
+    if not saved_filename:
+        raise MissingFileError('Unexpected error: file not found')
+
+    dt_node = Node.get_node_instance(dt_node_id)
+
+    num_header_rows = 1
+    filepath = os.path.join(uploads_folder, saved_filename)
+
+    if not name_chg_ok:
+        if column_names_changed(filepath, delimiter, quote_char, dt_node):
+            # Go get confirmation
+            return redirect(url_for(PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED,
+                                    saved_filename=saved_filename,
+                                    dt_node_id=dt_node_id),
+                            code=307)
+
+    try:
+        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
+            uploads_folder, saved_filename, num_header_rows, delimiter, quote_char)
+
+        types_changed = None
+        try:
+            check_data_table_similarity(dt_node,
+                                        new_dt_node,
+                                        new_column_vartypes,
+                                        new_column_names,
+                                        new_column_categorical_codes)
+        except ValueError as err:
+            types_changed = err.args[0]
+
+        except FileNotFoundError as err:
+            error = err.args[0]
+            flash(error, 'error')
+            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+
+        except IndexError as err:
+            error = err.args[0]
+            flash(f'Re-upload not done. {error}', 'error')
+            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+
+        try:
+            # use the existing dt_node, but update objectName, size, rows, MD5, etc.
+            # also, update column names and categorical codes, as needed
+            update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
+            # rename the temp file
+            os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
+
+            if types_changed:
+                err_string = 'Please note: One or more columns in the new table have a different data type than they had in the old table.<ul>'
+                for col_name, old_type, new_type, attr_node in types_changed:
+                    dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
+                    err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
+                err_string += '</ul>'
+                flash(Markup(err_string))
+
+        except Exception as err:
+            # display error
+            error = err.args[0]
+            flash(f"Data table could not be re-uploaded. {error}", 'error')
+            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
+
+    except UnicodeDecodeError as err:
+        errors = display_decode_error_lines(filepath)
+        return render_template('encoding_error.html', filename=document, errors=errors)
+
+    except DataTableError as err:
+        flash(f'Data table has an error: {err.message}', 'error')
+        return redirect(request.url)
+
+    data_file = saved_filename.replace('.ezeml_tmp', '')
+    flash(f"Loaded {data_file}")
+
+    dt_node.parent = dataset_node
+    object_name_node = dt_node.find_descendant(names.OBJECTNAME)
+    if object_name_node:
+        object_name_node.content = data_file
+
+    user_data.add_data_table_upload_filename(data_file)
+    if new_column_vartypes:
+        user_data.add_uploaded_table_properties(data_file,
+                                                new_column_vartypes,
+                                                new_column_names,
+                                                new_column_categorical_codes)
+
+    delete_data_files(uploads_folder)
+
+    backup_metadata(filename=document)
+
+    save_both_formats(filename=document, eml_node=eml_node)
+    return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter,
+                            quote_char=quote_char))
+
+
+@home.route('/reupload_data/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+@home.route('/reupload_data/<filename>/<dt_node_id>/<saved_filename>/<name_chg_ok>', methods=['GET', 'POST'])
+@login_required
+def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_ok=False):
+    # filename that's passed in is actually the document name, for historical reasons.
+    # We'll clear it to avoid misunderstandings...
+    filename = None
 
     form = LoadDataForm()
     document = current_user.get_filename()
@@ -1687,22 +1933,50 @@ def reupload_data(filename, node_id):
     eml_node = load_eml(filename=document)
 
     data_table_name = ''
-    dt_node = Node.get_node_instance(node_id)
+    dt_node = Node.get_node_instance(dt_node_id)
     if dt_node:
         entity_name_node = dt_node.find_child(names.ENTITYNAME)
         if entity_name_node:
             data_table_name = entity_name_node.content
             if not data_table_name:
-                raise ValueError('Data table name not found')
+                flash(f'Data table name not found in the metadata.', 'error')
+                return redirect(request.url)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_DATA_TABLE_SELECT, filename=filename)
+        url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
         return redirect(url)
 
     if request.method == 'POST':
-        dt_node = Node.get_node_instance(node_id)
         if dt_node:
-            return redirect(url_for(PAGE_LOAD_DATA, dt_node_id=node_id), code=307) # 307 keeps it a POST
+            if saved_filename:
+                filename = saved_filename
+            else:
+                file = request.files['file']
+                if file:
+                    filename = f"{file.filename}"
+                    if allowed_data_file(filename):
+                        # We upload the new version of the CSV file under a temp name so we have both files to inspect.
+                        filename = f"{filename}.ezeml_tmp"
+                        filepath = os.path.join(uploads_folder, filename)
+                        file.save(filepath)
+                    else:
+                        flash(f'{filename} is not a supported data file type', 'error')
+                        return redirect(request.url)
+
+            delimiter = form.delimiter.data
+            quote_char = form.quote.data
+
+            try:
+                return handle_reupload(dt_node_id=dt_node_id, saved_filename=filename, document=document,
+                                       eml_node=eml_node, uploads_folder=uploads_folder, name_chg_ok=name_chg_ok,
+                                       delimiter=delimiter, quote_char=quote_char)
+
+            except MissingFileError as err:
+                flash(err.message, 'error')
+                return redirect(request.url)
+
+            except Exception as err:
+                return redirect(request.url)
 
     # Process GET
     help = get_helps(['data_table_reupload_full'])
@@ -1927,8 +2201,11 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = PAGE_IMPORT_PARTY
                 node_id = '1'
 
-    if form.validate_on_submit():   
-        return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
+    if form.validate_on_submit():
+        if new_page in [PAGE_DATA_TABLE, PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
+            return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
+        else:
+            return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
 
 
 def process_up_button(filename:str=None, node_id:str=None):

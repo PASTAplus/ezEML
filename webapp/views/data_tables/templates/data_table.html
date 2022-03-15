@@ -54,7 +54,7 @@
     </table>
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter information about the data table object:</h5>
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}
@@ -165,7 +165,7 @@
 {#                <br/><br/>#}
 
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>&nbsp;
-                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
 
                 {{ macros.hidden_new_open_close_buttons() }}
                 {{ form.csrf_token }}

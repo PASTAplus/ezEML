@@ -20,7 +20,7 @@ from pathlib import Path
 import pickle
 
 import daiquiri
-from flask import send_file
+from flask import send_file, Flask, current_app
 from flask_login import current_user
 
 from webapp.config import Config
@@ -33,7 +33,6 @@ USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
 def get_user_folder_name():
     user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
-
     user_org = current_user.get_user_org()
     if user_org:
         user_folder_name = f'{USER_DATA_DIR}/{user_org}'

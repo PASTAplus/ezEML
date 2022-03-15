@@ -89,10 +89,36 @@ def load_geo_coverage(filename):
     uploads_folder = get_document_uploads_folder_name()
 
     # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+        return redirect(url)
+
     if request.method == 'POST' and form.validate_on_submit():
+
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = None
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+
+                if val == BTN_HIDDEN_NEW:
+                    new_page = PAGE_CREATE
+                    break
+                elif val == BTN_HIDDEN_OPEN:
+                    new_page = PAGE_OPEN
+                    break
+                elif val == BTN_HIDDEN_CLOSE:
+                    new_page = PAGE_CLOSE
+                    break
+
+        if new_page:
+            url = url_for(new_page, filename=filename)
+            return redirect(url)
+
         # Check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
+            flash('No file part', 'error')
             return redirect(request.url)
 
         file = request.files['file']
@@ -100,7 +126,7 @@ def load_geo_coverage(filename):
             filename = secure_filename(file.filename)
 
             if filename is None or filename == '':
-                flash('No selected file')
+                flash('No selected file', 'error')
             elif allowed_data_file(filename):
                 filepath = os.path.join(uploads_folder, filename)
                 file.save(filepath)
@@ -114,8 +140,10 @@ def load_geo_coverage(filename):
                 return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
 
     # Process GET
+    help = [get_help('geographic_coverages_csv_file')]
     return render_template('load_geo_coverage.html',
-                           form=form)
+                           form=form,
+                           help=help)
 
 
 def load_geo_coverage_from_csv(csv_filename, filename):
@@ -123,23 +151,48 @@ def load_geo_coverage_from_csv(csv_filename, filename):
 
     data_frame = pd.read_csv(csv_filename, comment='#', encoding='utf8')
 
-    if list(data_frame.columns) != ['geographicDescription',
-                                    'northBoundingCoordinate',
-                                    'southBoundingCoordinate',
-                                    'eastBoundingCoordinate',
-                                    'westBoundingCoordinate']:
+    required_columns = ['geographicDescription',
+                        'northBoundingCoordinate',
+                        'southBoundingCoordinate',
+                        'eastBoundingCoordinate',
+                        'westBoundingCoordinate']
+    optional_columns = ['minimumAltitude',
+                        'maximumAltitude',
+                        'altitudeUnits']
+    has_required_columns = False
+    has_optional_columns = False
+
+    if list(data_frame.columns) == required_columns:
+        has_required_columns = True
+    if list(data_frame.columns) == required_columns + optional_columns:
+        has_required_columns = True
+        has_optional_columns = True
+
+    if not has_required_columns:
         raise ValueError('Geographic coverage file does not have expected column names.')
 
-    if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
-        raise ValueError('Geographic coverage file does not have expected variable types in columns.')
+    expected_types_error_msg = 'Geographic coverage file does not have expected variable types in columns. Note that ' \
+        'numerical values must be written with a decimal point.'
+    if not has_optional_columns:
+        if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
+            raise ValueError(expected_types_error_msg)
+    else:
+        if list(data_frame.dtypes)[1:-1] != [np.float64, np.float64, np.float64, np.float64, np.float64, np.float64]:
+            raise ValueError(expected_types_error_msg)
 
     for index, row in data_frame.iterrows():
-        add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
+        if has_optional_columns:
+            add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4],
+                                  str(row[5]) if not pd.isna(row[5]) else None,
+                                  str(row[6]) if not pd.isna(row[6]) else None,
+                                  str(row[7]) if not pd.isna(row[7]) else None)
+        else:
+            add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
 
     save_both_formats(filename=filename, eml_node=eml_node)
 
 
-def add_geo_coverage_node(eml_node, description, north, south, east, west):
+def add_geo_coverage_node(eml_node, description, north, south, east, west, amin=None, amax=None, aunits=None):
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
         dataset_node = Node(names.DATASET)
@@ -153,7 +206,7 @@ def add_geo_coverage_node(eml_node, description, north, south, east, west):
     add_child(coverage_node, gc_node)
 
     create_geographic_coverage(
-        gc_node, description, west, east, north, south)
+        gc_node, description, west, east, north, south, amin, amax, aunits)
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
@@ -206,13 +259,16 @@ def geographic_coverage(filename=None, node_id=None):
             ebc = form.ebc.data if form.ebc.data is not None else ''
             nbc = form.nbc.data if form.nbc.data is not None else ''
             sbc = form.sbc.data if form.sbc.data is not None else ''
+            amin = form.amin.data if form.amin.data is not None else ''
+            amax = form.amax.data if form.amax.data is not None else ''
+            aunits = form.aunits.data if form.aunits.data is not None else ''
 
             gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
 
             create_geographic_coverage(
                 gc_node,
                 geographic_description,
-                wbc, ebc, nbc, sbc)
+                wbc, ebc, nbc, sbc, amin, amax, aunits)
 
             if node_id and len(node_id) != 1:
                 old_gc_node = Node.get_node_instance(node_id)
@@ -226,11 +282,11 @@ def geographic_coverage(filename=None, node_id=None):
                 add_child(coverage_node, gc_node)
 
             if nbc and sbc and nbc < sbc:
-                flash('North should be greater than or equal to South')
+                flash('North should be greater than or equal to South', 'error')
                 url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=gc_node.id))
 
             if ebc and wbc and ebc < wbc:
-                flash('East should be greater than or equal to West')
+                flash('East should be greater than or equal to West', 'error')
                 url = (url_for(PAGE_GEOGRAPHIC_COVERAGE, filename=filename, node_id=gc_node.id))
 
             save_both_formats(filename=filename, eml_node=eml_node)
@@ -253,7 +309,7 @@ def geographic_coverage(filename=None, node_id=None):
                             populate_geographic_coverage_form(form, gc_node)
 
     set_current_page('geographic_coverage')
-    help = [get_help('geographic_coverages'), get_help('geographic_description'), get_help('bounding_coordinates')]
+    help = get_helps(['geographic_coverages', 'geographic_description', 'bounding_coordinates', 'bounding_altitudes'])
     return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, help=help)
 
 
@@ -286,6 +342,30 @@ def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
     ])
     if sbc_node:
         form.sbc.data = sbc_node.content
+
+    amin_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.BOUNDINGALTITUDES,
+        names.ALTITUDEMINIMUM
+    ])
+    if amin_node:
+        form.amin.data = amin_node.content
+
+    amax_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.BOUNDINGALTITUDES,
+        names.ALTITUDEMAXIMUM
+    ])
+    if amax_node:
+        form.amax.data = amax_node.content
+
+    aunits_node = node.find_single_node_by_path([
+        names.BOUNDINGCOORDINATES,
+        names.BOUNDINGALTITUDES,
+        names.ALTITUDEUNITS
+    ])
+    if aunits_node:
+        form.aunits.data = aunits_node.content
 
     form.md5.data = form_md5(form)
 
@@ -387,7 +467,7 @@ def temporal_coverage(filename=None, node_id=None):
 
             flash_msg = compare_begin_end_dates(begin_date_str, end_date_str)
             if flash_msg:
-                flash(flash_msg)
+                flash(flash_msg, 'error')
                 url = (url_for(PAGE_TEMPORAL_COVERAGE, filename=filename, node_id=tc_node_id))
 
             save_both_formats(filename=filename, eml_node=eml_node)
@@ -482,7 +562,10 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
         source = WORMSTaxonomy()
     if not source:
         raise ValueError('No source specified')
-    hierarchy = source.fill_common_names(source.fill_hierarchy(taxon))
+    try:
+        hierarchy = source.fill_common_names(source.fill_hierarchy(taxon))
+    except:
+        raise ValueError(f'A network error occurred. Please try again.')
     if not hierarchy:
         in_str = ''
         if source_name:
@@ -536,7 +619,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                             have_links = True
                             break
             except ValueError as e:
-                flash(str(e))
+                flash(str(e), 'error')
                 hierarchy = [(form.taxon_rank.data, form.taxon_value.data, '', '')]
             form.hierarchy.data = hierarchy
             form.hidden_taxon_rank.data = form.taxon_rank.data
@@ -576,6 +659,16 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
             if isinstance(form_value.get('hierarchy'), str) and form_value.get('hierarchy'):
                 # convert hierarchy string to list
                 submitted_hierarchy = ast.literal_eval(form_value.get('hierarchy'))
+
+                # if we're fixing up a failed hierarchy, we take the entered values as gospel
+                if len(submitted_hierarchy) == 1:
+                    hierarchy = list(submitted_hierarchy[0])
+                    if form.taxon_rank.data:
+                        hierarchy[0] = form.taxon_rank.data
+                    if form.taxon_value.data:
+                        hierarchy[1] = form.taxon_value.data
+                    submitted_hierarchy = [tuple(hierarchy)]
+
                 form.hierarchy.data = submitted_hierarchy
 
             # if we're saving after doing 'Fill Hierarchy', fill in the values we've been passed
@@ -595,7 +688,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                 )]
 
             if not form_value.get('taxon_rank'):
-                flash('Taxon Rank is required.')
+                flash('Taxon Rank is required.', 'error')
                 return redirect(url_for(PAGE_TAXONOMIC_COVERAGE, filename=filename, node_id=node_id, taxon=form.taxon_value.data))
 
             eml_node = load_eml(filename=filename)
@@ -667,18 +760,21 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
     populate_taxonomic_coverage_form_aux(hierarchy, taxonomic_classification_node)
     form.hierarchy.data = hierarchy[::-1]
 
-    first_taxon = hierarchy[-1]
-    form.taxon_value.data = first_taxon[1]
-    taxon_rank = first_taxon[0].capitalize()
-    if (taxon_rank, taxon_rank) in form.taxon_rank.choices:
-        form.taxon_rank.data = taxon_rank
-    if first_taxon[5]:
-        form.taxonomic_authority.data = first_taxon[5]
     have_links = False
-    for taxon in hierarchy:
-        if taxon[4]:
-            have_links = True
-            break
+    if hierarchy:
+        taxon_rank, taxon_value, _, _, link, authority = hierarchy[-1]
+        # first_taxon = hierarchy[-1]
+        form.taxon_value.data = taxon_value
+        if taxon_rank:
+            taxon_rank = taxon_rank.capitalize()
+        if (taxon_rank, taxon_rank) in form.taxon_rank.choices:
+            form.taxon_rank.data = taxon_rank
+        if authority:
+            form.taxonomic_authority.data = authority
+        for *_, link, _ in hierarchy:
+            if link:
+                have_links = True
+                break
     form.md5.data = form_md5(form)
     return have_links
 
@@ -690,11 +786,11 @@ def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
         taxon_common_name_node = node.find_child(names.COMMONNAME)
         taxon_id_node = node.find_child(names.TAXONID)
 
-        if taxon_rank_name_node:
+        if taxon_rank_name_node and taxon_rank_name_node.content:
             taxon_rank_name = taxon_rank_name_node.content
         else:
             taxon_rank_name = None
-        if taxon_rank_value_node:
+        if taxon_rank_value_node and taxon_rank_value_node.content:
             taxon_rank_value = taxon_rank_value_node.content
         else:
             taxon_rank_value = None
@@ -709,9 +805,9 @@ def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
             taxon_id = None
             provider_uri = None
 
+        link = None
+        provider = None
         if taxon_rank_name and taxon_rank_value:
-            link = None
-            provider = None
             if taxon_id:
                 if provider_uri == "https://www.itis.gov":
                     link = f'https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value={taxon_id}'
@@ -722,7 +818,7 @@ def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
                 elif provider_uri == "http://www.marinespecies.org":
                     link = f'http://marinespecies.org/aphia.php?p=taxdetails&id={taxon_id}'
                     provider = 'WORMS'
-            hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_name, taxon_id, link, provider))
+        hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_name, taxon_id, link, provider))
 
         taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
         if taxonomic_classification_node:

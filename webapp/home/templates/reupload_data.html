@@ -26,22 +26,10 @@
                 have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the
                 exported data package.
                 <p></p>
-                <b>Re-upload Data Table</b> requires the <i>structure</i> of the data table to be largely unchanged.
+                <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows
+                column names and types to change.
                 <p></p>
-                Specifically, it is OK to use Re-upload if the number of <b>rows</b> in the table have changed or if some of the values in
-                table cells have changed. But the <b>column</b> <i>types</i> (categorical, datetime, numerical, or text) cannot have changed
-                and no columns can have been added, deleted, or moved.
-                <p></p>
-                In addition, it is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables
-                have been added or deleted.
-                <p></p>
-                If you're not sure if your data table qualifies, you can try the re-upload and see if ezEML accepts it. If the data table has been
-                changed in ways that are not allowed, ezEML will display an error message and reject the re-upload. In such cases, you will need to click
-                <b>Cancel</b> below and load the table anew using <b>Load Data Table from CSV File</b>
-                , and then clone column properties from the existing version of the table, as needed. (See "Cloning Column Properties"
-                in this User Guide.)
                 <p>&nbsp;</p>
-
                 <h4>Select a CSV file to re-upload data table <span style="color:steelblue">{{ name }}</span>:</h4>
                 <input type=file name=file>
                 <p>&nbsp;</p>

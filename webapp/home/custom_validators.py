@@ -7,10 +7,13 @@
 
 :Author:
     costa
+    ide
 
 :Created:
     3/5/19
 """
+
+import math
 
 from wtforms import (
     validators, ValidationError
@@ -39,12 +42,12 @@ def valid_min_length(min:int=10):
 
 
 def valid_latitude(min:float=-90.0, max:float=90.0):
-    message = f'Latitude must be between {min} and {max}'
+    message = f'Latitude must be a decimal value between {min} and {max}'
 
     def _valid_latitude(form, field):
         if field.data is not None:
             l = float(field.data)
-            if l < min or l > max:
+            if l < min or l > max or math.isnan(l):
                 raise ValidationError(message)
         # else:
         #     raise ValidationError("Missing value")
@@ -54,12 +57,12 @@ def valid_latitude(min:float=-90.0, max:float=90.0):
     
 
 def valid_longitude(min:float=-180.0, max:float=180.0):
-    message = f'Longitude must be between {min} and {max}'
+    message = f'Longitude must be a decimal value between {min} and {max}'
 
     def _valid_longitude(form, field):
         if field.data is not None:
             l = float(field.data)
-            if l < min or l > max:
+            if l < min or l > max or math.isnan(l):
                 raise ValidationError(message)
         # else:
         #     raise ValidationError("Missing value")

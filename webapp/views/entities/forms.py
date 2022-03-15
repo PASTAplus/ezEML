@@ -3,7 +3,7 @@ from wtforms import (
 )
 
 from wtforms.validators import (
-    URL, Optional
+    URL, Optional, InputRequired
 )
 
 from webapp.home.forms import EDIForm
@@ -14,7 +14,7 @@ class OtherEntitySelectForm(EDIForm):
 
 
 class OtherEntityForm(EDIForm):
-    entity_name = StringField('Name *', validators=[])
+    entity_name = StringField('Name *', validators=[InputRequired(message='Name is required')])
     entity_type = StringField('Entity Type (e.g., photograph) *', validators=[])
     entity_description = StringField('Description (Recommended)', validators=[])
     object_name = StringField('Source Name (e.g., filename)', validators=[])

@@ -15,7 +15,7 @@
     <h2>Method Step</h2>
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter the method step description and (optionally) instrumentation and data sources below:</h5>
                 <table width="100%">
                     <td width="90%">{{ wtf.form_field(form.description, rows=8) }}</td>
@@ -31,7 +31,7 @@
                 </table>
                 <br>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_new_open_close_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}

@@ -2,13 +2,13 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    {% set help_submit_package_id, help_submit_package_title, help_submit_package_content = help[0] %}
-    {% set help_submit_package_btn = help_submit_package_id ~ '_btn' %}
-    {% set help_submit_package_dialog = help_submit_package_id ~ '_dialog' %}
+    {% set help_send_to_colleague_id, help_send_to_colleague_title, help_send_to_colleague_content = help[0] %}
+    {% set help_send_to_colleague_btn = help_send_to_colleague_id ~ '_btn' %}
+    {% set help_send_to_colleague_dialog = help_send_to_colleague_id ~ '_dialog' %}
     
     <table>
         <td><h2>Send Data Package to a Colleague</h2></td>
-        <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_submit_package_btn) }}</td>
+        <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_send_to_colleague_btn) }}</td>
     </table>
 {#        <div class="col-md-10">#}
 {##}
@@ -25,7 +25,7 @@
     </div>
     <div class="col-md-3" style="border: 1px solid steelblue;padding: 10px;margin-left:43px;">
         <b>Note:</b> To send your current data and metadata <i>to EDI</i>, go to
-        <b><a href="edit/home.submit_package">Send to EDI</a></b>. See also <b>Sending Your
+        <b><a href="edit/home.send_to_colleague">Send to EDI</a></b>. See also <b>Sending Your
         Package to EDI</b> in the <b><a href="user_guide">User Guide</a></b>.
     </div>
         <div class="col-md-10">
@@ -62,33 +62,35 @@
         {% endif %}
     <p></p>
         Click the <b>Prepare Package for Colleague</b> button to prepare the package to be sent. An email containing a download
-        link for the package will be opened in your default email client. You will have the opportunity to edit the email
-        as you see fit before sending it to your colleague.<p></p>&nbsp;<br>
+        link for the package will be generated for you to use. You will have the opportunity to edit the email and personalize
+        it as you see fit before sending it to your colleague.<p></p>&nbsp;<br>
 
                 <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Prepare Package for Colleague"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
     </form>
         </div>
+
+    {% if mailto %}
     <a id="mail_link" style="visibility:hidden;" href="{{ mailto }}">Click me</a>
+    <script>
+        document.getElementById("mail_link").click();
+    </script>
+    {% endif %}
 
-<script>
-	document.getElementById("mail_link").click();
-</script>
-
-    {{ macros.help_dialog(help_submit_package_dialog, help_submit_package_title, help_submit_package_content) }}
+    {{ macros.help_dialog(help_send_to_colleague_dialog, help_send_to_colleague_title, help_send_to_colleague_content) }}
 {% endblock %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_submit_package_id, help_submit_package_title, help_submit_package_content = help[0] %}
-    {% set help_submit_package_btn = help_submit_package_id ~ '_btn' %}
-    {% set help_submit_package_dialog = help_submit_package_id ~ '_dialog' %}
+    {% set help_send_to_colleague_id, help_send_to_colleague_title, help_send_to_colleague_content = help[0] %}
+    {% set help_send_to_colleague_btn = help_send_to_colleague_id ~ '_btn' %}
+    {% set help_send_to_colleague_dialog = help_send_to_colleague_id ~ '_dialog' %}
 
     <script>
     $(function()
     {
-        {{ macros.help_script(help_submit_package_dialog, help_submit_package_btn) }}
+        {{ macros.help_script(help_send_to_colleague_dialog, help_send_to_colleague_btn) }}
     });
     </script>
 {% endblock %}

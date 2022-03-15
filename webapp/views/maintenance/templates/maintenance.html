@@ -21,7 +21,7 @@
     
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter the dataset maintenance information below:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.description, rows=10, cols=100) }}</td>
@@ -37,7 +37,7 @@
                 </table>
                 <br>
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}

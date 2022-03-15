@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_data_tables_reupload_id, help_data_tables_reupload_title, help_data_tables_reupload_content = help[0] %}
+    {% set help_data_tables_reupload_btn = help_data_tables_reupload_id ~ '_btn' %}
+    {% set help_data_tables_reupload_dialog = help_data_tables_reupload_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Column Name Changed</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 10px;">{{ macros.help_button(help_data_tables_reupload_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <p></p>&nbsp;<p></p>
+                <b>Warning:</b> One or more columns in the data table you are about to upload have a different name than they had in the
+                data table it is replacing.
+                <p></p>
+                If this is intentional, that's fine. We're just checking that you're not accidentally uploading the wrong
+                file.
+                <p></p>
+                To go ahead with the re-upload, select <b>Continue</b>. To cancel the re-upload, select <b>Cancel</b>.
+                <p></p>&nbsp;<p></p>
+
+                <input class="btn btn-primary" style="width: 100px;" name="Continue" type="submit" value="Continue"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_data_tables_reupload_dialog, help_data_tables_reupload_title, help_data_tables_reupload_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_data_tables_reupload_id, help_data_tables_reupload_title, help_data_tables_reupload_content = help[0] %}
+    {% set help_data_tables_reupload_btn = help_data_tables_reupload_id ~ '_btn' %}
+    {% set help_data_tables_reupload_dialog = help_data_tables_reupload_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_data_tables_reupload_dialog, help_data_tables_reupload_btn) }}
+    });
+    </script>
+{% endblock %}

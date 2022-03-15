@@ -27,11 +27,21 @@ from metapype.model.node import Node
 
 import webapp.home.metapype_client as metapype_client
 
+from webapp.home.exceptions import DataTableError
+
 from flask import Flask, current_app
 
 from webapp.config import Config
 
 import webapp.auth.user_data as user_data
+
+MAX_ROWS_TO_CHECK = 10**5
+
+
+def log_info(msg):
+    app = Flask(__name__)
+    with app.app_context():
+        current_app.logger.info(msg)
 
 
 def get_file_size(full_path:str=''):
@@ -96,7 +106,8 @@ def sort_codes(codes):
 
 
 def is_datetime(data_frame, col):
-    s = pd.to_datetime(data_frame[col][1:], errors='coerce')
+    rows_to_check = min(len(col), MAX_ROWS_TO_CHECK)
+    s = pd.to_datetime(data_frame[col][1:rows_to_check], errors='coerce')
     missing = sum(1 for i in range(len(s)) if s.iloc[i] is pd.NaT)
     # see how many missing values... arbitrary cutoff allowing for missing values
     return float(missing) / float(len(s)) < 0.2
@@ -128,7 +139,9 @@ def infer_col_type(data_frame, col):
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
     fraction = float(num_codes) / float(col_size)
-    dtype = data_frame[col][1:].infer_objects().dtype
+    # for very large tables, this can take a very long time, so we limit to MAX_ROWS_TO_CHECK values
+    rows_to_check = min(col_size, MAX_ROWS_TO_CHECK)
+    dtype = data_frame[col][1:rows_to_check].infer_objects().dtype
     if dtype == np.float64 or dtype == np.int64:
         # If the values are numbers, we require 5 or fewer values to call it categorical
         is_categorical = num_codes <= 5
@@ -172,11 +185,18 @@ def infer_col_type(data_frame, col):
 
 
 def get_raw_csv_column_values(filepath, delimiter, quotechar, colname):
+    if colname.startswith('Unnamed:'):
+        raise DataTableError('Missing column header')
+
     col_values = set()
     with open(filepath, 'r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=delimiter, quotechar=quotechar)
+        rows = 0
         for line in csv_reader:
             col_values.add(line[colname])
+            rows += 1
+            if rows > MAX_ROWS_TO_CHECK:
+                break
     return sorted(col_values)
 
 
@@ -196,9 +216,12 @@ def guess_missing_value_code(filepath, delimiter, quotechar, colname):
             break
     if not mvcode:
         for val in col_values:
-            if re.match(r'-?999*(.0+)?$', val):
-                mvcode = val
-                break
+            try:
+                if re.match(r'-?999*(.0+)?$', val):
+                    mvcode = val
+                    break
+            except:
+                pass
     return mvcode
 
 
@@ -249,10 +272,8 @@ def force_categorical_codes(attribute_node, dtype, codes):
 def load_data_table(uploads_path:str=None, data_file:str='',
                     num_header_rows:int=1, delimiter:str=',', quote_char:str='"'):
 
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Entering load_data_table')
+    # if Config.LOG_DEBUG:
+    log_info(f'Entering load_data_table')
 
     full_path = f'{uploads_path}/{data_file}'
 
@@ -313,6 +334,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     metapype_client.add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
+    log_info('pd.read_csv')
     data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
 
     column_vartypes = []
@@ -339,6 +361,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
             # dtype = data_frame.dtypes[col]
 
             var_type, codes = infer_col_type(data_frame, col)
+            log_info(f'var_type: {var_type}')
 
             column_vartypes.append(var_type)
             column_names.append(col)
@@ -379,7 +402,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
                 for code in codes:
                     code_definition_node = metapype_client.new_child_node(names.CODEDEFINITION, enumerated_domain_node)
                     code_node = metapype_client.new_child_node(names.CODE, code_definition_node)
-                    code_node.content = code
+                    code_node.content = str(code)
                     definition_node = metapype_client.new_child_node(names.DEFINITION, code_definition_node)
 
             elif var_type == metapype_client.VariableType.NUMERICAL:
@@ -409,10 +432,8 @@ def load_data_table(uploads_path:str=None, data_file:str='',
                 metapype_client.add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
 
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Leaving load_data_table')
+    # if Config.LOG_DEBUG:
+    log_info(f'Leaving load_data_table')
 
     return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame, missing_value_code
 
@@ -500,8 +521,8 @@ def delete_data_files(data_folder:str=None):
             file_path = os.path.join(data_folder, data_file)
             try:
                 if os.path.isfile(file_path):
-                    # Keep files that under 1 GB except for temp files
-                    if os.path.getsize(file_path) > 1024**3 or file_path.endswith('.ezeml_tmp'):
+                    # Keep files that are under 1.5 GB except for temp files
+                    if os.path.getsize(file_path) > 1.5 * 1024**3 or file_path.endswith('.ezeml_tmp'):
                         os.unlink(file_path)
             except Exception as e:
                 print(e)

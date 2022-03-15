@@ -149,6 +149,12 @@ Each funding award is described by the name of the funding agency and the title 
 
 Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
 --------------------
+bounding_altitudes
+Bounding Altitudes
+<b>Bounding Altitudes</b> lets you specify altitudinal (elevation) measurements for the bounding box being described. The minimum and maximum altitudes should be in reference to a known datum (e.g., Mean Sea Level), which should be specified as part of the Geographic Description.
+
+If any of the fields (Altitude Minimum, Altitude Maximum, Altitude Units) are filled in, they all must be.
+--------------------
 bounding_coordinates
 Bounding Coordinates
 <b>Bounding Coordinates</b> are the four margins (N, S, E, W) of a bounding box, or when considered in lat-lon pairs, the corners of the box. These elements are meant to convey general information and are not for accurate mapping.
@@ -247,11 +253,7 @@ The purpose of <b>Re-upload Data Table</b> is to let you update a data table's c
 
 Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
 
-<b>Re-upload Data Table</b> requires the structure of the data table to be largely unchanged.
-
-To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
-
-It is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables have been added or deleted.
+<b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 --------------------
 data_table_reupload_full
 Re-upload Data Table
@@ -259,15 +261,9 @@ The purpose of <b>Re-upload Data Table</b> is to let you update a data table's c
 
 Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
 
-<b>Re-upload Data Table</b> requires the structure of the data table to be largely unchanged.
+<b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 
-To be more specific, it is OK to use <b>Re-upload Data Table</b> if the number of rows in the table have changed or if values in table cells have changed, but the column <i>types</i> (categorical, datetime, numerical, or text) should not have changed and no columns should have been added, deleted, or moved.
-
-It is OK if some column <i>names</i> in the header row have changed, and it is OK if some codes for Categorical variables have been added or deleted.
-
-If you're not sure if your data table qualifies, you can try the re-upload and see if ezEML accepts it. If the data table has been changed in ways that are not allowed, ezEML will display an error message and reject the re-upload. In such cases, you will need to click <b>Cancel</b> below and load the table anew using <b>Load Data Table from CSV File</b>.
-
-Choose the CSV file containing the updated data table, and set the Field Delimiter and Quote Character, as needed. Then click <b>Re-upload</b> to perform the update. Table properties such as Size, Number of Records, and MD5 Checksum will be recalculated automatically. Properties of the data table's columns will be preserved whenever possible.
+Choose the CSV file containing the updated data table, and set the Field Delimiter and Quote Character, as needed. Then click <b>Re-upload</b> to perform the update. Table properties such as Size, Number of Records, and MD5 Checksum will be recalculated automatically. Properties of the data table's columns will be preserved to the extent possible.
 
 The CSV file's name is not required to be the same as the name of the CSV file uploaded previously.
 --------------------
@@ -370,16 +366,19 @@ You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in e
 In the latter case, the CSV file is required to have the following format:
 <ul>
 <li>A header row consisting of:&nbsp;
-"geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate"
+"geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate,minimumAltitude,maximumAltitude,altitudeUnits"
 <li>The geographicDescription column contains strings (text).
 <li>The bounding coordinate columns contain latitude/longitude coordinates in decimal degrees format.
 <li>For latitudes (north/south coordinates), use a minus sign for latitudes south of the equator.
 <li>For longitudes (east/west coordinates), use a minus sign for longitudes west of the prime meridian.
+<li>Altitude Minimum and Altitude Maximum need to be in decimal format (e.g., 0.0 rather than 0).
+<li>Altitude Units must be one of the following: meter, nanometer, micrometer, micron, millimeter, centimeter, decimeter, dekameter, hectameter, kilometer, megameter, angstrom, inch, foot, Foot_US, yard, mile, nauticalMile, fathom, Foot_Gold_Coast, Yard_Indian, Link_Clarke, Yard_Sears.
+<li>If you are not specifying Bounding Altitudes, leave the corresponding table cells blank.
 </ul>
 
 Example:<br>
-geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate<br>
-Lake Wingra,43.062543,43.058787,-89.415478,-89.432468<br>
+geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate,minimumAltitude,maximumAltitude,altitudeUnits<br>
+Lake Wingra,43.062543,43.058787,-89.415478,-89.432468,0.00,2.50,meter<br>
 Lake Kegonsa,42.987536,42.958923,-89.223452,-89.283877<br>
 --------------------
 geographic_description
@@ -683,6 +682,22 @@ Provide a document name for the data package. This is the name by which the docu
 
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 --------------------
+send_to_colleague
+Send to Colleague
+When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you can send the entire package to a colleague (e.g., an LTER Information Manager) via <b>Send to Colleague</b>.
+
+When you click <b>Prepare Package for Colleague</b>, an ezEML Data Package zip file is generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
+
+After the zip file has been created, a suggested email message is generated for you to send to your colleague. This email contains the link that your colleague will need to use to download the zip file. You will have the opportunity to edit the email message as you see fit before sending it.
+
+To send your package to the EDI Data Repository instead, use <b>Send to EDI</b>.
+--------------------
+send_to_colleague_2
+Send to Colleague
+An ezEML Data Package zip file has been generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
+
+A suggested email message to your colleague is displayed. This email contains the link that your colleague will need to use to download the zip file. You can click <b>Copy to Clipboard</b> to copy the message to the system clipboard, ready to be pasted into an email. Or, if you have a default email client configured in your browser, you can click <b>Open in Email Client</b> to open the message in your email client directly. Either way, you can edit and personalize the email message as you see fit before sending it.
+--------------------
 storage_type
 Storage Type
 This element describes the storage type for data in a RDBMS (or other data management system) field.
@@ -708,12 +723,16 @@ Examples:
   Oracle 8i
 --------------------
 submit_package
-Submit to EDI
+Send to EDI
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
 
-When you click <b>Submit to EDI</b>, an ezEML Data Package archive file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
+When you click <b>Send to EDI</b>, an ezEML Data Package archive file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
 
 Please provide your name and email so that EDI's data curators can contact you with any questions they have and to let you know when the submission has been completed. If you have questions (about particular entries in your metadata, for example), please use the <b>Notes</b> text area to describe them so EDI can assist you better.
+
+<b>Please note:</b> When you click <b>Send to EDI</b>, your data package is sent to EDI's data curators for review. There will be some amount of delay before your package appears in EDI's Data Portal. EDI's data curators will email you when the package has been added to the repository.
+
+To send your package to someone other than EDI, use <b>Send to Colleague</b>.
 --------------------
 taxonomic_coverages
 Taxonomic Coverage

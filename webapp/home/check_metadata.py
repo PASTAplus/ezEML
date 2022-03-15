@@ -115,18 +115,16 @@ evaluation = []
 def find_min_unmet(errs, node_name, child_name):
     for err_code, msg, node, *args in errs:
         if err_code == ValidationError.MIN_OCCURRENCE_UNMET:
-            children, min = args
-            if node.name == node_name and child_name in children:
+            err_cause, min = args
+            if node.name == node_name and err_cause == child_name:
                 return True
     return False
 
 
-def find_min_unmet_for_list(errs, node_name, child_names):
+def find_min_unmet_for_choice(errs, node_name):
     for err_code, msg, node, *args in errs:
-        if err_code == ValidationError.MIN_OCCURRENCE_UNMET and node.name == node_name:
-            children, min = args
-            if set(child_names) == set(children):
-                return True
+        if err_code == ValidationError.MIN_CHOICE_UNMET and node.name == node_name:
+            return True
     return False
 
 
@@ -135,6 +133,15 @@ def find_content_empty(errs, node_name):
     for err in errs:
         err_code, _, node, *_ = err
         if err_code == ValidationError.CONTENT_EXPECTED_NONEMPTY and node.name == node_name:
+            found.append(err)
+    return found
+
+
+def find_content_enum(errs, node_name):
+    found = []
+    for err in errs:
+        err_code, _, node, *_ = err
+        if err_code == ValidationError.CONTENT_EXPECTED_ENUM and node.name == node_name:
             found.append(err)
     return found
 
@@ -167,8 +174,9 @@ def check_dataset_title(eml_node, filename):
         return
     # Is title node content empty?
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
-    validation_errs = validate_via_metapype(title_node)
-    if find_content_empty(validation_errs, names.TITLE):
+    if title_node:
+        validation_errs = validate_via_metapype(title_node)
+    if not title_node or find_content_empty(validation_errs, names.TITLE):
         add_to_evaluation('title_01', link)
         return
 
@@ -216,7 +224,7 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
         add_to_evaluation('responsible_party_04', link, section, item)
 
     # At least one of surname, organization name, or position name is required
-    if find_min_unmet_for_list(validation_errs, rp_node.name, [names.INDIVIDUALNAME, names.ORGANIZATIONNAME, names.POSITIONNAME]):
+    if find_min_unmet_for_choice(validation_errs, rp_node.name):
         add_to_evaluation('responsible_party_01', link, section, item)
 
     # Organization ID requires a directory attribute
@@ -305,14 +313,31 @@ def check_intellectual_rights(eml_node, filename):
         return
 
 
+def check_taxonomic_coverage(node, filename):
+
+    link = url_for(PAGE_TAXONOMIC_COVERAGE, filename=filename, node_id=node.id)
+
+    validation_errs = validate_via_metapype(node)
+    if find_content_empty(validation_errs, names.TAXONRANKNAME):
+        add_to_evaluation('taxonomic_coverage_01', link)
+    if find_content_empty(validation_errs, names.TAXONRANKVALUE):
+        add_to_evaluation('taxonomic_coverage_02', link)
+
+
 def check_coverage(eml_node, filename):
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
+
+    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+
     evaluation_warnings = evaluate_via_metapype(dataset_node)
 
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
         add_to_evaluation('coverage_01', link)
-        return
+
+    taxonomic_classification_nodes = []
+    dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
+    for taxonomic_classification_node in taxonomic_classification_nodes:
+        check_taxonomic_coverage(taxonomic_classification_node, filename)
 
 
 def check_geographic_coverage(eml_node, filename):
@@ -331,7 +356,22 @@ def check_geographic_coverage(eml_node, filename):
             add_to_evaluation('geographic_coverage_05', link)
         if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_RANGE, names.SOUTHBOUNDINGCOORDINATE):
             add_to_evaluation('geographic_coverage_06', link)
-
+        if find_content_enum(validation_errs, names.ALTITUDEUNITS):
+            add_to_evaluation('geographic_coverage_08', link)
+        # special case to combine missing bounding coordinates into a single error
+        if find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.WESTBOUNDINGCOORDINATE) or \
+            find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.EASTBOUNDINGCOORDINATE) or \
+            find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.NORTHBOUNDINGCOORDINATE) or \
+            find_min_unmet(validation_errs, names.BOUNDINGCOORDINATES, names.SOUTHBOUNDINGCOORDINATE):
+            add_to_evaluation('geographic_coverage_02', link)
+        # special case to cover the three bounding altitudes fields
+        if find_min_unmet(validation_errs, names.BOUNDINGALTITUDES, names.ALTITUDEMINIMUM) or \
+            find_min_unmet(validation_errs, names.BOUNDINGALTITUDES, names.ALTITUDEMAXIMUM) or \
+            find_min_unmet(validation_errs, names.BOUNDINGALTITUDES, names.ALTITUDEUNITS) or \
+            find_content_empty(validation_errs, names.ALTITUDEMINIMUM) or \
+            find_content_empty(validation_errs, names.ALTITUDEMAXIMUM) or \
+            find_content_empty(validation_errs, names.ALTITUDEUNITS):
+            add_to_evaluation('geographic_coverage_07', link)
 
 def get_attribute_type(attrib_node:Node):
     mscale_node = attrib_node.find_child(names.MEASUREMENTSCALE)
@@ -407,7 +447,7 @@ def check_attribute(eml_node, filename, data_table_node:Node, attrib_node:Node):
     if attr_type == metapype_client.VariableType.NUMERICAL:
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
             add_to_evaluation('attributes_02', link)
-        if find_min_unmet_for_list(validation_errs, names.UNIT, [names.STANDARDUNIT, names.CUSTOMUNIT]):
+        if find_min_unmet_for_choice(validation_errs, names.UNIT):
             add_to_evaluation('attributes_02', link)
 
     # DateTime
@@ -434,7 +474,7 @@ def check_data_table_md5_checksum(data_table_node, link):
 
 
 def check_data_table(eml_node, filename, data_table_node:Node):
-    link = url_for(PAGE_DATA_TABLE, filename=filename, node_id=data_table_node.id)
+    link = url_for(PAGE_DATA_TABLE, filename=filename, dt_node_id=data_table_node.id)
     validation_errs = validate_via_metapype(data_table_node)
 
     check_data_table_md5_checksum(data_table_node, link)

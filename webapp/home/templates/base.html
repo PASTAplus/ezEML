@@ -118,7 +118,7 @@
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">Import/Export<span class="caret"></span>
+                       role="button">Upload/Download<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
                         {#<li>
@@ -140,13 +140,13 @@
                             <hr style="border-top: 1px solid #B0B0B0;">
                         </li>#}
                         <li>
-                            <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File (XML)</a>
+                            <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download XML File </a>
                         </li>
-                        <li>
+                       {# <li>
                             <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>
-                        </li>
+                        </li>#}
                         <li>
-                            <a href="{{ url_for('home.import_package') }}" title="Import ezEML Data Package">Import EML File (XML)...</a>
+                            <a href="{{ url_for('home.import_package') }}" title="Import ezEML Data Package">Upload XML File...</a>
                         </li>
                     </ul>
                 </li>

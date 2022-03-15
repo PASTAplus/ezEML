@@ -902,7 +902,7 @@ def from_json(filename):
     if filename.lower().endswith(".xml"):
         with open(filename, "r") as file:
             data = file.read()
-
+    
         xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
         converted_file = filename.replace(".xml", ".json")
 

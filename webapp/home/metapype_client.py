@@ -74,7 +74,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.03.15'
+RELEASE_NUMBER = '2022.03.16'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -460,10 +460,14 @@ def mscale_from_attribute(att_node:Node=None):
         mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
         if mscale_node:
-        
-            nominal_node = mscale_node.find_child(names.NOMINAL)
-            if nominal_node:
-                non_numeric_domain_node = nominal_node.find_child(names.NONNUMERICDOMAIN)
+
+            # Formerly, Categorical variables were nominal. But now that we're importing externally created XML
+            #  files, they may be ordinal.
+            nominal_or_ordinal_node = mscale_node.find_child(names.NOMINAL)
+            if not nominal_or_ordinal_node:
+                nominal_or_ordinal_node = mscale_node.find_child(names.ORDINAL)
+            if nominal_or_ordinal_node:
+                non_numeric_domain_node = nominal_or_ordinal_node.find_child(names.NONNUMERICDOMAIN)
                 if non_numeric_domain_node:
                     enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)
                     if enumerated_domain_node:
@@ -472,8 +476,12 @@ def mscale_from_attribute(att_node:Node=None):
                     if text_domain_node:
                         return VariableType.TEXT.name
 
-            ratio_node = mscale_node.find_child(names.RATIO)
-            if ratio_node:
+            # Formerly, Numerical variables were ratio. But now that we're importing externally created XML
+            #  files, they may be interval.
+            ratio_or_interval_node = mscale_node.find_child(names.RATIO)
+            if not ratio_or_interval_node:
+                ratio_or_interval_node = mscale_node.find_child(names.INTERVAL)
+            if ratio_or_interval_node:
                 return VariableType.NUMERICAL.name
 
             date_time_node = mscale_node.find_child(names.DATETIME)

@@ -415,17 +415,27 @@ def check_geographic_coverage(eml_node, doc_name):
 
 def get_attribute_type(attrib_node:Node):
     mscale_node = attrib_node.find_child(names.MEASUREMENTSCALE)
-    nominal_node = mscale_node.find_child(names.NOMINAL)
-    if nominal_node:
-        enumerated_domain_node = nominal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.ENUMERATEDDOMAIN])
+    # Formerly, Categorical variables were nominal. But now that we're importing externally created XML
+    #  files, they may be ordinal.
+    nominal_or_ordinal_node = mscale_node.find_child(names.NOMINAL)
+    if not nominal_or_ordinal_node:
+        nominal_or_ordinal_node = mscale_node.find_child(names.ORDINAL)
+    if nominal_or_ordinal_node:
+        enumerated_domain_node = nominal_or_ordinal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.ENUMERATEDDOMAIN])
         if enumerated_domain_node:
             return metapype_client.VariableType.CATEGORICAL
-        text_domain_node = nominal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.TEXTDOMAIN])
+        text_domain_node = nominal_or_ordinal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.TEXTDOMAIN])
         if text_domain_node:
             return metapype_client.VariableType.TEXT
-    ratio_node = mscale_node.find_child(names.RATIO)
-    if ratio_node:
+
+    # Formerly, Numerical variables were ratio. But now that we're importing externally created XML
+    #  files, they may be interval.
+    ratio_or_interval_node = mscale_node.find_child(names.RATIO)
+    if not ratio_or_interval_node:
+        ratio_or_interval_node = mscale_node.find_child(names.INTERVAL)
+    if ratio_or_interval_node:
         return metapype_client.VariableType.NUMERICAL
+
     datetime_node = mscale_node.find_child(names.DATETIME)
     if datetime_node:
         return metapype_client.VariableType.DATETIME

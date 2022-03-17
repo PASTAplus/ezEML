@@ -409,7 +409,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
             # dtype = data_frame.dtypes[col]
 
             var_type, codes = infer_col_type(data_frame, col)
-            log_info(f'var_type: {var_type}')
+            log_info(f'col: {col}  var_type: {var_type}')
 
             column_vartypes.append(var_type)
             column_names.append(col)

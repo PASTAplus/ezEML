@@ -299,14 +299,14 @@ def force_categorical_codes(attribute_node, dtype, codes):
 
 
 def check_column_name_uniqueness(csv_file_path, delimiter):
-    with open(csv_file_path) as csv_file:
+    with open(csv_file_path, 'r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=delimiter)
         column_names = []
         for row in csv_reader:
             column_names = row
             break
         if len(set(column_names)) != len(column_names):
-            raise DataTableError("Duplicate column name.")
+            raise DataTableError("Duplicated column name. Please make column names unique and try again.")
 
 
 def load_data_table(uploads_path:str=None, data_file:str='',

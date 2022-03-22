@@ -133,6 +133,14 @@ class ImportEMLItemsForm(FlaskForm):
     target = RadioField('Target', choices=[], validators=[])
 
 
+class SelectUserForm(FlaskForm):
+    user = RadioField('User', choices=[], validators=[])
+
+
+class SelectDataFileForm(FlaskForm):
+    data_file = RadioField('Data File', choices=[], validators=[])
+
+
 class ImportEMLTargetForm(FlaskForm):
     target = RadioField('Target', choices=[])
 

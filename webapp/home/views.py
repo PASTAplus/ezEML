@@ -16,9 +16,11 @@
 import ast
 import daiquiri
 from datetime import date, datetime
+import glob
 import html
 import json
 import math
+import os
 import os.path
 import pandas as pd
 from pathlib import Path
@@ -31,7 +33,7 @@ from zipfile import ZipFile
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
-    session, Markup, jsonify
+    session, Markup, jsonify, send_file
 )
 
 from flask_login import (
@@ -53,7 +55,8 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportItemsForm,
-    SubmitToEDIForm, SendToColleagueForm, EDIForm
+    SubmitToEDIForm, SendToColleagueForm, EDIForm,
+    SelectUserForm, SelectDataFileForm
 )
 
 from webapp.home.load_data_table import (
@@ -2350,6 +2353,79 @@ def clear_distribution_url(entity_node):
         url_node = distribution_node.find_descendant(names.URL)
         if url_node:
             url_node.content = None
+
+
+@home.route('/get_data_file/', methods=['GET', 'POST'])
+@login_required
+def get_data_file():
+    if current_user and hasattr(current_user, 'get_username'):
+        username = current_user.get_username()
+        if username != 'EDI':
+            flash('The get_data_file page is available only to the EDI user.', 'error')
+            return render_template('index.html')
+
+    form = SelectUserForm()
+
+    if BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST':
+        user = form.user.data
+        return redirect(url_for('home.get_data_file_2', user=user))
+
+    if request.method == 'GET':
+        # Get the list of users
+        user_data_dir = user_data.USER_DATA_DIR
+        filelist = glob.glob(f'{user_data_dir}/*')
+        files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
+        print(files)
+        form.user.choices = files
+        return render_template('get_data_file.html', form=form)
+
+
+def download_data_file(filename: str = '', user: str=''):
+    if filename:
+        user_data_dir = user_data.USER_DATA_DIR
+        filepath = f'../{user_data_dir}/{user}/uploads/{filename}'
+        return send_file(filepath, attachment_filename=filename)
+
+
+@home.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
+@login_required
+def get_data_file_2(user):
+    if current_user and hasattr(current_user, 'get_username'):
+        username = current_user.get_username()
+        if username != 'EDI':
+            flash('The get_data_file page is available only to the EDI user.', 'error')
+            return render_template('index.html')
+
+    form = SelectDataFileForm()
+
+    if BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST':
+        data_file = form.data_file.data
+        # Get the data file
+        return download_data_file(data_file, user)
+
+    if request.method == 'GET':
+        # Get the list of data files for the user
+        csv_list = []
+        user_data_dir = user_data.USER_DATA_DIR
+        dir_list = glob.glob(f'{user_data_dir}/{user}/uploads/*')
+        dirs = sorted(dir_list, key=str.casefold)
+        for dir in dirs:
+            if os.path.isdir(dir):
+                _, dir_name = dir.split('uploads/')
+                csv_paths = glob.glob(f'{dir}/*.csv')
+                csvs = sorted([os.path.basename(x) for x in csv_paths], key=str.casefold)
+                qualified_csvs = []
+                for csv in csvs:
+                    qualified_csvs.append(f'{dir_name}/{csv}')
+                csv_list.extend(qualified_csvs)
+        form.data_file.choices = csv_list
+        return render_template('get_data_file_2.html', form=form)
 
 
 @home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])

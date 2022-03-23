@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <table>
+        <td><h2>Get EML File from Server</h2></td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table>
+                    <tr><h4>Select a user:</h5></tr>
+                    <tr>{{ form.user(style="list-style:none;") }}</tr>
+                    <tr>&nbsp;<p/></tr>
+                    <tr><input class="btn btn-primary" name="Select" type="submit" value="Select"/>&nbsp;
+                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                </table>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+
+    <script>
+    $(function()
+    {
+    });
+    </script>
+{% endblock %}

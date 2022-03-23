@@ -56,7 +56,7 @@ from webapp.home.forms import (
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportItemsForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
-    SelectUserForm, SelectDataFileForm
+    SelectUserForm, SelectDataFileForm, SelectEMLFileForm
 )
 
 from webapp.home.load_data_table import (
@@ -2378,7 +2378,7 @@ def get_data_file():
         user_data_dir = user_data.USER_DATA_DIR
         filelist = glob.glob(f'{user_data_dir}/*')
         files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
-        print(files)
+        # print(files)
         form.user.choices = files
         return render_template('get_data_file.html', form=form)
 
@@ -2387,7 +2387,7 @@ def download_data_file(filename: str = '', user: str=''):
     if filename:
         user_data_dir = user_data.USER_DATA_DIR
         filepath = f'../{user_data_dir}/{user}/uploads/{filename}'
-        return send_file(filepath, attachment_filename=filename)
+        return send_file(filepath, as_attachment=True, attachment_filename=filename)
 
 
 @home.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
@@ -2426,6 +2426,70 @@ def get_data_file_2(user):
                 csv_list.extend(qualified_csvs)
         form.data_file.choices = csv_list
         return render_template('get_data_file_2.html', form=form)
+
+
+@home.route('/get_eml_file/', methods=['GET', 'POST'])
+@login_required
+def get_eml_file():
+    if current_user and hasattr(current_user, 'get_username'):
+        username = current_user.get_username()
+        if username != 'EDI':
+            flash('The get_eml_file page is available only to the EDI user.', 'error')
+            return render_template('index.html')
+
+    form = SelectUserForm()
+
+    if BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST':
+        user = form.user.data
+        return redirect(url_for('home.get_eml_file_2', user=user))
+
+    if request.method == 'GET':
+        # Get the list of users
+        user_data_dir = user_data.USER_DATA_DIR
+        filelist = glob.glob(f'{user_data_dir}/*')
+        files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
+        # print(files)
+        form.user.choices = files
+        return render_template('get_eml_file.html', form=form)
+
+
+def download_eml_file(filename: str = '', user: str=''):
+    if filename:
+        user_data_dir = user_data.USER_DATA_DIR
+        filepath = f'../{user_data_dir}/{user}/{filename}'
+        return send_file(filepath, as_attachment=True, attachment_filename=filename)
+
+
+@home.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
+@login_required
+def get_eml_file_2(user):
+    if current_user and hasattr(current_user, 'get_username'):
+        username = current_user.get_username()
+        if username != 'EDI':
+            flash('The get_eml_file page is available only to the EDI user.', 'error')
+            return render_template('index.html')
+
+    form = SelectEMLFileForm()
+
+    if BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST':
+        eml_file = form.eml_file.data
+        # Get the data file
+        return download_eml_file(eml_file, user)
+
+    if request.method == 'GET':
+        # Get the list of eml files for the user
+        csv_list = []
+        user_data_dir = user_data.USER_DATA_DIR
+        xml_files = glob.glob(f'{user_data_dir}/{user}/*.xml')
+        xml_files = sorted([os.path.basename(x) for x in xml_files], key=str.casefold)
+        form.eml_file.choices = xml_files
+        return render_template('get_eml_file_2.html', form=form)
 
 
 @home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])

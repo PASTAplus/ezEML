@@ -141,6 +141,10 @@ class SelectDataFileForm(FlaskForm):
     data_file = RadioField('Data File', choices=[], validators=[])
 
 
+class SelectEMLFileForm(FlaskForm):
+    eml_file = RadioField('EML File', choices=[], validators=[])
+
+
 class ImportEMLTargetForm(FlaskForm):
     target = RadioField('Target', choices=[])
 

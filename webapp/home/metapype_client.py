@@ -902,7 +902,7 @@ def from_json(filename):
     if filename.lower().endswith(".xml"):
         with open(filename, "r") as file:
             data = file.read()
-    
+
         xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
         converted_file = filename.replace(".xml", ".json")
 
@@ -2152,6 +2152,101 @@ def create_taxonomic_coverage(
                 taxonomic_classification_parent_node = taxonomic_classification_node
 
         return taxonomic_coverage_node
+
+    except Exception as e:
+        logger.error(e)
+
+
+# Creates empty immunohistochemistry node -NPM 3/23/2022
+def create_immunohistochemistry(immunohistochemistry_node: Node = None,
+                                filename: str = None,
+                                protein: str = None,
+                                proteinName: str = None,
+                                geneSymbol: str = None,
+                                primaryAntibody: str = None,
+                                clonality: str = None,
+                                targetSpecies: str = None,
+                                hostSpecies: str = None,
+                                dilution: str = None,
+                                lotNumber: str = None,
+                                catNumber: str = None,
+                                source: str = None,
+                                rrid: str = None,
+                                secondaryAntibody: str = None,
+                                targetSpecies2: str = None,
+                                hostSpecies2: str = None,
+                                dilution2: str = None,
+                                lotNumber2: str = None,
+                                catNumber2: str = None,
+                                source2: str = None,
+                                rrid2: str = None,
+                                detectionMethod: str = None):
+    try:
+        if protein:
+            protein_node = new_child_node("Protein", parent=immunohistochemistry_node)
+            protein_node.content = protein
+        if proteinName:
+            proteinName_node = new_child_node("proteinName", parent=protein_node)
+            proteinName_node.content = proteinName
+        if geneSymbol:
+            geneSymbol_node = new_child_node("geneSymbol", parent=protein_node)
+            geneSymbol_node.content = geneSymbol
+        if primaryAntibody:
+            primaryAntibody_node = new_child_node("primaryAntibody", parent=immunohistochemistry_node)
+            primaryAntibody_node.content = primaryAntibody
+        if clonality:
+            clonality_node = new_child_node("clonality", parent=primaryAntibody_node)
+            clonality_node.content = clonality
+        if targetSpecies:
+            targetSpecies_node = new_child_node("targetSpecies", parent=primaryAntibody_node)
+            targetSpecies_node.content = targetSpecies
+        if hostSpecies:
+            hostSpecies_node = new_child_node("hostSpecies", parent=primaryAntibody_node)
+            hostSpecies_node.content = hostSpecies
+        if dilution:
+            dilution_node = new_child_node("dilution", parent=primaryAntibody_node)
+            dilution_node.content = dilution
+        if lotNumber:
+            lotNumber_node = new_child_node("lotNumber", parent=primaryAntibody_node)
+            lotNumber_node.content = lotNumber
+        if catNumber:
+            catNumber_node = new_child_node("catNumber", parent=primaryAntibody_node)
+            catNumber_node.content = catNumber
+        if source:
+            source_node = new_child_node("source", parent=primaryAntibody_node)
+            source_node.content = source
+        if rrid:
+            rrid_node = new_child_node("RRID", parent=primaryAntibody_node)
+            rrid_node.content = rrid
+        if secondaryAntibody:
+            secondaryAntibody_node = new_child_node("secondayAntibody", parent=immunohistochemistry_node)
+            secondaryAntibody_node.content = secondaryAntibody
+        if targetSpecies2:
+            targetSpecies2_node = new_child_node("targetSpecies", parent=secondaryAntibody_node)
+            targetSpecies2_node.content = targetSpecies2
+        if hostSpecies2:
+            hostSpecies2_node = new_child_node("hostSpecies", parent=secondaryAntibody_node)
+            hostSpecies2_node.content = hostSpecies2
+        if dilution2:
+            dilution2_node = new_child_node("dilution", parent=secondaryAntibody_node)
+            dilution2_node.content = dilution2
+        if lotNumber2:
+            lotNumber2_node = new_child_node("lotNumber", parent=secondaryAntibody_node)
+            lotNumber2_node.content = lotNumber2
+        if catNumber2:
+            catNumber2_node = new_child_node("catNumber", parent=secondaryAntibody_node)
+            catNumber2_node.content = catNumber2
+        if source2:
+            source2_node = new_child_node("source", parent=secondaryAntibody_node)
+            source2_node.content = source2
+        if rrid2:
+            rrid2_node = new_child_node("RRID", parent=secondaryAntibody_node)
+            rrid2_node.content = rrid2
+        if detectionMethod:
+            detectionMethod_node = new_child_node("detectionMethod", parent=immunohistochemistry_node)
+            detectionMethod_node.content = detectionMethod
+
+        return immunohistochemistry_node
 
     except Exception as e:
         logger.error(e)

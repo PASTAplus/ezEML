@@ -2467,8 +2467,12 @@ def download_eml_file(filename: str = '', user: str=''):
         zip_object = ZipFile(zip_file_pathname, 'w')
         if os.path.exists(xml_file_pathname):
             zip_object.write(xml_file_pathname, arcname=basename + '.xml')
+        else:
+            log_info(f'File not found: {xml_file_pathname}')
         if os.path.exists(json_file_pathname):
             zip_object.write(json_file_pathname, arcname=basename + '.json')
+        else:
+            log_info(f'File not found: {json_file_pathname}')
         zip_object.close()
         return send_file('../' + zip_file_pathname, as_attachment=True, attachment_filename=basename + '.zip')
 

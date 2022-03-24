@@ -2459,7 +2459,7 @@ def get_eml_file():
 def download_eml_file(filename: str = '', user: str=''):
     if filename:
         # We will create and download a zip file with both the xml and json files
-        user_folder = user_data.get_user_folder_name()
+        user_folder = os.path.join(user_data.USER_DATA_DIR, user)
         basename = os.path.splitext(os.path.basename(filename))[0]
         xml_file_pathname = os.path.join(user_folder, basename) + '.xml'
         json_file_pathname = os.path.join(user_folder, basename) + '.json'

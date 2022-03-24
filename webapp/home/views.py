@@ -2458,9 +2458,19 @@ def get_eml_file():
 
 def download_eml_file(filename: str = '', user: str=''):
     if filename:
-        user_data_dir = user_data.USER_DATA_DIR
-        filepath = f'../{user_data_dir}/{user}/{filename}'
-        return send_file(filepath, as_attachment=True, attachment_filename=filename)
+        # We will create and download a zip file with both the xml and json files
+        user_folder = user_data.get_user_folder_name()
+        basename = os.path.splitext(os.path.basename(filename))[0]
+        xml_file_pathname = os.path.join(user_folder, basename) + '.xml'
+        json_file_pathname = os.path.join(user_folder, basename) + '.json'
+        zip_file_pathname = os.path.join(user_folder, 'zip_temp', basename) + '.zip'
+        zip_object = ZipFile(zip_file_pathname, 'w')
+        if os.path.exists(xml_file_pathname):
+            zip_object.write(xml_file_pathname, arcname=basename + '.xml')
+        if os.path.exists(json_file_pathname):
+            zip_object.write(json_file_pathname, arcname=basename + '.json')
+        zip_object.close()
+        return send_file('../' + zip_file_pathname, as_attachment=True, attachment_filename=basename + '.zip')
 
 
 @home.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])

@@ -2219,7 +2219,7 @@ def create_immunohistochemistry(immunohistochemistry_node: Node = None,
             rrid_node = new_child_node("RRID", parent=primaryAntibody_node)
             rrid_node.content = rrid
         if secondaryAntibody:
-            secondaryAntibody_node = new_child_node("secondayAntibody", parent=immunohistochemistry_node)
+            secondaryAntibody_node = new_child_node("secondaryAntibody", parent=immunohistochemistry_node)
             secondaryAntibody_node.content = secondaryAntibody
         if targetSpecies2:
             targetSpecies2_node = new_child_node("targetSpecies", parent=secondaryAntibody_node)

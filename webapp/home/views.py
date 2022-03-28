@@ -156,6 +156,7 @@ def reload_metadata():
     return current_document, eml_node
 
 
+# Endpoint for AJAX calls to validate XML
 @home.route('/check_xml/<xml>/<parent_name>')
 def check_xml(xml:str=None, parent_name:str=None):
     response = check_xml_validity(xml, parent_name)

@@ -70,7 +70,7 @@ def log_info(msg):
 
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 def title(filename=None):
-    # log_info(f'Title... privileged_logins={session.get("privileged_logins")}')
+    log_info(f'Title')
 
     form = TitleForm()
 

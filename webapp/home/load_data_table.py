@@ -379,7 +379,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
     metapype_client.add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator
 
-    log_info('pd.read_csv')
+    # log_info('pd.read_csv')
     try:
         data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
     except pd.errors.ParserError as e:
@@ -481,7 +481,7 @@ def load_data_table(uploads_path:str=None, data_file:str='',
                 format_string_node.content = codes
 
     # if Config.LOG_DEBUG:
-    log_info(f'Leaving load_data_table')
+    # log_info(f'Leaving load_data_table')
 
     return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame, missing_value_code
 

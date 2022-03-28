@@ -104,6 +104,13 @@ HIDDEN_BUTTONS = [
 ]
 
 
+def log_info(msg):
+    if current_user and hasattr(current_user, 'get_username'):
+        logger.info(msg, USER=current_user.get_username())
+    else:
+        logger.info(msg)
+
+
 def is_hidden_button():
     return any(button in request.form for button in HIDDEN_BUTTONS)
 
@@ -515,16 +522,15 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
                                       upval=upval, 
                                       downval=downval)
                 att_list.append(att_entry)
+
     if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'Attribute list: caller={caller} dt_node_id={dt_node_id}')
-            if not data_table_node:
-                current_app.logger.info('*** data_table_node not found ***')
-            else:
-                current_app.logger.info(f'data_table_node.id={data_table_node.id}')
-            for entry in att_list:
-                current_app.logger.info(f'{entry.id} {entry.label}')
+        log_info(f'Attribute list: caller={caller} dt_node_id={dt_node_id}')
+        if not data_table_node:
+            log_info('*** data_table_node not found ***')
+        else:
+            log_info(f'data_table_node.id={data_table_node.id}')
+        for entry in att_list:
+            log_info(f'{entry.id} {entry.label}')
 
     if Config.FLASH_DEBUG:
         flash(f'Attribute list: {att_list}')
@@ -1225,19 +1231,19 @@ def pickle_eml(filename:str=None, eml_node:Node=None):
 
 
 def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
-    if Config.LOG_DEBUG:
-        app = Flask(__name__)
-        with app.app_context():
-            if format == 'json':
-                if eml_node:
-                    current_app.logger.info(f'save_eml (json)... eml_node.id={eml_node.id}')
-                else:
-                    current_app.logger.info(f'save_eml (json)... eml_node is None')
-            if format == 'xml':
-                if eml_node:
-                    current_app.logger.info(f'save_eml (xml)... eml_node.id={eml_node.id}')
-                else:
-                    current_app.logger.info(f'save_eml (xml)... eml_node is None')
+    # if Config.LOG_DEBUG:
+    #     app = Flask(__name__)
+    #     with app.app_context():
+    #         if format == 'json':
+    #             if eml_node:
+    #                 current_app.logger.info(f'save_eml (json)... eml_node.id={eml_node.id}')
+    #             else:
+    #                 current_app.logger.info(f'save_eml (json)... eml_node is None')
+    #         if format == 'xml':
+    #             if eml_node:
+    #                 current_app.logger.info(f'save_eml (xml)... eml_node.id={eml_node.id}')
+    #             else:
+    #                 current_app.logger.info(f'save_eml (xml)... eml_node is None')
 
     if filename:
         if eml_node is not None:
@@ -1260,13 +1266,13 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                     fh.write(metadata_str)
                     fh.flush()
 
-                if Config.LOG_DEBUG:
-                    app = Flask(__name__)
-                    with app.app_context():
-                        if format == 'json':
-                            current_app.logger.info(f'save_eml (json)... done')
-                        if format == 'xml':
-                            current_app.logger.info(f'save_eml (xml)... done')
+                # if Config.LOG_DEBUG:
+                #     app = Flask(__name__)
+                #     with app.app_context():
+                #         if format == 'json':
+                #             current_app.logger.info(f'save_eml (json)... done')
+                #         if format == 'xml':
+                #             current_app.logger.info(f'save_eml (xml)... done')
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:

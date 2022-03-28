@@ -1394,13 +1394,13 @@ def keep_existing_url(distribution_node, uploads_folder):
         url = url_node.content
         if url:
             if uploads_folder not in url and uploads_folder.replace(' ', '%20') not in url:
-                log_info(f"keep_existing_url returning True for {url}")
+                # log_info(f"keep_existing_url returning True for {url}")
                 return True
     return False
 
 
 def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
-    log_info(f"insert_urls... node_type={node_type}")
+    # log_info(f"insert_urls... node_type={node_type}")
     upload_nodes = []
     eml_node.find_all_descendants(node_type, upload_nodes)
     for upload_node in upload_nodes:
@@ -1424,7 +1424,7 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             url_node = new_child_node(names.URL, online_node)
             url_node.add_attribute('function', 'download')
             url_node.content = f"{uploads_url_prefix}/{object_name}".replace(' ', '%20')
-            log_info(f"  object_name={object_name_node.content}... url={url_node.content}")
+            # log_info(f"  object_name={object_name_node.content}... url={url_node.content}")
         except Exception as err:
             flash(err)
             continue
@@ -2536,7 +2536,7 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
 @home.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_data(filename=None):
-    log_info(f'Entering load_data: request.method={request.method}')
+    # log_info(f'Entering load_data: request.method={request.method}')
     # filename that's passed in is actually the document name, for historical reasons.
     # We'll clear it to avoid misunderstandings...
     filename = None

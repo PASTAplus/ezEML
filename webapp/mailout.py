@@ -21,7 +21,7 @@ from webapp.config import Config
 logger = daiquiri.getLogger("mailout: " + __name__)
 
 
-def send_mail(subject, msg, to):
+def send_mail(subject, msg, to, sender_name=None, sender_email=None):
     success = False
 
     # Convert subject and msg to byte array
@@ -39,7 +39,10 @@ def send_mail(subject, msg, to):
         smtpObj.login(Config.HOVER_MAIL, Config.HOVER_PASSWORD)
         smtpObj.sendmail(from_addr=Config.HOVER_MAIL, to_addrs=to, msg=body)
         success = True
-        logger.warn(f"Sending email to: {to}")
+        log_msg = f"Sending email to: {to}"
+        if sender_name and sender_email:
+            log_msg += f"  Sender: {sender_name} - {sender_email}"
+        logger.warn(log_msg)
     except Exception as e:
         response = "Sending email failed - " + str(e)
         logger.error(response)

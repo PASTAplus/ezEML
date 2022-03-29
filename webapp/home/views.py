@@ -1475,7 +1475,7 @@ def submit_package():
                 msg += get_imported_from_xml_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
                 to_address = ['support@environmentaldatainitiative.org']
-                sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
+                sent = mailout.send_mail(subject=subject, msg=msg, to=to_address, sender_name=name, sender_email=email_address)
                 if sent:
                     flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
                     flash(f"If you don't hear back from us within 48 hours, please contact us at support@environmentaldatainitiative.org.")

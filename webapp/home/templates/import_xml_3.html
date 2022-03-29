@@ -24,7 +24,9 @@
                 <input class="btn btn-primary" style="width: 200px;" onclick="copy_to_clipboard();"
                        value="Copy Errors to Clipboard"/><br>&nbsp;<br>&nbsp;<br>
                 If the EML file contains links to data tables and other data entities, ezEML can use those links to
-                retrieve the data. {{ mb | safe }}<br>Select an option below.
+                retrieve the data. {{ mb | safe }}<br>Select an option below.<p></p>
+                <b>Note:</b> If you plan to update one or more data files, you should select <b>Get Associated Data Files</b>.
+                This will make the <b>Re-upload</b> feature available in the Data Tables and Other Entities pages.
                 <p></p><br>
                 <input class="btn btn-primary" style="width: 200px;" onclick="stand_by();" name="RetrieveData" type="submit" value="Get Associated Data Files"/>
                 <input class="btn btn-primary" style="width: 260px;" name="Cancel" type="submit" value="Continue Without Getting Data Files"/>

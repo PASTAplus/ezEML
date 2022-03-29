@@ -1477,8 +1477,8 @@ def submit_package():
                 to_address = ['support@environmentaldatainitiative.org']
                 sent = mailout.send_mail(subject=subject, msg=msg, to=to_address)
                 if sent:
-                    flash(f"If you don't hear back from us within 48 hours, please contact us at support@environmentaldatainitiative.org.")
                     flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
+                    flash(f"If you don't hear back from us within 48 hours, please contact us at support@environmentaldatainitiative.org.")
                 else:
                     flash(f'Email failed to send', 'error')
 

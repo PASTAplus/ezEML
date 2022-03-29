@@ -25,10 +25,12 @@ errors = Blueprint('errors', __name__, template_folder='templates')
 def log_error(error):
     if current_user and hasattr(current_user, 'get_username'):
         logger.error(error, USER=current_user.get_username())
-        logger.error(error.original_exception, USER=current_user.get_username())
+        if hasattr(error, 'original_exception'):
+            logger.error(error.original_exception, USER=current_user.get_username())
     else:
         logger.error(error)
-        logger.error(error.original_exception)
+        if hasattr(error, 'original_exception'):
+            logger.error(error.original_exception)
 
 
 @app.errorhandler(400)

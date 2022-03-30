@@ -53,6 +53,7 @@ def send_mail(subject, msg, to, sender_name=None, sender_email=None):
         if sender_name and sender_email:
             log_msg += f"  Sender: {sender_name} - {sender_email}"
         logger.warn(log_msg)
+        logger.warn(f"Email body: {body}")
     except Exception as e:
         response = "Sending email failed - " + str(e)
         logger.error(response)

@@ -74,7 +74,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.03.28'
+RELEASE_NUMBER = '2022.03.31'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -102,6 +102,13 @@ HIDDEN_BUTTONS = [
     BTN_HIDDEN_OPEN,
     BTN_HIDDEN_CLOSE
 ]
+
+
+def log_error(msg):
+    if current_user and hasattr(current_user, 'get_username'):
+        logger.error(msg, USER=current_user.get_username())
+    else:
+        logger.error(msg)
 
 
 def log_info(msg):
@@ -1207,11 +1214,48 @@ def create_full_xml(eml_node):
     return metapype_io.to_xml(eml_node)
 
 
+def fixup_categorical_variables(eml_node):
+    # Importing here to sidestep circular import problem.
+    from webapp.views.data_tables.dt import change_measurement_scale
+    # There was a bug that caused some Categorical variables to have None as variable type.
+    # Existing ezEML documents may still contain such variables. Here we fix them.
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    for data_table_node in data_table_nodes:
+        attributes_to_fix = []
+        non_numeric_domain_nodes = []
+        data_table_node.find_all_descendants(names.NONNUMERICDOMAIN, non_numeric_domain_nodes)
+        for non_numeric_domain_node in non_numeric_domain_nodes:
+            if not non_numeric_domain_node.children:
+                # Have an error case. Walk back up the tree to find the containing attribute node.
+                nominal_node = non_numeric_domain_node.parent
+                if nominal_node:
+                    measurement_scale_node = nominal_node.parent
+                    if measurement_scale_node:
+                        attribute_node = measurement_scale_node.parent
+                        if attribute_node:
+                            attributes_to_fix.append(attribute_node)
+        if attributes_to_fix:
+            physical_node = data_table_node.find_child(names.PHYSICAL)
+            if physical_node:
+                object_name_node = physical_node.find_child(names.OBJECTNAME)
+                if object_name_node:
+                    file_name = object_name_node.content
+            for attribute_node in attributes_to_fix:
+                attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+                if attribute_name_node:
+                    attribute_name = attribute_name_node.content
+                    if file_name and attribute_name:
+                        log_info(f'fixup_categorical_variables: fixing "{attribute_name}" in  {file_name}')
+                    change_measurement_scale(attribute_node, None, VariableType.CATEGORICAL.name)
+
+
 def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=False):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
+    fixup_categorical_variables(eml_node)
     add_eml_editor_metadata(eml_node)
     if use_pickle:
         pickle_eml(filename, eml_node)

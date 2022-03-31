@@ -2389,7 +2389,7 @@ def download_data_file(filename: str = '', user: str=''):
     if filename:
         user_data_dir = user_data.USER_DATA_DIR
         filepath = f'../{user_data_dir}/{user}/uploads/{filename}'
-        return send_file(filepath, as_attachment=True, attachment_filename=filename)
+        return send_file(filepath, as_attachment=True, attachment_filename=os.path.basename(filename))
 
 
 @home.route('/get_data_file_2/<user>', methods=['GET', 'POST'])

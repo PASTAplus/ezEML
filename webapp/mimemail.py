@@ -43,6 +43,11 @@ def send_mail(subject, msg, to, sender_name=None, sender_email=None) -> bool:
             server.sendmail(
                 Config.HOVER_MAIL, Config.HOVER_MAIL, message.as_string()
             )
+        log_msg = f"Sending email to: {to}"
+        if sender_name and sender_email:
+            log_msg += f"  Sender: {sender_name} - {sender_email}"
+        logger.info(log_msg)
+        logger.info(f"Email message: {message.as_string()}")
         return True
     except Exception as e:
         logger.error(e)

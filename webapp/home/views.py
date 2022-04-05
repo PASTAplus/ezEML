@@ -42,7 +42,7 @@ from flask_login import (
 
 from flask import Flask, current_app
 
-from webapp import mailout
+import webapp.mimemail as mimemail
 
 from webapp.config import Config
 
@@ -67,6 +67,10 @@ from webapp.home.import_package import (
 )
 from webapp.home.import_xml import (
     save_xml_file, parse_xml_file, determine_package_name
+)
+from webapp.home.log_usage import (
+    actions,
+    log_usage,
 )
 
 from webapp.home.metapype_client import ( 
@@ -158,9 +162,19 @@ def reload_metadata():
 
 # Endpoint for AJAX calls to validate XML
 @home.route('/check_xml/<xml>/<parent_name>')
-def check_xml(xml:str=None, parent_name:str=None):
+def check_xml(xml:str=None, parent_name:str=None, methods=['GET']):
     response = check_xml_validity(xml, parent_name)
+    log_usage(actions['CHECK_XML'], parent_name, response)
     response = jsonify({"response": response})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
+# Endpoint for AJAX calls to log help usage
+@home.route('/log_help_usage/<help_id>')
+def log_help_usage(help_id:str=None, methods=['GET']):
+    log_usage(actions['HELP'], help_id)
+    response = jsonify({"response": 'OK'})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
@@ -374,6 +388,7 @@ def about():
 
 @home.route('/user_guide')
 def user_guide():
+    log_usage(actions['USER_GUIDE'])
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
@@ -406,6 +421,7 @@ def delete():
             filename = form.filename.data
             user_data.discard_data_table_upload_filenames_for_package(filename)
             return_value = user_data.delete_eml(filename=filename)
+            log_usage(actions['DELETE_DOCUMENT'], filename)
             if filename == user_data.get_active_document():
                 current_user.set_filename(None)
             if isinstance(return_value, str):
@@ -434,6 +450,7 @@ def save():
         return render_template('index.html')
 
     save_both_formats(filename=current_document, eml_node=eml_node)
+    log_usage(actions['SAVE_DOCUMENT'])
     flash(f'Saved {current_document}')
          
     return redirect(url_for(PAGE_TITLE, filename=current_document))
@@ -492,6 +509,7 @@ def save_as():
                 new_filename = current_document  # Revert back to the old filename
             else:
                 copy_uploads(current_document, new_document)
+                log_usage(actions['SAVE_AS_DOCUMENT'], new_document)
                 current_user.set_filename(filename=new_document)
                 flash(f'Saved as {new_document}')
             new_page = PAGE_TITLE   # Return the Response object
@@ -541,10 +559,10 @@ def check_metadata(filename:str):
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document)
     content = check_eml(eml_node, filename)
+    log_usage(actions['CHECK_METADATA'])
 
     # Process POST
     if request.method == 'POST':
-        # return render_template(PAGE_CHECK, filename=filename)
         return redirect(url_for(PAGE_CHECK, filename=current_document))
 
     else:
@@ -565,6 +583,7 @@ def download_current():
         # Do the download
         package_id = eml_node.attribute_value("packageId")
         return_value = user_data.download_eml(filename=current_document, package_id=package_id)
+        log_usage(actions['DOWNLOAD_EML_FILE'], package_id)
 
         if isinstance(return_value, str):
             flash(return_value)
@@ -644,6 +663,7 @@ def create():
             create_eml(filename=filename)
             current_user.set_filename(filename)
             current_user.set_packageid(None)
+            log_usage(actions['NEW_DOCUMENT'])
             return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
@@ -672,6 +692,7 @@ def open_eml_document():
                     current_user.set_packageid(packageid)
                 create_eml(filename=filename)
                 new_page = PAGE_TITLE
+                log_usage(actions['OPEN_DOCUMENT'])
             else:
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=filename))
@@ -797,12 +818,12 @@ def import_template_2(template_filename):
                 return render_template('create_eml.html', help=help,
                                 form=form)
 
-            template_folder = user_data.get_template_folder_name()
             template_filename = template_filename.replace('\\', '/')
             template_path = f'{template_filename}.json'
 
             import_selected_template(template_path, filename)
             current_user.set_filename(filename)
+            log_usage(actions['NEW_FROM_TEMPLATE'], template_filename)
             current_user.set_packageid(None)
             new_page = PAGE_TITLE
             return redirect(url_for(new_page, filename=filename))
@@ -909,6 +930,7 @@ def import_parties_2(filename):
         target_class = form.data['target']
         target_filename = current_user.get_filename()
         import_responsible_parties(target_filename, node_ids_to_import, target_class)
+        log_usage(actions['IMPORT_RESPONSIBLE_PARTIES'], filename, target_class)
         if target_class == 'Creators':
             new_page = PAGE_CREATOR_SELECT
         elif target_class == 'Metadata Providers':
@@ -987,6 +1009,7 @@ def import_geo_coverage_2(filename):
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
         import_coverage_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_GEOGRAPHIC_COVERAGE'], filename)
         return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=target_package))
 
     # Process GET
@@ -1091,6 +1114,7 @@ def import_taxonomic_coverage_2(filename):
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
         import_coverage_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_TAXONOMIC_COVERAGE'], filename)
         return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=target_package))
 
     # Process GET
@@ -1142,6 +1166,7 @@ def import_funding_awards_2(filename):
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
         import_funding_award_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_FUNDING_AWARDS'], filename)
         return redirect(url_for(PAGE_FUNDING_AWARD_SELECT, filename=target_package))
 
     # Process GET
@@ -1194,6 +1219,7 @@ def import_related_projects_2(filename):
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
         import_project_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_RELATED_PROJECTS'], filename)
         return redirect(url_for(PAGE_RELATED_PROJECT_SELECT, filename=target_package))
 
     # Process GET
@@ -1342,13 +1368,14 @@ def export_package():
         if zipfile_path:
             archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
             if download_url:
+                log_usage(actions['EXPORT_EZEML_DATA_PACKAGE'])
                 return redirect(url_for('home.export_package_2', package_name=archive_basename,
                                         download_url=get_shortened_url(download_url), safe=''))
-        archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
-        if download_url:
 
-            return redirect(url_for('home.export_package_2', package_name=archive_basename,
-                                    download_url=get_shortened_url(download_url), safe=''))
+        # archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
+        # if download_url:
+        #     return redirect(url_for('home.export_package_2', package_name=archive_basename,
+        #                             download_url=get_shortened_url(download_url), safe=''))
 
     # Process GET
     help = get_helps(['export_package'])
@@ -1475,11 +1502,13 @@ def submit_package():
                 msg += get_imported_from_xml_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
                 to_address = ['support@environmentaldatainitiative.org']
-                sent = mailout.send_mail(subject=subject, msg=msg, to=to_address, sender_name=name, sender_email=email_address)
+                sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address, sender_name=name, sender_email=email_address)
                 if sent:
+                    log_usage(actions['SEND_TO_EDI'], name, email_address)
                     flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
                     flash(f"If you don't hear back from us within 48 hours, please contact us at support@environmentaldatainitiative.org.")
                 else:
+                    log_usage(actions['SEND_TO_EDI'], 'failed')
                     flash(f'Email failed to send', 'error')
 
             return redirect(get_back_url())
@@ -1555,6 +1584,8 @@ def send_to_other(filename=None, mailto=None):
 
             eml_node = load_eml(filename=filename)
             insert_upload_urls(current_document, eml_node)
+            log_usage(actions['SEND_TO_COLLEAGUE'], colleague_name, email_address)
+
             dataset_node = eml_node.find_child(child_name=names.DATASET)
             title_node = dataset_node.find_child(names.TITLE)
             title = ''
@@ -1866,6 +1897,8 @@ def import_xml():
 
             if eml_node:
                 add_imported_from_xml_metadata(eml_node, filename)
+                has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
+                log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
                 save_both_formats(filename=package_name, eml_node=eml_node)
                 current_user.set_filename(filename=package_name)
                 if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
@@ -1914,11 +1947,13 @@ def import_xml_2(package_name, filename, fetched=False):
             # save fact that EML was fetched from EDI in additional metadata
             add_fetched_from_edi_metadata(eml_node, package_name)
             add_imported_from_xml_metadata(eml_node, filename)
+            has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
+            log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
             save_both_formats(filename=package_name, eml_node=eml_node)
             current_user.set_filename(filename=package_name)
 
-            if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
-                # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
+            if has_errors:
+                # The parameters are actually lists, but Flask drops parameters that are empty lists, so we pass the
                 #  string representations.
                 return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=repr(unknown_nodes), attr_errs=repr(attr_errs),
                                         child_errs=repr(child_errs), other_errs=repr(other_errs),
@@ -2043,7 +2078,8 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
         form = request.form
 
         try:
-            import_data(filename, eml_node)
+            total_size = import_data(filename, eml_node)
+            log_usage(actions['GET_ASSOCIATED_DATA_FILES'], total_size)
         except Exception as e:
             flash(f'Unable to fetch package data: {str(e)}', 'error')
             help = get_helps(['import_xml_3'])
@@ -2085,7 +2121,8 @@ def import_xml_4(filename=None):
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
-        import_data(filename, eml_node)
+        total_size = import_data(filename, eml_node)
+        log_usage(actions['GET_ASSOCIATED_DATA_FILES'], total_size)
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
@@ -2179,6 +2216,7 @@ def fetch_xml_3(scope_identifier=''):
     scope, identifier = scope_identifier.split('.')
     try:
         revision, metadata = get_newest_metadata_revision_from_pasta(scope, identifier)
+        log_usage(actions['FETCH_FROM_EDI'], f"{scope}.{identifier}.{revision}")
     except Exception as e:
         flash(f'Unable to fetch package {scope}.{identifier}: {str(e)}', 'error')
         help = get_helps(['import_xml_3'])
@@ -2290,6 +2328,7 @@ def import_package():
                 fixup_upload_management()
                 cull_uploads(unversioned_package_name)
                 current_user.set_filename(filename=unversioned_package_name)
+                log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])
                 return redirect(url_for(PAGE_TITLE, filename=unversioned_package_name))
 
     # Process GET
@@ -2319,6 +2358,7 @@ def import_package_2(package_name):
         fixup_upload_management()
         cull_uploads(package_name)
         current_user.set_filename(filename=package_name)
+        log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])
         return redirect(url_for(PAGE_TITLE, filename=package_name))
 
     # Process GET
@@ -2609,6 +2649,7 @@ def load_data(filename=None):
 
                 clear_distribution_url(dt_node)
                 insert_upload_urls(document, eml_node)
+                log_usage(actions['LOAD_DATA_TABLE'], filename)
 
                 save_both_formats(filename=document, eml_node=eml_node)
 
@@ -2758,10 +2799,12 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
         if dt_node:
             if saved_filename:
                 filename = saved_filename
+                unmodified_filename = filename
             else:
                 file = request.files['file']
                 if file:
                     filename = f"{file.filename}"
+                    unmodified_filename = filename
                     if allowed_data_file(filename):
                         # We upload the new version of the CSV file under a temp name so we have both files to inspect.
                         filename = f"{filename}.ezeml_tmp"
@@ -2775,9 +2818,11 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
             quote_char = form.quote.data
 
             try:
-                return handle_reupload(dt_node_id=dt_node_id, saved_filename=filename, document=document,
+                goto = handle_reupload(dt_node_id=dt_node_id, saved_filename=filename, document=document,
                                        eml_node=eml_node, uploads_folder=uploads_folder, name_chg_ok=name_chg_ok,
                                        delimiter=delimiter, quote_char=quote_char)
+                log_usage(actions['RE_UPLOAD_DATA_TABLE'], unmodified_filename)
+                return goto
 
             except MissingFileError as err:
                 flash(err.message, 'error')
@@ -2926,6 +2971,7 @@ def close():
     
     if current_document:
         current_user.set_filename(None)
+        log_usage(actions['CLOSE_DOCUMENT'])
         flash(f'Closed {current_document}')
     else:
         flash("There was no package open")

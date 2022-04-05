@@ -79,10 +79,20 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 </table>
                 </span>
 {% endmacro %}
+{% import '_config.html' as config %}
+{% macro log_help_usage(help_btn_id) %}
+    $(document).ready(function(){
+      $('{{ help_btn_id }}').click(function(){
+        let url = '{{ config.ajax_host }}' + 'log_help_usage/' + '{{ help_btn_id }}';
+        $.get(url,
+        function(response, status) {});
+      });
+    });
+{% endmacro %}
 {% macro check_xml_btn_handler(check_xml_button_id, form_field, parent_name) %}
     $(document).ready(function(){
       $('{{ check_xml_button_id }}').click(function(){
-          let url = 'http://localhost:5000/eml/check_xml/';
+        let url = '{{ config.ajax_host }}' + 'check_xml/';
         let xml = $('{{ form_field }}').val();
         if (!xml){
             alert("Nothing to check.");
@@ -103,7 +113,6 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         <a href="{{ link }}" target="_taxon_link">External Link</a>
     {% endif %}
 {% endmacro %}
-
 {% macro help_script(dialog_id, btn_id) %}
         var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
             autoOpen: false,
@@ -115,6 +124,9 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 {{ dialog_id }}.dialog('close');
             } else {
                 {{ dialog_id }}.dialog('open');
+                {# AJAX call to log help usage #}
+                let url = '{{ config.ajax_host }}' + 'log_help_usage/' + '{{ btn_id }}';
+                $.get(url, function(response, status) {});
             }
         });
 {% endmacro %}

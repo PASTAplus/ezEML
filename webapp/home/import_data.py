@@ -13,8 +13,6 @@ import webapp.auth.user_data as user_data
 from webapp.config import Config
 import webapp.exceptions as exceptions
 
-from webapp.home.import_xml import parse_xml_file
-
 from webapp.home.load_data_table import load_data_table, load_other_entity
 from webapp.home.metapype_client import save_both_formats
 import webapp.home.views as views
@@ -214,18 +212,21 @@ def list_data_entities_and_sizes(eml_node):
     data_entities = data_tables
     data_entities.extend(other_entities)
     entities_with_sizes = []
+    total_size = 0
     for data_entity_node, entity_type, object_name, url in data_entities:
         size = get_data_entity_size(url)
+        total_size += int(size)
         entities_with_sizes.append((data_entity_node, entity_type, object_name, url, int(size)))
-    return entities_with_sizes
+    return entities_with_sizes, total_size
 
 
 def import_data(filename, eml_node):
-    entities_with_sizes = list_data_entities_and_sizes(eml_node)
+    entities_with_sizes, total_size = list_data_entities_and_sizes(eml_node)
     upload_dir = user_data.get_document_uploads_folder_name()
     retrieve_data_entities(upload_dir, entities_with_sizes)
     ingest_data_entities(eml_node, upload_dir, entities_with_sizes)
     save_both_formats(filename, eml_node)
+    return total_size
 
 
 def get_newest_metadata_revision_from_pasta(scope, identifier):

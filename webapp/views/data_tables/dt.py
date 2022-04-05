@@ -40,6 +40,10 @@ from webapp.home.metapype_client import (
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute,
     handle_hidden_buttons, check_val_for_hidden_buttons
 )
+from webapp.home.log_usage import (
+    actions,
+    log_usage,
+)
 
 from metapype.eml import names
 from metapype.model.node import Node
@@ -2058,6 +2062,7 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
                 target_attr_ids.append(val[0])
         target_eml_node = load_eml(target_filename)
         clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)
+        log_usage(actions['CLONE_COLUMN_PROPERTIES'], source_filename, table_name_in, target_filename, table_name_out)
         save_both_formats(target_filename, target_eml_node)
         help = views.get_helps(['import_responsible_parties_2'])  # FIXME
         return redirect(url_for('dt.data_table_select', filename=target_filename))

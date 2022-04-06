@@ -179,6 +179,15 @@ def log_help_usage(help_id:str=None, methods=['GET']):
     return response
 
 
+# Endpoint for AJAX calls to log User Guide usage
+@home.route('/log_user_guide_usage/<title>')
+def log_user_guide_usage(title:str=None, methods=['GET']):
+    log_usage(actions['USER_GUIDE'], title)
+    response = jsonify({"response": 'OK'})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
 @home.before_app_first_request
 def init_session_vars():
     session["check_metadata_status"] = "green"
@@ -388,7 +397,8 @@ def about():
 
 @home.route('/user_guide')
 def user_guide():
-    log_usage(actions['USER_GUIDE'])
+    # Logging usage of User Guide is done via AJAX endpoint log_user_guide_usage
+    # log_usage(actions['USER_GUIDE'])
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 

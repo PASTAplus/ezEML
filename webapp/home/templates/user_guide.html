@@ -4,25 +4,36 @@
 
     <h4>User Guide</h4>
     <ul>
-    <li><a href="/static/user_guide/terminology.pdf?version={{ release_number }}" target="_user_guide_ezeml">Some Terminology</a></li>
-    <li><a href="/static/user_guide/data_workflow.pdf?version={{ release_number }}" target="_user_guide_ezeml">ezEML's Place in the Data Workflow</a></li>
-    <li><a href="/static/user_guide/getting_started.pdf?version={{ release_number }}" target="_user_guide_ezeml">Getting Started</a></li>
-    <li><a href="/static/user_guide/navigating.pdf?version={{ release_number }}" target="_user_guide_ezeml">Navigating in ezEML</a></li>
-    <li><a href="/static/user_guide/creating_new_documents.pdf?version={{ release_number }}" target="_user_guide_ezeml">Creating a New EML Document</a></li>
-    <li><a href="/static/user_guide/templates.pdf?version={{ release_number }}" target="_user_guide_ezeml">Starting from an ezEML Document Template</a></li>
-    <li><a href="/static/user_guide/uploading_data_tables.pdf?version={{ release_number }}" target="_user_guide_ezeml">Uploading Data Tables</a></li>
-    <li><a href="/static/user_guide/re-uploading_data_tables.pdf?version={{ release_number }}" target="_user_guide_ezeml">Re-uploading Data Tables</a></li>
-    <li><a href="/static/user_guide/cloning_column_properties.pdf?version={{ release_number }}" target="_user_guide_ezeml">Cloning Column Properties</a></li>
-    <li><a href="/static/user_guide/checking_your_metadata.pdf?version={{ release_number }}" target="_user_guide_ezeml">Checking Your Metadata</a></li>
-    <li><a href="/static/user_guide/importing.pdf?version={{ release_number }}" target="_user_guide_ezeml">Importing from Other Data Packages</a></li>
-    <li><a href="/static/user_guide/importing_xml.pdf?version={{ release_number }}" target="_user_guide_ezeml">Importing EML XML Files into ezEML</a></li>
-    <li><a href="/static/user_guide/complex_text.pdf?version={{ release_number }}" target="_user_guide_ezeml">Editing Complex Text Elements in Imported XML</a></li>
-    <li><a href="/static/user_guide/fetch.pdf?version={{ release_number }}" target="_user_guide_ezeml">Fetching a Package from the EDI Data Repository</a></li>
-    <li><a href="/static/user_guide/send_to_edi.pdf?version={{ release_number }}" target="_user_guide_ezeml">Sending Your Package to EDI</a></li>
-    <li><a href="/static/user_guide/send_to_colleague.pdf?version={{ release_number }}" target="_user_guide_ezeml">Sending Your Package to a Colleague</a></li>
+    <li><a href="/static/user_guide/terminology.pdf?version={{ release_number }}" onclick="log_user_guide_usage('terminology');" target="_user_guide_ezeml">Some Terminology</a></li>
+    <li><a href="/static/user_guide/data_workflow.pdf?version={{ release_number }}" onclick="log_user_guide_usage('data workflow');" target="_user_guide_ezeml">ezEML's Place in the Data Workflow</a></li>
+    <li><a href="/static/user_guide/getting_started.pdf?version={{ release_number }}" onclick="log_user_guide_usage('getting started');" target="_user_guide_ezeml">Getting Started</a></li>
+    <li><a href="/static/user_guide/navigating.pdf?version={{ release_number }}" onclick="log_user_guide_usage('navigating');" target="_user_guide_ezeml">Navigating in ezEML</a></li>
+    <li><a href="/static/user_guide/creating_new_documents.pdf?version={{ release_number }}" onclick="log_user_guide_usage('creating documents');" target="_user_guide_ezeml">Creating a New EML Document</a></li>
+    <li><a href="/static/user_guide/templates.pdf?version={{ release_number }}" onclick="log_user_guide_usage('templates');" target="_user_guide_ezeml">Starting from an ezEML Document Template</a></li>
+    <li><a href="/static/user_guide/uploading_data_tables.pdf?version={{ release_number }}" onclick="log_user_guide_usage('uploading tables');" target="_user_guide_ezeml">Uploading Data Tables</a></li>
+    <li><a href="/static/user_guide/re-uploading_data_tables.pdf?version={{ release_number }}" onclick="log_user_guide_usage('re-uploading tables');" target="_user_guide_ezeml">Re-uploading Data Tables</a></li>
+    <li><a href="/static/user_guide/cloning_column_properties.pdf?version={{ release_number }}" onclick="log_user_guide_usage('cloning columns');" target="_user_guide_ezeml">Cloning Column Properties</a></li>
+    <li><a href="/static/user_guide/checking_your_metadata.pdf?version={{ release_number }}" onclick="log_user_guide_usage('check metadata');" target="_user_guide_ezeml">Checking Your Metadata</a></li>
+    <li><a href="/static/user_guide/importing.pdf?version={{ release_number }}" onclick="log_user_guide_usage('importing items');" target="_user_guide_ezeml">Importing from Other Data Packages</a></li>
+    <li><a href="/static/user_guide/importing_xml.pdf?version={{ release_number }}" onclick="log_user_guide_usage('importing xml');" target="_user_guide_ezeml">Importing EML XML Files into ezEML</a></li>
+    <li><a href="/static/user_guide/complex_text.pdf?version={{ release_number }}" onclick="log_user_guide_usage('complex text');" target="_user_guide_ezeml">Editing Complex Text Elements in Imported XML</a></li>
+    <li><a href="/static/user_guide/fetch.pdf?version={{ release_number }}" onclick="log_user_guide_usage('fetching from EDI');" target="_user_guide_ezeml">Fetching a Package from the EDI Data Repository</a></li>
+    <li><a href="/static/user_guide/send_to_edi.pdf?version={{ release_number }}" onclick="log_user_guide_usage('sending to EDI');" target="_user_guide_ezeml">Sending Your Package to EDI</a></li>
+    <li><a href="/static/user_guide/send_to_colleague.pdf?version={{ release_number }}" onclick="log_user_guide_usage('sending to colleague');" target="_user_guide_ezeml">Sending Your Package to a Colleague</a></li>
     </ul>
     <br>
     <b><a href={{ back_url }}>Back</a></b>
+{% endblock %}
 
-
+{% block app_scripts %}
+    {{ super() }}
+    {% import '_config.html' as config %}
+    <script>
+    function log_user_guide_usage(title)
+    {
+        {# AJAX call to log help usage #}
+        let url = '{{ config.ajax_host }}' + 'log_user_guide_usage/' + title;
+        $.get(url, function(response, status) {});
+    }
+    </script>
 {% endblock %}

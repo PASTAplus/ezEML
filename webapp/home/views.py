@@ -2980,8 +2980,8 @@ def close():
     current_document = current_user.get_filename()
     
     if current_document:
-        current_user.set_filename(None)
         log_usage(actions['CLOSE_DOCUMENT'])
+        current_user.set_filename(None)
         flash(f'Closed {current_document}')
     else:
         flash("There was no package open")

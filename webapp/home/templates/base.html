@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2022.04.05' %}
+{% set release_number = '2022.04.07' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -270,28 +270,28 @@
                     <td><h4 class="nav_link">Contents</h4><p></p></td>
                     <td valign="middle" style="padding-top: 7px;padding-left: 10px;">{{ macros.help_button('__help__contents_btn', 'nav_link') }}</td>
                 </table>
-            {% set title_style = '""' %}
-            {% set creator_style = '""' %}
-            {% set metadata_provider_style = '""' %}
-            {% set associated_party_style = '""' %}
-            {% set abstract_style = '""' %}
-            {% set keyword_style = '""' %}
-            {% set intellectual_rights_style = '""' %}
-            {% set geographic_coverage_style = '""' %}
-            {% set temporal_coverage_style = '""' %}
-            {% set taxonomic_coverage_style = '""' %}
-            {% set maintenance_style = '""' %}
-            {% set contact_style = '""' %}
-            {% set publisher_style = '""' %}
-            {% set publication_info_style = '""' %}
-            {% set method_step_style = '""' %}
-            {% set project_style = '""' %}
-            {% set data_table_style = '""' %}
-            {% set other_entity_style = '""' %}
-            {% set data_package_id_style = '""' %}
-            {% set check_metadata_style = '""' %}
-            {% set submit_package_style = '""' %}
-            {% set send_to_other_style = '""' %}
+            {% set title_style = '""'|safe %}
+            {% set creator_style = '""'|safe %}
+            {% set metadata_provider_style = '""'|safe %}
+            {% set associated_party_style = '""'|safe %}
+            {% set abstract_style = '""'|safe %}
+            {% set keyword_style = '""'|safe %}
+            {% set intellectual_rights_style = '""'|safe %}
+            {% set geographic_coverage_style = '""'|safe %}
+            {% set temporal_coverage_style = '""'|safe %}
+            {% set taxonomic_coverage_style = '""'|safe %}
+            {% set maintenance_style = '""'|safe %}
+            {% set contact_style = '""'|safe %}
+            {% set publisher_style = '""'|safe %}
+            {% set publication_info_style = '""'|safe %}
+            {% set method_step_style = '""'|safe %}
+            {% set project_style = '""'|safe %}
+            {% set data_table_style = '""'|safe %}
+            {% set other_entity_style = '""'|safe %}
+            {% set data_package_id_style = '""'|safe %}
+            {% set check_metadata_style = '""'|safe %}
+            {% set submit_package_style = '""'|safe %}
+            {% set send_to_other_style = '""'|safe %}
 
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
@@ -434,6 +434,12 @@
         {#   }#}
         {#})#}
      });
+    </script>
+
+    <script>
+    $(document).ready(function() {
+      document.getElementsByTagName("html")[0].style.visibility = "visible";
+    });
     </script>
 
     {% block app_scripts %}

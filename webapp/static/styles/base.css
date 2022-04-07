@@ -1,3 +1,7 @@
+html {
+    visibility: hidden;
+}
+
 .error {
     color: red
 }

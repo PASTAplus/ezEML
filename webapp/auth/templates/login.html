@@ -16,9 +16,9 @@
     <p>&nbsp;</p>
     <h4>Click one of the icons below to log in using your Google, GitHub, or ORCID login credentials.</h4>
 	<p>
-        <a href="{{ auth }}/login/google?target={{ target }}"><img src="/static/btn_google_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
-	    <a href="{{ auth }}/login/github?target={{ target }}"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
-	    <a href="{{ auth }}/login/orcid?target={{ target }}"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
+        <a href="{{ auth }}/login/google?target={{ target }}" onclick="log_login_usage('google');"><img src="/static/btn_google_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+	    <a href="{{ auth }}/login/github?target={{ target }}" onclick="log_login_usage('github');"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+	    <a href="{{ auth }}/login/orcid?target={{ target }}" onclick="log_login_usage('orcid');"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
     </p>
     <p>&nbsp;</p>
     <hr style="border:1px solid grey;">
@@ -40,4 +40,18 @@
 
     </div>
 
+{% endblock %}
+
+
+{% block app_scripts %}
+    {{ super() }}
+    {% import '_config.html' as config %}
+    <script>
+    function log_login_usage(login_type)
+    {
+        {# AJAX call to log help usage #}
+        let url = '{{ config.ajax_host }}' + 'log_login_usage/' + login_type;
+        $.get(url, function(response, status) {});
+    }
+    </script>
 {% endblock %}

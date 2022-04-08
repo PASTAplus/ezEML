@@ -45,6 +45,11 @@ from webapp.home.views import (
     select_post, compare_begin_end_dates, get_help, get_helps, set_current_page,
     secure_filename, allowed_data_file
 )
+from webapp.home.log_usage import (
+    actions,
+    log_usage,
+)
+
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -127,6 +132,7 @@ def load_geo_coverage(filename):
                 data_file_path = f'{uploads_folder}/{data_file}'
                 try:
                     load_geo_coverage_from_csv(data_file_path, document)
+                    log_usage(actions['LOAD_GEOGRAPHIC_COVERAGE'], filename)
                     flash(f'Loaded {data_file}')
                 except ValueError as ex:
                     flash(f'Load CSV file failed. {ex.args[0]}', 'error')
@@ -598,6 +604,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                         break
                 hierarchy = fill_taxonomic_coverage(form.taxon_value.data, source_type, source_name)
                 if hierarchy:
+                    log_usage(actions['FILL_TAXONOMIC_HIERARCHY'], form.taxon_value.data, source_name)
                     # set the taxon rank dropdown appropriately
                     rank = hierarchy[0][0].capitalize()
                     if (rank, rank) in form.taxon_rank.choices:

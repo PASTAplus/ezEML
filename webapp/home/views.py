@@ -188,6 +188,15 @@ def log_user_guide_usage(title:str=None, methods=['GET']):
     return response
 
 
+# Endpoint for AJAX calls to log login usage
+@home.route('/log_login_usage/<login_type>')
+def log_login_usage(title:str=None, login_type=['GET']):
+    log_usage(actions['LOGIN'], login_type)
+    response = jsonify({"response": 'OK'})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
 @home.before_app_first_request
 def init_session_vars():
     session["check_metadata_status"] = "green"
@@ -398,7 +407,6 @@ def about():
 @home.route('/user_guide')
 def user_guide():
     # Logging usage of User Guide is done via AJAX endpoint log_user_guide_usage
-    # log_usage(actions['USER_GUIDE'])
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
@@ -2910,6 +2918,13 @@ def load_entity(node_id=None):
                 eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file, node_id=node_id)
+
+                doing_reupload = node_id is not None and node_id != '1'
+                if not doing_reupload:
+                    log_usage(actions['LOAD_OTHER_ENTITY'], data_file)
+                else:
+                    log_usage(actions['RE_UPLOAD_OTHER_ENTITY'], data_file)
+
                 clear_distribution_url(other_entity_node)
                 insert_upload_urls(document, eml_node)
 

@@ -25,6 +25,10 @@ from webapp.auth.pasta_token import PastaToken
 from webapp.auth.user import User
 from webapp.auth.user_data import get_active_document, initialize_user_data
 from webapp.config import Config
+from webapp.home.log_usage import (
+    actions,
+    log_usage,
+)
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -52,6 +56,7 @@ def login():
             user = User(session_id)
             login_user(user)
             initialize_user_data(cname, pasta_token.uid, auth_token)
+            log_usage(actions['LOGIN'], cname, 'LDAP')
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 current_document = get_active_document()
@@ -61,6 +66,7 @@ def login():
                     next_page = url_for(PAGE_INDEX)
             return redirect(next_page)
         elif auth_token == "teapot":
+            log_usage(actions['LOGIN'], form.username.data, 'teapot')
             accept_url = f"{Config.AUTH}/accept?uid={user_dn}&target={Config.TARGET}"
             return redirect(accept_url)
         flash('Invalid username or password')
@@ -75,6 +81,7 @@ def login():
         user = User(session_id)
         login_user(user)
         initialize_user_data(cname, pasta_token.uid, auth_token)
+        log_usage(actions['LOGIN'], cname, 'GET')
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             current_document = get_active_document()
@@ -90,6 +97,7 @@ def login():
 
 @auth_bp.route('/logout', methods=['GET'])
 def logout():
+    log_usage(actions['LOGOUT'])
     logout_user()
     return redirect(url_for(PAGE_INDEX))
 

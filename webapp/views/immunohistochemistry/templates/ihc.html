@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Immunohistochemistry</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
+    </table>
+    {% if node_name == 'publisher' %}
+    <div class="col-md-10" style="border: 2px solid steelblue;color: steelblue;padding: 15px;">
+        Please note: if you plan to submit your data package to the data repository hosted by the
+        Environmental Data Initiative (EDI), you should leave this page blank unless you will also
+        be using the EML metadata for some other purpose. EDI will replace these entries in the submitted EML
+        when the data package is submitted.
+    </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                    <tr>
+                        <td>
+                        <table width="100%">
+                        <tr>
+                            <td style="padding: 10px 20px;" width="66%">{{ wtf.form_field(form.targetProtein) }}</td>
+                            <td width="1%">&nbsp;</td>
+                            <td class="table_cell">
+                            {{ wtf.form_field(form.clonality) }}
+                            </td>
+                            <td width="3%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                            <table>
+                            <tr>
+                            <td width="3%">&nbsp;</td>
+                            <td class="table_cell">
+                            <span style="color:{{ optional }};">{{ wtf.form_field(form.targetSpecies) }}</span>
+                            </td>
+                            <td width="3%">&nbsp;</td>
+                            <td class="table_cell">
+                            <span style="color:{{ optional }};">{{ wtf.form_field(form.hostSpecies) }}</span>
+                            </td>
+                            <td width="3%">&nbsp;</td>
+                            <td class="table_cell">
+                            <span style="color:{{ optional }};">{{ wtf.form_field(form.dilution) }}</span>
+                            </td>
+                            <td width="3%">&nbsp;</td>
+                            </tr>
+                            </table>
+                            </td>
+                        </tr>
+                        </table>
+                        </td>
+                    </tr><tr>
+                    <td style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;">
+                        <table width="100%">
+                            <tr>
+                                <td width="44%">{{ wtf.form_field(form.lotNumber) }}</td>
+                            <td width="3%">&nbsp;</td>
+                                <td width="18%">{{ wtf.form_field(form.catNumber) }}</td>
+                            <td width="3%">&nbsp;</td>
+                                <td width="31%">{{ wtf.form_field(form.source) }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    </tr><tr>
+                </table>
+                <br>
+
+
+                <table>
+                <tr>
+
+                <td class="table_cell">
+                {{ wtf.form_field(form.rrid) }}
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                {{ wtf.form_field(form.targetSpecies_2) }}
+                </td>
+                </tr>
+                </table>
+
+                <span style="color:{{ optional }};">{{ wtf.form_field(form.hostSpecies_2) }}</span>
+                <span style="color:{{ optional }};">{{ wtf.form_field(form.dilution_2) }}</span>
+
+                <table>
+                <tr>
+                <td class="table_cell">
+                <span style="color:{{ optional }};">{{ wtf.form_field(form.lotNumber_2) }}</span>
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                <span style="color:{{ optional }};">{{ wtf.form_field(form.catNumber_2) }}</span>
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                <span style="color:{{ optional }};">{{ wtf.form_field(form.source_2) }}</span>
+                </td>
+                </tr>
+                </table>
+
+                <table>
+                <tr>
+                <td class="table_cell">
+                <span style="color:{{ optional }};">{{ wtf.form_field(form.rrid_2) }}</span>
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+                <span style="color:{{ optional }};">{{ wtf.form_field(form.detectionMethod) }}</span>
+                </td>
+                <td width="3%">&nbsp;</td>
+                </tr>
+                </table>
+
+                {% if not save_and_continue %}
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+{#                {% if next_page %}#}
+{#                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>#}
+{#                {% endif %}#}
+                {% else %}
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
+                {% endif %}
+                {% if node_name == 'publisher' %}
+                    {{ macros.hidden_buttons() }}
+                {% else %}
+                    {{ macros.hidden_new_open_close_buttons() }}
+                {% endif %}
+
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+            </form>
+            <p>&nbsp;</p>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
+    {% set help_rp_btn = help_rp_id ~ '_btn' %}
+    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
+    });
+    </script>
+{% endblock %}

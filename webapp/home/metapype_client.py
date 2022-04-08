@@ -1079,7 +1079,10 @@ def save_both_formats(filename: str = None, eml_node: Node = None):
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename)  # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
-    add_eml_editor_metadata(eml_node)
+    #FIXME
+    #add_eml_editor needs to be fixed as a footer for the xml file, since it will delete
+    #the entire mother node if ran. -NPM 4/8/2022
+    #add_eml_editor_metadata(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
 
@@ -1467,6 +1470,21 @@ def add_eml_editor_metadata(eml_node: Node = None):
     # NM 3/1/2022 changed text from "ezEML" to "MotherDB"
     eml_editor_node.add_attribute('app', 'MotherDB')
     eml_editor_node.add_attribute('release', RELEASE_NUMBER)
+
+
+def add_mother_metadata(eml_node: Node = None):
+    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
+    if additional_metadata_node:
+    # Need to bypass Metapype validity checking -NM 4/5/2022
+        mother_node = Node("mother", parent=additional_metadata_node)
+        additional_metadata_node.add_child(mother_node)
+    else:
+        additional_metadata_node = Node(names.ADDITIONALMETADATA, parent=eml_node)
+        eml_node.add_child(additional_metadata_node)
+        mother_node = Node("mother", parent=additional_metadata_node)
+        additional_metadata_node.add_child(mother_node)
+        #print(additional_metadata_node)
+
 
 
 def fix_up_custom_units(eml_node: Node = None):
@@ -2158,12 +2176,10 @@ def create_taxonomic_coverage(
 
 
 # Creates empty immunohistochemistry node -NPM 3/23/2022
-def create_immunohistochemistry(immunohistochemistry_node: Node = None,
+def create_immunohistochemistry(ihc_node: Node,
                                 filename: str = None,
-                                protein: str = None,
-                                proteinName: str = None,
-                                geneSymbol: str = None,
-                                primaryAntibody: str = None,
+                                targetProtein: str = None,
+                                primaryAntibody: Node = None,
                                 clonality: str = None,
                                 targetSpecies: str = None,
                                 hostSpecies: str = None,
@@ -2172,83 +2188,95 @@ def create_immunohistochemistry(immunohistochemistry_node: Node = None,
                                 catNumber: str = None,
                                 source: str = None,
                                 rrid: str = None,
-                                secondaryAntibody: str = None,
-                                targetSpecies2: str = None,
-                                hostSpecies2: str = None,
-                                dilution2: str = None,
-                                lotNumber2: str = None,
-                                catNumber2: str = None,
-                                source2: str = None,
-                                rrid2: str = None,
+                                secondaryAntibody: Node = None,
+                                targetSpecies_2: str = None,
+                                hostSpecies_2: str = None,
+                                dilution_2: str = None,
+                                lotNumber_2: str = None,
+                                catNumber_2: str = None,
+                                source_2: str = None,
+                                rrid_2: str = None,
                                 detectionMethod: str = None):
     try:
-        if protein:
-            protein_node = new_child_node("Protein", parent=immunohistochemistry_node)
-            protein_node.content = protein
-        if proteinName:
-            proteinName_node = new_child_node("proteinName", parent=protein_node)
-            proteinName_node.content = proteinName
-        if geneSymbol:
-            geneSymbol_node = new_child_node("geneSymbol", parent=protein_node)
-            geneSymbol_node.content = geneSymbol
+        if targetProtein:
+            targetProtein_node = Node("targetProtein", parent=ihc_node)
+            targetProtein_node.content = targetProtein
+            ihc_node.add_child(targetProtein_node)
         if primaryAntibody:
-            primaryAntibody_node = new_child_node("primaryAntibody", parent=immunohistochemistry_node)
-            primaryAntibody_node.content = primaryAntibody
+            primaryAntibody = Node("primaryAntibody", parent=ihc_node)
+            ihc_node.add_child(primaryAntibody)
         if clonality:
-            clonality_node = new_child_node("clonality", parent=primaryAntibody_node)
+            clonality_node = Node("clonality", parent=primaryAntibody)
             clonality_node.content = clonality
+            primaryAntibody.add_child(clonality_node)
         if targetSpecies:
-            targetSpecies_node = new_child_node("targetSpecies", parent=primaryAntibody_node)
+            targetSpecies_node = Node("targetSpecies", parent=primaryAntibody)
             targetSpecies_node.content = targetSpecies
+            primaryAntibody.add_child(targetSpecies_node)
         if hostSpecies:
-            hostSpecies_node = new_child_node("hostSpecies", parent=primaryAntibody_node)
+            hostSpecies_node = Node("hostSpecies", parent=primaryAntibody)
             hostSpecies_node.content = hostSpecies
+            primaryAntibody.add_child(hostSpecies_node)
         if dilution:
-            dilution_node = new_child_node("dilution", parent=primaryAntibody_node)
+            dilution_node = Node("dilution", parent=primaryAntibody)
             dilution_node.content = dilution
+            primaryAntibody.add_child(dilution_node)
         if lotNumber:
-            lotNumber_node = new_child_node("lotNumber", parent=primaryAntibody_node)
+            lotNumber_node = Node("lotNumber", parent=primaryAntibody)
             lotNumber_node.content = lotNumber
+            primaryAntibody.add_child(lotNumber_node)
         if catNumber:
-            catNumber_node = new_child_node("catNumber", parent=primaryAntibody_node)
+            catNumber_node = Node("catNumber", parent=primaryAntibody)
             catNumber_node.content = catNumber
+            primaryAntibody.add_child(catNumber_node)
         if source:
-            source_node = new_child_node("source", parent=primaryAntibody_node)
+            source_node = Node("source", parent=primaryAntibody)
             source_node.content = source
+            primaryAntibody.add_child(source_node)
         if rrid:
-            rrid_node = new_child_node("RRID", parent=primaryAntibody_node)
+            rrid_node = Node("rrid", parent=primaryAntibody)
             rrid_node.content = rrid
+            primaryAntibody.add_child(rrid_node)
         if secondaryAntibody:
-            secondaryAntibody_node = new_child_node("secondaryAntibody", parent=immunohistochemistry_node)
-            secondaryAntibody_node.content = secondaryAntibody
-        if targetSpecies2:
-            targetSpecies2_node = new_child_node("targetSpecies", parent=secondaryAntibody_node)
-            targetSpecies2_node.content = targetSpecies2
-        if hostSpecies2:
-            hostSpecies2_node = new_child_node("hostSpecies", parent=secondaryAntibody_node)
-            hostSpecies2_node.content = hostSpecies2
-        if dilution2:
-            dilution2_node = new_child_node("dilution", parent=secondaryAntibody_node)
-            dilution2_node.content = dilution2
-        if lotNumber2:
-            lotNumber2_node = new_child_node("lotNumber", parent=secondaryAntibody_node)
-            lotNumber2_node.content = lotNumber2
-        if catNumber2:
-            catNumber2_node = new_child_node("catNumber", parent=secondaryAntibody_node)
-            catNumber2_node.content = catNumber2
-        if source2:
-            source2_node = new_child_node("source", parent=secondaryAntibody_node)
-            source2_node.content = source2
-        if rrid2:
-            rrid2_node = new_child_node("RRID", parent=secondaryAntibody_node)
-            rrid2_node.content = rrid2
+            secondaryAntibody = Node("secondaryAntibody", parent=ihc_node)
+            ihc_node.add_child(secondaryAntibody)
+        if targetSpecies_2:
+            targetSpecies2_node = Node("targetSpecies", parent=secondaryAntibody)
+            targetSpecies2_node.content = targetSpecies_2
+            secondaryAntibody.add_child(targetSpecies2_node)
+        if hostSpecies_2:
+            hostSpecies2_node = Node("hostSpecies", parent=secondaryAntibody)
+            hostSpecies2_node.content = hostSpecies_2
+            secondaryAntibody.add_child(hostSpecies2_node)
+        if dilution_2:
+            dilution2_node = Node("dilution", parent=secondaryAntibody)
+            dilution2_node.content = dilution_2
+            secondaryAntibody.add_child(dilution2_node)
+        if lotNumber_2:
+            lotNumber2_node = Node("lotNumber", parent=secondaryAntibody)
+            lotNumber2_node.content = lotNumber_2
+            secondaryAntibody.add_child(lotNumber2_node)
+        if catNumber_2:
+            catNumber2_node = Node("catNumber", parent=secondaryAntibody)
+            catNumber2_node.content = catNumber_2
+            secondaryAntibody.add_child(catNumber2_node)
+        if source_2:
+            source2_node = Node("source", parent=secondaryAntibody)
+            source2_node.content = source_2
+            secondaryAntibody.add_child(source2_node)
+        if rrid_2:
+            rrid2_node = Node("rrid", parent=secondaryAntibody)
+            rrid2_node.content = rrid_2
+            secondaryAntibody.add_child(rrid2_node)
         if detectionMethod:
-            detectionMethod_node = new_child_node("detectionMethod", parent=immunohistochemistry_node)
+            detectionMethod_node = Node("detectionMethod", parent=ihc_node)
             detectionMethod_node.content = detectionMethod
+            ihc_node.add_child(detectionMethod_node)
 
-        return immunohistochemistry_node
+        return ihc_node
 
     except Exception as e:
+        print("error here boyo")
         logger.error(e)
 
 

@@ -15,9 +15,9 @@ class immunohistochemistryForm(EDIForm):
     pass
 
 
-class ImmunohistochemistryForm(EDIForm):
-    proteinName = StringField('Protein Name (Optional)', validators=[])
-    geneSymbol = StringField('Gene Symbol', validators=[])
+class immunohistochemistryForm(EDIForm):
+    # Protein
+    targetProtein = StringField('Target Protein', validators=[])
     # Primary Antibody
     clonality = SelectField('Clonality', choices=[("", ""), ("monoclonal", "monoclonal"), ("polyclonal", "polyclonal")])
     targetSpecies = StringField('Target Species', validators=[])
@@ -28,13 +28,14 @@ class ImmunohistochemistryForm(EDIForm):
     source = StringField('Source', validators=[])
     rrid = StringField('RRID', validators=[])
     # Secondary Antibody
-    targetSpecies2 = StringField('Target Species', validators=[])
-    hostSpecies2 = StringField('Host Species', validators=[])
-    dilution2 = StringField('Dilution', validators=[])
-    lotNumber2 = StringField('Lot Number', validators=[])
-    catNumber2 = StringField('Cat Number', validators=[])
-    source2 = StringField('Source', validators=[])
-    rrid2 = StringField('RRID', validators=[])
+    targetSpecies_2 = StringField('Target Species', validators=[])
+    hostSpecies_2 = StringField('Host Species', validators=[])
+    dilution_2 = StringField('Dilution', validators=[])
+    lotNumber_2 = StringField('Lot Number', validators=[])
+    catNumber_2 = StringField('Cat Number', validators=[])
+    source_2 = StringField('Source', validators=[])
+    rrid_2 = StringField('RRID', validators=[])
+    # Detection Method
     detectionMethod = SelectField("Detection Method", choices=[
         ("ABC (avidin-biotin complex)", "ABC (avidin-biotin complex)",),
         ("Alkaline Phosphates", "Alkaline Phosphates"),
@@ -45,8 +46,7 @@ class ImmunohistochemistryForm(EDIForm):
         ("RPE", "RPE")])
 
     def field_data(self) -> tuple:
-        return (self.proteinName.data,
-                self.geneSymbol.data,
+        return (self.targetProtein.data,
                 self.clonality.data,
                 self.targetSpecies.data,
                 self.hostSpecies.data,
@@ -55,11 +55,11 @@ class ImmunohistochemistryForm(EDIForm):
                 self.catNumber.data,
                 self.source.data,
                 self.rrid.data,
-                self.targetSpecies2.data,
-                self.hostSpecies2.data,
-                self.dilution2.data,
-                self.lotNumber2.data,
-                self.catNumber2.data,
-                self.source2.data,
-                self.rrid2.data,
+                self.targetSpecies_2.data,
+                self.hostSpecies_2.data,
+                self.dilution_2.data,
+                self.lotNumber_2.data,
+                self.catNumber_2.data,
+                self.source_2.data,
+                self.rrid_2.data,
                 self.detectionMethod.data)

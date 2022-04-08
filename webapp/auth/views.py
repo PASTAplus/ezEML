@@ -81,7 +81,7 @@ def login():
         user = User(session_id)
         login_user(user)
         initialize_user_data(cname, pasta_token.uid, auth_token)
-        log_usage(actions['LOGIN'], cname, 'GET')
+        log_usage(actions['LOGIN'], cname)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             current_document = get_active_document()

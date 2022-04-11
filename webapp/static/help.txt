@@ -14,7 +14,7 @@ You can create a data table's metadata "from scratch" via <b>Add Data Table from
 
 In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 
-CSV files are assumed to contain a single header row and no footer rows.
+CSV files are assumed to contain a single header row and no footer rows. ezEML accepts several other field delimiters besides commas, including tabs.
 --------------------
 add_load_other_entities
 Add/Load Other Entities
@@ -167,15 +167,19 @@ In the case of a data set that comprises all longitudes (e.g., a horizontal band
 --------------------
 clone_attributes_general
 Clone Column Properties from Another Data Table
-Suppose you’ve uploaded one data table and filled out its columns’ properties, and then you upload a second data table, and some or all of the second table’s columns have the same properties (except possibly for column name) as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table.
+Suppose you’ve uploaded a data table and filled out its columns’ properties, and then you upload a second data table, and some of the second table’s columns have the same properties as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table. This is useful, for example, when you have modified a table by adding, deleting, or reordering columns.
 
-In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package you prepared with ezEML at an earlier time.
+In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package that you prepared with ezEML at an earlier time.
+
+Note that if you've simply added some rows, corrected some cell values, or renamed one or more columns (i.e., you haven't significantly altered the <i>structure</i> of the table), you can use the <b>Re-upload</b> feature instead of the more complicated <b>Clone Column Properties from Another Data Table</b> feature.
 --------------------
 clone_attributes_1
 Clone Column Properties from Another Data Table
-Suppose you’ve uploaded one data table and filled out its columns’ properties, and then you upload a second data table, and some or all of the second table’s columns have the same properties (except possibly for column name) as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table.
+Suppose you’ve uploaded a data table and filled out its columns’ properties, and then you upload a second data table, and some of the second table’s columns have the same properties as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table. This is useful, for example, when you have modified a table by adding, deleting, or reordering columns.
 
-In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package you prepared with ezEML at an earlier time.
+In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package that you prepared with ezEML at an earlier time.
+
+Note that if you've simply added some rows, corrected some cell values, or renamed one or more columns (i.e., you haven't significantly altered the <i>structure</i> of the table), you can use the <b>Re-upload</b> feature instead of the more complicated <b>Clone Column Properties from Another Data Table</b> feature.
 
 Begin by selecting the data package that contains the source data table. This may be the current data package or some other one. Then click <b>Open for Cloning</b>.
 --------------------
@@ -195,7 +199,7 @@ clone_attributes_4
 Clone Column Properties
 Having selected the particular columns whose properties you wish to clone, the next step is to match them up with the columns in the target data table that will receive the cloned properties.
 
-For each Source Column, select a Target Column in the target data table, then click <b>Clone Column Properties</b>. Note that the source and target columns do not have to have the same names in the two tables or appear in the same order.
+For each Source Column, select a Target Column in the target data table. After you've done that, click <b>Clone Column Properties</b>. Note that the source and target columns do not have to have the same names in the two tables or appear in the same order.
 
 The properties of the source columns will be copied into the target columns, except that the <b>Name</b> of each target column will not be changed.
 
@@ -225,11 +229,11 @@ For long-term data, e.g., from an LTER Site, we recommend that you include the o
 --------------------
 creators
 Creators
-The creator is considered to be the author of the data package, i.e. the person(s) responsible for intellectual input into its creation. At least one creator is required.
+A creator is considered to be an author of the data package, i.e. a person responsible for intellectual input into its creation. At least one creator is required.
 
 For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
 
-Citations generally list creator names in the order given in the EML metadata.
+Citations generally list creator names in the order shown, so order is significant.
 --------------------
 data_package_id
 Data Package ID
@@ -241,25 +245,35 @@ For data repositories other than EDI’s, contact the data repository for an app
 --------------------
 data_table
 Data Table
-A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+A data table is one tabular entity in the data package, identified by its name. The metadata for a data table contains information about the data table as a whole, such as a description, the filename, the number of records, etc., as well as information about the various columns of the table: their names, data types, etc.
+
+When you upload a data table, ezEML infers as much metadata as it can from the table itself. ezEML can, for example, detect the file size, number of records, etc., and it can infer many of the attributes of the table's columns: name of column, variable type, etc.
+
+Certain metadata elements (such as the descriptions of the table and of each of the columns) must be entered manually, since they do not appear in the table file. To determine which metadata elements remain to be filled in, use the <b>Check Metadata</b> feature. You should also check that ezEML has inferred the columns' data types correctly.
+
+To view and edit the properties of the columns, click the <b>Edit Column Properties</b> button.
 --------------------
 data_tables
 Data Tables
-A data table is one tabular entity in the data package, identified by its name. The data table descriptor can contain information about the data table's orientation, number of records, case sensitivity, and temporal, geographic, and taxonomic coverage.
+A data table is one tabular entity in the data package, identified by its name. The metadata for a data table contains information about the data table as a whole, such as a description, the filename, the number of records, etc., as well as information about the various columns of the table: their names, data types, etc.
+
+To enter a table's metadata into ezEML, start by uploading it via the <b>Load Data Table from CSV File</b> button. The table is assumed to be in a text file in CSV (comma-separated value) format. Besides commas, ezEML accepts several other field delimiters, such as tabs. When you upload the table, ezEML infers as much metadata as it can from the table itself. ezEML can, for example, detect the file size, number of records, etc., and it can infer many of the attributes of the table's columns: name of column, variable type, etc.
+
+Certain metadata elements (such as the descriptions of the table and of each of the columns) must be entered manually, since they do not appear in the table file. To determine which metadata elements remain to be filled in, use the <b>Check Metadata</b> feature. You should also check that ezEML has inferred the columns' data types correctly.
 --------------------
 data_table_reupload
 Re-upload Data Table
-The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again.
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the metadata for the data table and its columns all over again.
 
-Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
+Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 --------------------
 data_table_reupload_full
 Re-upload Data Table
-The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again.
+The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the metadata for the data table and its columns all over again.
 
-Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
+Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 
@@ -269,7 +283,7 @@ The CSV file's name is not required to be the same as the name of the CSV file u
 --------------------
 data_table_name
 Data Table Name
-The name identifies the data table in the data package.
+The name identifies the data table within the data package.
 
 Example: SpeciesAbundance1996
 --------------------
@@ -280,8 +294,10 @@ Text generally describing the data table and relevant information about its cont
 Example: Species abundance data for 1996 at the VCR LTER
 --------------------
 data_table_object_name
-Data Object Name
-The name of the data object that is the source of the data table. It usually is the filename of a file in a file system or that is accessible on the network.
+Filename
+The name of the file that is the source of the data table.
+
+Example: species_abundance_1996.csv
 --------------------
 data_table_attribute_orientation
 Attribute Orientation
@@ -289,7 +305,7 @@ Specifies whether the data attributes are organized in columns or rows.
 --------------------
 data_table_field_delimiter
 Field Delimiter
-Specifies the character used in the data table for delimiting data values.
+Specifies the character used in the data table file for delimiting data values. Usually commas or tabs.
 --------------------
 data_table_size
 Size
@@ -311,7 +327,7 @@ If your data table is a CSV file with fields separated by commas, for example, t
 --------------------
 data_table_record_delimiter
 Record Delimiter
-Character(s) used to delimit records (e.g., rows).
+Character(s) used to delimit records (i.e., rows).
 
 The record delimiter is usually a linefeed (\n) on UNIX, a carriage return (\r) on MacOS, or both (\r\n) on Windows/DOS.
 --------------------
@@ -323,7 +339,7 @@ If it is set to yes, then values that differ only in case (e.g.,LOW, low) repres
 --------------------
 data_table_number_of_records
 Number of Records
-The integer count of the number of records in the data table.
+The integer count of the number of records (rows) in the data table.
 
 It should only include records that represent observations. I.e., it would not include any details of physical formatting such as the number of header lines.
 --------------------
@@ -387,7 +403,7 @@ Geographic Description
 
 In cases where the "bounding coordinates" do not adequately describe the extent of the data set, the discrepancy can be identified and described here.
 
-The coordinates may define a rectangle around a country, with this Geographic Description containing a disclaimer and/or further details concerning the border. E.g., a study of the diseases of salmon may not have a specific geographic extent associated with it, but the salmon were collected in the states of Washington and Oregon. The "bounding coordinates" might form a general rectangle around the states of Washington and Oregon, but the Geographic Description" might describe the fact that the study actually took place only along certain rivers within those states.
+The coordinates may define a rectangle around a country, with this Geographic Description containing a disclaimer and/or further details concerning the border. E.g., a study of the diseases of salmon may not have a specific geographic extent associated with it, but the salmon were collected in the states of Washington and Oregon. The "bounding coordinates" might form a general rectangle around the states of Washington and Oregon, but the Geographic Description might state that the study actually took place only along certain rivers within those states.
 
 Geographic Description can also contain information about the collection of bounding coordinates, e.g., an altitude value that is referenced to Mean Lower Low Water, or the projection system that the latitude and longitude coordinates were taken from.</para>
 --------------------
@@ -576,7 +592,7 @@ methods
 Method Steps
 Method steps are descriptions of specific steps of the method employed when collecting data. They are intended to be descriptive, i.e., human-readable rather than machine-readable.
 
-The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, relevant literature, software, instrumentation, source data and any quality control measures taken.
+The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data and any quality control measures taken.
 --------------------
 method_step_description
 Method Step Description
@@ -652,7 +668,7 @@ other_entity_reupload
 Re-upload Other Entity
 The purpose of <b>Re-upload Other Entity</b> is to let you update an other entity file without having to enter the properties of the other entity all over again. In addition, it updates the file size and checksum, which are part of the metadata describing the other entity.
 
-Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
+Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
 --------------------
 personnel
 Project Personnel
@@ -684,7 +700,7 @@ There is an argument for publication date referring to the original date of rele
 --------------------
 publisher
 Publisher
-The organization producing the EML metadata (e.g., an LTER site or field station).
+The organization publishing the EML metadata (e.g., an LTER site or field station).
 
 Publisher is not required by EML. If you submit your data to the EDI data repository, EDI will be entered automatically as the publisher in the published EML.
 --------------------
@@ -737,6 +753,8 @@ Send to Colleague
 An ezEML Data Package zip file has been generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
 
 A suggested email message to your colleague is displayed. This email contains the link that your colleague will need to use to download the zip file. You can click <b>Copy to Clipboard</b> to copy the message to the system clipboard, ready to be pasted into an email. Or, if you have a default email client configured in your browser, you can click <b>Open in Email Client</b> to open the message in your email client directly. Either way, you can edit and personalize the email message as you see fit before sending it.
+
+We let you send the email (rather than ezEML sending an email automatically) so that it will show you as the sender (and thereby be less likely to be mistaken for spam) and so that you will have the opportunity to personalize the message.
 --------------------
 storage_type
 Storage Type
@@ -766,7 +784,7 @@ submit_package
 Send to EDI
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
 
-When you click <b>Send to EDI</b>, an ezEML Data Package archive file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
+When you click <b>Send to EDI</b>, an ezEML Data Package archive (zip) file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
 
 Please provide your name and email so that EDI's data curators can contact you with any questions they have and to let you know when the submission has been completed. If you have questions (about particular entries in your metadata, for example), please use the <b>Notes</b> text area to describe them so EDI can assist you better.
 
@@ -778,7 +796,7 @@ taxonomic_coverages
 Taxonomic Coverage
 <b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study.
 
-The lowest available level, preferably the species binomial and common name should always be included, but higher-level taxa should also be included to support broader taxonomic searches. ezEML can fill in the higher-level taxa for you by accessing a taxonomic authority online.
+The lowest available level, preferably the species binomial, should always be included, but higher-level taxa should also be included to support broader taxonomic searches. ezEML can fill in the higher-level taxa for you by accessing a taxonomic authority online.
 --------------------
 taxonomic_coverage_fill_hierarchy
 Fill Hierarchy
@@ -792,7 +810,7 @@ If the specified taxon is found in the taxonomic authority database, the Taxon R
 --------------------
 temporal_coverages
 Temporal Coverage
-<b>Temporal Coverage</b> represents the period of time the data were collected, not the year the study was conducted if it uses retrospective or historical data.
+<b>Temporal Coverage</b> represents the period(s) of time when the data were collected, not the period(s) of time the study was conducted if it uses retrospective or historical data.
 
 Two formats are allowed, either a 4-digit year, or a date in ISO format: YYYY-MM-DD.
 --------------------

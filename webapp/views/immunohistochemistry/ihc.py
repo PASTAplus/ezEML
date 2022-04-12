@@ -34,7 +34,8 @@ def immunohistochemistry(filename=None):
         eml_node = load_eml(filename=filename)
         additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
         if additional_metadata_node:
-            mother_node = additional_metadata_node.find_child("mother")
+            metadata_node = additional_metadata_node.find_child(names.METADATA)
+            mother_node = metadata_node.find_child("mother")
             if mother_node:
                 ihc_node = mother_node.find_child("immunohistochemistry")
                 if ihc_node:
@@ -66,7 +67,8 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
     eml_node = load_eml(filename=filename)
 
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
-    mother_node = additional_metadata_node.find_child("mother")
+    metadata_node = additional_metadata_node.find_child(names.METADATA)
+    mother_node = metadata_node.find_child("mother")
     parent_node = mother_node
 
     # Could be important as well -NM 4/8/2022

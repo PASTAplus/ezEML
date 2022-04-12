@@ -1476,14 +1476,16 @@ def add_mother_metadata(eml_node: Node = None):
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     if additional_metadata_node:
     # Need to bypass Metapype validity checking -NM 4/5/2022
+        metadata_node = additional_metadata_node.find_child(names.METADATA)
         mother_node = Node("mother", parent=additional_metadata_node)
-        additional_metadata_node.add_child(mother_node)
+        metadata_node.add_child(mother_node)
     else:
         additional_metadata_node = Node(names.ADDITIONALMETADATA, parent=eml_node)
         eml_node.add_child(additional_metadata_node)
+        metadata_node = Node(names.METADATA, parent=additional_metadata_node)
+        additional_metadata_node.add_child(metadata_node)
         mother_node = Node("mother", parent=additional_metadata_node)
-        additional_metadata_node.add_child(mother_node)
-        #print(additional_metadata_node)
+        metadata_node.add_child(mother_node)
 
 
 

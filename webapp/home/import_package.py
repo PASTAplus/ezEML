@@ -185,7 +185,9 @@ def import_ezeml_package(output_package_name=None):
     for filename in files:
         src_file = os.path.join(work_path, filename)
         if filename.startswith('data/'):
-            dest_file = os.path.join(upload_folder, filename[5:])
+            filename = filename[5:]
+            dest_file = os.path.join(upload_folder, filename)
+            user_data.add_data_table_upload_filename(filename, document_name=output_package_name)
         else:
             if filename.endswith('.json'):
                 # Use the output package name

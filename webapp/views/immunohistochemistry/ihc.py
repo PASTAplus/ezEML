@@ -96,7 +96,10 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
             dilution = form.dilution.data
             lotNumber = form.lotNumber.data
             catNumber = form.catNumber.data
-            source = form.source.data
+            source = Node("source", parent=None)
+            sourceName = form.sourceName.data
+            sourceCity = form.sourceCity.data
+            sourceState = form.sourceState.data
             rrid = form.rrid.data
             secondaryAntibody = Node("secondaryAntibody", parent=None)
             targetSpecies_2 = form.targetSpecies_2.data
@@ -104,7 +107,10 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
             dilution_2 = form.dilution_2.data
             lotNumber_2 = form.lotNumber_2.data
             catNumber_2 = form.catNumber_2.data
-            source_2 = form.source_2.data
+            source_2 = Node("source", parent=None)
+            sourceName_2 = form.sourceName_2.data
+            sourceCity_2 = form.sourceCity_2.data
+            sourceState_2 = form.sourceState_2.data
             rrid_2 = form.rrid_2.data
             detectionMethod = form.detectionMethod.data
 
@@ -122,6 +128,9 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
                 lotNumber,
                 catNumber,
                 source,
+                sourceName,
+                sourceCity,
+                sourceState,
                 rrid,
                 secondaryAntibody,
                 targetSpecies_2,
@@ -130,6 +139,9 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
                 lotNumber_2,
                 catNumber_2,
                 source_2,
+                sourceName_2,
+                sourceCity_2,
+                sourceState_2,
                 rrid_2,
                 detectionMethod,
             )

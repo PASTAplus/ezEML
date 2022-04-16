@@ -25,7 +25,10 @@ class immunohistochemistryForm(EDIForm):
     dilution = StringField('Dilution', validators=[])
     lotNumber = StringField('Lot Number', validators=[])
     catNumber = StringField('Cat Number', validators=[])
-    source = StringField('Source', validators=[])
+    # Source
+    sourceName = StringField('Source Name', validators=[])
+    sourceCity = StringField('Source City', validators=[])
+    sourceState = StringField('Source State', validators=[])
     rrid = StringField('RRID', validators=[])
     # Secondary Antibody
     targetSpecies_2 = StringField('Target Species', validators=[])
@@ -33,7 +36,10 @@ class immunohistochemistryForm(EDIForm):
     dilution_2 = StringField('Dilution', validators=[])
     lotNumber_2 = StringField('Lot Number', validators=[])
     catNumber_2 = StringField('Cat Number', validators=[])
-    source_2 = StringField('Source', validators=[])
+    # Source_2
+    sourceName_2 = StringField("Source Name", validators=[])
+    sourceCity_2 = StringField("Source City", validators=[])
+    sourceState_2 = StringField("Source State", validators=[])
     rrid_2 = StringField('RRID', validators=[])
     # Detection Method
     detectionMethod = SelectField("Detection Method", choices=[
@@ -53,13 +59,17 @@ class immunohistochemistryForm(EDIForm):
                 self.dilution.data,
                 self.lotNumber.data,
                 self.catNumber.data,
-                self.source.data,
+                self.sourceName.data,
+                self.sourceCity.data,
+                self.sourceState.data,
                 self.rrid.data,
                 self.targetSpecies_2.data,
                 self.hostSpecies_2.data,
                 self.dilution_2.data,
                 self.lotNumber_2.data,
                 self.catNumber_2.data,
-                self.source_2.data,
+                self.sourceName_2.data,
+                self.sourceCity_2.data,
+                self.sourceState_2.data,
                 self.rrid_2.data,
                 self.detectionMethod.data)

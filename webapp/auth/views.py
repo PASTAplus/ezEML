@@ -50,6 +50,7 @@ def login():
             uid = pasta_token.uid.split(",")[0]
             cname = uid.split('=')[1]
             session_id = cname + "*" + pasta_token.uid
+            print("this is the session id=", session_id)
             user = User(session_id)
             login_user(user)
             initialize_user_data(cname, pasta_token.uid)

@@ -2188,7 +2188,10 @@ def create_immunohistochemistry(ihc_node: Node,
                                 dilution: str = None,
                                 lotNumber: str = None,
                                 catNumber: str = None,
-                                source: str = None,
+                                source: Node = None,
+                                sourceName: str = None,
+                                sourceCity: str = None,
+                                sourceState: str = None,
                                 rrid: str = None,
                                 secondaryAntibody: Node = None,
                                 targetSpecies_2: str = None,
@@ -2196,7 +2199,10 @@ def create_immunohistochemistry(ihc_node: Node,
                                 dilution_2: str = None,
                                 lotNumber_2: str = None,
                                 catNumber_2: str = None,
-                                source_2: str = None,
+                                source_2: Node = None,
+                                sourceName_2: str = None,
+                                sourceCity_2: str = None,
+                                sourceState_2: str = None,
                                 rrid_2: str = None,
                                 detectionMethod: str = None):
     try:
@@ -2233,8 +2239,19 @@ def create_immunohistochemistry(ihc_node: Node,
             primaryAntibody.add_child(catNumber_node)
         if source:
             source_node = Node("source", parent=primaryAntibody)
-            source_node.content = source
             primaryAntibody.add_child(source_node)
+        if sourceName:
+            sourceName_node = Node("sourceName", parent=source_node)
+            sourceName_node.content = sourceName
+            source_node.add_child(sourceName_node)
+        if sourceCity:
+            sourceCity_node = Node("sourceCity", parent=source_node)
+            sourceCity_node.content = sourceCity
+            source_node.add_child(sourceCity_node)
+        if sourceState:
+            sourceState_node = Node("sourceState", parent= source_node)
+            sourceState_node.content = sourceState
+            source_node.add_child(sourceState_node)
         if rrid:
             rrid_node = Node("rrid", parent=primaryAntibody)
             rrid_node.content = rrid
@@ -2264,8 +2281,19 @@ def create_immunohistochemistry(ihc_node: Node,
             secondaryAntibody.add_child(catNumber2_node)
         if source_2:
             source2_node = Node("source", parent=secondaryAntibody)
-            source2_node.content = source_2
             secondaryAntibody.add_child(source2_node)
+        if sourceName_2:
+            sourceName_2_node = Node("sourceName", parent=source2_node)
+            sourceName_2_node.content = sourceName_2
+            source2_node.add_child(sourceName_2_node)
+        if sourceCity_2:
+            sourceCity_2_node = Node("sourceCity", parent=source2_node)
+            sourceCity_2_node.content = sourceCity_2
+            source2_node.add_child(sourceCity_2_node)
+        if sourceState_2:
+            sourceState_2_node = Node("sourceState", parent=source2_node)
+            sourceState_2_node.content = sourceState_2
+            source2_node.add_child(sourceState_2_node)
         if rrid_2:
             rrid2_node = Node("rrid", parent=secondaryAntibody)
             rrid2_node.content = rrid_2

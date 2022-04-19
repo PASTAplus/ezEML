@@ -83,7 +83,8 @@ from webapp.home.metapype_client import (
     import_project_nodes, get_check_metadata_status,
     handle_hidden_buttons, check_val_for_hidden_buttons,
     add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
-    add_imported_from_xml_metadata, get_imported_from_xml_metadata
+    add_imported_from_xml_metadata, get_imported_from_xml_metadata,
+    clear_taxonomy_imported_from_xml, taxonomy_imported_from_xml
 )
 
 from webapp.home.check_metadata import check_eml
@@ -1131,7 +1132,8 @@ def import_taxonomic_coverage_2(filename):
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
-        import_coverage_nodes(target_package, node_ids_to_import)
+        eml_node = import_coverage_nodes(target_package, node_ids_to_import)
+        clear_taxonomy_imported_from_xml(eml_node, target_package)
         log_usage(actions['IMPORT_TAXONOMIC_COVERAGE'], filename)
         return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=target_package))
 

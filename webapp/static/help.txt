@@ -878,9 +878,9 @@ The backslash "escape" characters before the &lt; and &gt; in each XML tag enabl
 taxonomy_imported_from_xml
 Imported Taxonomy
 
-The EML standard allows Taxonomic Coverage structures with complexity beyond what ezEML supports.
-
-Since this package contains Taxonomic Coverage that was imported from an XML file, you will not be able to view or edit its taxonomic coverage within ezEML.
+This package contains taxonomic coverage metadata that was imported from an EML XML file, and the taxonomic coverage metadata has a structure that is inconsistent with ezEML. As a result, you will not be able to view or edit its taxonomic coverage metadata within ezEML.
 
 When you save your package as an EML XML file, however, the Taxonomic Coverage will be preserved intact.
+
+Alternatively, you can replace the taxonomic coverage metadata by using <b>Import Taxonomic Coverage</b> from the Import/Export menu, or you can clear the taxonomic coverage metadata by clicking the <b>Clear Taxonomic Coverage</b> button. Doing either of these actions will make it possible for you to view and edit taxonomic coverage, but the taxonomic coverage that was imported from the EML XML file will be removed from the package.
 

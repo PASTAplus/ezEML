@@ -41,6 +41,9 @@
                 disabled
                 {% endif %}
                 type="submit" value="Add Taxonomic Coverage"/>
+                {% if imported_from_xml %}
+                &nbsp;&nbsp;<input class="btn btn-primary" name="Clear" onclick="return confirm('Are you sure?');" type="submit" value="Clear Taxonomic Coverage"/>
+                {% endif %}
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}

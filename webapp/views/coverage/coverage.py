@@ -17,7 +17,7 @@ from webapp.home.metapype_client import (
     create_temporal_coverage, list_temporal_coverages,
     create_taxonomic_coverage, list_taxonomic_coverages,
     handle_hidden_buttons, check_val_for_hidden_buttons,
-    was_imported_from_xml
+    taxonomy_imported_from_xml, clear_taxonomy_imported_from_xml
 )
 
 from webapp.views.coverage.taxonomy import (
@@ -502,14 +502,6 @@ def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
     form.md5.data = form_md5(form)
 
 
-def has_imported_taxonomic_coverage(eml_node):
-    if was_imported_from_xml(eml_node):
-        taxonomic_coverage_node = eml_node.find_descendant(names.TAXONOMICCOVERAGE)
-        if taxonomic_coverage_node:
-            return True
-    return False
-
-
 @cov_bp.route('/taxonomic_coverage_select/<filename>', methods=['GET', 'POST'])
 def taxonomic_coverage_select(filename=None):
     form = TaxonomicCoverageSelectForm(filename=filename)
@@ -518,11 +510,15 @@ def taxonomic_coverage_select(filename=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(filename, form, form_dict,
-                          'POST', PAGE_TAXONOMIC_COVERAGE_SELECT,
-                          PAGE_TEMPORAL_COVERAGE_SELECT,
-                          PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
-        return redirect(url)
+        if BTN_CLEAR in form_dict:
+            clear_taxonomic_coverage(filename)
+            # Fall through to GET
+        else:
+            url = select_post(filename, form, form_dict,
+                              'POST', PAGE_TAXONOMIC_COVERAGE_SELECT,
+                              PAGE_TEMPORAL_COVERAGE_SELECT,
+                              PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
+            return redirect(url)
 
     # Process GET
     title = "Taxonomic Coverage"
@@ -532,15 +528,26 @@ def taxonomic_coverage_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            if not has_imported_taxonomic_coverage(eml_node):
+            if not taxonomy_imported_from_xml(eml_node):
                 txc_list = list_taxonomic_coverages(dataset_node)
 
     set_current_page('taxonomic_coverage')
     help = [get_help('taxonomic_coverages'), get_help('taxonomy_imported_from_xml')]
     return render_template('taxonomic_coverage_select.html', title=title,
                            txc_list=txc_list,
-                           imported_from_xml=has_imported_taxonomic_coverage(eml_node),
+                           imported_from_xml=taxonomy_imported_from_xml(eml_node),
                            form=form, help=help)
+
+
+def clear_taxonomic_coverage(package_name):
+    eml_node = load_eml(filename=package_name)
+    coverage_node = eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE])
+    if coverage_node:
+        taxonomic_coverage_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
+        for taxonomic_coverage_node in taxonomic_coverage_nodes:
+            coverage_node.remove_child(taxonomic_coverage_node)
+            Node.delete_node_instance(taxonomic_coverage_node.id)
+        clear_taxonomy_imported_from_xml(eml_node, package_name)
 
 
 def fill_taxonomic_coverage(taxon, source_type, source_name):

@@ -66,9 +66,10 @@ def log_usage(action, *args):
     for i in range(NUM_DATA_COLS):
         data_cols.append('')
     i = 0
-    for arg in args:
-        data_cols[i] = arg
-        i += 1
+    if args:
+        for arg in args:
+            data_cols[i] = str(arg)
+            i += 1
     with open(USAGE_LOG_FILE, 'a') as log:
         data = ','.join(data_cols)
         line = f"{date},{time},{username},{action},{current_document},{data}\n"

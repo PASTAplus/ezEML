@@ -1688,12 +1688,13 @@ def get_fetched_from_edi_metadata(eml_node:Node=None):
     return msg
 
 
-def check_taxonomic_coverage_consistency_with_ezeml(eml_node):
+def check_taxonomic_coverage_consistency_with_ezeml(eml_node, package_name):
     # If there is no taxonomicCoverage in the package, or if there is taxonomicCoverage but it adheres to the pattern
     #  expected by ezEML, we don't want to block access to editing of taxonomic coverage
     taxonomic_coverage_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TAXONOMICCOVERAGE])
     if not taxonomic_coverage_nodes:
-        clear_taxonomy_imported_from_xml(eml_node)
+        clear_taxonomy_imported_from_xml(eml_node, package_name)
+        return True
     else:
         ezeml_valid = True
         for taxonomic_coverage_node in taxonomic_coverage_nodes:
@@ -1702,7 +1703,8 @@ def check_taxonomic_coverage_consistency_with_ezeml(eml_node):
                 ezeml_valid = False
                 break
         if ezeml_valid:
-            clear_taxonomy_imported_from_xml(eml_node)
+            clear_taxonomy_imported_from_xml(eml_node, package_name)
+        return ezeml_valid
 
 
 def add_imported_from_xml_metadata(eml_node:Node=None, xml_filename:str=None):
@@ -1742,6 +1744,7 @@ def was_imported_from_xml(eml_node):
 
 
 def clear_taxonomy_imported_from_xml(eml_node, package_name=None):
+    # If the package was imported from XML, add a flag indicating that the taxonomic coverage is OK for ezEML
     imported_from_xml_node = eml_node.find_descendant('importedFromXML')
     if imported_from_xml_node:
         imported_from_xml_node.add_attribute('taxonomicCoverageExempt', True)
@@ -1749,7 +1752,7 @@ def clear_taxonomy_imported_from_xml(eml_node, package_name=None):
             save_both_formats(package_name, eml_node)
 
 
-def taxonomy_imported_from_xml(eml_node):
+def taxonomy_imported_from_xml(eml_node, package_name):
     imported_from_xml_node = eml_node.find_descendant('importedFromXML')
     if imported_from_xml_node:
         if imported_from_xml_node.attribute_value('taxonomicCoverageExempt'):
@@ -1757,8 +1760,7 @@ def taxonomy_imported_from_xml(eml_node):
         else:
             # There exist packages that were imported from XML before we checked the taxonomic coverage
             #  for consistency with ezEML, so we'll do it here.
-            check_taxonomic_coverage_consistency_with_ezeml(eml_node)
-            return True
+            return not check_taxonomic_coverage_consistency_with_ezeml(eml_node, package_name)
     else:
         return False
 

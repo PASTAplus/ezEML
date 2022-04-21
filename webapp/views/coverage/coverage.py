@@ -528,18 +528,20 @@ def taxonomic_coverage_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            if not taxonomy_imported_from_xml(eml_node):
+            if not taxonomy_imported_from_xml(eml_node, filename):
                 txc_list = list_taxonomic_coverages(dataset_node)
 
     set_current_page('taxonomic_coverage')
     help = [get_help('taxonomic_coverages'), get_help('taxonomy_imported_from_xml')]
     return render_template('taxonomic_coverage_select.html', title=title,
                            txc_list=txc_list,
-                           imported_from_xml=taxonomy_imported_from_xml(eml_node),
+                           imported_from_xml=taxonomy_imported_from_xml(eml_node, filename),
                            form=form, help=help)
 
 
 def clear_taxonomic_coverage(package_name):
+    # When user selects Clear Taxonomic Coverage to get rid of coverage imported from XML, we delete it and
+    #  set the flag that says its OK for ezEML to handle even though the package was imported from XML.
     eml_node = load_eml(filename=package_name)
     coverage_node = eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE])
     if coverage_node:

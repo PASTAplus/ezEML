@@ -1916,7 +1916,7 @@ def import_xml():
             eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
 
             if eml_node:
-                add_imported_from_xml_metadata(eml_node, filename)
+                add_imported_from_xml_metadata(eml_node, filename, package_name)
                 has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
                 log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
                 save_both_formats(filename=package_name, eml_node=eml_node)
@@ -1966,7 +1966,7 @@ def import_xml_2(package_name, filename, fetched=False):
         if eml_node:
             # save fact that EML was fetched from EDI in additional metadata
             add_fetched_from_edi_metadata(eml_node, package_name)
-            add_imported_from_xml_metadata(eml_node, filename)
+            add_imported_from_xml_metadata(eml_node, filename, package_name)
             has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
             log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
             save_both_formats(filename=package_name, eml_node=eml_node)
@@ -2269,7 +2269,7 @@ def fetch_xml_3(scope_identifier=''):
     if eml_node:
         # save fact that EML was fetched from EDI in additional metadata
         add_fetched_from_edi_metadata(eml_node, package_name)
-        add_imported_from_xml_metadata(eml_node, filename)
+        add_imported_from_xml_metadata(eml_node, filename, package_name)
         save_both_formats(filename=package_name, eml_node=eml_node)
         current_user.set_filename(filename=package_name)
         if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:

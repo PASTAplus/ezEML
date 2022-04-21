@@ -74,7 +74,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.04.19'
+RELEASE_NUMBER = '2022.04.21'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1707,7 +1707,7 @@ def check_taxonomic_coverage_consistency_with_ezeml(eml_node, package_name):
         return ezeml_valid
 
 
-def add_imported_from_xml_metadata(eml_node:Node=None, xml_filename:str=None):
+def add_imported_from_xml_metadata(eml_node:Node=None, xml_filename:str=None, package_name:str=None):
     imported_from_xml_node = eml_node.find_descendant('importedFromXML')
     if imported_from_xml_node:
         metadata_node = imported_from_xml_node.parent
@@ -1721,7 +1721,7 @@ def add_imported_from_xml_metadata(eml_node:Node=None, xml_filename:str=None):
     imported_from_xml_node.attributes.clear()
     imported_from_xml_node.add_attribute('filename', xml_filename)
     imported_from_xml_node.add_attribute('dateImported', str(date.today()))
-    check_taxonomic_coverage_consistency_with_ezeml(eml_node)
+    check_taxonomic_coverage_consistency_with_ezeml(eml_node, package_name)
 
 
 def get_imported_from_xml_metadata(eml_node:Node=None):

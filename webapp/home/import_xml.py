@@ -5,7 +5,7 @@ import shutil
 import daiquiri
 from flask_login import current_user
 
-from metapype.eml import validate
+from metapype.eml import names, validate
 from metapype.model import metapype_io
 from metapype.model.node import Node
 from metapype.eml.validation_errors import ValidationError
@@ -107,6 +107,23 @@ def save_xml_file(file):
     return filepath
 
 
+def fix_field_delimiters(eml_node):
+    field_delimiter_nodes = []
+    eml_node.find_all_descendants(names.FIELDDELIMITER, field_delimiter_nodes)
+    for field_delimiter_node in field_delimiter_nodes:
+        delimiter = field_delimiter_node.content
+        if delimiter:
+            if len(delimiter) > 1:
+                try:
+                    # Some packages represent the field delimiter as a hex value, e.g., 0x2c for comma. This causes
+                    #   csv readers to fail.
+                    val = int(delimiter, 16)
+                    delimiter = chr(val)
+                    field_delimiter_node.content = delimiter
+                except:
+                    pass
+
+
 def parse_xml_file(filename, filepath):
     log_info(f"parse_xml_file: {filename}")
     eml_version = ''
@@ -162,6 +179,7 @@ def parse_xml_file(filename, filepath):
         except Exception as e:
             print(f'validate.prune FAILED: {e}')
             log_info(f'validate.prune FAILED: {e}')
+    fix_field_delimiters(eml_node)
     return eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes
 
 

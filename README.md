@@ -1,4 +1,4 @@
-# ezEMLmotherDB
+# ezEML + MotherDB
 ![mother](/assets/motherDB.png?raw=true "Mother DB")
 
 The Multispecies Ovary Tissue Histology Electronic Repository (MOTHER) will provide a public repository of digitized microscopic images of ovary tissues along with the information that ensures image integrity and quality. 

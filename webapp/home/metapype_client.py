@@ -2421,6 +2421,159 @@ def create_responsible_party(responsible_party_node: Node = None,
     except Exception as e:
         logger.error(e)
 
+def create_donor(donor_node:Node=None,
+                             filename:str=None,
+                             donorId:str=None,
+                             donorGender:str=None,
+                             ageType:Node=None,
+                             ageYears:int=None,
+                             ageDays:int=None,
+                             lifeStage:str=None,
+                             specimenTissue:str=None,
+                             ovaryLocation:str=None,
+                             specimenLocation:str=None,
+                             corpusLectum:str=None,
+                             dayOfCycle:str=None,
+                             stageOfCycle:str=None,
+                             follicularType:str=None,
+                             luteralType:str=None,
+                             slideID:str=None,
+                             sectionSeqNum:int=None,
+                             sectionThickness:int=None,
+                             sectionThicknessType:str=None,
+                             sampleProcessing:str=None,
+                             fixation:str=None,
+                             stain:str=None,
+                             sudanStainType:str=None,
+                             stainLightType:str=None,
+                             stainForecentType:str=None,
+                             stainElectronType:str=None,
+                             maginifcation:str=None,
+                             maker:str=None,
+                             model:str=None,
+                             notes:str=None):
+    try:
+        if donorId:
+            donorId_node = Node('donorId', parent=donor_node)
+            donorId_node.content = donorId
+            donor_node.add_child(donorId)
+        if donorGender:
+            donorGender_node = Node('donorGender', parent=donor_node)
+            donorGender_node.content = donorGender
+            donor_node.add_child(donorGender)
+        if ageType:
+            ageType = Node("ageType", parent=donor_node)
+            donor_node.add_child(ageType)
+        if ageYears:
+            ageYears_node = Node('ageYears', parent=donor_node)
+            ageYears_node.content = ageYears
+            ageType.add_child(ageYears)
+        if ageDays:
+            ageDays_node = Node('ageDays', parent=donor_node)
+            ageDays_node.content = ageDays
+            ageType.add_child(ageDays)
+        if lifeStage:
+            lifeStage_node = Node('lifeStage', parent=donor_node)
+            lifeStage_node.content = lifeStage
+            donor_node.add_child(lifeStage)
+        if specimenTissue:
+            specimenTissue_node = Node('specimenTissue', parent=donor_node)
+            specimenTissue_node.content = specimenTissue
+            donor_node.add_child(specimenTissue)
+        if ovaryLocation:
+            ovaryLocation_node = Node('ovaryLocation', parent=donor_node)
+            ovaryLocation_node.content = ovaryLocation
+            donor_node.add_child(ovaryLocation)
+        if specimenLocation:
+            specimenLocation_node = Node('specimenLocation', parent=donor_node)
+            specimenLocation_node.content = specimenLocation
+            donor_node.add_child(specimenLocation)
+        if corpusLectum:
+            corpusLectum_node = Node('corpusLectum', parent=donor_node)
+            corpusLectum_node.content = corpusLectum
+            donor_node.add_child(corpusLectum)
+        if dayOfCycle:
+            dayOfCycle_node = Node('dayOfCycle', parent=donor_node)
+            dayOfCycle_node.content = dayOfCycle
+            donor_node.add_child(dayOfCycle)
+        if stageOfCycle:
+            stageOfCycle_node = Node('stageOfCycle', parent=donor_node)
+            stageOfCycle_node.content = stageOfCycle
+            donor_node.add_child(stageOfCycle)
+        if follicularType:
+            follicularType_node = new_child_node('follicularType', parent=donor_node)
+            follicularType_node.content = follicularType
+            donor_node.add_child(follicularType)
+        if luteralType:
+            luteralType_node = Node('luteralType', parent=donor_node)
+            luteralType_node.content = luteralType
+            donor_node.add_child(luteralType)
+        if slideID:
+            slideID_node = Node('slideID', parent=donor_node)
+            slideID_node.content = slideID
+            donor_node.add_child(slideID)
+        if sectionSeqNum:
+            sectionSeqNum_node = Node('sectionSeqNum', parent=donor_node)
+            sectionSeqNum_node.content = sectionSeqNum
+            donor_node.add_child(sectionSeqNum)
+        if sectionThickness:
+            sectionThickness_node = Node('sectionThickness', parent=donor_node)
+            sectionThickness_node.content = sectionThickness
+            donor_node.add_child(sectionThickness)
+        if sectionThicknessType:
+            sectionThicknessType_node = Node('sectionThicknessType', parent=donor_node)
+            sectionThicknessType_node.content = sectionThicknessType
+            donor_node.add_child(sectionThicknessType)
+        if sampleProcessing:
+            sampleProcessing_node = Node('sampleProcessing', parent=donor_node)
+            sampleProcessing_node.content = sampleProcessing
+            donor_node.add_child(sampleProcessing)
+        if fixation:
+            fixation_node = Node('fixation', parent=donor_node)
+            fixation_node.content = fixation
+            donor_node.add_child(fixation)
+        if stain:
+            stain_node = Node('stain', parent=donor_node)
+            stain_node.content = stain
+            donor_node.add_child(stain)
+        if sudanStainType:
+            sudanStainType_node = Node('sudanStainType', parent=donor_node)
+            sudanStainType_node.content = sudanStainType
+            donor_node.add_child(sudanStainType)
+        if stainLightType:
+            stainLightType_node = Node('stainLightType', parent=donor_node)
+            stainLightType_node.content = stainLightType
+            donor_node.add_child(stainLightType)
+        if stainForecentType:
+            stainForecentType_node = Node('stainForecentType', parent=donor_node)
+            stainForecentType_node.content = stainForecentType
+            donor_node.add_child(stainForecentType)
+        if stainElectronType:
+            stainElectronType_node = Node('stainElectronType', parent=donor_node)
+            stainElectronType_node.content = stainElectronType
+            donor_node.add_child(stainElectronType)
+        if maginifcation:
+            maginifcation_node = Node('maginifcation', parent=donor_node)
+            maginifcation_node.content = maginifcation
+            donor_node.add_child(maginifcation)
+        if maker:
+            maker_node = Node('maker', parent=donor_node)
+            maker_node.content = maker
+            donor_node.add_child(maker)
+        if model:
+            model_node = Node('model', parent=donor_node)
+            model_node.content = model
+            donor_node.add_child(model)
+        if notes:
+            notes_node = Node('notes', parent=donor_node)
+            notes_node.content = notes
+            donor_node.add_child(notes)
+
+        return donor_node
+
+    except Exception as e:
+        logger.error(e)
+
 
 def list_funding_awards(eml_node: Node = None, node_id=None):
     award_list = []

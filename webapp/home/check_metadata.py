@@ -603,7 +603,7 @@ def check_maintenance(eml_node, doc_name, evaluation_warnings=None):
 def check_contacts(eml_node, doc_name, validation_errs=None):
     link = url_for(PAGE_CONTACT_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
-    if validation_errs:
+    if validation_errs is None:
         validation_errs = validate_via_metapype(dataset_node)
     if find_min_unmet(validation_errs, names.DATASET, names.CONTACT):
         add_to_evaluation('contacts_01', link=link)
@@ -623,13 +623,18 @@ def check_method_step(method_step_node, doc_name, node_id):
         add_to_evaluation('methods_02', link)
 
 
-def check_method_steps(eml_node, doc_name, evaluation_warnings=None):
+def check_method_steps(eml_node, doc_name, evaluation_warnings=None, validation_errs=None):
     link = url_for(PAGE_METHOD_STEP_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_METHOD_STEPS_MISSING, names.DATASET):
         add_to_evaluation('methods_01', link)
+    else:
+        if validation_errs is None:
+            validation_errs = validate_via_metapype(dataset_node)
+        if find_min_unmet(validation_errs, names.METHODS, names.METHODSTEP):
+            add_to_evaluation('methods_03', link)
 
     method_step_nodes = eml_node.find_all_nodes_by_path([
         names.DATASET,
@@ -834,7 +839,7 @@ def perform_evaluation(eml_node, doc_name):
     check_coverage(eml_node, doc_name, evaluation_warnings)
     check_geographic_coverage(eml_node, doc_name)
     check_maintenance(eml_node, doc_name, evaluation_warnings)
-    check_method_steps(eml_node, doc_name, evaluation_warnings)
+    check_method_steps(eml_node, doc_name, evaluation_warnings, validation_errs)
     check_project(eml_node, doc_name)
     check_other_entities(eml_node, doc_name)
     check_data_package_id(eml_node, doc_name, validation_errs)

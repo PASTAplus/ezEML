@@ -34,7 +34,7 @@ data_table_07,Data Tables,Data Table File,ERROR,REQUIRED,A data table CSV file i
 attributes_01,Data Tables,Column Definition,ERROR,REQUIRED,A column <b>Definition</b> is required.,For each column present.
 attributes_02,Data Tables,Numerical Variable Unit,ERROR,REQUIRED,A Numerical variable is required to have a <b>Standard Unit</b> or <b>Custom Unit</b> defined.,For Numerical variables.
 attributes_03,Data Tables,Format String,ERROR,REQUIRED,A DateTime variable requires a <b>Format String</b>.,For DateTime variables
-attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable is required is required to have at least one <b>Code</b> defined.,For Categorical variables
+attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable is required to have at least one <b>Code</b> defined.,For Categorical variables
 attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical variables
 attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables
 attributes_07,Data Tables,Explanation,ERROR,REQUIRED,A Missing Value Code <b>Explanation</b> is required.,For Missing Value Codes

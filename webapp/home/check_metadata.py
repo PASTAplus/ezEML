@@ -506,7 +506,7 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node):
 
     # Categorical
     if attr_type == metapype_client.VariableType.CATEGORICAL:
-        if find_min_unmet(validation_errs, names.ENUMERATEDDOMAIN, names.CODEDEFINITION):
+        if find_min_unmet_for_choice(validation_errs, names.ENUMERATEDDOMAIN):
             add_to_evaluation('attributes_04', link)
         found = find_content_empty(validation_errs, names.CODE)
         if found:

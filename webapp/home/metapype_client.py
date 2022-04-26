@@ -2430,25 +2430,29 @@ def create_donor(donor_node:Node=None,
                              ageYears:int=None,
                              ageDays:int=None,
                              lifeStage:str=None,
+                             sectionSeqNum:int=None,
                              specimenTissue:str=None,
-                             ovaryLocation:str=None,
+                             ovaryPosition:str=None,
                              specimenLocation:str=None,
-                             corpusLectum:str=None,
+                             corpusLuteum:str=None,
                              dayOfCycle:str=None,
                              stageOfCycle:str=None,
                              follicularType:str=None,
-                             luteralType:str=None,
+                             lutealType:str=None,
                              slideID:str=None,
-                             sectionSeqNum:int=None,
                              sectionThickness:int=None,
-                             sectionThicknessType:str=None,
+                             sectionThicknessUnit:str=None,
                              sampleProcessing:str=None,
                              fixation:str=None,
+                             fixationOther:str=None,
                              stain:str=None,
                              sudanStainType:str=None,
                              stainLightType:str=None,
+                             stainLightOther:str=None,
                              stainForecentType:str=None,
+                             stainForecentOther:str=None,
                              stainElectronType:str=None,
+                             stainElectronOther:str=None,
                              maginifcation:str=None,
                              maker:str=None,
                              model:str=None,
@@ -2477,22 +2481,26 @@ def create_donor(donor_node:Node=None,
             lifeStage_node = Node('lifeStage', parent=donor_node)
             lifeStage_node.content = lifeStage
             donor_node.add_child(lifeStage_node)
+        if sectionSeqNum:
+            sectionSeqNum_node = Node('sectionSeqNum', parent=donor_node)
+            sectionSeqNum_node.content = sectionSeqNum
+            donor_node.add_child(sectionSeqNum_node)
         if specimenTissue:
             specimenTissue_node = Node('specimenTissue', parent=donor_node)
             specimenTissue_node.content = specimenTissue
             donor_node.add_child(specimenTissue_node)
-        if ovaryLocation:
-            ovaryLocation_node = Node('ovaryLocation', parent=donor_node)
-            ovaryLocation_node.content = ovaryLocation
-            donor_node.add_child(ovaryLocation_node)
+        if ovaryPosition:
+            ovaryPosition_node = Node('ovaryPosition', parent=donor_node)
+            ovaryPosition_node.content = ovaryPosition
+            donor_node.add_child(ovaryPosition_node)
         if specimenLocation:
             specimenLocation_node = Node('specimenLocation', parent=donor_node)
             specimenLocation_node.content = specimenLocation
             donor_node.add_child(specimenLocation_node)
-        if corpusLectum:
-            corpusLectum_node = Node('corpusLectum', parent=donor_node)
-            corpusLectum_node.content = corpusLectum
-            donor_node.add_child(corpusLectum_node)
+        if corpusLuteum:
+            corpusLuteum_node = Node('corpusLuteum', parent=donor_node)
+            corpusLuteum_node.content = corpusLuteum
+            donor_node.add_child(corpusLuteum_node)
         if dayOfCycle:
             dayOfCycle_node = Node('dayOfCycle', parent=donor_node)
             dayOfCycle_node.content = dayOfCycle
@@ -2505,26 +2513,22 @@ def create_donor(donor_node:Node=None,
             follicularType_node = Node('follicularType', parent=donor_node)
             follicularType_node.content = follicularType
             donor_node.add_child(follicularType_node)
-        if luteralType:
-            luteralType_node = Node('luteralType', parent=donor_node)
-            luteralType_node.content = luteralType
-            donor_node.add_child(luteralType_node)
+        if lutealType:
+            lutealType_node = Node('lutealType', parent=donor_node)
+            lutealType_node.content = lutealType
+            donor_node.add_child(lutealType_node)
         if slideID:
             slideID_node = Node('slideID', parent=donor_node)
             slideID_node.content = slideID
             donor_node.add_child(slideID_node)
-        if sectionSeqNum:
-            sectionSeqNum_node = Node('sectionSeqNum', parent=donor_node)
-            sectionSeqNum_node.content = sectionSeqNum
-            donor_node.add_child(sectionSeqNum_node)
         if sectionThickness:
             sectionThickness_node = Node('sectionThickness', parent=donor_node)
             sectionThickness_node.content = sectionThickness
             donor_node.add_child(sectionThickness_node)
-        if sectionThicknessType:
-            sectionThicknessType_node = Node('sectionThicknessType', parent=donor_node)
-            sectionThicknessType_node.content = sectionThicknessType
-            donor_node.add_child(sectionThicknessType_node)
+        if sectionThicknessUnit:
+            sectionThicknessUnit_node = Node('sectionThicknessUnit', parent=donor_node)
+            sectionThicknessUnit_node.content = sectionThicknessUnit
+            donor_node.add_child(sectionThicknessUnit_node)
         if sampleProcessing:
             sampleProcessing_node = Node('sampleProcessing', parent=donor_node)
             sampleProcessing_node.content = sampleProcessing
@@ -2533,6 +2537,10 @@ def create_donor(donor_node:Node=None,
             fixation_node = Node('fixation', parent=donor_node)
             fixation_node.content = fixation
             donor_node.add_child(fixation_node)
+        if fixationOther:
+            fixationOther_node = Node('fixationOther', parent=donor_node)
+            fixationOther_node.content = fixationOther
+            donor_node.add_child(fixationOther_node)
         if stain:
             stain_node = Node('stain', parent=donor_node)
             stain_node.content = stain
@@ -2545,14 +2553,26 @@ def create_donor(donor_node:Node=None,
             stainLightType_node = Node('stainLightType', parent=donor_node)
             stainLightType_node.content = stainLightType
             donor_node.add_child(stainLightType_node)
+        if stainLightOther:
+            stainLightOther_node = Node('stainLightOther', parent=donor_node)
+            stainLightOther_node.content = stainLightOther
+            donor_node.add_child(stainLightOther_node)
         if stainForecentType:
             stainForecentType_node = Node('stainForecentType', parent=donor_node)
             stainForecentType_node.content = stainForecentType
             donor_node.add_child(stainForecentType_node)
+        if stainForecentOther:
+            stainForecentOther_node = Node('stainForecentOther', parent=donor_node)
+            stainForecentOther_node.content = stainForecentOther
+            donor_node.add_child(stainForecentOther_node)
         if stainElectronType:
             stainElectronType_node = Node('stainElectronType', parent=donor_node)
             stainElectronType_node.content = stainElectronType
             donor_node.add_child(stainElectronType_node)
+        if stainElectronOther:
+            stainElectronOther_node = Node('stainElectronOther', parent=donor_node)
+            stainElectronOther_node.content = stainElectronOther
+            donor_node.add_child(stainElectronOther_node)
         if maginifcation:
             maginifcation_node = Node('maginifcation', parent=donor_node)
             maginifcation_node.content = maginifcation

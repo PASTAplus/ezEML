@@ -21,8 +21,9 @@ class DonorForm(EDIForm):
             ("pubertal", "Pubertal"),
             ("adult", "Adult"),
             ("aging", "Aging")])
+    sectionSeqNum = IntegerField('Section Sequence #', validators=[NumberRange(min=0)])
     specimenTissue = StringField('Specimen Tissue', validators=[], default ='ovary')
-    ovaryLocation = SelectField('Ovary Position',
+    ovaryPosition = SelectField('Ovary Position',
         choices=[("", ""),
             ("left", "Left"),
             ("right", "Right"),
@@ -35,7 +36,7 @@ class DonorForm(EDIForm):
             ("follicle", "Follicle"),
             ("corpusLuteum", "CorpusLuteum"),
             ("unspecified", "Unspecified")])
-    corpusLectumType = SelectField('Luteum',
+    corpusLuteumType = SelectField('Corpus Luteum Type',
         choices=[("", ""),
             ("early", "Early"),
             ("mid", "Mid"),
@@ -54,16 +55,15 @@ class DonorForm(EDIForm):
             ("early", "Early"),
             ("mid", "Mid"),
             ("late", "Late")])
-    luteralType = SelectField('Luteal Values',
+    lutealType = SelectField('Luteal Values',
         choices=[("", ""),
             ("early", "Early"),
             ("mid", "Mid"),
             ("late", "Late"),
             ("regression", "Regression")])
     slideID = StringField('Slide ID', validators=[])
-    sectionSeqNum = IntegerField('Section Sequence Number', validators=[NumberRange(min=0)])
     sectionThickness = IntegerField('Section Thickness', validators=[NumberRange(min=0)])
-    sectionThicknessType = SelectField('Section Thickness Units',
+    sectionThicknessUnit = SelectField('Section Thickness Unit',
         choices =[("", ""),
             ("microns","Microns"),
             ("nm", "NM")])
@@ -79,6 +79,7 @@ class DonorForm(EDIForm):
             ("neutralBufferedFormalin5aceticAcid", "Neutral Buffered Formalin Sacetic Acid"),
             ("bouins", "Bouins"),
             ("other", "Other")])
+    fixationOther = StringField('', validators=[])
     stain = SelectField('Stain',
         choices=[("", ""),
             ("lightMicroscopyStain", "Light Microscopy Stain"),
@@ -115,6 +116,7 @@ class DonorForm(EDIForm):
             ("toluidineBlue", "Toluidine Blue"),
             ("vanGieson", "Van Gieson"),
             ("other", "other")])
+    stainLightOther = StringField('', validators=[])
     stainForecentType = SelectField('Stain Forecent Type',
         choices=[("", ""),
             ("acridineOrange", "Acridine Orange"),
@@ -125,6 +127,7 @@ class DonorForm(EDIForm):
             ("rhodamine", "Rhodamine"),
             ("TUNEL", "TUNEL"),
             ("other", "Other")])
+    stainForecentOther = StringField('', validators=[])
     stainElectronType = SelectField('Stain Electron Type',
         choices=[("", ""),
             ("colloidalgold", "Colloidal Gold"),
@@ -132,6 +135,7 @@ class DonorForm(EDIForm):
             ("phosphotundsticAcid", "Phosphotundstic Acid"),
             ("silverNitrate", "Silver Nitrate"),
             ("other", "Other")])
+    stainElectronOther = StringField('', validators=[])
     magnification = StringField('Magnification', validators=[])
     maker = StringField('Microscope Maker', validators=[])
     model = StringField('Microscope Model', validators=[])
@@ -144,25 +148,29 @@ class DonorForm(EDIForm):
                 self.ageYears.data,
                 self.ageDays.data,
                 self.lifeStage.data,
+                self.sectionSeqNum.data,
                 self.specimenTissue.data,
-                self.ovaryLocation.data,
+                self.ovaryPosition.data,
                 self.specimenLocation.data,
-                self.corpusLectumType.data,
+                self.corpusLuteumType.data,
                 self.dayOfCycle.data,
                 self.stageOfCycle.data,
                 self.follicularType.data,
-                self.luteralType.data,
+                self.lutealType.data,
                 self.slideID.data,
-                self.sectionSeqNum.data,
                 self.sectionThickness.data,
-                self.sectionThicknessType.data,
+                self.sectionThicknessUnit.data,
                 self.sampleProcessing.data,
                 self.fixation.data,
+                self.fixationOther.data,
                 self.stain.data,
                 self.sudanStainType.data,
                 self.stainLightType.data,
+                self.stainLightOther.data,
                 self.stainForecentType.data,
+                self.stainForecentOther.data,
                 self.stainElectronType.data,
+                self.stainElectronOther.data,
                 self.magnification.data,
                 self.maker.data,
                 self.model.data,

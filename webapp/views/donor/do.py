@@ -87,18 +87,18 @@ def newDonor(filename=None, node_id=None, method=None,
             ageYears = form.ageYears.data
             ageDays = form.ageDays.data
             lifeStage = form.lifeStage.data
+            sectionSeqNum = form.sectionSeqNum.data
             specimenTissue = form.specimenTissue.data
-            ovaryLocation = form.ovaryLocation.data
+            ovaryPosition = form.ovaryPosition.data
             specimenLocation = form.specimenLocation.data
-            corpusLectumType = form.corpusLectumType.data
+            corpusLuteumType = form.corpusLuteumType.data
             dayOfCycle = form.dayOfCycle.data
             stageOfCycle = form.stageOfCycle.data
             follicularType = form.follicularType.data
-            luteralType = form.luteralType.data
+            lutealType = form.lutealType.data
             slideID = form.slideID.data
-            sectionSeqNum = form.sectionSeqNum.data
             sectionThickness = form.sectionThickness.data
-            sectionThicknessType = form.sectionThicknessType.data
+            sectionThicknessUnit = form.sectionThicknessUnit.data
             sampleProcessing = form.sampleProcessing.data
             fixation = form.fixation.data
             stain = form.stain.data
@@ -122,18 +122,18 @@ def newDonor(filename=None, node_id=None, method=None,
                 ageYears,
                 ageDays,
                 lifeStage,
+                sectionSeqNum,
                 specimenTissue,
-                ovaryLocation,
+                ovaryPosition,
                 specimenLocation,
-                corpusLectumType,
+                corpusLuteumType,
                 dayOfCycle,
                 stageOfCycle,
                 follicularType,
-                luteralType,
+                lutealType,
                 slideID,
-                sectionSeqNum,
                 sectionThickness,
-                sectionThicknessType,
+                sectionThicknessUnit,
                 sampleProcessing,
                 fixation,
                 stain,
@@ -201,25 +201,25 @@ def populate_donor_form(form: DonorForm, node: Node):
     if lifeStage_node:
         form.lifeStage.data = lifeStage_node.content
 
+    sectionSeqNum_node = node.find_child('sectionSeqNum')
+    if sectionSeqNum_node:
+        form.sectionSeqNum.data = sectionSeqNum_node.content
+
     specimenTissue_node = node.find_child('specimenTissue')
     if specimenTissue_node:
         form.specimenTissue.data = specimenTissue_node.content
 
-    ovaryLocation_node = node.find_child('ovaryLocation')
-    if ovaryLocation_node:
-        form.ovaryLocation.data = ovaryLocation_node.content
-
-    ovaryLocation_node = node.find_child('ovaryLocation')
-    if ovaryLocation_node:
-        form.ovaryLocation.data = ovaryLocation_node.content
+    ovaryPosition_node = node.find_child('ovaryPosition')
+    if ovaryPosition_node:
+        form.ovaryPosition.data = ovaryPosition_node.content
 
     specimenLocation_node = node.find_child('specimenLocation')
     if specimenLocation_node:
         form.specimenLocation.data = specimenLocation_node.content
 
-    corpuslectumType_node = node.find_child('corpuslectumType')
-    if corpuslectumType_node:
-        form.corpuslectumType.data = corpuslectumType_node.content
+    corpusluteumType_node = node.find_child('corpusluteumType')
+    if corpusluteumType_node:
+        form.corpusluteumType.data = corpusluteumType_node.content
         
     dayOfCycle_node = node.find_child('dayOfCycle')
     if dayOfCycle_node:
@@ -233,25 +233,21 @@ def populate_donor_form(form: DonorForm, node: Node):
     if follicularType_node:
         form.follicularType.data = follicularType_node.content
     
-    luteralType_node = node.find_child('luteralType')
-    if luteralType_node:
-        form.luteralType.data = luteralType_node.content
+    lutealType_node = node.find_child('lutealType')
+    if lutealType_node:
+        form.lutealType.data = lutealType_node.content
 
     slideID_node = node.find_child('slideID')
     if slideID_node:
         form.slideID.data = slideID_node.content
-
-    sectionSeqNum_node = node.find_child('sectionSeqNum')
-    if sectionSeqNum_node:
-        form.sectionSeqNum.data = sectionSeqNum_node.content
     
     sectionThickness_node = node.find_child('sectionThickness')
     if sectionThickness_node:
         form.sectionThickness.data = sectionThickness_node.content
     
-    sectionThicknessType_node = node.find_child('sectionThicknessType')
-    if sectionThicknessType_node:
-        form.sectionThicknessType.data = sectionThicknessType_node.content
+    sectionThicknessUnit_node = node.find_child('sectionThicknessUnit')
+    if sectionThicknessUnit_node:
+        form.sectionThicknessUnit.data = sectionThicknessUnit_node.content
     
     sampleProcessing_node = node.find_child('c')
     if sampleProcessing_node:

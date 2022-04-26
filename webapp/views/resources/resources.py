@@ -467,7 +467,7 @@ def keyword(filename=None, node_id=None):
             keyword_type = form.keyword_type.data
             keyword_thesaurus = form.keyword_thesaurus.data
 
-            # If so thesaurus was specified, see if the LTER Controlled Vocabulary applies
+            # If no thesaurus was specified, see if the LTER Controlled Vocabulary applies
             if not keyword_thesaurus:
                 lter_keywords = get_keywords('LTER')
                 if keyword in lter_keywords:
@@ -491,23 +491,25 @@ def keyword(filename=None, node_id=None):
                 if keyword_thesaurus:
                     keyword_thesaurus_node = Node(names.KEYWORDTHESAURUS, parent=keyword_set_node)
                     keyword_thesaurus_node.content = keyword_thesaurus
-                    keyword_set_node.children.append(keyword_thesaurus_node)
+                    keyword_set_node.add_child(keyword_thesaurus_node, index=-1)
 
             keyword_node = Node(names.KEYWORD, parent=keyword_set_node)
             create_keyword(keyword_node, keyword, keyword_type)
+
+            keyword_set_node.add_child(keyword_node, index=-2)
 
             if node_id and len(node_id) != 1:
                 old_keyword_node = Node.get_node_instance(node_id)
 
                 if old_keyword_node:
-                    keyword_parent_node = old_keyword_node.parent
-                    keyword_parent_node.replace_child(old_keyword_node,
-                                                      keyword_node)
+                    old_keyword_set_node = old_keyword_node.parent
+                    old_keyword_set_node.remove_child(old_keyword_node)
+                    # If we just removed the last keyword from a keyword set, remove the keyword set
+                    if not old_keyword_set_node.children:
+                        old_keyword_set_node.parent.remove_child(old_keyword_set_node)
                 else:
                     msg = f"No keyword node found in the node store with node id {node_id}"
                     raise Exception(msg)
-            else:
-                add_child(keyword_set_node, keyword_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
 

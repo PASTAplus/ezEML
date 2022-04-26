@@ -2214,102 +2214,149 @@ def create_immunohistochemistry(ihc_node: Node,
             targetProtein_node.content = targetProtein
 #PT4/25            ihc_node.add_child(targetProtein_node)
         if primaryAntibody:
-            primaryAntibody = Node("primaryAntibody", parent=ihc_node)
-            ihc_node.add_child(primaryAntibody)
+            primaryAntibody_node = ihc_node.find_child("primaryAntibody")
+            if not primaryAntibody_node:
+                primaryAntibody_node = Node("primaryAntibody", parent=ihc_node)
+                ihc_node.add_child(primaryAntibody_node)
         if clonality:
-            clonality_node = Node("clonality", parent=primaryAntibody)
+            clonality_node = primaryAntibody_node.find_child("clonality")
+            if not clonality_node:
+                clonality_node = Node("clonality", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(clonality_node)
             clonality_node.content = clonality
-            primaryAntibody.add_child(clonality_node)
         if targetSpecies:
-            targetSpecies_node = Node("targetSpecies", parent=primaryAntibody)
+            targetSpecies_node = primaryAntibody_node.find_child("targetSpecies")
+            if not targetSpecies_node:
+                targetSpecies_node = Node("targetSpecies", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(targetSpecies_node)
             targetSpecies_node.content = targetSpecies
-            primaryAntibody.add_child(targetSpecies_node)
         if hostSpecies:
-            hostSpecies_node = Node("hostSpecies", parent=primaryAntibody)
+            hostSpecies_node = primaryAntibody_node.find_child("hostSpecies")
+            if not hostSpecies_node:
+                hostSpecies_node = Node("hostSpecies", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(hostSpecies_node)
             hostSpecies_node.content = hostSpecies
-            primaryAntibody.add_child(hostSpecies_node)
         if dilution:
-            dilution_node = Node("dilution", parent=primaryAntibody)
+            dilution_node = primaryAntibody_node.find_child("dilution")
+            if not dilution_node:
+                dilution_node = Node("dilution", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(dilution_node)
             dilution_node.content = dilution
-            primaryAntibody.add_child(dilution_node)
         if lotNumber:
-            lotNumber_node = Node("lotNumber", parent=primaryAntibody)
+            lotNumber_node = primaryAntibody_node.find_child("lotNumber")
+            if not lotNumber_node:
+                lotNumber_node = Node("lotNumber", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(lotNumber_node)
             lotNumber_node.content = lotNumber
-            primaryAntibody.add_child(lotNumber_node)
         if catNumber:
-            catNumber_node = Node("catNumber", parent=primaryAntibody)
+            catNumber_node = primaryAntibody_node.find_child("catNumber")
+            if not catNumber_node:
+                catNumber_node = Node("catNumber", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(catNumber_node)
             catNumber_node.content = catNumber
-            primaryAntibody.add_child(catNumber_node)
         if source:
-            source_node = Node("source", parent=primaryAntibody)
-            primaryAntibody.add_child(source_node)
+            source_node = primaryAntibody_node.find_child("source")
+            if not source_node:
+                source_node = Node("source", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(source_node)
         if sourceName:
-            sourceName_node = Node("sourceName", parent=source_node)
+            sourceName_node = source_node.find_child("sourceName")
+            if not sourceName_node:
+                sourceName_node = Node("sourceName", parent=source_node)
+                source_node.add_child(sourceName_node)
             sourceName_node.content = sourceName
-            source_node.add_child(sourceName_node)
         if sourceCity:
-            sourceCity_node = Node("sourceCity", parent=source_node)
+            sourceCity_node = source_node.find_child("sourceCity")
+            if not sourceCity_node:
+                sourceCity_node = Node("sourceCity", parent=source_node)
+                source_node.add_child(sourceCity_node)
             sourceCity_node.content = sourceCity
-            source_node.add_child(sourceCity_node)
         if sourceState:
-            sourceState_node = Node("sourceState", parent= source_node)
-            sourceState_node.content = sourceState
-            source_node.add_child(sourceState_node)
+            sourceState_node = source_node.find_child("sourceState")
+            if not sourceState_node:
+                sourceState_node = Node("sourceState", parent= source_node)
+                source_node.add_child(sourceState_node)
+                sourceState_node.content = sourceState
         if rrid:
-            rrid_node = Node("rrid", parent=primaryAntibody)
+            rrid_node = primaryAntibody_node.find_child("rrid")
+            if not rrid_node:
+                rrid_node = Node("rrid", parent=primaryAntibody_node)
+                primaryAntibody_node.add_child(rrid_node)
             rrid_node.content = rrid
-            primaryAntibody.add_child(rrid_node)
         if secondaryAntibody:
-            secondaryAntibody = Node("secondaryAntibody", parent=ihc_node)
-            ihc_node.add_child(secondaryAntibody)
+            secondaryAntibody_node = ihc_node.find_child("secondaryAntibody")
+            if not secondaryAntibody_node:
+                secondaryAntibody_node = Node("secondaryAntibody", parent=ihc_node)
+                ihc_node.add_child(secondaryAntibody_node)
         if targetSpecies_2:
-            targetSpecies2_node = Node("targetSpecies", parent=secondaryAntibody)
-            targetSpecies2_node.content = targetSpecies_2
-            secondaryAntibody.add_child(targetSpecies2_node)
+            targetSpecies_node_2 = secondaryAntibody_node.find_child("targetSpecies")
+            if not targetSpecies_node_2:
+                targetSpecies_node_2 = Node("targetSpecies", parent=secondaryAntibody_node)
+                secondaryAntibody_node.add_child(targetSpecies_node_2)
+            targetSpecies_node_2.content = targetSpecies_2
         if hostSpecies_2:
-            hostSpecies2_node = Node("hostSpecies", parent=secondaryAntibody)
-            hostSpecies2_node.content = hostSpecies_2
-            secondaryAntibody.add_child(hostSpecies2_node)
+            hostSpecies_node_2 = secondaryAntibody_node.find_child("hostSpecies")
+            if not hostSpecies_node_2:
+                hostSpecies_node_2 = Node("hostSpecies", parent=secondaryAntibody_node)
+                secondaryAntibody_node.add_child(hostSpecies_node_2)
+            hostSpecies_node_2.content = hostSpecies_2
         if dilution_2:
-            dilution2_node = Node("dilution", parent=secondaryAntibody)
-            dilution2_node.content = dilution_2
-            secondaryAntibody.add_child(dilution2_node)
+            dilution_node_2 = secondaryAntibody_node.find_child("dilution")
+            if not dilution_node_2:
+                dilution_node_2 = Node("dilution", parent=secondaryAntibody_node)
+                secondaryAntibody_node.add_child(dilution_node_2)
+            dilution_node_2.content = dilution_2
         if lotNumber_2:
-            lotNumber2_node = Node("lotNumber", parent=secondaryAntibody)
-            lotNumber2_node.content = lotNumber_2
-            secondaryAntibody.add_child(lotNumber2_node)
+            lotNumber_node_2 = secondaryAntibody_node.find_child("lotNumber")
+            if not lotNumber_node_2:
+                lotNumber_node_2 = Node("lotNumber", parent=secondaryAntibody_node)
+                secondaryAntibody_node.add_child(lotNumber_node_2)
+            lotNumber_node_2.content = lotNumber_2
         if catNumber_2:
-            catNumber2_node = Node("catNumber", parent=secondaryAntibody)
-            catNumber2_node.content = catNumber_2
-            secondaryAntibody.add_child(catNumber2_node)
+            catNumber_node_2 = secondaryAntibody_node.find_child("catNumber")
+            if not catNumber_node_2:
+                catNumber_node_2 = Node("catNumber", parent=secondaryAntibody_node)
+                secondaryAntibody_node.add_child(catNumber_node_2)
+            catNumber_node_2.content = catNumber_2
         if source_2:
-            source2_node = Node("source", parent=secondaryAntibody)
-            secondaryAntibody.add_child(source2_node)
+            source_node_2 = secondaryAntibody_node.find_child("source")
+            if not source_node_2:
+                source_node_2 = Node("source", parent=secondaryAntibody_node)
+                secondaryAntibody_node.add_child(source_node_2)
         if sourceName_2:
-            sourceName_2_node = Node("sourceName", parent=source2_node)
-            sourceName_2_node.content = sourceName_2
-            source2_node.add_child(sourceName_2_node)
+            sourceName_node_2 = source_node_2.find_child("sourceName")
+            if not sourceName_node_2:
+                sourceName_node_2 = Node("sourceName", parent=source_node_2)
+                source_node_2.add_child(sourceName_node_2)
+            sourceName_node_2.content = sourceName_2
         if sourceCity_2:
-            sourceCity_2_node = Node("sourceCity", parent=source2_node)
-            sourceCity_2_node.content = sourceCity_2
-            source2_node.add_child(sourceCity_2_node)
+            sourceCity_node_2 = source_node_2.find_child("sourceCity")
+            if not sourceCity_node_2:
+                sourceCity_node_2 = Node("sourceCity", parent=source_node_2)
+                source_node_2.add_child(sourceCity_node_2)
+            sourceCity_node_2.content = sourceCity_2
         if sourceState_2:
-            sourceState_2_node = Node("sourceState", parent=source2_node)
-            sourceState_2_node.content = sourceState_2
-            source2_node.add_child(sourceState_2_node)
+            sourceState_node_2 = source_node_2.find_child("sourceState")
+            if not sourceState_node_2:
+                sourceState_node_2 = Node("sourceState", parent=source_node_2)
+                source_node_2.add_child(sourceState_node_2)
+                sourceState_node_2.content = sourceState_2
         if rrid_2:
-            rrid2_node = Node("rrid", parent=secondaryAntibody)
-            rrid2_node.content = rrid_2
-            secondaryAntibody.add_child(rrid2_node)
+            rrid_node_2 = secondaryAntibody_node.find_child("rrid")
+            if not rrid_node_2:
+                rrid_node_2 = Node("rrid", parent=secondaryAntibody_node)
+                secondaryAntibody_node.add_child(rrid_node_2)
+            rrid_node_2.content = rrid
         if detectionMethod:
-            detectionMethod_node = Node("detectionMethod", parent=ihc_node)
+            detectionMethod_node = ihc_node.find_child("detectionMethod")
+            if not detectionMethod_node:
+                detectionMethod_node = Node("detectionMethod", parent=ihc_node)
+                ihc_node.add_child(detectionMethod_node)
             detectionMethod_node.content = detectionMethod
-            ihc_node.add_child(detectionMethod_node)
 
         return ihc_node
 
     except Exception as e:
-        print("error here boyo")
         logger.error(e)
 
 

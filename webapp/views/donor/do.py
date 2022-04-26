@@ -152,7 +152,7 @@ def newDonor(filename=None, node_id=None, method=None,
                 old_do_node = Node.get_node_instance(node_id)
                 if old_do_node:
                     old_do_parent_node = old_do_node.parent
-                    old_do_parent_node.replace_child(old_do_node, do_node)
+                    old_do_parent_node.replace_child(old_do_node, new_do_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     raise Exception(msg)

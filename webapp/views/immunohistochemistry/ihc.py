@@ -69,7 +69,10 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     mother_node = metadata_node.find_child("mother")
-    parent_node = mother_node
+    ihc_node = mother_node.find_child(node_name) #PT4/25
+    if not ihc_node: # PT4/25
+        mother_node.add_child(Node(node_name, parent=mother_node)) # PT4/25
+        ihc_node = mother_node.find_child(node_name)  # PT4/25
 
     # Could be important as well -NM 4/8/2022
     # new_page = select_new_page(back_page, next_page)
@@ -82,11 +85,13 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
     #                  'POST', PAGE_IHC, project_node_id=project_node_id)
 
     # Process POST
+
     save = False
     if is_dirty_form(form):
         save = True
 
-    if form.validate_on_submit():
+    if form.validate_on_submit() and method == 'POST': # I added 'and method == ' PT4/25
+
         if save:
             targetProtein = form.targetProtein.data
             primaryAntibody = Node("primaryAntibody", parent=None)
@@ -114,9 +119,9 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
             rrid_2 = form.rrid_2.data
             detectionMethod = form.detectionMethod.data
 
-            ihc_node = Node(node_name, parent=parent_node)
-
-            new_ihc_node = create_immunohistochemistry(
+#PT4/25            ihc_node = Node(node_name, parent=parent_node)
+#PT4/25            new_ihc_node = create_immunohistochemistry(
+            create_immunohistochemistry( #PT4/25
                 ihc_node,
                 filename,
                 targetProtein,
@@ -145,24 +150,37 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
                 rrid_2,
                 detectionMethod,
             )
-            print("Test=", new_ihc_node)
 
-            if node_id and len(node_id) != 1:
-                old_ihc_node = Node.get_node_instance(node_id)
-                if old_ihc_node:
-                    old_ihc_parent_node = old_ihc_node.parent
-                    old_ihc_parent_node.replace_child(old_ihc_node, new_ihc_node)
-                else:
-                    msg = f"No node found in the node store with node id {node_id}"
-                    raise Exception(msg)
-            else:
-                parent_node.add_child(new_ihc_node)
+#PT4/25            if node_id and len(node_id) != 1:
+#PT4/25                old_ihc_node = Node.get_node_instance(node_id)
+#PT4/25                if old_ihc_node:
+#PT4/25                    old_ihc_parent_node = old_ihc_node.parent
+#PT4/25                    old_ihc_parent_node.replace_child(old_ihc_node, ihc_node)
+#PT4/25                else:
+#PT4/25                    msg = f"No node found in the node store with node id {node_id}"
+#PT4/25                    raise Exception(msg)
+#PT4/25            else:
+#PT4/25                print("we are adding the child")
+#PT4/25                parent_node.add_child(new_ihc_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
-
+            new_page = "ihc.immunohistochemistry" #PT4/25 --> THIS WILL NEED TO BE CHANGED TO THE NEXT SEQUENCED ITEM IN SIDE LIST
+#            return redirect(url_for(new_page, filename=filename, node_id=ihc_node.id)) #PT4/25
+            return redirect(url_for(new_page, filename=filename)) #PT4/25
     # Process GET
     if node_id == '1':
+        print("get request NODE_ID = 1")
         form.init_md5()
+
+    #PT NEW 4/25
+    elif node_id:
+        related_project_node = Node.get_node_instance(node_id)
+        print("related_project_node = ", related_project_node)
+        populate_ihc_form(form, related_project_node)
+    return render_template('ihc.html', title=title, node_name=node_name,
+                           form=form, next_page=next_page, save_and_continue=save_and_continue, help=help)
+    #END PT NEW 4/25
+'''PT4/25START
         # else:
         if parent_node:
             rp_nodes = parent_node.find_all_children(child_name=node_name)
@@ -171,17 +189,18 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
                     if node_id == ihc_node.id:
                         populate_ihc_form(form, ihc_node)
 
-    help = get_helps([node_name])
+    help = get_helps([node_name]) 
     return render_template('ihc.html', title=title, node_name=node_name,
-                           form=form, next_page=next_page, save_and_continue=save_and_continue, help=help)
+                           form=form, next_page=next_page, save_and_continue=save_and_continue, help=help) END'''
 
 
 def populate_ihc_form(form: immunohistochemistryForm, node: Node):
     protein_node = node.find_child("targetProtein")
     if protein_node:
-        proteinName_node = protein_node.find_child("proteinName")
-        if proteinName_node:
-            form.proteinName.data = proteinName_node.content
+#PT4/25        proteinName_node = protein_node.find_child("targetProtein")
+#PT4/25        if proteinName_node:
+#PT4/25                form.proteinName.data = proteinName_node.content
+        form.targetProtein.data = protein_node.content    #PT4/25
 
         geneSymbol_node = protein_node.find_all_children("geneSymbol")
         if geneSymbol_node:
@@ -224,7 +243,8 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
 
         source_node_2 = primaryAntibody_node.find_child("source")
         if source_node_2:
-            form.source.data = source_node_2.content
+            print("no source") #PT4/25 NICK NEEDS TO LOOK AT THIS
+#PT4/25            form.source.data = source_node_2.content
 
         rrid_node_2 = primaryAntibody_node.find_child("RRID")
         if rrid_node_2:
@@ -254,7 +274,8 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
 
         source_node_2 = secondaryAntibody_node.find_child("source")
         if source_node_2:
-            form.source_2.data = source_node_2.content
+            print("no source 2") #PT4/25  NICK NEEDS TO LOOK AT THIS
+#PT4/25            form.source_2.data = source_node_2.content
 
         rrid_node_2 = secondaryAntibody_node.find_child("RRID")
         if rrid_node_2:

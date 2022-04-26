@@ -2207,9 +2207,12 @@ def create_immunohistochemistry(ihc_node: Node,
                                 detectionMethod: str = None):
     try:
         if targetProtein:
-            targetProtein_node = Node("targetProtein", parent=ihc_node)
+            targetProtein_node = ihc_node.find_child("targetProtein") #PT4/25
+            if not targetProtein_node: #PT4/25
+                targetProtein_node = Node("targetProtein", parent=ihc_node)
+                ihc_node.add_child(targetProtein_node)
             targetProtein_node.content = targetProtein
-            ihc_node.add_child(targetProtein_node)
+#PT4/25            ihc_node.add_child(targetProtein_node)
         if primaryAntibody:
             primaryAntibody = Node("primaryAntibody", parent=ihc_node)
             ihc_node.add_child(primaryAntibody)

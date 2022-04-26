@@ -54,7 +54,6 @@ def title(filename=None):
         save = False
         if is_dirty_form(form):
             save = True
-
         if save:
             create_title(title=form.title.data, filename=filename)
             form.md5.data = form_md5(form)

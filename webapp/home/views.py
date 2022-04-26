@@ -2709,12 +2709,17 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
     filepath = os.path.join(uploads_folder, saved_filename)
 
     if not name_chg_ok:
-        if column_names_changed(filepath, delimiter, quote_char, dt_node):
-            # Go get confirmation
-            return redirect(url_for(PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED,
-                                    saved_filename=saved_filename,
-                                    dt_node_id=dt_node_id),
-                            code=307)
+        try:
+            if column_names_changed(filepath, delimiter, quote_char, dt_node):
+                # Go get confirmation
+                return redirect(url_for(PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED,
+                                        saved_filename=saved_filename,
+                                        dt_node_id=dt_node_id),
+                                code=307)
+        except UnicodeDecodeError as err:
+            errors = display_decode_error_lines(filepath)
+            filename = os.path.basename(filepath)
+            return render_template('encoding_error.html', filename=filename, errors=errors)
 
     try:
         new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(

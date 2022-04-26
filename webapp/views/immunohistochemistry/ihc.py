@@ -42,6 +42,12 @@ def immunohistochemistry(filename=None):
                     node_id = ihc_node.id
         else:
             add_mother_metadata(eml_node)
+            metadata_node = additional_metadata_node.find_child(names.METADATA)
+            mother_node = metadata_node.find_child("mother")
+            if mother_node:
+                ihc_node = mother_node.find_child("immunohistochemistry")
+                if ihc_node:
+                    node_id = ihc_node.id
     # Added in 4/8/2022
     save_both_formats(filename, eml_node)
     set_current_page('ihc')
@@ -86,7 +92,7 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
     if is_dirty_form(form):
         save = True
 
-    if form.validate_on_submit():
+    if form.validate_on_submit() and method == "POST":
         if save:
             targetProtein = form.targetProtein.data
             primaryAntibody = Node("primaryAntibody", parent=None)
@@ -161,7 +167,8 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
             save_both_formats(filename=filename, eml_node=eml_node)
 
     # Process GET
-    if node_id == '1':
+    #if node_id == '1':
+    if method == "GET":
         form.init_md5()
         # else:
         if parent_node:
@@ -202,33 +209,43 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
         if clonality_node:
             form.clonality.data = clonality_node.content
 
-        targetSpecies_node_2 = primaryAntibody_node.find_child("targetSpecies")
-        if targetSpecies_node_2:
-            form.targetSpecies.data = targetSpecies_node_2.content
+        targetSpecies_node = primaryAntibody_node.find_child("targetSpecies")
+        if targetSpecies_node:
+            form.targetSpecies.data = targetSpecies_node.content
 
-        hostSpecies_node_2 = primaryAntibody_node.find_child("hostSpecies")
-        if hostSpecies_node_2:
-            form.hostSpecies.data = hostSpecies_node_2.content
+        hostSpecies_node = primaryAntibody_node.find_child("hostSpecies")
+        if hostSpecies_node:
+            form.hostSpecies.data = hostSpecies_node.content
 
-        dilution_node_2 = primaryAntibody_node.find_child("dilution")
-        if dilution_node_2:
-            form.dilution.data = dilution_node_2.content
+        dilution_node = primaryAntibody_node.find_child("dilution")
+        if dilution_node:
+            form.dilution.data = dilution_node.content
 
-        lotNumber_node_2 = primaryAntibody_node.find_child("lotNumber")
-        if lotNumber_node_2:
-            form.lotNumber.data = lotNumber_node_2.content
+        lotNumber_node = primaryAntibody_node.find_child("lotNumber")
+        if lotNumber_node:
+            form.lotNumber.data = lotNumber_node.content
 
-        catNumber_node_2 = primaryAntibody_node.find_child("catNumber")
-        if catNumber_node_2:
-            form.catNumber.data = catNumber_node_2.content
+        catNumber_node = primaryAntibody_node.find_child("catNumber")
+        if catNumber_node:
+            form.catNumber.data = catNumber_node.content
 
-        source_node_2 = primaryAntibody_node.find_child("source")
-        if source_node_2:
-            form.source.data = source_node_2.content
+        source_node = primaryAntibody_node.find_child("source")
+        if source_node:
+            sourceName_node = source_node.find_child("sourceName")
+            if sourceName_node:
+                form.sourceName.data = sourceName_node.content
 
-        rrid_node_2 = primaryAntibody_node.find_child("RRID")
-        if rrid_node_2:
-            form.rrid.data = rrid_node_2.content
+            sourceCity_node = source_node.find_child("sourceCity")
+            if sourceCity_node:
+                form.sourceCity.data = sourceCity_node.content
+
+            sourceState_node = source_node.find_child("sourceState")
+            if sourceState_node:
+                form.sourceState.data = sourceState_node.content
+
+        rrid_node = primaryAntibody_node.find_child("RRID")
+        if rrid_node:
+            form.rrid.data = rrid_node.content
 
     secondaryAntibody_node = node.find_child("secondaryAntibody")
     if secondaryAntibody_node:
@@ -254,7 +271,17 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
 
         source_node_2 = secondaryAntibody_node.find_child("source")
         if source_node_2:
-            form.source_2.data = source_node_2.content
+            sourceName_node_2 = source_node_2.find_child("sourceName")
+            if sourceName_node_2:
+                form.sourceName_2.data = sourceName_node_2.content
+
+            sourceCity_node_2 = source_node_2.find_child("sourceCity")
+            if sourceCity_node_2:
+                form.sourceCity_2.data = sourceCity_node_2.content
+
+            sourceState_node_2 = source_node_2.find_child("sourceState")
+            if sourceState_node_2:
+                form.sourceState_2.data = sourceState_node_2.content
 
         rrid_node_2 = secondaryAntibody_node.find_child("RRID")
         if rrid_node_2:

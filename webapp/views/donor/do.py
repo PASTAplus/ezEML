@@ -12,7 +12,7 @@ from webapp.home.forms import (
 
 from webapp.home.metapype_client import (
     load_eml, save_both_formats,
-    add_child, create_donor, add_mother_metadata
+    add_child, create_donor, add_mother_metadata, save_eml
 )
 
 from metapype.eml import names
@@ -23,8 +23,8 @@ from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, set_current_page, get_help, get_helps
 
-
 do_bp = Blueprint('do', __name__, template_folder='templates')
+
 
 @do_bp.route('/donor/<filename>', methods=['GET', 'POST'])
 def donor(filename=None):
@@ -43,20 +43,20 @@ def donor(filename=None):
                     node_id = do_node.id
         else:
             add_mother_metadata(eml_node)
-    
+
     save_both_formats(filename, eml_node)
     set_current_page('donor')
     help = [get_help('publisher')]
     return newDonor(filename=filename, node_id=node_id,
-                             method=method, node_name='donor',
-                             back_page=PAGE_DONOR, title='Donor',
-                             save_and_continue=True, help=help)
+                    method=method, node_name='donor',
+                    back_page=PAGE_DONOR, title='Donor',
+                    save_and_continue=True, help=help)
+
 
 def newDonor(filename=None, node_id=None, method=None,
-                      node_name=None, back_page=None, title=None,
-                      next_page=None, save_and_continue=False, help=None,
-                      project_node_id=None):
-
+             node_name=None, back_page=None, title=None,
+             next_page=None, save_and_continue=False, help=None,
+             project_node_id=None):
     if BTN_CANCEL in request.form:
         if not project_node_id:
             url = url_for(back_page, filename=filename)
@@ -78,12 +78,12 @@ def newDonor(filename=None, node_id=None, method=None,
     save = False
     if is_dirty_form(form):
         save = True
-    
+
     if form.validate_on_submit():
         if save:
-            donorId = form.donorId
+            donorId = form.donorId.data
             donorGender = form.donorGender.data
-            ageType = Node("Age", parent=None)
+            ageType = Node("ageType", parent=None)
             ageYears = form.ageYears.data
             ageDays = form.ageDays.data
             lifeStage = form.lifeStage.data
@@ -113,7 +113,7 @@ def newDonor(filename=None, node_id=None, method=None,
 
             do_node = Node(node_name, parent=parent_node)
 
-            new_do_node = create_donor(
+            create_donor(
                 do_node,
                 filename,
                 donorId,
@@ -146,22 +146,24 @@ def newDonor(filename=None, node_id=None, method=None,
                 model,
                 notes)
 
-            print("Test=", new_do_node)
+            print("Test=", do_node)
 
             if node_id and len(node_id) != 1:
                 old_do_node = Node.get_node_instance(node_id)
                 if old_do_node:
+                    print("Previous do_node=", old_do_node)
                     old_do_parent_node = old_do_node.parent
+                    print("Previous mother node=", old_do_parent_node)
                     old_do_parent_node.replace_child(old_do_node, do_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     raise Exception(msg)
             else:
-                #add_child(parent_node, do_node)
-                parent_node.add_child(new_do_node)
+                # add_child(parent_node, do_node)
+                parent_node.add_child(do_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
-        return redirect(url)
+        # return redirect(url)
 
     # Process GET
     if node_id == '1':
@@ -176,17 +178,18 @@ def newDonor(filename=None, node_id=None, method=None,
 
     help = get_helps([node_name])
     return render_template('donor.html', title=title, node_name=node_name, form=form,
-                            next_page=next_page, save_and_continue=save_and_continue, help=help)
+                           next_page=next_page, save_and_continue=save_and_continue, help=help)
+
 
 def populate_donor_form(form: DonorForm, node: Node):
     donorId_node = node.find_child('donorId')
     if donorId_node:
-        form.donorGender.data = donorGender_node.content
-    
+        form.donorId.data = donorId_node.content
+
     donorGender_node = node.find_child('donorGender')
     if donorGender_node:
         form.donorGender.data = donorGender_node.content
-    
+
     age_node = node.find_child('ageType')
     if age_node:
         years_node = age_node.find_all_children('ageYears')
@@ -195,7 +198,7 @@ def populate_donor_form(form: DonorForm, node: Node):
 
         days_node = age_node.find_child('ageDays')
         if days_node:
-            form.agedays.data = days_node.content
+            form.ageDays.data = days_node.content
 
     lifeStage_node = node.find_child('lifeStage')
     if lifeStage_node:
@@ -220,19 +223,19 @@ def populate_donor_form(form: DonorForm, node: Node):
     corpuslectumType_node = node.find_child('corpuslectumType')
     if corpuslectumType_node:
         form.corpuslectumType.data = corpuslectumType_node.content
-        
+
     dayOfCycle_node = node.find_child('dayOfCycle')
     if dayOfCycle_node:
         form.dayOfCycle.data = dayOfCycle_node.content
-    
+
     stageOfCycle_node = node.find_child('stageOfCycle')
     if stageOfCycle_node:
         form.stageOfCycle.data = stageOfCycle_node.content
-    
+
     follicularType_node = node.find_child('follicularType')
     if follicularType_node:
         form.follicularType.data = follicularType_node.content
-    
+
     luteralType_node = node.find_child('luteralType')
     if luteralType_node:
         form.luteralType.data = luteralType_node.content
@@ -244,15 +247,15 @@ def populate_donor_form(form: DonorForm, node: Node):
     sectionSeqNum_node = node.find_child('sectionSeqNum')
     if sectionSeqNum_node:
         form.sectionSeqNum.data = sectionSeqNum_node.content
-    
+
     sectionThickness_node = node.find_child('sectionThickness')
     if sectionThickness_node:
         form.sectionThickness.data = sectionThickness_node.content
-    
+
     sectionThicknessType_node = node.find_child('sectionThicknessType')
     if sectionThicknessType_node:
         form.sectionThicknessType.data = sectionThicknessType_node.content
-    
+
     sampleProcessing_node = node.find_child('c')
     if sampleProcessing_node:
         form.sampleProcessing.data = sampleProcessing_node.content
@@ -260,7 +263,7 @@ def populate_donor_form(form: DonorForm, node: Node):
     fixation_node = node.find_child('fixation')
     if fixation_node:
         form.fixation.data = fixation_node.content
-    
+
     stain_node = node.find_child('stain')
     if stain_node:
         form.stain.data = stain_node.content
@@ -272,7 +275,7 @@ def populate_donor_form(form: DonorForm, node: Node):
     stainLightType_node = node.find_child('stainLightType_node')
     if stainLightType_node:
         form.stainLightType.data = stainLightType_node.content
-    
+
     stainForecentType_node = node.find_child('stainForecentType')
     if stainForecentType_node:
         form.stainForecentType.data = stainForecentType_node.content

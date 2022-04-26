@@ -83,7 +83,7 @@ class DonorForm(EDIForm):
     stain = SelectField('Stain',
         choices=[("", ""),
             ("lightMicroscopyStain", "Light Microscopy Stain"),
-            ("forecentMicroscopyStain", "Forecent Microscopy Stain"),
+            ("fluorescentMicroscopyStain", "Fluorescent Microscopy Stain"),
             ("electronMicroscopyStain", "Electro Microscopy Stain")])
     sudanStainType = SelectField('Sudan Stain Value',
         choices=[("", ""),
@@ -117,7 +117,7 @@ class DonorForm(EDIForm):
             ("vanGieson", "Van Gieson"),
             ("other", "other")])
     stainLightOther = StringField('', validators=[])
-    stainForecentType = SelectField('Stain Forecent Type',
+    stainFluorescentType = SelectField('Stain Forecent Type',
         choices=[("", ""),
             ("acridineOrange", "Acridine Orange"),
             ("calcein", "Calcein"),
@@ -127,7 +127,7 @@ class DonorForm(EDIForm):
             ("rhodamine", "Rhodamine"),
             ("TUNEL", "TUNEL"),
             ("other", "Other")])
-    stainForecentOther = StringField('', validators=[])
+    stainFluorescentOther = StringField('', validators=[])
     stainElectronType = SelectField('Stain Electron Type',
         choices=[("", ""),
             ("colloidalgold", "Colloidal Gold"),
@@ -167,8 +167,8 @@ class DonorForm(EDIForm):
                 self.sudanStainType.data,
                 self.stainLightType.data,
                 self.stainLightOther.data,
-                self.stainForecentType.data,
-                self.stainForecentOther.data,
+                self.stainFluorescentType.data,
+                self.stainFluorescentOther.data,
                 self.stainElectronType.data,
                 self.stainElectronOther.data,
                 self.magnification.data,

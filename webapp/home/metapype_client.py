@@ -2449,8 +2449,8 @@ def create_donor(donor_node:Node=None,
                              sudanStainType:str=None,
                              stainLightType:str=None,
                              stainLightOther:str=None,
-                             stainForecentType:str=None,
-                             stainForecentOther:str=None,
+                             stainFluorescentType:str=None,
+                             stainFluorescentOther:str=None,
                              stainElectronType:str=None,
                              stainElectronOther:str=None,
                              maginifcation:str=None,
@@ -2557,14 +2557,14 @@ def create_donor(donor_node:Node=None,
             stainLightOther_node = Node('stainLightOther', parent=donor_node)
             stainLightOther_node.content = stainLightOther
             donor_node.add_child(stainLightOther_node)
-        if stainForecentType:
-            stainForecentType_node = Node('stainForecentType', parent=donor_node)
-            stainForecentType_node.content = stainForecentType
-            donor_node.add_child(stainForecentType_node)
-        if stainForecentOther:
-            stainForecentOther_node = Node('stainForecentOther', parent=donor_node)
-            stainForecentOther_node.content = stainForecentOther
-            donor_node.add_child(stainForecentOther_node)
+        if stainFluorescentType:
+            stainFluorescentType_node = Node('stainFluorescentType', parent=donor_node)
+            stainFluorescentType_node.content = stainFluorescentType
+            donor_node.add_child(stainFluorescentType_node)
+        if stainFluorescentOther:
+            stainFluorescentOther_node = Node('stainFluorescentOther', parent=donor_node)
+            stainFluorescentOther_node.content = stainFluorescentOther
+            donor_node.add_child(stainFluorescentOther_node)
         if stainElectronType:
             stainElectronType_node = Node('stainElectronType', parent=donor_node)
             stainElectronType_node.content = stainElectronType

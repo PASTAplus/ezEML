@@ -106,8 +106,8 @@ def newDonor(filename=None, node_id=None, method=None,
             sudanStainType = form.sudanStainType.data
             stainLightType = form.stainLightType.data
             stainLightOther = form.stainLightOther.data
-            stainForecentType = form.stainForecentType.data
-            stainForecentOther = form.stainForecentOther.data
+            stainFluorescentType = form.stainFluorescentType.data
+            stainFluorescentOther = form.stainFluorescentOther.data
             stainElectronType = form.stainElectronType.data
             stainElectronOther = form.stainElectronOther.data
             magnification = form.magnification.data
@@ -145,8 +145,8 @@ def newDonor(filename=None, node_id=None, method=None,
                 sudanStainType,
                 stainLightType,
                 stainLightOther,
-                stainForecentType,
-                stainForecentOther,
+                stainFluorescentType,
+                stainFluorescentOther,
                 stainElectronType,
                 stainElectronOther,
                 magnification,
@@ -285,13 +285,13 @@ def populate_donor_form(form: DonorForm, node: Node):
     if stainLightOther_node:
         form.stainLightOther.data = stainLightOther_node.content
     
-    stainForecentType_node = node.find_child('stainForecentType')
-    if stainForecentType_node:
-        form.stainForecentType.data = stainForecentType_node.content
+    stainFluorescentType_node = node.find_child('stainFluorescentType')
+    if stainFluorescentType_node:
+        form.stainFluorescentType.data = stainFluorescentType_node.content
 
-    stainForecentOther_node = node.find_child('stainForecentOther')
-    if stainForecentOther_node:
-        form.stainForecentOther.data = stainForecentOther_node.content
+    stainFluorescentOther_node = node.find_child('stainFluorescentOther')
+    if stainFluorescentOther_node:
+        form.stainFluorescentOther.data = stainFluorescentOther_node.content
 
     stainElectronType_node = node.find_child('stainElectronType')
     if stainElectronType_node:

@@ -104,8 +104,11 @@ def newDonor(filename=None, node_id=None, method=None,
             stain = form.stain.data
             sudanStainType = form.sudanStainType.data
             stainLightType = form.stainLightType.data
+            stainLightOther = form.stainLightOther.data
             stainForecentType = form.stainForecentType.data
+            stainForecentOther = form.stainForecentOther.data
             stainElectronType = form.stainElectronType.data
+            stainElectronOther = form.stainElectronOther.data
             magnification = form.magnification.data
             maker = form.maker.data
             model = form.model.data
@@ -139,8 +142,11 @@ def newDonor(filename=None, node_id=None, method=None,
                 stain,
                 sudanStainType,
                 stainLightType,
+                stainLightOther,
                 stainForecentType,
+                stainForecentOther,
                 stainElectronType,
+                stainElectronOther,
                 magnification,
                 maker,
                 model,
@@ -268,14 +274,26 @@ def populate_donor_form(form: DonorForm, node: Node):
     stainLightType_node = node.find_child('stainLightType_node')
     if stainLightType_node:
         form.stainLightType.data = stainLightType_node.content
+
+    stainLightOther_node = node.find_child('stainLightOther_node')
+    if stainLightOther_node:
+        form.stainLightOther.data = stainLightOther_node.content
     
     stainForecentType_node = node.find_child('stainForecentType')
     if stainForecentType_node:
         form.stainForecentType.data = stainForecentType_node.content
 
+    stainForecentOther_node = node.find_child('stainForecentOther')
+    if stainForecentOther_node:
+        form.stainForecentOther.data = stainForecentOther_node.content
+
     stainElectronType_node = node.find_child('stainElectronType')
     if stainElectronType_node:
         form.stainElectronType.data = stainElectronType_node.content
+
+    stainElectronOther_node = node.find_child('stainElectronOther')
+    if stainElectronOther_node:
+        form.stainElectronOther.data = stainElectronOther_node.content
 
     magnification_node = node.find_child('magnification')
     if magnification_node:

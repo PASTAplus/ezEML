@@ -81,7 +81,7 @@ def newDonor(filename=None, node_id=None, method=None,
     
     if form.validate_on_submit():
         if save:
-            donorId = form.donorId
+            donorId = form.donorId.data
             donorGender = form.donorGender.data
             ageType = Node("Age", parent=None)
             ageYears = form.ageYears.data

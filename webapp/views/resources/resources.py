@@ -496,7 +496,7 @@ def keyword(filename=None, node_id=None):
             keyword_node = Node(names.KEYWORD, parent=keyword_set_node)
             create_keyword(keyword_node, keyword, keyword_type)
 
-            keyword_set_node.add_child(keyword_node, index=-2)
+            keyword_set_node.add_child(keyword_node, index=-1)
 
             if node_id and len(node_id) != 1:
                 old_keyword_node = Node.get_node_instance(node_id)

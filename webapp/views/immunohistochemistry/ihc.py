@@ -175,7 +175,6 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
     #PT NEW 4/25
     elif node_id:
         related_project_node = Node.get_node_instance(node_id)
-        print("related_project_node = ", related_project_node)
         populate_ihc_form(form, related_project_node)
     return render_template('ihc.html', title=title, node_name=node_name,
                            form=form, next_page=next_page, save_and_continue=save_and_continue, help=help)

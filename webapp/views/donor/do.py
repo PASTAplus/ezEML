@@ -101,6 +101,7 @@ def newDonor(filename=None, node_id=None, method=None,
             sectionThicknessUnit = form.sectionThicknessUnit.data
             sampleProcessing = form.sampleProcessing.data
             fixation = form.fixation.data
+            fixationOther = form.fixationOther.data
             stain = form.stain.data
             sudanStainType = form.sudanStainType.data
             stainLightType = form.stainLightType.data
@@ -139,6 +140,7 @@ def newDonor(filename=None, node_id=None, method=None,
                 sectionThicknessUnit,
                 sampleProcessing,
                 fixation,
+                fixationOther,
                 stain,
                 sudanStainType,
                 stainLightType,
@@ -262,6 +264,10 @@ def populate_donor_form(form: DonorForm, node: Node):
     fixation_node = node.find_child('fixation')
     if fixation_node:
         form.fixation.data = fixation_node.content
+
+    fixationOther_node = node.find_child('fixationOther')
+    if fixationOther_node:
+        form.fixationOther.data = fixationOther_node.content
     
     stain_node = node.find_child('stain')
     if stain_node:

@@ -83,7 +83,7 @@ class DonorForm(EDIForm):
     stain = SelectField('Stain',
         choices=[("", ""),
             ("lightMicroscopyStain", "Light Microscopy Stain"),
-            ("fluorescentMicroscopyStain", "Flourecent Microscopy Stain"),
+            ("forecentMicroscopyStain", "Forecent Microscopy Stain"),
             ("electronMicroscopyStain", "Electro Microscopy Stain")])
     sudanStainType = SelectField('Sudan Stain Value',
         choices=[("", ""),

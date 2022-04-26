@@ -2421,6 +2421,7 @@ def create_responsible_party(responsible_party_node: Node = None,
     except Exception as e:
         logger.error(e)
 
+# Added on 04/23/2022 - Javier Galaviz ***
 def create_donor(donor_node:Node=None,
                              filename:str=None,
                              donorId:str=None,

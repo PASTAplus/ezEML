@@ -7,12 +7,6 @@ from wtforms.validators import (
 )
 
 from webapp.home.forms import EDIForm
-"""
-class microscopeForm(Form):
-    maker = StringField('Maker', validators=[])
-    model = StringField('Model', validators=[])
-    notes = TextAreaField('Notes')
-"""
 
 class DonorForm(EDIForm):
     donorId = StringField('Donor ID', validators=[])
@@ -139,7 +133,6 @@ class DonorForm(EDIForm):
             ("silverNitrate", "Silver Nitrate"),
             ("other", "Other")])
     magnification = StringField('Magnification', validators=[])
-    #microscope = FormField(microscopeForm)
     maker = StringField('Microscope Maker', validators=[])
     model = StringField('Microscope Model', validators=[])
     notes = TextAreaField('Microscope Notes')

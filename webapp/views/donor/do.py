@@ -113,7 +113,7 @@ def newDonor(filename=None, node_id=None, method=None,
 
             do_node = Node(node_name, parent=parent_node)
 
-            new_do_node = create_donor(
+            create_donor(
                 do_node,
                 filename,
                 donorId,
@@ -146,22 +146,22 @@ def newDonor(filename=None, node_id=None, method=None,
                 model,
                 notes)
 
-            print("Test=", new_do_node)
+            print("Test=", do_node)
 
             if node_id and len(node_id) != 1:
                 old_do_node = Node.get_node_instance(node_id)
                 if old_do_node:
                     old_do_parent_node = old_do_node.parent
-                    old_do_parent_node.replace_child(old_do_node, new_do_node)
+                    old_do_parent_node.replace_child(old_do_node, do_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     raise Exception(msg)
             else:
                 #add_child(parent_node, do_node)
-                parent_node.add_child(new_do_node)
+                parent_node.add_child(do_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
-        return redirect(url)
+        #return redirect(url)
 
     # Process GET
     if node_id == '1':

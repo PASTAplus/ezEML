@@ -2502,7 +2502,7 @@ def create_donor(donor_node:Node=None,
             stageOfCycle_node.content = stageOfCycle
             donor_node.add_child(stageOfCycle_node)
         if follicularType:
-            follicularType_node = new_child_node('follicularType', parent=donor_node)
+            follicularType_node = Node('follicularType', parent=donor_node)
             follicularType_node.content = follicularType
             donor_node.add_child(follicularType_node)
         if luteralType:

@@ -2463,7 +2463,7 @@ def create_donor(donor_node:Node=None,
             donorGender_node.content = donorGender
             donor_node.add_child(donorGender)
         if ageType:
-            ageType = Node("ageType", parent=donor_node)
+            ageType = Node('ageType', parent=donor_node)
             donor_node.add_child(ageType)
         if ageYears:
             ageYears_node = Node('ageYears', parent=donor_node)

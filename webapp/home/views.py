@@ -2170,7 +2170,11 @@ def fetch_xml(scope=''):
     reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(url_for(PAGE_TITLE, filename=None))
+        filename = user_data.get_active_document()
+        if filename:
+            return redirect(url_for(PAGE_TITLE, filename=filename))
+        else:
+            return redirect(url_for(PAGE_INDEX))
 
     # Process GET
     form.md5.data = form_md5(form)
@@ -2199,7 +2203,11 @@ def fetch_xml_2(scope=''):
     reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(url_for(PAGE_TITLE, filename=None))
+        filename = user_data.get_active_document()
+        if filename:
+            return redirect(url_for(PAGE_TITLE, filename=filename))
+        else:
+            return redirect(url_for(PAGE_INDEX))
 
     # Process GET
     form.md5.data = form_md5(form)

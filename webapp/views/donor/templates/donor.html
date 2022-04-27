@@ -93,22 +93,20 @@
                         <table width="100%">
                         <tr>
                             <td width="1%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.sampleProcessing) }}</td>
+                            <td class="table_cell">{{ wtf.form_field(form.fixation) }}</td>
                             <td width="1%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.fixation) }}</td>
+                            <td class="table_cell">{{ wtf.form_field(form.fixationOther) }}</td>
                             <td width="1%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.fixationOther) }}</td>
-                            <td width="1%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.stain) }}</td>
+                            <td class="table_cell">{{ wtf.form_field(form.stain) }}</td>
                             <td width="2%">&nbsp;</td>
 
                             <table>
                             <tr>
                                 <td width="2%">&nbsp;</td>
-                                <td class="table_cell">{{ wtf.form_field(form.sudanStainType) }}</td>
-                                <td width="1%">&nbsp;</td>
                                 <td class="table_cell">{{ wtf.form_field(form.stainLightType) }}</td>
-                                <td width="1%">&nbsp;</td>
+                                <td width="2%">&nbsp;</td>
+                                <td class="table_cell">{{ wtf.form_field(form.sudanStainType) }}</td>
+                                <td width="2%">&nbsp;</td>
                                 <td class="table_cell">{{ wtf.form_field(form.stainLightOther) }}</td>
                                 <td width="2%">&nbsp;</td>
                             </tr>

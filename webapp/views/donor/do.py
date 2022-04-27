@@ -99,12 +99,11 @@ def newDonor(filename=None, node_id=None, method=None,
             slideID = form.slideID.data
             sectionThickness = form.sectionThickness.data
             sectionThicknessUnit = form.sectionThicknessUnit.data
-            sampleProcessing = form.sampleProcessing.data
             fixation = form.fixation.data
             fixationOther = form.fixationOther.data
             stain = form.stain.data
-            sudanStainType = form.sudanStainType.data
             stainLightType = form.stainLightType.data
+            sudanStainType = form.sudanStainType.data
             stainLightOther = form.stainLightOther.data
             stainFluorescentType = form.stainFluorescentType.data
             stainFluorescentOther = form.stainFluorescentOther.data
@@ -138,12 +137,11 @@ def newDonor(filename=None, node_id=None, method=None,
                 slideID,
                 sectionThickness,
                 sectionThicknessUnit,
-                sampleProcessing,
                 fixation,
                 fixationOther,
                 stain,
-                sudanStainType,
                 stainLightType,
+                sudanStainType,
                 stainLightOther,
                 stainFluorescentType,
                 stainFluorescentOther,
@@ -256,10 +254,6 @@ def populate_donor_form(form: DonorForm, node: Node):
     sectionThicknessUnit_node = node.find_child('sectionThicknessUnit')
     if sectionThicknessUnit_node:
         form.sectionThicknessUnit.data = sectionThicknessUnit_node.content
-    
-    sampleProcessing_node = node.find_child('c')
-    if sampleProcessing_node:
-        form.sampleProcessing.data = sampleProcessing_node.content
 
     fixation_node = node.find_child('fixation')
     if fixation_node:
@@ -273,13 +267,13 @@ def populate_donor_form(form: DonorForm, node: Node):
     if stain_node:
         form.stain.data = stain_node.content
 
-    sudanStainType_node = node.find_child('sudanStainType')
-    if sudanStainType_node:
-        form.sudanStainType.data = sudanStainType_node.content
-
     stainLightType_node = node.find_child('stainLightType_node')
     if stainLightType_node:
         form.stainLightType.data = stainLightType_node.content
+
+    sudanStainType_node = node.find_child('sudanStainType')
+    if sudanStainType_node:
+        form.sudanStainType.data = sudanStainType_node.content
 
     stainLightOther_node = node.find_child('stainLightOther_node')
     if stainLightOther_node:

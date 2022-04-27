@@ -21,7 +21,7 @@ class DonorForm(EDIForm):
             ("pubertal", "Pubertal"),
             ("adult", "Adult"),
             ("aging", "Aging")])
-    sectionSeqNum = IntegerField('Section Sequence #', validators=[NumberRange(min=0)])
+    sectionSeqNum = IntegerField('Section Sequence Number', validators=[NumberRange(min=0)])
     specimenTissue = StringField('Specimen Tissue', validators=[], default ='ovary')
     ovaryPosition = SelectField('Ovary Position',
         choices=[("", ""),
@@ -63,14 +63,10 @@ class DonorForm(EDIForm):
             ("regression", "Regression")])
     slideID = StringField('Slide ID', validators=[])
     sectionThickness = IntegerField('Section Thickness', validators=[NumberRange(min=0)])
-    sectionThicknessUnit = SelectField('Section Thickness Unit',
+    sectionThicknessUnit = SelectField('Section Thickness Units',
         choices =[("", ""),
             ("microns","Microns"),
             ("nm", "NM")])
-    sampleProcessing = SelectField('Sample Processing',
-        choices=[("", ""),
-            ("fixation", "Fixation"),
-            ("stain", "Stain")])
     fixation = SelectField('Fixation',
         choices=[("", ""),
             ("neutralBufferedFormalin10", "Natural Buffered Formalin10"),
@@ -79,19 +75,12 @@ class DonorForm(EDIForm):
             ("neutralBufferedFormalin5aceticAcid", "Neutral Buffered Formalin Sacetic Acid"),
             ("bouins", "Bouins"),
             ("other", "Other")])
-    fixationOther = StringField('', validators=[])
+    fixationOther = StringField('Other Fixation', validators=[])
     stain = SelectField('Stain',
         choices=[("", ""),
             ("lightMicroscopyStain", "Light Microscopy Stain"),
             ("fluorescentMicroscopyStain", "Fluorescent Microscopy Stain"),
             ("electronMicroscopyStain", "Electro Microscopy Stain")])
-    sudanStainType = SelectField('Sudan Stain Value',
-        choices=[("", ""),
-            ("III", "III"),
-            ("IV", "IV"),
-            ("Black B", "Black B"),
-            ("Oil Red O", "Oil Red O"),
-            ("Osmium Tetroxide", "Osmium Tetroxide")])
     stainLightType = SelectField('Stain Light Type',
         choices=[("", ""),
             ("eosinOnly", "Eosin Only"),
@@ -116,8 +105,15 @@ class DonorForm(EDIForm):
             ("toluidineBlue", "Toluidine Blue"),
             ("vanGieson", "Van Gieson"),
             ("other", "other")])
-    stainLightOther = StringField('', validators=[])
-    stainFluorescentType = SelectField('Stain Forecent Type',
+    sudanStainType = SelectField('Sudan Stain Value',
+        choices=[("", ""),
+            ("III", "III"),
+            ("IV", "IV"),
+            ("Black B", "Black B"),
+            ("Oil Red O", "Oil Red O"),
+            ("Osmium Tetroxide", "Osmium Tetroxide")])
+    stainLightOther = StringField('Other Light Stain', validators=[])
+    stainFluorescentType = SelectField('Stain Fluorescent Type',
         choices=[("", ""),
             ("acridineOrange", "Acridine Orange"),
             ("calcein", "Calcein"),
@@ -127,7 +123,7 @@ class DonorForm(EDIForm):
             ("rhodamine", "Rhodamine"),
             ("TUNEL", "TUNEL"),
             ("other", "Other")])
-    stainFluorescentOther = StringField('', validators=[])
+    stainFluorescentOther = StringField('Other Fluorescent Stain', validators=[])
     stainElectronType = SelectField('Stain Electron Type',
         choices=[("", ""),
             ("colloidalgold", "Colloidal Gold"),
@@ -135,7 +131,7 @@ class DonorForm(EDIForm):
             ("phosphotundsticAcid", "Phosphotundstic Acid"),
             ("silverNitrate", "Silver Nitrate"),
             ("other", "Other")])
-    stainElectronOther = StringField('', validators=[])
+    stainElectronOther = StringField('Other Electron Stain', validators=[])
     magnification = StringField('Magnification', validators=[])
     maker = StringField('Microscope Maker', validators=[])
     model = StringField('Microscope Model', validators=[])
@@ -160,12 +156,11 @@ class DonorForm(EDIForm):
                 self.slideID.data,
                 self.sectionThickness.data,
                 self.sectionThicknessUnit.data,
-                self.sampleProcessing.data,
                 self.fixation.data,
                 self.fixationOther.data,
                 self.stain.data,
-                self.sudanStainType.data,
                 self.stainLightType.data,
+                self.sudanStainType.data,
                 self.stainLightOther.data,
                 self.stainFluorescentType.data,
                 self.stainFluorescentOther.data,

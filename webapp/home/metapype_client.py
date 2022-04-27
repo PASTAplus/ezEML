@@ -2442,12 +2442,11 @@ def create_donor(donor_node:Node=None,
                              slideID:str=None,
                              sectionThickness:int=None,
                              sectionThicknessUnit:str=None,
-                             sampleProcessing:str=None,
                              fixation:str=None,
                              fixationOther:str=None,
                              stain:str=None,
-                             sudanStainType:str=None,
                              stainLightType:str=None,
+                             sudanStainType:str=None,
                              stainLightOther:str=None,
                              stainFluorescentType:str=None,
                              stainFluorescentOther:str=None,
@@ -2529,10 +2528,6 @@ def create_donor(donor_node:Node=None,
             sectionThicknessUnit_node = Node('sectionThicknessUnit', parent=donor_node)
             sectionThicknessUnit_node.content = sectionThicknessUnit
             donor_node.add_child(sectionThicknessUnit_node)
-        if sampleProcessing:
-            sampleProcessing_node = Node('sampleProcessing', parent=donor_node)
-            sampleProcessing_node.content = sampleProcessing
-            donor_node.add_child(sampleProcessing_node)
         if fixation:
             fixation_node = Node('fixation', parent=donor_node)
             fixation_node.content = fixation
@@ -2545,14 +2540,14 @@ def create_donor(donor_node:Node=None,
             stain_node = Node('stain', parent=donor_node)
             stain_node.content = stain
             donor_node.add_child(stain_node)
-        if sudanStainType:
-            sudanStainType_node = Node('sudanStainType', parent=donor_node)
-            sudanStainType_node.content = sudanStainType
-            donor_node.add_child(sudanStainType_node)
         if stainLightType:
             stainLightType_node = Node('stainLightType', parent=donor_node)
             stainLightType_node.content = stainLightType
             donor_node.add_child(stainLightType_node)
+        if sudanStainType:
+            sudanStainType_node = Node('sudanStainType', parent=donor_node)
+            sudanStainType_node.content = sudanStainType
+            donor_node.add_child(sudanStainType_node)
         if stainLightOther:
             stainLightOther_node = Node('stainLightOther', parent=donor_node)
             stainLightOther_node.content = stainLightOther

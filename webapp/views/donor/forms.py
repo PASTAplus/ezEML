@@ -21,7 +21,7 @@ class DonorForm(EDIForm):
             ("pubertal", "Pubertal"),
             ("adult", "Adult"),
             ("aging", "Aging")])
-    sectionSeqNum = IntegerField('Section Sequence Number', validators=[NumberRange(min=0)])
+    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0)])
     specimenTissue = StringField('Specimen Tissue', validators=[], default ='ovary')
     ovaryPosition = SelectField('Ovary Position',
         choices=[("", ""),
@@ -62,6 +62,7 @@ class DonorForm(EDIForm):
             ("late", "Late"),
             ("regression", "Regression")])
     slideID = StringField('Slide ID', validators=[])
+    sectionSeqNum = IntegerField('Section Sequence Number', validators=[NumberRange(min=0)])
     sectionThickness = IntegerField('Section Thickness', validators=[NumberRange(min=0)])
     sectionThicknessUnit = SelectField('Section Thickness Units',
         choices =[("", ""),
@@ -144,7 +145,7 @@ class DonorForm(EDIForm):
                 self.ageYears.data,
                 self.ageDays.data,
                 self.lifeStage.data,
-                self.sectionSeqNum.data,
+                self.specimenSeqNum.data,
                 self.specimenTissue.data,
                 self.ovaryPosition.data,
                 self.specimenLocation.data,
@@ -154,6 +155,7 @@ class DonorForm(EDIForm):
                 self.follicularType.data,
                 self.lutealType.data,
                 self.slideID.data,
+                self.sectionSeqNum.data,
                 self.sectionThickness.data,
                 self.sectionThicknessUnit.data,
                 self.fixation.data,

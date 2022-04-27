@@ -2430,7 +2430,7 @@ def create_donor(donor_node:Node=None,
                              ageYears:int=None,
                              ageDays:int=None,
                              lifeStage:str=None,
-                             sectionSeqNum:int=None,
+                             specimenSeqNum:int=None,
                              specimenTissue:str=None,
                              ovaryPosition:str=None,
                              specimenLocation:str=None,
@@ -2440,6 +2440,7 @@ def create_donor(donor_node:Node=None,
                              follicularType:str=None,
                              lutealType:str=None,
                              slideID:str=None,
+                             sectionSeqNum:int=None,
                              sectionThickness:int=None,
                              sectionThicknessUnit:str=None,
                              fixation:str=None,
@@ -2480,10 +2481,10 @@ def create_donor(donor_node:Node=None,
             lifeStage_node = Node('lifeStage', parent=donor_node)
             lifeStage_node.content = lifeStage
             donor_node.add_child(lifeStage_node)
-        if sectionSeqNum:
-            sectionSeqNum_node = Node('sectionSeqNum', parent=donor_node)
-            sectionSeqNum_node.content = sectionSeqNum
-            donor_node.add_child(sectionSeqNum_node)
+        if specimenSeqNum:
+            specimenSeqNum_node = Node('specimenSeqNum', parent=donor_node)
+            specimenSeqNum_node.content = specimenSeqNum
+            donor_node.add_child(specimenSeqNum_node)
         if specimenTissue:
             specimenTissue_node = Node('specimenTissue', parent=donor_node)
             specimenTissue_node.content = specimenTissue
@@ -2520,6 +2521,10 @@ def create_donor(donor_node:Node=None,
             slideID_node = Node('slideID', parent=donor_node)
             slideID_node.content = slideID
             donor_node.add_child(slideID_node)
+        if sectionSeqNum:
+            sectionSeqNum_node = Node('sectionSeqNum', parent=donor_node)
+            sectionSeqNum_node.content = sectionSeqNum
+            donor_node.add_child(sectionSeqNum_node)
         if sectionThickness:
             sectionThickness_node = Node('sectionThickness', parent=donor_node)
             sectionThickness_node.content = sectionThickness

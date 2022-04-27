@@ -87,7 +87,7 @@ def newDonor(filename=None, node_id=None, method=None,
             ageYears = form.ageYears.data
             ageDays = form.ageDays.data
             lifeStage = form.lifeStage.data
-            sectionSeqNum = form.sectionSeqNum.data
+            specimenSeqNum = form.specimenSeqNum.data
             specimenTissue = form.specimenTissue.data
             ovaryPosition = form.ovaryPosition.data
             specimenLocation = form.specimenLocation.data
@@ -97,6 +97,7 @@ def newDonor(filename=None, node_id=None, method=None,
             follicularType = form.follicularType.data
             lutealType = form.lutealType.data
             slideID = form.slideID.data
+            sectionSeqNum = form.sectionSeqNum.data
             sectionThickness = form.sectionThickness.data
             sectionThicknessUnit = form.sectionThicknessUnit.data
             fixation = form.fixation.data
@@ -125,7 +126,7 @@ def newDonor(filename=None, node_id=None, method=None,
                 ageYears,
                 ageDays,
                 lifeStage,
-                sectionSeqNum,
+                specimenSeqNum,
                 specimenTissue,
                 ovaryPosition,
                 specimenLocation,
@@ -135,6 +136,7 @@ def newDonor(filename=None, node_id=None, method=None,
                 follicularType,
                 lutealType,
                 slideID,
+                sectionSeqNum,
                 sectionThickness,
                 sectionThicknessUnit,
                 fixation,
@@ -207,9 +209,9 @@ def populate_donor_form(form: DonorForm, node: Node):
     if lifeStage_node:
         form.lifeStage.data = lifeStage_node.content
 
-    sectionSeqNum_node = node.find_child('sectionSeqNum')
-    if sectionSeqNum_node:
-        form.sectionSeqNum.data = sectionSeqNum_node.content
+    specimenSeqNum_node = node.find_child('specimenSeqNum')
+    if specimenSeqNum_node:
+        form.specimenSeqNum.data = specimenSeqNum_node.content
 
     specimenTissue_node = node.find_child('specimenTissue')
     if specimenTissue_node:
@@ -246,6 +248,10 @@ def populate_donor_form(form: DonorForm, node: Node):
     slideID_node = node.find_child('slideID')
     if slideID_node:
         form.slideID.data = slideID_node.content
+
+    sectionSeqNum_node = node.find_child('sectionSeqNum')
+    if sectionSeqNum_node:
+        form.sectionSeqNum.data = sectionSeqNum_node.content
     
     sectionThickness_node = node.find_child('sectionThickness')
     if sectionThickness_node:

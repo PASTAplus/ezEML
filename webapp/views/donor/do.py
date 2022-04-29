@@ -233,9 +233,9 @@ def populate_donor_form(form: DonorForm, node: Node):
     if specimenLocation_node:
         form.specimenLocation.data = specimenLocation_node.content
 
-    corpusluteumType_node = node.find_child('corpusluteumType')
-    if corpusluteumType_node:
-        form.corpusluteumType.data = corpusluteumType_node.content
+    corpusLuteumType_node = node.find_child('corpusLuteumType')
+    if corpusLuteumType_node:
+        form.corpusLuteumType.data = corpusLuteumType_node.content
         
     dayOfCycle_node = node.find_child('dayOfCycle')
     if dayOfCycle_node:

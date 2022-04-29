@@ -2434,7 +2434,7 @@ def create_donor(donor_node:Node=None,
                              specimenTissue:str=None,
                              ovaryPosition:str=None,
                              specimenLocation:str=None,
-                             corpusLuteum:str=None,
+                             corpusLuteumType:str=None,
                              dayOfCycle:str=None,
                              stageOfCycle:str=None,
                              follicularType:str=None,
@@ -2453,7 +2453,7 @@ def create_donor(donor_node:Node=None,
                              stainFluorescentOther:str=None,
                              stainElectronType:str=None,
                              stainElectronOther:str=None,
-                             magnifcation:str=None,
+                             magnification:str=None,
                              maker:str=None,
                              model:str=None,
                              notes:str=None):
@@ -2517,12 +2517,12 @@ def create_donor(donor_node:Node=None,
                 specimenLocation_node = Node('specimenLocation', parent=donor_node)
                 donor_node.add_child(specimenLocation_node)
             specimenLocation_node.content = specimenLocation
-        if corpusLuteum:
-            corpusLuteum_node = donor_node.find_child('corpusLuteum')
-            if not corpusLuteum_node:
-                corpusLuteum_node = Node('corpusLuteum', parent=donor_node)
-                donor_node.add_child(corpusLuteum_node)
-            corpusLuteum_node.content = corpusLuteum
+        if corpusLuteumType:
+            corpusLuteumType_node = donor_node.find_child('corpusLuteumType')
+            if not corpusLuteumType_node:
+                corpusLuteumType_node = Node('corpusLuteumType', parent=donor_node)
+                donor_node.add_child(corpusLuteumType_node)
+            corpusLuteumType_node.content = corpusLuteumType
         if dayOfCycle:
             dayOfCycle_node = donor_node.find_child('dayOfCycle')
             if not dayOfCycle_node:
@@ -2631,12 +2631,12 @@ def create_donor(donor_node:Node=None,
                 stainElectronOther_node = Node('stainElectronOther', parent=donor_node)
                 donor_node.add_child(stainElectronOther_node)
             stainElectronOther_node.content = stainElectronOther
-        if magnifcation:
-            magnifcation_node = donor_node.find_child('magnification')
-            if not magnifcation_node:
-                magnifcation_node = Node('magnifcation', parent=donor_node)
-                donor_node.add_child(magnifcation_node)
-            magnifcation_node.content = magnifcation
+        if magnification:
+            magnification_node = donor_node.find_child('magnification')
+            if not magnification_node:
+                magnification_node = Node('magnification', parent=donor_node)
+                donor_node.add_child(magnification_node)
+            magnification_node.content = magnification
         if maker:
             maker_node = donor_node.find_child('maker')
             if not maker_node:

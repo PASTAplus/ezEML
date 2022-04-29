@@ -2479,13 +2479,13 @@ def create_donor(donor_node:Node,
             ageYears_node = ageType_node.find_child('ageYears')
             if not ageYears_node:
                 ageYears_node = Node('ageYears', parent=ageType_node)
-                ageType.add_child(ageYears_node)
+                ageType_node.add_child(ageYears_node)
             ageYears_node.content = ageYears
         if ageDays:
             ageDays_node = ageType_node.find_child('ageDays')
             if not ageDays_node:
                 ageDays_node = Node('ageDays', parent=ageType_node)
-                ageType.add_child(ageDays_node)
+                ageType_node.add_child(ageDays_node)
             ageDays_node.content = ageDays
         if lifeStage:
             lifeStage_node = donor_node.find_child('lifeStage')

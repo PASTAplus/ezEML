@@ -203,15 +203,15 @@ def populate_donor_form(form: DonorForm, node: Node):
     if donorGender_node:
         form.donorGender.data = donorGender_node.content
     
-    age_node = node.find_child('ageType')
-    if age_node:
-        years_node = age_node.find_child('ageYears')
-        if years_node:
-            form.ageYears.data = years_node.content
+    ageType_node = node.find_child('ageType')
+    if ageType_node:
+        ageYears_node = ageType_node.find_child('ageYears')
+        if ageYears_node:
+            form.ageYears.data = ageYears_node.content
 
-        days_node = age_node.find_child('ageDays')
-        if days_node:
-            form.ageDays.data = days_node.content
+        ageDays_node = ageType_node.find_child('ageDays')
+        if ageDays_node:
+            form.ageDays.data = ageDays_node.content
 
     lifeStage_node = node.find_child('lifeStage')
     if lifeStage_node:

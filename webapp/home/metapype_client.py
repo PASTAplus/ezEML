@@ -2453,7 +2453,7 @@ def create_donor(donor_node:Node=None,
                              stainFluorescentOther:str=None,
                              stainElectronType:str=None,
                              stainElectronOther:str=None,
-                             maginifcation:str=None,
+                             magnifcation:str=None,
                              maker:str=None,
                              model:str=None,
                              notes:str=None):
@@ -2518,7 +2518,7 @@ def create_donor(donor_node:Node=None,
                 donor_node.add_child(specimenLocation_node)
             specimenLocation_node.content = specimenLocation
         if corpusLuteum:
-            corpusLuteum_node = donor_node.find_child('corpusLeteum')
+            corpusLuteum_node = donor_node.find_child('corpusLuteum')
             if not corpusLuteum_node:
                 corpusLuteum_node = Node('corpusLuteum', parent=donor_node)
                 donor_node.add_child(corpusLuteum_node)
@@ -2631,12 +2631,12 @@ def create_donor(donor_node:Node=None,
                 stainElectronOther_node = Node('stainElectronOther', parent=donor_node)
                 donor_node.add_child(stainElectronOther_node)
             stainElectronOther_node.content = stainElectronOther
-        if maginifcation:
-            maginifcation_node = donor_node.find_child('maginification')
-            if not maginifcation_node:
-                maginifcation_node = Node('maginifcation', parent=donor_node)
-                donor_node.add_child(maginifcation_node)
-            maginifcation_node.content = maginifcation
+        if magnifcation:
+            magnifcation_node = donor_node.find_child('magnification')
+            if not magnifcation_node:
+                magnifcation_node = Node('magnifcation', parent=donor_node)
+                donor_node.add_child(magnifcation_node)
+            magnifcation_node.content = magnifcation
         if maker:
             maker_node = donor_node.find_child('maker')
             if not maker_node:

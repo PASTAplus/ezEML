@@ -2473,8 +2473,8 @@ def create_donor(donor_node:Node,
         if ageType:
             ageType_node = donor_node.find_child('ageType')
             if not ageType_node:
-                ageType = Node('ageType', parent=donor_node)
-                donor_node.add_child(ageType)
+                ageType_node = Node('ageType', parent=donor_node)
+                donor_node.add_child(ageType_node)
         if ageYears:
             ageYears_node = ageType_node.find_child('ageYears')
             if not ageYears_node:

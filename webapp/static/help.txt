@@ -205,6 +205,12 @@ The properties of the source columns will be copied into the target columns, exc
 
 Categorical columns get special handling: codes in the target column are preserved, but if a code exists in the source column, the source column's definition for the code is used.
 --------------------
+clone_attributes_targets
+Target Column
+For each <b>Source Column</b>, select the corresponding <b>Target Column</b>. The properties of the source column will be cloned to the target column.
+
+If there is a column in the target data table whose name matches a column in the source data table, that column is selected by default, but you can change any of the selections. A target column is <i>not</i> required to have the same name as its corresponding source column.
+--------------------
 contact
 Contact
 At least one <b>Contact</b> is required.

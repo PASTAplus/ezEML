@@ -6,6 +6,12 @@
     {% set help_clone_attributes_3_btn = help_clone_attributes_3_id ~ '_btn' %}
     {% set help_clone_attributes_3_dialog = help_clone_attributes_3_id ~ '_dialog' %}
 
+    <script>
+        function choose_options(all) {
+            $('input:checkbox').not(this).prop('checked', all);
+        }
+    </script>
+
     <table border="0">
     <tr>
         <td colspan="2"><h2>Clone Column Properties</h2></td>
@@ -27,10 +33,12 @@
     </table>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Select the columns whose properties you wish to clone:</h5>
+                <h5>Select the columns whose properties you wish to clone:
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(true); return false;">Select All</button> ]
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(false); return false;">Clear All</button> ]</h5>
                 {{ form.source(style="list-style:none;") }}
                 <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Open" type="submit" value="Select Columns"/>

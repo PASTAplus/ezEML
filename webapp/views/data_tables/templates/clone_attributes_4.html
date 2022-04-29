@@ -5,7 +5,11 @@
     {% set help_clone_attributes_4_id, help_clone_attributes_4_title, help_clone_attributes_4_content = help[0] %}
     {% set help_clone_attributes_4_btn = help_clone_attributes_4_id ~ '_btn' %}
     {% set help_clone_attributes_4_dialog = help_clone_attributes_4_id ~ '_dialog' %}
+    {% set help_clone_attributes_targets_id, help_clone_attributes_targets_title, help_clone_attributes_targets_content = help[1] %}
+    {% set help_clone_attributes_targets_btn = help_clone_attributes_targets_id ~ '_btn' %}
+    {% set help_clone_attributes_targets_dialog = help_clone_attributes_targets_id ~ '_dialog' %}
 
+    <body onload="select_defaults();">
     <table border="0">
     <tr>
         <td colspan="2"><h2>Clone Column Properties</h2></td>
@@ -27,14 +31,31 @@
     <tr><td>&nbsp;</td></tr>
     </table>
 
+    <script>
+        function select_defaults() {
+            $('select').each(function() {
+                select_default(this.id);
+            });
+        }
+        function select_default(select_id) {
+            let selector = '#' + select_id + ' option';
+            // Get rid of SELECT__ and __SELECT
+            let default_val = select_id.substring(8, select_id.length - 8);
+            $(selector).filter(function() {
+                return $(this).text() == default_val;
+            }).prop('selected', true);
+        }
+    </script>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><td style="padding: 5px;"><b>Source Column</b></td style="padding: 5px;"><td style="padding: 5px;color: black;"><b>&#8594;</b></td><td style="padding: 5px;"><b>Target Column</b></td></tr>
+                    <tr><td style="padding: 5px;"><b>Source Column</b></td><td style="padding: 5px;color: black;"><b>&#8594;</b></td><td style="padding: 5px;"><b>Target Column</b>
+                        <span>{{ macros.help_button(help_clone_attributes_targets_btn) }}</span></td></tr>
                     {% for source_attr in source_attrs: %}
-                    <tr><td style="padding: 5px;">{{ source_attr[0] }}</td><td></td><td style="padding: 5px;"><select name="##{{ source_attr[0] }}##" id="##{{ source_attr[0] }}##">
+                    <tr><td style="padding: 5px;">{{ source_attr[0] }}</td><td></td><td style="padding: 5px;"><select name="SELECT__{{ source_attr[0] }}__SELECT" id="SELECT__{{ source_attr[0] }}__SELECT">
                         <option value="">- select target column -</option>
                         {% for target_attr in target_attrs: %}
                         <option value="{{ target_attr[1] }}">{{ target_attr[0] }}</option>
@@ -49,6 +70,7 @@
         </div>
     </div>
     {{ macros.help_dialog(help_clone_attributes_4_dialog, help_clone_attributes_4_title, help_clone_attributes_4_content) }}
+    {{ macros.help_dialog(help_clone_attributes_targets_dialog, help_clone_attributes_targets_title, help_clone_attributes_targets_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -56,11 +78,15 @@
     {% set help_clone_attributes_4_id, help_clone_attributes_4_title, help_clone_attributes_4_content = help[0] %}
     {% set help_clone_attributes_4_btn = help_clone_attributes_4_id ~ '_btn' %}
     {% set help_clone_attributes_4_dialog = help_clone_attributes_4_id ~ '_dialog' %}
+    {% set help_clone_attributes_targets_id, help_clone_attributes_targets_title, help_clone_attributes_targets_content = help[1] %}
+    {% set help_clone_attributes_targets_btn = help_clone_attributes_targets_id ~ '_btn' %}
+    {% set help_clone_attributes_targets_dialog = help_clone_attributes_targets_id ~ '_dialog' %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_clone_attributes_4_dialog, help_clone_attributes_4_btn) }}
+        {{ macros.help_script(help_clone_attributes_targets_dialog, help_clone_attributes_targets_btn) }}
     });
     </script>
 {% endblock %}

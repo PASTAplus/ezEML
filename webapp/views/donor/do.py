@@ -72,7 +72,8 @@ def newDonor(filename=None, node_id=None, method=None,
     mother_node = metadata_node.find_child("mother")
     donor_node = mother_node.find_child(node_name)
     if not donor_node:
-        donor_node = mother_node.add_child(Node(node_name, parent = mother_node))
+        mother_node.add_child(Node(node_name, parent = mother_node))
+        donor_node = mother_node.find(node_name)
 
     # Process POST
     save = False

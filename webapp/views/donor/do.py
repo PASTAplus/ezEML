@@ -26,6 +26,32 @@ from webapp.home.views import select_post, non_breaking, set_current_page, get_h
 
 do_bp = Blueprint('do', __name__, template_folder='templates')
 
+def select_new_page(back_page=None, next_page=None, edit_page=None):
+    form_value = request.form
+    form_dict = form_value.to_dict(flat=False)
+    new_page = back_page
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+
+            if val == BTN_BACK:
+                new_page = back_page
+                break
+            elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
+                new_page = next_page
+                break
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+                break
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+                break
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
+                break
+
+    return new_page
+
 @do_bp.route('/donor/<filename>', methods=['GET', 'POST'])
 def donor(filename=None):
     method = request.method
@@ -49,7 +75,7 @@ def donor(filename=None):
     help = [get_help('publisher')]
     return newDonor(filename=filename, node_id=node_id,
                              method=method, node_name='donor',
-                             back_page=PAGE_DONOR, title='Donor',
+                             back_page=PAGE_DONOR, next_page= PAGE_DONOR, title='Donor',
                              save_and_continue=True, help=help)
 
 def newDonor(filename=None, node_id=None, method=None,
@@ -74,6 +100,8 @@ def newDonor(filename=None, node_id=None, method=None,
     if not donor_node:
         mother_node.add_child(Node(node_name, parent = mother_node))
         donor_node = mother_node.find_child(node_name)
+
+    new_page = select_new_page(back_page, next_page)
 
     # Process POST
     save = False
@@ -170,8 +198,9 @@ def newDonor(filename=None, node_id=None, method=None,
             #    parent_node.add_child(do_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
-            new_page = 'do.donor'
-            return redirect(url_for(new_page, filename = filename))
+            #new_page = 'do.donor'
+        print(new_page)
+        return redirect(url_for(new_page, filename = filename))
         #return redirect(url)
 
     # Process GET

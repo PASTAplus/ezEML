@@ -199,8 +199,8 @@ def newDonor(filename=None, node_id=None, method=None,
 
             save_both_formats(filename=filename, eml_node=eml_node)
             #new_page = 'do.donor'
-            print(new_page)
-            return redirect(url_for(new_page, filename = filename))
+        print(new_page)
+        return redirect(url_for(new_page, filename = filename))
         #return redirect(url)
 
     # Process GET

@@ -25,6 +25,31 @@ from webapp.home.views import select_post, non_breaking, set_current_page, get_h
 
 ihc_bp = Blueprint('ihc', __name__, template_folder='templates')
 
+def select_new_page(back_page=None, next_page=None, edit_page=None):
+    form_value = request.form
+    form_dict = form_value.to_dict(flat=False)
+    new_page = back_page
+    if form_dict:
+        for key in form_dict:
+            val = form_dict[key][0]  # value is the first list element
+
+            if val == BTN_BACK:
+                new_page = back_page
+                break
+            elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
+                new_page = next_page
+                break
+            elif val == BTN_HIDDEN_NEW:
+                new_page = PAGE_CREATE
+                break
+            elif val == BTN_HIDDEN_OPEN:
+                new_page = PAGE_OPEN
+                break
+            elif val == BTN_HIDDEN_CLOSE:
+                new_page = PAGE_CLOSE
+                break
+
+    return new_page
 
 @ihc_bp.route('/immunohistochemistry/<filename>', methods=['GET', 'POST'])
 def immunohistochemistry(filename=None):
@@ -48,7 +73,7 @@ def immunohistochemistry(filename=None):
     help = [get_help('publisher')]
     return new_immunohistochemistry(filename=filename, node_id=node_id,
                                     method=method, node_name="immunohistochemistry",
-                                    back_page=PAGE_CONTACT_SELECT, title='Immunohistochemistry',
+                                    back_page=PAGE_IHC, next_page=PAGE_IHC, title='Immunohistochemistry',
                                     save_and_continue=True, help=help)
 
 
@@ -73,6 +98,8 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
     if not ihc_node: # PT4/25
         mother_node.add_child(Node(node_name, parent=mother_node)) # PT4/25
         ihc_node = mother_node.find_child(node_name)  # PT4/25
+
+    new_page = select_new_page(back_page, next_page)
 
     # Could be important as well -NM 4/8/2022
     # new_page = select_new_page(back_page, next_page)
@@ -164,9 +191,9 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
 #PT4/25                parent_node.add_child(new_ihc_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
-            new_page = "ihc.immunohistochemistry" #PT4/25 --> THIS WILL NEED TO BE CHANGED TO THE NEXT SEQUENCED ITEM IN SIDE LIST
+            #new_page = "ihc.immunohistochemistry" #PT4/25 --> THIS WILL NEED TO BE CHANGED TO THE NEXT SEQUENCED ITEM IN SIDE LIST
 #            return redirect(url_for(new_page, filename=filename, node_id=ihc_node.id)) #PT4/25
-            return redirect(url_for(new_page, filename=filename)) #PT4/25
+        return redirect(url_for(new_page, filename=filename)) #PT4/25
     # Process GET
     if node_id == '1':
         print("get request NODE_ID = 1")
@@ -299,30 +326,3 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
         form.detectionMethod.data = detectionMethod_node.content
 
     form.md5.data = form_md5(form)
-
-
-def select_new_page(back_page=None, next_page=None, edit_page=None):
-    form_value = request.form
-    form_dict = form_value.to_dict(flat=False)
-    new_page = back_page
-    if form_dict:
-        for key in form_dict:
-            val = form_dict[key][0]  # value is the first list element
-
-            if val == BTN_BACK:
-                new_page = back_page
-                break
-            elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
-                new_page = next_page
-                break
-            elif val == BTN_HIDDEN_NEW:
-                new_page = PAGE_CREATE
-                break
-            elif val == BTN_HIDDEN_OPEN:
-                new_page = PAGE_OPEN
-                break
-            elif val == BTN_HIDDEN_CLOSE:
-                new_page = PAGE_CLOSE
-                break
-
-    return new_page

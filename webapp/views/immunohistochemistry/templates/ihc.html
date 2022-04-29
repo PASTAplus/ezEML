@@ -134,7 +134,6 @@
                 {% else %}
                     {{ macros.hidden_new_open_close_buttons() }}
                 {% endif %}
-
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
             </form>

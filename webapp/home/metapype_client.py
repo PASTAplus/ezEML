@@ -2422,7 +2422,7 @@ def create_responsible_party(responsible_party_node: Node = None,
         logger.error(e)
 
 # Added on 04/23/2022 - Javier Galaviz ***
-def create_donor(donor_node:Node=None,
+def create_donor(donor_node:Node,
                              filename:str=None,
                              donorId:str=None,
                              donorGender:str=None,

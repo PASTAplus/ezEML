@@ -2501,7 +2501,7 @@ def create_donor(donor_node:Node,
             specimenSeqNum_node.content = specimenSeqNum
         if specimenTissue:
             specimenTissue_node = donor_node.find_child('specimenTissue')
-            if not specimenLocation_node:
+            if not specimenTissue_node:
                 specimenTissue_node = Node('specimenTissue', parent=donor_node)
                 donor_node.add_child(specimenTissue_node)
             specimenTissue_node.content = specimenTissue

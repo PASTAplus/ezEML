@@ -70,16 +70,16 @@ def newDonor(filename=None, node_id=None, method=None,
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     mother_node = metadata_node.find_child("mother")
-    print(mother_node)
-    parent_node = mother_node
-    print(parent_node)
+    donor_node = mother_node.find_child(node_name)
+    if not donor_node:
+        donor_node = mother_node.add_child(Node(node_name, parent = mother_node))
 
     # Process POST
     save = False
     if is_dirty_form(form):
         save = True
     
-    if form.validate_on_submit():
+    if form.validate_on_submit() and method == 'POST':
         if save:
             donorId = form.donorId.data
             donorGender = form.donorGender.data
@@ -115,7 +115,7 @@ def newDonor(filename=None, node_id=None, method=None,
             model = form.model.data
             notes = form.notes.data
 
-            do_node = Node(node_name, parent=parent_node)
+            #do_node = Node(node_name, parent=parent_node)
 
             create_donor(
                 do_node,
@@ -156,35 +156,42 @@ def newDonor(filename=None, node_id=None, method=None,
 
             print("Test=", do_node)
 
-            if node_id and len(node_id) != 1:
-                old_do_node = Node.get_node_instance(node_id)
-                if old_do_node:
-                    old_do_parent_node = old_do_node.parent
-                    old_do_parent_node.replace_child(old_do_node, do_node)
-                else:
-                    msg = f"No node found in the node store with node id {node_id}"
-                    raise Exception(msg)
-            else:
+            #if node_id and len(node_id) != 1:
+            #    old_do_node = Node.get_node_instance(node_id)
+            #    if old_do_node:
+            #        old_do_parent_node = old_do_node.parent
+            #        old_do_parent_node.replace_child(old_do_node, do_node)
+            #    else:
+            #        msg = f"No node found in the node store with node id {node_id}"
+            #        raise Exception(msg)
+            #else:
                 #add_child(parent_node, do_node)
-                parent_node.add_child(do_node)
+            #    parent_node.add_child(do_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
+            new_page = 'do.donor'
+            return redirect(url_for(new_page, filename = filename))
         #return redirect(url)
 
     # Process GET
     if node_id == '1':
+        print('get request NODE_ID = 1')
         form.init_md5()
-    else:
-        if parent_node:
-            do_nodes = parent_node.find_all_children(child_name=node_name)
-            if do_nodes:
-                for do_node in do_nodes:
-                    if node_id == do_node.id:
-                        populate_donor_form(form, do_node)
-
-    help = get_helps([node_name])
+    elif node_id:
+        #if parent_node:
+        #    do_nodes = parent_node.find_all_children(child_name=node_name)
+        #    if do_nodes:
+        #        for do_node in do_nodes:
+        #            if node_id == do_node.id:
+        #                populate_donor_form(form, do_node)
+        related_project_node = Node.get_node_instance(node_id)
+        populate_donor_form(form, related_project_node)
     return render_template('donor.html', title=title, node_name=node_name, form=form,
                             next_page=next_page, save_and_continue=save_and_continue, help=help)
+
+    # help = get_helps([node_name])
+    # return render_template('donor.html', title=title, node_name=node_name, form=form,
+    #                        next_page=next_page, save_and_continue=save_and_continue, help=help)
 
 def populate_donor_form(form: DonorForm, node: Node):
     donorId_node = node.find_child('donorId')

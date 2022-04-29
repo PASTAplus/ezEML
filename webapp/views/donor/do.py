@@ -118,7 +118,7 @@ def newDonor(filename=None, node_id=None, method=None,
             #do_node = Node(node_name, parent=parent_node)
 
             create_donor(
-                do_node,
+                donor_node,
                 filename,
                 donorId,
                 donorGender,
@@ -154,7 +154,7 @@ def newDonor(filename=None, node_id=None, method=None,
                 model,
                 notes)
 
-            print("Test=", do_node)
+            print("Test=", donor_node)
 
             #if node_id and len(node_id) != 1:
             #    old_do_node = Node.get_node_instance(node_id)

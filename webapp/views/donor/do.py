@@ -205,7 +205,7 @@ def populate_donor_form(form: DonorForm, node: Node):
     
     age_node = node.find_child('ageType')
     if age_node:
-        years_node = age_node.find_all_children('ageYears')
+        years_node = age_node.find_child('ageYears')
         if years_node:
             form.ageYears.data = years_node.content
 

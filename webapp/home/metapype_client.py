@@ -2471,6 +2471,246 @@ def create_responsible_party(responsible_party_node: Node = None,
     except Exception as e:
         logger.error(e)
 
+# Added on 04/23/2022 - Javier Galaviz ***
+def create_donor(donor_node:Node,
+                             filename:str=None,
+                             donorId:str=None,
+                             donorGender:str=None,
+                             ageType:Node=None,
+                             ageYears:int=None,
+                             ageDays:int=None,
+                             lifeStage:str=None,
+                             specimenSeqNum:int=None,
+                             specimenTissue:str=None,
+                             ovaryPosition:str=None,
+                             specimenLocation:str=None,
+                             corpusLuteumType:str=None,
+                             dayOfCycle:str=None,
+                             stageOfCycle:str=None,
+                             follicularType:str=None,
+                             lutealType:str=None,
+                             slideID:str=None,
+                             sectionSeqNum:int=None,
+                             sectionThickness:int=None,
+                             sectionThicknessUnit:str=None,
+                             fixation:str=None,
+                             fixationOther:str=None,
+                             stain:str=None,
+                             stainLightType:str=None,
+                             sudanStainType:str=None,
+                             stainLightOther:str=None,
+                             stainFluorescentType:str=None,
+                             stainFluorescentOther:str=None,
+                             stainElectronType:str=None,
+                             stainElectronOther:str=None,
+                             magnification:str=None,
+                             maker:str=None,
+                             model:str=None,
+                             notes:str=None):
+    try:
+        if donorId:
+            donorId_node = donor_node.find_child('donorId')
+            if not donorId_node: #PT4/25
+                    donorId_node = Node('donorId', parent=donor_node)
+                    donor_node.add_child(donorId_node)
+            donorId_node.content = donorId
+        if donorGender:
+            donorGender_node = donor_node.find_child('donorGender')
+            if not donorGender_node:
+                donorGender_node = Node('donorGender', parent=donor_node)
+                donor_node.add_child(donorGender_node)
+            donorGender_node.content = donorGender
+        if ageType:
+            ageType_node = donor_node.find_child('ageType')
+            if not ageType_node:
+                ageType_node = Node('ageType', parent=donor_node)
+                donor_node.add_child(ageType_node)
+        if ageYears:
+            ageYears_node = ageType_node.find_child('ageYears')
+            if not ageYears_node:
+                ageYears_node = Node('ageYears', parent=ageType_node)
+                ageType_node.add_child(ageYears_node)
+            ageYears_node.content = ageYears
+        if ageDays:
+            ageDays_node = ageType_node.find_child('ageDays')
+            if not ageDays_node:
+                ageDays_node = Node('ageDays', parent=ageType_node)
+                ageType_node.add_child(ageDays_node)
+            ageDays_node.content = ageDays
+        if lifeStage:
+            lifeStage_node = donor_node.find_child('lifeStage')
+            if not lifeStage_node:
+                lifeStage_node = Node('lifeStage', parent=donor_node)
+                donor_node.add_child(lifeStage_node)
+            lifeStage_node.content = lifeStage
+        if specimenSeqNum:
+            specimenSeqNum_node = donor_node.find_child('specimenSeqNum')
+            if not specimenSeqNum_node:
+                specimenSeqNum_node = Node('specimenSeqNum', parent=donor_node)
+                donor_node.add_child(specimenSeqNum_node)
+            specimenSeqNum_node.content = specimenSeqNum
+        if specimenTissue:
+            specimenTissue_node = donor_node.find_child('specimenTissue')
+            if not specimenTissue_node:
+                specimenTissue_node = Node('specimenTissue', parent=donor_node)
+                donor_node.add_child(specimenTissue_node)
+            specimenTissue_node.content = specimenTissue
+        if ovaryPosition:
+            ovaryPosition_node = donor_node.find_child('ovaryPosition')
+            if not ovaryPosition_node:
+                ovaryPosition_node = Node('ovaryPosition', parent=donor_node)
+                donor_node.add_child(ovaryPosition_node)
+            ovaryPosition_node.content = ovaryPosition
+        if specimenLocation:
+            specimenLocation_node = donor_node.find_child('specimenLocation')
+            if not specimenLocation_node:
+                specimenLocation_node = Node('specimenLocation', parent=donor_node)
+                donor_node.add_child(specimenLocation_node)
+            specimenLocation_node.content = specimenLocation
+        if corpusLuteumType:
+            corpusLuteumType_node = donor_node.find_child('corpusLuteumType')
+            if not corpusLuteumType_node:
+                corpusLuteumType_node = Node('corpusLuteumType', parent=donor_node)
+                donor_node.add_child(corpusLuteumType_node)
+            corpusLuteumType_node.content = corpusLuteumType
+        if dayOfCycle:
+            dayOfCycle_node = donor_node.find_child('dayOfCycle')
+            if not dayOfCycle_node:
+                dayOfCycle_node = Node('dayOfCycle', parent=donor_node)
+                donor_node.add_child(dayOfCycle_node)
+            dayOfCycle_node.content = dayOfCycle
+        if stageOfCycle:
+            stageOfCycle_node = donor_node.find_child('stageOfCycle')
+            if not stageOfCycle_node:
+                stageOfCycle_node = Node('stageOfCycle', parent=donor_node)
+                donor_node.add_child(stageOfCycle_node)
+            stageOfCycle_node.content = stageOfCycle
+        if follicularType:
+            follicularType_node = donor_node.find_child('follicularType')
+            if not follicularType_node:
+                follicularType_node = Node('follicularType', parent=donor_node)
+                donor_node.add_child(follicularType_node)
+            follicularType_node.content = follicularType
+        if lutealType:
+            lutealType_node = donor_node.find_child('lutealType')
+            if not lutealType_node:
+                lutealType_node = Node('lutealType', parent=donor_node)
+                donor_node.add_child(lutealType_node)
+            lutealType_node.content = lutealType
+        if slideID:
+            slideID_node = donor_node.find_child('slideID')
+            if not slideID_node:
+                slideID_node = Node('slideID', parent=donor_node)
+                donor_node.add_child(slideID_node)
+            slideID_node.content = slideID
+        if sectionSeqNum:
+            sectionSeqNum_node = donor_node.find_child('sectionSeqNum')
+            if not sectionSeqNum_node:
+                sectionSeqNum_node = Node('sectionSeqNum', parent=donor_node)
+                donor_node.add_child(sectionSeqNum_node)
+            sectionSeqNum_node.content = sectionSeqNum
+        if sectionThickness:
+            sectionThickness_node = donor_node.find_child('sectionThickness')
+            if not sectionThickness_node:
+                sectionThickness_node = Node('sectionThickness', parent=donor_node)
+                donor_node.add_child(sectionThickness_node)
+            sectionThickness_node.content = sectionThickness
+        if sectionThicknessUnit:
+            sectionThicknessUnit_node = donor_node.find_child('sectionThicknessUnit')
+            if not sectionThicknessUnit_node:
+                sectionThicknessUnit_node = Node('sectionThicknessUnit', parent=donor_node)
+                donor_node.add_child(sectionThicknessUnit_node)
+            sectionThicknessUnit_node.content = sectionThicknessUnit
+        if fixation:
+            fixation_node = donor_node.find_child('fixation')
+            if not fixation_node:
+                fixation_node = Node('fixation', parent=donor_node)
+                donor_node.add_child(fixation_node)
+            fixation_node.content = fixation
+        if fixationOther:
+            fixationOther_node = donor_node.find_child('fixationOther')
+            if not fixationOther_node:
+                fixationOther_node = Node('fixationOther', parent=donor_node)
+                donor_node.add_child(fixationOther_node)
+            fixationOther_node.content = fixationOther
+        if stain:
+            stain_node = donor_node.find_child('stain')
+            if not stain_node:
+                stain_node = Node('stain', parent=donor_node)
+                donor_node.add_child(stain_node)
+            stain_node.content = stain
+        if stainLightType:
+            stainLightType_node = donor_node.find_child('stainLightType')
+            if not stainLightType_node:
+                stainLightType_node = Node('stainLightType', parent=donor_node)
+                donor_node.add_child(stainLightType_node)
+            stainLightType_node.content = stainLightType
+        if sudanStainType:
+            sudanStainType_node = donor_node.find_child('sudanStainType')
+            if not sudanStainType_node:
+                sudanStainType_node = Node('sudanStainType', parent=donor_node)
+                donor_node.add_child(sudanStainType_node)
+            sudanStainType_node.content = sudanStainType
+        if stainLightOther:
+            stainLightOther_node = donor_node.find_child('stainLightOther')
+            if not stainLightOther_node:
+                stainLightOther_node = Node('stainLightOther', parent=donor_node)
+                donor_node.add_child(stainLightOther_node)
+            stainLightOther_node.content = stainLightOther
+        if stainFluorescentType:
+            stainFluorescentType_node = donor_node.find_child('stainFluorescentType')
+            if not stainFluorescentType_node:
+                stainFluorescentType_node = Node('stainFluorescentType', parent=donor_node)
+                donor_node.add_child(stainFluorescentType_node)
+            stainFluorescentType_node.content = stainFluorescentType
+        if stainFluorescentOther:
+            stainFluorescentOther_node = donor_node.find_child('stainFluorescentOther')
+            if not stainFluorescentOther_node:
+                stainFluorescentOther_node = Node('stainFluorescentOther', parent=donor_node)
+                donor_node.add_child(stainFluorescentOther_node)
+            stainFluorescentOther_node.content = stainFluorescentOther
+        if stainElectronType:
+            stainElectronType_node = donor_node.find_child('stainElectronType')
+            if not stainElectronType_node:
+                stainElectronType_node = Node('stainElectronType', parent=donor_node)
+                donor_node.add_child(stainElectronType_node)
+            stainElectronType_node.content = stainElectronType
+        if stainElectronOther:
+            stainElectronOther_node = donor_node.find_child('stainElectronOther')
+            if not stainElectronOther_node:
+                stainElectronOther_node = Node('stainElectronOther', parent=donor_node)
+                donor_node.add_child(stainElectronOther_node)
+            stainElectronOther_node.content = stainElectronOther
+        if magnification:
+            magnification_node = donor_node.find_child('magnification')
+            if not magnification_node:
+                magnification_node = Node('magnification', parent=donor_node)
+                donor_node.add_child(magnification_node)
+            magnification_node.content = magnification
+        if maker:
+            maker_node = donor_node.find_child('maker')
+            if not maker_node:
+                maker_node = Node('maker', parent=donor_node)
+                donor_node.add_child(maker_node)
+            maker_node.content = maker
+        if model:
+            model_node = donor_node.find_child('model')
+            if not model_node:
+                model_node = Node('model', parent=donor_node)
+                donor_node.add_child(model_node)
+            model_node.content = model
+        if notes:
+            notes_node = donor_node.find_child('notes')
+            if not notes_node:
+                notes_node = Node('notes', parent=donor_node)
+                donor_node.add_child(notes_node)
+            notes_node.content = notes
+        
+        return donor_node
+
+    except Exception as e:
+        logger.error(e)
+
 
 def list_funding_awards(eml_node: Node = None, node_id=None):
     award_list = []

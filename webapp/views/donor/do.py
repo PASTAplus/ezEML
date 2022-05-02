@@ -294,7 +294,7 @@ def populate_donor_form(form: DonorForm, node: Node):
             if fixationOther_node:
                 form.fixationOther.data = fixationOther_node.content
         
-        stain_node = node.find_child('stain')
+        stain_node = sampleProcessingType_node .find_child('stain')
         if stain_node:
             form.stain.data = stain_node.content
 
@@ -332,7 +332,7 @@ def populate_donor_form(form: DonorForm, node: Node):
     if magnification_node:
         form.magnification.data = magnification_node.content
 
-    microscopeType_node = node.find_child('microscopeType_node')
+    microscopeType_node = node.find_child('microscopeType')
     if microscopeType_node:
         maker_node = microscopeType_node.find_child('maker')
         if maker_node:

@@ -852,11 +852,7 @@ We hope you find ezEML useful, and we welcome your feedback at <a style="color: 
 complex_xml
 Editing Text Elements in Imported XML
 
-To make ezEML simple and easy to use, it implements only a subset of the full EML standard. ezEML's support for importing EML files that were created outside of ezEML, however, necessitates handling some additional complexity beyond what can be created in ezEML itself.
-
-In particular, the EML standard allows for substantial complexity in the specification of text elements such as abstracts and method step descriptions. Such text elements may, for example, contain itemized lists, ordered lists, subscripts, markdown, and so on, and these text element constituents may be nested without limit. Not all EML files employ this kind of complexity, but the EML file you have imported does contain one or more complex text elements.
-
-For files of this type, ezEML supports the editing of such text elements in the following way. Suppose, for example, that the dataset's abstract element consists of the following XML:<br>
+The EML standard allows for substantial complexity in text elements like abstracts and method step descriptions. Such text elements may contain itemized lists, subscripts, markdown, etc. Not all EML files employ this kind of complexity, but the EML file you have just imported does so. In cases like this, ezEML supports the editing of the relevant text elements as follows. Suppose, for example, the dataset's abstract element consists of the following XML:<br>
 <pre>
 &lt;abstract&gt;<br>
 &nbsp;&nbsp;&lt;section&gt;<br>
@@ -878,8 +874,8 @@ When you go to the Abstract page in ezEML, what you would see is the following:<
 \&lt;/abstract\&gt;<br>
 </pre>
 
-The backslash "escape" characters before the &lt; and &gt; in each XML tag enable ezEML to distinguish XML tags from normal text that happens to contain &lt; or &gt; characters. If you edit the XML, you must adhere to this convention. Text elements that need to be handled this way are visually distinguished in two ways: 1) the text is displayed in a different (monospace) font, and 2) a checkmark button <svg style="position: relative;top:4px;" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16.5163 8.93451L11.0597 14.7023L8.0959 11.8984" stroke="black" stroke-width="2"/><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-width="1"/></svg> appears to the right of the element. Clicking the checkmark button causes the XML validity of the element's content to be checked. For further details, please see <a style="color: steelblue;" href="/static/user_guide/complex_text.pdf" target="_ezeml_user_guide">Editing Complex Text Elements in Imported XML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+The backslash "escape" characters before the &lt; and &gt; in each XML tag let ezEML distinguish XML tags from normal text that happens to contain &lt; or &gt; characters. If you edit the XML, you must adhere to this convention. Text elements requiring such handling are visually distinguished in two ways: 1) the text is displayed in a different (monospace) font, and 2) a checkmark button <svg style="position: relative;top:4px;" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16.5163 8.93451L11.0597 14.7023L8.0959 11.8984" stroke="black" stroke-width="2"/><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-width="1"/></svg> appears to the right of the element. Clicking the checkmark button causes the XML validity of the element's content to be checked. See also <a style="color: steelblue;" href="/static/user_guide/complex_text.pdf" target="_ezeml_user_guide">Editing Complex Text Elements in Imported XML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 --------------------
 taxonomy_imported_from_xml
 Imported Taxonomy

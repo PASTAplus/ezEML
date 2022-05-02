@@ -19,3 +19,8 @@ class MissingFileError(ezEMLError):
 
 class UnknownDistributionUrl(ezEMLError):
     pass
+
+
+class UnicodeDecodeErrorInternal(ezEMLError):
+    pass
+

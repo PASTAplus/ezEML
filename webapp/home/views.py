@@ -48,7 +48,7 @@ from webapp.config import Config
 
 import csv
 
-from webapp.home.exceptions import DataTableError, MissingFileError
+from webapp.home.exceptions import DataTableError, MissingFileError, UnicodeDecodeErrorInternal
 
 from webapp.home.forms import ( 
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
@@ -1688,6 +1688,11 @@ def get_column_properties(eml_node, document, dt_node, object_name):
     except Exception as err:
         raise Exception('Internal error 103')
 
+    except UnicodeDecodeError as err:
+        fullpath = os.path.join(uploads_folder, data_file)
+        errors = display_decode_error_lines(fullpath)
+        return render_template('encoding_error.html', filename=data_file, errors=errors)
+
 
 def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
     if not old_dt_node or not new_dt_node:
@@ -2141,7 +2146,13 @@ def import_xml_4(filename=None):
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
-        total_size = import_data(filename, eml_node)
+        try:
+            total_size = import_data(filename, eml_node)
+        except UnicodeDecodeErrorInternal as err:
+            filepath = err.message
+            errors = display_decode_error_lines(filepath)
+            return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
+
         log_usage(actions['GET_ASSOCIATED_DATA_FILES'], total_size)
         return redirect(url_for(PAGE_TITLE, filename=filename))
 

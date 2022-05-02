@@ -29,7 +29,7 @@ from metapype.model.node import Node
 
 import webapp.home.metapype_client as metapype_client
 
-from webapp.home.exceptions import DataTableError
+from webapp.home.exceptions import DataTableError, UnicodeDecodeErrorInternal
 
 from flask import Flask, current_app, flash
 from flask_login import current_user
@@ -302,9 +302,12 @@ def check_column_name_uniqueness(csv_file_path, delimiter):
     with open(csv_file_path, 'r', encoding='utf-8-sig') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=delimiter)
         column_names = []
-        for row in csv_reader:
-            column_names = row
-            break
+        try:
+            for row in csv_reader:
+                column_names = row
+                break
+        except UnicodeDecodeError as err:
+            raise UnicodeDecodeErrorInternal(csv_file_path)
         if len(set(column_names)) != len(column_names):
             raise DataTableError("Duplicated column name. Please make column names unique and try again.")
 

@@ -290,7 +290,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         if fixation_node:
             form.fixation.data = fixation_node.content
 
-        fixationOther_node = fixation_node.find_child('fixationOther')
+        fixationOther_node = sampleProcessingType_node.find_child('fixationOther')
         if fixationOther_node:
             form.fixationOther.data = fixationOther_node.content
         
@@ -308,7 +308,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         if sudanStainType_node:
             form.sudanStainType.data = sudanStainType_node.content
 
-        stainLightOther_node = stainLightType_node.find_child('stainLightOther')
+        stainLightOther_node = stainType_node.find_child('stainLightOther')
         if stainLightOther_node:
             form.stainLightOther.data = stainLightOther_node.content
         
@@ -316,7 +316,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         if stainFluorescentType_node:
             form.stainFluorescentType.data = stainFluorescentType_node.content
 
-        stainFluorescentOther_node = stainFluorescentType_node.find_child('stainFluorescentOther')
+        stainFluorescentOther_node = stainType_node.find_child('stainFluorescentOther')
         if stainFluorescentOther_node:
             form.stainFluorescentOther.data = stainFluorescentOther_node.content
 
@@ -324,7 +324,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         if stainElectronType_node:
             form.stainElectronType.data = stainElectronType_node.content
 
-        stainElectronOther_node = stainElectronType_node.find_child('stainElectronOther')
+        stainElectronOther_node = stainType_node.find_child('stainElectronOther')
         if stainElectronOther_node:
             form.stainElectronOther.data = stainElectronOther_node.content
     

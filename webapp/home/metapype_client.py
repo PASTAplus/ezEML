@@ -2648,10 +2648,10 @@ def create_donor(donor_node:Node,
                 sampleProcessingType_node.add_child(fixation_node)
             fixation_node.content = fixation
         if fixationOther:
-            fixationOther_node = fixation_node.find_child('fixationOther')
+            fixationOther_node = sampleProcessingType_node.find_child('fixationOther')
             if not fixationOther_node:
-                fixationOther_node = Node('fixationOther', parent=fixation_node)
-                fixation_node.add_child(fixationOther_node)
+                fixationOther_node = Node('fixationOther', parent=sampleProcessingType_node)
+                sampleProcessingType_node.add_child(fixationOther_node)
             fixationOther_node.content = fixationOther
         if stain:
             stain_node = sampleProcessingType_node.find_child('stain')
@@ -2671,16 +2671,16 @@ def create_donor(donor_node:Node,
                 stainType_node.add_child(stainLightType_node)
             stainLightType_node.content = stainLightType
         if sudanStainType:
-            sudanStainType_node = stainLightType_node.find_child('sudanStainType')
+            sudanStainType_node = stainType_node.find_child('sudanStainType')
             if not sudanStainType_node:
-                sudanStainType_node = Node('sudanStainType', parent=stainLightType_node)
-                stainLightType_node.add_child(sudanStainType_node)
+                sudanStainType_node = Node('sudanStainType', parent=stainType_node)
+                stainType_node.add_child(sudanStainType_node)
             sudanStainType_node.content = sudanStainType
         if stainLightOther:
-            stainLightOther_node = stainLightType_node.find_child('stainLightOther')
+            stainLightOther_node = stainType_node.find_child('stainLightOther')
             if not stainLightOther_node:
-                stainLightOther_node = Node('stainLightOther', parent=stainLightType_node)
-                stainLightType_node.add_child(stainLightOther_node)
+                stainLightOther_node = Node('stainLightOther', parent=stainType_node)
+                stainType_node.add_child(stainLightOther_node)
             stainLightOther_node.content = stainLightOther
         if stainFluorescentType:
             stainFluorescentType_node = stainType_node.find_child('stainFluorescentType')
@@ -2689,10 +2689,10 @@ def create_donor(donor_node:Node,
                 stainType_node.add_child(stainFluorescentType_node)
             stainFluorescentType_node.content = stainFluorescentType
         if stainFluorescentOther:
-            stainFluorescentOther_node = stainFluorescentType_node.find_child('stainFluorescentOther')
+            stainFluorescentOther_node = stainType_node.find_child('stainFluorescentOther')
             if not stainFluorescentOther_node:
-                stainFluorescentOther_node = Node('stainFluorescentOther', parent=stainFluorescentType_node)
-                stainFluorescentType_node.add_child(stainFluorescentOther_node)
+                stainFluorescentOther_node = Node('stainFluorescentOther', parent=stainType_node)
+                stainType_node.add_child(stainFluorescentOther_node)
             stainFluorescentOther_node.content = stainFluorescentOther
         if stainElectronType:
             stainElectronType_node = stainType_node.find_child('stainElectronType')
@@ -2701,10 +2701,10 @@ def create_donor(donor_node:Node,
                 stainType_node.add_child(stainElectronType_node)
             stainElectronType_node.content = stainElectronType
         if stainElectronOther:
-            stainElectronOther_node = stainElectronType_node.find_child('stainElectronOther')
+            stainElectronOther_node = stainType_node.find_child('stainElectronOther')
             if not stainElectronOther_node:
-                stainElectronOther_node = Node('stainElectronOther', parent=stainElectronType_node)
-                stainElectronType_node.add_child(stainElectronOther_node)
+                stainElectronOther_node = Node('stainElectronOther', parent=stainType_node)
+                stainType_node.add_child(stainElectronOther_node)
             stainElectronOther_node.content = stainElectronOther
         if magnification:
             magnification_node = donor_node.find_child('magnification')

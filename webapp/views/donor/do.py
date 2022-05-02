@@ -332,7 +332,7 @@ def populate_donor_form(form: DonorForm, node: Node):
     if magnification_node:
         form.magnification.data = magnification_node.content
 
-    microscopeType_node = node.find_cild('microscopeType_node')
+    microscopeType_node = node.find_child('microscopeType_node')
     if microscopeType_node:
         maker_node = microscopeType_node.find_child('maker')
         if maker_node:

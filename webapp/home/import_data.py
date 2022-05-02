@@ -72,7 +72,8 @@ def get_data_entity_size(url):
     if Config.PASTA_URL in url:
         auth_token = user_data.get_auth_token()
         get_data_entity_size_url = url.replace('data/eml', 'data/size/eml')
-        response = requests.get(get_data_entity_size_url, cookies={'auth-token': auth_token})
+        # response = requests.get(get_data_entity_size_url, cookies={'auth-token': auth_token})
+        response = requests.get(get_data_entity_size_url)
         response.raise_for_status()
         return response.text
     else:
@@ -83,7 +84,8 @@ def get_data_entity_size(url):
 def get_data_entity(upload_dir, object_name, url):
     if Config.PASTA_URL in url:
         auth_token = user_data.get_auth_token()
-        response = requests.get(url, cookies={'auth-token': auth_token})
+        # response = requests.get(url, cookies={'auth-token': auth_token})
+        response = requests.get(url)
         response.raise_for_status()
 
         file_path = os.path.join(upload_dir, object_name)
@@ -108,7 +110,8 @@ def convert_file_size(size):
 def get_data_entity_sizes(scope, identifier, revision):
     get_sizes_url = f"{Config.PASTA_URL}/data/size/eml/{scope}/{identifier}/{revision}"
     auth_token = user_data.get_auth_token()
-    response = requests.get(get_sizes_url, cookies={'auth-token': auth_token})
+    # response = requests.get(get_sizes_url, cookies={'auth-token': auth_token})
+    response = requests.get(get_sizes_url)
     response.raise_for_status()
     lines = response.text.split('\n')
     total = 0
@@ -191,7 +194,8 @@ def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
 def retrieve_data_entity(upload_dir, object_name, url):
     if Config.PASTA_URL in url:
         auth_token = user_data.get_auth_token()
-        response = requests.get(url, cookies={'auth-token': auth_token})
+        # response = requests.get(url, cookies={'auth-token': auth_token})
+        response = requests.get(url)
         response.raise_for_status()
 
         file_path = os.path.join(upload_dir, object_name)
@@ -232,13 +236,15 @@ def import_data(filename, eml_node):
 def get_newest_metadata_revision_from_pasta(scope, identifier):
     get_pasta_newest_revision_url = f"{Config.PASTA_URL}/eml/{scope}/{identifier}?filter=newest"
     auth_token = user_data.get_auth_token()
-    response = requests.get(get_pasta_newest_revision_url, cookies={'auth-token': auth_token})
+    # response = requests.get(get_pasta_newest_revision_url, cookies={'auth-token': auth_token})
+    response = requests.get(get_pasta_newest_revision_url)
     response.raise_for_status()
     revision = response.text
 
     get_pasta_metadata_url = f"{Config.PASTA_URL}/metadata/eml/{scope}/{identifier}/{revision}"
     auth_token = user_data.get_auth_token()
-    response = requests.get(get_pasta_metadata_url, cookies={'auth-token': auth_token})
+    # response = requests.get(get_pasta_metadata_url, cookies={'auth-token': auth_token})
+    response = requests.get(get_pasta_metadata_url)
     response.raise_for_status()
 
     return revision, response.content
@@ -247,7 +253,8 @@ def get_newest_metadata_revision_from_pasta(scope, identifier):
 def get_pasta_identifiers(scope=''):
     get_pasta_identifiers_url = f"{Config.PASTA_URL}/eml/{scope}"
     auth_token = user_data.get_auth_token()
-    response = requests.get(get_pasta_identifiers_url, cookies={'auth-token': auth_token})
+    # response = requests.get(get_pasta_identifiers_url, cookies={'auth-token': auth_token})
+    response = requests.get(get_pasta_identifiers_url)
     response.raise_for_status()
     ids = []
     lines = response.text.split('\n')

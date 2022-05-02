@@ -304,7 +304,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         if stainLightType_node:
             form.stainLightType.data = stainLightType_node.content
 
-        sudanStainType_node = stainLightType_node.find_child('sudanStainType')
+        sudanStainType_node = stainType_node.find_child('sudanStainType')
         if sudanStainType_node:
             form.sudanStainType.data = sudanStainType_node.content
 

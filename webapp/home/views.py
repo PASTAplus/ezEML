@@ -1879,6 +1879,18 @@ def backup_metadata(filename):
         flash(f'Error backing up file {filename}.json', 'error')
 
 
+def encode_for_query_string(param):
+    # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
+    #  string representations. In addition, the string may contain '/' characters, which will not be encoded by default,
+    #  thereby breaking the routing, so we need them to be encoded. Setting safe to an empty string accomplishes that.
+    return quote(repr(param), safe='')
+
+
+def decode_from_query_string(param):
+    # The inverse operation of encode_for_query_string(), turning the parameter back into a list.
+    return ast.literal_eval(unquote(param))
+
+
 @home.route('/import_xml', methods=['GET', 'POST'])
 @login_required
 def import_xml():
@@ -1929,8 +1941,12 @@ def import_xml():
                 if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
                     # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
                     #  string representations.
-                    return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=repr(unknown_nodes), attr_errs=repr(attr_errs),
-                                            child_errs=repr(child_errs), other_errs=repr(other_errs), pruned_nodes=repr(pruned_nodes),
+                    return redirect(url_for(PAGE_IMPORT_XML_3,
+                                            unknown_nodes=encode_for_query_string(unknown_nodes),
+                                            attr_errs=encode_for_query_string(attr_errs),
+                                            child_errs=encode_for_query_string(child_errs),
+                                            other_errs=encode_for_query_string(other_errs),
+                                            pruned_nodes=encode_for_query_string(pruned_nodes),
                                             filename=package_name))
                 else:
                     flash(f"{package_name} was imported without errors")
@@ -1980,9 +1996,12 @@ def import_xml_2(package_name, filename, fetched=False):
             if has_errors:
                 # The parameters are actually lists, but Flask drops parameters that are empty lists, so we pass the
                 #  string representations.
-                return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=repr(unknown_nodes), attr_errs=repr(attr_errs),
-                                        child_errs=repr(child_errs), other_errs=repr(other_errs),
-                                        pruned_nodes=repr(pruned_nodes),
+                return redirect(url_for(PAGE_IMPORT_XML_3,
+                                        unknown_nodes=encode_for_query_string(unknown_nodes),
+                                        attr_errs=encode_for_query_string(attr_errs),
+                                        child_errs=encode_for_query_string(child_errs),
+                                        other_errs=encode_for_query_string(other_errs),
+                                        pruned_nodes=encode_for_query_string(pruned_nodes),
                                         filename=package_name))
 
             else:
@@ -2027,11 +2046,11 @@ def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_err
     err_html = ''
     err_text = ''
 
-    unknown_nodes = ast.literal_eval(unknown_nodes)
-    attr_errs = ast.literal_eval(attr_errs)
-    child_errs = ast.literal_eval(child_errs)
-    other_errs = ast.literal_eval(other_errs)
-    pruned_nodes = ast.literal_eval(pruned_nodes)
+    unknown_nodes = decode_from_query_string(unknown_nodes)
+    attr_errs = decode_from_query_string(attr_errs)
+    child_errs = decode_from_query_string(child_errs)
+    other_errs = decode_from_query_string(other_errs)
+    pruned_nodes = decode_from_query_string(pruned_nodes)
 
     excluded_nodes = set(unknown_nodes)
 
@@ -2294,9 +2313,12 @@ def fetch_xml_3(scope_identifier=''):
         if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
             # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
             #  string representations.
-            return redirect(url_for(PAGE_IMPORT_XML_3, unknown_nodes=repr(unknown_nodes), attr_errs=repr(attr_errs),
-                                    child_errs=repr(child_errs), other_errs=repr(other_errs),
-                                    pruned_nodes=repr(pruned_nodes),
+            return redirect(url_for(PAGE_IMPORT_XML_3,
+                                    unknown_nodes=encode_for_query_string(unknown_nodes),
+                                    attr_errs=encode_for_query_string(attr_errs),
+                                    child_errs=encode_for_query_string(child_errs),
+                                    other_errs=encode_for_query_string(other_errs),
+                                    pruned_nodes=encode_for_query_string(pruned_nodes),
                                     filename=package_name))
         else:
             flash(f"{package_name} was imported without errors")

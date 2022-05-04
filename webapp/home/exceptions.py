@@ -5,6 +5,10 @@ class ezEMLError(Exception):
         self.message = message
 
 
+class AuthTokenExpired(ezEMLError):
+    pass
+
+
 class DataTableError(ezEMLError):
     pass
 
@@ -14,6 +18,10 @@ class InvalidXMLError(ezEMLError):
 
 
 class MissingFileError(ezEMLError):
+    pass
+
+
+class Unauthorized(ezEMLError):
     pass
 
 

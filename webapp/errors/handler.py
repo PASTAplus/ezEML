@@ -39,6 +39,12 @@ def bad_request(error):
     return render_template('400.html'), 400
 
 
+@app.errorhandler(401)
+def bad_request(error):
+    log_error(error)
+    return render_template('401.html'), 401
+
+
 @app.errorhandler(404)
 def bad_request(error):
     log_error(error)

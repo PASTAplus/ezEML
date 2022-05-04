@@ -48,7 +48,13 @@ from webapp.config import Config
 
 import csv
 
-from webapp.home.exceptions import DataTableError, MissingFileError, UnicodeDecodeErrorInternal
+from webapp.home.exceptions import (
+    AuthTokenExpired,
+    DataTableError,
+    MissingFileError,
+    Unauthorized,
+    UnicodeDecodeErrorInternal
+)
 
 from webapp.home.forms import ( 
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
@@ -116,6 +122,8 @@ logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
 keywords = {}
+
+AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be caused by a login timeout. Please log out, log back in, and try again.'
 
 
 def log_error(msg):
@@ -1947,10 +1955,11 @@ def import_xml():
                                             child_errs=encode_for_query_string(child_errs),
                                             other_errs=encode_for_query_string(other_errs),
                                             pruned_nodes=encode_for_query_string(pruned_nodes),
-                                            filename=package_name))
+                                            filename=package_name,
+                                            fetched=False))
                 else:
                     flash(f"{package_name} was imported without errors")
-                    return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name))
+                    return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=False))
             else:
                 raise Exception  # TODO: Error handling
 
@@ -2002,11 +2011,12 @@ def import_xml_2(package_name, filename, fetched=False):
                                         child_errs=encode_for_query_string(child_errs),
                                         other_errs=encode_for_query_string(other_errs),
                                         pruned_nodes=encode_for_query_string(pruned_nodes),
-                                        filename=package_name))
+                                        filename=package_name,
+                                        fetched=fetched))
 
             else:
                 flash(f"{package_name} was imported without errors")
-                return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name))
+                return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=fetched))
         else:
             raise Exception  # TODO: Error handling
 
@@ -2099,14 +2109,16 @@ def get_data_size(filename):
         _, total = get_data_entity_sizes(scope, identifier, revision)
         kb, mb, gb = convert_file_size(total)
         return round(mb)
-    except:
+    except (AuthTokenExpired, Unauthorized):
+        raise
+    except Exception as e:
         return 0
 
 
-@home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>', methods=['GET', 'POST'])
+@home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
 def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
-                 other_errs=None, pruned_nodes=None, filename=None):
+                 other_errs=None, pruned_nodes=None, filename=None, fetched=False):
 
     form = EDIForm()
     eml_node = load_eml(filename=filename)
@@ -2124,6 +2136,17 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
         try:
             total_size = import_data(filename, eml_node)
             log_usage(actions['GET_ASSOCIATED_DATA_FILES'], total_size)
+        except (AuthTokenExpired, Unauthorized) as e:
+            flash(AUTH_TOKEN_FLASH_MSG, 'error')
+            help = get_helps(['import_xml_3'])
+            if not eval(fetched):
+                return redirect(url_for('home.import_xml', form=form, help=help))
+            else:
+                return redirect(url_for('home.fetch_xml', form=form, help=help))
+        except UnicodeDecodeErrorInternal as err:
+            filepath = err.message
+            errors = display_decode_error_lines(filepath)
+            return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
         except Exception as e:
             flash(f'Unable to fetch package data: {str(e)}', 'error')
             help = get_helps(['import_xml_3'])
@@ -2137,11 +2160,19 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
     err_html, err_text, err_heading = construct_xml_error_descriptions(filename, unknown_nodes, attr_errs,
                                                                        child_errs, other_errs, pruned_nodes)
 
-    mb = get_data_size(filename)
-    if mb > 100:
-        mb = f' This package has <b>{mb} MB</b> of associated data.<br>&nbsp;'
-    else:
-        mb = ''
+    try:
+        mb = get_data_size(filename)
+        if mb > 100:
+            mb = f' This package has <b>{mb} MB</b> of associated data.<br>&nbsp;'
+        else:
+            mb = ''
+    except (AuthTokenExpired, Unauthorized) as e:
+        flash(AUTH_TOKEN_FLASH_MSG, 'error')
+        help = get_helps(['import_xml_3'])
+        if not eval(fetched):
+            return redirect(url_for('home.import_xml', form=form, help=help))
+        else:
+            return redirect(url_for('home.fetch_xml', form=form, help=help))
 
     help = get_helps(['import_xml_3', 'complex_xml'])
     complex_xml = model_has_complex_texttypes(eml_node)
@@ -2149,9 +2180,9 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
                            mb=mb, complex_xml=complex_xml, form=form, help=help)
 
 
-@home.route('/import_xml_4/<filename>', methods=['GET', 'POST'])
+@home.route('/import_xml_4/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
-def import_xml_4(filename=None):
+def import_xml_4(filename=None, fetched=False):
 
     form = EDIForm()
     eml_node = load_eml(filename=filename)
@@ -2167,10 +2198,21 @@ def import_xml_4(filename=None):
         form = request.form
         try:
             total_size = import_data(filename, eml_node)
+        except (AuthTokenExpired, Unauthorized) as e:
+            flash(AUTH_TOKEN_FLASH_MSG, 'error')
+            help = get_helps(['import_xml_3'])
+            if not eval(fetched):
+                return redirect(url_for('home.import_xml', form=form, help=help))
+            else:
+                return redirect(url_for('home.fetch_xml', form=form, help=help))
         except UnicodeDecodeErrorInternal as err:
             filepath = err.message
             errors = display_decode_error_lines(filepath)
             return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
+        except Exception as e:
+            flash(f'Unable to fetch package data: {str(e)}', 'error')
+            help = get_helps(['import_xml_3'])
+            return redirect(url_for('home.import_xml', form=form, help=help))
 
         log_usage(actions['GET_ASSOCIATED_DATA_FILES'], total_size)
         return redirect(url_for(PAGE_TITLE, filename=filename))
@@ -2178,11 +2220,16 @@ def import_xml_4(filename=None):
     # Process GET
     form.md5.data = form_md5(form)
 
-    mb = get_data_size(filename)
-    if mb > 100:
-        mb = f' This package has <b>{mb} MB</b> of associated data.<br>&nbsp;'
-    else:
-        mb = ''
+    try:
+        mb = get_data_size(filename)
+        if mb > 100:
+            mb = f' This package has <b>{mb} MB</b> of associated data.<br>&nbsp;'
+        else:
+            mb = ''
+    except (AuthTokenExpired, Unauthorized) as e:
+        flash(AUTH_TOKEN_FLASH_MSG, 'error')
+        help = get_helps(['import_xml_3'])
+        return redirect(url_for('home.import_xml', form=form, help=help))
 
     help = get_helps(['import_xml_3', 'complex_xml'])
     complex_xml = model_has_complex_texttypes(eml_node)
@@ -2209,7 +2256,13 @@ def fetch_xml(scope=''):
     # Process GET
     form.md5.data = form_md5(form)
 
-    ids = get_pasta_identifiers(scope)
+    try:
+        ids = get_pasta_identifiers(scope)
+    except (AuthTokenExpired, Unauthorized) as e:
+        flash(AUTH_TOKEN_FLASH_MSG, 'error')
+        help = get_helps(['import_xml_3'])
+        return redirect(url_for('home.fetch_xml', scope=scope, form=form, help=help))
+
     package_links = ''
     parsed_url = urlparse(request.base_url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
@@ -2275,6 +2328,10 @@ def fetch_xml_3(scope_identifier=''):
     try:
         revision, metadata = get_newest_metadata_revision_from_pasta(scope, identifier)
         log_usage(actions['FETCH_FROM_EDI'], f"{scope}.{identifier}.{revision}")
+    except (AuthTokenExpired, Unauthorized) as e:
+        flash(AUTH_TOKEN_FLASH_MSG, 'error')
+        help = get_helps(['import_xml_3'])
+        return redirect(url_for('home.fetch_xml', form=form, help=help))
     except Exception as e:
         flash(f'Unable to fetch package {scope}.{identifier}: {str(e)}', 'error')
         help = get_helps(['import_xml_3'])
@@ -2319,10 +2376,11 @@ def fetch_xml_3(scope_identifier=''):
                                     child_errs=encode_for_query_string(child_errs),
                                     other_errs=encode_for_query_string(other_errs),
                                     pruned_nodes=encode_for_query_string(pruned_nodes),
-                                    filename=package_name))
+                                    filename=package_name,
+                                    fetched=True))
         else:
             flash(f"{package_name} was imported without errors")
-            return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name))
+            return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=True))
     else:
         raise Exception  # TODO: Error handling
 

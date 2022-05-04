@@ -1,6 +1,7 @@
+import base64
 import os
 import shutil
-import uuid
+import time
 
 import daiquiri
 from flask import flash
@@ -11,7 +12,7 @@ from metapype.eml import names
 
 import webapp.auth.user_data as user_data
 from webapp.config import Config
-import webapp.exceptions as exceptions
+import webapp.home.exceptions as exceptions
 
 from webapp.home.load_data_table import load_data_table, load_other_entity
 from webapp.home.metapype_client import save_both_formats
@@ -34,17 +35,6 @@ def log_info(msg):
         logger.info(msg)
 
 
-# def get_metadata_from_pasta(scope, identifier, revision, dest_directory, file_name):
-#     auth_token = user_data.get_auth_token()
-#     read_metadata_url = f"{Config.PASTA_URL}/metadata/eml/{scope}/{identifier}/{revision}"
-#     response = requests.get(read_metadata_url, cookies={'auth-token': auth_token})
-#     response.raise_for_status()
-#
-#     file_path = os.path.join(dest_directory, file_name)
-#     with open(file_path, "wb") as file:
-#         file.write(response.content)
-
-
 def extract_data_entities_from_eml(eml_node, entity_name):
     data_entities = []
     data_entity_nodes = []
@@ -63,17 +53,31 @@ def extract_data_entities_from_eml(eml_node, entity_name):
     return data_entities
 
 
-# def extract_entity_id(url):
-#     # Assumes url points to a PASTA data entity
-#     return url.split('/')[-1]
+def send_authorized_pasta_request(url):
+    response = requests.get(url)
+    if response.status_code == 401:
+        # PASTA needs an auth token for this request. try again with the auth_token.
+        # We don't default to sending the auth token because most requests don't need it and it's often the case
+        #  that the user has remained logged in long enough that the token has expired. No point in bothering the
+        #  user about an expired token when a token isn't needed.
+        auth_token = user_data.get_auth_token()
+        # see if auth_token has expired
+        auth_decoded = base64.b64decode(auth_token).decode('utf-8')
+        expiry = int(auth_decoded.split('*')[2])
+        current_time = int(time.time()) * 1000
+        if expiry < current_time:
+            raise exceptions.AuthTokenExpired('')
+        # auth_token should be good. try it.
+        response = requests.get(url, cookies={'auth-token': auth_token})
+        if response.status_code == 401:
+            raise exceptions.Unauthorized('')
+    return response
 
 
 def get_data_entity_size(url):
     if Config.PASTA_URL in url:
-        auth_token = user_data.get_auth_token()
         get_data_entity_size_url = url.replace('data/eml', 'data/size/eml')
-        # response = requests.get(get_data_entity_size_url, cookies={'auth-token': auth_token})
-        response = requests.get(get_data_entity_size_url)
+        response = send_authorized_pasta_request(get_data_entity_size_url)
         response.raise_for_status()
         return response.text
     else:
@@ -83,9 +87,7 @@ def get_data_entity_size(url):
 
 def get_data_entity(upload_dir, object_name, url):
     if Config.PASTA_URL in url:
-        auth_token = user_data.get_auth_token()
-        # response = requests.get(url, cookies={'auth-token': auth_token})
-        response = requests.get(url)
+        response = send_authorized_pasta_request(url)
         response.raise_for_status()
 
         file_path = os.path.join(upload_dir, object_name)
@@ -109,9 +111,7 @@ def convert_file_size(size):
 
 def get_data_entity_sizes(scope, identifier, revision):
     get_sizes_url = f"{Config.PASTA_URL}/data/size/eml/{scope}/{identifier}/{revision}"
-    auth_token = user_data.get_auth_token()
-    # response = requests.get(get_sizes_url, cookies={'auth-token': auth_token})
-    response = requests.get(get_sizes_url)
+    response = send_authorized_pasta_request(get_sizes_url)
     response.raise_for_status()
     lines = response.text.split('\n')
     total = 0
@@ -193,9 +193,7 @@ def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
 
 def retrieve_data_entity(upload_dir, object_name, url):
     if Config.PASTA_URL in url:
-        auth_token = user_data.get_auth_token()
-        # response = requests.get(url, cookies={'auth-token': auth_token})
-        response = requests.get(url)
+        response = send_authorized_pasta_request(url)
         response.raise_for_status()
 
         file_path = os.path.join(upload_dir, object_name)
@@ -235,15 +233,11 @@ def import_data(filename, eml_node):
 
 def get_newest_metadata_revision_from_pasta(scope, identifier):
     get_pasta_newest_revision_url = f"{Config.PASTA_URL}/eml/{scope}/{identifier}?filter=newest"
-    auth_token = user_data.get_auth_token()
-    # response = requests.get(get_pasta_newest_revision_url, cookies={'auth-token': auth_token})
     response = requests.get(get_pasta_newest_revision_url)
     response.raise_for_status()
     revision = response.text
 
     get_pasta_metadata_url = f"{Config.PASTA_URL}/metadata/eml/{scope}/{identifier}/{revision}"
-    auth_token = user_data.get_auth_token()
-    # response = requests.get(get_pasta_metadata_url, cookies={'auth-token': auth_token})
     response = requests.get(get_pasta_metadata_url)
     response.raise_for_status()
 
@@ -252,8 +246,6 @@ def get_newest_metadata_revision_from_pasta(scope, identifier):
 
 def get_pasta_identifiers(scope=''):
     get_pasta_identifiers_url = f"{Config.PASTA_URL}/eml/{scope}"
-    auth_token = user_data.get_auth_token()
-    # response = requests.get(get_pasta_identifiers_url, cookies={'auth-token': auth_token})
     response = requests.get(get_pasta_identifiers_url)
     response.raise_for_status()
     ids = []

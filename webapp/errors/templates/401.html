@@ -1,0 +1,14 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+{% if title %}{{ title }} - Metadata EML{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% block app_content %}
+        <h3 align="center">Your login has expired. Please logout and log back in. Thank you.
+        </h3>
+    {% endblock %}
+</div>
+{% endblock %}

@@ -267,8 +267,12 @@ def force_missing_value_codes(attribute_node, codes):
     if missing_value_code_node:
         missing_value = missing_value_code_node.content
         for index, item in enumerate(codes):
-            if math.isnan(item):
-                codes[index] = missing_value
+            try:
+                # isnan requires item to be a number. It may not be.
+                if math.isnan(item):
+                    codes[index] = missing_value
+            except TypeError as e:
+                pass
 
 
 def list_data_tables(eml_node:Node=None, to_skip:str=None):

@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2022.05.04' %}
+{% set release_number = '2022.05.06' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -266,9 +266,12 @@
     <div style="width: 18%; float: left;">
         <br>
         {% if current_user.is_authenticated %}
-                <table>
-                    <td><h4 class="nav_link">Contents</h4><p></p></td>
-                    <td valign="middle" style="padding-top: 7px;padding-left: 10px;">{{ macros.help_button('__help__contents_btn', 'nav_link') }}</td>
+                <table border="0">
+                    <td style="width:2%;"><h4 class="nav_link">Contents</h4><p></p></td>
+                    <td><table width="10%">
+                    <td style="width:2%; text-align:right; vertical-align:middle; padding-top: 4px;">{{ macros.help_button('__help__contents_btn', 'nav_link') }}</td>
+{#                    <td style="width:2%; text-align=right; vertical-align:middle; padding-top: 6px;">{{ macros.video_button('https://youtu.be/T2lhEBWzIPQ' )}}</td>#}
+                    </table></td>
                 </table>
             {% set title_style = '""'|safe %}
             {% set creator_style = '""'|safe %}

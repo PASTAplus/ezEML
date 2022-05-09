@@ -1529,12 +1529,12 @@ def submit_package():
                 msg += get_fetched_from_edi_metadata(eml_node)
                 msg += get_imported_from_xml_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
-                to_address = ['support@environmentaldatainitiative.org']
+                to_address = [Config.EMAIL_TO_ADDR]
                 sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address, sender_name=name, sender_email=email_address)
                 if sent:
                     log_usage(actions['SEND_TO_EDI'], name, email_address)
                     flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
-                    flash(f"If you don't hear back from us within 48 hours, please contact us at support@environmentaldatainitiative.org.")
+                    flash(f"If you don't hear back from us within 48 hours, please contact us at support@edirepository.org.")
                 else:
                     log_usage(actions['SEND_TO_EDI'], 'failed')
                     flash(f'Email failed to send', 'error')

@@ -30,8 +30,8 @@ def send_mail(subject, msg, to, sender_name=None, sender_email=None) -> bool:
 
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
-    message["From"] = Config.HOVER_MAIL
-    message["To"] = Config.HOVER_MAIL
+    message["From"] = Config.EMAIL_FROM_ADDR
+    message["To"] = Config.EMAIL_TO_ADDR
 
     part = MIMEText(msg, "plain")
     message.attach(part)
@@ -39,9 +39,9 @@ def send_mail(subject, msg, to, sender_name=None, sender_email=None) -> bool:
     context = ssl.create_default_context()
     try:
         with smtplib.SMTP_SSL("mail.hover.com", 465, context=context) as server:
-            server.login(Config.HOVER_MAIL, Config.HOVER_PASSWORD)
+            server.login(Config.EMAIL_RELAY_USER, Config.EMAIL_RELAY_PASSWORD)
             server.sendmail(
-                Config.HOVER_MAIL, Config.HOVER_MAIL, message.as_string()
+                Config.EMAIL_FROM_ADDR, Config.EMAIL_TO_ADDR, message.as_string()
             )
         log_msg = f"Sending email to: {to}"
         if sender_name and sender_email:

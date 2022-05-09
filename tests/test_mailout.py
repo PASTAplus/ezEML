@@ -30,5 +30,5 @@ logger = daiquiri.getLogger(__name__)
 def test_send_mail():
     subject = "Test ezEML support email notification..."
     msg = "IGNORE -- Test ezEML support email notification."
-    to = "support@environmentaldatainitiative.org"
+    to = "support@edirepository.org"
     mailout.send_mail(subject, msg, to)

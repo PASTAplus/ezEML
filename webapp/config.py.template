@@ -42,6 +42,10 @@ class Config(object):
     # Email configuration
     HOVER_MAIL = "MAIL_USER"
     HOVER_PASSWORD = "MAIL_PASSWORD"
+    EMAIL_RELAY_USER = "MAIL_USER"
+    EMAIL_RELAY_PASSWORD = "MAIL_PASSWORD"
+    EMAIL_FROM_ADDR = "support@edirepository.org"
+    EMAIL_TO_ADDR = "support@edirepository.org"
 
     TEMPLATE_DIR = "/home/pasta/ezeml/templates"
 

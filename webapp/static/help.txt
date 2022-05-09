@@ -371,7 +371,7 @@ fetch_from_edi
 Fetch a Data Package from EDI
 ezEML can import an EML XML file from the EDI data repository. Packages in the repository are organized in "scopes" -- e.g., "edi", "knb-lter-and", etc. If you have visited EDI's <a href="https://portal.edirepository.org/nis/home.jsp">Data Portal</a> you have seen a structure similar to what you seen here in ezEML. Click on the scope of interest, then click on the package number within the scope.
 
-ezEML will retrieve the latest revision of the selected data package from the data repository and import it into ezEML via the Import an EML XML File workflow.
+ezEML will retrieve the latest revision of the selected data package from the data repository and import it into ezEML via the "Import EML File (XML)" workflow.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=PNhiBPXWAdA&t=799s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------

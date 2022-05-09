@@ -25,8 +25,20 @@
     <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;" title="Help">
         <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="black"/>
-            <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-linejoin="round" stroke-width="1"/><path d="M12 14C12 13.8333 12 13.6667 12 13.5C12 13.5 12 12 14 11C16 10 15.5 7 12.5 7C9.5 7 9.5 9.5 9.5 9.5V10" stroke="black" stroke-width="2"/></svg>
+            <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-linejoin="round" stroke-width="1"/>
+            <path d="M12 14C12 13.8333 12 13.6667 12 13.5C12 13.5 12 12 14 11C16 10 15.5 7 12.5 7C9.5 7 9.5 9.5 9.5 9.5V10" stroke="black" stroke-width="2"/></svg>
     </button>
+{% endmacro %}
+{% macro video_button(link) %}
+    <a href="{{ link }}" class=""btn" target="_youtube_ezeml" title="Watch a short demo on YouTube">
+        <svg width="1.3em" height="1.3em" viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M45.563,29.174l-22-15c-0.307-0.208-0.703-0.231-1.031-0.058C22.205,14.289,22,14.629,22,15v30
+                c0,0.371,0.205,0.711,0.533,0.884C22.679,45.962,22.84,46,23,46c0.197,0,0.394-0.059,0.563-0.174l22-15
+                C45.836,30.64,46,30.331,46,30S45.836,29.36,45.563,29.174z M24,43.107V16.893L43.225,30L24,43.107z" stroke="black" fill="black" stroke-width="3"/>
+            <path d="M30,0C13.458,0,0,13.458,0,30s13.458,30,30,30s30-13.458,30-30S46.542,0,30,0z M30,58C14.561,58,2,45.439,2,30
+                S14.561,2,30,2s28,12.561,28,28S45.439,58,30,58z" stroke="black" stroke-linejoin="round" fill="black" stroke-width="1"/>
+        </svg>
+    </a>
 {% endmacro %}
 {% macro check_xml_button(id, class) %}
     <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;" title="Check XML Validity">

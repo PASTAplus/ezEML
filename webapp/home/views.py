@@ -2260,7 +2260,7 @@ def fetch_xml(scope=''):
         ids = get_pasta_identifiers(scope)
     except (AuthTokenExpired, Unauthorized) as e:
         flash(AUTH_TOKEN_FLASH_MSG, 'error')
-        help = get_helps(['import_xml_3'])
+        help = get_helps(['fetch_from_edi'])
         return redirect(url_for('home.fetch_xml', scope=scope, form=form, help=help))
 
     package_links = ''
@@ -2271,7 +2271,7 @@ def fetch_xml(scope=''):
         new_anchor = f'<br><a href="{new_link}">{id}</a>'
         package_links = package_links + new_anchor
 
-    help = get_helps(['import_xml_3'])
+    help = get_helps(['fetch_from_edi'])
     return render_template('fetch_xml.html', package_links=package_links, form=form, help=help)
 
 
@@ -2304,7 +2304,7 @@ def fetch_xml_2(scope=''):
         new_anchor = f'<br><a href="{new_link}">{scope}.{id}</a>'
         package_links = package_links + new_anchor
 
-    help = get_helps(['import_xml_3'])
+    help = get_helps(['ifetch_from_edi'])
     return render_template('fetch_xml_2.html', package_links=package_links, form=form, help=help)
 
 

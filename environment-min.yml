@@ -19,5 +19,5 @@ dependencies:
   - pendulum
   - pip
   - pip:
-      - metapype==0.0.16
+      - metapype==0.0.19
 prefix: /home/servilla/anaconda3/envs/ezeml

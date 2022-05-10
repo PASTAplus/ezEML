@@ -1531,7 +1531,7 @@ def submit_package():
                 msg += get_fetched_from_edi_metadata(eml_node)
                 msg += get_imported_from_xml_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
-                to_address = [Config.EMAIL_TO_ADDR]
+                to_address = [Config.TO]
                 sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address, sender_name=name, sender_email=email_address)
                 if sent:
                     log_usage(actions['SEND_TO_EDI'], name, email_address)

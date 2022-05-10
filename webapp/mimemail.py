@@ -13,10 +13,11 @@
 :Created:
     4/3/22
 """
-import smtplib
-import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formataddr
+import smtplib
+import ssl
 
 import daiquiri
 
@@ -30,19 +31,18 @@ def send_mail(subject, msg, to, sender_name=None, sender_email=None) -> bool:
 
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
-    message["From"] = Config.EMAIL_FROM_ADDR
-    message["To"] = Config.EMAIL_TO_ADDR
+    message["From"] = formataddr((Config.FROM_NAME, Config.FROM))
+    message["To"] = formataddr((Config.TO_NAME, Config.TO))
 
     part = MIMEText(msg, "plain")
     message.attach(part)
 
-    context = ssl.create_default_context()
     try:
-        with smtplib.SMTP_SSL("mail.hover.com", 465, context=context) as server:
-            server.login(Config.EMAIL_RELAY_USER, Config.EMAIL_RELAY_PASSWORD)
-            server.sendmail(
-                Config.EMAIL_FROM_ADDR, Config.EMAIL_TO_ADDR, message.as_string()
-            )
+        with smtplib.SMTP(Config.RELAY_HOST, Config.RELAY_TLS_PORT) as server:
+            server.starttls()
+            server.login(Config.RELAY_USER, Config.RELAY_PASSWORD)
+            server.sendmail(Config.FROM, Config.TO, message.as_string())
+
         log_msg = f"Sending email to: {to}"
         if sender_name and sender_email:
             log_msg += f"  Sender: {sender_name} - {sender_email}"

@@ -40,12 +40,14 @@ class Config(object):
     SYSTEM_ATTRIBUTE_VALUE = "https://pasta.edirepository.org"
 
     # Email configuration
-    HOVER_MAIL = "MAIL_USER"
-    HOVER_PASSWORD = "MAIL_PASSWORD"
-    EMAIL_RELAY_USER = "MAIL_USER"
-    EMAIL_RELAY_PASSWORD = "MAIL_PASSWORD"
-    EMAIL_FROM_ADDR = "support@edirepository.org"
-    EMAIL_TO_ADDR = "support@edirepository.org"
+    RELAY_HOST = 'RELAY_HOST'
+    RELAY_PASSWORD = 'RELAY_PASSWORD'
+    RELAY_USER = 'RELAY_USER'
+    RELAY_TLS_PORT = 587
+    TO = 'support@edirepository.org'
+    TO_NAME = 'Support'
+    FROM = 'support@edirepository.org'
+    FROM_NAME = 'Support'
 
     TEMPLATE_DIR = "/home/pasta/ezeml/templates"
 

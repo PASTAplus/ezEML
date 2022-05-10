@@ -2304,7 +2304,7 @@ def fetch_xml_2(scope=''):
         new_anchor = f'<br><a href="{new_link}">{scope}.{id}</a>'
         package_links = package_links + new_anchor
 
-    help = get_helps(['ifetch_from_edi'])
+    help = get_helps(['fetch_from_edi'])
     return render_template('fetch_xml_2.html', package_links=package_links, form=form, help=help)
 
 

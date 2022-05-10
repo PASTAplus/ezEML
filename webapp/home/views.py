@@ -1431,8 +1431,10 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, d
         '   Sender\'s name: ' + name + '\n\n' + \
         '   Sender\'s email: ' + email_address + '\n\n' + \
         '   Package name: ' + archive_name + '\n\n' + \
-        '   Download URL: ' + get_shortened_url(download_url) + '\n\n' + \
-        '   Download URL without data files: ' + get_shortened_url(download_url_without_data) + '\n\n'
+        '   Download URL: ' + download_url + '\n\n' + \
+        '   Download URL without data files: ' + download_url_without_data + '\n\n'
+        # '   Download URL: ' + get_shortened_url(download_url) + '\n\n' + \
+        # '   Download URL without data files: ' + get_shortened_url(download_url_without_data) + '\n\n'
     if notes:
         msg += '   Sender\'s Notes: ' + notes
     return msg

@@ -45,9 +45,9 @@ class Config(object):
     RELAY_USER = 'RELAY_USER'
     RELAY_TLS_PORT = 587
     TO = 'support@edirepository.org'
-    TO_NAME = 'Support'
+    TO_NAME = 'EDI Support'
     FROM = 'support@edirepository.org'
-    FROM_NAME = 'Support'
+    FROM_NAME = 'EDI Support'
 
     TEMPLATE_DIR = "/home/pasta/ezeml/templates"
 

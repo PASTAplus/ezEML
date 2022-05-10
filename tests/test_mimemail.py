@@ -32,4 +32,4 @@ def test_send_mail():
     subject = "Test ezEML support email notification..."
     msg = "IGNORE -- Test ezEML support email notification. Testing UNICODE: ∑ ÿ 𘚟"
     to = "support@edirepository.org"
-    mimemail.send_mail(subject, msg, to)
+    assert(mimemail.send_mail(subject, msg, to) is True)

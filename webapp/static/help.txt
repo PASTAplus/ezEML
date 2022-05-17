@@ -186,10 +186,14 @@ In the scenario above, we refer to the first data table as the <b>source</b> tab
 Note that if you've simply added some rows, corrected some cell values, or renamed one or more columns (i.e., you haven't significantly altered the <i>structure</i> of the table), you can use the <b>Re-upload</b> feature instead of the more complicated <b>Clone Column Properties from Another Data Table</b> feature.
 
 Begin by selecting the data package that contains the source data table. This may be the current data package or some other one. Then click <b>Open for Cloning</b>.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=N5Z4cXW0Jzk" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 clone_attributes_2
 Clone Column Properties from Another Data Table
 Having selected the data package that contains the source data table, the next step is to select the source data table from the list of data tables in the package. Then click <b>Select Data Table</b>.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=N5Z4cXW0Jzk" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 clone_attributes_3
 Clone Column Properties
@@ -198,6 +202,8 @@ Having selected the source data table, the next step is to select the particular
 Select one or more columns, then click <b>Select Columns</b>.
 
 <b>Note:</b> If you want to clone a number of columns, you can do them all in the same pass, or you can do one or a few columns at a time if that seems more manageable. I.e., you can clone some columns, take a look at the result, then clone some more columns, etc., by going through the <b>Clone Column Properties from Another Data Table</b> process repeatedly.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=N5Z4cXW0Jzk" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 clone_attributes_4
 Clone Column Properties
@@ -208,12 +214,16 @@ For each Source Column, select a Target Column in the target data table. After y
 The properties of the source columns will be copied into the target columns, except that the <b>Name</b> of each target column will not be changed.
 
 Categorical columns get special handling: codes in the target column are preserved, but if a code exists in the source column, the source column's definition for the code is used.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=N5Z4cXW0Jzk" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 clone_attributes_targets
 Target Column
 For each <b>Source Column</b>, select the corresponding <b>Target Column</b>. The properties of the source column will be cloned to the target column.
 
 If there is a column in the target data table whose name matches a column in the source data table, that column is selected by default, but you can change any of the selections. A target column is <i>not</i> required to have the same name as its corresponding source column.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=N5Z4cXW0Jzk" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 contact
 Contact

@@ -70,10 +70,10 @@ class DonorForm(EDIForm):
             ("nm", "NM")])
     fixation = SelectField('Fixation',
         choices=[("", ""),
-            ("neutralBufferedFormalin10", "Natural Buffered Formalin10"),
-            ("paraformaldehyde4", "Paraformalhyde"),
+            ("neutralBufferedFormalin10", "Neutral Buffered Formalin10"),
+            ("paraformaldehyde4", "Paraformaldehyde"),
             ("davidsons", "Davidsons"),
-            ("neutralBufferedFormalin5aceticAcid", "Neutral Buffered Formalin Sacetic Acid"),
+            ("neutralBufferedFormalin5aceticAcid", "Neutral Buffered Formalin5 acetic Acid"),
             ("bouins", "Bouins"),
             ("other", "Other")])
     fixationOther = StringField('Other Fixation', validators=[])

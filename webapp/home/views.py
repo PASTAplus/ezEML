@@ -2796,6 +2796,10 @@ def load_data(filename=None):
                 except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
                     return render_template('encoding_error.html', filename=filename, errors=errors)
+                except UnicodeDecodeErrorInternal as err:
+                    filepath = err.message
+                    errors = display_decode_error_lines(filepath)
+                    return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
                 except DataTableError as err:
                     flash(f'Data table has an error: {err.message}', 'error')
                     return redirect(request.url)
@@ -2908,6 +2912,11 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
     except UnicodeDecodeError as err:
         errors = display_decode_error_lines(filepath)
         return render_template('encoding_error.html', filename=document, errors=errors)
+
+    except UnicodeDecodeErrorInternal as err:
+            filepath = err.message
+            errors = display_decode_error_lines(filepath)
+            return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
 
     except DataTableError as err:
         flash(f'Data table has an error: {err.message}', 'error')

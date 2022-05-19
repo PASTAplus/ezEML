@@ -477,11 +477,23 @@ If you elect to <b>Replace</b> the package, the existing version will be overwri
 
 Suppose, instead, that you elect to <b>Copy</b> the package. If the existing package is called my_data_package, then the new version will be saved as my_data_package_COPY (or my_data_package_COPY2,  my_data_package_COPY3, etc., as needed).
 --------------------
+import_project
+Import Project
+You may import a project from another data package to be incorporated in the current data package as the primary project.
+
+The project you import may be a primary project or a related project in the other data package, but in the current data package it will be treated as the primary project. To import a project as a related project instead, use <b>Import Related Projects</b>.
+--------------------
+import_project_2
+Import Project
+Select the project you wish to import as the primary project.
+
+If none are listed, none are available in the selected data package.
+--------------------
 import_related_projects
 Import Related Projects
 You may import one or more projects from another data package to be incorporated in the current data package as related projects.
 
-The projects you import may be a main project or a related project in the other data package, but in the current data package they will be treated as related projects.
+The projects you import may be a primary project or a related project in the other data package, but in the current data package they will be treated as related projects.
 --------------------
 import_related_projects_2
 Import Related Projects

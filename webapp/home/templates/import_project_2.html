@@ -2,24 +2,24 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    {% set help_related_projects_2_id, help_related_projects_2_title, help_related_projects_2_content = help[0] %}
-    {% set help_related_projects_2_btn = help_related_projects_2_id ~ '_btn' %}
-    {% set help_related_projects_2_dialog = help_related_projects_2_id ~ '_dialog' %}
+    {% set help_project_2_id, help_project_2_title, help_project_2_content = help[0] %}
+    {% set help_project_2_btn = help_project_2_id ~ '_btn' %}
+    {% set help_project_2_dialog = help_project_2_id ~ '_dialog' %}
 
     <table>
-        <td><h2>Import Related Projects</h2></td>
-        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_related_projects_2_btn) }}</td>
+        <td><h2>Import Project</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_project_2_btn) }}</td>
     </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select one or more projects to import as Related Projects from {{ target_filename }}:</h5></tr>
+                    <tr><h5>Select a project to import from {{ target_filename }}:</h5></tr>
                     {% if form.to_import.choices %}
                     <tr>{{ form.to_import(style="list-style:none;") }}</tr>
                     {% else %}
-                    <tr><span style="font-style: italic;">&nbsp;&nbsp;The selected EML document contains no projects.</span><br></tr>
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;The selected data package contains no projects.</span><br></tr>
                     {% endif %}
                     <tr>&nbsp;<p/></tr>
                     <tr>&nbsp;
@@ -35,19 +35,19 @@
             </form>
         </div>
     </div>
-    {{ macros.help_dialog(help_related_projects_2_dialog, help_related_projects_2_title, help_related_projects_2_content) }}
+    {{ macros.help_dialog(help_project_2_dialog, help_project_2_title, help_project_2_content) }}
 {% endblock %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_related_projects_2_id, help_related_projects_2_title, help_related_projects_2_content = help[0] %}
-    {% set help_related_projects_2_btn = help_related_projects_2_id ~ '_btn' %}
-    {% set help_related_projects_2_dialog = help_related_projects_2_id ~ '_dialog' %}
+    {% set help_project_2_id, help_project_2_title, help_project_2_content = help[0] %}
+    {% set help_project_2_btn = help_project_2_id ~ '_btn' %}
+    {% set help_project_2_dialog = help_project_2_id ~ '_dialog' %}
 
     <script>
     $(function()
     {
-        {{ macros.help_script(help_related_projects_2_dialog, help_related_projects_2_btn) }}
+        {{ macros.help_script(help_project_2_dialog, help_project_2_btn) }}
     });
     </script>
 {% endblock %}

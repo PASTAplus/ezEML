@@ -74,7 +74,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.05.10'
+RELEASE_NUMBER = '2022.05.18'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -892,7 +892,27 @@ def compose_project_label(project_node:Node=None):
     return title
 
 
-def import_project_nodes(target_package, node_ids_to_import):
+def import_project_node(target_package, node_id_to_import):
+    if not node_id_to_import:
+        return
+    imported_node = Node.get_node_instance(node_id_to_import)
+    if not imported_node:
+        return
+    target_eml_node = load_eml(target_package)
+    project_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+    dataset_node = target_eml_node.find_child(names.DATASET)
+    if project_node:
+        dataset_node.remove_child(project_node)
+    new_node = imported_node.copy()
+    new_node.name = names.PROJECT
+    # For now we will remove any related projects. User will need to import any related projects separately.
+    for child in new_node.find_all_children(names.RELATED_PROJECT):
+        new_node.remove_child(child)
+    add_child(dataset_node, new_node)
+    save_both_formats(target_package, target_eml_node)
+
+
+def import_related_project_nodes(target_package, node_ids_to_import):
     target_eml_node = load_eml(target_package)
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if not parent_node:
@@ -909,7 +929,6 @@ def import_project_nodes(target_package, node_ids_to_import):
             new_node.remove_child(child)
         add_child(parent_node, new_node)
     save_both_formats(target_package, target_eml_node)
-
 
 def compose_rp_label(rp_node:Node=None):
     label = ''

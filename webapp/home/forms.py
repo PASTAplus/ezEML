@@ -124,6 +124,10 @@ class ImportXmlForm(FlaskForm):
     pass
 
 
+class ImportSingleItemForm(FlaskForm):
+    to_import = RadioField('Import', choices=[], validators=[])
+
+
 class ImportItemsForm(FlaskForm):
     to_import = MultiCheckboxField('Import', choices=[], validators=[])
 

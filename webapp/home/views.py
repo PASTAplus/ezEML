@@ -60,7 +60,8 @@ from webapp.home.forms import (
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
-    ImportEMLForm, ImportEMLItemsForm, ImportItemsForm,
+    ImportEMLForm, ImportEMLItemsForm,
+    ImportItemsForm, ImportSingleItemForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm
 )
@@ -86,7 +87,7 @@ from webapp.home.metapype_client import (
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_nodes, get_check_metadata_status,
+    import_project_node, import_related_project_nodes, get_check_metadata_status,
     handle_hidden_buttons, check_val_for_hidden_buttons,
     add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
     add_imported_from_xml_metadata, get_imported_from_xml_metadata,
@@ -1236,8 +1237,8 @@ def import_related_projects_2(filename):
     form = ImportItemsForm()
 
     eml_node = load_eml(filename)
-    coverages = get_projects_for_import(eml_node)
-    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    projects = get_projects_for_import(eml_node)
+    choices = [[project[1], project[0]] for project in projects]
     form.to_import.choices = choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -1246,7 +1247,7 @@ def import_related_projects_2(filename):
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
-        import_project_nodes(target_package, node_ids_to_import)
+        import_related_project_nodes(target_package, node_ids_to_import)
         log_usage(actions['IMPORT_RELATED_PROJECTS'], filename)
         return redirect(url_for(PAGE_RELATED_PROJECT_SELECT, filename=target_package))
 
@@ -1255,11 +1256,56 @@ def import_related_projects_2(filename):
     return render_template('import_related_projects_2.html', help=help, target_filename=filename, form=form)
 
 
+@home.route('/import_project', methods=['GET', 'POST'])
+@login_required
+def import_project():
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_project_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_project'])
+    return render_template('import_project.html', help=help, form=form)
+
+
+@home.route('/import_project_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_project_2(filename):
+    form = ImportSingleItemForm()
+
+    eml_node = load_eml(filename)
+    projects = get_projects_for_import(eml_node)
+    choices = [[project[1], project[0]] for project in projects]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_id_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_project_node(target_package, node_id_to_import)
+        log_usage(actions['IMPORT_PROJECT'], filename)
+        return redirect(url_for(PAGE_PROJECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_project_2'])
+    return render_template('import_project_2.html', help=help, target_filename=filename, form=form)
+
+
 def get_projects_for_import(eml_node):
     projects = []
     project = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     project_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
-    project_nodes.append(project)
+    if project:
+        project_nodes.append(project)
     for project_node in project_nodes:
         label = truncate_middle(compose_project_label(project_node), 80, ' ... ')
         projects.append((f'{label}', project_node.id))

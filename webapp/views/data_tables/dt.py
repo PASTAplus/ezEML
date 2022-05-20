@@ -554,10 +554,6 @@ def force_categorical_codes(attribute_node):
 def change_measurement_scale(att_node, old_mscale, new_mscale):
     if not att_node:
         return
-    # if old_mscale == new_mscale:
-    #     FIXME TEMP
-    #     return
-    # flash(f'Changing from {old_mscale} to {new_mscale}')
     mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 
     # clear its children

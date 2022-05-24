@@ -899,7 +899,9 @@ It's usually best to refrain from using your browser's forward and back buttons.
 
 Notice that there are lots of Help buttons in ezEML (see the circular question mark icons). You may find them helpful.
 
-We won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a style="color: steelblue;" href="/static/user_guide/navigating.pdf">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+If you click the checkbox below we won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a style="color: steelblue;" href="/static/user_guide/navigating.pdf">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+
+You can also watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 
 We hope you find ezEML useful, and we welcome your feedback at <a style="color: steelblue;" href="mailto:support.edirepository.org">support@edirepository.org</a>.
 <br>&nbsp;</br>

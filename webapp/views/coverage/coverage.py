@@ -568,7 +568,7 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
         raise ValueError('No source specified')
     try:
         hierarchy = source.fill_common_names(source.fill_hierarchy(taxon))
-    except:
+    except Exception as err:
         raise ValueError(f'A network error occurred. Please try again.')
     if not hierarchy:
         in_str = ''

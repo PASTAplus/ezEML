@@ -74,7 +74,8 @@ def donor(filename=None):
     help = [get_help('publisher')]
     return newDonor(filename=filename, node_id=node_id,
                              method=method, node_name='donor',
-                             back_page=PAGE_DONOR, next_page= PAGE_DONOR, title='Donor',
+                            back_page=PAGE_RELATED_PROJECT_SELECT, next_page=PAGE_IHC, title='Donor',
+#PT5/26                             back_page=PAGE_DONOR, next_page= PAGE_DONOR, title='Donor',
                              save_and_continue=True, help=help)
 
 def newDonor(filename=None, node_id=None, method=None,

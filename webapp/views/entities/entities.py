@@ -76,7 +76,8 @@ def other_entity_select(filename=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT,
-                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY)
+#PT5/26                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY)
+                          PAGE_CONTACT_SELECT, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY) #PT5/26
         return redirect(url)
 
     # Process GET

@@ -46,7 +46,8 @@
         <div class="navbar-header">
             <table>
                 <td width="5%"></td>
-                <td><a onclick="nav_save.click();" href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a></td>
+<!--PT5/26                <td><a onclick="nav_save.click();" href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a></td> -->
+                <td><a onclick="nav_save.click();" href="{{ url_for('home.index') }}"><img style="width: 50px; width: 50px;" src="{{ url_for('static', filename='motherlogobudget.png') }}"></a></td> <!--PT5/26-->
                 <td width="5%"></td>
                 <td>
                     <button aria-controls="navbar" aria-expanded="false"
@@ -57,7 +58,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" onclick="nav_save.click();" href="{{ url_for('home.index') }}">ezEML</a>
+                    <a class="navbar-brand" onclick="nav_save.click();" href="{{ url_for('home.index') }}">ezEML+MOTHER</a>
                 </td>
             </table>
         </div>
@@ -152,8 +153,8 @@
                 </li>
                 {% endif %}
             {% endif %}
-                <li class="dropdown">
-                    <a aria-expanded="false" aria-haspopup="true"
+             <!-- PT5/25    <li class="dropdown">
+                   <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
                        role="button">EDI Links
                         <span class="caret"></span>
@@ -172,16 +173,16 @@
                             <a href="https://lternet.edu/" target="_blank">LTER Network</a>
                         </li>
                     </ul>
-                </li>
+                </li> -->
                 <li>
                     <a href="{{ url_for('home.user_guide') }}" title="User Guide">User Guide</a>
                 </li>
                 <li>
                     <a href="{{ url_for('home.about') }}" title="About">About</a>
                 </li>
-                <li>
+            <!-- PT5/25   <li>
                     <a href="{{ url_for('home.news') }}" title="News">News</a>
-                </li>
+                </li> -->
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
@@ -276,8 +277,8 @@
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
 
-            {% if page == 'title' %}{% set title_style = current %}{% endif %}
             {% if page == 'creator' %}{% set creator_style = current %}{% endif %}
+            {% if page == 'title' %}{% set title_style = current %}{% endif %}
             {% if page == 'metadata_provider' %}{% set metadata_provider_style = current %}{% endif %}
             {% if page == 'associated_party' %}{% set associated_party_style = current %}{% endif %}
             {% if page == 'abstract' %}{% set abstract_style = current %}{% endif %}
@@ -299,20 +300,30 @@
 {#            {% if page == 'export_package' %}{% set export_package_style = current %}{% endif %}#}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
+            {% if page == 'donor' %}{% set donor_style = current %}{% endif %}
+            {% if page == 'ihc' %}{% set ihc_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
         <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Image</a><br>
         {#<a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>#}
-        {#<a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>#}
-        <a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
-        {#<a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>#}
-        <a class="nav_link" style={{ metadata_provider_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
-        {#<a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>#}
-        {#<a class="nav_link" style={{ keyword_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>#}
+        {% if page != 'creator' and
+              page != 'contact' and
+              page != 'associated_party' and
+              page != 'metadata_provider'%}<a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">People</a><br>{% endif %}
+        {% if page == 'creator' %}<a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">People</a><br>{% endif %}
+        {% if page == 'contact' %}<a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">People</a><br>{% endif %}
+        {% if page == 'associated_party' %}<a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">People</a><br>{% endif %}
+        {% if page == 'metadata_provider' %}<a class="nav_link" style={{ metadata_provider_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">People</a><br>{% endif %}
+        {% if page != 'abstract' and
+              page != 'keyword' %}<a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract and Keywords</a><br>{% endif %}
+        {% if page == 'abstract' %}<a class="nav_link" style={{ abstract_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract and Keywords</a><br>{% endif %}
+        {% if page == 'keyword' %}<a class="nav_link" style={{ keyword_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Abstract and Keywords</a><br> {% endif %}
         <a class="nav_link" style={{ intellectual_rights_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.intellectual_rights') }}" title="Edit">Intellectual Rights</a><br>
             {# <a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ihc.immunohistochemistry') }}" title="Edit">Immunohistochemistry</a><br>#}
-        <a class="nav_link" style={{ geographic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a><br>
-        <a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
+        {% if page != 'geographic_coverage' and
+              page != 'temporal_coverage' %}<a class="nav_link" style={{ geographic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic/Temporal Coverage</a><br>{% endif %}
+        {% if page == 'geographic_coverage' %}<a class="nav_link" style={{ geographic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic/Temporal Coverage</a><br>{% endif %}
+        {% if page == 'temporal_coverage' %}<a class="nav_link" style={{ temporal_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Geographic/Temporal Coverage</a><br>{% endif %}
         <a class="nav_link" style={{ taxonomic_coverage_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
         {#<a class="nav_link" style={{ maintenance_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>#}
         {#<a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>#}
@@ -321,8 +332,8 @@
         <a class="nav_link" style={{ project_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
         {#<a class="nav_link" style={{ data_package_id_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>#}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-            <a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='do.donor') }}" title="Edit">Donor</a><br>
-            <a class="nav_link" style={{ publisher_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ihc.immunohistochemistry') }}" title="Edit">Immunohistochemistry</a><br>
+            <a class="nav_link" style={{ donor_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='do.donor') }}" title="Edit">Donor</a><br>
+            <a class="nav_link" style={{ ihc_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ihc.immunohistochemistry') }}" title="Edit">Immunohistochemistry</a><br>
 
             <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;

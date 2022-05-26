@@ -529,7 +529,8 @@ def taxonomic_coverage_select(filename=None):
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_TAXONOMIC_COVERAGE_SELECT,
                           PAGE_TEMPORAL_COVERAGE_SELECT,
-                          PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
+                          PAGE_METHOD_STEP_SELECT, PAGE_TAXONOMIC_COVERAGE)  # PT5/26
+#PT5/26                          PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
         return redirect(url)
 
     # Process GET

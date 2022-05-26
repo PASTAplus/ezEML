@@ -73,7 +73,7 @@ def immunohistochemistry(filename=None):
     help = [get_help('publisher')]
     return new_immunohistochemistry(filename=filename, node_id=node_id,
                                     method=method, node_name="immunohistochemistry",
-                                    back_page=PAGE_IHC, next_page=PAGE_IHC, title='Immunohistochemistry',
+                                    back_page=PAGE_DONOR, next_page=PAGE_CHECK, title='Immunohistochemistry',  #PT5/26
                                     save_and_continue=True, help=help)
 
 

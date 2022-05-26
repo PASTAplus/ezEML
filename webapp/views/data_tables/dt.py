@@ -116,7 +116,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
             next_page = PAGE_OPEN
         elif BTN_HIDDEN_CLOSE in request.form:
             next_page = PAGE_CLOSE
-
+        print("test=",next_page)
     if form.validate_on_submit():
         eml_node = load_eml(filename=filename)
 

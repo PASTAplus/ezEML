@@ -78,3 +78,5 @@ PAGE_TAXONOMIC_COVERAGE_SELECT = 'cov.taxonomic_coverage_select'
 PAGE_TEMPORAL_COVERAGE = 'cov.temporal_coverage'
 PAGE_TEMPORAL_COVERAGE_SELECT = 'cov.temporal_coverage_select'
 PAGE_TITLE = 'res.title'
+PAGE_DONOR = 'do.donor'    #PT5/26
+PAGE_IHC = 'ihc.immunohistochemistry'   #PT5/26

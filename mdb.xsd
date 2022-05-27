@@ -1,0 +1,398 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+			xmlns="http://mother-db.org/mdb" 
+			targetNamespace="http://mother-db.org/mdb"
+			elementFormDefault="qualified">
+	
+	<xsd:element name="mother" type="motherType"/>
+	<xsd:element name="donorID" type="xsd:string" />
+	<xsd:element name="donorGender" type="donorGenderType" />
+	<xsd:element name="donorAge" type="donorAgeType" nillable="true"/>
+	<xsd:element name="donorYears" type="xsd:nonNegativeInteger" />
+	<xsd:element name="donorDays" type="xsd:nonNegativeInteger" nillable="true"/>
+	<xsd:element name="donorLifeStage" type="xsd:string" />
+	<xsd:element name="specimenSeqNum" type="xsd:nonNegativeInteger" />
+	<xsd:element name="specimenTissue" type="tissueType" />
+	<xsd:element name="ovaryPosition" type="ovaryPositionType" />
+	<xsd:element name="specimenLocation" type="locationType" />
+	<xsd:element name="specimenCycle" type="cycleType" nillable="true"  />
+	<xsd:element name="dayOfCycle" type="xsd:nonNegativeInteger" nillable="true" />
+	<xsd:element name="stageOfCycle" type="stageType" />
+	<xsd:element name="slideID" type="xsd:string" />
+	<xsd:element name="sectionSeqNum" type="xsd:nonNegativeInteger" />
+	<xsd:element name="sectionThickness" type="sectionThicknessType" />
+	<xsd:element name="sampleProcessing" type="sampleProcessingType" />
+	<xsd:element name="fixation" type="fixationType" />
+	<xsd:element name="stain" type="stainType" />
+	<xsd:element name="magnification" type="magnificationType" />
+	<xsd:element name="immunohistochemistry" type="immunohistochemistryType" />
+	<xsd:element name="microscope" type="microscopeType" />
+	
+	<xsd:complexType name="motherType">
+		<xsd:sequence>
+			<xsd:element ref="donorID"/>
+			<xsd:element ref="donorGender" />
+			<xsd:element ref="donorAge" />
+			<xsd:element ref="donorLifeStage" />
+			<xsd:element ref="specimenSeqNum" />
+			<xsd:element ref="specimenTissue" />
+			<xsd:element ref="ovaryPosition" />
+			<xsd:element ref="specimenLocation" />
+			<xsd:element ref="specimenCycle" />
+			<xsd:element ref="slideID" />
+			<xsd:element ref="sectionSeqNum" minOccurs="0"/>
+			<xsd:element ref="sectionThickness" />
+			<xsd:element ref="sampleProcessing" />
+			<xsd:element ref="magnification" />
+			<xsd:element ref="immunohistochemistry" minOccurs="0" />
+			<xsd:element ref="microscope" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="emptyElementType" />
+	
+	<xsd:simpleType name="donorGenderType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="female" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+<!-- Need to ask specifics on minimum to require? --> 
+	<xsd:complexType name="donorAgeType">
+		<xsd:sequence>
+			<xsd:element ref="donorYears" minOccurs="0" />
+			<xsd:element ref="donorDays" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="mammalianLifeStageType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="fetal" />
+			<xsd:enumeration value="neonatal" />
+			<xsd:enumeration value="prepubertal" />
+			<xsd:enumeration value="pubertal" />
+			<xsd:enumeration value="adult" />
+			<xsd:enumeration value="aging" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="tissueType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ovary" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<!-- Left or Right ovary -->
+	<xsd:simpleType name="ovaryPositionType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="left" />
+			<xsd:enumeration value="right" />
+			<xsd:enumeration value="unspecified" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<!-- Location -->
+
+	<xsd:complexType name="locationType">
+		<xsd:sequence>
+			<xsd:element ref="locationTypeAbstract" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="locationTypeAbstract" abstract="true" />
+	
+	<xsd:complexType name="ovaryLocationType">
+		<xsd:complexContent>
+			<xsd:extension base="locationType">
+				<xsd:choice>
+					<xsd:element name="wholeOvary" type="emptyElementType"/>
+					<xsd:element name="ovarianCortex" type="emptyElementType"/>
+					<xsd:element name="ovarianMedulla" type="emptyElementType"/>
+					<xsd:element name="follicle" type="emptyElementType"/>
+					<xsd:element name="corpusLuteum" type="corpusLuteumType"/>
+					<xsd:element name="unspecified" type="emptyElementType" />
+				</xsd:choice>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="corpusLuteumValues">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="early"/>
+			<xsd:enumeration value="mid"/>
+			<xsd:enumeration value="late"/>
+			<xsd:enumeration value="albicans"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="corpusLuteumType">
+			<!-- NO CONTENT MODEL FOR AN EMPTY ELEMENT -->
+			<xsd:attribute name="value" type="corpusLuteumValues" use="required" />
+	</xsd:complexType>
+	
+	<!-- Stage of Ovarian Cycle -->
+	
+	<xsd:complexType name="cycleType">
+		<xsd:sequence>
+			<xsd:element ref="dayOfCycle" />
+			<xsd:element ref="stageOfCycle" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="stageType">
+		<xsd:sequence>
+			<xsd:element ref="stageTypeAbstract" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="stageTypeAbstract" abstract="true" />
+	
+	<xsd:complexType name="menstrualStageType">
+		<xsd:complexContent>
+			<xsd:extension base="stageType">
+				<xsd:choice>
+					<xsd:element name="follicular" type="follicularType"/>
+					<xsd:element name="pre-ovulatory" type="emptyElementType"/>
+					<xsd:element name="ovulation" type="emptyElementType"/>
+					<xsd:element name="luteal" type="lutealType"/>
+					<xsd:element name="unspecified" type="emptyElementType" />
+				</xsd:choice>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="follicularValues">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="early"/>
+			<xsd:enumeration value="mid"/>
+			<xsd:enumeration value="late"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="follicularType">
+			<!-- NO CONTENT MODEL FOR AN EMPTY ELEMENT -->
+			<xsd:attribute name="value" type="follicularValues" use="required" />
+	</xsd:complexType>
+	
+	<xsd:simpleType name="lutealValues">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="early"/>
+			<xsd:enumeration value="mid"/>
+			<xsd:enumeration value="late"/>
+			<xsd:enumeration value="regressing"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="lutealType">
+			<!-- NO CONTENT MODEL FOR AN EMPTY ELEMENT -->
+			<xsd:attribute name="value" type="lutealValues" use="required" />
+	</xsd:complexType>
+	
+	<xsd:complexType name="estrousStageType">
+		<xsd:complexContent>
+			<xsd:extension base="stageType">
+				<xsd:choice>
+					<xsd:element name="proestrus" type="emptyElementType"/>
+					<xsd:element name="estrus" type="emptyElementType"/>
+					<xsd:element name="metestrus" type="emptyElementType"/>
+					<xsd:element name="diestrus" type="emptyElementType"/>
+					<xsd:element name="anestrus" type="emptyElementType"/>
+					<xsd:element name="unspecified" type="emptyElementType" />
+				</xsd:choice>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+<!-- Section Thickness --> 
+
+	<xsd:complexType name="sectionThicknessType">
+		<xsd:sequence>
+			<xsd:element name="thickness" type="xsd:positiveInteger"/>
+			<xsd:element name="unit" type="unitType" />
+		</xsd:sequence>
+	</xsd:complexType>	
+	
+	<xsd:simpleType name="unitType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="microns"/>
+			<xsd:enumeration value="nm"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	
+<!-- Sample Processing --> 
+
+	<xsd:complexType name="sampleProcessingType">
+		<xsd:sequence>
+			<xsd:element ref="fixation" />
+			<xsd:element ref="stain" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="fixationType">
+		<xsd:choice>
+			<xsd:element name="neutralBufferedFormalin10" type="emptyElementType"/>
+			<xsd:element name="paraformaldehyde4" type="emptyElementType"/>
+			<xsd:element name="davidsons" type="emptyElementType"/>
+			<xsd:element name="neutralBufferedFormalin5aceticAcid" type="emptyElementType"/>
+			<xsd:element name="bouins" type="emptyElementType"/>
+			<xsd:element name="other" type="xsd:string" />
+		</xsd:choice>
+	</xsd:complexType>
+	
+	<xsd:complexType name="stainType">
+		<xsd:choice>
+			<xsd:element name="lightMicroscopyStain" type="stainLightType"/>
+			<xsd:element name="fluorescentMicroscopyStain" type="stainFluorescentType"/>
+			<xsd:element name="electronMicroscopyStain" type="stainElectronType"/>
+		</xsd:choice>
+	</xsd:complexType>
+	
+	<xsd:complexType name="stainLightType">
+		<xsd:choice>
+			<xsd:element name="eosinOnly" type="emptyElementType"/>
+			<xsd:element name="hematoxylinOnly" type="emptyElementType"/>
+			<xsd:element name="hematoxylinAndEosin" type="emptyElementType"/>
+			<xsd:element name="masonsTrichrome" type="emptyElementType"/>
+			<xsd:element name="mallorysTrichrome" type="emptyElementType"/>
+			<xsd:element name="periodicAcidSchiff" type="emptyElementType"/>
+			<xsd:element name="sudan" type="sudanStainType" />
+			<xsd:element name="acidFuschin" type="emptyElementType"/>
+			<xsd:element name="alcianBlue" type="emptyElementType"/>
+			<xsd:element name="azanTrichrome" type="emptyElementType"/>
+			<xsd:element name="casansTrichrome" type="emptyElementType"/>
+			<xsd:element name="cresylVioletNissl" type="emptyElementType"/>
+			<xsd:element name="giemsa" type="emptyElementType"/>
+			<xsd:element name="methyleneBlue" type="emptyElementType"/>
+			<xsd:element name="neutralRed" type="emptyElementType"/>
+			<xsd:element name="nileBlue" type="emptyElementType"/>
+			<xsd:element name="nileRed" type="emptyElementType"/>
+			<xsd:element name="orcein" type="emptyElementType"/>
+			<xsd:element name="reticulin" type="emptyElementType"/>
+			<xsd:element name="toluidineBlue" type="emptyElementType"/>
+			<xsd:element name="vanGieson" type="emptyElementType"/>
+			<xsd:element name="other" type="xsd:string" />
+		</xsd:choice>
+	</xsd:complexType>
+	
+	<xsd:complexType name="sudanStainType">
+			<!-- NO CONTENT MODEL FOR AN EMPTY ELEMENT -->
+			<xsd:attribute name="value" type="sudanStainValues" use="required" />
+	</xsd:complexType>
+	
+	<xsd:simpleType name="sudanStainValues">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="III"/>
+			<xsd:enumeration value="IV"/>
+			<xsd:enumeration value="Black B"/>
+			<xsd:enumeration value="Oil Red O"/>
+			<xsd:enumeration value="Osmium tetroxide"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="stainFluorescentType">
+		<xsd:choice>
+			<xsd:element name="acridineOrange" type="emptyElementType"/>
+			<xsd:element name="calcein" type="emptyElementType"/>
+			<xsd:element name="DAPI" type="emptyElementType"/>
+			<xsd:element name="hoechst" type="emptyElementType"/>
+			<xsd:element name="propidiumIodide" type="emptyElementType"/>
+			<xsd:element name="rhodamine" type="emptyElementType"/>
+			<xsd:element name="TUNEL" type="emptyElementType"/>
+			<xsd:element name="other" type="xsd:string" />
+		</xsd:choice>
+	</xsd:complexType>
+	
+	<xsd:complexType name="stainElectronType">
+		<xsd:choice>
+			<xsd:element name="colloidalGold" type="emptyElementType"/>
+			<xsd:element name="osmiumTetroxide" type="emptyElementType"/>
+			<xsd:element name="phosphotundsticAcid" type="emptyElementType"/>
+			<xsd:element name="silverNitrate" type="emptyElementType"/>
+			<xsd:element name="other" type="xsd:string" />
+		</xsd:choice>
+	</xsd:complexType>
+	
+	<!-- Note: Since this can be an actual magnification, it must be a general value. 
+	           We can have a drop-down to choose a common value. -->
+	<xsd:complexType name="magnificationType">
+		<xsd:attribute name="value" type="xsd:string" use="required" />
+	</xsd:complexType>
+	
+	<xsd:complexType name="immunohistochemistryType">
+		<xsd:sequence>
+			<xsd:element name="targetProtein" type="xsd:string"/>
+			<xsd:element name="primaryAntibody" type="primaryAntibodyType" />
+			<xsd:element name="secondaryAntibody" type="secondaryAntibodyType" />
+			<xsd:element name="detectionMethod" type="detectionMethodType" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:group name="antibodyTypeGroup">
+		<xsd:sequence>
+			<xsd:element name="targetSpecies" type="xsd:string" />
+			<xsd:element name="hostSpecies" type="xsd:string" />
+			<xsd:element name="dilution" type="xsd:string" />
+			<xsd:element name="lotNumber" type="xsd:string" />
+			<xsd:element name="catNumber" type="xsd:string" />
+			<xsd:element name="source" type="sourceType" />
+			<xsd:element name="RRID" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:group>
+	
+	<xsd:complexType name="primaryAntibodyType">
+		<xsd:sequence>
+			<xsd:element name="clonality" type="clonalityType" />
+			<xsd:group ref="antibodyTypeGroup" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="clonalityType">
+		<xsd:attribute name="value" type="clonalityTypeValues" />
+	</xsd:complexType>
+	
+	<xsd:simpleType name="clonalityTypeValues">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="monoclonal"/>
+			<xsd:enumeration value="polyclonal"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="sourceType">
+		<xsd:sequence>
+			<xsd:element name="sourceName" type="xsd:string" />
+			<xsd:element name="sourceCity" type="xsd:string" />
+			<xsd:element name="sourceState" type="xsd:string" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="secondaryAntibodyType">
+		<xsd:sequence>
+			<xsd:group ref="antibodyTypeGroup" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="detectionMethodType">
+		<xsd:attribute name="value" type="detectionMethodTypeValues" />
+	</xsd:complexType>
+	
+	<xsd:simpleType name="detectionMethodTypeValues">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ABC (avidin-biotin complex)"/>
+			<xsd:enumeration value="Alkaline phosphatase"/>
+			<xsd:enumeration value="Diaminobenzidine" />
+			<xsd:enumeration value="FITC" />
+			<xsd:enumeration value="Horseradish Peroxidase" />
+			<xsd:enumeration value="LSAB (labeled streptavidin-biotin)" />
+			<xsd:enumeration value="RPE" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="microscopeType">
+		<xsd:sequence>
+			<xsd:element name="maker" type="xsd:string" />
+			<xsd:element name="model" type="xsd:string" />
+			<xsd:element name="notes" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+</xsd:schema>

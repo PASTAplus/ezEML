@@ -112,7 +112,7 @@ def newDonor(filename=None, node_id=None, method=None,
         if save:
             donorId = form.donorId.data
             donorGender = form.donorGender.data
-            ageType = Node('ageType', parent=None)
+            ageType = Node('donorAge', parent=None)
             ageYears = form.ageYears.data
             ageDays = form.ageDays.data
             lifeStage = form.lifeStage.data
@@ -191,7 +191,7 @@ def newDonor(filename=None, node_id=None, method=None,
                 model,
                 notes)
 
-            print("Test=", donor_node)
+            #print("Test=", donor_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
         return redirect(url_for(new_page, filename = filename))
@@ -215,17 +215,17 @@ def populate_donor_form(form: DonorForm, node: Node):
     if donorGender_node:
         form.donorGender.data = donorGender_node.content
     
-    ageType_node = node.find_child('ageType')
+    ageType_node = node.find_child('donorAge')
     if ageType_node:
-        ageYears_node = ageType_node.find_child('ageYears')
+        ageYears_node = ageType_node.find_child('donorYears')
         if ageYears_node:
             form.ageYears.data = ageYears_node.content
 
-        ageDays_node = ageType_node.find_child('ageDays')
+        ageDays_node = ageType_node.find_child('donorDays')
         if ageDays_node:
             form.ageDays.data = ageDays_node.content
 
-    lifeStage_node = node.find_child('lifeStage')
+    lifeStage_node = node.find_child('donorLifeStage')
     if lifeStage_node:
         form.lifeStage.data = lifeStage_node.content
 

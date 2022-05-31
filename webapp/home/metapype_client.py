@@ -2526,26 +2526,26 @@ def create_donor(donor_node:Node,
                 donor_node.add_child(donorGender_node)
             donorGender_node.content = donorGender
         if ageType:
-            ageType_node = donor_node.find_child('ageType')
+            ageType_node = donor_node.find_child('donorAge')
             if not ageType_node:
-                ageType_node = Node('ageType', parent=donor_node)
+                ageType_node = Node('donorAge', parent=donor_node)
                 donor_node.add_child(ageType_node)
         if ageYears:
-            ageYears_node = ageType_node.find_child('ageYears')
+            ageYears_node = ageType_node.find_child('donorYears')
             if not ageYears_node:
-                ageYears_node = Node('ageYears', parent=ageType_node)
+                ageYears_node = Node('donorYears', parent=ageType_node)
                 ageType_node.add_child(ageYears_node)
             ageYears_node.content = ageYears
         if ageDays:
-            ageDays_node = ageType_node.find_child('ageDays')
+            ageDays_node = ageType_node.find_child('donorDays')
             if not ageDays_node:
-                ageDays_node = Node('ageDays', parent=ageType_node)
+                ageDays_node = Node('donorDays', parent=ageType_node)
                 ageType_node.add_child(ageDays_node)
             ageDays_node.content = ageDays
         if lifeStage:
-            lifeStage_node = donor_node.find_child('lifeStage')
+            lifeStage_node = donor_node.find_child('donorLifeStage')
             if not lifeStage_node:
-                lifeStage_node = Node('lifeStage', parent=donor_node)
+                lifeStage_node = Node('donorLifeStage', parent=donor_node)
                 donor_node.add_child(lifeStage_node)
             lifeStage_node.content = lifeStage
         if specimenSeqNum:

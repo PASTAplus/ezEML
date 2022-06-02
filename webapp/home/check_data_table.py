@@ -100,7 +100,7 @@ def check_date_time_attribute(attribute_node):
         [names.MEASUREMENTSCALE, names.DATETIME, names.FORMATSTRING])
     if format_string_node:
         format_string = format_string_node.content
-        if not check_date_time_format_specification(format_string_node):
+        if not check_date_time_format_specification(format_string):
             return format_string
 
 

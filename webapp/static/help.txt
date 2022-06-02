@@ -904,8 +904,8 @@ If you click the checkbox below we won't show you this welcome dialog again, but
 You can also watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 
 We hope you find ezEML useful, and we welcome your feedback at <a style="color: steelblue;" href="mailto:support.edirepository.org">support@edirepository.org</a>.
-<br>&nbsp;</br>
-<b><input type="checkbox" id="do_not_show" name="do_not_show" onchange="do_not_change_clicked(this);">&nbsp;Got it. Don't show this dialog again.</input></b>
+<hr style="border-top: 1px solid darkgray;">
+<input type="checkbox" id="do_not_show" name="do_not_show" onchange="do_not_change_clicked(this);">&nbsp;Got it. Don't show this dialog again.</input>
 <script>
 localStorage.getItem("do_not_show_ezeml_welcome_dialog");
 function do_not_change_clicked(checkbox) {

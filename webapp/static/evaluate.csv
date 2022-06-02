@@ -38,6 +38,7 @@ attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable
 attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical variables
 attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables
 attributes_07,Data Tables,Explanation,ERROR,REQUIRED,A Missing Value Code <b>Explanation</b> is required.,For Missing Value Codes
+attributes_08,Data Tables,DateTime Format,WARNING,RECOMMENDED,The DateTime <b>Format String</b> is not one that is recommended by the EDI data repository. A list of recommended formats is available <b><a href='../datetime_formats'>here</a></b>.,For DateTime variables
 methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,
 methods_03,Methods,Methods,ERROR,REQUIRED,The metadata contains an empty <b>Methods</b> section. EML does not permit a Methods section to be empty.,

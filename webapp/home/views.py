@@ -94,6 +94,7 @@ from webapp.home.metapype_client import (
     clear_taxonomy_imported_from_xml, taxonomy_imported_from_xml
 )
 
+from webapp.home.check_data_table import format_date_time_formats_list
 from webapp.home.check_metadata import check_eml
 from webapp.home.forms import form_md5
 
@@ -425,6 +426,11 @@ def news():
     return render_template('news.html', back_url=get_back_url(), title="What's New")
 
 
+@home.route('/restore_welcome_dialog')
+def restore_welcome_dialog():
+    return render_template('restore_welcome_dialog.html', back_url=get_back_url())
+
+
 @home.route('/encoding_error/<filename>')
 def encoding_error(filename=None, errors=None):
     return render_template('encoding_error.html', filename=filename, errors=errors, title='Encoding Errors')
@@ -596,6 +602,21 @@ def check_metadata(filename:str):
     else:
         set_current_page('check_metadata')
         return render_template('check_metadata.html', content=content, title='Check Metadata')
+
+
+@home.route('/datetime_formats', methods=['GET', 'POST'])
+@login_required
+def datetime_formats():
+    content = format_date_time_formats_list()
+    # log_usage(actions['CHECK_METADATA'])
+
+    # Process POST
+    if request.method == 'POST':
+        return redirect(url_for(PAGE_DATETIME_FORMATS))
+
+    else:
+        # set_current_page('check_metadata')
+        return render_template('datetime_formats.html', content=content)
 
 
 @home.route('/download_current', methods=['GET', 'POST'])

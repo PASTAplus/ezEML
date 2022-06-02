@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restore the ezEML Welcome Dialog</title>
+<script>
+    function restore() {
+        localStorage.setItem("do_not_show_ezeml_welcome_dialog", 'false');
+    }
+</script>
+</head>
+<body onload="restore()">
+</body>
+</html>
+
+{% extends "base.html" %}
+
+{% block app_content %}
+
+    <h4>Restore the ezEML Welcome Dialog</h4>
+    <br>
+    <b><a href={{ back_url }}>Back</a></b>
+{% endblock %}
+

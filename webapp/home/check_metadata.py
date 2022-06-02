@@ -36,6 +36,7 @@ from metapype.model.node import Node
 import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
 import webapp.auth.user_data as user_data
+from webapp.home.check_data_table import check_date_time_attribute
 import webapp.home.load_data_table as load_data_table
 
 app = Flask(__name__)
@@ -526,6 +527,8 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node):
     if attr_type == metapype_client.VariableType.DATETIME:
         if find_content_empty(validation_errs, names.FORMATSTRING):
             add_to_evaluation('attributes_03', link)
+        elif check_date_time_attribute(attrib_node):
+            add_to_evaluation('attributes_08', link)
 
 
 def check_data_table_md5_checksum(data_table_node, link):

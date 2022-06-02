@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h2>DateTime Formats Recommended by the EDI Data Repository</h2>
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                <p></p>
+                {% if request.referrer %}
+                <a href="{{ request.referrer }}">Back</a><p></p>
+                {% endif %}
+                {{ content|safe }}
+                <p></p>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+    $(document).ready(function()
+    {
+      $(".formats_table tr:odd").css("background", "#f4f4f4");
+      $(".formats_table tr:even").css("background", "#fff");
+      $(".formats_table").css("padding", "3px");
+    });
+    </script>
+{% endblock %}

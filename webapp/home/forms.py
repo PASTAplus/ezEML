@@ -168,7 +168,7 @@ class DownloadEMLForm(FlaskForm):
 class LoadDataForm(FlaskForm):
     delimiter = SelectField('Field Delimiter', choices=[
         (',', 'comma'),
-        ('\\t', 'tab'),
+        ('\t', 'tab'),
         ('|', 'vertical bar, or pipe - |'),
         (';', 'semicolon'),
         (':', 'colon')

@@ -5,11 +5,18 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="col-md-8" style="margin-left: 15%;">
     {% block app_content %}
-        <h3 align="center">An error has occurred when processing your request.<br>
+        <p>&nbsp;</p>
+        <h4 align="center">An error has occurred when processing your request.<br>
         Please contact support@edirepository.org for
-        assistance.</h3>
+        assistance.</h4>
+        <p>&nbsp;</p>
+        This is an internal server error, probably due to a bug in the ezEML software. To assist us in finding and fixing
+        the bug, please let us know the username you were logged in under when the error occurred and the approximate date and time of the error.
+        <p>&nbsp;</p>
+        Your help is greatly appreciated! We will fix the error as soon as possible.
+        </p>
     {% endblock %}
 </div>
 {% endblock %}

@@ -112,7 +112,7 @@ scopes = [
 ]
 
 
-def get_eval_entry(id, link=None, section=None, item=None):
+def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None):
     try:
         vals = session[f'__eval__{id}']
         if section:
@@ -120,19 +120,19 @@ def get_eval_entry(id, link=None, section=None, item=None):
         if item:
             vals[1] = item
         return Eval_Entry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
-                          explanation=vals[4], link=link)
+                          explanation=vals[4], data_table_name=data_table_name, link=link)
     except:
         return None
 
 
-def add_to_evaluation(id, link=None, section=None, item=None):
-    entry = get_eval_entry(id, link, section, item)
+def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None):
+    entry = get_eval_entry(id, link, section, item, data_table_name)
     if entry:
         evaluation.append(entry)
 
 
 Eval_Entry = collections.namedtuple(
-    'Evaluate_Entry', ["section", "item", "severity", "type", "explanation", "link"])
+    'Evaluate_Entry', ["section", "item", "severity", "type", "explanation", "data_table_name", "link"])
 evaluation = []
 
 
@@ -457,10 +457,10 @@ def generate_code_definition_errs(eml_node, doc_name, err_code, errs_found):
         data_table_node = attribute_list_node.parent
         link = url_for(PAGE_CODE_DEFINITION, filename=doc_name, dt_node_id=data_table_node.id, att_node_id=attribute_node.id,
                        nom_ord_node_id=nominal_node.id, node_id=code_definition_node.id, mscale=mscale)
-        add_to_evaluation(err_code, link)
+        add_to_evaluation(err_code, link, data_table_name=get_data_table_name(data_table_node))
 
 
-def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node):
+def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, data_table_name:str):
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     page = None
@@ -501,14 +501,14 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node):
 
     validation_errs = validate_via_metapype(attrib_node)
     if find_content_empty(validation_errs, names.ATTRIBUTEDEFINITION):
-        add_to_evaluation('attributes_01', link)
+        add_to_evaluation('attributes_01', link, data_table_name=data_table_name)
     if find_min_unmet(validation_errs, names.MISSINGVALUECODE, names.CODEEXPLANATION):
-        add_to_evaluation('attributes_07', link)
+        add_to_evaluation('attributes_07', link, data_table_name=data_table_name)
 
     # Categorical
     if attr_type == metapype_client.VariableType.CATEGORICAL:
         if find_min_unmet_for_choice(validation_errs, names.ENUMERATEDDOMAIN):
-            add_to_evaluation('attributes_04', link)
+            add_to_evaluation('attributes_04', link, data_table_name=data_table_name)
         found = find_content_empty(validation_errs, names.CODE)
         if found:
             generate_code_definition_errs(eml_node, doc_name, 'attributes_05', found)
@@ -519,19 +519,19 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node):
     # Numerical
     if attr_type == metapype_client.VariableType.NUMERICAL:
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
-            add_to_evaluation('attributes_02', link)
+            add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
         if find_min_unmet_for_choice(validation_errs, names.UNIT):
-            add_to_evaluation('attributes_02', link)
+            add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
 
     # DateTime
     if attr_type == metapype_client.VariableType.DATETIME:
         if find_content_empty(validation_errs, names.FORMATSTRING):
-            add_to_evaluation('attributes_03', link)
+            add_to_evaluation('attributes_03', link, data_table_name=data_table_name)
         elif check_date_time_attribute(attrib_node):
-            add_to_evaluation('attributes_08', link)
+            add_to_evaluation('attributes_08', link, data_table_name=data_table_name)
 
 
-def check_data_table_md5_checksum(data_table_node, link):
+def check_data_table_md5_checksum(data_table_node, link, data_table_name=None):
     object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
     data_file = object_name_node.content
     uploads_folder = user_data.get_document_uploads_folder_name()
@@ -542,7 +542,7 @@ def check_data_table_md5_checksum(data_table_node, link):
         if authentication_node:
             found_md5_hash = authentication_node.content
             if found_md5_hash != computed_md5_hash:
-                add_to_evaluation('data_table_06', link)
+                add_to_evaluation('data_table_06', link, data_table_name=data_table_name)
     except FileNotFoundError:
         # If there is a URL in Online Distribution node, we don't treat a missing CSV file as an error
         url_node = data_table_node.find_single_node_by_path([names.PHYSICAL,
@@ -550,35 +550,44 @@ def check_data_table_md5_checksum(data_table_node, link):
                                                              names.ONLINE,
                                                              names.URL])
         if not url_node or not url_node.content:
-            add_to_evaluation('data_table_07', link)
+            add_to_evaluation('data_table_07', link, data_table_name=data_table_name)
         else:
             return
+
+
+def get_data_table_name(data_table_node:Node):
+    entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+    if entity_name_node and entity_name_node.content:
+        return entity_name_node.content
+    else:
+        return ''
 
 
 def check_data_table(eml_node, doc_name, data_table_node:Node):
     link = url_for(PAGE_DATA_TABLE, filename=doc_name, dt_node_id=data_table_node.id)
     validation_errs = validate_via_metapype(data_table_node)
+    data_table_name = get_data_table_name(data_table_node)
 
-    check_data_table_md5_checksum(data_table_node, link)
+    check_data_table_md5_checksum(data_table_node, link, data_table_name=data_table_name)
 
     if find_min_unmet(validation_errs, names.DATATABLE, names.ENTITYNAME):
-        add_to_evaluation('data_table_01', link)
+        add_to_evaluation('data_table_01', link, data_table_name=data_table_name)
     if find_min_unmet(validation_errs, names.DATATABLE, names.ENTITYDESCRIPTION):
-        add_to_evaluation('data_table_02', link)
+        add_to_evaluation('data_table_02', link, data_table_name=data_table_name)
     if find_min_unmet(validation_errs, names.PHYSICAL, names.OBJECTNAME):
-        add_to_evaluation('data_table_03', link)
+        add_to_evaluation('data_table_03', link, data_table_name=data_table_name)
     if find_min_unmet(validation_errs, names.DATATABLE, names.ATTRIBUTELIST):
-        add_to_evaluation('data_table_04', link)
+        add_to_evaluation('data_table_04', link, data_table_name=data_table_name)
 
     evaluation_warnings = evaluate_via_metapype(data_table_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_DESCRIPTION_MISSING, names.DATATABLE):
-        add_to_evaluation('data_table_02', link)
+        add_to_evaluation('data_table_02', link, data_table_name=data_table_name)
 
     attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
     if attribute_list_node:
         attribute_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
         for attribute_node in attribute_nodes:
-            check_attribute(eml_node, doc_name, data_table_node, attribute_node)
+            check_attribute(eml_node, doc_name, data_table_node, attribute_node, data_table_name=data_table_name)
 
 
 def check_data_tables(eml_node, doc_name, evaluation_warnings=None):
@@ -756,7 +765,36 @@ def format_entry(entry:Eval_Entry):
     return output
 
 
-def format_output(evaluation):
+def get_data_table_names(eml_node):
+    data_table_names = []
+    data_table_name_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE, names.ENTITYNAME])
+    for data_table_name_node in data_table_name_nodes:
+        data_table_names.append(data_table_name_node.content)
+    return data_table_names
+
+
+def format_data_table_output(entries, output, eml_node):
+    previous_data_table_name = None
+    entries = sorted(entries, key=lambda entry: (entry.data_table_name, repr(entry.severity)))
+    output += f'<h3>Data Tables</h3>'
+    data_table_names = get_data_table_names(eml_node)
+    for data_table_name in data_table_names:
+        for entry in entries:
+            if entry.data_table_name != data_table_name:
+                continue
+            if entry.data_table_name != previous_data_table_name:
+                if previous_data_table_name:
+                    output += '</table><p>&nbsp;</p>'
+                else:
+                    output += '<br>'
+                output += f'<table class="eval_table" width=100% style="padding: 10px;"><tr><b>Data Table: </b>{entry.data_table_name}</tr><tr><th class="eval_table" align="left" width=20%>Item</th>' \
+                          f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
+                previous_data_table_name = entry.data_table_name
+            output += format_entry(entry)
+    return output + '</table><p>&nbsp;</p>'
+
+
+def format_output(evaluation, eml_node):
     sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
                 'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
                 'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Other Entities', 'Data Package ID']
@@ -770,6 +808,9 @@ def format_output(evaluation):
         if not entries:
             continue
         all_ok = False
+        if section == 'Data Tables':
+            output += format_data_table_output(entries, output, eml_node)
+            continue
         output += f'<h3>{section}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
                   f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
         for severity in severities:
@@ -861,7 +902,7 @@ def check_metadata_status(eml_node, doc_name):
     errors = 0
     warnings = 0
     for entry in evaluations:
-        _, _, severity, _, _, _ = entry
+        _, _, severity, _, _, _, _ = entry
         if severity == EvalSeverity.ERROR:
             errors += 1
         if severity == EvalSeverity.WARNING:
@@ -871,7 +912,7 @@ def check_metadata_status(eml_node, doc_name):
 
 def check_eml(eml_node, doc_name):
     evaluations = perform_evaluation(eml_node, doc_name)
-    return format_output(evaluations)
+    return format_output(evaluations, eml_node)
 
 
 def validate_via_metapype(node):

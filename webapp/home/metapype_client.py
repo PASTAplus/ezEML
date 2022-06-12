@@ -2572,17 +2572,17 @@ def create_donor(donor_node:Node,
                 specimenLocation_node = Node('specimenLocation', parent=donor_node)
                 donor_node.add_child(specimenLocation_node)
             specimenLocation_node.content = specimenLocation
+        if cycleType:
+            cycleType_node = donor_node.find_child('specimenCycle')
+            if not cycleType_node:
+                cycleType_node = Node('specimenCycle', parent = donor_node)
+                donor_node.add_child(cycleType_node)
         if corpusLuteumType:
             corpusLuteumType_node = donor_node.find_child('corpusLuteumType')
             if not corpusLuteumType_node:
                 corpusLuteumType_node = Node('corpusLuteumType', parent=donor_node)
                 donor_node.add_child(corpusLuteumType_node)
             corpusLuteumType_node.content = corpusLuteumType
-        if cycleType:
-            cycleType_node = donor_node.find_child('cycleType')
-            if not cycleType_node:
-                cycleType_node = Node('cycleType', parent = donor_node)
-                donor_node.add_child(cycleType_node)             
         if dayOfCycle:
             dayOfCycle_node = cycleType_node.find_child('dayOfCycle')
             if not dayOfCycle_node:
@@ -2595,6 +2595,12 @@ def create_donor(donor_node:Node,
                 stageOfCycle_node = Node('stageOfCycle', parent=cycleType_node)
                 cycleType_node.add_child(stageOfCycle_node)
             stageOfCycle_node.content = stageOfCycle
+        if slideID:
+            slideID_node = donor_node.find_child('slideID')
+            if not slideID_node:
+                slideID_node = Node('slideID', parent=donor_node)
+                donor_node.add_child(slideID_node)
+            slideID_node.content = slideID
         if follicularType:
             follicularType_node = donor_node.find_child('follicularType')
             if not follicularType_node:
@@ -2607,12 +2613,6 @@ def create_donor(donor_node:Node,
                 lutealType_node = Node('lutealType', parent=donor_node)
                 donor_node.add_child(lutealType_node)
             lutealType_node.content = lutealType
-        if slideID:
-            slideID_node = donor_node.find_child('slideID')
-            if not slideID_node:
-                slideID_node = Node('slideID', parent=donor_node)
-                donor_node.add_child(slideID_node)
-            slideID_node.content = slideID
         if sectionSeqNum:
             sectionSeqNum_node = donor_node.find_child('sectionSeqNum')
             if not sectionSeqNum_node:
@@ -2620,26 +2620,26 @@ def create_donor(donor_node:Node,
                 donor_node.add_child(sectionSeqNum_node)
             sectionSeqNum_node.content = sectionSeqNum
         if sectionThicknessType:
-            sectionThicknessType_node = donor_node.find_child('sectionThicknessType')
+            sectionThicknessType_node = donor_node.find_child('sectionThickness')
             if not sectionThicknessType_node:
-                sectionThicknessType_node = Node('sectionThicknessType', parent = donor_node)
+                sectionThicknessType_node = Node('sectionThickness', parent = donor_node)
                 donor_node.add_child(sectionThicknessType_node)
         if sectionThickness:
-            sectionThickness_node = sectionThicknessType_node.find_child('sectionThickness')
+            sectionThickness_node = sectionThicknessType_node.find_child('thickness')
             if not sectionThickness_node:
-                sectionThickness_node = Node('sectionThickness', parent=sectionThicknessType_node)
+                sectionThickness_node = Node('thickness', parent=sectionThicknessType_node)
                 sectionThicknessType_node.add_child(sectionThickness_node)
             sectionThickness_node.content = sectionThickness
         if sectionThicknessUnit:
-            sectionThicknessUnit_node = sectionThicknessType_node.find_child('sectionThicknessUnit')
+            sectionThicknessUnit_node = sectionThicknessType_node.find_child('unit')
             if not sectionThicknessUnit_node:
-                sectionThicknessUnit_node = Node('sectionThicknessUnit', parent=sectionThicknessType_node)
+                sectionThicknessUnit_node = Node('unit', parent=sectionThicknessType_node)
                 sectionThicknessType_node.add_child(sectionThicknessUnit_node)
             sectionThicknessUnit_node.content = sectionThicknessUnit
         if sampleProcessingType:
-            sampleProcessingType_node = donor_node.find_child('sampleProcessingType')
+            sampleProcessingType_node = donor_node.find_child('sampleProcessing')
             if not sampleProcessingType_node:
-                sampleProcessingType_node = Node('sampleProcessingType', parent = donor_node)
+                sampleProcessingType_node = Node('sampleProcessing', parent = donor_node)
                 donor_node.add_child(sampleProcessingType_node)
         if fixation:
             fixation_node = sampleProcessingType_node.find_child('fixation')
@@ -2712,10 +2712,14 @@ def create_donor(donor_node:Node,
                 magnification_node = Node('magnification', parent=donor_node)
                 donor_node.add_child(magnification_node)
             magnification_node.content = magnification
+        ihc_node = donor_node.find_child("immunohistochemistry")
+        if not ihc_node:
+            ihc_node = Node('immunohistochemistry', parent = donor_node)
+            donor_node.add_child(ihc_node)
         if microscopeType:
-            microscopeType_node = donor_node.find_child('microscopeType')
+            microscopeType_node = donor_node.find_child('microscope')
             if not microscopeType_node:
-                microscopeType_node = Node('microscopeType', parent = donor_node)
+                microscopeType_node = Node('microscope', parent = donor_node)
                 donor_node.add_child(microscopeType_node)
         if maker:
             maker_node = microscopeType_node.find_child('maker')

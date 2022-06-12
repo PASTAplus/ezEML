@@ -121,17 +121,17 @@ def newDonor(filename=None, node_id=None, method=None,
             ovaryPosition = form.ovaryPosition.data
             specimenLocation = form.specimenLocation.data
             corpusLuteumType = form.corpusLuteumType.data
-            cycleType = Node('cycleType', parent = None)
+            cycleType = Node('specimenCycle', parent = None)
             dayOfCycle = form.dayOfCycle.data
             stageOfCycle = form.stageOfCycle.data
             follicularType = form.follicularType.data
             lutealType = form.lutealType.data
             slideID = form.slideID.data
             sectionSeqNum = form.sectionSeqNum.data
-            sectionThicknessType = Node('sectionThicknessType', parent = None)
+            sectionThicknessType = Node('sectionThickness', parent = None)
             sectionThickness = form.sectionThickness.data
             sectionThicknessUnit = form.sectionThicknessUnit.data
-            sampleProcessingType = Node('sampleProcessingType', parent = None)
+            sampleProcessingType = Node('sampleProcessing', parent = None)
             fixation = form.fixation.data
             fixationOther = form.fixationOther.data
             stain = form.stain.data
@@ -144,7 +144,7 @@ def newDonor(filename=None, node_id=None, method=None,
             stainElectronType = form.stainElectronType.data
             stainElectronOther = form.stainElectronOther.data
             magnification = form.magnification.data
-            microscopeType = Node('microscopeType', parent = None)
+            microscopeType = Node('microscope', parent = None)
             maker = form.maker.data
             model = form.model.data
             notes = form.notes.data
@@ -249,7 +249,7 @@ def populate_donor_form(form: DonorForm, node: Node):
     if corpusLuteumType_node:
         form.corpusLuteumType.data = corpusLuteumType_node.content
 
-    cycleType_node = node.find_child('cycleType')
+    cycleType_node = node.find_child('specimenCycle')
     if cycleType_node: 
         dayOfCycle_node = cycleType_node.find_child('dayOfCycle')
         if dayOfCycle_node:
@@ -275,17 +275,17 @@ def populate_donor_form(form: DonorForm, node: Node):
     if sectionSeqNum_node:
         form.sectionSeqNum.data = sectionSeqNum_node.content
     
-    sectionThicknessType_node = node.find_child('sectionThicknessType')
+    sectionThicknessType_node = node.find_child('sectionThickness')
     if sectionThicknessType_node:
-        sectionThickness_node = sectionThicknessType_node.find_child('sectionThickness')
+        sectionThickness_node = sectionThicknessType_node.find_child('thickness')
         if sectionThickness_node:
             form.sectionThickness.data = sectionThickness_node.content
         
-        sectionThicknessUnit_node = sectionThicknessType_node.find_child('sectionThicknessUnit')
+        sectionThicknessUnit_node = sectionThicknessType_node.find_child('unit')
         if sectionThicknessUnit_node:
             form.sectionThicknessUnit.data = sectionThicknessUnit_node.content
     
-    sampleProcessingType_node = node.find_child('sampleProcessingType')
+    sampleProcessingType_node = node.find_child('sampleProcessing')
     if sampleProcessingType_node:
         fixation_node = sampleProcessingType_node.find_child('fixation')
         if fixation_node:
@@ -333,7 +333,7 @@ def populate_donor_form(form: DonorForm, node: Node):
     if magnification_node:
         form.magnification.data = magnification_node.content
 
-    microscopeType_node = node.find_child('microscopeType')
+    microscopeType_node = node.find_child('microscope')
     if microscopeType_node:
         maker_node = microscopeType_node.find_child('maker')
         if maker_node:

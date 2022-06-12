@@ -63,9 +63,10 @@ def donor(filename=None):
             metadata_node = additional_metadata_node.find_child(names.METADATA)
             mother_node = metadata_node.find_child("mother")
             if mother_node:
-                do_node = mother_node.find_child("donor")
-                if do_node:
-                    node_id = do_node.id
+                node_id = mother_node.id
+                #do_node = mother_node.find_child("donor")
+                #if do_node:
+                #    node_id = do_node.id
         else:
             add_mother_metadata(eml_node)
     
@@ -96,10 +97,6 @@ def newDonor(filename=None, node_id=None, method=None,
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     mother_node = metadata_node.find_child("mother")
-    donor_node = mother_node.find_child(node_name)
-    if not donor_node:
-        mother_node.add_child(Node(node_name, parent = mother_node))
-        donor_node = mother_node.find_child(node_name)
 
     new_page = select_new_page(back_page, next_page)
 
@@ -150,7 +147,7 @@ def newDonor(filename=None, node_id=None, method=None,
             notes = form.notes.data
 
             create_donor(
-                donor_node,
+                mother_node,
                 filename,
                 donorId,
                 donorGender,
@@ -190,8 +187,6 @@ def newDonor(filename=None, node_id=None, method=None,
                 maker,
                 model,
                 notes)
-
-            #print("Test=", donor_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
         return redirect(url_for(new_page, filename = filename))

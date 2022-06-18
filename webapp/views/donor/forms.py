@@ -49,7 +49,8 @@ class DonorForm(EDIForm):
             ("pre-ovulatory", "Pre-Ovulatory"),
             ("ovulation", "Ovulation"),
             ("luteal", "Luteal"),
-            ("unspecified", "Unspecified")])
+            ("unspecified", "Unspecified")],
+            render_kw={'onchange': "stageOfCycleFunction()"})
     follicularType = SelectField('Follicular values',
         choices=[("", ""),
             ("early", "Early"),
@@ -123,7 +124,7 @@ class DonorForm(EDIForm):
             ("propidiumIodide", "Propidium Iodide"),
             ("rhodamine", "Rhodamine"),
             ("TUNEL", "TUNEL"),
-            ("other", "Other")])
+            ("other", "Other")],)
     stainFluorescentOther = StringField('Other Fluorescent Stain', validators=[])
     stainElectronType = SelectField('Stain Electron Type',
         choices=[("", ""),

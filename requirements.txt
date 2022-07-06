@@ -19,7 +19,7 @@ importlib-metadata==4.11.3
 iniconfig==1.1.1
 itsdangerous==2.1.2
 Jinja2==3.1.2
-lxml==4.8.0
+lxml==4.9.1
 MarkupSafe==2.1.1
 metapype==0.0.19
 numpy==1.22.3

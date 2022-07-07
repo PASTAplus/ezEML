@@ -22,15 +22,15 @@
                         <table width="100%">
                         <tr>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorId) }}</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorID) }}</td>
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorGender) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.ageYears) }}</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorYears) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.ageDays) }}</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorDays) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.lifeStage) }}</td>
+                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.donorLifeStage) }}</td>
                             <td width="2%">&nbsp;</td>
                         </tr>
                         </table>
@@ -49,7 +49,7 @@
                                 <td width="1%">&nbsp;</td>
                                 <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.specimenLocation) }}</td>
                                 <td width="1%">&nbsp;</td>
-                                <td style="padding: 1px 5px;" width="20%">{{ wtf.form_field(form.corpusLuteumType) }}</td>
+                                <td style="padding: 1px 5px;" width="20%">{{ wtf.form_field(form.corpusLuteum) }}</td>
                                 <td width="1%">&nbsp;</td>
 
                                 <table>
@@ -58,9 +58,9 @@
                                     <td width="1%">&nbsp;</td>
                                     <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.stageOfCycle) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.follicularType) }}</td>
+                                    <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.follicular) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.lutealType) }}</td>
+                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.luteal) }}</td>
                                     <td width="1%">&nbsp;</td>
                                 </table>
                                 </tr>
@@ -79,9 +79,9 @@
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.sectionSeqNum) }}</td>
                                 <td width="1%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.sectionThickness) }}</td>
+                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.thickness) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.sectionThicknessUnit) }}</td>
+                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.thicknessUnit) }}</td>
                             <td width="2%">&nbsp;</td>
                         </tr>
                         </table>
@@ -105,11 +105,11 @@
                             <table>
                             <tr>
                                 <td width="2%">&nbsp;</td>
-                                <td class="table_cell">{{ wtf.form_field(form.stainLightType) }}</td>
+                                <td class="table_cell">{{ wtf.form_field(form.lightMicroscopyStainType) }}</td>
                                 <td width="2%">&nbsp;</td>
                                 <td class="table_cell">{{ wtf.form_field(form.sudanStainType) }}</td>
                                 <td width="2%">&nbsp;</td>
-                                <td class="table_cell">{{ wtf.form_field(form.stainLightOther) }}</td>
+                                <td class="table_cell">{{ wtf.form_field(form.lightMicroscopyStainOther) }}</td>
                                 <td width="2%">&nbsp;</td>
                             </tr>
                             </table>
@@ -117,13 +117,13 @@
                             <table>
                                 <tr>
                                     <td width="2%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainFluorescentType) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.fluorescentMicroscopyStainType) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainFluorescentOther) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.fluorescentMicroscopyStainOther) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainElectronType) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.electronMicroscopyStainType) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainElectronOther) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.electronMicroscopyStainOther) }}</td>
                                     <td width="2%">&nbsp;</td>
                                 </tr>
                             </table>

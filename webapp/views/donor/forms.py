@@ -35,7 +35,8 @@ class DonorForm(EDIForm):
             ("ovarianMedulla", "Ovarian Medulla"),
             ("follicle", "Follicle"),
             ("corpusLuteum", "CorpusLuteum"),
-            ("unspecified", "Unspecified")])
+            ("unspecified", "Unspecified")],
+            render_kw={'onchange': "specimenLocationFunction()"})
     corpusLuteum = SelectField('Corpus Luteum Type',
         choices=[("", ""),
             ("early", "Early"),
@@ -76,7 +77,8 @@ class DonorForm(EDIForm):
             ("davidsons", "Davidsons"),
             ("neutralBufferedFormalin5aceticAcid", "Neutral Buffered Formalin5 acetic Acid"),
             ("bouins", "Bouins"),
-            ("other", "Other")])
+            ("other", "Other")],
+            render_kw={'onchange': "fixationFunction()"})
     fixationOther = StringField('Other Fixation', validators=[])
     stain = SelectField('Stain',
         choices=[("", ""),

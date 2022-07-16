@@ -277,7 +277,7 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
             if sourceState_node:
                 form.sourceState.data = sourceState_node.content
 
-        rrid_node = primaryAntibody_node.find_child("rrid")
+        rrid_node = primaryAntibody_node.find_child("RRID")
         if rrid_node:
             form.rrid.data = rrid_node.content
 
@@ -317,7 +317,7 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
             if sourceState_node_2:
                 form.sourceState_2.data = sourceState_node_2.content
 
-        rrid_node_2 = secondaryAntibody_node.find_child("rrid")
+        rrid_node_2 = secondaryAntibody_node.find_child("RRID")
         if rrid_node_2:
             form.rrid_2.data = rrid_node_2.content
 

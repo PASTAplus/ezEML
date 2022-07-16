@@ -2280,9 +2280,9 @@ def create_immunohistochemistry(ihc_node: Node,
                 source_node.add_child(sourceState_node)
                 sourceState_node.content = sourceState
         if rrid:
-            rrid_node = primaryAntibody_node.find_child("rrid")
+            rrid_node = primaryAntibody_node.find_child("RRID")
             if not rrid_node:
-                rrid_node = Node("rrid", parent=primaryAntibody_node)
+                rrid_node = Node("RRID", parent=primaryAntibody_node)
                 primaryAntibody_node.add_child(rrid_node)
             rrid_node.content = rrid
         if secondaryAntibody:
@@ -2344,9 +2344,9 @@ def create_immunohistochemistry(ihc_node: Node,
                 source_node_2.add_child(sourceState_node_2)
                 sourceState_node_2.content = sourceState_2
         if rrid_2:
-            rrid_node_2 = secondaryAntibody_node.find_child("rrid")
+            rrid_node_2 = secondaryAntibody_node.find_child("RRID")
             if not rrid_node_2:
-                rrid_node_2 = Node("rrid", parent=secondaryAntibody_node)
+                rrid_node_2 = Node("RRID", parent=secondaryAntibody_node)
                 secondaryAntibody_node.add_child(rrid_node_2)
             rrid_node_2.content = rrid
         if detectionMethod:

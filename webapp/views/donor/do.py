@@ -62,15 +62,17 @@ def donor(filename=None):
         if additional_metadata_node:
             metadata_node = additional_metadata_node.find_child(names.METADATA)
             mother_node = metadata_node.find_child("mother")
+#            mother_node = metadata_node.find_child("mdb:mother")  #PT5/27
             if mother_node:
                 node_id = mother_node.id
-                #do_node = mother_node.find_child("donor")
-                #if do_node:
+                # do_node = mother_node.find_child("donor")
+                # if do_node:
                 #    node_id = do_node.id
         else:
-            add_mother_metadata(eml_node)
-    
+            add_mother_metadata(eml_node, filename=filename)
+
     save_both_formats(filename, eml_node)
+
     set_current_page('donor')
     help = [get_help('publisher')]
     return newDonor(filename=filename, node_id=node_id,
@@ -97,6 +99,13 @@ def newDonor(filename=None, node_id=None, method=None,
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     mother_node = metadata_node.find_child("mother")
+#    mother_node = metadata_node.find_child("mdb:mother")  # PT5/27
+#    donor_node = mother_node.find_child(node_name)
+#    if not donor_node:
+#        mother_node.add_child(Node(node_name, parent = mother_node))
+#        donor_node = mother_node.find_child(node_name)
+
+
 
     new_page = select_new_page(back_page, next_page)
 
@@ -118,17 +127,17 @@ def newDonor(filename=None, node_id=None, method=None,
             ovaryPosition = form.ovaryPosition.data
             specimenLocation = form.specimenLocation.data
             corpusLuteumType = form.corpusLuteumType.data
-            cycleType = Node('specimenCycle', parent = None)
+            cycleType = Node('cycleType', parent = None)
             dayOfCycle = form.dayOfCycle.data
             stageOfCycle = form.stageOfCycle.data
             follicularType = form.follicularType.data
             lutealType = form.lutealType.data
             slideID = form.slideID.data
             sectionSeqNum = form.sectionSeqNum.data
-            sectionThicknessType = Node('sectionThickness', parent = None)
+            sectionThicknessType = Node('sectionThicknessType', parent = None)
             sectionThickness = form.sectionThickness.data
             sectionThicknessUnit = form.sectionThicknessUnit.data
-            sampleProcessingType = Node('sampleProcessing', parent = None)
+            sampleProcessingType = Node('sampleProcessingType', parent = None)
             fixation = form.fixation.data
             fixationOther = form.fixationOther.data
             stain = form.stain.data
@@ -141,7 +150,7 @@ def newDonor(filename=None, node_id=None, method=None,
             stainElectronType = form.stainElectronType.data
             stainElectronOther = form.stainElectronOther.data
             magnification = form.magnification.data
-            microscopeType = Node('microscope', parent = None)
+            microscopeType = Node('microscopeType', parent = None)
             maker = form.maker.data
             model = form.model.data
             notes = form.notes.data
@@ -188,6 +197,15 @@ def newDonor(filename=None, node_id=None, method=None,
                 model,
                 notes)
 
+            if specimenLocation == 'corpusLuteum':
+                populate_specimen_location(mother_node, corpusLuteumType)
+
+            if stageOfCycle == 'follicular':
+                populate_stage_of_cycle(stageOfCycle, mother_node, follicularType)
+            elif stageOfCycle == 'luteal':
+                populate_stage_of_cycle(stageOfCycle, mother_node, lutealType)
+
+
             save_both_formats(filename=filename, eml_node=eml_node)
         return redirect(url_for(new_page, filename = filename))
 
@@ -200,6 +218,9 @@ def newDonor(filename=None, node_id=None, method=None,
         populate_donor_form(form, related_project_node)
     return render_template('donor.html', title=title, node_name=node_name, form=form,
                             next_page=next_page, save_and_continue=save_and_continue, help=help)
+
+
+
 
 def populate_donor_form(form: DonorForm, node: Node):
     donorId_node = node.find_child('donorId')
@@ -239,10 +260,9 @@ def populate_donor_form(form: DonorForm, node: Node):
     specimenLocation_node = node.find_child('specimenLocation')
     if specimenLocation_node:
         form.specimenLocation.data = specimenLocation_node.content
-
-    corpusLuteumType_node = node.find_child('corpusLuteumType')
-    if corpusLuteumType_node:
-        form.corpusLuteumType.data = corpusLuteumType_node.content
+        corpusLuteumType_node = specimenLocation_node.find_child('corpusLuteumType')
+        if corpusLuteumType_node:
+            form.corpusLuteumType.data = corpusLuteumType_node.content
 
     cycleType_node = node.find_child('specimenCycle')
     if cycleType_node: 
@@ -253,14 +273,14 @@ def populate_donor_form(form: DonorForm, node: Node):
         stageOfCycle_node = cycleType_node.find_child('stageOfCycle')
         if stageOfCycle_node:
             form.stageOfCycle.data = stageOfCycle_node.content
-    
-    follicularType_node = node.find_child('follicularType')
-    if follicularType_node:
-        form.follicularType.data = follicularType_node.content
-    
-    lutealType_node = node.find_child('lutealType')
-    if lutealType_node:
-        form.lutealType.data = lutealType_node.content
+            follicularType_node = stageOfCycle_node.find_child('follicularType')
+            if follicularType_node:
+                form.stageOfCycle.data = 'follicular'
+                form.follicularType.data = follicularType_node.content
+            lutealType_node = stageOfCycle_node.find_child('lutealType')
+            if lutealType_node:
+                form.stageOfCycle.data = 'luteal'
+                form.lutealType.data = lutealType_node.content
 
     slideID_node = node.find_child('slideID')
     if slideID_node:
@@ -343,3 +363,27 @@ def populate_donor_form(form: DonorForm, node: Node):
             form.notes.data = notes_node.content
 
     form.md5.data = form_md5(form)
+
+def populate_stage_of_cycle(stageOfCycle:None, mother_node:Node, content_value):
+    cycleType_node = mother_node.find_child('specimenCycle')
+    stageOfCycle_node = cycleType_node.find_child('stageOfCycle')
+    if stageOfCycle == 'follicular':
+        follicularType_node = stageOfCycle_node.find_child('follicularType')
+        if not follicularType_node:
+            follicularType_node = Node('follicularType', parent=stageOfCycle_node)
+            stageOfCycle_node.add_child(follicularType_node)
+        follicularType_node.content = content_value
+    else:
+        lutealType_node = stageOfCycle_node.find_child('lutealType')
+        if not lutealType_node:
+            lutealType_node = Node('lutealType', parent=stageOfCycle_node)
+            stageOfCycle_node.add_child(lutealType_node)
+        lutealType_node.content = content_value
+
+def populate_specimen_location(mother_node:Node, content_value):
+    specimenLocation_node = mother_node.find_child('specimenLocation')
+    corpusLuteum_node = specimenLocation_node.find_child('corpusLuteumType')
+    if not corpusLuteum_node:
+        corpusLuteum_node = Node('corpusLuteumType', parent=specimenLocation_node)
+        specimenLocation_node.add_child(corpusLuteum_node)
+    corpusLuteum_node.content = content_value

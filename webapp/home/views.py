@@ -68,7 +68,8 @@ from webapp.home.metapype_client import (
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_nodes, get_check_metadata_status
+    import_project_nodes, get_check_metadata_status,
+    local_to_xml #PT7/10
 )
 
 from webapp.home.check_metadata import check_eml
@@ -516,6 +517,14 @@ def download_current():
         # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
+#PT7/10 CHANGES BEGIN
+        additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
+        if additional_metadata_node:
+            meta_node = additional_metadata_node.find_child('metadata')
+            mother_node = meta_node.find_child('mother')
+        cleaned_mother_node = local_to_xml(mother_node, 0)
+        #add cleaned_mother_node to actual xml file
+#PT7/10 CHANGES END
         # Do the download
         return_value = user_data.download_eml(filename=current_document)
 

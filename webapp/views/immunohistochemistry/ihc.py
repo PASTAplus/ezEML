@@ -61,12 +61,13 @@ def immunohistochemistry(filename=None):
         if additional_metadata_node:
             metadata_node = additional_metadata_node.find_child(names.METADATA)
             mother_node = metadata_node.find_child("mother")
+#            mother_node = metadata_node.find_child("mdb:mother")  # PT5/27
             if mother_node:
                 ihc_node = mother_node.find_child("immunohistochemistry")
                 if ihc_node:
                     node_id = ihc_node.id
         else:
-            add_mother_metadata(eml_node)
+            add_mother_metadata(eml_node, filename=filename)
     # Added in 4/8/2022
     save_both_formats(filename, eml_node)
     set_current_page('ihc')
@@ -94,6 +95,7 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     mother_node = metadata_node.find_child("mother")
+#    mother_node = metadata_node.find_child("mdb:mother")  # PT5/27
     ihc_node = mother_node.find_child(node_name) #PT4/25
     if not ihc_node: # PT4/25
         mother_node.add_child(Node(node_name, parent=mother_node)) # PT4/25

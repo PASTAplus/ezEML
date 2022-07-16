@@ -39,7 +39,8 @@ class Config(object):
     )
     ORDER_ATTRIBUTE_VALUE = "allowFirst"
     SCOPE_ATTRIBUTE_VALUE = "document"
-    SYSTEM_ATTRIBUTE_VALUE = "https://pasta.edirepository.org"
+#PT5/27    SYSTEM_ATTRIBUTE_VALUE = "https://pasta.edirepository.org"
+    SYSTEM_ATTRIBUTE_VALUE = "mother-db.org"    #PT5/27
 
     # Email configuration
     HOVER_MAIL = "MAIL_USER"

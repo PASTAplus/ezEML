@@ -21,7 +21,7 @@ class DonorForm(EDIForm):
             ("pubertal", "Pubertal"),
             ("adult", "Adult"),
             ("aging", "Aging")])
-    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0)])
+    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=1)])
     specimenTissue = StringField('Specimen Tissue', validators=[], default ='ovary')
     ovaryPosition = SelectField('Ovary Position',
         choices=[("", ""),

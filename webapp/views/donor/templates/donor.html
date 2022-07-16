@@ -58,9 +58,17 @@
                                     <td width="1%">&nbsp;</td>
                                     <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.stageOfCycle) }}</td>
                                     <td width="1%">&nbsp;</td>
+                                    {% if form.lutealType.data %}
+                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.follicularType, disabled=True) }}</td>
+                                    {% else %}
                                     <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.follicularType) }}</td>
+                                    {% endif %}
                                     <td width="1%">&nbsp;</td>
+                                    {% if form.follicularType.data %}
+                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.lutealType, disabled=True) }}</td>
+                                    {% else %}
                                     <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.lutealType) }}</td>
+                                    {% endif %}
                                     <td width="1%">&nbsp;</td>
                                 </table>
                                 </tr>

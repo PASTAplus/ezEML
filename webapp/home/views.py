@@ -26,6 +26,7 @@ import requests
 from shutil import copyfile
 from urllib.parse import urlparse, quote
 from zipfile import ZipFile
+from lxml import etree #pt7/16
 
 
 from flask import (
@@ -522,12 +523,26 @@ def download_current():
         if additional_metadata_node:
             meta_node = additional_metadata_node.find_child('metadata')
             mother_node = meta_node.find_child('mother')
-        cleaned_mother_node = local_to_xml(mother_node, 0)
-        #add cleaned_mother_node to actual xml file
+        if mother_node:
+            cleaned_mother_node = local_to_xml(mother_node, 0)
+            user_folder = user_data.get_user_folder_name()
+            test_filename = f'{user_folder}/{current_document}.xml'
+            with open(test_filename, "r+") as fh:
+                tree = etree.parse(fh)
+                root = tree.getroot()
+                additionalmetadata = root.find('additionalMetadata')
+                metadata = additionalmetadata.find('metadata')
+                mother = metadata.find('mother')
+                print(cleaned_mother_node)
+                metadata.remove(mother)
+                my_tree = etree.ElementTree(etree.fromstring(cleaned_mother_node))
+                my_root = my_tree.getroot()
+                metadata.append(my_root)
+                #THIS OVERWRITES THE XML FILE WITH NEW MDB PREFIXES
+                tree.write(f'{user_folder}/{current_document}.xml')
 #PT7/10 CHANGES END
         # Do the download
         return_value = user_data.download_eml(filename=current_document)
-
         if isinstance(return_value, str):
             flash(return_value)
         else:

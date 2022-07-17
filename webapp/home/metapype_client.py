@@ -3020,12 +3020,12 @@ def read_xml(xml: str = None):
 
 
 def local_to_xml(node: Node, level: int = 0) -> str:
-    space = "    "
+    space = "            "
     xml = ""
     closed = False
     boiler = (
-        'xmlns:mdb="http://mother-db.org/mdb"'
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+        'xmlns:mdb="http://mother-db.org/mdb" ' 
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' 
         'xsi:schemaLocation="http://mother-db.org/mdb https://raw.githubusercontent.com/mother-db/public/main/mdb.xsd"'
     )
     name = node.name
@@ -3041,6 +3041,10 @@ def local_to_xml(node: Node, level: int = 0) -> str:
     name = "mdb" + ":" + node.name
 #    else:
     indent = space * level
+    if level == 2:
+        indent = space + "    "
+    if level == 3:
+        indent = space + "        "
     open_tag = "<" + name + attributes + ">"
     close_tag = "</" + name + ">"
     xml += indent + open_tag

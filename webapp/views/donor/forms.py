@@ -1,3 +1,4 @@
+from wsgiref.validate import validator
 from wtforms import (
     StringField, IntegerField, SelectField, HiddenField, Form, FormField, TextAreaField
 )
@@ -42,7 +43,7 @@ class DonorForm(EDIForm):
             ("early", "Early"),
             ("mid", "Mid"),
             ("late", "Late"),
-            ("albicans", "Albicans")])
+            ("albicans", "Albicans")], validators=[Optional()])
     dayOfCycle = StringField('Day Of Cycle', validators=[])
     stageOfCycle = SelectField('Stage Of Cycle',
         choices=[("", ""),
@@ -56,13 +57,13 @@ class DonorForm(EDIForm):
         choices=[("", ""),
             ("early", "Early"),
             ("mid", "Mid"),
-            ("late", "Late")])
+            ("late", "Late")], validators=[Optional()])
     luteal = SelectField('Luteal Values',
         choices=[("", ""),
             ("early", "Early"),
             ("mid", "Mid"),
             ("late", "Late"),
-            ("regression", "Regression")])
+            ("regression", "Regression")], validators=[Optional()])
     slideID = StringField('Slide ID', validators=[])
     sectionSeqNum = IntegerField('Section Sequence Number', validators=[NumberRange(min=0)])
     thickness = IntegerField('Section Thickness', validators=[NumberRange(min=0)])
@@ -79,7 +80,7 @@ class DonorForm(EDIForm):
             ("bouins", "Bouins"),
             ("other", "Other")],
             render_kw={'onchange': "fixationFunction()"})
-    fixationOther = StringField('Other Fixation', validators=[])
+    fixationOther = StringField('Other Fixation', validators=[Optional()])
     stain = SelectField('Stain',
         choices=[("", ""),
             ("lightMicroscopyStain", "Light Microscopy Stain"),

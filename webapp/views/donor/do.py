@@ -69,7 +69,7 @@ def donor(filename=None):
                 #    node_id = do_node.id
         else:
             add_mother_metadata(eml_node)
-    
+
     save_both_formats(filename, eml_node)
     set_current_page('donor')
     help = [get_help('publisher')]
@@ -188,6 +188,15 @@ def newDonor(filename=None, node_id=None, method=None,
                 model,
                 notes)
 
+            if specimenLocation == 'corpusLuteum':
+                populate_specimen_location(mother_node, corpusLuteumType)
+
+            if stageOfCycle == 'follicular':
+                populate_stage_of_cycle(stageOfCycle, mother_node, follicularType)
+            elif stageOfCycle == 'luteal':
+                populate_stage_of_cycle(stageOfCycle, mother_node, lutealType)
+
+
             save_both_formats(filename=filename, eml_node=eml_node)
         return redirect(url_for(new_page, filename = filename))
 
@@ -200,6 +209,9 @@ def newDonor(filename=None, node_id=None, method=None,
         populate_donor_form(form, related_project_node)
     return render_template('donor.html', title=title, node_name=node_name, form=form,
                             next_page=next_page, save_and_continue=save_and_continue, help=help)
+
+
+
 
 def populate_donor_form(form: DonorForm, node: Node):
     donorID_node = node.find_child('donorID')
@@ -239,10 +251,9 @@ def populate_donor_form(form: DonorForm, node: Node):
     specimenLocation_node = node.find_child('specimenLocation')
     if specimenLocation_node:
         form.specimenLocation.data = specimenLocation_node.content
-
-    corpusLuteum_node = node.find_child('corpusLuteum')
-    if corpusLuteum_node:
-        form.corpusLuteum.data = corpusLuteum_node.content
+        corpusLuteum_node = specimenLocation_node.find_child('corpusLuteum')
+        if corpusLuteum_node:
+            form.corpusLuteum.data = corpusLuteum_node.content
 
     specimenCycle_node = node.find_child('specimenCycle')
     if specimenCycle_node: 
@@ -253,14 +264,14 @@ def populate_donor_form(form: DonorForm, node: Node):
         stageOfCycle_node = specimenCycle_node.find_child('stageOfCycle')
         if stageOfCycle_node:
             form.stageOfCycle.data = stageOfCycle_node.content
-    
-    follicular_node = node.find_child('follicular')
-    if follicular_node:
-        form.follicular.data = follicular_node.content
-    
-    luteal_node = node.find_child('luteal')
-    if luteal_node:
-        form.luteal.data = luteal_node.content
+            follicular_node = stageOfCycle_node.find_child('follicular')
+            if follicular_node:
+                form.stageOfCycle.data = 'follicular'
+                form.follicular.data = follicular_node.content
+            luteal_node = stageOfCycle_node.find_child('luteal')
+            if luteal_node:
+                form.stageOfCycle.data = 'luteal'
+                form.luteal.data = luteal_node.content
 
     slideID_node = node.find_child('slideID')
     if slideID_node:
@@ -343,3 +354,27 @@ def populate_donor_form(form: DonorForm, node: Node):
             form.notes.data = notes_node.content
 
     form.md5.data = form_md5(form)
+
+def populate_stage_of_cycle(stageOfCycle:None, mother_node:Node, content_value):
+    cycleType_node = mother_node.find_child('specimenCycle')
+    stageOfCycle_node = cycleType_node.find_child('stageOfCycle')
+    if stageOfCycle == 'follicular':
+        follicularType_node = stageOfCycle_node.find_child('follicularType')
+        if not follicularType_node:
+            follicularType_node = Node('follicularType', parent=stageOfCycle_node)
+            stageOfCycle_node.add_child(follicularType_node)
+        follicularType_node.content = content_value
+    else:
+        lutealType_node = stageOfCycle_node.find_child('lutealType')
+        if not lutealType_node:
+            lutealType_node = Node('lutealType', parent=stageOfCycle_node)
+            stageOfCycle_node.add_child(lutealType_node)
+        lutealType_node.content = content_value
+
+def populate_specimen_location(mother_node:Node, content_value):
+    specimenLocation_node = mother_node.find_child('specimenLocation')
+    corpusLuteum_node = specimenLocation_node.find_child('corpusLuteumType')
+    if not corpusLuteum_node:
+        corpusLuteum_node = Node('corpusLuteumType', parent=specimenLocation_node)
+        specimenLocation_node.add_child(corpusLuteum_node)
+    corpusLuteum_node.content = content_value

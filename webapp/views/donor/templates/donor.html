@@ -182,15 +182,18 @@
     {% set help_rp_btn = help_rp_id ~ '_btn' %}
     {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
     {% endif %}
+    
     <script type = "text/javascript">
         function specimenLocationFunction(){
             let specimenLocation_box_value = document.getElementById("specimenLocation").value;
             if(specimenLocation_box_value == "corpusLuteum"){
                 document.getElementById("corpusLuteum").removeAttribute("disabled");
+                document.getElementById("corpusLuteum").attribute.required = "required";
             }
             else {
                 document.getElementById("corpusLuteum").value = "";
                 document.getElementById("corpusLuteum").setAttribute("disabled","disabled");
+                document.getElementById("corpusLuteum").attribute.required = "";
             }
         }
 
@@ -200,17 +203,21 @@
                 document.getElementById("follicular").value = "";
                 document.getElementById("follicular").setAttribute("disabled","disabled");
                 document.getElementById("luteal").removeAttribute("disabled");
+                document.getElementById("luteal").attribute.required = "required";
             }
             else if (stageOfCycle_box_value == "follicular") {
                 document.getElementById("luteal").value = "";
                 document.getElementById("luteal").setAttribute("disabled","disabled");
                 document.getElementById("follicular").removeAttribute("disabled");
+                document.getElementById("follicular").attribute.required = "required";
             }
             else {
                 document.getElementById("luteal").value = "";
                 document.getElementById("follicular").value = "";
                 document.getElementById("follicular").setAttribute("disabled","disabled");
                 document.getElementById("luteal").setAttribute("disabled","disabled");
+                document.getElementById("luteal").attribute.required = "";
+                document.getElementById("follicular").attribute.required = "";
             }
         }
 
@@ -218,10 +225,12 @@
             let fixation_box_value = document.getElementById("fixation").value;
             if(fixation_box_value == "other"){
                 document.getElementById("fixationOther").removeAttribute("disabled")
+                // document.getElementById("fixationOther").attribute.required = "required";
             }
             else {
                 document.getElementById("fixationOther").value = "";
                 document.getElementById("fixationOther").setAttribute("disabled","disabled");
+                // document.getElementById("fixationOther").attribute.required = "";
             }
         }
     </script>

@@ -16,16 +16,17 @@
                 <h5>Enter information about the image:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
-                {{ wtf.form_field(form.entity_description) }}
-
-                <table>
-                <tr>
-                <td class="table_cell">
-                {{ wtf.form_field(form.object_name) }}
-                </td>
-                <td width="3%">&nbsp;</td>
-                <td class="table_cell">
                 {{ wtf.form_field(form.format_name) }}
+                {{ wtf.form_field(form.file_name) }}
+                {{ wtf.form_field(form.additional_info) }}
+                <table>
+                <tr>
+                <td class="table_cell">
+{#                {{ wtf.form_field(form.object_name) }} }
+                </td>
+                <td width="3%">&nbsp;</td>
+                <td class="table_cell">
+{#                {{ wtf.form_field(form.format_name) }} }
                 </td>
                 </tr>
                 </table>
@@ -33,16 +34,16 @@
                 <table>
                 <tr>
                 <td class="table_cell">
-                {{ wtf.form_field(form.size) }}
+{#                {{ wtf.form_field(form.size) }} }
                 </td>
                 <td width="3%">&nbsp;</td>
                 <td class="table_cell">
-                {{ wtf.form_field(form.md5_hash) }}
+{#                {{ wtf.form_field(form.md5_hash) }} }
                 </td>
                 </tr>
                 </table>
 
-                {{ wtf.form_field(form.online_url) }}
+{#                {{ wtf.form_field(form.online_url) }} }
                 <br/>
 {#                <h4>Other Entity Coverage (Optional):</h4>#}
 {#                <input class="btn btn-primary" name="Geographic" type="submit" value="Edit Geographic Coverage"/>#}

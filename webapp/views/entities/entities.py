@@ -151,27 +151,31 @@ def other_entity(filename=None, node_id=None):
 
             entity_name = form.entity_name.data
             entity_type = form.entity_type.data
-            entity_description = form.entity_description.data
-            object_name = form.object_name.data
+#            entity_description = form.entity_description.data
+#            object_name = form.object_name.data
+            file_name = form.file_name.data
             format_name = form.format_name.data
-            size = str(form.size.data) if form.size.data else ''
-            md5_hash = form.md5_hash.data
+            additional_info = form.additional_info.data
+#            size = str(form.size.data) if form.size.data else ''
+#            md5_hash = form.md5_hash.data
             online_url = form.online_url.data
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 
             if not entity_name:
                 entity_name = ''
-
+            print(additional_info)
             create_other_entity(
                 dt_node,
                 entity_name,
                 entity_type,
-                entity_description,
-                object_name,
+                file_name,
+#                entity_description,
+#                object_name,
                 format_name,
-                size,
-                md5_hash,
+                additional_info,
+#                size,
+#                md5_hash,
                 online_url)
 
             if dt_node_id and len(dt_node_id) != 1:
@@ -247,6 +251,7 @@ def other_entity(filename=None, node_id=None):
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
+    print("are we here?")
     entity_name_node = node.find_child(names.ENTITYNAME)
     if entity_name_node:
         form.entity_name.data = entity_name_node.content
@@ -255,24 +260,28 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
     if entity_type_node:
         form.entity_type.data = entity_type_node.content
 
-    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
-    if entity_description_node:
-        form.entity_description.data = entity_description_node.content
+#    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
+#    if entity_description_node:
+#        form.entity_description.data = entity_description_node.content
+
+    file_name_node = node.find_child("filename")
+    if file_name_node:
+        form.file_name.data = file_name_node.content
 
     physical_node = node.find_child(names.PHYSICAL)
     if physical_node:
 
-        object_name_node = physical_node.find_child(names.OBJECTNAME)
-        if object_name_node:
-            form.object_name.data = object_name_node.content
+#        object_name_node = physical_node.find_child(names.OBJECTNAME)
+#        if object_name_node:
+#            form.object_name.data = object_name_node.content
 
-        size_node = physical_node.find_child(names.SIZE)
-        if size_node:
-            form.size.data = size_node.content
+#        size_node = physical_node.find_child(names.SIZE)
+#        if size_node:
+#            form.size.data = size_node.content
 
-        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
-        if md5_hash_node:
-            form.md5_hash.data = md5_hash_node.content
+#        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
+#        if md5_hash_node:
+#            form.md5_hash.data = md5_hash_node.content
 
         data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:
@@ -283,6 +292,10 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
 
                 if format_name_node:
                     form.format_name.data = format_name_node.content
+
+        additional_info_node = node.find_child("additionalinfo")
+        if additional_info_node:
+            form.additional_info.data = additional_info_node.content
 
         distribution_node = physical_node.find_child(names.DISTRIBUTION)
         if distribution_node:

@@ -1773,11 +1773,13 @@ def create_other_entity(
         entity_node: Node = None,
         entity_name: str = None,
         entity_type: str = None,
-        entity_description: str = None,
-        object_name: str = None,
+        file_name: str = None,
+#        entity_description: str = None,
+#        object_name: str = None,
         format_name: str = None,
-        size: str = None,
-        md5_hash: str = None,
+        additional_info: str = None,
+#        size: str = None,
+#        md5_hash: str = None,
         online_url: str = None):
     try:
 
@@ -1792,17 +1794,21 @@ def create_other_entity(
             entity_type_node = new_child_node(names.ENTITYTYPE, parent=entity_node)
             entity_type_node.content = entity_type
 
-        if entity_description:
-            entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=entity_node)
-            entity_description_node.content = entity_description
+        if file_name:
+            file_name_node = Node("filename", parent=entity_node)
+            entity_node.add_child(file_name_node)
+            file_name_node.content = file_name
+#        if entity_description:
+#            entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=entity_node)
+#            entity_description_node.content = entity_description
 
-        if object_name or format_name or online_url:
+        if format_name or online_url:
 
             physical_node = new_child_node(names.PHYSICAL, parent=entity_node)
 
-            if object_name:
-                object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
-                object_name_node.content = object_name
+#            if object_name:
+#                object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
+#                object_name_node.content = object_name
 
             if format_name:
                 data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
@@ -1810,15 +1816,20 @@ def create_other_entity(
                 format_name_node = new_child_node(names.FORMATNAME, parent=externally_defined_format_node)
                 format_name_node.content = format_name
 
-            if size:
-                size_node = new_child_node(names.SIZE, parent=physical_node)
-                size_node.add_attribute('unit', 'byte')
-                size_node.content = size
+            if additional_info:
+                addition_info_node = Node("additionalinfo", parent=entity_node)
+                entity_node.add_child(addition_info_node)
+                addition_info_node.content = additional_info
 
-            if md5_hash:
-                hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
-                hash_node.add_attribute('method', 'MD5')
-                hash_node.content = str(md5_hash)
+#            if size:
+#                size_node = new_child_node(names.SIZE, parent=physical_node)
+#                size_node.add_attribute('unit', 'byte')
+#                size_node.content = size
+
+#            if md5_hash:
+#                hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
+#                hash_node.add_attribute('method', 'MD5')
+#                hash_node.content = str(md5_hash)
 
         if online_url:
             distribution_node = new_child_node(names.DISTRIBUTION, parent=physical_node)

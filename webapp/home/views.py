@@ -69,8 +69,12 @@ from webapp.home.metapype_client import (
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_nodes, get_check_metadata_status,
-    local_to_xml #PT7/10
+    import_project_nodes, get_check_metadata_status
+)
+
+from webapp.home.motherpype import (
+    local_to_xml,
+    clean_mother_node
 )
 
 from webapp.home.check_metadata import check_eml
@@ -518,29 +522,28 @@ def download_current():
         # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
-#PT7/10 CHANGES BEGIN
-        additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
-        if additional_metadata_node:
-            meta_node = additional_metadata_node.find_child('metadata')
-            mother_node = meta_node.find_child('mother')
-        if mother_node:
-            cleaned_mother_node = local_to_xml(mother_node, 0)
-            user_folder = user_data.get_user_folder_name()
-            test_filename = f'{user_folder}/{current_document}.xml'
-            with open(test_filename, "r+") as fh:
-                tree = etree.parse(fh)
-                root = tree.getroot()
-                additionalmetadata = root.find('additionalMetadata')
-                metadata = additionalmetadata.find('metadata')
-                mother = metadata.find('mother')
-                print(cleaned_mother_node)
-                metadata.remove(mother)
-                my_tree = etree.ElementTree(etree.fromstring(cleaned_mother_node))
-                my_root = my_tree.getroot()
-                metadata.append(my_root)
-                #THIS OVERWRITES THE XML FILE WITH NEW MDB PREFIXES
-                tree.write(f'{user_folder}/{current_document}.xml')
-#PT7/10 CHANGES END
+        clean_mother_node(eml_node, current_document)
+#        additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
+#        if additional_metadata_node:
+#            meta_node = additional_metadata_node.find_child('metadata')
+#            mother_node = meta_node.find_child('mother')
+#            if mother_node:
+#                cleaned_mother_node = local_to_xml(mother_node, 0)
+#                user_folder = user_data.get_user_folder_name()
+#                test_filename = f'{user_folder}/{current_document}.xml'
+#                with open(test_filename, "r+") as fh:
+#                    tree = etree.parse(fh)
+#                    root = tree.getroot()
+#                    additionalmetadata = root.find('additionalMetadata')
+#                    metadata = additionalmetadata.find('metadata')
+#                    mother = metadata.find('mother')
+#                    metadata.remove(mother)
+#                    my_tree = etree.ElementTree(etree.fromstring(cleaned_mother_node))
+#                    my_root = my_tree.getroot()
+#                    metadata.append(my_root)
+#                    #THIS OVERWRITES THE XML FILE WITH NEW MDB PREFIXES
+#                    tree.write(f'{user_folder}/{current_document}.xml')
+
         # Do the download
         return_value = user_data.download_eml(filename=current_document)
         if isinstance(return_value, str):

@@ -1,3 +1,4 @@
+from wsgiref.validate import validator
 from wtforms import (
     StringField, IntegerField, SelectField, HiddenField, Form, FormField, TextAreaField
 )
@@ -9,11 +10,11 @@ from wtforms.validators import (
 from webapp.home.forms import EDIForm
 
 class DonorForm(EDIForm):
-    donorId = StringField('Donor ID', validators=[])
+    donorID = StringField('Donor ID', validators=[])
     donorGender = StringField('Gender', validators=[], default ='female')
-    ageYears = IntegerField('Years', validators=[NumberRange(min = 0)])
-    ageDays = IntegerField('Days', validators=[NumberRange(min = 0)])
-    lifeStage = SelectField('Life Stage',
+    donorYears = IntegerField('Years', validators=[NumberRange(min = 0)])
+    donorDays = IntegerField('Days', validators=[NumberRange(min = 0)])
+    donorLifeStage = SelectField('Life Stage',
         choices=[("", ""),
             ("fetal", "Fetal"),
             ("neonatal", "Neonatal"),
@@ -21,7 +22,7 @@ class DonorForm(EDIForm):
             ("pubertal", "Pubertal"),
             ("adult", "Adult"),
             ("aging", "Aging")])
-    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=1)])
+    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0)])
     specimenTissue = StringField('Specimen Tissue', validators=[], default ='ovary')
     ovaryPosition = SelectField('Ovary Position',
         choices=[("", ""),
@@ -35,13 +36,14 @@ class DonorForm(EDIForm):
             ("ovarianMedulla", "Ovarian Medulla"),
             ("follicle", "Follicle"),
             ("corpusLuteum", "CorpusLuteum"),
-            ("unspecified", "Unspecified")])
-    corpusLuteumType = SelectField('Corpus Luteum Type',
+            ("unspecified", "Unspecified")],
+            render_kw={'onchange': "specimenLocationFunction()"})
+    corpusLuteum = SelectField('Corpus Luteum Type',
         choices=[("", ""),
             ("early", "Early"),
             ("mid", "Mid"),
             ("late", "Late"),
-            ("albicans", "Albicans")])
+            ("albicans", "Albicans")], validators=[Optional()])
     dayOfCycle = StringField('Day Of Cycle', validators=[])
     stageOfCycle = SelectField('Stage Of Cycle',
         choices=[("", ""),
@@ -51,21 +53,21 @@ class DonorForm(EDIForm):
             ("luteal", "Luteal"),
             ("unspecified", "Unspecified")],
             render_kw={'onchange': "stageOfCycleFunction()"})
-    follicularType = SelectField('Follicular values',
+    follicular = SelectField('Follicular values',
         choices=[("", ""),
             ("early", "Early"),
             ("mid", "Mid"),
-            ("late", "Late")])
-    lutealType = SelectField('Luteal Values',
+            ("late", "Late")], validators=[Optional()])
+    luteal = SelectField('Luteal Values',
         choices=[("", ""),
             ("early", "Early"),
             ("mid", "Mid"),
             ("late", "Late"),
-            ("regression", "Regression")])
+            ("regression", "Regression")], validators=[Optional()])
     slideID = StringField('Slide ID', validators=[])
     sectionSeqNum = IntegerField('Section Sequence Number', validators=[NumberRange(min=0)])
-    sectionThickness = IntegerField('Section Thickness', validators=[NumberRange(min=0)])
-    sectionThicknessUnit = SelectField('Section Thickness Units',
+    thickness = IntegerField('Section Thickness', validators=[NumberRange(min=0)])
+    thicknessUnit = SelectField('Section Thickness Units',
         choices =[("", ""),
             ("microns","Microns"),
             ("nm", "NM")])
@@ -76,14 +78,15 @@ class DonorForm(EDIForm):
             ("davidsons", "Davidsons"),
             ("neutralBufferedFormalin5aceticAcid", "Neutral Buffered Formalin5 acetic Acid"),
             ("bouins", "Bouins"),
-            ("other", "Other")])
-    fixationOther = StringField('Other Fixation', validators=[])
+            ("other", "Other")],
+            render_kw={'onchange': "fixationFunction()"})
+    fixationOther = StringField('Other Fixation', validators=[Optional()])
     stain = SelectField('Stain',
         choices=[("", ""),
             ("lightMicroscopyStain", "Light Microscopy Stain"),
             ("fluorescentMicroscopyStain", "Fluorescent Microscopy Stain"),
             ("electronMicroscopyStain", "Electron Microscopy Stain")])
-    stainLightType = SelectField('Stain Light Type',
+    lightMicroscopyStainType = SelectField('Stain Light Type',
         choices=[("", ""),
             ("eosinOnly", "Eosin Only"),
             ("hematoxylinOnly", "Hematoxylin Only"),
@@ -114,8 +117,8 @@ class DonorForm(EDIForm):
             ("Black B", "Black B"),
             ("Oil Red O", "Oil Red O"),
             ("Osmium Tetroxide", "Osmium Tetroxide")])
-    stainLightOther = StringField('Other Light Stain', validators=[])
-    stainFluorescentType = SelectField('Stain Fluorescent Type',
+    lightMicroscopyStainOther = StringField('Other Light Stain', validators=[])
+    fluorescentMicroscopyStainType = SelectField('Stain Fluorescent Type',
         choices=[("", ""),
             ("acridineOrange", "Acridine Orange"),
             ("calcein", "Calcein"),
@@ -125,15 +128,15 @@ class DonorForm(EDIForm):
             ("rhodamine", "Rhodamine"),
             ("TUNEL", "TUNEL"),
             ("other", "Other")],)
-    stainFluorescentOther = StringField('Other Fluorescent Stain', validators=[])
-    stainElectronType = SelectField('Stain Electron Type',
+    fluorescentMicroscopyStainOther = StringField('Other Fluorescent Stain', validators=[])
+    electronMicroscopyStainType = SelectField('Stain Electron Type',
         choices=[("", ""),
             ("colloidalgold", "Colloidal Gold"),
             ("osmiumTetroxide", "Osmium Tetroxide"),
             ("phosphotundsticAcid", "Phosphotundstic Acid"),
             ("silverNitrate", "Silver Nitrate"),
             ("other", "Other")])
-    stainElectronOther = StringField('Other Electron Stain', validators=[])
+    electronMicroscopyStainOther = StringField('Other Electron Stain', validators=[])
     magnification = StringField('Magnification', validators=[])
     maker = StringField('Microscope Maker', validators=[])
     model = StringField('Microscope Model', validators=[])
@@ -141,34 +144,34 @@ class DonorForm(EDIForm):
     md5 = HiddenField('')
         
     def field_data(self)->tuple:
-        return (self.donorId.data,
+        return (self.donorID.data,
                 self.donorGender.data,
-                self.ageYears.data,
-                self.ageDays.data,
-                self.lifeStage.data,
+                self.donorYears.data,
+                self.donorDays.data,
+                self.donorLifeStage.data,
                 self.specimenSeqNum.data,
                 self.specimenTissue.data,
                 self.ovaryPosition.data,
                 self.specimenLocation.data,
-                self.corpusLuteumType.data,
+                self.corpusLuteum.data,
                 self.dayOfCycle.data,
                 self.stageOfCycle.data,
-                self.follicularType.data,
-                self.lutealType.data,
+                self.follicular.data,
+                self.luteal.data,
                 self.slideID.data,
                 self.sectionSeqNum.data,
-                self.sectionThickness.data,
-                self.sectionThicknessUnit.data,
+                self.thickness.data,
+                self.thicknessUnit.data,
                 self.fixation.data,
                 self.fixationOther.data,
                 self.stain.data,
-                self.stainLightType.data,
+                self.lightMicroscopyStainType.data,
                 self.sudanStainType.data,
-                self.stainLightOther.data,
-                self.stainFluorescentType.data,
-                self.stainFluorescentOther.data,
-                self.stainElectronType.data,
-                self.stainElectronOther.data,
+                self.lightMicroscopyStainOther.data,
+                self.fluorescentMicroscopyStainType.data,
+                self.fluorescentMicroscopyStainOther.data,
+                self.electronMicroscopyStainType.data,
+                self.electronMicroscopyStainOther.data,
                 self.magnification.data,
                 self.maker.data,
                 self.model.data,

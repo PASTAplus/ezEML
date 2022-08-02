@@ -85,7 +85,8 @@ class DonorForm(EDIForm):
         choices=[("", ""),
             ("lightMicroscopyStain", "Light Microscopy Stain"),
             ("fluorescentMicroscopyStain", "Fluorescent Microscopy Stain"),
-            ("electronMicroscopyStain", "Electron Microscopy Stain")])
+            ("electronMicroscopyStain", "Electron Microscopy Stain")],
+            render_kw={'onchange': "stainTypeFunction()"})
     lightMicroscopyStainType = SelectField('Stain Light Type',
         choices=[("", ""),
             ("eosinOnly", "Eosin Only"),
@@ -109,7 +110,8 @@ class DonorForm(EDIForm):
             ("reticulin", "Reticulin"),
             ("toluidineBlue", "Toluidine Blue"),
             ("vanGieson", "Van Gieson"),
-            ("other", "other")])
+            ("other", "other")],
+            render_kw={'onchange': "lightMicroscopyStainTypeFunction()"})
     sudanStainType = SelectField('Sudan Stain Value',
         choices=[("", ""),
             ("III", "III"),
@@ -127,7 +129,8 @@ class DonorForm(EDIForm):
             ("propidiumIodide", "Propidium Iodide"),
             ("rhodamine", "Rhodamine"),
             ("TUNEL", "TUNEL"),
-            ("other", "Other")],)
+            ("other", "Other")],
+            render_kw={'onchange': "fluorescentMicroscopyStainTypeFunction()"})
     fluorescentMicroscopyStainOther = StringField('Other Fluorescent Stain', validators=[])
     electronMicroscopyStainType = SelectField('Stain Electron Type',
         choices=[("", ""),
@@ -135,7 +138,8 @@ class DonorForm(EDIForm):
             ("osmiumTetroxide", "Osmium Tetroxide"),
             ("phosphotundsticAcid", "Phosphotundstic Acid"),
             ("silverNitrate", "Silver Nitrate"),
-            ("other", "Other")])
+            ("other", "Other")],
+            render_kw={'onchange': "electronMicroscopyStainTypeFunction()"})
     electronMicroscopyStainOther = StringField('Other Electron Stain', validators=[])
     magnification = StringField('Magnification', validators=[])
     maker = StringField('Microscope Maker', validators=[])

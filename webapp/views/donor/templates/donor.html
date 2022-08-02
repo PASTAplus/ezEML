@@ -225,12 +225,100 @@
             let fixation_box_value = document.getElementById("fixation").value;
             if(fixation_box_value == "other"){
                 document.getElementById("fixationOther").removeAttribute("disabled")
-                // document.getElementById("fixationOther").attribute.required = "required";
             }
             else {
                 document.getElementById("fixationOther").value = "";
                 document.getElementById("fixationOther").setAttribute("disabled","disabled");
-                // document.getElementById("fixationOther").attribute.required = "";
+            }
+        }
+
+        function stainTypeFunction(){
+            let stainType_box_value = document.getElementById("stain").value;
+            if(stainType_box_value == "lightMicroscopyStain"){
+                document.getElementById("fluorescentMicroscopyStainType").value = "";
+                document.getElementById("electronMicroscopyStainType").value = "";
+                document.getElementById("fluorescentMicroscopyStainOther").value = "";
+                document.getElementById("electronMicroscopyStainOther").value = "";
+                document.getElementById("fluorescentMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("lightMicroscopyStainType").removeAttribute("disabled");
+                document.getElementById("lightMicroscopyStainType").attribute.required = "required";
+            }
+            else if(stainType_box_value == "fluorescentMicroscopyStain"){
+                document.getElementById("lightMicroscopyStainType").value = "";
+                document.getElementById("electronMicroscopyStainType").value = "";
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("electronMicroscopyStainOther").value = "";
+                document.getElementById("lightMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("sudanStainType").setAttribute("disabled","diabled");
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("fluorescentMicroscopyStainType").removeAttribute("disabled");
+                document.getElementById("fluorescentMicroscopyStainType").attribute.required = "required";
+            }
+            else { //electronMicroscopyStain
+                document.getElementById("lightMicroscopyStainType").value = "";
+                document.getElementById("fluorescentMicroscopyStainType").value = "";
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("fluorescentMicroscopyStainOther").value = "";
+                document.getElementById("lightMicroscopyStainType").setAttribute("disabled","disabled");
+                document.getElementById("fluorescentMicroscopyStainType").setAttribute("disabled","disabled");
+                document.getElementById("sudanStainType").setAttribute("disabled","disabled");
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
+                document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","disabled");
+                document.getElementById("electronMicroscopyStainType").removeAttribute("disabled");
+                document.getElementById("electronMicroscopyStainType").attribute.required = "required";
+            }
+        }
+
+        function lightMicroscopyStainTypeFunction(){
+            let lightMicroscopyStainType_box_value = document.getElementById("lightMicroscopyStainType").value;
+            if(lightMicroscopyStainType_box_value == "sudan"){
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("sudanStainType").removeAttribute("disabled");
+                document.getElementById("sudanStainType").attribute.required = "required";
+            }
+            else if(lightMicroscopyStainType_box_value == "other"){
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("sudanStainType").setAttribute("disabled","diabled");
+                document.getElementById("lightMicroscopyStainOther").removeAttribute("disabled");
+                document.getElementById("lightMicroscopyStainOther").attribute.required = "required";
+            }
+            else {
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("sudanStainType").setAttribute("disabled","disabled");
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
+                document.getElementById("sudanStainType").attribute.required = "";
+                document.getElementById("lightMicroscopyStainOther").attribute.required = "";
+            }
+        }
+
+        function fluorescentMicroscopyStainTypeFunction(){
+            let fluorescentMicroscopyStainType_box_value = document.getElementById("fluorescentMicroscopyStainType").value;
+            if(fluorescentMicroscopyStainType_box_value == "other"){
+                document.getElementById("fluorescentMicroscopyStainOther").removeAttribute("disabled")
+            }
+            else {
+                document.getElementById("fluorescentMicroscopyStainOther").value = "";
+                document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","disabled");
+            }
+        }
+
+        function electronMicroscopyStainTypeFunction(){
+            let electronMicroscopyStainType_box_value = document.getElementById("electronMicroscopyStainType").value;
+            if(electronMicroscopyStainType_box_value == "other"){
+                document.getElementById("electronMicroscopyStainOther").removeAttribute("disabled")
+            }
+            else {
+                document.getElementById("electronMicroscopyStainOther").value = "";
+                document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","disabled");
             }
         }
     </script>

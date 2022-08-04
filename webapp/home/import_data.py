@@ -18,8 +18,7 @@ import webapp.home.exceptions as exceptions
 import webapp.home.metapype_client as metapype_client
 import webapp.home.views as views
 
-import webapp.home.load_data
-# from webapp.home.load_data_table import load_data_table, load_other_entity
+import webapp.home.load_data as load_data
 
 logger = daiquiri.getLogger('import_data: ' + __name__)
 
@@ -159,7 +158,7 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
 
     try:
         new_data_entity_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = \
-            webapp.home.load_data.load_data_table(upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
+            load_data.load_data_table(upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
     except FileNotFoundError as e:
         return None
 

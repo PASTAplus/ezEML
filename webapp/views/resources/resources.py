@@ -91,7 +91,11 @@ def title(filename=None):
         return redirect(url_for(new_page, filename=filename))
 
     # Process GET
-    eml_node = load_eml(filename=filename)
+    try:
+        eml_node = load_eml(filename=filename)
+    except Exception as err:
+        log_error(err)
+        raise err
     dataset_node = eml_node.find_child(child_name=names.DATASET)
     title_node = dataset_node.find_child(names.TITLE)
     if title_node:

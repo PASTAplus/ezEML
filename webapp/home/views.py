@@ -26,6 +26,7 @@ import pandas as pd
 from pathlib import Path
 import pickle
 import requests
+from requests_file import FileAdapter
 from shutil import copyfile
 from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
@@ -91,10 +92,12 @@ from webapp.home.metapype_client import (
     handle_hidden_buttons, check_val_for_hidden_buttons,
     add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
     add_imported_from_xml_metadata, get_imported_from_xml_metadata,
-    clear_taxonomy_imported_from_xml, taxonomy_imported_from_xml
+    clear_taxonomy_imported_from_xml, taxonomy_imported_from_xml,
+    is_hidden_button, handle_hidden_buttons
 )
 
-from webapp.home.check_data_table import format_date_time_formats_list
+import webapp.home.check_data_table_contents as check_data_table_contents
+from webapp.home.check_data_table_contents import format_date_time_formats_list
 from webapp.home.check_metadata import check_eml
 from webapp.home.forms import form_md5
 
@@ -172,8 +175,8 @@ def reload_metadata():
 
 
 # Endpoint for AJAX calls to validate XML
-@home.route('/check_xml/<xml>/<parent_name>')
-def check_xml(xml:str=None, parent_name:str=None, methods=['GET']):
+@home.route('/check_xml/<xml>/<parent_name>', methods=['GET'])
+def check_xml(xml:str=None, parent_name:str=None):
     response = check_xml_validity(xml, parent_name)
     log_usage(actions['CHECK_XML'], parent_name, response)
     response = jsonify({"response": response})
@@ -182,8 +185,8 @@ def check_xml(xml:str=None, parent_name:str=None, methods=['GET']):
 
 
 # Endpoint for AJAX calls to log help usage
-@home.route('/log_help_usage/<help_id>')
-def log_help_usage(help_id:str=None, methods=['GET']):
+@home.route('/log_help_usage/<help_id>', methods=['GET'])
+def log_help_usage(help_id:str=None):
     log_usage(actions['HELP'], help_id)
     response = jsonify({"response": 'OK'})
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -191,8 +194,8 @@ def log_help_usage(help_id:str=None, methods=['GET']):
 
 
 # Endpoint for AJAX calls to log User Guide usage
-@home.route('/log_user_guide_usage/<title>')
-def log_user_guide_usage(title:str=None, methods=['GET']):
+@home.route('/log_user_guide_usage/<title>', methods=['GET'])
+def log_user_guide_usage(title:str=None):
     log_usage(actions['USER_GUIDE'], title)
     response = jsonify({"response": 'OK'})
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -200,21 +203,87 @@ def log_user_guide_usage(title:str=None, methods=['GET']):
 
 
 # Endpoint for AJAX calls to log login usage
-@home.route('/log_login_usage/<login_type>')
-def log_login_usage(title:str=None, login_type=['GET']):
+@home.route('/log_login_usage/<login_type>', methods=['GET'])
+def log_login_usage(login_type:str=None):
     log_usage(actions['LOGIN'], login_type)
     response = jsonify({"response": 'OK'})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 
+# Endpoint for REST Service to get a list of a data table's columns and their variable types
+@home.route('/get_data_table_columns/', methods=['GET','POST'])
+def get_data_table_columns():
+    eml_file_url = request.headers.get('eml_file_url')
+    data_table_name = request.headers.get('data_table_name')
+    data_table_node = check_data_table_contents.find_data_table_node(eml_file_url, data_table_name)
+    columns = check_data_table_contents.get_data_table_columns(data_table_node)
+    response = jsonify({"columns": columns})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
+# Endpoint for REST Service to check a data table's CSV file
+@home.route('/check_data_table/', methods=['POST'])
+def check_data_table():
+    eml_file_url = request.headers.get('eml_file_url')
+    csv_file_url = request.headers.get('csv_file_url')
+    data_table_name = request.headers.get('data_table_name')
+    column_names = request.headers.get('column_names').split(',')
+    return check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names)
+
+
+@home.route('/data_table_errors/<data_table_name>', methods=['GET', 'POST'])
+@login_required
+def data_table_errors(data_table_name:str=None):
+    current_document = user_data.get_active_document()
+    if not current_document:
+        raise FileNotFoundError
+
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_DATA_TABLE_ERRORS, PAGE_DATA_TABLE_ERRORS)
+        return redirect(url_for(new_page, filename=current_document))
+
+    eml_node = load_eml(filename=current_document)
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    data_table_node = None
+    for _data_table_node in data_table_nodes:
+        if check_data_table_contents.get_data_table_name(_data_table_node) == data_table_name:
+            data_table_node = _data_table_node
+            break
+    if not data_table_node:
+        raise ValueError  # TODO: use custom exception
+
+    eml_file_url = check_data_table_contents.get_eml_file_url(current_document)
+    csv_file_url = check_data_table_contents.get_csv_file_url(current_document, data_table_node)
+    csv_filename = check_data_table_contents.get_data_table_filename(data_table_node)
+    csv_filepath = check_data_table_contents.get_csv_filepath(current_document, csv_filename)
+    data_table_size = check_data_table_contents.get_data_table_size(data_table_node)
+
+    metadata_hash = check_data_table_contents.hash_data_table_metadata_settings(eml_node, data_table_name)
+
+    errors = check_data_table_contents.get_data_file_eval(current_document, csv_filename, metadata_hash)
+    if not errors:
+        try:
+            errors = check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name,
+                                                                max_errs_per_column=None)
+        except UnicodeDecodeError:
+            errors = display_decode_error_lines(csv_filepath)
+            return render_template('encoding_error.html', filename=os.path.basename(csv_filepath), errors=errors)
+
+    column_errs = check_data_table_contents.generate_error_info_for_webpage(data_table_node, errors)
+    column_errs = check_data_table_contents.collapse_error_info_for_webpage(column_errs)
+
+    check_data_table_contents.save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
+    check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
+    return render_template('data_table_errors.html', data_table_name=data_table_name, column_errs=column_errs, back_url=get_back_url())
+
+
 @home.before_app_first_request
 def init_session_vars():
     session["check_metadata_status"] = "green"
-
-
-@home.before_app_request
-def init_session_vars_2():
+    session["check_data_tables_status"] = "green"
     session["privileged_logins"] = Config.PRIVILEGED_LOGINS
 
 
@@ -298,7 +367,7 @@ def fixup_upload_management():
         os.remove(file)
 
 
-@home.before_app_request
+# @home.before_app_request
 @home.before_app_first_request
 def load_eval_entries():
     rows = []
@@ -311,7 +380,7 @@ def load_eval_entries():
         session[f'__eval__{id}'] = vals
 
 
-@home.before_app_request
+# @home.before_app_request
 @home.before_app_first_request
 def init_keywords():
     lter_keywords = pickle.load(open('webapp/static/lter_keywords.pkl', 'rb'))
@@ -322,7 +391,7 @@ def get_keywords(which):
     return keywords.get(which, [])
 
 
-@home.before_app_request
+# @home.before_app_request
 @home.before_app_first_request
 def init_help():
     with open('webapp/static/help.txt') as help:
@@ -585,6 +654,23 @@ def download():
                            form=form)
 
 
+@home.route('/check_data_tables', methods=['GET', 'POST'])
+@login_required
+def check_data_tables():
+    current_document = user_data.get_active_document()
+    if not current_document:
+        raise FileNotFoundError
+    eml_node = load_eml(filename=current_document)
+    log_usage(actions['CHECK_DATA_TABLES'])
+    set_current_page('check_data_tables')
+    content = check_data_table_contents.create_check_data_tables_status_page_content(current_document, eml_node)
+    check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_CHECK_DATA_TABLES, PAGE_CHECK_DATA_TABLES)
+        return redirect(url_for(new_page, filename=current_document))
+    return render_template('check_data_tables.html', content=content)
+
+
 @home.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 def check_metadata(filename:str):
@@ -742,6 +828,8 @@ def open_eml_document():
                 create_eml(filename=filename)
                 new_page = PAGE_TITLE
                 log_usage(actions['OPEN_DOCUMENT'])
+                check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+
             else:
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=filename))
@@ -2762,6 +2850,20 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
                                form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
 
 
+def data_table_is_unique(eml_node, data_table_filename):
+    data_table_name, _ = os.path.splitext(os.path.basename(data_table_filename))
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    for data_table_node in data_table_nodes:
+        data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
+        if data_table_name_node and data_table_name_node.content == data_table_name:
+            return False
+        data_table_object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+        if data_table_object_name_node and data_table_object_name_node.content == data_table_filename:
+            return False
+    return True
+
+
 @home.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_data(filename=None):
@@ -2799,6 +2901,11 @@ def load_data(filename=None):
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_data_file(filename):
+                # Make sure we don't already have a data table with this name
+                if not data_table_is_unique(eml_node, filename):
+                    flash('The selected name has already been used in this data package. Data table names must be unique within a data package.', 'error')
+                    return redirect(request.url)
+
                 # Make sure the user's uploads directory exists
                 Path(uploads_folder).mkdir(parents=True, exist_ok=True)
                 filepath = os.path.join(uploads_folder, filename)
@@ -2843,6 +2950,7 @@ def load_data(filename=None):
                 insert_upload_urls(document, eml_node)
                 log_usage(actions['LOAD_DATA_TABLE'], filename)
 
+                check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
                 save_both_formats(filename=document, eml_node=eml_node)
 
                 return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
@@ -2963,7 +3071,10 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
     clear_distribution_url(dt_node)
     insert_upload_urls(document, eml_node)
 
-    backup_metadata(filename=document)
+    backup_metadata(filename=document)  # FIXME - what is this doing? is it obsolete?
+
+    check_data_table_contents.reset_data_file_eval_status(document, data_file)
+    check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
 
     save_both_formats(filename=document, eml_node=eml_node)
     return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter,

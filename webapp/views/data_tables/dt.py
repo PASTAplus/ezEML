@@ -486,8 +486,6 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
     mscale = mscale_from_attribute(node_to_change)
     if mscale is not None:
         form.mscale_choice.data = mscale
-    else:
-        ijk = 123
 
     views.set_current_page('data_table')
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)

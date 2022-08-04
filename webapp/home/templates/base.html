@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2022.06.04' %}
+{% set release_number = '2022.08.03' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -30,7 +30,7 @@
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package', 'import_xml',
         'export_package', '/submit_package'] %}
-{% set non_saving_contains = ['/check_metadata/',
+{% set non_saving_contains = ['/check_metadata/', '/check_data_tables/',
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
         'import_package_2', 'import_xml_2', 'export_package_2',
@@ -296,6 +296,7 @@
             {% set other_entity_style = '""'|safe %}
             {% set data_package_id_style = '""'|safe %}
             {% set check_metadata_style = '""'|safe %}
+            {% set check_data_tables_style = '""'|safe %}
             {% set submit_package_style = '""'|safe %}
             {% set send_to_other_style = '""'|safe %}
 
@@ -322,6 +323,7 @@
             {% if page == 'other_entity' %}{% set other_entity_style = current %}{% endif %}
             {% if page == 'data_package_id' %}{% set data_package_id_style = current %}{% endif %}
             {% if page == 'check_metadata' %}{% set check_metadata_style = current %}{% endif %}
+            {% if page == 'check_data_tables' %}{% set check_data_tables_style = current %}{% endif %}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
 
@@ -348,6 +350,11 @@
         <a class="nav_link" style={{ check_metadata_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>
             <br>
+        {% if current_user and current_user.is_authenticated and current_user.get_username() in session.get("privileged_logins", []) %}
+        <a class="nav_link" style={{ check_data_tables_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_data_tables') }}" title="Edit">Check Data Tables</a>&nbsp;
+            <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
+            <br>
+        {% endif %}
         <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>
         <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
 

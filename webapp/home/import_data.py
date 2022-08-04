@@ -14,9 +14,12 @@ import webapp.auth.user_data as user_data
 from webapp.config import Config
 import webapp.home.exceptions as exceptions
 
-from webapp.home.load_data_table import load_data_table, load_other_entity
-from webapp.home.metapype_client import save_both_formats
+# from webapp.home.metapype_client import save_both_formats
+import webapp.home.metapype_client as metapype_client
 import webapp.home.views as views
+
+import webapp.home.load_data_table
+# from webapp.home.load_data_table import load_data_table, load_other_entity
 
 logger = daiquiri.getLogger('import_data: ' + __name__)
 
@@ -105,8 +108,7 @@ def convert_file_size(size):
     # number of bytes in a gigabyte
     GBFACTOR = float(1 << 30)
     size = int(size)
-    if size > 0:
-        return size / KBFACTOR, size / MBFACTOR, size / GBFACTOR,
+    return size / KBFACTOR, size / MBFACTOR, size / GBFACTOR,
 
 
 def get_data_entity_sizes(scope, identifier, revision):
@@ -156,8 +158,8 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
         quote_char = '"'
 
     try:
-        new_data_entity_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
-            upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
+        new_data_entity_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = \
+            webapp.home.load_data_tableload_data_table(upload_dir, object_name, num_header_lines, field_delimiter, quote_char)
     except FileNotFoundError as e:
         return None
 
@@ -171,7 +173,7 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
 
 
 def ingest_other_entity(dataset_node, upload_dir, object_name):
-    return load_other_entity(dataset_node, upload_dir, object_name)
+    return webapp.home.load_data_table.load_other_entity(dataset_node, upload_dir, object_name)
 
 
 def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
@@ -227,7 +229,7 @@ def import_data(filename, eml_node):
     upload_dir = user_data.get_document_uploads_folder_name()
     retrieve_data_entities(upload_dir, entities_with_sizes)
     ingest_data_entities(eml_node, upload_dir, entities_with_sizes)
-    save_both_formats(filename, eml_node)
+    metapype_client.save_both_formats(filename, eml_node)
     return total_size
 
 

@@ -77,6 +77,7 @@ def log_usage(action, *args):
 
 
 actions = {
+    'CHECK_DATA_TABLES': 'Check Data Tables',
     'CHECK_METADATA': 'Check Metadata',
     'CHECK_XML': 'Check XML',
     'CLONE_COLUMN_PROPERTIES': 'Clone Column Properties',

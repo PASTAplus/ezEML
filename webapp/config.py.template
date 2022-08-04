@@ -49,6 +49,7 @@ class Config(object):
     FROM = 'support@edirepository.org'
     FROM_NAME = 'EDI Support'
 
+    BASE_DIR = "/home/pasta/ezeml"
     TEMPLATE_DIR = "/home/pasta/ezeml/templates"
 
     PRIVILEGED_LOGINS = []

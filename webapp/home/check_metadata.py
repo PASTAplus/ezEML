@@ -36,7 +36,7 @@ from metapype.model.node import Node
 import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
 import webapp.auth.user_data as user_data
-from webapp.home.check_data_table import check_date_time_attribute
+from webapp.home.check_data_table_contents import check_date_time_attribute
 import webapp.home.load_data_table as load_data_table
 
 app = Flask(__name__)

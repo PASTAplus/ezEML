@@ -55,6 +55,7 @@ from webapp.home.texttype_node_processing import (
 
 import webapp.auth.user_data as user_data
 import webapp.home.exceptions as exceptions
+import webapp.home.check_data_table_contents as check_data_table_contents
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -74,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.06.04'
+RELEASE_NUMBER = '2022.08.03'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -380,7 +381,6 @@ def list_codes_and_definitions(att_node:Node=None):
             Code_Definition_Entry = collections.namedtuple(
                             'Code_Definition_Entry',
                             ["id", "code", "definition", "upval", "downval"],
-
                             rename=False)
 
             for i, cd_node in enumerate(code_definition_nodes):
@@ -1059,6 +1059,7 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False):
 
     if eml_node:
         get_check_metadata_status(eml_node, filename)
+        check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
         # save_package_id(eml_node)
         user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
     return eml_node

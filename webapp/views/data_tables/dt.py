@@ -52,7 +52,7 @@ from webapp.home.metapype_client import VariableType, new_child_node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.load_data_table import load_data_table, sort_codes, infer_datetime_format
+from webapp.home.load_data import load_data_table, sort_codes, infer_datetime_format
 
 import webapp.auth.user_data as user_data
 

@@ -7,7 +7,7 @@ from flask import flash
 
 import webapp.auth.user_data as user_data
 
-from webapp.home.load_data_table import get_md5_hash
+from webapp.home.load_data import get_md5_hash
 
 from webapp.home.metapype_client import list_files_in_dir, load_eml
 

@@ -67,7 +67,7 @@ from webapp.home.forms import (
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm
 )
 
-from webapp.home.load_data_table import (
+from webapp.home.load_data import (
     load_data_table, load_other_entity, delete_data_files, get_md5_hash
 )
 from webapp.home.import_package import (

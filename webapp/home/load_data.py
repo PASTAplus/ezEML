@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""":Mod: load_data_table.py
+""":Mod: load_data.py
 
 :Synopsis:
 
@@ -38,8 +38,10 @@ from webapp.config import Config
 
 import webapp.auth.user_data as user_data
 
-MAX_ROWS_TO_CHECK = 10**5
+from flask import Blueprint
+home = Blueprint('home', __name__, template_folder='templates')
 
+MAX_ROWS_TO_CHECK = 10 ** 5
 
 logger = daiquiri.getLogger('load_data_table: ' + __name__)
 
@@ -64,14 +66,14 @@ def log_info(msg):
 #         current_app.logger.info(msg)
 
 
-def get_file_size(full_path:str=''):
+def get_file_size(full_path: str = ''):
     file_size = None
     if full_path:
         file_size = os.path.getsize(full_path)
     return file_size
 
 
-def get_md5_hash(full_path:str=''):
+def get_md5_hash(full_path: str = ''):
     digest = None
     if full_path:
         with open(full_path, 'rb') as file:
@@ -82,21 +84,21 @@ def get_md5_hash(full_path:str=''):
     return digest
 
 
-def entity_name_from_data_file(filename:str=''):
+def entity_name_from_data_file(filename: str = ''):
     entity_name = ''
     if filename:
         entity_name = filename.rsplit('.', 1)[0]
     return entity_name
 
 
-def format_name_from_data_file(filename:str=''):
+def format_name_from_data_file(filename: str = ''):
     format_name = ''
     if filename:
         format_name = filename.rsplit('.', 1)[1]
     return format_name
 
 
-def is_datetime_column(col:str=None):
+def is_datetime_column(col: str = None):
     is_datetime = False
 
     if col:
@@ -188,9 +190,9 @@ def infer_col_type(data_frame, col):
     # does it look like a date?
     lc_col = col.lower()
     if (
-        ('year' in lc_col or 'date' in lc_col)
-        and col_type == metapype_client.VariableType.CATEGORICAL
-        and is_datetime(data_frame, col)
+            ('year' in lc_col or 'date' in lc_col)
+            and col_type == metapype_client.VariableType.CATEGORICAL
+            and is_datetime(data_frame, col)
     ):
         # make sure we don't just have numerical codes that are incorrectly being treated as years
         # see if most of the codes look like years
@@ -312,9 +314,8 @@ def check_column_name_uniqueness(csv_file_path, delimiter):
             raise DataTableError("Duplicated column name. Please make column names unique and try again.")
 
 
-def load_data_table(uploads_path:str=None, data_file:str='',
-                    num_header_rows:str='1', delimiter:str=',', quote_char:str='"'):
-
+def load_data_table(uploads_path: str = None, data_file: str = '',
+                    num_header_rows: str = '1', delimiter: str = ',', quote_char: str = '"'):
     # if Config.LOG_DEBUG:
     log_info(f'Entering load_data_table: {data_file}')
 
@@ -421,11 +422,11 @@ def load_data_table(uploads_path:str=None, data_file:str='',
             attribute_node = metapype_client.new_child_node(names.ATTRIBUTE, attribute_list_node)
             attribute_name_node = metapype_client.new_child_node(names.ATTRIBUTENAME, attribute_node)
             attribute_name_node.content = col
-        
+
             att_label_node = Node(names.ATTRIBUTELABEL, parent=attribute_node)
             metapype_client.add_child(attribute_node, att_label_node)
             att_label_node.content = col
-        
+
             att_def_node = Node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
             metapype_client.add_child(attribute_node, att_def_node)
 
@@ -566,7 +567,7 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     return other_entity_node
 
 
-def delete_data_files(data_folder:str=None):
+def delete_data_files(data_folder: str = None):
     if data_folder:
         for data_file in os.listdir(data_folder):
             file_path = os.path.join(data_folder, data_file)

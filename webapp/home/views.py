@@ -391,7 +391,7 @@ def get_keywords(which):
     return keywords.get(which, [])
 
 
-# @home.before_app_request
+@home.before_app_request
 @home.before_app_first_request
 def init_help():
     with open('webapp/static/help.txt') as help:

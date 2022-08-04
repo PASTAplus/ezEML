@@ -112,3 +112,4 @@ venv.bak/
 # Project files
 config.py
 user-data
+_config.html

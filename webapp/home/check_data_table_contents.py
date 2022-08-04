@@ -677,7 +677,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         if status == 'yellow':
             onclick = ''
             size = get_data_table_size(data_table_node)
-            if size and int(size) > 10**8:
+            if size and int(size) > 10**7:
                 kb, mb, gb = convert_file_size(size)
                 mb = round(mb)
                 onclick = f'onclick="return confirm(\'This data table may take up to several minutes to check. Continue?\');"'

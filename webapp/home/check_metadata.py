@@ -37,7 +37,7 @@ import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
-import webapp.home.load_data_table as load_data_table
+import webapp.home.load_data_table
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -537,7 +537,7 @@ def check_data_table_md5_checksum(data_table_node, link, data_table_name=None):
     uploads_folder = user_data.get_document_uploads_folder_name()
     full_path = f'{uploads_folder}/{data_file}'
     try:
-        computed_md5_hash = load_data_table.get_md5_hash(full_path)
+        computed_md5_hash = webapp.home.load_data_table.get_md5_hash(full_path)
         authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
         if authentication_node:
             found_md5_hash = authentication_node.content

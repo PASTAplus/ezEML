@@ -69,6 +69,7 @@ def log_info(msg):
 
 
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
+@login_required
 def title(filename=None):
     log_info(f'Title')
 
@@ -94,6 +95,7 @@ def title(filename=None):
     try:
         eml_node = load_eml(filename=filename)
     except Exception as err:
+        log_error('Exception in title route')
         log_error(err)
         raise err
     dataset_node = eml_node.find_child(child_name=names.DATASET)

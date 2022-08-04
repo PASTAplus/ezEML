@@ -94,14 +94,15 @@ def title(filename=None):
     # Process GET
     try:
         eml_node = load_eml(filename=filename)
+        dataset_node = eml_node.find_child(child_name=names.DATASET)
+        title_node = dataset_node.find_child(names.TITLE)
+        if title_node:
+            form.title.data = title_node.content
     except Exception as err:
-        log_error('Exception in title route')
+        log_error(f'Exception in title route. filename={filename}')
         log_error(err)
         raise err
-    dataset_node = eml_node.find_child(child_name=names.DATASET)
-    title_node = dataset_node.find_child(names.TITLE)
-    if title_node:
-        form.title.data = title_node.content
+
     form.md5.data = form_md5(form)
 
     set_current_page('title')

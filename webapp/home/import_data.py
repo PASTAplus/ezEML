@@ -172,7 +172,7 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
 
 
 def ingest_other_entity(dataset_node, upload_dir, object_name):
-    return webapp.home.load_data_table.load_other_entity(dataset_node, upload_dir, object_name)
+    return load_data.load_other_entity(dataset_node, upload_dir, object_name)
 
 
 def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):

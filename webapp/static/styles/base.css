@@ -93,3 +93,11 @@ button.link {
 button.link:hover{
     text-decoration:underline;
 }
+
+.eval_table tr:hover {
+    background-color: #e8e8e8 !important;
+}
+
+.eval_table tr:hover td {
+    background: transparent;
+}

@@ -367,9 +367,10 @@ def fixup_upload_management():
         os.remove(file)
 
 
-# @home.before_app_request
-@home.before_app_first_request
+@home.before_app_request
 def load_eval_entries():
+    if session.get('__eval__title_01'):
+        return
     rows = []
     with open('webapp/static/evaluate.csv') as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -380,9 +381,10 @@ def load_eval_entries():
         session[f'__eval__{id}'] = vals
 
 
-# @home.before_app_request
-@home.before_app_first_request
+@home.before_app_request
 def init_keywords():
+    if keywords:
+        return
     lter_keywords = pickle.load(open('webapp/static/lter_keywords.pkl', 'rb'))
     keywords['LTER'] = lter_keywords
 
@@ -392,8 +394,13 @@ def get_keywords(which):
 
 
 @home.before_app_request
-@home.before_app_first_request
 def init_help():
+    if help_dict:
+        if not session.get('__help__contents'):
+            # special case for supporting base.html template
+            session['__help__contents'] = help_dict.get('contents')
+        return
+
     with open('webapp/static/help.txt') as help:
         lines = help.readlines()
     index = 0

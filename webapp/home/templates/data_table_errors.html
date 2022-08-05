@@ -16,17 +16,17 @@
                 &nbsp;&nbsp;&nbsp;&nbsp;
                 Type: {{ column_err.variable_type }}
                 </span>
-            <table class="errors_table" width=100% style="padding: 10px;">
-                <tr><th class="errors_table" align="left" width=8%>Row</th>
-                <th class="errors_table" align="left" width=52%>Error</th>
-                <th class="errors_table" align="left" width=20%>Expected</th>
+            <table class="eval_table" width=100% style="padding: 10px;">
+                <tr><th class="eval_table" align="left" width=8%>Row</th>
+                <th class="eval_table" align="left" width=52%>Error</th>
+                <th class="eval_table" align="left" width=20%>Expected</th>
                 <th align="left" width=20%>Found</th></tr>
                 {% for error in column_err.errors %}
                 <tr>
-                <td class="errors_table" valign="top">{{ error.row }}</td>
-                <td class="errors_table" valign="top">{{ error.error_type }}</td>
-                <td class="errors_table" valign="top">{{ error.expected|safe }}</td>
-                <td class="errors_table" valign="top">{{ error.found }}</td>
+                <td class="eval_table" valign="top">{{ error.row }}</td>
+                <td class="eval_table" valign="top">{{ error.error_type }}</td>
+                <td class="eval_table" valign="top">{{ error.expected|safe }}</td>
+                <td class="eval_table" valign="top">{{ error.found }}</td>
                 </tr>
                 {% endfor %}
                     </table>

@@ -94,6 +94,10 @@ button.link:hover{
     text-decoration:underline;
 }
 
+.eval_table td {
+    padding:3px;
+}
+
 .eval_table tr:hover {
     background-color: #e8e8e8 !important;
 }

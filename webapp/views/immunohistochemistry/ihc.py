@@ -12,7 +12,15 @@ from webapp.home.forms import (
 
 from webapp.home.metapype_client import (
     load_eml, save_both_formats,
-    add_child, create_immunohistochemistry, add_mother_metadata, new_child_node
+    add_child, new_child_node
+)
+
+from webapp.home.motherpype import (
+    create_immunohistochemistry
+)
+
+from webapp.home.motherpype import (
+    add_mother_metadata
 )
 
 from metapype.eml import names

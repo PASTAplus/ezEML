@@ -73,7 +73,6 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.home.motherpype import (
-    local_to_xml,
     clean_mother_node
 )
 
@@ -523,26 +522,6 @@ def download_current():
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
         clean_mother_node(eml_node, current_document)
-#        additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
-#        if additional_metadata_node:
-#            meta_node = additional_metadata_node.find_child('metadata')
-#            mother_node = meta_node.find_child('mother')
-#            if mother_node:
-#                cleaned_mother_node = local_to_xml(mother_node, 0)
-#                user_folder = user_data.get_user_folder_name()
-#                test_filename = f'{user_folder}/{current_document}.xml'
-#                with open(test_filename, "r+") as fh:
-#                    tree = etree.parse(fh)
-#                    root = tree.getroot()
-#                    additionalmetadata = root.find('additionalMetadata')
-#                    metadata = additionalmetadata.find('metadata')
-#                    mother = metadata.find('mother')
-#                    metadata.remove(mother)
-#                    my_tree = etree.ElementTree(etree.fromstring(cleaned_mother_node))
-#                    my_root = my_tree.getroot()
-#                    metadata.append(my_root)
-#                    #THIS OVERWRITES THE XML FILE WITH NEW MDB PREFIXES
-#                    tree.write(f'{user_folder}/{current_document}.xml')
 
         # Do the download
         return_value = user_data.download_eml(filename=current_document)

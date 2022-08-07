@@ -22,15 +22,15 @@
                         <table width="100%">
                         <tr>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorId) }}</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorID) }}</td>
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorGender) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.ageYears) }}</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorYears) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.ageDays) }}</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorDays) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.lifeStage) }}</td>
+                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.donorLifeStage) }}</td>
                             <td width="2%">&nbsp;</td>
                         </tr>
                         </table>
@@ -49,7 +49,7 @@
                                 <td width="1%">&nbsp;</td>
                                 <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.specimenLocation) }}</td>
                                 <td width="1%">&nbsp;</td>
-                                <td style="padding: 1px 5px;" width="20%">{{ wtf.form_field(form.corpusLuteumType) }}</td>
+                                <td style="padding: 1px 5px;" width="20%">{{ wtf.form_field(form.corpusLuteum) }}</td>
                                 <td width="1%">&nbsp;</td>
 
                                 <table>
@@ -58,17 +58,9 @@
                                     <td width="1%">&nbsp;</td>
                                     <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.stageOfCycle) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    {% if form.lutealType.data %}
-                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.follicularType, disabled=True) }}</td>
-                                    {% else %}
-                                    <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.follicularType) }}</td>
-                                    {% endif %}
+                                    <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.follicular) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    {% if form.follicularType.data %}
-                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.lutealType, disabled=True) }}</td>
-                                    {% else %}
-                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.lutealType) }}</td>
-                                    {% endif %}
+                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.luteal) }}</td>
                                     <td width="1%">&nbsp;</td>
                                 </table>
                                 </tr>
@@ -87,9 +79,9 @@
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.sectionSeqNum) }}</td>
                                 <td width="1%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.sectionThickness) }}</td>
+                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.thickness) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.sectionThicknessUnit) }}</td>
+                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.thicknessUnit) }}</td>
                             <td width="2%">&nbsp;</td>
                         </tr>
                         </table>
@@ -113,11 +105,11 @@
                             <table>
                             <tr>
                                 <td width="2%">&nbsp;</td>
-                                <td class="table_cell">{{ wtf.form_field(form.stainLightType) }}</td>
+                                <td class="table_cell">{{ wtf.form_field(form.lightMicroscopyStainType) }}</td>
                                 <td width="2%">&nbsp;</td>
                                 <td class="table_cell">{{ wtf.form_field(form.sudanStainType) }}</td>
                                 <td width="2%">&nbsp;</td>
-                                <td class="table_cell">{{ wtf.form_field(form.stainLightOther) }}</td>
+                                <td class="table_cell">{{ wtf.form_field(form.lightMicroscopyStainOther) }}</td>
                                 <td width="2%">&nbsp;</td>
                             </tr>
                             </table>
@@ -125,13 +117,13 @@
                             <table>
                                 <tr>
                                     <td width="2%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainFluorescentType) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.fluorescentMicroscopyStainType) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainFluorescentOther) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.fluorescentMicroscopyStainOther) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainElectronType) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.electronMicroscopyStainType) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td class="table_cell">{{ wtf.form_field(form.stainElectronOther) }}</td>
+                                    <td class="table_cell">{{ wtf.form_field(form.electronMicroscopyStainOther) }}</td>
                                     <td width="2%">&nbsp;</td>
                                 </tr>
                             </table>
@@ -190,22 +182,142 @@
     {% set help_rp_btn = help_rp_id ~ '_btn' %}
     {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
     {% endif %}
-    <script type = "text/javascript">
+     <script type = "text/javascript">
+        function specimenLocationFunction(){
+            let specimenLocation_box_value = document.getElementById("specimenLocation").value;
+            if(specimenLocation_box_value == "corpusLuteum"){
+                document.getElementById("corpusLuteum").removeAttribute("disabled");
+                document.getElementById("corpusLuteum").attribute.required = "required";
+            }
+            else {
+                document.getElementById("corpusLuteum").value = "";
+                document.getElementById("corpusLuteum").setAttribute("disabled","disabled");
+                document.getElementById("corpusLuteum").attribute.required = "";
+            }
+        }
+
         function stageOfCycleFunction(){
-            let box_value = document.getElementById("stageOfCycle").value;
-            if(box_value == "luteal"){
-                document.getElementById("follicularType").value = "";
-                document.getElementById("follicularType").setAttribute("disabled","disabled");
-                document.getElementById("lutealType").removeAttribute("disabled");
-            } else if (box_value == "follicular") {
-                document.getElementById("lutealType").value = "";
-                document.getElementById("lutealType").setAttribute("disabled","disabled");
-                document.getElementById("follicularType").removeAttribute("disabled");
-            } else {
-                document.getElementById("lutealType").value = "";
-                document.getElementById("follicularType").value = "";
-                document.getElementById("follicularType").setAttribute("disabled","disabled");
-                document.getElementById("lutealType").setAttribute("disabled","disabled");
+            let stageOfCycle_box_value = document.getElementById("stageOfCycle").value;
+            if(stageOfCycle_box_value == "luteal"){
+                document.getElementById("follicular").value = "";
+                document.getElementById("follicular").setAttribute("disabled","disabled");
+                document.getElementById("luteal").removeAttribute("disabled");
+                document.getElementById("luteal").attribute.required = "required";
+            }
+            else if (stageOfCycle_box_value == "follicular") {
+                document.getElementById("luteal").value = "";
+                document.getElementById("luteal").setAttribute("disabled","disabled");
+                document.getElementById("follicular").removeAttribute("disabled");
+                document.getElementById("follicular").attribute.required = "required";
+            }
+            else {
+                document.getElementById("luteal").value = "";
+                document.getElementById("follicular").value = "";
+                document.getElementById("follicular").setAttribute("disabled","disabled");
+                document.getElementById("luteal").setAttribute("disabled","disabled");
+                document.getElementById("luteal").attribute.required = "";
+                document.getElementById("follicular").attribute.required = "";
+            }
+        }
+
+        function fixationFunction(){
+            let fixation_box_value = document.getElementById("fixation").value;
+            if(fixation_box_value == "other"){
+                document.getElementById("fixationOther").removeAttribute("disabled")
+            }
+            else {
+                document.getElementById("fixationOther").value = "";
+                document.getElementById("fixationOther").setAttribute("disabled","disabled");
+            }
+        }
+
+        function stainTypeFunction(){
+            let stainType_box_value = document.getElementById("stain").value;
+            if(stainType_box_value == "lightMicroscopyStain"){
+                document.getElementById("fluorescentMicroscopyStainType").value = "";
+                document.getElementById("electronMicroscopyStainType").value = "";
+                document.getElementById("fluorescentMicroscopyStainOther").value = "";
+                document.getElementById("electronMicroscopyStainOther").value = "";
+                document.getElementById("fluorescentMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("lightMicroscopyStainType").removeAttribute("disabled");
+                document.getElementById("lightMicroscopyStainType").attribute.required = "required";
+            }
+            else if(stainType_box_value == "fluorescentMicroscopyStain"){
+                document.getElementById("lightMicroscopyStainType").value = "";
+                document.getElementById("electronMicroscopyStainType").value = "";
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("electronMicroscopyStainOther").value = "";
+                document.getElementById("lightMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainType").setAttribute("disabled","diabled");
+                document.getElementById("sudanStainType").setAttribute("disabled","diabled");
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("fluorescentMicroscopyStainType").removeAttribute("disabled");
+                document.getElementById("fluorescentMicroscopyStainType").attribute.required = "required";
+            }
+            else { //electronMicroscopyStain
+                document.getElementById("lightMicroscopyStainType").value = "";
+                document.getElementById("fluorescentMicroscopyStainType").value = "";
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("fluorescentMicroscopyStainOther").value = "";
+                document.getElementById("lightMicroscopyStainType").setAttribute("disabled","disabled");
+                document.getElementById("fluorescentMicroscopyStainType").setAttribute("disabled","disabled");
+                document.getElementById("sudanStainType").setAttribute("disabled","disabled");
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
+                document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","disabled");
+                document.getElementById("electronMicroscopyStainType").removeAttribute("disabled");
+                document.getElementById("electronMicroscopyStainType").attribute.required = "required";
+            }
+        }
+
+        function lightMicroscopyStainTypeFunction(){
+            let lightMicroscopyStainType_box_value = document.getElementById("lightMicroscopyStainType").value;
+            if(lightMicroscopyStainType_box_value == "sudan"){
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","diabled");
+                document.getElementById("sudanStainType").removeAttribute("disabled");
+                document.getElementById("sudanStainType").attribute.required = "required";
+            }
+            else if(lightMicroscopyStainType_box_value == "other"){
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("sudanStainType").setAttribute("disabled","diabled");
+                document.getElementById("lightMicroscopyStainOther").removeAttribute("disabled");
+                document.getElementById("lightMicroscopyStainOther").attribute.required = "required";
+            }
+            else {
+                document.getElementById("sudanStainType").value = "";
+                document.getElementById("lightMicroscopyStainOther").value = "";
+                document.getElementById("sudanStainType").setAttribute("disabled","disabled");
+                document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
+                document.getElementById("sudanStainType").attribute.required = "";
+                document.getElementById("lightMicroscopyStainOther").attribute.required = "";
+            }
+        }
+
+        function fluorescentMicroscopyStainTypeFunction(){
+            let fluorescentMicroscopyStainType_box_value = document.getElementById("fluorescentMicroscopyStainType").value;
+            if(fluorescentMicroscopyStainType_box_value == "other"){
+                document.getElementById("fluorescentMicroscopyStainOther").removeAttribute("disabled")
+            }
+            else {
+                document.getElementById("fluorescentMicroscopyStainOther").value = "";
+                document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","disabled");
+            }
+        }
+
+        function electronMicroscopyStainTypeFunction(){
+            let electronMicroscopyStainType_box_value = document.getElementById("electronMicroscopyStainType").value;
+            if(electronMicroscopyStainType_box_value == "other"){
+                document.getElementById("electronMicroscopyStainOther").removeAttribute("disabled")
+            }
+            else {
+                document.getElementById("electronMicroscopyStainOther").value = "";
+                document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","disabled");
             }
         }
     </script>

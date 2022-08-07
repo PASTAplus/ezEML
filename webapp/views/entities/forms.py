@@ -15,10 +15,10 @@ class OtherEntitySelectForm(EDIForm):
 
 class OtherEntityForm(EDIForm):
     entity_name = StringField('Name *', validators=[InputRequired(message='Name is required')])
-    entity_type = StringField('Image Type (e.g., TBD) *', validators=[])
+    entity_type = StringField('Image Type (e.g., histology) *', validators=[])
 #    entity_description = StringField('Description (Recommended)', validators=[])
 #    object_name = StringField('Source Name (e.g., filename)', validators=[])
-    format_name = StringField('Data Format (e.g., PNG) *', validators=[])
+    format_name = StringField('Data Format (e.g., tif) *', validators=[])
 #    size = IntegerField('Size (Optional)', validators=[Optional()])
     file_name = StringField("Filename", validators=[])
     additional_info = TextAreaField("Additional Info", validators=[])

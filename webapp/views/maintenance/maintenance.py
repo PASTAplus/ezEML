@@ -5,7 +5,6 @@ from flask import (
 from webapp.home.metapype_client import (
     add_child, create_maintenance,
     load_eml, save_both_formats,
-    add_paragraph_tags, remove_paragraph_tags,
     handle_hidden_buttons,
     post_process_texttype_node
 )

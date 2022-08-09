@@ -678,7 +678,9 @@ def check_data_tables():
     if is_hidden_button():
         new_page = handle_hidden_buttons(PAGE_CHECK_DATA_TABLES, PAGE_CHECK_DATA_TABLES)
         return redirect(url_for(new_page, filename=current_document))
-    return render_template('check_data_tables.html', content=content)
+
+    help = get_helps(['check_data_tables'])
+    return render_template('check_data_tables.html', help=help, content=content)
 
 
 @home.route('/check_metadata/<filename>', methods=['GET', 'POST'])

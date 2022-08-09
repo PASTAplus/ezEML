@@ -197,24 +197,39 @@ def post_process_texttype_node(text_node:Node=None):
     if not text_node:
         return
     use_complex_representation = user_data.get_model_has_complex_texttypes()
-    if text_node.content and use_complex_representation and text_node.name in TEXTTYPE_NODES:
+    if text_node.content:
         # If we have content, we're saving a node that's been modified. We remake the children.
-        new_node = construct_texttype_node(text_node.content, text_node.name)
-        text_node.content = new_node.content
-        text_node.tail = new_node.tail
-        text_node.children = new_node.children
-    else:
-        content = remove_paragraph_tags(text_node.content)
-        text_node.content = content
+        if use_complex_representation and text_node.name in TEXTTYPE_NODES:
+            new_node = construct_texttype_node(text_node.content, text_node.name)
+            text_node.content = new_node.content
+            text_node.tail = new_node.tail
+            text_node.children = new_node.children
+        else:
+            content = remove_paragraph_tags(text_node.content)
+            # If we have para children, we're handling text that has been modified but that originally used
+            #  para tags (e.g., a package imported from XML). Presumably, the user wants paras, so let's
+            #  do that. We need to check for this before we remove the children.
+            children = text_node.children
+            all_paras = True
+            for child in children:
+                if child.name != names.PARA:
+                    all_paras = False
+                    break
+            text_node.remove_children()
+            text_node.content = content
+            if all_paras:
+                save_content_in_para_nodes(text_node)
 
 
-def add_paragraph_tags(s):
+def save_content_in_para_nodes(text_node):
+    s = text_node.content
     if s:
-        ps = escape(s)
-        ps = '\n<para>' + ps.strip().replace('\n', '</para>\n<para>').replace('\r', '') + '</para>\n'
-        return ps
-    else:
-        return ''
+        paras = s.split('\n')
+        for para in paras:
+            para_node = Node(names.PARA, parent=text_node)
+            para_node.content = para
+            text_node.add_child(para_node)
+        text_node.content = ''
 
 
 def remove_paragraph_tags(s):

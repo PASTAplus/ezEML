@@ -167,6 +167,25 @@ All coordinates are typed as decimals. Since all four elements are required, a b
 
 In the case of a data set that comprises all longitudes (e.g., a horizontal band between 2 parallels that fully encompasses the earth), use a West Bounding Coordinate of -180.0 and an eastBoundingCoordinate of 180.0 (or +180.0).
 --------------------
+check_data_tables
+Check Data Tables
+<b>Check Data Tables</b> performs various quality checks on the contents of data tables.
+
+In particular, it checks whether the entries in a data table's column have the expected type and format as specified in the metadata for the table. For instance, if a column is specified as having Numerical type with Number Type "integer", then non-integer entries will be flagged. If a column is specified as having DateTime type with Format String "YYYY-MM-DD", then entries with a different format will be flagged. If a column is specified as having Categorical type with the option to "Allow only the code values that are defined here" selected, then entries that do not match any of the defined categorical codes will be flagged.
+
+Empty entries and entries that match a specified Missing Value Code are not flagged.
+
+The <b>Check Data Tables</b> page lists the data tables contained in the data package. For each data table, there is a status indicator, as follows:<br>
+- Yellow: the data table has not yet been checked, or either the table or its metadata have changed so that the table needs to be rechecked<br>
+- Red: the data table has been checked and contains one or more errors<br>
+- Green: the data table has been checked and contains no errors.
+
+If any of the tables has a Red status, the overall status for Check Data Tables will be red. Otherwise, if any has a Yellow status, the overall status will be yellow. If all the tables have Green status, the overall status will be green.
+
+To check a data table, click the <b>Check data table</b> link on the row for that table. If the table has already been checked and has errors, click the <b>Show errors</b> link to display the errors. It can take up to several minutes to check a table, depending on its size. For large tables, you will be warned that the check may be lengthy and will be given the opportunity to cancel and run the check later. The results of a check are saved, so you won't have to wait each time you consult the results for a table that has already been checked.
+
+When data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed along to consumers of their data.
+--------------------
 clone_attributes_general
 Clone Column Properties from Another Data Table
 Suppose you’ve uploaded a data table and filled out its columns’ properties, and then you upload a second data table, and some of the second table’s columns have the same properties as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table. This is useful, for example, when you have modified a table by adding, deleting, or reordering columns.

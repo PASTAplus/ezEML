@@ -533,6 +533,8 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
 
 def check_data_table_md5_checksum(data_table_node, link, data_table_name=None):
     object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+    if not object_name_node:
+        return
     data_file = object_name_node.content
     uploads_folder = user_data.get_document_uploads_folder_name()
     full_path = f'{uploads_folder}/{data_file}'
@@ -776,8 +778,10 @@ def get_data_table_names(eml_node):
 def format_data_table_output(entries, output, eml_node):
     previous_data_table_name = None
     entries = sorted(entries, key=lambda entry: (entry.data_table_name, repr(entry.severity)))
-    output += f'<h3>Data Tables</h3>'
     data_table_names = get_data_table_names(eml_node)
+    if not data_table_names:
+        return output
+    output += f'<h3>Data Tables</h3>'
     for data_table_name in data_table_names:
         for entry in entries:
             if entry.data_table_name != data_table_name:
@@ -809,8 +813,12 @@ def format_output(evaluation, eml_node):
             continue
         all_ok = False
         if section == 'Data Tables':
-            output += format_data_table_output(entries, output, eml_node)
-            continue
+            data_table_names = get_data_table_names(eml_node)
+            if data_table_names:
+                # If there is at least one data table, we format the data table output specially, since we want to
+                #  aggregate errors/warnings by data table
+                output += format_data_table_output(entries, output, eml_node)
+                continue
         output += f'<h3>{section}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
                   f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
         for severity in severities:

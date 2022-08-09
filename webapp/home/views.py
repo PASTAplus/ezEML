@@ -280,11 +280,14 @@ def data_table_errors(data_table_name:str=None):
     return render_template('data_table_errors.html', data_table_name=data_table_name, column_errs=column_errs, back_url=get_back_url())
 
 
-@home.before_app_first_request
+@home.before_app_request
 def init_session_vars():
-    session["check_metadata_status"] = "green"
-    session["check_data_tables_status"] = "green"
-    session["privileged_logins"] = Config.PRIVILEGED_LOGINS
+    if not session.get("check_metadata_status"):
+        session["check_metadata_status"] = "green"
+    if not session.get("check_data_tables_status"):
+        session["check_data_tables_status"] = "green"
+    if not session.get("privileged_logins"):
+        session["privileged_logins"] = Config.PRIVILEGED_LOGINS
 
 
 @home.before_app_first_request

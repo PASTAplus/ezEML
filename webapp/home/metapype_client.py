@@ -209,12 +209,14 @@ def post_process_texttype_node(text_node:Node=None):
             # If we have para children, we're handling text that has been modified but that originally used
             #  para tags (e.g., a package imported from XML). Presumably, the user wants paras, so let's
             #  do that. We need to check for this before we remove the children.
+            all_paras = False
             children = text_node.children
-            all_paras = True
-            for child in children:
-                if child.name != names.PARA:
-                    all_paras = False
-                    break
+            if children:
+                all_paras = True
+                for child in children:
+                    if child.name != names.PARA:
+                        all_paras = False
+                        break
             text_node.remove_children()
             text_node.content = content
             if all_paras:

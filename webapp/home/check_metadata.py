@@ -780,8 +780,8 @@ def format_data_table_output(entries, output, eml_node):
     entries = sorted(entries, key=lambda entry: (entry.data_table_name, repr(entry.severity)))
     data_table_names = get_data_table_names(eml_node)
     if not data_table_names:
-        return output
-    output += f'<h3>Data Tables</h3>'
+        return ''
+    output = f'<h3>Data Tables</h3>'
     for data_table_name in data_table_names:
         for entry in entries:
             if entry.data_table_name != data_table_name:

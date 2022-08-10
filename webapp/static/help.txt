@@ -296,6 +296,20 @@ Certain metadata elements (such as the descriptions of the table and of each of 
 
 To view and edit the properties of the columns, click the <b>Edit Column Properties</b> button.
 --------------------
+data_table_errors
+Check Data Table: Results
+<b>Check Data Tables</b> performs various quality checks on the contents of data tables. The results for a particular data table are displayed here on <b>Check Data Table: Results</b>.
+
+Errors are displayed by column. For errors that occur in a particular row of the table, the row number is shown. A description of the error is displayed, including the <b>Expected</b> value (i.e., the type of value as defined in the metadata for the data table) and the value that was <b>Found</b> (i.e., the value that actually was present in the data table at that location).
+
+If the same kind of error occurs in a range of consecutive rows, we display the first and last rows in the range, with an ellipsis ("...") indicating that the intervening rows were omitted. It is often the case that the same kind of error is repeated many times (e.g., when datetimes were entered in a format that conflicts with the format string defined in the metadata), and there is no need to display every error in the list.
+
+Some errors pertain to a column as a whole (e.g., the column is a datetime variable but the format string is not one that the EDI repository supports). In such cases, the row number will be blank.
+
+You may make corrections to the data table and/or metadata and then re-run <b>Check Data Tables</b> for the given table, iterating until errors have been removed to your satisfaction.
+
+Note that when data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed along to consumers of their data.
+--------------------
 data_tables
 Data Tables
 A data table is one tabular entity in the data package, identified by its name. The metadata for a data table contains information about the data table as a whole, such as a description, the filename, the number of records, etc., as well as information about the various columns of the table: their names, data types, etc.

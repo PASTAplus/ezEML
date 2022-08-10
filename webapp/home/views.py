@@ -277,7 +277,8 @@ def data_table_errors(data_table_name:str=None):
 
     check_data_table_contents.save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
-    return render_template('data_table_errors.html', data_table_name=data_table_name, column_errs=column_errs, back_url=get_back_url())
+    help = get_helps(['data_table_errors'])
+    return render_template('data_table_errors.html', data_table_name=data_table_name, column_errs=column_errs, help=help, back_url=get_back_url())
 
 
 @home.before_app_request

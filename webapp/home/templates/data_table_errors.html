@@ -2,7 +2,15 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Check Data Table: Results</h2>
+    {% set help_data_table_errors_id, help_data_table_errors_title, help_data_table_errors_content = help[0] %}
+    {% set help_data_table_errors_btn = help_data_table_errors_id ~ '_btn' %}
+    {% set help_data_table_errors_dialog = help_data_table_errors_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Check Data Table: Results</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_data_table_errors_btn) }}</td>
+    </table>
+    
             <div class="col-md-12" style="color: #404040;padding: 8px;padding-left: 16px;font-style: normal;">
             Please note: When data packages are submitted to EDI's data repository, data table error checking is
                 performed there as well. Experienced users of the repository may recognize that the repository's error checking is
@@ -45,17 +53,26 @@
             {{ macros.hidden_buttons() }}
         </form>
     </div>
+    {{ macros.help_dialog(help_data_table_errors_dialog, help_data_table_errors_title, help_data_table_errors_content) }}
 {% endblock %}
 
 
 {% block scripts %}
     {{ super() }}
+    {% set help_data_table_errors_id, help_data_table_errors_title, help_data_table_errors_content = help[0] %}
+    {% set help_data_table_errors_btn = help_data_table_errors_id ~ '_btn' %}
+    {% set help_data_table_errors_dialog = help_data_table_errors_id ~ '_dialog' %}
+
     <script>
     $(document).ready(function()
     {
       $(".eval_table tr:odd").css("background", "#f4f4f4");
       $(".eval_table tr:even").css("background", "#fff");
       $(".eval_table").css("padding", "1px");
+    });
+    $(function()
+    {
+        {{ macros.help_script(help_data_table_errors_dialog, help_data_table_errors_btn) }}
     });
     </script>
 {% endblock %}

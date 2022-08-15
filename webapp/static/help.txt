@@ -88,6 +88,8 @@ DateTime values should be expressed in a format that conforms to the ISO 8601 st
   ISO Time       hh:mm:ss.sss           09:13:45.432<br>
   ISO Time       hh:mm.mm               09:13.42
 </pre>
+
+For a list of the DateTime format strings recommended by the EDI data repository, click <b><a href='/eml/datetime_formats'>here</a></b>.
 --------------------
 attribute_datetime_precision
 DateTime Precision

@@ -4,8 +4,8 @@
 
 :Synopsis:
     This file contains constant values for the motherdb node names, and complextypes as per
-    the xsd file. These values are used to help build the xml file but adding the values
-    to the json file using the methods in NODE (import)
+    the .xsd file. These values are used to help build the xml file but adding the values
+    to the json file using the methods in the Node object
 
 :Author:
     Pierce Tyler
@@ -18,6 +18,12 @@ import daiquiri
 
 logger = daiquiri.getLogger("names: " + __name__)
 
+
+"""
+*
+* CONSTANT DEFINITIONS
+*
+"""
 # Root element
 MOTHER = "mother"
 
@@ -211,8 +217,12 @@ SILVER_NITRATE = "silverNitrate"
 MOTHER_PREFIX = "mdb"
 XSI_TYPE = "xsi:type"
 
-# All values in SET_VALUE_NODES have the xml that sets the value as
-# value="whatevervalue" within the tag
+"""
+*   SET_VALUE_NODES
+*   A list containing the names of the elements whose value is defined within the tag
+*   instead of in between the open and close tag
+*   Example : <mdb:magnification value="10X"/>  VERSUS  <mdb:magnification>10X<magnification/>       
+"""
 SET_VALUE_NODES = [
     CORPUS_LUTEUM,
     FOLLICULAR,
@@ -223,8 +233,11 @@ SET_VALUE_NODES = [
     DETECTION_METHOD
 ]
 
-# All k,v pairs in this dictionary have 'xsi:type="theirValue"' as attributes - there may be more of these,
-# but these are the ones I have found using the example xml files
+"""
+*   XSI_TYPE
+*   All k,v pairs in this dictionary have 'xsi:type="theirValue"' as attributes
+*   Example : <mdb:specimenLocation xsi:type="mdb:ovaryLocationType">
+"""
 XSI_TYPE = {
     DONOR_LIFE_STAGE: "mdb:mammalianLifeStageType",
     SPEC_LOCATION: "mdb:ovaryLocationType",

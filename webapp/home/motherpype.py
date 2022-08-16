@@ -44,6 +44,8 @@ from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
 
+
+"""
 if Config.LOG_DEBUG:
     app = Flask(__name__)
     with app.app_context():
@@ -77,6 +79,16 @@ class VariableType(Enum):
     DATETIME = 2
     NUMERICAL = 3
     TEXT = 4
+"""
+
+"""
+    Function:   clean_mother_node
+    Params:     eml_node : the root of the xml tree
+                current_document : current document selected
+    Desc:       This function pulls the mother node starting from the eml node (root)
+                then uses that (if it exists) to call other functions that correctly map 
+                the mother node and its children according to the .xsd 
+"""
 
 
 def clean_mother_node(eml_node: Node, current_document: None):
@@ -87,6 +99,15 @@ def clean_mother_node(eml_node: Node, current_document: None):
         if mother_node:
             clean_mother_json(mother_node, 0)
             clean_mother_xml(mother_node, current_document)
+
+
+"""
+    Function:   clean_mother_xml
+    Params:     mother_node : the root of the motherDb xml tree (a child of metadata)
+                current_document : current document selected
+    Desc:       This function calls to_xml_json and uses the result to properly update 
+                the current document xml file
+"""
 
 
 def clean_mother_xml(mother_node: Node, current_document):
@@ -107,11 +128,16 @@ def clean_mother_xml(mother_node: Node, current_document):
         tree.write(f'{user_folder}/{current_document}.xml')
 
 
-'''
-*   This function "cleans" the json file to be inline with the xsd
-*   Params: The root node (level 0) should always be the 'mother' node
-*
-'''
+"""
+    Function:   clean_mother_json
+    Params:     node : a node within the motherDb xml tree
+                level : the level within the xml tree the node stands
+                Example: mother node = 0, any direct children of mother node = level 1
+                        any children of those children = level 2 etc
+    Desc:       This function uses recursion to iterate through each node and update it
+                correctly according to the xsd (it relies on the motherpype_names.py file)
+                
+"""
 
 
 def clean_mother_json(node: Node, level: int = 0) -> str:
@@ -134,6 +160,19 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
         child_node = node.find_child(child.name)
         if child_node:
             clean_mother_json(child_node, level + 1)
+
+
+"""
+    Function:   to_xml_json
+    Params:     node : a node within the motherDb xml tree
+                level : the level within the xml tree the node stands
+                Example: mother node = 0, any direct children of mother node = level 1
+                        any children of those children = level 2 etc
+    Desc:       This function uses recursion to iterate through each node (starting with 
+                the mother node) and update it properly according to the json file
+                (the json file is updated prior in the function 'clean_mother_json')
+    Return:     A string in xml format
+"""
 
 
 def to_xml_json(node: Node, parent: Node = None, level: int = 0) -> str:
@@ -183,6 +222,7 @@ def to_xml_json(node: Node, parent: Node = None, level: int = 0) -> str:
     xml += close_tag
     return xml
 
+
 def _nsp_unique(child_nsmap: dict, parent_nsmap: dict) -> dict:
     nsmap = dict()
     for child_nsp in child_nsmap:
@@ -192,6 +232,15 @@ def _nsp_unique(child_nsmap: dict, parent_nsmap: dict) -> dict:
         else:
             nsmap[child_nsp] = child_nsmap[child_nsp]
     return nsmap
+
+
+"""
+    Function:       add_mother_metadata
+    Params:         eml_node : root of the eml xml tree
+    Description:    creates the mother node and donor nodes 
+                    (and metadata nodes if none exists)
+"""
+
 
 def add_mother_metadata(eml_node: Node = None):
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
@@ -213,6 +262,13 @@ def add_mother_metadata(eml_node: Node = None):
         save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
+
+
+"""
+    Function:       create_donor
+    Params:         the values of all elements of the donor html form page
+    Description:    creates and populates the values of the donor nodes
+"""
 
 
 def create_donor(mother_node: Node,
@@ -473,6 +529,14 @@ def create_donor(mother_node: Node,
     except Exception as e:
         logger.error(e)
 
+
+"""
+    Function:       create_immunohistochemistry
+    Params:         the values of all elements of the ihc html form page
+    Description:    creates and populates the values of the ihc nodes
+"""
+
+
 def create_immunohistochemistry(ihc_node: Node,
                                 filename: str = None,
                                 targetProtein: str = None,
@@ -507,7 +571,6 @@ def create_immunohistochemistry(ihc_node: Node,
                 targetProtein_node = Node("targetProtein", parent=ihc_node)
                 ihc_node.add_child(targetProtein_node)
             targetProtein_node.content = targetProtein
-#PT4/25            ihc_node.add_child(targetProtein_node)
         if primaryAntibody:
             primaryAntibody_node = ihc_node.find_child("primaryAntibody")
             if not primaryAntibody_node:

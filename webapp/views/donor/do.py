@@ -11,7 +11,7 @@ from webapp.home.forms import (
 )
 
 from webapp.home.metapype_client import (
-    load_eml, save_both_formats, # create_donor,  add_mother_metadata
+    load_eml, save_both_formats,
 )
 
 from webapp.home.motherpype import (
@@ -55,6 +55,15 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
 
     return new_page
 
+
+"""
+    Function:       donor
+    Params:         filename: the current filename
+    Description:    Updates the current page (for proper navigation on the webpage)
+    Returns:        Returns the result of new_donor function      
+"""
+
+
 @do_bp.route('/donor/<filename>', methods=['GET', 'POST'])
 def donor(filename=None):
     method = request.method
@@ -66,12 +75,8 @@ def donor(filename=None):
         if additional_metadata_node:
             metadata_node = additional_metadata_node.find_child(names.METADATA)
             mother_node = metadata_node.find_child("mother")
-#            mother_node = metadata_node.find_child("mdb:mother")  #PT5/27
             if mother_node:
                 node_id = mother_node.id
-                # do_node = mother_node.find_child("donor")
-                # if do_node:
-                #    node_id = do_node.id
         else:
             add_mother_metadata(eml_node)
 
@@ -79,16 +84,25 @@ def donor(filename=None):
 
     set_current_page('donor')
     help = [get_help('publisher')]
-    return newDonor(filename=filename, node_id=node_id,
-                             method=method, node_name='donor',
-                            back_page=PAGE_RELATED_PROJECT_SELECT, next_page=PAGE_IHC, title='Donor',
-#PT5/26                             back_page=PAGE_DONOR, next_page= PAGE_DONOR, title='Donor',
-                             save_and_continue=True, help=help)
+    return new_donor(filename=filename, node_id=node_id,
+                     method=method, node_name='donor',
+                     back_page=PAGE_RELATED_PROJECT_SELECT, next_page=PAGE_IHC, title='Donor',
+                     save_and_continue=True, help=help)
 
-def newDonor(filename=None, node_id=None, method=None,
-                      node_name=None, back_page=None, title=None,
-                      next_page=None, save_and_continue=False, help=None,
-                      project_node_id=None):
+
+"""
+    Function:       new_donor
+    Params:         filename: the current filename
+    Description:    POST Request - Creates the donor nodes based off form values
+                    GET  Request - Updates the values of the donor nodes based off form values 
+    Returns:        Returns the next page (ihc)
+"""
+
+
+def new_donor(filename=None, node_id=None, method=None,
+              node_name=None, back_page=None, title=None,
+              next_page=None, save_and_continue=False, help=None,
+              project_node_id=None):
 
     if BTN_CANCEL in request.form:
         if not project_node_id:
@@ -103,13 +117,6 @@ def newDonor(filename=None, node_id=None, method=None,
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     metadata_node = additional_metadata_node.find_child(names.METADATA)
     mother_node = metadata_node.find_child("mother")
-#    mother_node = metadata_node.find_child("mdb:mother")  # PT5/27
-#    donor_node = mother_node.find_child(node_name)
-#    if not donor_node:
-#        mother_node.add_child(Node(node_name, parent = mother_node))
-#        donor_node = mother_node.find_child(node_name)
-
-
 
     new_page = select_new_page(back_page, next_page)
 
@@ -224,6 +231,12 @@ def newDonor(filename=None, node_id=None, method=None,
                             next_page=next_page, save_and_continue=save_and_continue, help=help)
 
 
+"""
+    Function:       populate_donor_form
+    Params:         form: the values from the donor form
+                    node: mother_node
+    Description:    populates the html donor form display if the values exist
+"""
 
 
 def populate_donor_form(form: DonorForm, node: Node):
@@ -369,7 +382,18 @@ def populate_donor_form(form: DonorForm, node: Node):
     form.md5.data = form_md5(form)
 
 
-def populate_stage_of_cycle(stageOfCycle:None, mother_node:Node, content_value):
+"""
+    Function:       populate_stage_of_cycle
+    Params:         stageOfCycle  : node to add children to
+                    mother_node   : parent node
+                    content_value : either 'luteal' or 'follicular'
+    Description:    If the value of stageOfCycle is follicular or luteal we need to create
+                    xml elements of those types instead of having them be the value of 
+                    stageOfCycle - this function does that.
+"""
+
+
+def populate_stage_of_cycle(stageOfCycle: None, mother_node: Node, content_value):
     cycleType_node = mother_node.find_child('specimenCycle')
     stageOfCycle_node = cycleType_node.find_child('stageOfCycle')
     if stageOfCycle == 'follicular':
@@ -384,6 +408,17 @@ def populate_stage_of_cycle(stageOfCycle:None, mother_node:Node, content_value):
             lutealType_node = Node('lutealType', parent=stageOfCycle_node)
             stageOfCycle_node.add_child(lutealType_node)
         lutealType_node.content = content_value
+
+
+"""
+    Function:       populate_specimen_location
+    Params:         mother_node   : parent node 
+                    content_value : 'corpusLuteum'
+    Description:    If the value of specimenLocation is corpusLuteum we need to create
+                    an xml element of that type and populate the specific value for it, this
+                    function does that.
+"""
+
 
 def populate_specimen_location(mother_node:Node, content_value):
     specimenLocation_node = mother_node.find_child('specimenLocation')

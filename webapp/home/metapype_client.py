@@ -1050,7 +1050,7 @@ def save_package_id(eml_node):
             user_data.set_active_packageid(data_package_id)
 
 
-def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False):
+def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_metadata_check:bool=False):
     eml_node = None
     if folder_name:
         user_folder = folder_name
@@ -1075,7 +1075,8 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False):
             eml_node = from_json(ext_filename)
 
     if eml_node:
-        get_check_metadata_status(eml_node, filename)
+        if not skip_metadata_check:
+            get_check_metadata_status(eml_node, filename)
         check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
         # save_package_id(eml_node)
         user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))

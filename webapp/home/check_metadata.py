@@ -365,13 +365,21 @@ def check_taxonomic_coverage(node, doc_name):
 def check_coverage(eml_node, doc_name, evaluation_warnings=None):
     dataset_node = eml_node.find_child(names.DATASET)
 
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=doc_name)
-
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
 
-    if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
-        add_to_evaluation('coverage_01', link)
+    geographic_coverage_node = eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE])
+    if not geographic_coverage_node:
+        link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=doc_name)
+        add_to_evaluation('coverage_02', link)
+
+    temporal_coverage_node = eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE, names.TEMPORALCOVERAGE])
+    if not temporal_coverage_node:
+        link = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=doc_name)
+        add_to_evaluation('coverage_03', link)
+
+    # if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
+    #     add_to_evaluation('coverage_01', link)
 
     if not metapype_client.was_imported_from_xml(eml_node):
         taxonomic_classification_nodes = []

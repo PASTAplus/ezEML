@@ -60,9 +60,22 @@ def load_df(eml_node, csv_url, data_table_name):
     else:
         quote_char = '"'
 
-    # TODO - header and footer rows
+    num_header_lines_node = data_table_node.find_descendant(names.NUMHEADERLINES)
+    num_header_lines = 1
+    try:
+        num_header_lines = int(num_header_lines_node.content)
+    except:
+        pass
 
-    return pd.read_csv(csv_url, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char, keep_default_na=False)
+    num_footer_lines_node = data_table_node.find_descendant(names.NUMFOOTERLINES)
+    num_footer_lines = 0
+    try:
+        num_footer_lines = int(num_footer_lines_node.content)
+    except:
+        pass
+
+    return pd.read_csv(csv_url, comment='#', encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
+                       keep_default_na=False, skiprows=range(1, num_header_lines), skipfooter=num_footer_lines)
 
 
 def find_data_table_node(eml_node, data_table_name):
@@ -219,6 +232,12 @@ def get_number_type(attribute_node):
     return number_type
 
 
+def display_nonprintable(s):
+    if s.isprintable():
+        return s
+    return ''.join([c if c.isprintable() else "�" for c in s])
+
+
 def check_columns_existence_against_metadata(data_table_node, df):
     errors = []
     # Get the column names from the metadata
@@ -233,14 +252,21 @@ def check_columns_existence_against_metadata(data_table_node, df):
         if not names_match(metadata_column_names[i], data_table_column_names[i]):
             error = create_error_json(get_data_table_name(data_table_node), data_table_column_names[i], None,
                                       'Metadata column name does not match column name in data table',
-                                      metadata_column_names[i],
-                                      data_table_column_names[i])
+                                      display_nonprintable(metadata_column_names[i]),
+                                      display_nonprintable(data_table_column_names[i]))
             errors.append(error)
     return errors
 
 
+def get_num_header_lines(data_table_node):
+    num_header_lines_node = data_table_node.find_descendant(names.NUMHEADERLINES)
+    try:
+        return int(num_header_lines_node.content)
+    except:
+        return 1
+
+
 def check_numerical_column(df, data_table_node, column_name, max_errs_per_column):
-    # TODO - question: should we check against numberType (e.g., if numberType is integer but element is a float)?
     attribute_node = get_attribute_node(data_table_node, column_name)
     number_type = get_number_type(attribute_node)
     regex = ''
@@ -279,7 +305,8 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     errors = []
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
-        errors.append(create_error_json(data_table_name, column_name, index + 2,  # FIXME - currently assumes 1 header row
+        errors.append(create_error_json(data_table_name, column_name,
+                                        index + get_num_header_lines(data_table_node) + 1,
                                         'Numerical element not of the expected type',
                                         expected, df[column_name].astype(str)[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
@@ -318,7 +345,8 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     expected = 'A defined code'
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
-        errors.append(create_error_json(data_table_name, column_name, index + 2,  # FIXME - Currently assumes 1 header row
+        errors.append(create_error_json(data_table_name, column_name,
+                                        index + get_num_header_lines(data_table_node) + 1,
                                         'Categorical element is not a defined code',
                                         expected, df[column_name].astype(str)[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
@@ -354,7 +382,8 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     errors = []
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
-        errors.append(create_error_json(data_table_name, column_name, index + 2,  # FIXME - currently assumes 1 header row
+        errors.append(create_error_json(data_table_name, column_name,
+                                        index + get_num_header_lines(data_table_node) + 1,
                                         'DateTime element does not have expected format',
                                         expected, df[column_name].astype(str)[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:

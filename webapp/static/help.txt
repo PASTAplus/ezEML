@@ -178,7 +178,7 @@ In particular, it checks whether the entries in a data table's column have the e
 Empty entries and entries that match a specified Missing Value Code are not flagged.
 
 The <b>Check Data Tables</b> page lists the data tables contained in the data package. For each data table, there is a status indicator, as follows:<br>
-- Yellow: the data table has not yet been checked, or either the table or its metadata have changed so that the table needs to be rechecked<br>
+- Yellow: the data table has not yet been checked -- or the table or its metadata has changed so that the table needs to be re-checked<br>
 - Red: the data table has been checked and contains one or more errors<br>
 - Green: the data table has been checked and contains no errors.
 
@@ -187,6 +187,8 @@ If any of the tables has a Red status, the overall status for Check Data Tables 
 To check a data table, click the <b>Check data table</b> link on the row for that table. If the table has already been checked and has errors, click the <b>Show errors</b> link to display the errors. It can take up to several minutes to check a table, depending on its size. For large tables, you will be warned that the check may be lengthy and will be given the opportunity to cancel and run the check later. The results of a check are saved, so you won't have to wait each time you consult the results for a table that has already been checked.
 
 When data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed along to consumers of their data.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/hXbIDffHHcE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 clone_attributes_general
 Clone Column Properties from Another Data Table
@@ -302,15 +304,17 @@ data_table_errors
 Check Data Table: Results
 <b>Check Data Tables</b> performs various quality checks on the contents of data tables. The results for a particular data table are displayed here on <b>Check Data Table: Results</b>.
 
-Errors are displayed by column. For errors that occur in a particular row of the table, the row number is shown. A description of the error is displayed, including the <b>Expected</b> value (i.e., the type of value as defined in the metadata for the data table) and the value that was <b>Found</b> (i.e., the value that actually was present in the data table at that location).
+Errors are organized by column. For errors that occur in a particular row of the table, the row number is shown. A description of the error is displayed, including the <b>Expected</b> value (i.e., what kind of entry is expected based on the metadata for the table) and the value that was <b>Found</b> (i.e., the value that actually was present in the data table at that location).
 
-If the same kind of error occurs in a range of consecutive rows, we display the first and last rows in the range, with an ellipsis ("...") indicating that the intervening rows were omitted. It is often the case that the same kind of error is repeated many times (e.g., when datetimes were entered in a format that conflicts with the format string defined in the metadata), and there is no need to display every error in the list.
+If the same kind of error occurs in a range of consecutive rows, we display the first and last rows in the range, with an ellipsis ("...") indicating that the intervening rows were omitted. It is often the case that the same kind of error is repeated many times (e.g., when datetimes were entered in a format that conflicts with the format string defined in the metadata), and it is unnecessary to display every error in the list.
 
 Some errors pertain to a column as a whole (e.g., the column is a datetime variable but the format string is not one that the EDI repository supports). In such cases, the row number will be blank.
 
-You may make corrections to the data table and/or metadata and then re-run <b>Check Data Tables</b> for the given table, iterating until errors have been removed to your satisfaction.
+You may make corrections to the data table and/or metadata as needed and then re-run <b>Check Data Tables</b> for the given table, iterating until errors have been removed to your satisfaction.
 
 Note that when data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed along to consumers of their data.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/hXbIDffHHcE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 data_tables
 Data Tables

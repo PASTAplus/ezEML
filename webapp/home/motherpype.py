@@ -44,6 +44,20 @@ from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
 
+if Config.LOG_DEBUG:
+    app = Flask(__name__)
+    with app.app_context():
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        logfile = cwd + '/metadata-eml-threads.log'
+        file_handler = RotatingFileHandler(logfile, maxBytes=1000000000, backupCount=10)
+        file_handler.setFormatter(Formatter(
+            '%(asctime)s %(levelname)s [pid:%(process)d tid:%(thread)d]: %(message)s [in %(pathname)s:%(lineno)d]'))
+        file_handler.setLevel(logging.INFO)
+        current_app.logger.addHandler(file_handler)
+        current_app.logger.setLevel(logging.INFO)
+        current_app.logger.info('*** RESTART ***')
+
+logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
 """
 if Config.LOG_DEBUG:

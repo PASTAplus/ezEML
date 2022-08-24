@@ -135,7 +135,7 @@ PRIMARY_ANTIBODY = "primaryAntibody"
 
 CLONALITY = "clonality"
 # clonality type values as enumerations
-MONOCLONAL = "monocloanal"
+MONOCLONAL = "monoclonal"
 POLYCLONAL = "polyclonal"
 
 SECONDARY_ANTIBODY = "secondaryAntibody"

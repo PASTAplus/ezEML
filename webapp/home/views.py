@@ -266,11 +266,19 @@ def data_table_errors(data_table_name:str=None):
     errors = check_data_table_contents.get_data_file_eval(current_document, csv_filename, metadata_hash)
     if not errors:
         try:
+            # start = datetime.now()
             errors = check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name,
                                                                 max_errs_per_column=None)
+            # end = datetime.now()
+            # elapsed = (end - start).total_seconds()
+            # print(elapsed)
         except UnicodeDecodeError:
             errors = display_decode_error_lines(csv_filepath)
             return render_template('encoding_error.html', filename=os.path.basename(csv_filepath), errors=errors)
+        except Exception as err:
+            flash(err, 'error')
+            help = get_helps(['data_table_errors'])
+            return render_template('data_table_errors.html', data_table_name=data_table_name, column_errs='', help=help, back_url=get_back_url())
 
     column_errs = check_data_table_contents.generate_error_info_for_webpage(data_table_node, errors)
     column_errs = check_data_table_contents.collapse_error_info_for_webpage(column_errs)
@@ -691,7 +699,7 @@ def check_metadata(filename:str):
     current_document = user_data.get_active_document()
     if not current_document:
         raise FileNotFoundError
-    eml_node = load_eml(filename=current_document)
+    eml_node = load_eml(filename=current_document, skip_metadata_check=True)
     content = check_eml(eml_node, filename)
     log_usage(actions['CHECK_METADATA'])
 

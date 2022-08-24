@@ -2,7 +2,7 @@ import os
 
 from collections import OrderedDict
 import csv
-from flask import session, render_template
+from flask import session, flash
 import glob
 import hashlib
 import json
@@ -267,9 +267,13 @@ def get_num_header_lines(data_table_node):
 
 
 def check_numerical_column(df, data_table_node, column_name, max_errs_per_column):
+    # from datetime import datetime
+    # start = datetime.now()
+
     attribute_node = get_attribute_node(data_table_node, column_name)
     number_type = get_number_type(attribute_node)
-    regex = ''
+    col_values = df[column_name].astype(str)
+
     if number_type == 'integer':
         regex = '^[-+]?[0-9]+$'
     elif number_type == 'whole' or number_type == 'natural':
@@ -279,19 +283,20 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     # Allow empty string
     regex = '^$|' + regex
     try:
-        matches = df[column_name].astype(str).str.contains(regex)
+        matches = col_values.str.contains(regex)
     except KeyError:
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in data table', column_name, 'Not found')]
     mvc = get_missing_value_codes(data_table_node, column_name)
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
-        mvc_matches = df[column_name].astype(str).str.contains(mvc_regex)
+        mvc_matches = col_values.str.contains(mvc_regex)
         # Errors are rows with matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
     else:
         result = ~matches
     error_indices = result[result].index.values
+
     data_table_name = get_data_table_name(data_table_node)
     expected = number_type
     if number_type == 'real':
@@ -303,20 +308,30 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     elif number_type == 'natural':
         expected = 'A natural number (e.g. 0, 1, 2)'
     errors = []
+    num_header_lines = get_num_header_lines(data_table_node)
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, column_name,
-                                        index + get_num_header_lines(data_table_node) + 1,
+                                        index + num_header_lines + 1,
                                         'Numerical element not of the expected type',
-                                        expected, df[column_name].astype(str)[index]))
+                                        expected, col_values[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
             break
+
+    # end = datetime.now()
+    # elapsed = (end - start).total_seconds()
+    # print(column_name, elapsed, len(errors))
+
     return errors
 
 
 def check_categorical_column(df, data_table_node, column_name, max_errs_per_column):
+    # from datetime import datetime
+    # start = datetime.now()
+
     errors = []
     attribute_node = get_attribute_node(data_table_node, column_name)
+    col_values = df[column_name].astype(str)
 
     # If the metadata says codes values are not "enforced" to be the defined codes, then there cannot be errors
     enumerated_domain_node = attribute_node.find_descendant(names.ENUMERATEDDOMAIN)
@@ -328,14 +343,14 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     # Allow empty string
     codes_regex = '^$|' + codes_regex
     try:
-        matches = df[column_name].astype(str).str.contains(codes_regex)
+        matches = col_values.str.contains(codes_regex)
     except KeyError:
         return errors   # This indicates the column is missing, but that type of error is reported via
                         # check_columns_existence_against_metadata()
     mvc = get_missing_value_codes(data_table_node, column_name)
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
-        mvc_matches = df[column_name].astype(str).str.contains(mvc_regex)
+        mvc_matches = col_values.str.contains(mvc_regex)
         # Errors are rows with matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
     else:
@@ -343,18 +358,28 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     error_indices = result[result].index.values
     data_table_name = get_data_table_name(data_table_node)
     expected = 'A defined code'
+    num_header_lines = get_num_header_lines(data_table_node)
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, column_name,
-                                        index + get_num_header_lines(data_table_node) + 1,
+                                        index + num_header_lines + 1,
                                         'Categorical element is not a defined code',
-                                        expected, df[column_name].astype(str)[index]))
+                                        expected, col_values[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
             break
+
+    # end = datetime.now()
+    # elapsed = (end - start).total_seconds()
+    # print(column_name, elapsed, len(errors))
+
     return errors
 
 
 def check_date_time_column(df, data_table_node, column_name, max_errs_per_column):
+    # from datetime import datetime
+    # start = datetime.now()
+
+    col_values = df[column_name].astype(str)
     regex = get_date_time_format_regex(data_table_node, column_name)
     if not regex:
         date_time_format = get_date_time_format_specification(data_table_node, column_name)
@@ -363,14 +388,14 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
                                   'A <a href="../datetime_formats">supported</a> format',
                                   date_time_format)]
     try:
-        matches = df[column_name].astype(str).str.contains(regex)
+        matches = col_values.str.contains(regex)
     except KeyError:
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in table', (column_name), 'Not found')]
     mvc = get_missing_value_codes(data_table_node, column_name)
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
-        mvc_matches = df[column_name].astype(str).str.contains(mvc_regex)
+        mvc_matches = col_values.str.contains(mvc_regex)
         # TODO - check what happens if no missing value codes
         # Errors are rows with matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
@@ -380,14 +405,20 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     data_table_name = get_data_table_name(data_table_node)
     expected = get_date_time_format_specification(data_table_node, column_name)
     errors = []
+    num_header_lines = get_num_header_lines(data_table_node)
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, column_name,
-                                        index + get_num_header_lines(data_table_node) + 1,
+                                        index + num_header_lines + 1,
                                         'DateTime element does not have expected format',
-                                        expected, df[column_name].astype(str)[index]))
+                                        expected, col_values[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
             break
+
+    # end = datetime.now()
+    # elapsed = (end - start).total_seconds()
+    # print(column_name, elapsed, len(errors))
+
     return errors
 
 
@@ -395,7 +426,8 @@ def check_data_table(eml_file_url:str=None,
                      csv_file_url:str=None,
                      data_table_name:str=None,
                      column_names:List[str]=None,
-                     max_errs_per_column=100):
+                     max_errs_per_column=100,
+                     collapse_errs:bool=False):
     eml_node = load_eml_file(eml_file_url)
     df = load_df(eml_node, csv_file_url, data_table_name)
 
@@ -706,7 +738,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         if status == 'yellow':
             onclick = ''
             size = get_data_table_size(data_table_node)
-            if size and int(size) > 10**7:
+            if size and int(size) > 10**8:
                 kb, mb, gb = convert_file_size(size)
                 mb = round(mb)
                 onclick = f'onclick="return confirm(\'This data table may take up to several minutes to check. Continue?\');"'

@@ -13,6 +13,7 @@
 """
 
 import collections
+from datetime import datetime
 from enum import Enum
 import hashlib
 import os
@@ -547,12 +548,15 @@ def check_data_table_md5_checksum(data_table_node, link, data_table_name=None):
     uploads_folder = user_data.get_document_uploads_folder_name()
     full_path = f'{uploads_folder}/{data_file}'
     try:
-        computed_md5_hash = load_data.get_md5_hash(full_path)
-        authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
-        if authentication_node:
-            found_md5_hash = authentication_node.content
-            if found_md5_hash != computed_md5_hash:
-                add_to_evaluation('data_table_06', link, data_table_name=data_table_name)
+        with open(full_path, 'rb') as file:
+            # We'll just check for the data_table file's existence. Don't need to recompute the MD5 over and over
+            pass
+        # computed_md5_hash = load_data.get_md5_hash(full_path)
+        # authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
+        # if authentication_node:
+        #     found_md5_hash = authentication_node.content
+        #     if found_md5_hash != computed_md5_hash:
+        #         add_to_evaluation('data_table_06', link, data_table_name=data_table_name)
     except FileNotFoundError:
         # If there is a URL in Online Distribution node, we don't treat a missing CSV file as an error
         url_node = data_table_node.find_single_node_by_path([names.PHYSICAL,
@@ -844,13 +848,19 @@ def check_evaluation_memo(json_filename, eml_node):
     # We save validation results in a pickle file and only recompute them when the json file's content has changed.
     eval_filename = json_filename.replace('.json', '_eval.pkl')
     try:
+        start = datetime.now()
         old_md5, validation_errs, evaluation_warnings = pickle.load(open(eval_filename, 'rb'))
         with open(json_filename, 'rt') as json_file:
             json = json_file.read()
         new_md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
+        end = datetime.now()
+        elapsed = (end - start).total_seconds()
+        print('**** check_evaluation_memo', elapsed)
         if new_md5 == old_md5:
+            print(f'**** new_md5={new_md5}')
             return new_md5, validation_errs, evaluation_warnings
         else:
+            print(f'**** new_md5={new_md5}, old_md5={old_md5}')
             return new_md5, None, None
     except:
         return None, None, None
@@ -871,10 +881,9 @@ def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation
 
 
 def perform_evaluation(eml_node, doc_name):
-    global evaluation
+    global evaluation, validation_errs, evaluation_warnings
     evaluation = []
-    # print('\nEntering perform_evaluation')
-    start = time.perf_counter()
+    start = datetime.now()
 
     user_folder = user_data.get_user_folder_name()
     json_filename = f'{user_folder}/{doc_name}.json'
@@ -907,8 +916,9 @@ def perform_evaluation(eml_node, doc_name):
     if need_to_memoize:
         memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings)
 
-    end = time.perf_counter()
-    # print(f"Leaving perform_evaluation: {end - start}")
+    end = datetime.now()
+    elapsed = (end - start).total_seconds()
+    print('**** perform_evaluation', elapsed)
 
     return evaluation
 
@@ -934,10 +944,10 @@ def check_eml(eml_node, doc_name):
 def validate_via_metapype(node):
     errs = []
     try:
-        start = time.perf_counter()
+        # start = time.perf_counter()
         validate.tree(node, errs)
-        end = time.perf_counter()
-        elapsed = end - start
+        # end = time.perf_counter()
+        # elapsed = end - start
         # if elapsed > 0.05:
         #     print(f"validate: {node.name}  {elapsed}")
     except Exception as e:
@@ -948,10 +958,10 @@ def validate_via_metapype(node):
 def evaluate_via_metapype(node):
     eval = []
     try:
-        start = time.perf_counter()
+        # start = time.perf_counter()
         evaluate.tree(node, eval)
-        end = time.perf_counter()
-        elapsed = end - start
+        # end = time.perf_counter()
+        # elapsed = end - start
         # if elapsed > 0.05:
         #     print(f"evaluate: {node.name}  {elapsed}")
     except Exception as e:

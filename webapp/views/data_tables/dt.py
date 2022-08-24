@@ -549,16 +549,28 @@ def force_categorical_codes(attribute_node):
     return sort_codes(codes)
 
 
-def change_measurement_scale(att_node, old_mscale, new_mscale):
-    if not att_node:
+def set_storage_type(attribute_node, storage_type):
+    # Set the storage type of the attribute node if storage type is present in the model.
+    # In the case of attributes created in ezEML, we usually don't have a storage type node. But a storage type node
+    #  may be present if the user edited the storage type or if the EML file was created outside of ezEML and imported.
+    # In such cases, when we change the attribute measurement scale, we need to change the storage type.
+    storage_type_node = attribute_node.find_descendant(names.STORAGETYPE)
+    if storage_type_node:
+        storage_type_node.content = storage_type
+        storage_type_node.add_attribute('typeSystem', 'XML Schema Datatypes')
+
+
+def change_measurement_scale(attribute_node, old_mscale, new_mscale):
+    if not attribute_node:
         return
-    mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
+    mscale_node = attribute_node.find_child(names.MEASUREMENTSCALE)
 
     # clear its children
     mscale_node.remove_children()
 
     # construct new children
     if new_mscale == VariableType.NUMERICAL.name:
+        set_storage_type(attribute_node, 'float')
         new_scale_node = new_child_node(names.RATIO, mscale_node)
         numeric_domain_node = new_child_node(names.NUMERICDOMAIN, new_scale_node)
 
@@ -566,9 +578,10 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
         number_type_ratio_node.content = 'real'
 
     elif new_mscale == VariableType.CATEGORICAL.name:
+        set_storage_type(attribute_node, 'string')
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
-        sorted_codes = force_categorical_codes(att_node)
+        sorted_codes = force_categorical_codes(attribute_node)
 
         enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
         for child in enumerated_domain_node.children:
@@ -581,18 +594,20 @@ def change_measurement_scale(att_node, old_mscale, new_mscale):
             definition_node = new_child_node(names.DEFINITION, code_definition_node)
 
     elif new_mscale == VariableType.TEXT.name:
+        set_storage_type(attribute_node, 'string')
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
         text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
         definition_node = new_child_node(names.DEFINITION, text_domain_node)
-        attribute_definition_node = att_node.find_child(names.ATTRIBUTEDEFINITION)
+        attribute_definition_node = attribute_node.find_child(names.ATTRIBUTEDEFINITION)
         if attribute_definition_node:
             definition_node.content = attribute_definition_node.content
 
     elif new_mscale == VariableType.DATETIME.name:
+        set_storage_type(attribute_node, 'dateTime')
         new_scale_node = new_child_node(names.DATETIME, mscale_node)
         format_string_node = new_child_node(names.FORMATSTRING, new_scale_node)
-        format_string_node.content = force_datetime_type(att_node)
+        format_string_node.content = force_datetime_type(attribute_node)
 
 
 def attribute_select_post(filename=None, form=None, form_dict=None,

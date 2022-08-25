@@ -222,7 +222,6 @@ def new_donor(filename=None, node_id=None, method=None,
 
     # Process GET
     if node_id == '1':
-        print('get request NODE_ID = 1')
         form.init_md5()
     elif node_id:
         related_project_node = Node.get_node_instance(node_id)

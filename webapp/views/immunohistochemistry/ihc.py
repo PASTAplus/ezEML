@@ -206,7 +206,6 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
         return redirect(url_for(new_page, filename=filename)) #PT4/25
     # Process GET
     if node_id == '1':
-        print("get request NODE_ID = 1")
         form.init_md5()
 
     #PT NEW 4/25

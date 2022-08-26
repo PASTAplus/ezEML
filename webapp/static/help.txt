@@ -186,7 +186,7 @@ If any of the tables has a Red status, the overall status for Check Data Tables 
 
 To check a data table, click the <b>Check data table</b> link on the row for that table. If the table has already been checked and has errors, click the <b>Show errors</b> link to display the errors. It can take up to several minutes to check a table, depending on its size. For large tables, you will be warned that the check may be lengthy and will be given the opportunity to cancel and run the check later. The results of a check are saved, so you won't have to wait each time you consult the results for a table that has already been checked.
 
-When data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed along to consumers of their data.
+When data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed on to consumers of their data.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/hXbIDffHHcE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
@@ -312,7 +312,7 @@ Some errors pertain to a column as a whole (e.g., the column is a datetime varia
 
 You may make corrections to the data table and/or metadata as needed and then re-run <b>Check Data Tables</b> for the given table, iterating until errors have been removed to your satisfaction.
 
-Note that when data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed along to consumers of their data.
+Note that when data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed on to consumers of their data.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/hXbIDffHHcE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------

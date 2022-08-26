@@ -212,6 +212,7 @@ def log_login_usage(login_type:str=None):
 
 
 # Endpoint for REST Service to get a list of a data table's columns and their variable types
+# Note that this returns the names as they are defined in the metadata, not the names as they are displayed in the table
 @home.route('/get_data_table_columns/', methods=['GET','POST'])
 def get_data_table_columns():
     eml_file_url = request.headers.get('eml_file_url')
@@ -255,7 +256,7 @@ def data_table_errors(data_table_name:str=None):
     if not data_table_node:
         raise ValueError  # TODO: use custom exception
 
-    eml_file_url = check_data_table_contents.get_eml_file_url(current_document)
+    eml_file_url = check_data_table_contents.get_eml_file_url(current_document, eml_node)
     csv_file_url = check_data_table_contents.get_csv_file_url(current_document, data_table_node)
     csv_filename = check_data_table_contents.get_data_table_filename(data_table_node)
     csv_filepath = check_data_table_contents.get_csv_filepath(current_document, csv_filename)

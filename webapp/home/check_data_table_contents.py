@@ -255,7 +255,7 @@ def check_columns_existence_against_metadata(data_table_node, df):
                                       display_nonprintable(metadata_column_names[i]),
                                       display_nonprintable(data_table_column_names[i]))
             errors.append(error)
-    return errors
+    return errors, data_table_column_names, metadata_column_names
 
 
 def get_num_header_lines(data_table_node):
@@ -396,7 +396,6 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
         mvc_matches = col_values.str.contains(mvc_regex)
-        # TODO - check what happens if no missing value codes
         # Errors are rows with matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
     else:
@@ -432,17 +431,22 @@ def check_data_table(eml_file_url:str=None,
     df = load_df(eml_node, csv_file_url, data_table_name)
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
-    errors = check_columns_existence_against_metadata(data_table_node, df)
+    errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
 
     if not column_names:
-        # check them all
-        column_info = get_data_table_columns(data_table_node)
-        column_names = []
-        for column in column_info:
-            column_names.append(column['name'])
+        # check them all... we will use the data table column names. they may not exactly match the metadata column
+        # names, for example if there are spaces at the end of column names.
+        column_names = data_table_column_names
     columns_checked = []
     for column_name in column_names:
-        attribute_node = get_attribute_node(data_table_node, column_name)
+        if column_name not in data_table_column_names:
+            continue
+        try:
+            attribute_node = get_attribute_node(data_table_node, column_name)
+        except ValueError:
+            # If the column is not found in the metadata, then it is a column name mismatch error that will have been
+            #  reported above by check_columns_existence_against_metadata().
+            continue
         variable_type = get_variable_type(attribute_node)
         if variable_type == 'CATEGORICAL':
             columns_checked.append(column_name)
@@ -634,8 +638,16 @@ def generate_error_info_for_webpage(data_table_node, errors):
     return column_errs
 
 
-def get_eml_file_url(document_name):
-    return f'file://{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
+def get_eml_file_url(document_name, eml_node):
+    package_id = eml_node.attribute_value('packageId')
+    if package_id:
+        filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
+        if os.path.exists(filepath):
+            return f'file://{filepath}'
+    filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
+    if os.path.exists(filepath):
+        return f'file://{filepath}'
+    return None
 
 
 def get_csv_file_url(document_name, data_table_node):

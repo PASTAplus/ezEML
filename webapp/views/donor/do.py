@@ -21,6 +21,8 @@ from webapp.home.motherpype import (
 from metapype.eml import names
 from metapype.model.node import Node
 
+import webapp.home.motherpype_names as mdb_names
+
 from webapp.buttons import *
 from webapp.pages import *
 
@@ -239,86 +241,86 @@ def new_donor(filename=None, node_id=None, method=None,
 
 
 def populate_donor_form(form: DonorForm, node: Node):
-    donorID_node = node.find_child('donorID')
+    donorID_node = node.find_child(mdb_names.DONOR_ID)
     if donorID_node:
         form.donorID.data = donorID_node.content
 
-    donorGender_node = node.find_child('donorGender')
+    donorGender_node = node.find_child(mdb_names.DONOR_GENDER)
     if donorGender_node:
         form.donorGender.data = donorGender_node.content
 
-    donorAge_Node = node.find_child('donorAge')
+    donorAge_Node = node.find_child(mdb_names.DONOR_AGE)
     if donorAge_Node:
-        donorYears_node = donorAge_Node.find_child('donorYears')
+        donorYears_node = donorAge_Node.find_child(mdb_names.DONOR_YEARS)
         if donorYears_node:
             form.donorYears.data = donorYears_node.content
 
-        donorDays_node = donorAge_Node.find_child('donorDays')
+        donorDays_node = donorAge_Node.find_child(mdb_names.DONOR_DAYS)
         if donorDays_node:
             form.donorDays.data = donorDays_node.content
 
-    donorLifeStage_node = node.find_child('donorLifeStage')
+    donorLifeStage_node = node.find_child(mdb_names.DONOR_LIFE_STAGE)
     if donorLifeStage_node:
         form.donorLifeStage.data = donorLifeStage_node.content
 
-    specimenSeqNum_node = node.find_child('specimenSeqNum')
+    specimenSeqNum_node = node.find_child(mdb_names.SPEC_SEQ_NUM)
     if specimenSeqNum_node:
         form.specimenSeqNum.data = specimenSeqNum_node.content
 
-    specimenTissue_node = node.find_child('specimenTissue')
+    specimenTissue_node = node.find_child(mdb_names.SPEC_TISSUE)
     if specimenTissue_node:
         form.specimenTissue.data = specimenTissue_node.content
 
-    ovaryPosition_node = node.find_child('ovaryPosition')
+    ovaryPosition_node = node.find_child(mdb_names.OVARY_POSITION)
     if ovaryPosition_node:
         form.ovaryPosition.data = ovaryPosition_node.content
 
-    specimenLocation_node = node.find_child('specimenLocation')
+    specimenLocation_node = node.find_child(mdb_names.SPEC_LOCATION)
     if specimenLocation_node:
         form.specimenLocation.data = specimenLocation_node.content
-        corpusLuteum_node = specimenLocation_node.find_child('corpusLuteum')
+        corpusLuteum_node = specimenLocation_node.find_child(mdb_names.CORPUS_LUTEUM)
         if corpusLuteum_node:
             form.corpusLuteum.data = corpusLuteum_node.content
 
-    specimenCycle_node = node.find_child('specimenCycle')
+    specimenCycle_node = node.find_child(mdb_names.SPEC_CYCLE)
     if specimenCycle_node:
-        dayOfCycle_node = specimenCycle_node.find_child('dayOfCycle')
+        dayOfCycle_node = specimenCycle_node.find_child(mdb_names.DAY_OF_CYCLE)
         if dayOfCycle_node:
             form.dayOfCycle.data = dayOfCycle_node.content
 
-        stageOfCycle_node = specimenCycle_node.find_child('stageOfCycle')
+        stageOfCycle_node = specimenCycle_node.find_child(mdb_names.STAGE_OF_CYCLE)
         if stageOfCycle_node:
             form.stageOfCycle.data = stageOfCycle_node.content
-            follicular_node = stageOfCycle_node.find_child('follicular')
+            follicular_node = stageOfCycle_node.find_child(mdb_names.FOLLICULAR)
             if follicular_node:
-                form.stageOfCycle.data = 'follicular'
+                form.stageOfCycle.data = mdb_names.FOLLICULAR
                 form.follicular.data = follicular_node.content
-            luteal_node = stageOfCycle_node.find_child('luteal')
+            luteal_node = stageOfCycle_node.find_child(mdb_names.LUTEAL)
             if luteal_node:
-                form.stageOfCycle.data = 'luteal'
+                form.stageOfCycle.data = mdb_names.LUTEAL
                 form.luteal.data = luteal_node.content
 
-    slideID_node = node.find_child('slideID')
+    slideID_node = node.find_child(mdb_names.SLIDE_ID)
     if slideID_node:
         form.slideID.data = slideID_node.content
 
-    sectionSeqNum_node = node.find_child('sectionSeqNum')
+    sectionSeqNum_node = node.find_child(mdb_names.SEC_SEQ_NUM)
     if sectionSeqNum_node:
         form.sectionSeqNum.data = sectionSeqNum_node.content
 
-    sectionThickness_node = node.find_child('sectionThickness')
+    sectionThickness_node = node.find_child(mdb_names.SECTION_THICKNESS)
     if sectionThickness_node:
-        thickness_node = sectionThickness_node.find_child('thickness')
+        thickness_node = sectionThickness_node.find_child(mdb_names.THICKNESS)
         if thickness_node:
             form.thickness.data = thickness_node.content
 
-        thicknessUnit_node = sectionThickness_node.find_child('thicknessUnit')
+        thicknessUnit_node = sectionThickness_node.find_child(mdb_names.UNIT)
         if thicknessUnit_node:
             form.thicknessUnit.data = thicknessUnit_node.content
 
-    sampleProcessing_node = node.find_child('sampleProcessing')
+    sampleProcessing_node = node.find_child(mdb_names.SAMPLE_PROCESS)
     if sampleProcessing_node:
-        fixation_node = sampleProcessing_node.find_child('fixation')
+        fixation_node = sampleProcessing_node.find_child(mdb_names.FIXATION)
         if fixation_node:
             form.fixation.data = fixation_node.content
 
@@ -326,7 +328,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         if fixationOther_node:
             form.fixationOther.data = fixationOther_node.content
 
-        stain_node = sampleProcessing_node.find_child('stain')
+        stain_node = sampleProcessing_node.find_child(mdb_names.STAIN)
         if stain_node:
             form.stain.data = stain_node.content
 
@@ -360,21 +362,21 @@ def populate_donor_form(form: DonorForm, node: Node):
         if electronMicroscopyStainOther_node:
             form.electronMicroscopyStainOther.data = electronMicroscopyStainOther_node.content
 
-    magnification_node = node.find_child('magnification')
+    magnification_node = node.find_child(mdb_names.MAGNIFICATION)
     if magnification_node:
         form.magnification.data = magnification_node.content
 
-    microscopeType_node = node.find_child('microscope')
+    microscopeType_node = node.find_child(mdb_names.MICROSCOPE)
     if microscopeType_node:
-        maker_node = microscopeType_node.find_child('maker')
+        maker_node = microscopeType_node.find_child(mdb_names.MICRO_MAKER)
         if maker_node:
             form.maker.data = maker_node.content
 
-        model_node = microscopeType_node.find_child('model')
+        model_node = microscopeType_node.find_child(mdb_names.MICRO_MODEL)
         if model_node:
             form.model.data = model_node.content
 
-        notes_node = microscopeType_node.find_child('notes')
+        notes_node = microscopeType_node.find_child(mdb_names.MICRO_NOTES)
         if notes_node:
             form.notes.data = notes_node.content
 

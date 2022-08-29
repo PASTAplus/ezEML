@@ -13,7 +13,7 @@
     5/30/18
 """
 import daiquiri
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from flask_login import current_user
 from webapp import app
 
@@ -48,6 +48,8 @@ def bad_request(error):
 @app.errorhandler(404)
 def bad_request(error):
     log_error(error)
+    if request and request.url:
+        logger.error(f'404 request.url: {request.url}')
     return render_template('404.html'), 404
 
 

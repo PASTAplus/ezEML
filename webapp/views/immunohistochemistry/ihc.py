@@ -26,7 +26,7 @@ from webapp.home.motherpype import (
 from metapype.eml import names
 from metapype.model.node import Node
 
-import webapp.home.motherpype_names as mdb_names
+from webapp.home import motherpype_names as mdb_names
 
 from webapp.buttons import *
 from webapp.pages import *

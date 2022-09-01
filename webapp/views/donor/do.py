@@ -21,7 +21,7 @@ from webapp.home.motherpype import (
 from metapype.eml import names
 from metapype.model.node import Node
 
-import webapp.home.motherpype_names as mdb_names
+from webapp.home import motherpype_names as mdb_names
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -211,12 +211,12 @@ def new_donor(filename=None, node_id=None, method=None,
                 notes)
 
             if specimenLocation == 'corpusLuteum':
-                populate_specimen_location(mother_node, corpusLuteumType)
+                populate_specimen_location(mother_node, "corpusLuteumType")
 
             if stageOfCycle == 'follicular':
-                populate_stage_of_cycle(stageOfCycle, mother_node, follicularType)
+                populate_stage_of_cycle(stageOfCycle, mother_node, "follicularType")
             elif stageOfCycle == 'luteal':
-                populate_stage_of_cycle(stageOfCycle, mother_node, lutealType)
+                populate_stage_of_cycle(stageOfCycle, mother_node, "lutealType")
 
 
             save_both_formats(filename=filename, eml_node=eml_node)

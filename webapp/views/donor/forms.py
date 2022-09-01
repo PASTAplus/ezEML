@@ -112,14 +112,16 @@ class DonorForm(EDIForm):
                                                     ("toluidineBlue", "Toluidine Blue"),
                                                     ("vanGieson", "Van Gieson"),
                                                     ("other", "other")],
-                                           render_kw={'onchange': "lightMicroscopyStainTypeFunction()"})
+                                           render_kw={'onchange': "lightMicroscopyStainTypeFunction()"}, 
+                                           validators=[Optional()])
     sudanStainType = SelectField('Sudan Stain Value',
                                  choices=[("", ""),
                                           ("III", "III"),
                                           ("IV", "IV"),
                                           ("Black B", "Black B"),
                                           ("Oil Red O", "Oil Red O"),
-                                          ("Osmium Tetroxide", "Osmium tetroxide")])
+                                          ("Osmium Tetroxide", "Osmium tetroxide")], 
+                                 validators=[Optional()])
     lightMicroscopyStainOther = StringField('Other Light Stain', validators=[])
     fluorescentMicroscopyStainType = SelectField('Stain Fluorescent Type',
                                                  choices=[("", ""),
@@ -131,7 +133,8 @@ class DonorForm(EDIForm):
                                                           ("rhodamine", "Rhodamine"),
                                                           ("TUNEL", "TUNEL"),
                                                           ("other", "Other")],
-                                                 render_kw={'onchange': "fluorescentMicroscopyStainTypeFunction()"})
+                                                 render_kw={'onchange': "fluorescentMicroscopyStainTypeFunction()"},
+                                                 validators=[Optional()])
     fluorescentMicroscopyStainOther = StringField('Other Fluorescent Stain', validators=[])
     electronMicroscopyStainType = SelectField('Stain Electron Type',
                                               choices=[("", ""),
@@ -140,7 +143,8 @@ class DonorForm(EDIForm):
                                                        ("phosphotundsticAcid", "Phosphotundstic Acid"),
                                                        ("silverNitrate", "Silver Nitrate"),
                                                        ("other", "Other")],
-                                              render_kw={'onchange': "electronMicroscopyStainTypeFunction()"})
+                                              render_kw={'onchange': "electronMicroscopyStainTypeFunction()"},
+                                              validators=[Optional()])
     electronMicroscopyStainOther = StringField('Other Electron Stain', validators=[])
     magnification = StringField('Magnification', validators=[])
     maker = StringField('Microscope Maker', validators=[])

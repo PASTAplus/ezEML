@@ -336,13 +336,13 @@
             <a class="nav_link" style={{ ihc_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ihc.immunohistochemistry') }}" title="Edit">Immunohistochemistry</a><br>
 
             <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
-            <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>
-            <br>
+        <!-- <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp; -->
+            <!-- <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div> -->
+            <!-- <br> -->
 {#        <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>#}
 {#        <a class="nav_link" style={{ export_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.export_package') }}" title="Edit">Export Data Package</a><br>#}
         {# <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>#}
-        <a class="nav_link" style={{ send_to_other_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
+        <a class="nav_link" style={{ send_to_other_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Submit Metadata</a><br>
    {% endif %}
     </div>
     <div style="margin-left: 18%;">

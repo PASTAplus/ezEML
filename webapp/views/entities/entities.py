@@ -91,7 +91,7 @@ def other_entity_select(filename=None):
                            oe_list=oe_list, form=form, help=help)
 
 
-@ent_bp.route('/other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
+@ent_bp.route('/other_entity/<filename>/', methods=['GET', 'POST'])
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
     form = OtherEntityForm(filename=filename)

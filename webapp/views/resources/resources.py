@@ -51,7 +51,7 @@ def title(filename=None):
     if request.method == 'POST' and form.validate_on_submit():
     # if request.method == 'POST':
 #PT5/26        new_page = PAGE_DATA_TABLE_SELECT
-        new_page = PAGE_OTHER_ENTITY_SELECT  #PT5/26
+        new_page = PAGE_OTHER_ENTITY  #PT5/26
         save = False
         if is_dirty_form(form):
             save = True
@@ -61,7 +61,7 @@ def title(filename=None):
 
         if 'Next' in request.form:
 #PT5/26            new_page = PAGE_DATA_TABLE_SELECT
-            new_page = PAGE_OTHER_ENTITY_SELECT #PT5/26
+            new_page = PAGE_OTHER_ENTITY #PT5/26
         elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
         elif BTN_HIDDEN_SAVE in request.form:

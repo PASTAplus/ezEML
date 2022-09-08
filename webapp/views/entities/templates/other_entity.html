@@ -56,7 +56,7 @@
 {#                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>#}
 {#                <br/><br/><br/>#}
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}

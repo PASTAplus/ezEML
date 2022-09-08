@@ -700,7 +700,7 @@ def get_redirect_target_page():
     elif current_page == 'data_table':
         return PAGE_DATA_TABLE_SELECT
     elif current_page == 'other_entity':
-        return PAGE_OTHER_ENTITY_SELECT
+        return PAGE_OTHER_ENTITY
     elif current_page == 'check_metadata':
         return PAGE_CHECK
     elif current_page == 'export_package':
@@ -2008,7 +2008,7 @@ def reupload_other_entity(filename, node_id):
                 raise ValueError("Other entity's name not found")
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename)
+        url = url_for(PAGE_OTHER_ENTITY, filename=filename)
         return redirect(url)
 
     if request.method == 'POST':

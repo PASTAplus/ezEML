@@ -510,10 +510,11 @@ def create_donor(mother_node: Node,
             magnification_node = Node(mdb_names.MAGNIFICATION, parent=mother_node)
             mother_node.add_child(magnification_node)
         magnification_node.content = magnification
+        # if ihc
         ihc_node = mother_node.find_child(mdb_names.IHC)
-        # if not ihc_node:
-        ihc_node = Node(mdb_names.IHC, parent=mother_node)
-        mother_node.add_child(ihc_node)
+        if not ihc_node:
+            ihc_node = Node(mdb_names.IHC, parent=mother_node)
+            mother_node.add_child(ihc_node)
         # if microscopeType:
         microscopeType_node = mother_node.find_child(mdb_names.MICROSCOPE)
         if not microscopeType_node:

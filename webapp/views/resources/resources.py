@@ -112,6 +112,7 @@ def title(filename=None):
 
 
 @res_bp.route('/data_package_id/<filename>', methods=['GET', 'POST'])
+@login_required
 def data_package_id(filename=None):
     form = DataPackageIDForm()
     eml_node = load_eml(filename=filename)
@@ -146,6 +147,7 @@ def data_package_id(filename=None):
 
 
 @res_bp.route('/publication_info/<filename>', methods=['GET', 'POST'])
+@login_required
 def publication_info(filename=None):
     form = PublicationInfoForm()
 
@@ -183,6 +185,7 @@ def publication_info(filename=None):
 
 
 @res_bp.route('/abstract/<filename>', methods=['GET', 'POST'])
+@login_required
 def abstract(filename=None):
     form = AbstractForm(filename=filename)
 
@@ -243,6 +246,7 @@ def get_abstract(filename, form):
 
 
 @res_bp.route('/intellectual_rights/<filename>', methods=['GET', 'POST'])
+@login_required
 def intellectual_rights(filename=None):
     form = IntellectualRightsForm(filename=filename)
 
@@ -343,6 +347,7 @@ def populate_keyword_form(form: KeywordForm, kw_node: Node, keyword_thesaurus_no
 
 
 @res_bp.route('/keyword_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def keyword_select(filename=None):
     form = KeywordSelectForm(filename=filename)
 
@@ -438,6 +443,7 @@ def remove_keyword(filename, node_id):
 # editing an existing one.
 #
 @res_bp.route('/keyword/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def keyword(filename=None, node_id=None):
     eml_node = load_eml(filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)

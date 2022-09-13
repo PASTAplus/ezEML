@@ -74,6 +74,7 @@ def log_error(msg):
 
 
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def data_table_select(filename=None):
     form = DataTableSelectForm(filename=filename)
 
@@ -101,6 +102,7 @@ def data_table_select(filename=None):
 
 
 @dt_bp.route('/data_table/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+@login_required
 def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
     form = DataTableForm(filename=filename)
 
@@ -380,6 +382,7 @@ def populate_data_table_form(form: DataTableForm, node: Node):
 # is a part of (within its attributeList)
 #
 @dt_bp.route('/attribute_select/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+@login_required
 def attribute_select(filename=None, dt_node_id=None):
     form = AttributeSelectForm(filename=filename)
     # dt_node_id = request.args.get('dt_node_id')  # alternate way to get the id
@@ -446,6 +449,7 @@ def attribute_select_get(filename=None, form=None, dt_node_id=None):
 
 
 @dt_bp.route('/attribute_measurement_scale/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+@login_required
 def attribute_measurement_scale(filename=None, dt_node_id=None, node_id=None, mscale=None):
     form = AttributeMeasurementScaleForm(filename=filename)
     att_node_id = node_id
@@ -733,6 +737,7 @@ def attribute_select_post(filename=None, form=None, form_dict=None,
 
 
 @dt_bp.route('/attribute_dateTime/<filename>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
     form = AttributeDateTimeForm(filename=filename, node_id=node_id)
     att_node_id = node_id
@@ -959,6 +964,7 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
 
 
 @dt_bp.route('/attribute_numerical/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+@login_required
 def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=None):
     form = AttributeIntervalRatioForm(filename=filename, node_id=node_id)
     att_node_id = node_id
@@ -1250,11 +1256,13 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
 
 
 @dt_bp.route('/attribute_text/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+@login_required
 def attribute_text(filename: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
     return attribute_categorical(filename, dt_node_id, node_id, mscale)
 
 
 @dt_bp.route('/attribute_categorical/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
+@login_required
 def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id: str = None, mscale: str = None):
     if mscale == 'TEXT':
         form = AttributeTextForm(filename=filename, node_id=node_id)
@@ -1530,6 +1538,7 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
 #
 @dt_bp.route('/code_definition_select/<filename>/<dt_node_id>/<att_node_id>/<node_id>/<mscale>',
              methods=['GET', 'POST'])
+@login_required
 def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, node_id=None, mscale=None):
     nom_ord_node_id = node_id
     form = CodeDefinitionSelectForm(filename=filename)
@@ -1648,6 +1657,7 @@ def code_definition_select_post(filename=None,
 #
 @dt_bp.route('/code_definition/<filename>/<dt_node_id>/<att_node_id>/<nom_ord_node_id>/<node_id>/<mscale>',
              methods=['GET', 'POST'])
+@login_required
 def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_node_id=None, node_id=None, mscale=None):
     eml_node = load_eml(filename=filename)
     att_node = Node.get_node_instance(att_node_id)

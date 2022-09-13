@@ -3,6 +3,9 @@ import collections
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
+from flask_login import (
+    login_required
+)
 
 from webapp.home.metapype_client import (
     add_child, create_project, create_related_project,
@@ -43,6 +46,7 @@ proj_bp = Blueprint('proj', __name__, template_folder='templates')
 
 @proj_bp.route('/project/<filename>', methods=['GET', 'POST'])
 @proj_bp.route('/project/<filename>/<project_node_id>', methods=['GET', 'POST'])
+@login_required
 def project(filename=None, project_node_id=None):
     form = ProjectForm(filename=filename)
     eml_node = load_eml(filename=filename)
@@ -166,6 +170,7 @@ def populate_project_form(form: ProjectForm, project_node: Node):
 @proj_bp.route('/project_personnel_select/<filename>', methods=['GET', 'POST'])
 @proj_bp.route('/project_personnel_select/<filename>/<node_id>', methods=['GET', 'POST'])
 @proj_bp.route('/project_personnel_select/<filename>/<node_id>/<project_node_id>', methods=['GET', 'POST'])
+@login_required
 def project_personnel_select(filename=None, node_id=None, project_node_id=None):
     form = ResponsiblePartySelectForm(filename=filename)
 
@@ -192,6 +197,7 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
 
 @proj_bp.route('/funding_award_select/<filename>', methods=['GET', 'POST'])
 @proj_bp.route('/funding_award_select/<filename>/<project_node_id>', methods=['GET', 'POST'])
+@login_required
 def funding_award_select(filename=None, project_node_id=None):
     form = AwardSelectForm(filename=filename)
 
@@ -270,6 +276,7 @@ def funding_award_select_get(filename=None, form=None, project_node_id=None):
 
 @proj_bp.route('/funding_award/<filename>/<node_id>', methods=['GET', 'POST'])
 @proj_bp.route('/funding_award/<filename>/<node_id>/<project_node_id>', methods=['GET', 'POST'])
+@login_required
 def funding_award(filename=None, node_id=None, project_node_id=None):
     form = AwardForm(filename=filename)
 
@@ -399,6 +406,7 @@ def populate_award_form(form: AwardForm, award_node: Node):
 
 
 @proj_bp.route('/related_project_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def related_project_select(filename=None):
     form = RelatedProjectSelectForm(filename=filename)
 

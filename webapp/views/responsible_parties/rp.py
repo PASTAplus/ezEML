@@ -1,6 +1,9 @@
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
+from flask_login import (
+    login_required
+)
 
 from webapp.views.responsible_parties.forms import (
     ResponsiblePartyForm, ResponsiblePartySelectForm
@@ -29,6 +32,7 @@ rp_bp = Blueprint('rp', __name__, template_folder='templates')
 
 
 @rp_bp.route('/creator_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def creator_select(filename=None):
     form = ResponsiblePartySelectForm(filename=filename)
 
@@ -49,6 +53,7 @@ def creator_select(filename=None):
 
 
 @rp_bp.route('/creator/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def creator(filename=None, node_id=None):
     method = request.method
     set_current_page('creator')
@@ -244,6 +249,7 @@ def responsible_party(filename=None, node_id=None, method=None,
 
 
 @rp_bp.route('/metadata_provider_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def metadata_provider_select(filename=None):
     form = ResponsiblePartySelectForm(filename=filename)
 
@@ -267,6 +273,7 @@ def metadata_provider_select(filename=None):
 
 
 @rp_bp.route('/metadata_provider/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def metadata_provider(filename=None, node_id=None):
     method = request.method
     set_current_page('metadata_provider')
@@ -278,6 +285,7 @@ def metadata_provider(filename=None, node_id=None):
 
 
 @rp_bp.route('/associated_party_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def associated_party_select(filename=None):
     form = ResponsiblePartySelectForm(filename=filename)
 
@@ -302,6 +310,7 @@ def associated_party_select(filename=None):
 
 
 @rp_bp.route('/associated_party/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def associated_party(filename=None, node_id=None):
     method = request.method
     set_current_page('associated_party')
@@ -313,6 +322,7 @@ def associated_party(filename=None, node_id=None):
 
 
 @rp_bp.route('/contact_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def contact_select(filename=None):
     form = ResponsiblePartySelectForm(filename=filename)
 
@@ -333,6 +343,7 @@ def contact_select(filename=None):
 
 
 @rp_bp.route('/contact/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def contact(filename=None, node_id=None):
     method = request.method
     set_current_page('contact')
@@ -343,6 +354,7 @@ def contact(filename=None, node_id=None):
 
 
 @rp_bp.route('/publisher/<filename>', methods=['GET', 'POST'])
+@login_required
 def publisher(filename=None):
     method = request.method
     node_id = '1'
@@ -453,6 +465,7 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
 
 @rp_bp.route('/project_personnel/<filename>/<node_id>', methods=['GET', 'POST'])
 @rp_bp.route('/project_personnel/<filename>/<node_id>/<project_node_id>', methods=['GET', 'POST'])
+@login_required
 def project_personnel(filename=None, node_id=None, project_node_id=None):
     method = request.method
     set_current_page('project')

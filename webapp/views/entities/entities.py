@@ -1,6 +1,9 @@
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
 )
+from flask_login import (
+    login_required
+)
 
 from webapp.home.views import (
     process_up_button, process_down_button, set_current_page,
@@ -67,6 +70,7 @@ ent_bp = Blueprint('ent', __name__, template_folder='templates')
 
 
 @ent_bp.route('/other_entity_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def other_entity_select(filename=None):
     form = OtherEntitySelectForm(filename=filename)
 
@@ -91,6 +95,7 @@ def other_entity_select(filename=None):
 
 
 @ent_bp.route('/other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
     form = OtherEntityForm(filename=filename)
@@ -286,6 +291,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
 
 @ent_bp.route('/entity_access_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_access_select(filename: str = None, dt_element_name: str = None, dt_node_id: str = None):
     form = AccessSelectForm(filename=filename)
 
@@ -398,6 +404,7 @@ def entity_access_select_post(filename=None, form=None, form_dict=None,
 # dt_element_name will be either names.DATATABLE or names.OTHERENTITY
 #
 @ent_bp.route('/entity_access/<filename>/<dt_element_name>/<dt_node_id>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def entity_access(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = AccessForm(filename=filename, node_id=node_id)
     allow_node_id = node_id
@@ -511,6 +518,7 @@ def entity_access(filename=None, dt_element_name=None, dt_node_id=None, node_id=
 
 @ent_bp.route('/entity_method_step_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_method_step_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = MethodStepSelectForm(filename=filename)
 
@@ -566,6 +574,7 @@ def entity_method_step_select(filename=None, dt_element_name: str = None, dt_nod
 #
 @ent_bp.route('/entity_method_step/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = MethodStepForm(filename=filename, node_id=node_id)
     ms_node_id = node_id
@@ -671,6 +680,7 @@ def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, nod
 
 @ent_bp.route('/entity_geographic_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_geographic_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = GeographicCoverageSelectForm(filename=filename)
 
@@ -719,6 +729,7 @@ def entity_geographic_coverage_select(filename=None, dt_element_name: str = None
 
 @ent_bp.route('/entity_geographic_coverage/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_geographic_coverage(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = GeographicCoverageForm(filename=filename)
     gc_node_id = node_id
@@ -901,6 +912,7 @@ def entity_select_post(filename=None, form=None, form_dict=None,
 
 @ent_bp.route('/entity_temporal_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_temporal_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = TemporalCoverageSelectForm(filename=filename)
 
@@ -949,6 +961,7 @@ def entity_temporal_coverage_select(filename=None, dt_element_name: str = None, 
 
 @ent_bp.route('/entity_temporal_coverage/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_temporal_coverage(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = TemporalCoverageForm(filename=filename)
     tc_node_id = node_id
@@ -1059,6 +1072,7 @@ def entity_temporal_coverage(filename=None, dt_element_name=None, dt_node_id=Non
 
 @ent_bp.route('/entity_taxonomic_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_taxonomic_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = TaxonomicCoverageSelectForm(filename=filename)
 
@@ -1107,6 +1121,7 @@ def entity_taxonomic_coverage_select(filename=None, dt_element_name: str = None,
 
 @ent_bp.route('/entity_taxonomic_coverage/<filename>/<dt_element_name>/<dt_node_id>/<node_id>',
             methods=['GET', 'POST'])
+@login_required
 def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=None, node_id=None):
     form = TaxonomicCoverageForm(filename=filename)
     txc_node_id = node_id

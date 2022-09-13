@@ -1,6 +1,9 @@
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
+from flask_login import (
+    login_required
+)
 
 from webapp.home.forms import (
     form_md5, is_dirty_form
@@ -44,6 +47,7 @@ data_sources_marker_end = '=====================================================
 
 
 @md_bp.route('/method_step_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def method_step_select(filename=None):
     form = MethodStepSelectForm(filename=filename)
 
@@ -125,6 +129,7 @@ def method_step_select(filename=None):
 # editing an existing one.
 #
 @md_bp.route('/method_step/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def method_step(filename=None, node_id=None):
     eml_node = load_eml(filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)

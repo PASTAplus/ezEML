@@ -58,6 +58,7 @@ cov_bp = Blueprint('cov', __name__, template_folder='templates')
 
 
 @cov_bp.route('/geographic_coverage_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def geographic_coverage_select(filename=None):
     form = GeographicCoverageSelectForm(filename=filename)
 
@@ -209,6 +210,7 @@ def add_geo_coverage_node(eml_node, description, north, south, east, west, amin=
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def geographic_coverage(filename=None, node_id=None):
     form = GeographicCoverageForm(filename=filename)
 
@@ -362,6 +364,7 @@ def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
 
 
 @cov_bp.route('/temporal_coverage_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def temporal_coverage_select(filename=None):
     form = TemporalCoverageSelectForm(filename=filename)
 
@@ -393,6 +396,7 @@ def temporal_coverage_select(filename=None):
 
 
 @cov_bp.route('/temporal_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
 def temporal_coverage(filename=None, node_id=None):
     form = TemporalCoverageForm(filename=filename)
     tc_node_id = node_id
@@ -503,6 +507,7 @@ def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
 
 
 @cov_bp.route('/taxonomic_coverage_select/<filename>', methods=['GET', 'POST'])
+@login_required
 def taxonomic_coverage_select(filename=None):
     form = TaxonomicCoverageSelectForm(filename=filename)
 
@@ -580,6 +585,7 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
 
 @cov_bp.route('/taxonomic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
 @cov_bp.route('/taxonomic_coverage/<filename>/<node_id>/<taxon>', methods=['GET', 'POST'])
+@login_required
 def taxonomic_coverage(filename=None, node_id=None, taxon=None):
     form = TaxonomicCoverageForm(filename=filename)
 

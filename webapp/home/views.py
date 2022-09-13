@@ -50,6 +50,7 @@ from webapp.config import Config
 import csv
 
 from webapp.home.exceptions import (
+    ezEMLError,
     AuthTokenExpired,
     DataTableError,
     MissingFileError,
@@ -1530,8 +1531,9 @@ def zip_package(current_document=None, eml_node=None, include_data=True):
                 except FileNotFoundError as err:
                     filename = os.path.basename(err.filename)
                     msg = f"Unable to archive the package. Missing file: {filename}."
-                    flash(msg, category='error')
-                    return None
+                    raise MissingFileError(msg)
+                    # flash(msg, category='error')
+                    # return None
 
     zip_object.close()
     return zipfile_path
@@ -1800,10 +1802,16 @@ def send_to_other(filename=None, mailto=None):
             if title_node:
                 title = title_node.content
             if not title:
-                flash('The data package requires a Title', 'error')
+                # The GET path will display an error message saying the title is required
                 return redirect(get_back_url())
 
-            zipfile_path = zip_package(current_document, eml_node)
+            try:
+                zipfile_path = zip_package(current_document, eml_node)
+            except ezEMLError as e:
+                flash(str(e), 'error')
+                print(redirect(get_back_url()))
+                return redirect(get_back_url())
+
             _, download_url = save_as_ezeml_package_export(zipfile_path)
 
             if not mailto:

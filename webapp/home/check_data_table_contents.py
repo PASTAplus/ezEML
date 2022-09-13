@@ -74,7 +74,7 @@ def load_df(eml_node, csv_url, data_table_name):
     except:
         pass
 
-    return pd.read_csv(csv_url, comment='#', encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
+    return pd.read_csv(csv_url, encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
                        keep_default_na=False, skiprows=range(1, num_header_lines), skipfooter=num_footer_lines)
 
 
@@ -247,14 +247,19 @@ def check_columns_existence_against_metadata(data_table_node, df):
     for attribute_name_node in attribute_name_nodes:
         metadata_column_names.append(attribute_name_node.content)
     data_table_column_names = list(df.columns)
-    maxlen = max(len(metadata_column_names), len(data_table_column_names))
-    for i in range(maxlen):
-        if not names_match(metadata_column_names[i], data_table_column_names[i]):
-            error = create_error_json(get_data_table_name(data_table_node), data_table_column_names[i], None,
-                                      'Metadata column name does not match column name in data table',
-                                      display_nonprintable(metadata_column_names[i]),
-                                      display_nonprintable(data_table_column_names[i]))
-            errors.append(error)
+    if len(metadata_column_names) != len(data_table_column_names):
+        errors.append(create_error_json(get_data_table_name(data_table_node), None, None,
+                                        'Metadata defines a different number of columns than the data table',
+                                        len(metadata_column_names), len(data_table_column_names)))
+    else:
+        maxlen = max(len(metadata_column_names), len(data_table_column_names))
+        for i in range(maxlen):
+            if not names_match(metadata_column_names[i], data_table_column_names[i]):
+                error = create_error_json(get_data_table_name(data_table_node), data_table_column_names[i], None,
+                                          'Metadata column name does not match column name in data table',
+                                          display_nonprintable(metadata_column_names[i]),
+                                          display_nonprintable(data_table_column_names[i]))
+                errors.append(error)
     return errors, data_table_column_names, metadata_column_names
 
 

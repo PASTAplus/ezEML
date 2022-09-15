@@ -1939,7 +1939,7 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
         form_dict = form_value.to_dict(flat=False)
         source_attr_ids = form_dict.get('source', None)
 
-        if source_attr_ids: # If no option was selected, we'll fall thru and go the GET again
+        if source_attr_ids: # If no option was selected, we'll fall thru and do the GET again
 
             help = views.get_helps(['import_responsible_parties_2'])  # FIX_ME
             return redirect(url_for('dt.clone_attributes_4', target_filename=target_filename, target_dt_id=target_dt_id,
@@ -2071,14 +2071,10 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
     display_children_nodes(target_parent)
     log_info('')
 
-    child_ids = [child.id for child in target_parent.children]
-    i = 0
-    for target_id, child_id in zip(target_attr_ids, child_ids):
-        if target_id != child_id:
-            log_error(f"**** Discrepancy: i={i}  target_id={target_id}  child_id={child_id} ")
-        i = i+1
-
     for source_attr_id, target_attr_id in zip(source_attr_ids, target_attr_ids):
+        # Skip if no target was selected
+        if not target_attr_id:
+            continue
         source_node = Node.get_node_instance(source_attr_id)
         source_node_copy = source_node.copy()
         target_node = Node.get_node_instance(target_attr_id)
@@ -2101,7 +2097,8 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
     # Now that we're done, we can delete the nodes we've replaced
     for target_attr_id in target_attr_ids:
         # log_info(f"deleting Node {target_attr_id}")
-        Node.delete_node_instance(target_attr_id, True)
+        if target_attr_id:
+            Node.delete_node_instance(target_attr_id, True)
 
 
 @dt_bp.route('/clone_attributes_4/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>/<source_attr_ids>',
@@ -2140,7 +2137,11 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         source_attr_ids = [x[1] for x in source_attrs]
         target_attr_ids = []
         for key, val in form_dict.items():
-            if key.startswith('SELECT__') and key.endswith('__SELECT') and val[0]:
+            if key.startswith('SELECT__') and key.endswith('__SELECT'):
+                # This builds a list of the target attributes that were selected
+                # In cases where no target was selected, an empty string will go in the list. This serves as a placeholder
+                #  so the source and target lists will match up. The clone_column_properties function will ignore the
+                #  attributes for which no target was selected.
                 target_attr_ids.append(val[0])
         target_eml_node = load_eml(target_filename)
         clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)

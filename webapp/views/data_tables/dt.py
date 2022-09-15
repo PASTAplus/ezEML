@@ -872,6 +872,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
                                         break
 
     data_table_name = ''
+    dt_node = Node.get_node_instance(dt_node_id)
     if dt_node:
         entity_name_node = dt_node.find_child(names.ENTITYNAME)
         if entity_name_node:
@@ -1128,6 +1129,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
                                         break
 
     data_table_name = ''
+    dt_node = Node.get_node_instance(dt_node_id)
     if dt_node:
         entity_name_node = dt_node.find_child(names.ENTITYNAME)
         if entity_name_node:
@@ -1445,6 +1447,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                                         break
 
     data_table_name = ''
+    dt_node = Node.get_node_instance(dt_node_id)
     if dt_node:
         entity_name_node = dt_node.find_child(names.ENTITYNAME)
         if entity_name_node:

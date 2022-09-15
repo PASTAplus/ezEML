@@ -26,10 +26,11 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
+                {{ macros.column_table_header(column_name, table_name) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_name) }}{{ macros.item_end(help_attribute_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_definition) }}{{ macros.item_end(help_attribute_definition_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_label) }}{{ macros.item_end(help_attribute_label_btn) }}
-                <label class="control-label">Enter a standard unit value <em><u>or</u></em> a custom unit value:</label>
+                <label class="control-label">Enter a standard unit value <em><u>or</u></em> a custom unit value:  *</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
                     <td valign="top" width="50%" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;">{{ wtf.form_field(form.standard_unit) }}</td>

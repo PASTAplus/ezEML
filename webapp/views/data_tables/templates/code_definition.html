@@ -2,12 +2,10 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Code Definition for {{ attribute_name }}</h2>
-    <div class="row">
+    <h2>Code Definition</h2>
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                {{ form.csrf_token }}
-                {{ wtf.form_field(form.md5) }}
+                {{ macros.column_table_header(column_name, table_name) }}
                 <h5>Enter a code and its definition:</h5>
                 {{ wtf.form_field(form.code) }}
                 {{ wtf.form_field(form.definition) }}
@@ -17,7 +15,8 @@
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_new_open_close_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
             </form>
         </div>
-    </div>
 {% endblock %}

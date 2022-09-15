@@ -151,7 +151,7 @@ class AttributeIntervalRatioForm(EDIForm):
     custom_unit = StringField('Custom Unit', validators=[])
     custom_unit_description = StringField('Description (Recommended)', widget=TextArea(), validators=[])
     precision = StringField('Precision (Optional)', validators=[Optional(), validate_float])
-    number_type = SelectField('Number Type',
+    number_type = SelectField('Number Type *',
                                choices=[("real", "real"),
                                         ("integer", "integer"),
                                         ("natural", "natural"),

@@ -871,10 +871,25 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
                                         populate_attribute_datetime_form(form, att_node)
                                         break
 
+    data_table_name = ''
+    if dt_node:
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            data_table_name = entity_name_node.content
+    if att_node_id:
+        att_node = Node.get_node_instance(att_node_id)
+        if att_node:
+            attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+            if attribute_name_node:
+                attribute_name = attribute_name_node.content
+
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
                       'attribute_datetime_precision', 'attribute_datetime_format'])
-    return render_template('attribute_datetime.html', title='Attribute', form=form, help=help)
+    return render_template('attribute_datetime.html', title='Attribute', form=form,
+                           column_name=attribute_name,
+                           table_name=data_table_name,
+                           help=help)
 
 
 def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
@@ -1112,6 +1127,11 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
+    data_table_name = ''
+    if dt_node:
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            data_table_name = entity_name_node.content
     views.set_current_page('data_table')
     custom_unit_names = []
     custom_unit_descriptions = []
@@ -1128,6 +1148,8 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
                            mscale=mscale,
                            custom_unit_names=custom_unit_names,
                            custom_unit_descriptions=custom_unit_descriptions,
+                           column_name=attribute_name,
+                           table_name=data_table_name,
                            help=help)
 
 
@@ -1422,7 +1444,18 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                                         attribute_name = attribute_name_from_attribute(att_node)
                                         break
 
-    # if mscale
+    data_table_name = ''
+    if dt_node:
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            data_table_name = entity_name_node.content
+    if att_node_id:
+        att_node = Node.get_node_instance(att_node_id)
+        if att_node:
+            attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
+            if attribute_name_node:
+                attribute_name = attribute_name_node.content
+
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
     if mscale == VariableType.CATEGORICAL.name:
@@ -1432,6 +1465,8 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                                attribute_name=attribute_name,
                                mscale=mscale,
                                codes=codes,
+                               column_name=attribute_name,
+                               table_name=data_table_name,
                                help=help)
     else:
         return render_template('attribute_text.html',
@@ -1439,6 +1474,8 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                                form=form,
                                attribute_name=attribute_name,
                                mscale=mscale,
+                               column_name=attribute_name,
+                               table_name=data_table_name,
                                help=help)
 
 
@@ -1570,9 +1607,19 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
     if att_node:
         attribute_name = attribute_name_from_attribute(att_node)
         codes_list = list_codes_and_definitions(att_node)
+
+    data_table_name = ''
+    if dt_node_id:
+        dt_node = Node.get_node_instance(dt_node_id)
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            data_table_name = entity_name_node.content
+
     views.set_current_page('data_table')
     return render_template('code_definition_select.html', title=title,
                            attribute_name=attribute_name, codes_list=codes_list,
+                           column_name=attribute_name,
+                           table_name=data_table_name,
                            form=form)
 
 
@@ -1625,7 +1672,6 @@ def code_definition_select_post(filename=None,
                 node_id = key
             else:
                 new_page = handle_hidden_buttons(new_page, this_page)
-
 
     if form.validate_on_submit():
         if new_page == back_page:  # attribute_nominal_ordinal
@@ -1767,8 +1813,22 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
                         populate_code_definition_form(form, cd_node)
                         break
 
+    att_node = Node.get_node_instance(att_node_id)
+    if att_node:
+        attribute_name = attribute_name_from_attribute(att_node)
+
+    data_table_name = ''
+    if dt_node_id:
+        dt_node = Node.get_node_instance(dt_node_id)
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            data_table_name = entity_name_node.content
+
     views.set_current_page('data_table')
-    return render_template('code_definition.html', title='Code Definition', form=form, attribute_name=attribute_name)
+    return render_template('code_definition.html', title='Code Definition',
+                           form=form, attribute_name=attribute_name,
+                           column_name=attribute_name,
+                           table_name=data_table_name)
 
 
 def populate_code_definition_form(form: CodeDefinitionForm, cd_node: Node):

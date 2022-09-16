@@ -1,6 +1,10 @@
+import os
+
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
 )
+
+from werkzeug.utils import secure_filename
 
 from webapp.home.views import (
     process_up_button, process_down_button, set_current_page,
@@ -54,6 +58,10 @@ from webapp.home.metapype_client import (
     create_access
 )
 
+from webapp.auth.user_data import(
+    get_document_uploads_folder_name,
+)
+
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -94,6 +102,7 @@ def other_entity_select(filename=None):
 @ent_bp.route('/other_entity/<filename>/', methods=['GET', 'POST'])
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
+    uploads_folder = get_document_uploads_folder_name()
     form = OtherEntityForm(filename=filename)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -153,12 +162,16 @@ def other_entity(filename=None, node_id=None):
             entity_type = form.entity_type.data
 #            entity_description = form.entity_description.data
 #            object_name = form.object_name.data
-            file_name = form.file_name.data
+            file_upload = form.file_upload.data
+            file_upload_name = secure_filename(file_upload.filename)
+#            file_name = form.file_name.data
             format_name = form.format_name.data
             additional_info = form.additional_info.data
 #            size = str(form.size.data) if form.size.data else ''
 #            md5_hash = form.md5_hash.data
             online_url = form.online_url.data
+
+            file_upload.save(os.path.join(uploads_folder, file_upload_name))
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 
@@ -169,7 +182,7 @@ def other_entity(filename=None, node_id=None):
                 dt_node,
                 entity_name,
                 entity_type,
-                file_name,
+#                file_name,
 #                entity_description,
 #                object_name,
                 format_name,

@@ -6,8 +6,11 @@ from wtforms.validators import (
     URL, Optional, InputRequired
 )
 
-from webapp.home.forms import EDIForm
+from flask_wtf.file import (
+    FileField, FileRequired, FileAllowed
+)
 
+from webapp.home.forms import EDIForm
 
 class OtherEntitySelectForm(EDIForm):
     pass
@@ -20,7 +23,8 @@ class OtherEntityForm(EDIForm):
 #    object_name = StringField('Source Name (e.g., filename)', validators=[])
     format_name = StringField('Data Format (e.g., tif) *', validators=[])
 #    size = IntegerField('Size (Optional)', validators=[Optional()])
-    file_name = StringField("Filename", validators=[])
+    file_upload = FileField("Upload Image *", validators=[FileRequired(), FileAllowed(['jpg', 'png', 'tif'], 'Valid image format required')])
+#    file_name = StringField("Filename", validators=[])
     additional_info = TextAreaField("Additional Info", validators=[])
 #    md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
     online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
@@ -30,7 +34,8 @@ class OtherEntityForm(EDIForm):
         return (self.entity_name.data,
                 self.entity_type.data,
                 self.format_name.data,
-                self.file_name.data,
+                self.file_upload.data,
+#                self.file_name.data,
                 self.additional_info.data,
 #                self.entity_description.data,
 #                self.object_name.data,

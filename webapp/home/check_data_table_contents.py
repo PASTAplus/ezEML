@@ -85,14 +85,14 @@ def find_data_table_node(eml_node, data_table_name):
     for data_table_node in data_table_nodes:
         if get_data_table_name(data_table_node) == data_table_name:
             return data_table_node
-    raise ValueError  # use custom exception
+    raise ValueError(f'Data table "{data_table_name}" not found in EML')
 
 
 def get_attribute_name(attribute_node):
     attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         return attribute_name_node.content
-    raise ValueError  # use custom exception
+    raise ValueError(f'Column not found in EML')
 
 
 def normalize_column_name(name):
@@ -112,6 +112,7 @@ def get_attribute_node(data_table_node, attribute_name):
         if attribute_name_node and names_match(attribute_name_node.content, attribute_name):
             return attribute_node
     raise ValueError  # use custom exception
+    raise ValueError(f'Column "{attribute_name}" not found in EML')
 
 
 def get_variable_type(attribute_node):
@@ -644,14 +645,14 @@ def generate_error_info_for_webpage(data_table_node, errors):
 
 
 def get_eml_file_url(document_name, eml_node):
-    package_id = eml_node.attribute_value('packageId')
-    if package_id:
-        filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
-        if os.path.exists(filepath):
-            return f'file://{filepath}'
     filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
     if os.path.exists(filepath):
         return f'file://{filepath}'
+    # package_id = eml_node.attribute_value('packageId')
+    # if package_id:
+    #     filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
+    #     if os.path.exists(filepath):
+    #         return f'file://{filepath}'
     return None
 
 

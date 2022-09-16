@@ -2062,15 +2062,6 @@ def display_children_nodes(parent_node, level='info'):
 
 
 def clone_column_properties(source_table_id, source_attr_ids, target_table_id, target_attr_ids):
-    log_info("******************************************")
-    log_info(f"clone_column_properties: target_attr_ids={target_attr_ids}")
-
-    target_attr_id = target_attr_ids[0]
-    target_node = Node.get_node_instance(target_attr_id)
-    target_parent = target_node.parent
-    display_children_nodes(target_parent)
-    log_info('')
-
     for source_attr_id, target_attr_id in zip(source_attr_ids, target_attr_ids):
         # Skip if no target was selected
         if not target_attr_id:
@@ -2107,7 +2098,7 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
 def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids):
     form = SelectDataTableColumnsForm()
 
-    source_eml_node = load_eml(source_filename)
+    _ = load_eml(source_filename)
     source_attr_ids_list = source_attr_ids.strip('][').split(', ')
     source_attrs = []
     for source_attr_id in source_attr_ids_list:
@@ -2117,7 +2108,7 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         source_attr_node = source_attr_name_node.parent
         source_attrs.append((source_attr_name, source_attr_node.id))
 
-    target_eml_node = load_eml(target_filename)
+    _ = load_eml(target_filename)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_attrs = []
     target_dt_attr_nodes = []

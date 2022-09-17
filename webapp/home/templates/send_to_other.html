@@ -7,7 +7,7 @@
     {% set help_send_to_colleague_dialog = help_send_to_colleague_id ~ '_dialog' %}
     
     <table>
-        <td><h2>Send Data Package to a Colleague</h2></td>
+        <td><h2>Submit Metadata</h2></td>
         <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_send_to_colleague_btn) }}</td>
     </table>
 {#        <div class="col-md-10">#}
@@ -65,7 +65,7 @@
         link for the package will be generated for you to use. You will have the opportunity to edit the email and personalize
         it as you see fit before sending it to your colleague.<p></p>&nbsp;<br>
 
-                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Prepare Package for Colleague"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Submit Metadata"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
     </form>

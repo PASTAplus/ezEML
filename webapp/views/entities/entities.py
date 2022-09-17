@@ -1,4 +1,5 @@
 import os
+import glob
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
@@ -170,6 +171,13 @@ def other_entity(filename=None, node_id=None):
 #            size = str(form.size.data) if form.size.data else ''
 #            md5_hash = form.md5_hash.data
             online_url = form.online_url.data
+
+            #remove any preexisting files in folder (FILE PATH CHANGE NEEDED)
+            images = glob.glob(os.path.join(uploads_folder, '*'))
+
+            for f in images:
+                print("found file: " + f)
+                os.remove(f)
 
             file_upload.save(os.path.join(uploads_folder, file_upload_name))
 

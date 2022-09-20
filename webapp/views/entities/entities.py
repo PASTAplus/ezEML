@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_document_uploads_folder_name,
+    get_user_folder_name,
 )
 
 from metapype.eml import names
@@ -103,7 +103,12 @@ def other_entity_select(filename=None):
 @ent_bp.route('/other_entity/<filename>/', methods=['GET', 'POST'])
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
-    uploads_folder = get_document_uploads_folder_name()
+
+    #create temp folder for user if does not exist
+    temp_folder = get_user_folder_name() + '/temp'
+    if not os.path.isdir(temp_folder):
+        os.makedirs(temp_folder)
+
     form = OtherEntityForm(filename=filename)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -172,14 +177,14 @@ def other_entity(filename=None, node_id=None):
 #            md5_hash = form.md5_hash.data
             online_url = form.online_url.data
 
-            #remove any preexisting files in folder (FILE PATH CHANGE NEEDED)
-            images = glob.glob(os.path.join(uploads_folder, '*'))
+            #remove any preexisting files in temp folder then upload new image to it
+            images = glob.glob(os.path.join(temp_folder, '*'))
 
             for f in images:
                 print("found file: " + f)
                 os.remove(f)
 
-            file_upload.save(os.path.join(uploads_folder, file_upload_name))
+            file_upload.save(os.path.join(temp_folder, file_upload_name))
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 

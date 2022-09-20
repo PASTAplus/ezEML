@@ -174,22 +174,12 @@ def method_step(filename=None, node_id=None):
 
             instrumentation = form.instrumentation.data
             data_sources = form.data_sources.data
-            method_step_node = Node(names.METHODSTEP, parent=methods_node)
+            method_step_node = Node.get_node_instance(node_id)
+            if not method_step_node:
+                method_step_node = Node(names.METHODSTEP, parent=methods_node)
+                add_child(methods_node, method_step_node)
             create_method_step(method_step_node, description, instrumentation, data_sources,
                                data_sources_marker_begin, data_sources_marker_end)
-
-            if node_id and len(node_id) != 1:
-                old_method_step_node = Node.get_node_instance(node_id)
-
-                if old_method_step_node:
-                    method_step_parent_node = old_method_step_node.parent
-                    method_step_parent_node.replace_child(old_method_step_node,
-                                                          method_step_node)
-                else:
-                    msg = f"No methodStep node found in the node store with node id {node_id}"
-                    raise Exception(msg)
-            else:
-                add_child(methods_node, method_step_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
 

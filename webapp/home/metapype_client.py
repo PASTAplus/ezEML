@@ -219,7 +219,7 @@ def post_process_texttype_node(text_node:Node=None):
                         break
             text_node.remove_children()
             text_node.content = content
-            if all_paras:
+            if all_paras or not children:  # If we have no children, we're handling simple text. Add paras there, too.
                 save_content_in_para_nodes(text_node)
 
 
@@ -2823,7 +2823,9 @@ def compose_method_step_instrumentation(method_step_node:Node=None):
 def create_method_step(method_step_node:Node=None, description:str=None, instrumentation:str=None, data_sources:str=None,
                        data_sources_marker_begin:str='', data_sources_marker_end:str=''):
     if method_step_node:
-        description_node = new_child_node(names.DESCRIPTION, parent=method_step_node)
+        description_node = method_step_node.find_child(names.DESCRIPTION)
+        if not description_node:
+            description_node = new_child_node(names.DESCRIPTION, parent=method_step_node)
 
         if data_sources:
             if not description:

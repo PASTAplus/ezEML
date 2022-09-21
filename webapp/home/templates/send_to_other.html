@@ -46,6 +46,16 @@
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </table>
         </td></tr>
+        <table>
+            <tr>
+                <td width="200"><b>Image File</b></td>
+                <td><b>XML File</b></td>
+            </tr>
+            <tr>
+                <td>{{ image_name|safe}}</td>
+                <td>{{ xml_name|safe }}</td>
+            </tr>
+        </table>
     </table>
         <p></p>
 {#        <h5>If you have any notes for EDI data curators, enter them below.</h5>#}

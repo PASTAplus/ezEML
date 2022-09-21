@@ -18,6 +18,7 @@ from datetime import date, datetime
 import html
 import json
 import math
+import glob
 import os.path
 import pandas as pd
 from pathlib import Path
@@ -1327,12 +1328,23 @@ def send_to_other_email(name, email_address, title, url):
 def send_to_other(filename=None, mailto=None):
     form = SendToColleagueForm()
 
+    # set temp and upload folders
+    upload_folder = user_data.get_document_uploads_folder_name()
+    temp_folder = user_data.get_temp_folder()
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if form.validate_on_submit():
+        # move files from temp folder to appropriate uploads folder
+        images = glob.glob(os.path.join(temp_folder, '*'))
+        for f in images:
+            print("found file: " + f)
+            fname = os.path.basename(f)
+            Path(f).rename(upload_folder + '/' + fname)
+
         colleague_name = form.data['colleague_name']
         email_address = form.data['email_address']
 
@@ -1377,6 +1389,9 @@ def send_to_other(filename=None, mailto=None):
         help = get_helps(['send_to_colleague'])
         return render_template('send_to_other.html',
                                title='Send to Other',
+                               #set image and xml file names to display
+                               image_name=user_data.get_temp_file_name(),
+                               xml_name=current_user.get_filename(),
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
 

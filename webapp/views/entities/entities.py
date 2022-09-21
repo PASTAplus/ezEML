@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_user_folder_name,
+    get_temp_folder,
 )
 
 from metapype.eml import names
@@ -104,10 +104,8 @@ def other_entity_select(filename=None):
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
 
-    #create temp folder for user if does not exist
-    temp_folder = get_user_folder_name() + '/temp'
-    if not os.path.isdir(temp_folder):
-        os.makedirs(temp_folder)
+    #set temp folder
+    temp_folder = get_temp_folder()
 
     form = OtherEntityForm(filename=filename)
 

@@ -36,7 +36,7 @@ class DonorForm(EDIForm):
                                             ("ovarianCortex", "Ovarian Cortex"),
                                             ("ovarianMedulla", "Ovarian Medulla"),
                                             ("follicle", "Follicle"),
-                                            ("corpusLuteum", "CorpusLuteum"),
+                                            ("corpusLuteum", "Corpus Luteum"),
                                             ("unspecified", "Unspecified")],
                                    render_kw={'onchange': "specimenLocationFunction()"})
     corpusLuteum = SelectField('Corpus Luteum Type',

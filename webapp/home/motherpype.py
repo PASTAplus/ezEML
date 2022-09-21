@@ -40,6 +40,8 @@ from metapype.model import mp_io, metapype_io
 
 import webapp.home.motherpype_names as mdb_names
 
+from webapp.home.metapype_client import save_both_formats
+
 from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
@@ -125,7 +127,7 @@ def clean_mother_node(eml_node: Node, current_document: None):
 
 
 def clean_mother_xml(mother_node: Node, current_document):
-    cleaned_mother_node = to_xml_json(mother_node, None, 0)
+    cleaned_mother_node = to_xml_json(mother_node, None, 6)
     user_folder = user_data.get_user_folder_name()
     filename = f'{user_folder}/{current_document}.xml'
     with open(filename, "r+") as fh:
@@ -190,6 +192,10 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
 
 
 def to_xml_json(node: Node, parent: Node = None, level: int = 0) -> str:
+    
+    #Need to add structure to skip nodes with no content such as lightmicroscopystain
+    #Add data structure to catch nil nodes
+    
     xml = ""
     spacing = "  "
     indent = spacing * level
@@ -256,7 +262,7 @@ def _nsp_unique(child_nsmap: dict, parent_nsmap: dict) -> dict:
 """
 
 
-def add_mother_metadata(eml_node: Node = None):
+def add_mother_metadata(eml_node: Node = None, filename=None):
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     if additional_metadata_node:
         metadata_node = additional_metadata_node.find_child(names.METADATA)

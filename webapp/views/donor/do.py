@@ -80,7 +80,7 @@ def donor(filename=None):
             if mother_node:
                 node_id = mother_node.id
         else:
-            add_mother_metadata(eml_node)
+            add_mother_metadata(eml_node, filename=filename)
 
     save_both_formats(filename, eml_node)
 

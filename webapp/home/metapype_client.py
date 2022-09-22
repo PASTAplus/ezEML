@@ -1463,7 +1463,6 @@ def create_data_table(
         if entity_description:
             entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=data_table_node)
             entity_description_node.content = entity_description
-            post_process_texttype_node(entity_description_node)
 
         if object_name or size or md5_hash or num_header_lines or \
            record_delimiter or attribute_orientation or \

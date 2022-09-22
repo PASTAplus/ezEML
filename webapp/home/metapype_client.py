@@ -2425,7 +2425,6 @@ def create_geographic_coverage(
     try:
         geographic_description_node = new_child_node(names.GEOGRAPHICDESCRIPTION, parent=geographic_coverage_node)
         geographic_description_node.content = geographic_description
-        post_process_texttype_node(geographic_description_node)
 
         bounding_coordinates_node = new_child_node(names.BOUNDINGCOORDINATES, parent=geographic_coverage_node)
 

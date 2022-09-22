@@ -303,7 +303,7 @@ def create_donor(mother_node: Node,
                  specimenTissue: str = "Ovary",
                  ovaryPosition: str = None,
                  specimenLocation: str = None,
-                 corpusLuteumType: str = None,
+                 corpusLuteum: str = None,
                  cycleType: Node = None,
                  dayOfCycle: str = None,
                  stageOfCycle: str = None,
@@ -390,8 +390,14 @@ def create_donor(mother_node: Node,
         if not specimenLocation_node:
             specimenLocation_node = Node(mdb_names.SPEC_LOCATION, parent=mother_node)
             mother_node.add_child(specimenLocation_node)
-        if specimenLocation != mdb_names.CORPUS_LUTEUM:
-            specimenLocation_node.content = specimenLocation
+        specimenLocation_node.content = specimenLocation
+        # if corpusLuteum
+        if specimenLocation_node.content == mdb_names.CORPUS_LUTEUM:
+            corupsLuteum_node = specimenLocation_node.find_child(mdb_names.CORPUS_LUTEUM)
+            if not corupsLuteum_node:
+                corupsLuteum_node = Node(mdb_names.CORPUS_LUTEUM, parent=specimenLocation_node)
+                specimenLocation_node.add_child(corupsLuteum_node)
+            corupsLuteum_node.content = corpusLuteum
         # if cycleType:
         cycleType_node = mother_node.find_child(mdb_names.SPEC_CYCLE)
         if not cycleType_node:

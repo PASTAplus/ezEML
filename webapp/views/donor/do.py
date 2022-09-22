@@ -210,8 +210,8 @@ def new_donor(filename=None, node_id=None, method=None,
                 model,
                 notes)
 
-            if specimenLocation == 'corpusLuteum':
-                populate_specimen_location(mother_node, "corpusLuteumType")
+            # if specimenLocation == 'corpusLuteum':
+            #     populate_specimen_location(mother_node, "corpusLuteumType")
 
             if stageOfCycle == 'follicular':
                 populate_stage_of_cycle(stageOfCycle, mother_node, "follicularType")
@@ -278,9 +278,9 @@ def populate_donor_form(form: DonorForm, node: Node):
     specimenLocation_node = node.find_child(mdb_names.SPEC_LOCATION)
     if specimenLocation_node:
         form.specimenLocation.data = specimenLocation_node.content
-        corpusLuteum_node = specimenLocation_node.find_child(mdb_names.CORPUS_LUTEUM)
-        if corpusLuteum_node:
-            form.corpusLuteum.data = corpusLuteum_node.content
+        # corpusLuteum_node = specimenLocation_node.find_child(mdb_names.CORPUS_LUTEUM)
+        # if corpusLuteum_node:
+        #     form.corpusLuteum.data = corpusLuteum_node.content
 
     specimenCycle_node = node.find_child(mdb_names.SPEC_CYCLE)
     if specimenCycle_node:
@@ -423,8 +423,8 @@ def populate_stage_of_cycle(stageOfCycle: None, mother_node: Node, content_value
 
 def populate_specimen_location(mother_node:Node, content_value):
     specimenLocation_node = mother_node.find_child('specimenLocation')
-    corpusLuteum_node = specimenLocation_node.find_child('corpusLuteumType')
+    corpusLuteum_node = specimenLocation_node.find_child('corpusLuteum')
     if not corpusLuteum_node:
-        corpusLuteum_node = Node('corpusLuteumType', parent=specimenLocation_node)
+        corpusLuteum_node = Node('corpusLuteum', parent=specimenLocation_node)
         specimenLocation_node.add_child(corpusLuteum_node)
     corpusLuteum_node.content = content_value

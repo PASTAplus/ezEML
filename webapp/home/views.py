@@ -1700,8 +1700,14 @@ def submit_package():
             insert_upload_urls(current_document, eml_node)
             save_both_formats(filename=current_document, eml_node=eml_node)
 
-            zipfile_path = zip_package(current_document, eml_node)
-            zipfile_path_without_data = zip_package(current_document, eml_node, include_data=False)
+            try:
+                zipfile_path = zip_package(current_document, eml_node)
+                zipfile_path_without_data = zip_package(current_document, eml_node, include_data=False)
+            except ezEMLError as e:
+                flash(str(e), 'error')
+                print(redirect(get_back_url()))
+                return redirect(get_back_url())
+
             if zipfile_path and zipfile_path_without_data:
                 _, download_url = save_as_ezeml_package_export(zipfile_path)
                 _, download_url_without_data = save_as_ezeml_package_export(zipfile_path_without_data)

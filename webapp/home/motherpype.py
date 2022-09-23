@@ -40,6 +40,8 @@ from metapype.model import mp_io, metapype_io
 
 import webapp.home.motherpype_names as mdb_names
 
+from webapp.home.metapype_client import save_both_formats
+
 from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
@@ -256,7 +258,7 @@ def _nsp_unique(child_nsmap: dict, parent_nsmap: dict) -> dict:
 """
 
 
-def add_mother_metadata(eml_node: Node = None):
+def add_mother_metadata(eml_node: Node = None, filename = None):
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     if additional_metadata_node:
         metadata_node = additional_metadata_node.find_child(names.METADATA)

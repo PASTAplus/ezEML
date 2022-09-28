@@ -3,7 +3,7 @@ from wtforms import (
 )
 
 from wtforms.validators import (
-    URL, Optional, InputRequired
+    URL, Optional, InputRequired, DataRequired
 )
 
 from flask_wtf.file import (
@@ -18,11 +18,11 @@ class OtherEntitySelectForm(EDIForm):
 
 class OtherEntityForm(EDIForm):
     #TODO: make input required unless image is uploaded
-    entity_name = StringField('Name *', validators=[])
-    entity_type = StringField('Image Type (e.g., histology) *', validators=[])
+    entity_name = StringField('Name *', validators=[DataRequired()])
+    entity_type = StringField('Image Type (e.g., histology) *', validators=[DataRequired()])
 #    entity_description = StringField('Description (Recommended)', validators=[])
 #    object_name = StringField('Source Name (e.g., filename)', validators=[])
-    format_name = StringField('Data Format (e.g., tif) *', validators=[])
+    format_name = StringField('Data Format (e.g., tif) *', validators=[DataRequired()])
 #    size = IntegerField('Size (Optional)', validators=[Optional()])
     file_upload = FileField("Upload Image")
 #    file_name = StringField("Filename", validators=[])

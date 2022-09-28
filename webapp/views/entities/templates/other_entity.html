@@ -15,8 +15,8 @@
             <form method="POST" action="" class="form" role="form" enctype="multipart/form-data">
                 <h5>Enter information about the image:</h5>
 
-                {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.entity_name) }}
+                {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.format_name) }}
                 {{ wtf.form_field(form.file_upload) }}
                 {{ wtf.form_field(form.additional_info) }}

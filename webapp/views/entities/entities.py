@@ -179,7 +179,7 @@ def other_entity(filename=None, node_id=None):
                 file_upload_name = secure_filename(file_upload.filename)
                 file_upload_name_split = os.path.splitext(file_upload_name)
                 entity_name = file_upload_name_split[0]
-                entity_type = file_upload_name_split[1].strip('.') #remove dot to stay consistent with expected user input
+                format_name = file_upload_name_split[1].strip('.') #remove dot to stay consistent with expected user input
 
                 #remove any preexisting files in temp folder then upload new image to it
                 images = glob.glob(os.path.join(temp_folder, '*'))

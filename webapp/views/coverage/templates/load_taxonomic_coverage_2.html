@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_taxonomic_coverage_csv_file_id, help_taxonomic_coverage_csv_file_title, help_taxonomic_coverage_csv_file_content = help[0] %}
+    {% set help_taxonomic_coverage_csv_file_btn = help_taxonomic_coverage_csv_file_id ~ '_btn' %}
+    {% set help_taxonomic_coverage_csv_file_dialog = help_taxonomic_coverage_csv_file_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Load Taxonomic Coverage from CSV File</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_taxonomic_coverage_csv_file_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+
+            <h4>Please note:</h4>
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_taxonomic_coverage_csv_file_dialog, help_taxonomic_coverage_csv_file_title, help_taxonomic_coverage_csv_file_content) }}
+{% endblock %}

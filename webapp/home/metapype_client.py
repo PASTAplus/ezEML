@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.09.20'
+RELEASE_NUMBER = '2022.09.28'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -2492,7 +2492,7 @@ def create_taxonomic_coverage(
                 taxonomic_coverage_node:Node,
                 general_taxonomic_coverage:str,
                 hierarchy,
-                authority):
+                global_authority):
     try:
         if taxonomic_coverage_node:
             if general_taxonomic_coverage:
@@ -2501,7 +2501,7 @@ def create_taxonomic_coverage(
                 general_taxonomic_coverage_node.content = general_taxonomic_coverage
 
             taxonomic_classification_parent_node = taxonomic_coverage_node
-            for taxon_rank, taxon_name, common_name, taxon_id, *_ in hierarchy[::-1]:
+            for taxon_rank, taxon_name, common_name, taxon_id, _, authority in hierarchy[::-1]:
                 taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
                 taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = taxon_rank
@@ -2510,6 +2510,8 @@ def create_taxonomic_coverage(
                 if common_name:
                     common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = common_name
+                if not authority:
+                    authority = global_authority
                 if taxon_id and authority:
                     taxon_id_node = new_child_node(names.TAXONID, parent=taxonomic_classification_node)
                     taxon_id_node.content = taxon_id

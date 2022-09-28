@@ -11,6 +11,8 @@ from flask_login import (
     current_user, login_required
 )
 
+from webapp.home.exceptions import *
+
 from webapp.home.metapype_client import (
     add_child, load_eml, save_both_formats,
     list_geographic_coverages, create_geographic_coverage,
@@ -21,7 +23,8 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.views.coverage.taxonomy import (
-    TaxonomySourceEnum, ITISTaxonomy, NCBITaxonomy, WORMSTaxonomy
+    TaxonomySourceEnum, ITISTaxonomy, NCBITaxonomy, WORMSTaxonomy,
+    load_taxonomic_coverage_csv_file, process_taxonomic_coverage_file
 )
 
 from webapp.auth.user_data import (
@@ -35,7 +38,8 @@ from webapp.views.coverage.forms import (
     TemporalCoverageForm,
     TemporalCoverageSelectForm,
     TaxonomicCoverageForm,
-    TaxonomicCoverageSelectForm
+    TaxonomicCoverageSelectForm,
+    LoadTaxonomicCoverageForm
 )
 
 from webapp.buttons import *
@@ -43,7 +47,7 @@ from webapp.pages import *
 
 from webapp.home.views import (
     select_post, compare_begin_end_dates, get_help, get_helps, set_current_page,
-    secure_filename, allowed_data_file
+    secure_filename, allowed_data_file, encode_for_query_string, decode_from_query_string
 )
 from webapp.home.log_usage import (
     actions,
@@ -135,6 +139,8 @@ def load_geo_coverage(filename):
                     load_geo_coverage_from_csv(data_file_path, document)
                     log_usage(actions['LOAD_GEOGRAPHIC_COVERAGE'], filename)
                     flash(f'Loaded {data_file}')
+                except InvalidHeaderError as e:
+                    flash(f'Invalid header in {data_file}: {e}')
                 except ValueError as ex:
                     flash(f'Load CSV file failed. {ex.args[0]}', 'error')
                 return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
@@ -555,9 +561,10 @@ def clear_taxonomic_coverage(package_name):
             coverage_node.remove_child(taxonomic_coverage_node)
             Node.delete_node_instance(taxonomic_coverage_node.id)
         clear_taxonomy_imported_from_xml(eml_node, package_name)
+        save_both_formats(filename=package_name, eml_node=eml_node)
 
 
-def fill_taxonomic_coverage(taxon, source_type, source_name):
+def fill_taxonomic_coverage(taxon, source_type, source_name, row=None):
     # taxon = form.taxon_value.data
     hierarchy = []
     if not taxon:
@@ -565,10 +572,13 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
 
     if source_type == TaxonomySourceEnum.ITIS:
         source = ITISTaxonomy()
+        source.name = 'ITIS'
     elif source_type == TaxonomySourceEnum.NCBI:
         source = NCBITaxonomy()
+        source.name = 'NCBI'
     elif source_type == TaxonomySourceEnum.WORMS:
         source = WORMSTaxonomy()
+        source.name = 'WORMS'
     if not source:
         raise ValueError('No source specified')
     try:
@@ -576,11 +586,115 @@ def fill_taxonomic_coverage(taxon, source_type, source_name):
     except Exception as err:
         raise ValueError(f'A network error occurred. Please try again.')
     if not hierarchy:
-        in_str = ''
-        if source_name:
-            in_str = f' in {source_name}'
-        raise ValueError(f'Taxon {taxon} not found{in_str}')
+        raise TaxonNotFound(f'Row {row}: Taxon "{taxon}" - Not found in authority {source.name}. Please check that you'
+                            f' have used the taxon\'s scientific name. To include "{taxon}" in your metadata without'
+                            f' querying {source.name}, specify a taxon rank for "{taxon}" in the CSV file.')
     return hierarchy
+
+
+@cov_bp.route('/load_taxonomic_coverage/<filename>', methods=['GET', 'POST'])
+@login_required
+def load_taxonomic_coverage(filename):
+    form = LoadTaxonomicCoverageForm()
+    document = current_user.get_filename()
+    uploads_folder = get_document_uploads_folder_name()
+
+    # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=filename)
+        return redirect(url)
+
+    if request.method == 'POST' and form.validate_on_submit():
+
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = None
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_LOAD_TAXONOMIC_COVERAGE)
+
+        if new_page:
+            url = url_for(new_page, filename=filename)
+            return redirect(url)
+
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+
+        delimiter = form.delimiter.data
+        quote_char = form.quote.data
+        source = form.taxonomic_authority.data
+
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+
+            if filename is None or filename == '':
+                flash('No selected file', 'error')
+            elif allowed_data_file(filename):
+                filepath = os.path.join(uploads_folder, filename)
+                file.save(filepath)
+                data_file = filename
+                data_file_path = f'{uploads_folder}/{data_file}'
+                try:
+                    errors = None
+                    log_usage(actions['LOAD_TAXONOMIC_COVERAGE'], filename)
+                    global_authority = source
+                    taxa = load_taxonomic_coverage_csv_file(data_file_path, delimiter, quote_char)
+                    hierarchies, general_coverages, errors = process_taxonomic_coverage_file(taxa, global_authority)
+                    flash(f'Loaded {data_file}')
+                    if hierarchies:
+                        eml_node = load_eml(filename=document)
+                        save_uploaded_taxonomic_coverage(eml_node, hierarchies, general_coverages, global_authority)
+                        save_both_formats(filename=document, eml_node=eml_node)
+
+                except InvalidHeaderRow as err:
+                    flash(f'CSV file does not have the expected header row.', 'error')
+                except ValueError as ex:
+                    flash(f'Load CSV file failed. {ex.args[0]}', 'error')
+
+                if errors:
+                    return redirect(url_for(PAGE_LOAD_TAXONOMIC_COVERAGE_2,
+                                            errors=encode_for_query_string(errors)))
+                else:
+                    return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=document))
+
+    # Process GET
+    help = [get_help('load_taxonomic_coverage')]
+    return render_template('load_taxonomic_coverage.html',
+                           form=form,
+                           help=help)
+
+
+@cov_bp.route('/load_taxonomic_coverage_2/<errors>', methods=['GET', 'POST'])
+@login_required
+def load_taxonomic_coverage_2(errors):
+    return render_template('load_taxonomic_coverage_2.html',
+                           errors=decode_from_query_string(errors))
+
+
+def save_uploaded_taxonomic_coverage(eml_node, hierarchies, general_coverages, global_authority):
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = Node(names.DATASET)
+
+    coverage_node = dataset_node.find_child(names.COVERAGE)
+    if not coverage_node:
+        coverage_node = Node(names.COVERAGE, parent=dataset_node)
+        add_child(dataset_node, coverage_node)
+
+    for hierarchy, general_coverage in zip(hierarchies, general_coverages):
+        # Each hierarchy gets its own taxonomic coverage node. There are other ways to do this, but this is how ezEML does it.
+        taxonomic_coverage_node = Node(names.TAXONOMICCOVERAGE, parent=coverage_node)
+        add_child(coverage_node, taxonomic_coverage_node)
+
+        create_taxonomic_coverage(
+            taxonomic_coverage_node,
+            general_coverage,
+            hierarchy,
+            global_authority)
 
 
 @cov_bp.route('/taxonomic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])

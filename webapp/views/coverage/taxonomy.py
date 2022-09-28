@@ -1,3 +1,4 @@
+import csv
 import json
 from lxml import etree
 from lxml.etree import fromstring
@@ -5,15 +6,27 @@ import requests
 
 from enum import Enum, auto
 
+from webapp.home.exceptions import *
+import webapp.views.coverage.coverage as coverage
+
 class TaxonomySourceEnum(Enum):
     ITIS = auto()
     NCBI = auto()
     WORMS = auto()
 
+
 class TaxonomySource:
 
     def __init__(self, source):
         self.source = source
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
 
     def prune_hierarchy(self, hierarchy):
         pruned = []
@@ -60,7 +73,7 @@ class ITISTaxonomy(TaxonomySource):
         r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/getHierarchyUpFromTSN?tsn={tsn}')
         return json.loads(r.text)
 
-    def fill_hierarchy(self, name):
+    def fill_hierarchy(self, name, levels=None):
         hierarchy = []
         rec = self.search_by_combined_name(name)
         if rec:
@@ -75,6 +88,8 @@ class ITISTaxonomy(TaxonomySource):
                     provider = 'ITIS'
                     hierarchy.append((rankName, taxonName, tsn, link, provider))
                     tsn = parent_tsn
+                    if levels and len(hierarchy) >= levels:
+                        break
                 else:
                     break
         return self.prune_hierarchy(hierarchy)
@@ -164,7 +179,7 @@ class NCBITaxonomy(TaxonomySource):
             f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}')
         return r.text
 
-    def fill_hierarchy(self, name):
+    def fill_hierarchy(self, name, levels=None):
         hierarchy = []
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         id = self.get_taxon_id(name)
@@ -182,6 +197,8 @@ class NCBITaxonomy(TaxonomySource):
                     provider = 'NCBI'
                     hierarchy.append((rank_name, taxon_name, id, link, provider))
                     id = parent_id
+                    if levels and len(hierarchy) >= levels:
+                        break
                 except Exception as e:
                     break
             else:
@@ -198,3 +215,54 @@ class NCBITaxonomy(TaxonomySource):
             return ''
         else:
             return common_name
+
+
+def load_taxonomic_coverage_csv_file(csv_file, delimiter, quotechar):
+    taxa = []
+    with open(csv_file, 'r', encoding='utf-8-sig') as f:
+        reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
+        header_row = next(reader)
+        if header_row and header_row != ['taxon_scientific_name', 'general_taxonomic_coverage', 'taxon_rank']:
+            raise InvalidHeaderRow(f'{csv_file} has invalid header row: {header_row}')
+        for row in reader:
+            taxon, general_coverage, rank = (str.strip(x) for x in row)
+            if taxon:
+                taxa.append((taxon, general_coverage,  rank))
+    return taxa
+
+
+def process_taxonomic_coverage_file(taxa, authority):
+    row = 0
+    hierarchies = []
+    errors = []
+    general_coverages = []
+    for taxon, general_coverage, rank in taxa:
+        row += 1
+        general_coverages.append(general_coverage)
+        # If rank is provided, we don't access the taxonomic authority but just use the provided rank.
+        if rank:
+            rank = str.capitalize(rank)
+            hierarchies.append([(rank, taxon, None, None, None, None)])
+            errors.append(f'Row {row}: Taxon "{taxon}" - Because a taxon rank ("{rank}") was specified for "{taxon}" in'
+                          f' the CSV file, {authority} was not queried for this taxon. To cause {authority} to be '
+                          f' queried for a taxon, leave its taxon rank empty in the CSV file.')
+            continue
+        if authority == 'ITIS':
+            t = ITISTaxonomy()
+            source_type = TaxonomySourceEnum.ITIS
+        elif authority == 'NCBI':
+            t = NCBITaxonomy()
+            source_type = TaxonomySourceEnum.NCBI
+        elif authority == 'WORMS':
+            t = WORMSTaxonomy()
+            source_type = TaxonomySourceEnum.WORMS
+        try:
+            hierarchy = coverage.fill_taxonomic_coverage(taxon, source_type, '', row)
+            hierarchies.append(hierarchy)
+        except TaxonNotFound as e:
+            errors.append(e.message)
+    return hierarchies, general_coverages, errors
+
+
+if __name__ == "__main__":
+    pass

@@ -189,6 +189,35 @@ class TaxonomicCoverageForm(EDIForm):
                 # self.species_common_name.data)
 
 
+class LoadTaxonomicCoverageForm(EDIForm):
+    delimiter = SelectField('Field Delimiter', choices=[
+            (',', 'comma'),
+            ('\t', 'tab'),
+            ('|', 'vertical bar, or pipe - |'),
+            (';', 'semicolon'),
+            (':', 'colon')
+        ], default=','
+    )
+    quote = SelectField('Quote Character', choices=[
+            ('"', 'double quote - "'),
+            ("'", "single quote - '")
+        ], default='"'
+    )
+    general_taxonomic_coverage = StringField('General Taxonomic Coverage (Optional)', widget=TextArea(), validators=[])
+    hierarchy = HiddenField('')
+    taxonomic_authority = SelectField("Taxonomic Authority", choices=[
+        ("ITIS", "ITIS - Integrated Taxonomic Information System"),
+        ("NCBI", "NCBI - National Center for Biotechnology Information"),
+        ("WORMS", "WORMS - World Register of Marine Species")])
+    md5 = HiddenField('')
+    hidden_taxonomic_authority = HiddenField('')
+
+    def field_data(self)->tuple:
+        return (self.general_taxonomic_coverage.data,
+                self.hierarchy,
+                self.taxonomic_authority)
+
+
 class TemporalCoverageSelectForm(EDIForm):
     pass
 

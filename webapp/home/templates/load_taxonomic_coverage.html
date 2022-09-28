@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_taxonomic_coverage_csv_file_id, help_taxonomic_coverage_csv_file_title, help_taxonomic_coverage_csv_file_content = help[0] %}
+    {% set help_taxonomic_coverage_csv_file_btn = help_taxonomic_coverage_csv_file_id ~ '_btn' %}
+    {% set help_taxonomic_coverage_csv_file_dialog = help_taxonomic_coverage_csv_file_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Load Taxonomic Coverage from CSV File</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_taxonomic_coverage_csv_file_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                <h4>Select the CSV file to load:</h4>
+                <input type=file name=file>
+                <p>&nbsp;</p>
+                <table width="70%">
+                    <tr>
+{#                        <td width="25%">{{ wtf.form_field(form.num_header_rows) }}</td>#}
+{#                        <td width="3%"></td>#}
+                        <td width="25%">{{ wtf.form_field(form.delimiter) }}</td>
+                        <td width="3%"></td>
+                        <td width="25%">{{ wtf.form_field(form.quote) }}</td>
+
+                    </tr>
+                    <tr>
+                        <td width="53%" colspan="3">{{ wtf.form_field(form.taxonomic_authority) }}</td>
+                    </tr>
+                </table>
+                <table><tr>
+                    <td style="padding-right: 40px;"><input class="btn btn-primary" onclick="document.getElementById('spinner').style.visibility='visible';" name="Upload" type="submit" value="Upload"/></td>
+
+                    <td style="padding-right: 10px;"><input class="btn btn-primary" name="Reset" type="reset" value="Reset"/></td>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <td style="padding-right: 40px;"><input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></td>
+                    <td>
+                    <table id="spinner" style="visibility: hidden">
+                        <tr>
+                            <td style="padding-right: 10px;"><div style="margin: auto;position: relative;z-index: 1000;" class="loader"></div></td>
+                            <td>Please stand by...</td>
+                        </tr>
+                    </table>
+                    </td></tr>
+                </table>
+{#                <span id="spinner" style="visibility: hidden;"><div style="margin: auto;position: relative;z-index: 1000;" class="loader"></div>Please stand by...</span>#}
+
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_taxonomic_coverage_csv_file_dialog, help_taxonomic_coverage_csv_file_title, help_taxonomic_coverage_csv_file_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_taxonomic_coverage_csv_file_id, help_taxonomic_coverage_csv_file_title, help_taxonomic_coverage_csv_file_content = help[0] %}
+    {% set help_taxonomic_coverage_csv_file_btn = help_taxonomic_coverage_csv_file_id ~ '_btn' %}
+    {% set help_taxonomic_coverage_csv_file_dialog = help_taxonomic_coverage_csv_file_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_taxonomic_coverage_csv_file_dialog, help_taxonomic_coverage_csv_file_btn) }}
+    });
+    </script>
+{% endblock %}

@@ -22,7 +22,7 @@ html {
 }
 
 .loader {
-  border: 4px solid #f3f3f3; /* Light grey */
+  border: 4px solid #e3e3e3; /* Light grey */
   border-top: 4px solid steelblue;
   border-radius: 50%;
   width: 20px;

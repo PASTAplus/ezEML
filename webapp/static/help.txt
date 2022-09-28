@@ -631,6 +631,28 @@ Meaningful geographic place names also are appropriate (e.g. state, city, county
 
 Note: Communities sometimes have specific requests for keywords to assist in searches. E.g, the LTER requests that keywords should include LTER core research area(s), the network acronym (LTER, ILTER, etc.), three-letter site acronym and site name. In addition to specific keywords, relevant conceptual keywords should also be included, e.g., from the LTER Controlled Vocabulary.
 --------------------
+load_taxonomic_coverage
+Load Taxonomic Coverage from CSV File
+
+<b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single, bulk operation. ezEML fills in taxonomic hierarchies for the specified taxa automatically by querying a user-specified taxonomic authority.
+
+The CSV file is required to have three columns. The first row must be a header row, with headers (spelled as shown):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;taxon_scientific_name<br>
+&nbsp;&nbsp;&nbsp;&nbsp;general_taxonomic_coverage<br>
+&nbsp;&nbsp;&nbsp;&nbsp;taxon_rank<br>
+
+Then each taxon goes in a separate row, with its scientific name in the first column. Specify the lowest available taxonomic level, preferably the species binomial, although higher levels can also be used. For each taxon, ezEML will fill in its taxonomic hierarchy automatically (e.g., the genus, family, etc. for a species entry).
+
+If you have descriptive text to go in the generalTaxonomicCoverage element (optional) of the EML metadata, enter it in the second column. Each taxonomic hierarchy will have its own generalTaxonomicCoverage element.
+
+Ordinarily, the third column should be left blank. The only time you should enter a taxon rank is when you want ezEML to add that taxon to the metadata <i>without</i> querying a taxonomic authority (e.g., because the taxon is not available in an authority). In that case, the taxon rank you’ve provided will be used. If the taxon rank is empty (the usual case), ezEML will take that as indicating that you want ezEML to query the taxonomic authority and get the rank and full taxonomic hierarchy from the authority.
+
+Select your preferred taxonomic authority from the list and click <b>Upload</b>. Loading the CSV file may take several minutes, depending on the number of taxa included, because of the time required to access the taxonomic authority online.
+
+If you want to use different taxonomic authorities for different subsets of your taxa, create separate CSV files for the subsets and upload them separately.
+
+Please note that the CSV file should be UTF-8 encoded. If you use Microsoft Excel, do "Save As..." and under "File Format" in Excel's Save As dialog, pick "CSV UTF-8".
+--------------------
 maintenance
 Maintenance
 A description of the maintenance of this data resource.
@@ -893,9 +915,15 @@ Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch
 --------------------
 taxonomic_coverages
 Taxonomic Coverage
-<b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study.
+<b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study. This helps users find data relevant to their research interests.
 
-The lowest available level, preferably the species binomial, should always be included, but higher-level taxa should also be included to support broader taxonomic searches. ezEML can fill in the higher-level taxa for you by accessing a taxonomic authority online.
+The EML standard says that "the lowest available level, preferably the species binomial, should always be included, but higher-level taxa should also be included to support broader taxonomic searches." ezEML can fill in the higher-level taxa for you automatically by accessing a user-specified taxonomic authority online.
+
+To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Coverage</b>. To edit an existing taxonomic coverage entry, click the <b>Edit</b> button next to it. To remove a taxonomic coverage entry, click the <b>Remove</b> button next to it.
+
+<b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single, bulk operation. ezEML will fill in taxonomic hierarchies for the taxa automatically by querying a user-specified taxonomic authority. For details, go to <b>Load Taxonomic Coverage from CSV File</b> and click the Help on that page.
+
+<b>Clear Taxonomic Coverage</b> will clear all taxonomic coverage so you can start over. This is especially useful when you are developing the CSV file to use in <b>Load Taxonomic Coverage from CSV File</b>. You may need several attempts to finalize the CSV file, and you can clear the coverage between attempts.
 --------------------
 taxonomic_coverage_fill_hierarchy
 Fill Hierarchy

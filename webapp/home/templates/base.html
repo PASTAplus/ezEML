@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2022.09.20' %}
+{% set release_number = '2022.09.28' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -35,7 +35,8 @@
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
         'import_package_2', 'import_xml_2', 'export_package_2',
-        '/send_to_other', '_select', '/load_geo_coverage'] %}
+        '/send_to_other', '_select', '/load_geo_coverage',
+        '/load_taxonomic_coverage', '/load_taxonomic_coverage_2'] %}
 {% set ns = namespace(is_non_saving = false) %}
 {% for page in non_saving_endswith %}
     {% if request.path.endswith(page) %}

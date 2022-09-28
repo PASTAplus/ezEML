@@ -30,7 +30,7 @@
                         <td>{{ txc_entry.label }}</td>
                         {{ macros.up_down_arrow(txc_entry.id, txc_entry.upval) }}
                         {{ macros.up_down_arrow(txc_entry.id, txc_entry.downval) }}
-                        <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Edit"/>
+                        <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Edit"/>&nbsp;
                             <input class="btn btn-primary" name="{{ txc_entry.id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
@@ -41,9 +41,14 @@
                 disabled
                 {% endif %}
                 type="submit" value="Add Taxonomic Coverage"/>
+                &nbsp;&nbsp;<input class="btn btn-primary" name="Load Taxonomic Coverage from CSV File"
                 {% if imported_from_xml %}
-                &nbsp;&nbsp;<input class="btn btn-primary" name="Clear" onclick="return confirm('Are you sure?');" type="submit" value="Clear Taxonomic Coverage"/>
+                disabled
                 {% endif %}
+                type="submit" value="Load Taxonomic Coverage from CSV File"/>
+{#                {% if imported_from_xml %}#}
+                &nbsp;&nbsp;<input class="btn btn-primary" name="Clear" onclick="return confirm('This will clear all Taxonomic Coverage and cannot be undone. Continue?');" type="submit" value="Clear Taxonomic Coverage"/>
+{#                {% endif %}#}
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}

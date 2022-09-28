@@ -13,11 +13,19 @@ class DataTableError(ezEMLError):
     pass
 
 
+class InvalidHeaderRow(ezEMLError):
+    pass
+
+
 class InvalidXMLError(ezEMLError):
     pass
 
 
 class MissingFileError(ezEMLError):
+    pass
+
+
+class TaxonNotFound(ezEMLError):
     pass
 
 

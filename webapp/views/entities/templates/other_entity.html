@@ -14,11 +14,13 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" enctype="multipart/form-data">
                 <h5>Enter information about the image:</h5>
-                {{ wtf.form_field(form.entity_name) }}
+
                 {{ wtf.form_field(form.entity_type) }}
+                {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.format_name) }}
                 {{ wtf.form_field(form.file_upload) }}
                 {{ wtf.form_field(form.additional_info) }}
+
                 <table>
                 <tr>
                 <td class="table_cell">
@@ -72,6 +74,20 @@
     {% set help_other_entity_id, help_other_entity_title, help_other_entity_content = help[0] %}
     {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
+
+    <script type = "text/javascript">
+        $("#file_upload").change(function(){
+            var upload_path = document.getElementById("file_upload").value;
+            let upload_name = upload_path.split('\\').pop().split('/').pop().split('.')[0];
+            let upload_format = upload_path.split('.').pop();
+
+            document.getElementById("entity_name").value = upload_name;
+            document.getElementById("entity_name").setAttribute("disabled","disabled");
+
+            document.getElementById("format_name").value = upload_format;
+            document.getElementById("format_name").setAttribute("disabled","disabled");
+        });
+    </script>
 
     <script>
     $(function()

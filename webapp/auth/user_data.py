@@ -334,7 +334,7 @@ def get_temp_folder() -> str:
 
 def get_temp_file_name() -> str:
     #obtains the name of last image in temp folder
-    image_name = 'Error: No Image Found'
+    image_name = None
     temp_folder = get_temp_folder()
     images = glob.glob(os.path.join(temp_folder, '*'))
     for f in images:

@@ -13,6 +13,8 @@
 :Created:
     7/23/18
 """
+import shutil
+
 import daiquiri
 from datetime import date, datetime
 import html
@@ -1344,6 +1346,10 @@ def send_to_other(filename=None, mailto=None):
             print("found file: " + f)
             fname = os.path.basename(f)
             Path(f).rename(upload_folder + '/' + fname)
+
+        #copy xml file to uploads folder
+        current_xml = current_user.get_filename() + '.xml'
+        shutil.copy2(user_data.get_user_folder_name() + '/' + current_xml, upload_folder)
 
         colleague_name = form.data['colleague_name']
         email_address = form.data['email_address']

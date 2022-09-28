@@ -167,7 +167,6 @@ def other_entity(filename=None, node_id=None):
 #            entity_description = form.entity_description.data
 #            object_name = form.object_name.data
             file_upload = form.file_upload.data
-            file_upload_name = secure_filename(file_upload.filename)
 #            file_name = form.file_name.data
             format_name = form.format_name.data
             additional_info = form.additional_info.data
@@ -175,14 +174,21 @@ def other_entity(filename=None, node_id=None):
 #            md5_hash = form.md5_hash.data
             online_url = form.online_url.data
 
-            #remove any preexisting files in temp folder then upload new image to it
-            images = glob.glob(os.path.join(temp_folder, '*'))
+            #overwrite name and file type if uploaded file is present
+            if file_upload is not None:
+                file_upload_name = secure_filename(file_upload.filename)
+                file_upload_name_split = os.path.splitext(file_upload_name)
+                entity_name = file_upload_name_split[0]
+                entity_type = file_upload_name_split[1].strip('.') #remove dot to stay consistent with expected user input
 
-            for f in images:
-                print("found file: " + f)
-                os.remove(f)
+                #remove any preexisting files in temp folder then upload new image to it
+                images = glob.glob(os.path.join(temp_folder, '*'))
 
-            file_upload.save(os.path.join(temp_folder, file_upload_name))
+                for f in images:
+                    print("found file: " + f)
+                    os.remove(f)
+
+                file_upload.save(os.path.join(temp_folder, file_upload_name))
 
             dt_node = Node(names.OTHERENTITY, parent=dataset_node)
 

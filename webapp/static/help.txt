@@ -923,7 +923,7 @@ To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Cove
 
 <b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single bulk operation. ezEML will fill in taxonomic hierarchies for the taxa automatically by querying a user-specified taxonomic authority. For details, go to <b>Load Taxonomic Coverage from CSV File</b> and click the Help on that page.
 
-<b>Clear Taxonomic Coverage</b> will clear all taxonomic coverage so you can start over. This is especially useful when you are developing the CSV file to use in <b>Load Taxonomic Coverage from CSV File</b>. You may need several attempts to finalize the CSV file, and you can clear the coverage between attempts.
+<b>Clear All Taxonomic Coverage</b> will clear all taxonomic coverage so you can start over. This is especially useful when you are developing the CSV file to use in <b>Load Taxonomic Coverage from CSV File</b>. You may need several attempts to finalize the CSV file, and you can clear the coverage between attempts.
 --------------------
 taxonomic_coverage_fill_hierarchy
 Fill Hierarchy
@@ -1017,5 +1017,5 @@ This package contains taxonomic coverage metadata that was imported from an EML 
 
 When you save your package as an EML XML file, however, the Taxonomic Coverage will be preserved intact.
 
-Alternatively, you can replace the taxonomic coverage metadata by using <b>Import Taxonomic Coverage</b> from the Import/Export menu, or you can clear the taxonomic coverage metadata by clicking the <b>Clear Taxonomic Coverage</b> button. Doing either of these actions will make it possible for you to view and edit taxonomic coverage, but the taxonomic coverage that was imported from the EML XML file will be removed from the package.
+Alternatively, you can replace the taxonomic coverage metadata by using <b>Import Taxonomic Coverage</b> from the Import/Export menu, or you can clear the taxonomic coverage metadata by clicking the <b>Clear All Taxonomic Coverage</b> button. Doing either of these actions will make it possible for you to view and edit taxonomic coverage, but the taxonomic coverage that was imported from the EML XML file will be removed from the package.
 

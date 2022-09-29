@@ -634,7 +634,7 @@ Note: Communities sometimes have specific requests for keywords to assist in sea
 load_taxonomic_coverage
 Load Taxonomic Coverage from CSV File
 
-<b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single, bulk operation. ezEML fills in taxonomic hierarchies for the specified taxa automatically by querying a user-specified taxonomic authority.
+<b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single bulk operation. ezEML fills in taxonomic hierarchies for the specified taxa automatically by querying a user-specified taxonomic authority.
 
 The CSV file is required to have three columns. The first row must be a header row, with headers (spelled as shown):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;taxon_scientific_name<br>
@@ -921,7 +921,7 @@ The EML standard says that "the lowest available level, preferably the species b
 
 To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Coverage</b>. To edit an existing taxonomic coverage entry, click the <b>Edit</b> button next to it. To remove a taxonomic coverage entry, click the <b>Remove</b> button next to it.
 
-<b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single, bulk operation. ezEML will fill in taxonomic hierarchies for the taxa automatically by querying a user-specified taxonomic authority. For details, go to <b>Load Taxonomic Coverage from CSV File</b> and click the Help on that page.
+<b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single bulk operation. ezEML will fill in taxonomic hierarchies for the taxa automatically by querying a user-specified taxonomic authority. For details, go to <b>Load Taxonomic Coverage from CSV File</b> and click the Help on that page.
 
 <b>Clear Taxonomic Coverage</b> will clear all taxonomic coverage so you can start over. This is especially useful when you are developing the CSV file to use in <b>Load Taxonomic Coverage from CSV File</b>. You may need several attempts to finalize the CSV file, and you can clear the coverage between attempts.
 --------------------

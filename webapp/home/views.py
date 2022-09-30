@@ -1659,7 +1659,7 @@ def import_package():
             package_base_filename = os.path.basename(filename)
             package_name = os.path.splitext(package_base_filename)[0]
 
-            # See if package with that name already exists
+            # Check package for errors
             try:
                 unversioned_package_name = upload_ezeml_package(file, package_name)
             except FileNotFoundError as err:
@@ -1676,13 +1676,9 @@ def import_package():
                       'from ezEML.', 'error')
                 return redirect(request.url)
 
-            if unversioned_package_name in user_data.get_user_document_list():
-                return redirect(url_for('home.import_package_2', package_name=unversioned_package_name))
-            else:
-                import_ezeml_package(unversioned_package_name)
-                fixup_upload_management()
-                current_user.set_filename(filename=unversioned_package_name)
-                return redirect(url_for(PAGE_TITLE, filename=unversioned_package_name))
+            import_ezeml_package(unversioned_package_name)
+            fixup_upload_management()
+            return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
 
     # Process GET
     help = get_helps(['import_package'])

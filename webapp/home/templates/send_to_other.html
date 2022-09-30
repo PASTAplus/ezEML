@@ -29,13 +29,13 @@
 {#            <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>#}
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
 {#        </table>#}
-        {% if check_metadata_status == 'red' %}
+{#        {% if check_metadata_status == 'red' %}
             <p><span style="color:red;">Your metadata contains one or more errors.</span><span style="color:black;"> To see what the errors
                 are, click <b><a href=""{{ url_for('home.edit', page='home.check_metadata') }}">Check Metadata</a></b>.
             You may wish to correct the errors before sending, but you can go ahead and submit your package as is,
                 if you choose. The one exception is that the data package must have a
                 <b><a href="{{ url_for('home.edit', page='res.title') }}">Title</a></b>. </span></p>
-        {% endif %}
+        {% endif %}#}
     <p></p>
 {#        Click the <b>Submit Metadata</b> button to prepare the package to be sent. An email containing a download
         link for the package will be generated for you to use. You will have the opportunity to edit the email and personalize

@@ -92,6 +92,8 @@
     <script>
     $(function()
     {
+        document.getElementById("entity_name").toggleAttribute("required");
+        document.getElementById("format_name").toggleAttribute("required");
         {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
     });
     </script>

@@ -3,6 +3,10 @@ class ezEMLError(Exception):
     pass
 
 
+class ezEMLAttemptToAccessNonPASTAData(ezEMLError):
+    pass
+
+
 class ezEMLXMLError(ezEMLError):
     pass
 
@@ -32,11 +36,9 @@ class ezEMLUnableToRetrieveMetadata(ezEMLError):
     pass
 
 
-class ezEMLAttemptToAccessNonPASTAData(ezEMLError):
-    pass
-
 class ezEMLUnableToRetrieveDataEntity(ezEMLError):
     pass
+
 
 
 

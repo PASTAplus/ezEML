@@ -33,10 +33,14 @@ class Unauthorized(ezEMLError):
     pass
 
 
-class UnknownDistributionUrl(ezEMLError):
+class UnexpectedDataTypes(ezEMLError):
     pass
 
 
 class UnicodeDecodeErrorInternal(ezEMLError):
+    pass
+
+
+class UnknownDistributionUrl(ezEMLError):
     pass
 

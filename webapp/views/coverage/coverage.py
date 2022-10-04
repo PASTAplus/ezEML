@@ -11,7 +11,7 @@ from flask_login import (
     current_user, login_required
 )
 
-from webapp.home.exceptions import *
+from webapp.home.exceptions import InvalidHeaderRow, UnexpectedDataTypes
 
 from webapp.home.metapype_client import (
     add_child, load_eml, save_both_formats,
@@ -139,9 +139,9 @@ def load_geo_coverage(filename):
                     load_geo_coverage_from_csv(data_file_path, document)
                     log_usage(actions['LOAD_GEOGRAPHIC_COVERAGE'], filename)
                     flash(f'Loaded {data_file}')
-                except InvalidHeaderError as e:
+                except InvalidHeaderRow as e:
                     flash(f'Invalid header in {data_file}: {e}')
-                except ValueError as ex:
+                except UnexpectedDataTypes as ex:
                     flash(f'Load CSV file failed. {ex.args[0]}', 'error')
                 return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
 
@@ -175,16 +175,16 @@ def load_geo_coverage_from_csv(csv_filename, filename):
         has_optional_columns = True
 
     if not has_required_columns:
-        raise ValueError('Geographic coverage file does not have expected column names.')
+        raise InvalidHeaderRow('Geographic coverage file does not have expected column names.')
 
     expected_types_error_msg = 'Geographic coverage file does not have expected variable types in columns. Note that ' \
         'numerical values must be written with a decimal point.'
     if not has_optional_columns:
         if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
-            raise ValueError(expected_types_error_msg)
+            raise UnexpectedDataTypes(expected_types_error_msg)
     else:
         if list(data_frame.dtypes)[1:-1] != [np.float64, np.float64, np.float64, np.float64, np.float64, np.float64]:
-            raise ValueError(expected_types_error_msg)
+            raise UnexpectedDataTypes(expected_types_error_msg)
 
     for index, row in data_frame.iterrows():
         if has_optional_columns:
@@ -586,7 +586,7 @@ def fill_taxonomic_coverage(taxon, source_type, source_name, row=None):
     except Exception as err:
         raise ValueError(f'A network error occurred. Please try again.')
     if not hierarchy:
-        raise TaxonNotFound(f'Row {row}: Taxon "{taxon}" - Not found in authority {source.name}. Please check that you'
+        raise exceptions.TaxonNotFound(f'Row {row}: Taxon "{taxon}" - Not found in authority {source.name}. Please check that you'
                             f' have used the taxon\'s scientific name. To include "{taxon}" in your metadata without'
                             f' querying {source.name}, specify a taxon rank for "{taxon}" in the CSV file.')
     return hierarchy

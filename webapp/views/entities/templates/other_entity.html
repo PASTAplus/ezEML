@@ -58,7 +58,7 @@
 {#                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>#}
 {#                <br/><br/><br/>#}
                 <input class="btn btn-primary" name="OK" type="submit" value="Upload and Continue"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes" onclick="resetButtons()"/>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
@@ -88,6 +88,14 @@
             document.getElementById("format_name").setAttribute("disabled","disabled");
         });
     </script>
+
+    <script>
+        function resetButtons(){
+            document.getElementById("entity_name").removeAttribute("disabled");
+            document.getElementById("format_name").removeAttribute("disabled");
+        }
+    </script>
+
 
     <script>
     $(function()

@@ -27,6 +27,7 @@ from flask_login import current_user
 from webapp.config import Config
 import webapp.home.views as views
 
+
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
@@ -340,3 +341,4 @@ def get_temp_file_name() -> str:
     for f in images:
         image_name = os.path.basename(f)
     return image_name
+

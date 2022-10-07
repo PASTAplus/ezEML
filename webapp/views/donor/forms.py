@@ -1,6 +1,6 @@
 from wsgiref.validate import validator
 from wtforms import (
-    StringField, IntegerField, SelectField, HiddenField, Form, FormField, TextAreaField
+    StringField, SelectField, IntegerField, HiddenField, Form, FormField, TextAreaField
 )
 
 from wtforms.validators import (
@@ -9,12 +9,14 @@ from wtforms.validators import (
 
 from webapp.home.forms import EDIForm
 
+from webapp.home.custom_validators import IntegerField
+
 
 class DonorForm(EDIForm):
     donorID = StringField('Donor ID', validators=[])
     donorGender = StringField('Gender', validators=[], default='female')
-    donorYears = IntegerField('Years', validators=[NumberRange(min=0)])
-    donorDays = IntegerField('Days', validators=[NumberRange(min=0)])
+    donorYears = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
+    donorDays = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
     donorLifeStage = SelectField('Life Stage',
                                  choices=[("", ""),
                                           ("fetal", "Fetal"),
@@ -23,7 +25,7 @@ class DonorForm(EDIForm):
                                           ("pubertal", "Pubertal"),
                                           ("adult", "Adult"),
                                           ("aging", "Aging")])
-    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0)])
+    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
     specimenTissue = StringField('Specimen Tissue', validators=[], default='ovary')
     ovaryPosition = SelectField('Ovary Position',
                                 choices=[("", ""),
@@ -66,8 +68,8 @@ class DonorForm(EDIForm):
                                   ("late", "Late"),
                                   ("regression", "Regression")], validators=[Optional()])
     slideID = StringField('Slide ID', validators=[])
-    sectionSeqNum = IntegerField('Section Sequence Number', validators=[NumberRange(min=0)])
-    thickness = IntegerField('Section Thickness', validators=[NumberRange(min=0)])
+    sectionSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
+    thickness = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
     thicknessUnit = SelectField('Section Thickness Units',
                                 choices=[("", ""),
                                          ("microns", "Microns"),

@@ -1,5 +1,5 @@
 from wtforms import (
-    StringField, SelectField, IntegerField, HiddenField, TextAreaField
+    StringField, SelectField, HiddenField, TextAreaField
 )
 
 from wtforms.validators import (
@@ -17,7 +17,6 @@ class OtherEntitySelectForm(EDIForm):
 
 
 class OtherEntityForm(EDIForm):
-    #TODO: make input required unless image is uploaded
     entity_name = StringField('Name *', validators=[])
     entity_type = StringField('Image Type (e.g., histology) *', validators=[DataRequired(message="Image Type is required")])
 #    entity_description = StringField('Description (Recommended)', validators=[])

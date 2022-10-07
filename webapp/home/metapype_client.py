@@ -1738,7 +1738,7 @@ def create_other_entity(
         entity_node: Node = None,
         entity_name: str = None,
         entity_type: str = None,
-        file_name: str = None,
+        object_name: str = None,
 #        entity_description: str = None,
 #        object_name: str = None,
         format_name: str = None,
@@ -1746,45 +1746,85 @@ def create_other_entity(
 #        size: str = None,
 #        md5_hash: str = None,
         online_url: str = None):
+
     try:
+        entity_name_node = entity_node.find_child(names.ENTITYNAME)
+        if not entity_name_node:
+            entity_name_node = Node(names.ENTITYNAME, parent=entity_node)
+            entity_node.add_child(entity_name_node)
+        entity_name_node.content = entity_name
 
-        if not entity_node:
-            entity_node = Node(names.OTHERENTITY)
+        # if entity_name:
+        #     entity_name_node = new_child_node(names.ENTITYNAME, parent=entity_node)
+        #     entity_name_node.content = entity_name
 
-        if entity_name:
-            entity_name_node = new_child_node(names.ENTITYNAME, parent=entity_node)
-            entity_name_node.content = entity_name
+        # if entity_type:
+        #     entity_type_node = new_child_node(names.ENTITYTYPE, parent=entity_node)
+        #     entity_type_node.content = entity_type
 
-        if entity_type:
-            entity_type_node = new_child_node(names.ENTITYTYPE, parent=entity_node)
-            entity_type_node.content = entity_type
-
-        if file_name:
-            file_name_node = Node("filename", parent=entity_node)
-            entity_node.add_child(file_name_node)
-            file_name_node.content = file_name
+        # if file_name:
+        #     file_name_node = Node("filename", parent=entity_node)
+        #     entity_node.add_child(file_name_node)
+        #     file_name_node.content = file_name
 #        if entity_description:
 #            entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=entity_node)
 #            entity_description_node.content = entity_description
 
-        if format_name or online_url:
+        # physical_node = new_child_node(names.PHYSICAL, parent=entity_node)
 
-            physical_node = new_child_node(names.PHYSICAL, parent=entity_node)
+        physical_node = entity_node.find_child(names.PHYSICAL)
+        if not physical_node:
+            physical_node = Node(names.PHYSICAL, parent=entity_node)
+            entity_node.add_child(physical_node)
 
 #            if object_name:
 #                object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
 #                object_name_node.content = object_name
 
-            if format_name:
-                data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
-                externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
-                format_name_node = new_child_node(names.FORMATNAME, parent=externally_defined_format_node)
-                format_name_node.content = format_name
+        object_name_node = physical_node.find_child(names.OBJECTNAME)
+        if not object_name_node:
+            object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+            physical_node.add_child(object_name_node)
+        object_name_node.content = object_name
 
-            if additional_info:
-                addition_info_node = Node("additionalinfo", parent=entity_node)
-                entity_node.add_child(addition_info_node)
-                addition_info_node.content = additional_info
+        data_format_node = physical_node.find_child(names.DATAFORMAT)
+        if not data_format_node:
+            data_format_node = Node(names.DATAFORMAT, parent=physical_node)
+            physical_node.add_child(data_format_node)
+
+        externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
+        if not externally_defined_format_node:
+            externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+            data_format_node.add_child(externally_defined_format_node)
+
+        format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
+        if not format_name_node:
+            format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+            externally_defined_format_node.add_child(format_name_node)
+        format_name_node.content = format_name
+
+        # if format_name:
+        #     data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
+        #     externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+        #     format_name_node = new_child_node(names.FORMATNAME, parent=externally_defined_format_node)
+        #     format_name_node.content = format_name
+
+        entity_type_node = entity_node.find_child(names.ENTITYTYPE)
+        if not entity_type_node:
+            entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
+            entity_node.add_child(entity_type_node)
+        entity_type_node.content = entity_type
+
+        additional_info_node = entity_node.find_child("additionalInfo")
+        if not additional_info_node:
+            additional_info_node = Node("additionalInfo", parent=entity_node)
+            entity_node.add_child(additional_info_node)
+        additional_info_node.content = additional_info
+
+        # if additional_info:
+        #     addition_info_node = Node("additionalinfo", parent=entity_node)
+        #     entity_node.add_child(addition_info_node)
+        #     addition_info_node.content = additional_info
 
 #            if size:
 #                size_node = new_child_node(names.SIZE, parent=physical_node)

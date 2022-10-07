@@ -1351,8 +1351,8 @@ def send_to_other(filename=None, mailto=None):
         current_xml = current_user.get_filename() + '.xml'
         shutil.copy2(user_data.get_user_folder_name() + '/' + current_xml, upload_folder)
 
-        colleague_name = form.data['colleague_name']
-        email_address = form.data['email_address']
+        # colleague_name = form.data['colleague_name']
+        # email_address = form.data['email_address']
 
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(child_name=names.DATASET)
@@ -1364,11 +1364,12 @@ def send_to_other(filename=None, mailto=None):
             flash('The data package requires a Title', 'error')
             return redirect(get_back_url())
 
-        zipfile_path = zip_package(current_document, eml_node)
-        _, download_url = save_as_ezeml_package_export(zipfile_path)
+        # zipfile_path = zip_package(current_document, eml_node)
+        # _, download_url = save_as_ezeml_package_export(zipfile_path)
 
         if not mailto:
-            mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
+            mailto = True
+            # mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
         else:
             mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
             mailto_html = None
@@ -1386,9 +1387,9 @@ def send_to_other(filename=None, mailto=None):
         help = get_helps(['send_to_colleague_2'])
         return render_template('send_to_other_2.html',
                                title='Send to Other',
-                               mailto=mailto,
-                               mailto_html=mailto_html,
-                               mailto_raw=mailto_raw,
+                               # mailto=mailto,
+                               # mailto_html=mailto_html,
+                               # mailto_raw=mailto_raw,
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
     else:

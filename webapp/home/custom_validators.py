@@ -16,7 +16,7 @@
 import math
 
 from wtforms import (
-    validators, ValidationError
+    validators, ValidationError, IntegerField
 )
 
 def valid_length(min:int=10, max:int=1000):
@@ -68,3 +68,13 @@ def valid_longitude(min:float=-180.0, max:float=180.0):
         #     raise ValidationError("Missing value")
 
     return _valid_longitude
+
+class IntegerField(IntegerField):
+    def process_formdata(self, valuelist):
+        if not valuelist:
+            return
+
+        try:
+            self.data = int(valuelist[0])
+        except ValueError as exc:
+            self.data = None

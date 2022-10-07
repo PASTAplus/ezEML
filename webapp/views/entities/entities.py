@@ -167,7 +167,6 @@ def other_entity(filename=None, node_id=None):
 #            entity_description = form.entity_description.data
 #            object_name = form.object_name.data
             file_upload = form.file_upload.data
-#            file_name = form.file_name.data
             format_name = form.format_name.data
             additional_info = form.additional_info.data
 #            size = str(form.size.data) if form.size.data else ''
@@ -176,8 +175,8 @@ def other_entity(filename=None, node_id=None):
 
             #overwrite name and file type if uploaded file is present
             if file_upload is not None:
-                file_upload_name = secure_filename(file_upload.filename)
-                file_upload_name_split = os.path.splitext(file_upload_name)
+                file_name = secure_filename(file_upload.filename)
+                file_upload_name_split = os.path.splitext(file_name)
                 entity_name = file_upload_name_split[0]
                 format_name = file_upload_name_split[1].strip('.') #remove dot to stay consistent with expected user input
 
@@ -188,18 +187,24 @@ def other_entity(filename=None, node_id=None):
                     print("found file: " + f)
                     os.remove(f)
 
-                file_upload.save(os.path.join(temp_folder, file_upload_name))
+                file_upload.save(os.path.join(temp_folder, file_name))
+            else:
+                file_name = entity_name + '.' + format_name
 
-            dt_node = Node(names.OTHERENTITY, parent=dataset_node)
+            dt_node = dataset_node.find_child(names.OTHERENTITY)
+            if not dt_node:
+                dt_node = Node(names.OTHERENTITY, parent=dataset_node)
+                dataset_node.add_child(dt_node)
 
             if not entity_name:
                 entity_name = ''
             print(additional_info)
+
             create_other_entity(
                 dt_node,
                 entity_name,
                 entity_type,
-#                file_name,
+                file_name,
 #                entity_description,
 #                object_name,
                 format_name,
@@ -208,42 +213,7 @@ def other_entity(filename=None, node_id=None):
 #                md5_hash,
                 online_url)
 
-            if dt_node_id and len(dt_node_id) != 1:
-                old_dt_node = Node.get_node_instance(dt_node_id)
-                if old_dt_node:
 
-                    old_physical_node = old_dt_node.find_child(names.PHYSICAL)
-                    if old_physical_node:
-                        old_distribution_node = old_physical_node.find_child(names.DISTRIBUTION)
-                        if old_distribution_node:
-                            access_node = old_distribution_node.find_child(names.ACCESS)
-                            if access_node:
-                                physical_node = dt_node.find_child(names.PHYSICAL)
-                                if physical_node:
-                                    distribution_node = dt_node.find_child(names.DISTRIBUTION)
-                                    if distribution_node:
-                                        old_distribution_node.remove_child(access_node)
-                                        add_child(distribution_node, access_node)
-
-                    methods_node = old_dt_node.find_child(names.METHODS)
-                    if methods_node:
-                        old_dt_node.remove_child(methods_node)
-                        add_child(dt_node, methods_node)
-
-                    coverage_node = old_dt_node.find_child(names.COVERAGE)
-                    if coverage_node:
-                        old_dt_node.remove_child(coverage_node)
-                        add_child(dt_node, coverage_node)
-
-                    dataset_parent_node = old_dt_node.parent
-                    dataset_parent_node.replace_child(old_dt_node, dt_node)
-                    dt_node_id = dt_node.id
-                else:
-                    msg = f"No node found in the node store with node id {dt_node_id}"
-                    raise Exception(msg)
-            else:
-                add_child(dataset_node, dt_node)
-                dt_node_id = dt_node.id
 
             save_both_formats(filename=filename, eml_node=eml_node)
 

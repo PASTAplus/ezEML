@@ -257,7 +257,7 @@ def process_taxonomic_coverage_file(taxa, authority):
             t = WORMSTaxonomy()
             source_type = TaxonomySourceEnum.WORMS
         try:
-            hierarchy = coverage.fill_taxonomic_coverage(taxon, source_type, '', row)
+            hierarchy = coverage.fill_taxonomic_coverage(taxon, source_type, '', row, True)
             hierarchies.append(hierarchy)
         except TaxonNotFound as e:
             errors.append(e.message)

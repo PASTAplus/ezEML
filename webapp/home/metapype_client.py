@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.09.28'
+RELEASE_NUMBER = '2022.10.07'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -2501,7 +2501,11 @@ def create_taxonomic_coverage(
                 general_taxonomic_coverage_node.content = general_taxonomic_coverage
 
             taxonomic_classification_parent_node = taxonomic_coverage_node
-            for taxon_rank, taxon_name, common_name, taxon_id, _, authority in hierarchy[::-1]:
+            for entry in hierarchy[::-1]:
+                if len(entry) == 4:
+                    taxon_rank, taxon_name, common_name, taxon_id = entry
+                if len(entry) == 6:
+                    taxon_rank, taxon_name, common_name, taxon_id, _, authority = entry
                 taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
                 taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = taxon_rank

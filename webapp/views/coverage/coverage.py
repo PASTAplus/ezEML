@@ -11,7 +11,7 @@ from flask_login import (
     current_user, login_required
 )
 
-from webapp.home.exceptions import InvalidHeaderRow, UnexpectedDataTypes
+from webapp.home.exceptions import InvalidHeaderRow, UnexpectedDataTypes, TaxonNotFound
 
 from webapp.home.metapype_client import (
     add_child, load_eml, save_both_formats,
@@ -564,7 +564,7 @@ def clear_taxonomic_coverage(package_name):
         save_both_formats(filename=package_name, eml_node=eml_node)
 
 
-def fill_taxonomic_coverage(taxon, source_type, source_name, row=None):
+def fill_taxonomic_coverage(taxon, source_type, source_name, row=None, processing_csv_file=False):
     # taxon = form.taxon_value.data
     hierarchy = []
     if not taxon:
@@ -586,9 +586,15 @@ def fill_taxonomic_coverage(taxon, source_type, source_name, row=None):
     except Exception as err:
         raise ValueError(f'A network error occurred. Please try again.')
     if not hierarchy:
-        raise exceptions.TaxonNotFound(f'Row {row}: Taxon "{taxon}" - Not found in authority {source.name}. Please check that you'
-                            f' have used the taxon\'s scientific name. To include "{taxon}" in your metadata without'
-                            f' querying {source.name}, specify a taxon rank for "{taxon}" in the CSV file.')
+        if processing_csv_file:
+            raise TaxonNotFound(f'Row {row}: Taxon "{taxon}" - Not found in authority {source.name}. Please check that you'
+                                f' have used the taxon\'s scientific name. To include "{taxon}" in your metadata without'
+                                f' querying {source.name}, specify a taxon rank for "{taxon}" in the CSV file.')
+        else:
+            raise TaxonNotFound(f'Taxon "{taxon}" was not found in authority {source.name}. Please check that you'
+                                f' have used the taxon\'s scientific name. To include "{taxon}" in your metadata'
+                                f' without querying {source.name}, specify a taxon rank and click "Save and Continue".'
+                                f' Alternatively, try again using a different taxonomic authority.')
     return hierarchy
 
 
@@ -744,6 +750,9 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                             have_links = True
                             break
             except ValueError as e:
+                flash(str(e), 'error')
+                hierarchy = [(form.taxon_rank.data, form.taxon_value.data, '', '')]
+            except TaxonNotFound as e:
                 flash(str(e), 'error')
                 hierarchy = [(form.taxon_rank.data, form.taxon_value.data, '', '')]
             form.hierarchy.data = hierarchy

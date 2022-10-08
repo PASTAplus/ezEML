@@ -260,28 +260,12 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
     if entity_type_node:
         form.entity_type.data = entity_type_node.content
 
-#    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
-#    if entity_description_node:
-#        form.entity_description.data = entity_description_node.content
-
     file_name_node = node.find_child("filename")
     if file_name_node:
         form.file_name.data = file_name_node.content
 
     physical_node = node.find_child(names.PHYSICAL)
     if physical_node:
-
-#        object_name_node = physical_node.find_child(names.OBJECTNAME)
-#        if object_name_node:
-#            form.object_name.data = object_name_node.content
-
-#        size_node = physical_node.find_child(names.SIZE)
-#        if size_node:
-#            form.size.data = size_node.content
-
-#        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
-#        if md5_hash_node:
-#            form.md5_hash.data = md5_hash_node.content
 
         data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:

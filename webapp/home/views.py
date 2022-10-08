@@ -72,7 +72,7 @@ from webapp.home.metapype_client import (
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_nodes, get_check_metadata_status
+    import_project_nodes, get_check_metadata_status, clear_other_entity
 )
 
 from webapp.home.motherpype import (
@@ -1679,6 +1679,18 @@ def import_package():
 
             import_ezeml_package(unversioned_package_name)
             fixup_upload_management()
+
+            filename = user_data.get_active_document()
+
+            # Remove Image data if present
+            eml_node = load_eml(filename)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if dataset_node:
+                for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
+                    clear_other_entity(entity_node)
+
+            save_both_formats(filename=filename, eml_node=eml_node)
+
             return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
 
     # Process GET

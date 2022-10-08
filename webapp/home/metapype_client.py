@@ -1734,6 +1734,39 @@ def create_pubdate(pubdate=None, filename=None):
         logger.error(e)
 
 
+def clear_other_entity(entity_node: Node = None):
+    try:
+        entity_name_node = entity_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            entity_name_node.content = None
+
+        physical_node = entity_node.find_child(names.PHYSICAL)
+        if physical_node:
+            object_name_node = physical_node.find_child(names.OBJECTNAME)
+            if object_name_node:
+                object_name_node.content = None
+
+            data_format_node = physical_node.find_child(names.DATAFORMAT)
+            if data_format_node:
+                externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
+                if externally_defined_format_node:
+                    format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
+                    if format_name_node:
+                        format_name_node.content = None
+
+        entity_type_node = entity_node.find_child(names.ENTITYTYPE)
+        if entity_type_node:
+            entity_type_node.content = None
+
+        additional_info_node = entity_node.find_child("additionalInfo")
+        if additional_info_node:
+            additional_info_node.content = None
+        return entity_node
+
+    except Exception as e:
+        logger.error(e)
+
+
 def create_other_entity(
         entity_node: Node = None,
         entity_name: str = None,
@@ -1754,32 +1787,10 @@ def create_other_entity(
             entity_node.add_child(entity_name_node)
         entity_name_node.content = entity_name
 
-        # if entity_name:
-        #     entity_name_node = new_child_node(names.ENTITYNAME, parent=entity_node)
-        #     entity_name_node.content = entity_name
-
-        # if entity_type:
-        #     entity_type_node = new_child_node(names.ENTITYTYPE, parent=entity_node)
-        #     entity_type_node.content = entity_type
-
-        # if file_name:
-        #     file_name_node = Node("filename", parent=entity_node)
-        #     entity_node.add_child(file_name_node)
-        #     file_name_node.content = file_name
-#        if entity_description:
-#            entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=entity_node)
-#            entity_description_node.content = entity_description
-
-        # physical_node = new_child_node(names.PHYSICAL, parent=entity_node)
-
         physical_node = entity_node.find_child(names.PHYSICAL)
         if not physical_node:
             physical_node = Node(names.PHYSICAL, parent=entity_node)
             entity_node.add_child(physical_node)
-
-#            if object_name:
-#                object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
-#                object_name_node.content = object_name
 
         object_name_node = physical_node.find_child(names.OBJECTNAME)
         if not object_name_node:
@@ -1803,12 +1814,6 @@ def create_other_entity(
             externally_defined_format_node.add_child(format_name_node)
         format_name_node.content = format_name
 
-        # if format_name:
-        #     data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
-        #     externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
-        #     format_name_node = new_child_node(names.FORMATNAME, parent=externally_defined_format_node)
-        #     format_name_node.content = format_name
-
         entity_type_node = entity_node.find_child(names.ENTITYTYPE)
         if not entity_type_node:
             entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
@@ -1820,11 +1825,6 @@ def create_other_entity(
             additional_info_node = Node("additionalInfo", parent=entity_node)
             entity_node.add_child(additional_info_node)
         additional_info_node.content = additional_info
-
-        # if additional_info:
-        #     addition_info_node = Node("additionalinfo", parent=entity_node)
-        #     entity_node.add_child(addition_info_node)
-        #     addition_info_node.content = additional_info
 
 #            if size:
 #                size_node = new_child_node(names.SIZE, parent=physical_node)

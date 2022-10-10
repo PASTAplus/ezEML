@@ -648,11 +648,11 @@ def get_eml_file_url(document_name, eml_node):
     filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
     if os.path.exists(filepath):
         return f'file://{filepath}'
-    # package_id = eml_node.attribute_value('packageId')
-    # if package_id:
-    #     filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
-    #     if os.path.exists(filepath):
-    #         return f'file://{filepath}'
+    package_id = eml_node.attribute_value('packageId')
+    if package_id:
+        filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
+        if os.path.exists(filepath):
+            return f'file://{filepath}'
     return None
 
 

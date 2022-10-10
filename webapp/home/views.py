@@ -50,7 +50,7 @@ import csv
 
 from webapp.home.exceptions import DataTableError, MissingFileError
 
-from webapp.home.forms import ( 
+from webapp.home.forms import (
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
@@ -65,7 +65,7 @@ from webapp.home.import_package import (
     copy_ezeml_package, upload_ezeml_package, import_ezeml_package
 )
 
-from webapp.home.metapype_client import ( 
+from webapp.home.metapype_client import (
     load_eml, save_both_formats, new_child_node, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW, RELEASE_NUMBER,
     save_old_to_new, read_xml, new_child_node, truncate_middle,
@@ -387,7 +387,7 @@ def delete():
 @login_required
 def save():
     current_document = current_user.get_filename()
-    
+
     if not current_document:
         flash('No document currently open')
         return render_template('index.html')
@@ -399,7 +399,7 @@ def save():
 
     save_both_formats(filename=current_document, eml_node=eml_node)
     flash(f'Saved {current_document}')
-         
+
     return redirect(url_for(PAGE_TITLE, filename=current_document))
 
 
@@ -493,7 +493,7 @@ def download():
         else:
             return return_value
     # Process GET
-    return render_template('download_eml.html', title='Download EML', 
+    return render_template('download_eml.html', title='Download EML',
                            form=form)
 
 
@@ -541,7 +541,7 @@ def allowed_data_file(filename):
 
 
 def allowed_metadata_file(filename):
-    ALLOWED_EXTENSIONS = set(['xml'])    
+    ALLOWED_EXTENSIONS = set(['xml'])
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -602,10 +602,11 @@ def create():
             if user_filenames and filename and filename in user_filenames:
                 flash(f'{filename} already exists')
                 return render_template('create_eml.html', help=help,
-                                form=form)
+                                       form=form)
             create_eml(filename=filename)
             current_user.set_filename(filename)
             current_user.set_packageid(None)
+            user_data.clear_temp_folder()   # clear temp folder data if present
             return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
@@ -637,9 +638,9 @@ def open_eml_document():
             else:
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=filename))
-    
+
     # Process GET
-    return render_template('open_eml_document.html', title='Open EML Document', 
+    return render_template('open_eml_document.html', title='Open EML Document',
                            form=form)
 
 
@@ -1331,6 +1332,7 @@ def send_to_other(filename=None, mailto=None):
     form = SendToColleagueForm()
 
     # set temp and upload folders
+    user_folder = user_data.get_user_folder_name()
     upload_folder = user_data.get_document_uploads_folder_name()
     temp_folder = user_data.get_temp_folder()
 
@@ -1340,21 +1342,9 @@ def send_to_other(filename=None, mailto=None):
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if form.validate_on_submit():
-        # move files from temp folder to appropriate uploads folder
-        images = glob.glob(os.path.join(temp_folder, '*'))
-        for f in images:
-            print("found file: " + f)
-            fname = os.path.basename(f)
-            Path(f).rename(upload_folder + '/' + fname)
-
-        #copy xml file to uploads folder
-        current_xml = current_user.get_filename() + '.xml'
-        shutil.copy2(user_data.get_user_folder_name() + '/' + current_xml, upload_folder)
-
         # colleague_name = form.data['colleague_name']
         # email_address = form.data['email_address']
 
-        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(child_name=names.DATASET)
         title_node = dataset_node.find_child(names.TITLE)
         title = ''
@@ -1363,6 +1353,23 @@ def send_to_other(filename=None, mailto=None):
         if not title:
             flash('The data package requires a Title', 'error')
             return redirect(get_back_url())
+
+        # clear appropriate uploads folder
+        user_data.clear_folder(upload_folder)
+
+        # move files from temp folder to appropriate uploads folder
+        images = glob.glob(os.path.join(temp_folder, '*'))
+        for f in images:
+            fname = os.path.basename(f)
+            Path(f).rename(upload_folder + '/' + fname)
+
+        # copy xml file to uploads folder
+        current_xml = current_document + '.xml'
+        shutil.copy2(user_folder + '/' + current_xml, upload_folder)
+
+        # create zip of uploads folder
+        zipfile_path = os.path.join(user_folder, current_document)
+        shutil.make_archive(zipfile_path, 'zip', upload_folder)
 
         # zipfile_path = zip_package(current_document, eml_node)
         # _, download_url = save_as_ezeml_package_export(zipfile_path)
@@ -1683,6 +1690,7 @@ def import_package():
             filename = user_data.get_active_document()
 
             # Remove Image data if present
+            user_data.clear_temp_folder()
             eml_node = load_eml(filename)
             dataset_node = eml_node.find_child(names.DATASET)
             if dataset_node:
@@ -2112,7 +2120,7 @@ def load_metadata():
             # filename = secure_filename(file.filename)
             # filename = file.filename
             filename = secure_filename(file.filename)
-            
+
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_metadata_file(filename):
@@ -2140,7 +2148,7 @@ def load_metadata():
                 flash(f'{filename} is not a supported data file type', 'error')
                 return redirect(request.url)
     # Process GET
-    return render_template('load_metadata.html', title='Load Metadata', 
+    return render_template('load_metadata.html', title='Load Metadata',
                            form=form)
 
 
@@ -2148,7 +2156,7 @@ def load_metadata():
 @login_required
 def close():
     current_document = current_user.get_filename()
-    
+
     if current_document:
         current_user.set_filename(None)
         flash(f'Closed {current_document}')
@@ -2161,7 +2169,7 @@ def close():
 
 
 def select_post(filename=None, form=None, form_dict=None,
-                method=None, this_page=None, back_page=None, 
+                method=None, this_page=None, back_page=None,
                 next_page=None, edit_page=None, project_node_id=None, reupload_page=None):
     node_id = None
     new_page = None
@@ -2289,7 +2297,7 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
             if flash_msg:
                 flash_msg += ";  " + msg
             else:
-                flash_msg = msg 
+                flash_msg = msg
 
     return flash_msg
 

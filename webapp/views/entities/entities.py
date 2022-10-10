@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder,
+    get_temp_folder, clear_temp_folder
 )
 
 from metapype.eml import names
@@ -181,11 +181,7 @@ def other_entity(filename=None, node_id=None):
                 format_name = file_upload_name_split[1].strip('.') #remove dot to stay consistent with expected user input
 
                 #remove any preexisting files in temp folder then upload new image to it
-                images = glob.glob(os.path.join(temp_folder, '*'))
-
-                for f in images:
-                    print("found file: " + f)
-                    os.remove(f)
+                clear_temp_folder()
 
                 file_upload.save(os.path.join(temp_folder, file_name))
             else:

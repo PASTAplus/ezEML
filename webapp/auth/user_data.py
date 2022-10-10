@@ -27,7 +27,6 @@ from flask_login import current_user
 from webapp.config import Config
 import webapp.home.views as views
 
-
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
@@ -334,7 +333,7 @@ def get_temp_folder() -> str:
 
 
 def get_temp_file_name() -> str:
-    #obtains the name of last image in temp folder
+    # obtains the name of last image in temp folder
     image_name = None
     temp_folder = get_temp_folder()
     images = glob.glob(os.path.join(temp_folder, '*'))
@@ -342,3 +341,13 @@ def get_temp_file_name() -> str:
         image_name = os.path.basename(f)
     return image_name
 
+
+def clear_folder(folder: str):
+    files = glob.glob(os.path.join(folder, '*'))
+
+    for f in files:
+        os.remove(f)
+
+
+def clear_temp_folder():
+    clear_folder(get_temp_folder())

@@ -534,6 +534,19 @@ def download_current():
             return return_value
 
 
+@home.route('/download_submission', methods=['GET', 'POST'])
+@login_required
+def download_submission():
+    current_document = user_data.get_active_document()
+    if current_document:
+        # Do the download
+        return_value = user_data.download_zip(filename=current_document)
+        if isinstance(return_value, str):
+            flash(return_value)
+        else:
+            return return_value
+
+
 def allowed_data_file(filename):
     ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'txt', 'xml', 'ezeml_tmp'])
     return '.' in filename and \
@@ -1397,6 +1410,7 @@ def send_to_other(filename=None, mailto=None):
                                # mailto=mailto,
                                # mailto_html=mailto_html,
                                # mailto_raw=mailto_raw,
+                               zip_path=user_data.get_zip_file_path(),
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
     else:

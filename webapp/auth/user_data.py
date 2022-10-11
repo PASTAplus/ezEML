@@ -268,6 +268,36 @@ def download_eml(filename: str = ''):
         return msg
 
 
+def download_zip(filename: str = ''):
+    if filename:
+        user_folder = get_user_folder_name()
+        filename_zip = f'{filename}.zip'
+        pathname = f'{user_folder}/{filename_zip}'
+        if os.path.exists(pathname):
+            package_id = get_active_packageid()
+            if package_id:
+                filename_zip = f'{package_id}.zip'
+            relative_pathname = '../' + pathname
+            mimetype = 'application/zip'
+            try:
+                return send_file(relative_pathname,
+                                 mimetype=mimetype,
+                                 as_attachment=True,
+                                 attachment_filename=filename_zip,
+                                 add_etags=True,
+                                 cache_timeout=None,
+                                 conditional=False,
+                                 last_modified=None)
+            except Exception as e:
+                return str(e)
+        else:
+            msg = f'Data package not found: {filename}'
+            return msg
+    else:
+        msg = f'No package ID was specified'
+        return msg
+
+
 def read_active_dict():
     user_folder = get_user_folder_name()
     active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
@@ -351,3 +381,7 @@ def clear_folder(folder: str):
 
 def clear_temp_folder():
     clear_folder(get_temp_folder())
+
+
+def get_zip_file_path() -> str:
+    return os.path.join(get_user_folder_name(), Config.ACTIVE_PACKAGE, '.zip')

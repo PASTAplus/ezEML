@@ -11,9 +11,12 @@
         <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_send_to_colleague_btn) }}</td>
     </table>
     <div class="col-md-10" style="display:inline-block; padding:10px;">
-    Your data package has been submitted successfully.
+    Your data package has been submitted successfully. You may download the submitted data here:
     </div>
     <p>&nbsp;</p>
+    <div class="col-md-10" style="display:inline-block;border: 1px solid steelblue;padding: 10px;margin-left:25px;margin-top:10px;">
+        <a id="zip_link" href="/eml/download_submission">Click me</a>
+    </div>
 
 {#    <div class="col-md-10" style="display:inline-block;border: 1px solid steelblue;padding: 10px;margin-left:25px;margin-top:10px;">
         {{ mailto_html }}

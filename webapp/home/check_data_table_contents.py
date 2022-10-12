@@ -622,14 +622,17 @@ def find_large_data_tables():
 
 
 def make_blanks_visible(s:str):
-    blank = '<span style="color:red;font-size:120%;font-weight:bold;">\u2420</span>'
+    blank = '<span style="color:red;font-size:100%;font-weight:bold;">\u274f</span>'
+    # Also considered \u2420 and \u25a1
     if s.isspace():
-        return s.replace(' ', blank)
+        s = s.replace(' ', blank)
     else:
         # make leading and trailing spaces visible
         leading = len(s) - len(s.lstrip())
         trailing = len(s) - len(s.rstrip())
-        return s[:leading].replace(' ', blank) + s[leading:len(s)-trailing] + s[len(s)-trailing:].replace(' ', blank)
+        s = s[:leading].replace(' ', blank) + s[leading:len(s)-trailing] + s[len(s)-trailing:].replace(' ', blank)
+    has_blank = blank in s
+    return s, has_blank
 
 
 def generate_error_info_for_webpage(data_table_node, errors):
@@ -638,6 +641,7 @@ def generate_error_info_for_webpage(data_table_node, errors):
     column_name = None
     column_errs = []
     errors = []
+    has_blanks = False
     for error in errs_obj['errors']:
         if error['location']['table'] != data_table_name:
             continue
@@ -650,12 +654,16 @@ def generate_error_info_for_webpage(data_table_node, errors):
                 variable_type = 'UNKNOWN'
             errors = []
             column_errs.append({ "column_name": column_name, "variable_type": variable_type, "errors": errors})
+        expected, blank = make_blanks_visible(error['expected'])
+        has_blanks = has_blanks or blank
+        found, blank = make_blanks_visible(error['found'])
+        has_blanks = has_blanks or blank
         errors.append({
             "row": error['location']['row'],
             "error_type": error['error_type'],
-            "expected": make_blanks_visible(error['expected']),
-            "found": make_blanks_visible(error['found'])})
-    return column_errs
+            "expected": expected,
+            "found": found})
+    return column_errs, has_blanks
 
 
 def get_eml_file_url(document_name, eml_node):

@@ -51,6 +51,15 @@
                 {% endif %}
             </table>
             {{ macros.hidden_buttons() }}
+            {% if has_blanks %}
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <table width=100% style="padding: 10px;">
+                <th colspan="2">Key</th>
+                    <tr><td width=2%><span style="color:red;font-size:100%;font-weight:bold;">❏</span></td>
+                        <td width=98%>= Leading or trailing blank character</td></tr>
+                </table>
+            {% endif %}
         </form>
     </div>
     {{ macros.help_dialog(help_data_table_errors_dialog, help_data_table_errors_title, help_data_table_errors_content) }}

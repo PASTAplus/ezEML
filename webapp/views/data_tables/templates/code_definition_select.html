@@ -20,7 +20,7 @@
                     </tr>
                     {% for cd_entry in codes_list %}
                     <tr>
-                        <td>{{ cd_entry.code }}</td>
+                        <td style="white-space:pre;">{{ cd_entry.code }}</td>
                         <td>{{ cd_entry.definition }}</td>
                         {{ macros.up_down_arrow(cd_entry.id, cd_entry.upval) }}
                         {{ macros.up_down_arrow(cd_entry.id, cd_entry.downval) }}

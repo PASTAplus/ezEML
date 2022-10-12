@@ -33,15 +33,15 @@
                 </span>
             <table class="eval_table" width=100% style="padding: 10px;">
                 <tr><th class="eval_table" align="left" width=8%>Row</th>
-                <th class="eval_table" align="left" width=52%>Error</th>
-                <th class="eval_table" align="left" width=20%>Expected</th>
-                <th align="left" width=20%>Found</th></tr>
+                <th class="eval_table" align="left" width=42%>Error</th>
+                <th class="eval_table" align="left" width=25%>Expected</th>
+                <th align="left" width=25%>Found</th></tr>
                 {% for error in column_err.errors %}
                 <tr>
                 <td class="eval_table" valign="top">{{ error.row }}</td>
                 <td class="eval_table" valign="top">{{ error.error_type }}</td>
-                <td class="eval_table" valign="top">{{ error.expected|safe }}</td>
-                <td class="eval_table" valign="top">{{ error.found }}</td>
+                <td class="eval_table" valign="top" style="white-space:pre-wrap;">{{ error.expected|safe }}</td>
+                <td class="eval_table" valign="top" style="white-space:pre-wrap;">{{ error.found|safe }}</td>
                 </tr>
                 {% endfor %}
                     </table>

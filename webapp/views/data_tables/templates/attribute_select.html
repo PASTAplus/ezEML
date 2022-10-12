@@ -23,7 +23,7 @@
                     {% for att_entry in att_list %}
                     <tr>
                         <td width="5%">{{ att_entry.column_number }}</td>
-                        <td width="30%">{{ att_entry.label }}</td>
+                        <td width="30%" style="white-space:pre;">{{ att_entry.label }}</td>
                         <td width="15%">{{ att_entry.mscale }}</td>
                         {% if not was_uploaded %}
                             {{ macros.up_down_arrow(att_entry.id, att_entry.upval) }}

@@ -310,6 +310,8 @@ If the same kind of error occurs in a range of consecutive rows, we display the 
 
 Some errors pertain to a column as a whole (e.g., the column is a datetime variable but the format string is not one that the EDI repository supports). In such cases, the row number will be blank.
 
+Sometimes leading and trailing spaces are present and cause errors. To make such cases easier to find, we display expected and found values with each leading and trailing space represented by the <span style="color:red;font-weight:bold;font-size:120%;">␠</span> character, in red.
+
 You may make corrections to the data table and/or metadata as needed and then re-run <b>Check Data Tables</b> for the given table, iterating until errors have been removed to your satisfaction.
 
 Note that when data packages are submitted to EDI's data repository, data table error checking is performed there as well. Experienced users of the repository may recognize that the repository's error checking is more permissive than the checking being done here in ezEML. ezEML’s error checking is intended to reflect best practices and help data providers minimize the data cleaning burden that will be passed on to consumers of their data.

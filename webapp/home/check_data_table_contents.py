@@ -17,6 +17,7 @@ from webapp.config import Config
 from webapp.home.import_data import convert_file_size
 
 from metapype.eml import names
+from webapp.exceptions import ezEMLXMLError
 from metapype.model import metapype_io
 from metapype.model.node import Node
 import webapp.home.metapype_client as metapype_client
@@ -38,10 +39,12 @@ def load_eml_file(eml_file_url:str):
         response = s.get(eml_file_url)
         response.raise_for_status()
     except Exception as err:
-        ijk = 123
-        pass
+        raise ezEMLXMLError(f'Error loading EML file: {err.response.content}')
     xml = response.content.decode('utf-8')
-    eml_node = metapype_io.from_xml(xml)
+    eml_node = metapype_io.from_xml(xml,
+                                    clean=True,
+                                    collapse=True,
+                                    literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node)
     return eml_node
 
@@ -618,6 +621,17 @@ def find_large_data_tables():
                 break
 
 
+def make_blanks_visible(s:str):
+    blank = '<span style="color:red;font-size:120%;font-weight:bold;">\u2420</span>'
+    if s.isspace():
+        return s.replace(' ', blank)
+    else:
+        # make leading and trailing spaces visible
+        leading = len(s) - len(s.lstrip())
+        trailing = len(s) - len(s.rstrip())
+        return s[:leading].replace(' ', blank) + s[leading:len(s)-trailing] + s[len(s)-trailing:].replace(' ', blank)
+
+
 def generate_error_info_for_webpage(data_table_node, errors):
     errs_obj = json.loads(errors)
     data_table_name = get_data_table_name(data_table_node)
@@ -639,8 +653,8 @@ def generate_error_info_for_webpage(data_table_node, errors):
         errors.append({
             "row": error['location']['row'],
             "error_type": error['error_type'],
-            "expected": error['expected'],
-            "found": error['found']})
+            "expected": make_blanks_visible(error['expected']),
+            "found": make_blanks_visible(error['found'])})
     return column_errs
 
 

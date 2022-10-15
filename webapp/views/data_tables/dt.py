@@ -1597,7 +1597,7 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
                                           dt_node_id=dt_node_id,
                                           att_node_id=att_node_id,
                                           nom_ord_node_id=nom_ord_node_id,
-                                          mscale=mscale)
+                                          mscale=mscale.replace('VariableType.', ''))
         return redirect(url)
 
     # Process GET

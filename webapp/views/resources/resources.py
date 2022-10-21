@@ -275,6 +275,8 @@ def abstract(filename=None):
 @res_bp.route('/intellectual_rights/<filename>', methods=['GET', 'POST'])
 def intellectual_rights(filename=None):
     form = IntellectualRightsForm(filename=filename)
+    if(form.intellectual_rights_radio.data):
+        data_lower = form.intellectual_rights_radio.data.lower()
 
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
@@ -284,9 +286,9 @@ def intellectual_rights(filename=None):
             submit_type = 'Save Changes'
 
         if submit_type == 'Save Changes':
-            if form.intellectual_rights_radio.data == 'CC0':
+            if data_lower == 'CC0'.lower():
                 intellectual_rights = INTELLECTUAL_RIGHTS_CC0
-            elif form.intellectual_rights_radio.data == 'CCBY':
+            elif data_lower == 'CCBY'.lower():
                 intellectual_rights = INTELLECTUAL_RIGHTS_CC_BY
             else:
                 intellectual_rights = form.intellectual_rights.data

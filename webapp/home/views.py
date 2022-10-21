@@ -2187,6 +2187,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 next_page=None, edit_page=None, project_node_id=None, reupload_page=None):
     node_id = None
     new_page = None
+
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element

@@ -2215,7 +2215,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 #         if object_name:
                 #             user_data.discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
-                node_id = project_node_id  # for relatedProject case
+                # node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_REUPLOAD:
                 node_id = key

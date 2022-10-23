@@ -683,13 +683,164 @@ def create_stain(mother_node: Node, stain,
     stain_node.remove_children()
 
     if stain == mdb_names.LIGHT_MICRO_STAIN:
-        lightMicroscopyStainType_node = Node(lightMicroscopyStainType)
+        lightMicroscopyStainType_node = Node(mdb_names.LIGHT_MICRO_STAIN, parent=stain_node)
         stain_node.add_child(lightMicroscopyStainType_node)
+        if lightMicroscopyStainType == mdb_names.EOSIN_ONLY:
+            eosinOnly_node = Node(mdb_names.EOSIN_ONLY, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(eosinOnly_node)
+
+        elif lightMicroscopyStainType == mdb_names.HEMA_ONLY:
+            hematoxylinOnly_node = Node(mdb_names.HEMA_ONLY, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(hematoxylinOnly_node)
+
+        elif lightMicroscopyStainType == mdb_names.HEMA_EOSIN:
+            hematoxylinAndEosin_node = Node(mdb_names.HEMA_EOSIN, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(hematoxylinAndEosin_node)
+
+        elif lightMicroscopyStainType == mdb_names.MASONS_TRI:
+            masonsTrichrome_node = Node(mdb_names.MASONS_TRI, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(masonsTrichrome_node)
+
+        elif lightMicroscopyStainType == mdb_names.MALLORYS_TRI:
+            mallorysTrichrome_node = Node(mdb_names.MALLORYS_TRI, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(mallorysTrichrome_node)
+
+        elif lightMicroscopyStainType == mdb_names.PERIODIC_ACID_SCHIFF:
+            periodicAcidSchiff_node = Node(mdb_names.PERIODIC_ACID_SCHIFF, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(periodicAcidSchiff_node)
+
+        elif lightMicroscopyStainType == mdb_names.SUDAN:
+            sudan_node = Node(mdb_names.SUDAN, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(sudan_node)
+            if sudanStainType == mdb_names.III:
+                sudan_node.content = mdb_names.III
+            elif sudanStainType == mdb_names.IV:
+                sudan_node.content = mdb_names.IV
+            elif sudanStainType == mdb_names.BLACK_B:
+                sudan_node.content = mdb_names.BLACK_B
+            elif sudanStainType == mdb_names.OIL_RED_O:
+                sudan_node.content = mdb_names.OIL_RED_O
+            elif sudanStainType == mdb_names.OSMIUM_TETRAOXIDE:
+                sudan_node.content = mdb_names.OSMIUM_TETRAOXIDE
+
+        elif lightMicroscopyStainType == mdb_names.ACID_FUSCHIN:
+            acidFuschin_node = Node(mdb_names.ACID_FUSCHIN, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(acidFuschin_node)
+
+        elif lightMicroscopyStainType == mdb_names.ALCIAN_BLUE:
+            alcianBlue_node = Node(mdb_names.ALCIAN_BLUE, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(alcianBlue_node)
+
+        elif lightMicroscopyStainType == mdb_names.AZAN_TRI:
+            azanTrichrome_node = Node(mdb_names.AZAN_TRI, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(azanTrichrome_node)
+
+        elif lightMicroscopyStainType == mdb_names.CASANS_TRI:
+            casansTrichrome_node = Node(mdb_names.CASANS_TRI, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(casansTrichrome_node)
+
+        elif lightMicroscopyStainType == mdb_names.CRESYL_VIOLET_NISSL:
+            cresylVioletNissl_node = Node(mdb_names.CRESYL_VIOLET_NISSL, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(cresylVioletNissl_node)
+
+        elif lightMicroscopyStainType == mdb_names.GIEMSA:
+            giemsa_node = Node(mdb_names.GIEMSA, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(giemsa_node)
+
+        elif lightMicroscopyStainType == mdb_names.METHYLENE_BLUE:
+            methyleneBlue_node = Node(mdb_names.METHYLENE_BLUE, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(methyleneBlue_node)
+
+        elif lightMicroscopyStainType == mdb_names.NEUTRAL_RED:
+            neutralRed_node = Node(mdb_names.NEUTRAL_RED, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(neutralRed_node)
+
+        elif lightMicroscopyStainType == mdb_names.NILE_BLUE:
+            nileBlue_node = Node(mdb_names.NILE_BLUE, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(nileBlue_node)
+
+        elif lightMicroscopyStainType == mdb_names.NILE_RED:
+            nileRed_node = Node(mdb_names.NILE_RED, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(nileRed_node)
+
+        elif lightMicroscopyStainType == mdb_names.ORCEIN:
+            orcein_node = Node(mdb_names.ORCEIN, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(orcein_node)
+
+        elif lightMicroscopyStainType == mdb_names.RETICULIN:
+            reticulin_node = Node(mdb_names.RETICULIN, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(reticulin_node)
+
+        elif lightMicroscopyStainType == mdb_names.TOLUIDINE_BLUE:
+            toluidineBlue_node = Node(mdb_names.TOLUIDINE_BLUE, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(toluidineBlue_node)
+
+        elif lightMicroscopyStainType == mdb_names.VAN_GIESON:
+            vanGieson_node = Node(mdb_names.VAN_GIESON, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(vanGieson_node)
+
+        elif lightMicroscopyStainType == mdb_names.STRING_OTHER:
+            lightMicroscopyStainOther_node = Node(mdb_names.STRING_OTHER, parent=lightMicroscopyStainType_node)
+            lightMicroscopyStainType_node.add_child(lightMicroscopyStainOther_node)
+            lightMicroscopyStainOther_node.content = lightMicroscopyStainOther
 
     elif stain == mdb_names.FLU_MICRO_STAIN:
-        fluorescentMicroscopyStainType_node = Node(fluorescentMicroscopyStainType)
+        fluorescentMicroscopyStainType_node = Node(mdb_names.FLU_MICRO_STAIN, parent=stain_node)
         stain_node.add_child(fluorescentMicroscopyStainType_node)
+        if fluorescentMicroscopyStainType == mdb_names.ACRIDINE_ORANGE:
+            acridineOrange_node = Node(mdb_names.ACRIDINE_ORANGE, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(acridineOrange_node)
+
+        elif fluorescentMicroscopyStainType == mdb_names.CALCEIN:
+            calcein_node = Node(mdb_names.CALCEIN, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(calcein_node)
+
+        elif fluorescentMicroscopyStainType == mdb_names.DAPI:
+            DAPI_node = Node(mdb_names.DAPI, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(DAPI_node)
+
+        elif fluorescentMicroscopyStainType == mdb_names.HOECHST:
+            hoechst_node = Node(mdb_names.HOECHST, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(hoechst_node)
+
+        elif fluorescentMicroscopyStainType == mdb_names.PROP_IODIDE:
+            propidiumIodide_node = Node(mdb_names.PROP_IODIDE, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(propidiumIodide_node)
+
+        elif fluorescentMicroscopyStainType == mdb_names.RHODAMINE:
+            rhodamine_node = Node(mdb_names.RHODAMINE, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(rhodamine_node)
+
+        elif fluorescentMicroscopyStainType == mdb_names.TUNEL:
+            TUNEL_node = Node(mdb_names.TUNEL, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(TUNEL_node)
+
+        elif fluorescentMicroscopyStainType == mdb_names.STRING_OTHER:
+            fluorescentMicroscopyStainOther_node = Node(mdb_names.STRING_OTHER, parent=fluorescentMicroscopyStainType_node)
+            fluorescentMicroscopyStainType_node.add_child(fluorescentMicroscopyStainOther_node)
+            fluorescentMicroscopyStainOther_node.content = fluorescentMicroscopyStainOther
 
     elif stain == mdb_names.ELE_MICRO_STAIN:
-        electronMicroscopyStainType_node = Node(electronMicroscopyStainType)
+        electronMicroscopyStainType_node = Node(mdb_names.ELE_MICRO_STAIN, parent=stain_node)
         stain_node.add_child(electronMicroscopyStainType_node)
+        if electronMicroscopyStainType == mdb_names.COLLOIDAL_GOLD:
+            colloidalGold_node = Node(mdb_names.COLLOIDAL_GOLD, parent=electronMicroscopyStainType_node)
+            electronMicroscopyStainType_node.add_child(colloidalGold_node)
+
+        elif electronMicroscopyStainType == mdb_names.OSMIUM_TETRO:
+            osmiumTetroxide_node = Node(mdb_names.OSMIUM_TETRO, parent=electronMicroscopyStainType_node)
+            electronMicroscopyStainType_node.add_child(osmiumTetroxide_node)
+
+        elif electronMicroscopyStainType == mdb_names.PHOS_ACID:
+            phosphotundsticAcid_node = Node(mdb_names.PHOS_ACID, parent=electronMicroscopyStainType_node)
+            electronMicroscopyStainType_node.add_child(phosphotundsticAcid_node)
+
+        elif electronMicroscopyStainType == mdb_names.SILVER_NITRATE:
+            silverNitrate_node = Node(mdb_names.SILVER_NITRATE, parent=electronMicroscopyStainType_node)
+            electronMicroscopyStainType_node.add_child(silverNitrate_node)
+
+        elif electronMicroscopyStainType == mdb_names.STRING_OTHER:
+            electronMicroscopyStainOther_node = Node(mdb_names.STRING_OTHER, parent=electronMicroscopyStainType_node)
+            electronMicroscopyStainType_node.add_child(electronMicroscopyStainOther_node)
+            electronMicroscopyStainOther_node.content = electronMicroscopyStainOther
+

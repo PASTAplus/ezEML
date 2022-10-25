@@ -1,10 +1,11 @@
+from email import message
 from wsgiref.validate import validator
 from wtforms import (
     StringField, SelectField, IntegerField, HiddenField, Form, FormField, TextAreaField
 )
 
 from wtforms.validators import (
-    Optional, NumberRange
+    Optional, NumberRange, InputRequired
 )
 
 from webapp.home.forms import EDIForm
@@ -13,32 +14,37 @@ from webapp.home.custom_validators import IntegerField
 
 
 class DonorForm(EDIForm):
-    donorID = StringField('Donor ID', validators=[])
-    donorGender = StringField('Gender', validators=[], default='female')
-    donorYears = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
-    donorDays = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
-    donorLifeStage = SelectField('Life Stage',
+    donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
+    donorGender = StringField('Gender *', validators=[InputRequired(message='Gender is required')], default='female')
+    donorYears = IntegerField('Years', validators=[NumberRange(min=0), Optional()])
+    donorDays = IntegerField('Days', validators=[NumberRange(min=0), Optional()])
+    donorLifeStage = SelectField('Life Stage *',
                                  choices=[("", ""),
                                           ("fetal", "Fetal"),
                                           ("neonatal", "Neonatal"),
                                           ("prepubertal", "Prepubertal"),
                                           ("pubertal", "Pubertal"),
                                           ("adult", "Adult"),
-                                          ("aging", "Aging")])
-    specimenSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
-    specimenTissue = StringField('Specimen Tissue', validators=[], default='ovary')
-    ovaryPosition = SelectField('Ovary Position',
+                                          ("aging", "Aging")], 
+                                 validators=[InputRequired(message='Life Stage is required')])
+    specimenSeqNum = IntegerField('Specimen Sequence Number *', 
+                                validators=[NumberRange(min=0), InputRequired(message='Speciment Sequence Number is required')])
+    specimenTissue = StringField('Specimen Tissue *', 
+                                validators=[InputRequired(message='Speciment Tissue is required')], 
+                                default='ovary')
+    ovaryPosition = SelectField('Ovary Position *',
                                 choices=[("", ""),
                                          ("left", "Left"),
                                          ("right", "Right"),
-                                         ("unspecified", "Unspecified")])
+                                         ("unspecified", "Unspecified")], 
+                                validators=[InputRequired(message='Speciment Tissue is required')])
     specimenLocation = SelectField('Specimen Location',
                                    choices=[("", ""),
                                             ("wholeOvary", "Whole Ovary"),
                                             ("ovarianCortex", "Ovarian Cortex"),
                                             ("ovarianMedulla", "Ovarian Medulla"),
                                             ("follicle", "Follicle"),
-                                            ("corpusLuteum", "CorpusLuteum"),
+                                            ("corpusLuteum", "Corpus Luteum"),
                                             ("unspecified", "Unspecified")],
                                    render_kw={'onchange': "specimenLocationFunction()"})
     corpusLuteum = SelectField('Corpus Luteum Type',
@@ -67,14 +73,18 @@ class DonorForm(EDIForm):
                                   ("mid", "Mid"),
                                   ("late", "Late"),
                                   ("regression", "Regression")], validators=[Optional()])
-    slideID = StringField('Slide ID', validators=[])
-    sectionSeqNum = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
-    thickness = IntegerField('Specimen Sequence Number', validators=[NumberRange(min=0), Optional()])
-    thicknessUnit = SelectField('Section Thickness Units',
+    slideID = StringField('Slide ID *', 
+                        validators=[InputRequired(message='Slide ID is required')])
+    sectionSeqNum = IntegerField('Section Sequence Number *', 
+                                validators=[NumberRange(min=0), InputRequired(message='Section Sequence Number is required')])
+    thickness = IntegerField('Section Thickness *', 
+                            validators=[NumberRange(min=0), InputRequired(message='Thickness is required')])
+    thicknessUnit = SelectField('Section Thickness Units *',
                                 choices=[("", ""),
                                          ("microns", "Microns"),
-                                         ("nm", "NM")])
-    fixation = SelectField('Fixation',
+                                         ("nm", "NM")],
+                                validators=[InputRequired(message='Thickness Unit is required')])
+    fixation = SelectField('Fixation *',
                            choices=[("", ""),
                                     ("neutralBufferedFormalin10", "Neutral Buffered Formalin10"),
                                     ("paraformaldehyde4", "Paraformaldehyde"),
@@ -82,14 +92,16 @@ class DonorForm(EDIForm):
                                     ("neutralBufferedFormalin5aceticAcid", "Neutral Buffered Formalin5 acetic Acid"),
                                     ("bouins", "Bouins"),
                                     ("other", "Other")],
-                           render_kw={'onchange': "fixationFunction()"})
+                           render_kw={'onchange': "fixationFunction()"},
+                           validators=[InputRequired(message='Fixation is required')])
     fixationOther = StringField('Other Fixation', validators=[Optional()])
-    stain = SelectField('Stain',
+    stain = SelectField('Stain *',
                         choices=[("", ""),
                                  ("lightMicroscopyStain", "Light Microscopy Stain"),
                                  ("fluorescentMicroscopyStain", "Fluorescent Microscopy Stain"),
                                  ("electronMicroscopyStain", "Electron Microscopy Stain")],
-                        render_kw={'onchange': "stainTypeFunction()"})
+                        render_kw={'onchange': "stainTypeFunction()"},
+                        validators=[InputRequired(message='Stain is required')])
     lightMicroscopyStainType = SelectField('Stain Light Type',
                                            choices=[("", ""),
                                                     ("eosinOnly", "Eosin Only"),
@@ -148,9 +160,9 @@ class DonorForm(EDIForm):
                                               render_kw={'onchange': "electronMicroscopyStainTypeFunction()"},
                                               validators=[Optional()])
     electronMicroscopyStainOther = StringField('Other Electron Stain', validators=[])
-    magnification = StringField('Magnification', validators=[])
-    maker = StringField('Microscope Maker', validators=[])
-    model = StringField('Microscope Model', validators=[])
+    magnification = StringField('Magnification *', validators=[InputRequired(message='Magnification is required')])
+    maker = StringField('Microscope Maker *', validators=[InputRequired(message='Microscope Maker is required')])
+    model = StringField('Microscope Model *', validators=[InputRequired(message='Microscope Model is required')])
     notes = TextAreaField('Microscope Notes')
     md5 = HiddenField('')
 

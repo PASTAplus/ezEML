@@ -127,7 +127,7 @@ def clean_mother_node(eml_node: Node, current_document: None):
 
 
 def clean_mother_xml(mother_node: Node, current_document):
-    cleaned_mother_node = to_xml_json(mother_node, None, 0)
+    cleaned_mother_node = to_xml_json(mother_node, None, 6)
     user_folder = user_data.get_user_folder_name()
     filename = f'{user_folder}/{current_document}.xml'
     with open(filename, "r+") as fh:
@@ -192,6 +192,10 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
 
 
 def to_xml_json(node: Node, parent: Node = None, level: int = 0) -> str:
+    
+    #Need to add structure to skip nodes with no content such as lightmicroscopystain
+    #Add data structure to catch nil nodes
+    
     xml = ""
     spacing = "  "
     indent = spacing * level
@@ -258,7 +262,8 @@ def _nsp_unique(child_nsmap: dict, parent_nsmap: dict) -> dict:
 """
 
 
-def add_mother_metadata(eml_node: Node = None, filename = None):
+
+def add_mother_metadata(eml_node: Node = None, filename=None):
     additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
     if additional_metadata_node:
         metadata_node = additional_metadata_node.find_child(names.METADATA)
@@ -299,8 +304,6 @@ def create_donor(mother_node: Node,
                  specimenTissue: str = "Ovary",
                  ovaryPosition: str = None,
                  specimenLocation: str = None,
-                 corpusLuteumType: str = None,
-                 cycleType: Node = None,
                  dayOfCycle: str = None,
                  stageOfCycle: str = None,
                  follicularType: str = None,
@@ -386,9 +389,6 @@ def create_donor(mother_node: Node,
         if not specimenLocation_node:
             specimenLocation_node = Node(mdb_names.SPEC_LOCATION, parent=mother_node)
             mother_node.add_child(specimenLocation_node)
-        if specimenLocation != mdb_names.CORPUS_LUTEUM:
-            specimenLocation_node.content = specimenLocation
-        # if cycleType:
         cycleType_node = mother_node.find_child(mdb_names.SPEC_CYCLE)
         if not cycleType_node:
             cycleType_node = Node(mdb_names.SPEC_CYCLE, parent=mother_node)
@@ -404,10 +404,6 @@ def create_donor(mother_node: Node,
         if not stageOfCycle_node:
             stageOfCycle_node = Node(mdb_names.STAGE_OF_CYCLE, parent=cycleType_node)
             cycleType_node.add_child(stageOfCycle_node)
-        if stageOfCycle != mdb_names.FOLLICULAR:
-            if stageOfCycle != mdb_names.LUTEAL:
-                stageOfCycle_node.content = stageOfCycle
-        # if slideID:
         slideID_node = mother_node.find_child(mdb_names.SLIDE_ID)
         if not slideID_node:
             slideID_node = Node(mdb_names.SLIDE_ID, parent=mother_node)
@@ -446,67 +442,10 @@ def create_donor(mother_node: Node,
         if not fixation_node:
             fixation_node = Node(mdb_names.FIXATION, parent=sampleProcessingType_node)
             sampleProcessingType_node.add_child(fixation_node)
-        fixation_node.content = fixation
-        # if fixationOther:
-        fixationOther_node = sampleProcessingType_node.find_child('fixationOther')
-        if not fixationOther_node:
-            fixationOther_node = Node('fixationOther', parent=sampleProcessingType_node)
-            sampleProcessingType_node.add_child(fixationOther_node)
-        fixationOther_node.content = fixationOther
-        # if stain:
         stain_node = sampleProcessingType_node.find_child(mdb_names.STAIN)
         if not stain_node:
             stain_node = Node(mdb_names.STAIN, parent=sampleProcessingType_node)
             sampleProcessingType_node.add_child(stain_node)
-        stain_node.content = stain
-        # if stainType:
-        stainType_node = mother_node.find_child('stainType')
-        if not stainType_node:
-            stainType_node = Node('stainType', parent=mother_node)
-            mother_node.add_child(stainType_node)
-        # if stainLightType:
-        stainLightType_node = stainType_node.find_child(mdb_names.LIGHT_MICRO_STAIN)
-        if not stainLightType_node:
-            stainLightType_node = Node(mdb_names.LIGHT_MICRO_STAIN, parent=stainType_node)
-            stainType_node.add_child(stainLightType_node)
-        stainLightType_node.content = stainLightType
-        # if sudanStainType:
-        sudanStainType_node = stainType_node.find_child('sudanStainType')
-        if not sudanStainType_node:
-            sudanStainType_node = Node('sudanStainType', parent=stainType_node)
-            stainType_node.add_child(sudanStainType_node)
-        sudanStainType_node.content = sudanStainType
-        # if stainLightOther:
-        stainLightOther_node = stainType_node.find_child('stainLightOther')
-        if not stainLightOther_node:
-            stainLightOther_node = Node('stainLightOther', parent=stainType_node)
-            stainType_node.add_child(stainLightOther_node)
-        stainLightOther_node.content = stainLightOther
-        # if stainFluorescentType:
-        stainFluorescentType_node = stainType_node.find_child(mdb_names.FLU_MICRO_STAIN)
-        if not stainFluorescentType_node:
-            stainFluorescentType_node = Node(mdb_names.FLU_MICRO_STAIN, parent=stainType_node)
-            stainType_node.add_child(stainFluorescentType_node)
-        stainFluorescentType_node.content = stainFluorescentType
-        # if stainFluorescentOther:
-        stainFluorescentOther_node = stainType_node.find_child('stainFluorescentOther')
-        if not stainFluorescentOther_node:
-            stainFluorescentOther_node = Node('stainFluorescentOther', parent=stainType_node)
-            stainType_node.add_child(stainFluorescentOther_node)
-        stainFluorescentOther_node.content = stainFluorescentOther
-        # if stainElectronType:
-        stainElectronType_node = stainType_node.find_child(mdb_names.ELE_MICRO_STAIN)
-        if not stainElectronType_node:
-            stainElectronType_node = Node(mdb_names.ELE_MICRO_STAIN, parent=stainType_node)
-            stainType_node.add_child(stainElectronType_node)
-        stainElectronType_node.content = stainElectronType
-        # if stainElectronOther:
-        stainElectronOther_node = stainType_node.find_child('stainElectronOther')
-        if not stainElectronOther_node:
-            stainElectronOther_node = Node('stainElectronOther', parent=stainType_node)
-            stainType_node.add_child(stainElectronOther_node)
-        stainElectronOther_node.content = stainElectronOther
-        # if magnification:
         magnification_node = mother_node.find_child(mdb_names.MAGNIFICATION)
         if not magnification_node:
             magnification_node = Node(mdb_names.MAGNIFICATION, parent=mother_node)

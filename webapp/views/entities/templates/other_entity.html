@@ -12,13 +12,15 @@
     </table>
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" role="form" enctype="multipart/form-data">
                 <h5>Enter information about the image:</h5>
+
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.format_name) }}
-                {{ wtf.form_field(form.file_name) }}
+                {{ wtf.form_field(form.file_upload) }}
                 {{ wtf.form_field(form.additional_info) }}
+
                 <table>
                 <tr>
                 <td class="table_cell">
@@ -55,8 +57,8 @@
 {#                <h4>Other Entity Methods (Optional):</h4>#}
 {#                <input class="btn btn-primary" name="Methods" type="submit" value="Edit Methods"/>#}
 {#                <br/><br/><br/>#}
-                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <input class="btn btn-primary" name="OK" type="submit" value="Upload and Continue"/>
+                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes" onclick="resetButtons()"/>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
@@ -73,9 +75,33 @@
     {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
 
+    <script type = "text/javascript">
+        $("#file_upload").change(function(){
+            var upload_path = document.getElementById("file_upload").value;
+            let upload_name = upload_path.split('\\').pop().split('/').pop().split('.')[0];
+            let upload_format = upload_path.split('.').pop();
+
+            document.getElementById("entity_name").value = upload_name;
+            document.getElementById("entity_name").setAttribute("disabled","disabled");
+
+            document.getElementById("format_name").value = upload_format;
+            document.getElementById("format_name").setAttribute("disabled","disabled");
+        });
+    </script>
+
+    <script>
+        function resetButtons(){
+            document.getElementById("entity_name").removeAttribute("disabled");
+            document.getElementById("format_name").removeAttribute("disabled");
+        }
+    </script>
+
+
     <script>
     $(function()
     {
+        document.getElementById("entity_name").toggleAttribute("required");
+        document.getElementById("format_name").toggleAttribute("required");
         {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
     });
     </script>

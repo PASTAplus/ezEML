@@ -1,7 +1,7 @@
 from email import message
 from wsgiref.validate import validator
 from wtforms import (
-    StringField, IntegerField, SelectField, HiddenField, Form, FormField, TextAreaField
+    StringField, SelectField, IntegerField, HiddenField, Form, FormField, TextAreaField
 )
 
 from wtforms.validators import (
@@ -10,12 +10,14 @@ from wtforms.validators import (
 
 from webapp.home.forms import EDIForm
 
+from webapp.home.custom_validators import IntegerField
+
 
 class DonorForm(EDIForm):
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
     donorGender = StringField('Gender *', validators=[InputRequired(message='Gender is required')], default='female')
-    donorYears = IntegerField('Years', validators=[NumberRange(min=0)])
-    donorDays = IntegerField('Days', validators=[NumberRange(min=0)])
+    donorYears = IntegerField('Years', validators=[NumberRange(min=0), Optional()])
+    donorDays = IntegerField('Days', validators=[NumberRange(min=0), Optional()])
     donorLifeStage = SelectField('Life Stage *',
                                  choices=[("", ""),
                                           ("fetal", "Fetal"),

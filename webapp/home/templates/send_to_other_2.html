@@ -7,31 +7,28 @@
     {% set help_send_to_colleague_dialog = help_send_to_colleague_id ~ '_dialog' %}
 
     <table>
-        <td><h2>Send Data Package to a Colleague</h2></td>
+        <td><h2>Submit Metadata</h2></td>
         <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_send_to_colleague_btn) }}</td>
     </table>
     <div class="col-md-10" style="display:inline-block; padding:10px;">
-    Your data package is ready for downloading by your colleague. A suggested email message to your colleague
-    is shown below. This email message contains the link your colleague will need to use to download the package.<p></p>
-
-        You can click <b>Copy to Clipboard</b> to copy the message to the system clipboard, ready to be pasted into
-        an email. Or, if you have a default email client configured in your browser, click <b>Open in Email Client</b> to
-    open the message in your email client directly. Either way, you can edit and personalize the email message as you see fit
-    before sending it.
+    Your data has been submitted successfully. You may download the submitted data here:
     </div>
     <p>&nbsp;</p>
-
     <div class="col-md-10" style="display:inline-block;border: 1px solid steelblue;padding: 10px;margin-left:25px;margin-top:10px;">
-        {{ mailto_html }}
+        <a id="zip_link" href="/eml/download_submission">Click me</a>
     </div>
+
+{#    <div class="col-md-10" style="display:inline-block;border: 1px solid steelblue;padding: 10px;margin-left:25px;margin-top:10px;">
+        {{ mailto_html }}
+    </div>#}
 
     <form method="POST" action="" style="display:inline-block;margin-left:25px;margin-top:20px;" class="form" role="form" novalidate>
         {{ form.csrf_token }}
 
-                <input class="btn btn-primary" style="width: 160px;" onclick="copy_to_clipboard();"
+                {#<input class="btn btn-primary" style="width: 160px;" onclick="copy_to_clipboard();"
                        value="Copy to Clipboard"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 160px;" onclick="open_in_email(document.getElementById('mail_link'));" value="Open in Email Client"/>&nbsp;&nbsp;
-                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>#}
                 {{ macros.hidden_buttons() }}
     </form>
 

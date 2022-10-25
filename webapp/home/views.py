@@ -13,11 +13,14 @@
 :Created:
     7/23/18
 """
+import shutil
+
 import daiquiri
 from datetime import date, datetime
 import html
 import json
 import math
+import glob
 import os.path
 import pandas as pd
 from pathlib import Path
@@ -47,7 +50,7 @@ import csv
 
 from webapp.home.exceptions import DataTableError, MissingFileError
 
-from webapp.home.forms import ( 
+from webapp.home.forms import (
     CreateEMLForm, DownloadEMLForm, ImportPackageForm,
     OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
@@ -62,14 +65,14 @@ from webapp.home.import_package import (
     copy_ezeml_package, upload_ezeml_package, import_ezeml_package
 )
 
-from webapp.home.metapype_client import ( 
+from webapp.home.metapype_client import (
     load_eml, save_both_formats, new_child_node, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW, RELEASE_NUMBER,
     save_old_to_new, read_xml, new_child_node, truncate_middle,
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_nodes, get_check_metadata_status
+    import_project_nodes, get_check_metadata_status, clear_other_entity
 )
 
 from webapp.home.motherpype import (
@@ -384,7 +387,7 @@ def delete():
 @login_required
 def save():
     current_document = current_user.get_filename()
-    
+
     if not current_document:
         flash('No document currently open')
         return render_template('index.html')
@@ -396,7 +399,7 @@ def save():
 
     save_both_formats(filename=current_document, eml_node=eml_node)
     flash(f'Saved {current_document}')
-         
+
     return redirect(url_for(PAGE_TITLE, filename=current_document))
 
 
@@ -490,7 +493,7 @@ def download():
         else:
             return return_value
     # Process GET
-    return render_template('download_eml.html', title='Download EML', 
+    return render_template('download_eml.html', title='Download EML',
                            form=form)
 
 
@@ -531,6 +534,19 @@ def download_current():
             return return_value
 
 
+@home.route('/download_submission', methods=['GET', 'POST'])
+@login_required
+def download_submission():
+    current_document = user_data.get_active_document()
+    if current_document:
+        # Do the download
+        return_value = user_data.download_zip(filename=current_document)
+        if isinstance(return_value, str):
+            flash(return_value)
+        else:
+            return return_value
+
+
 def allowed_data_file(filename):
     ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'txt', 'xml', 'ezeml_tmp'])
     return '.' in filename and \
@@ -538,7 +554,7 @@ def allowed_data_file(filename):
 
 
 def allowed_metadata_file(filename):
-    ALLOWED_EXTENSIONS = set(['xml'])    
+    ALLOWED_EXTENSIONS = set(['xml'])
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -599,10 +615,11 @@ def create():
             if user_filenames and filename and filename in user_filenames:
                 flash(f'{filename} already exists')
                 return render_template('create_eml.html', help=help,
-                                form=form)
+                                       form=form)
             create_eml(filename=filename)
             current_user.set_filename(filename)
             current_user.set_packageid(None)
+            user_data.clear_temp_folder()   # clear temp folder data if present
             return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
@@ -634,9 +651,9 @@ def open_eml_document():
             else:
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=filename))
-    
+
     # Process GET
-    return render_template('open_eml_document.html', title='Open EML Document', 
+    return render_template('open_eml_document.html', title='Open EML Document',
                            form=form)
 
 
@@ -700,7 +717,7 @@ def get_redirect_target_page():
     elif current_page == 'data_table':
         return PAGE_DATA_TABLE_SELECT
     elif current_page == 'other_entity':
-        return PAGE_OTHER_ENTITY_SELECT
+        return PAGE_OTHER_ENTITY
     elif current_page == 'check_metadata':
         return PAGE_CHECK
     elif current_page == 'export_package':
@@ -1327,16 +1344,20 @@ def send_to_other_email(name, email_address, title, url):
 def send_to_other(filename=None, mailto=None):
     form = SendToColleagueForm()
 
+    # set temp and upload folders
+    user_folder = user_data.get_user_folder_name()
+    upload_folder = user_data.get_document_uploads_folder_name()
+    temp_folder = user_data.get_temp_folder()
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if form.validate_on_submit():
-        colleague_name = form.data['colleague_name']
-        email_address = form.data['email_address']
+        # colleague_name = form.data['colleague_name']
+        # email_address = form.data['email_address']
 
-        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(child_name=names.DATASET)
         title_node = dataset_node.find_child(names.TITLE)
         title = ''
@@ -1346,11 +1367,32 @@ def send_to_other(filename=None, mailto=None):
             flash('The data package requires a Title', 'error')
             return redirect(get_back_url())
 
-        zipfile_path = zip_package(current_document, eml_node)
-        _, download_url = save_as_ezeml_package_export(zipfile_path)
+        # clear appropriate uploads folder
+        user_data.clear_folder(upload_folder)
+
+        # move files from temp folder to appropriate uploads folder
+        images = glob.glob(os.path.join(temp_folder, '*'))
+        for f in images:
+            fname = os.path.basename(f)
+            Path(f).rename(upload_folder + '/' + fname)
+
+        # copy xml file to uploads folder
+        eml_node = load_eml(filename=current_document)
+        save_both_formats(filename=current_document, eml_node=eml_node)
+        clean_mother_node(eml_node, current_document)
+        current_xml = current_document + '.xml'
+        shutil.copy2(user_folder + '/' + current_xml, upload_folder)
+
+        # create zip of uploads folder
+        zipfile_path = os.path.join(user_folder, current_document)
+        shutil.make_archive(zipfile_path, 'zip', upload_folder)
+
+        # zipfile_path = zip_package(current_document, eml_node)
+        # _, download_url = save_as_ezeml_package_export(zipfile_path)
 
         if not mailto:
-            mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
+            mailto = True
+            # mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
         else:
             mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
             mailto_html = None
@@ -1368,15 +1410,19 @@ def send_to_other(filename=None, mailto=None):
         help = get_helps(['send_to_colleague_2'])
         return render_template('send_to_other_2.html',
                                title='Send to Other',
-                               mailto=mailto,
-                               mailto_html=mailto_html,
-                               mailto_raw=mailto_raw,
+                               # mailto=mailto,
+                               # mailto_html=mailto_html,
+                               # mailto_raw=mailto_raw,
+                               zip_path=user_data.get_zip_file_path(),
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
     else:
         help = get_helps(['send_to_colleague'])
         return render_template('send_to_other.html',
                                title='Send to Other',
+                               #set image and xml file names to display
+                               image_name=user_data.get_temp_file_name(),
+                               xml_name=current_user.get_filename(),
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
 
@@ -1638,7 +1684,7 @@ def import_package():
             package_base_filename = os.path.basename(filename)
             package_name = os.path.splitext(package_base_filename)[0]
 
-            # See if package with that name already exists
+            # Check package for errors
             try:
                 unversioned_package_name = upload_ezeml_package(file, package_name)
             except FileNotFoundError as err:
@@ -1655,13 +1701,22 @@ def import_package():
                       'from ezEML.', 'error')
                 return redirect(request.url)
 
-            if unversioned_package_name in user_data.get_user_document_list():
-                return redirect(url_for('home.import_package_2', package_name=unversioned_package_name))
-            else:
-                import_ezeml_package(unversioned_package_name)
-                fixup_upload_management()
-                current_user.set_filename(filename=unversioned_package_name)
-                return redirect(url_for(PAGE_TITLE, filename=unversioned_package_name))
+            import_ezeml_package(unversioned_package_name)
+            fixup_upload_management()
+
+            filename = user_data.get_active_document()
+
+            # Remove Image data if present
+            user_data.clear_temp_folder()
+            eml_node = load_eml(filename)
+            dataset_node = eml_node.find_child(names.DATASET)
+            if dataset_node:
+                for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
+                    clear_other_entity(entity_node)
+
+            save_both_formats(filename=filename, eml_node=eml_node)
+
+            return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
 
     # Process GET
     help = get_helps(['import_package'])
@@ -2008,7 +2063,7 @@ def reupload_other_entity(filename, node_id):
                 raise ValueError("Other entity's name not found")
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename)
+        url = url_for(PAGE_OTHER_ENTITY, filename=filename)
         return redirect(url)
 
     if request.method == 'POST':
@@ -2082,7 +2137,7 @@ def load_metadata():
             # filename = secure_filename(file.filename)
             # filename = file.filename
             filename = secure_filename(file.filename)
-            
+
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_metadata_file(filename):
@@ -2110,7 +2165,7 @@ def load_metadata():
                 flash(f'{filename} is not a supported data file type', 'error')
                 return redirect(request.url)
     # Process GET
-    return render_template('load_metadata.html', title='Load Metadata', 
+    return render_template('load_metadata.html', title='Load Metadata',
                            form=form)
 
 
@@ -2118,7 +2173,7 @@ def load_metadata():
 @login_required
 def close():
     current_document = current_user.get_filename()
-    
+
     if current_document:
         current_user.set_filename(None)
         flash(f'Closed {current_document}')
@@ -2131,10 +2186,11 @@ def close():
 
 
 def select_post(filename=None, form=None, form_dict=None,
-                method=None, this_page=None, back_page=None, 
+                method=None, this_page=None, back_page=None,
                 next_page=None, edit_page=None, project_node_id=None, reupload_page=None):
     node_id = None
     new_page = None
+
     if form_dict:
         for key in form_dict:
             val = form_dict[key][0]  # value is the first list element
@@ -2162,7 +2218,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 #         if object_name:
                 #             user_data.discard_data_table_upload_filename(object_name)
                 remove_child(node_id=node_id)
-                node_id = project_node_id  # for relatedProject case
+                # node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_REUPLOAD:
                 node_id = key
@@ -2259,7 +2315,7 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
             if flash_msg:
                 flash_msg += ";  " + msg
             else:
-                flash_msg = msg 
+                flash_msg = msg
 
     return flash_msg
 

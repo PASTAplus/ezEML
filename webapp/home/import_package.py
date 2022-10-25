@@ -133,7 +133,7 @@ def import_ezeml_package(output_package_name=None):
     # Copy the files to their proper destinations
     for filename in files:
         src_file = os.path.join(work_path, filename)
-        dest_file = os.path.join(user_path, filename + ".xml")
+        dest_file = os.path.join(user_path, user_data.get_active_document() + ".xml")
 
     shutil.copyfile(src_file, dest_file)
 

@@ -73,18 +73,10 @@
                     <ul class="dropdown-menu">
 {#                    <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
                         <li>
-                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.create') }}" title="New">New...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_new').click();">New...</a>
-                            {% endif %}
                         </li>
                         <li>
-                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_open').click();">Open...</a>
-                            {% endif %}
                         </li>
 {#                        <li>#}
 {#                            <a href="{{ url_for('home.download') }}" title="Download">Download Data Package as XML...</a>#}
@@ -95,11 +87,7 @@
 {#                    {% endif %}#}
                     {% if current_user.get_filename() %}
                         <li>
-                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.close') }}" title="Close">Close</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_close').click();">Close</a>
-                            {% endif %}
                         </li>
                         <li>
                             <a onclick="nav_save.click();" href="#" title="Save">Save</a>

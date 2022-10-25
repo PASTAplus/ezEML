@@ -17,29 +17,29 @@ class immunohistochemistryForm(EDIForm):
 
 class immunohistochemistryForm(EDIForm):
     # Protein
-    targetProtein = StringField('Target Protein', validators=[])
+    targetProtein = StringField('Target Protein *', validators=[InputRequired(message='Target Protein is required')])
     # Primary Antibody
     clonality = SelectField('Clonality', choices=[("", ""), ("monoclonal", "monoclonal"), ("polyclonal", "polyclonal")])
-    targetSpecies = StringField('Target Species', validators=[])
-    hostSpecies = StringField('Host Species', validators=[])
-    dilution = StringField('Dilution', validators=[])
-    lotNumber = StringField('Lot Number', validators=[])
-    catNumber = StringField('Cat Number', validators=[])
+    targetSpecies = StringField('Target Species *', validators=[InputRequired(message='Target Species is required')])
+    hostSpecies = StringField('Host Species *', validators=[InputRequired(message='Host Species is required')])
+    dilution = StringField('Dilution *', validators=[InputRequired(message='Dilution is required')])
+    lotNumber = StringField('Lot Number *', validators=[InputRequired(message='Lot Number is required')])
+    catNumber = StringField('Cat Number *', validators=[InputRequired(message='Cat Number is required')])
     # Source
-    sourceName = StringField('Source Name', validators=[])
-    sourceCity = StringField('Source City', validators=[])
-    sourceState = StringField('Source State', validators=[])
+    sourceName = StringField('Source Name *', validators=[InputRequired(message='Source Name is required')])
+    sourceCity = StringField('Source City *', validators=[InputRequired(message='Source City is required')])
+    sourceState = StringField('Source State *', validators=[InputRequired(message='Source State is required')])
     rrid = StringField('RRID', validators=[])
     # Secondary Antibody
-    targetSpecies_2 = StringField('Target Species', validators=[])
-    hostSpecies_2 = StringField('Host Species', validators=[])
-    dilution_2 = StringField('Dilution', validators=[])
-    lotNumber_2 = StringField('Lot Number', validators=[])
-    catNumber_2 = StringField('Cat Number', validators=[])
+    targetSpecies_2 = StringField('Target Species *', validators=[InputRequired(message='Target Species is required')])
+    hostSpecies_2 = StringField('Host Species *', validators=[InputRequired(message='Host Species is required')])
+    dilution_2 = StringField('Dilution *', validators=[InputRequired(message='Dilution is required')])
+    lotNumber_2 = StringField('Lot Number *', validators=[InputRequired(message='Lot Number is required')])
+    catNumber_2 = StringField('Cat Number *', validators=[InputRequired(message='Cat Number is required')])
     # Source_2
-    sourceName_2 = StringField("Source Name", validators=[])
-    sourceCity_2 = StringField("Source City", validators=[])
-    sourceState_2 = StringField("Source State", validators=[])
+    sourceName_2 = StringField('Source Name *', validators=[InputRequired(message='Source Name is required')])
+    sourceCity_2 = StringField('Source City *', validators=[InputRequired(message='Source City is required')])
+    sourceState_2 = StringField('Source State *', validators=[InputRequired(message='Source State is required')])
     rrid_2 = StringField('RRID', validators=[])
     # Detection Method
     detectionMethod = SelectField("Detection Method", choices=[

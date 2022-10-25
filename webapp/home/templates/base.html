@@ -68,23 +68,15 @@
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">EML Documents<span class="caret"></span>
+                       role="button">Documents<span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
 {#                    <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
                         <li>
-                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.create') }}" title="New">New...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_new').click();">New...</a>
-                            {% endif %}
                         </li>
                         <li>
-                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_open').click();">Open...</a>
-                            {% endif %}
                         </li>
 {#                        <li>#}
 {#                            <a href="{{ url_for('home.download') }}" title="Download">Download Data Package as XML...</a>#}
@@ -95,11 +87,7 @@
 {#                    {% endif %}#}
                     {% if current_user.get_filename() %}
                         <li>
-                            {% if ns.is_non_saving %}
                             <a href="{{ url_for('home.close') }}" title="Close">Close</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_close').click();">Close</a>
-                            {% endif %}
                         </li>
                         <li>
                             <a onclick="nav_save.click();" href="#" title="Save">Save</a>
@@ -221,7 +209,7 @@
                     Welcome Back <strong>{{ current_user.get_username() }}</strong>
                     {% if current_user.get_filename() %}
                         &nbsp;&nbsp;
-                    &nbsp;&nbsp;Active EML Document: <strong>{{ current_user.get_filename() }}</strong>
+                    &nbsp;&nbsp;Active Document: <strong>{{ current_user.get_filename() }}</strong>
                     {% endif %}
                 </li>
             </ul>
@@ -304,7 +292,7 @@
             {% if page == 'ihc' %}{% set ihc_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
-        <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Image</a><br>
+        <a class="nav_link" style={{ other_entity_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity') }}" title="Edit">Image</a><br>
         {#<a class="nav_link" style={{ data_table_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>#}
         {% if page != 'creator' and
               page != 'contact' and
@@ -336,13 +324,13 @@
             <a class="nav_link" style={{ ihc_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='ihc.immunohistochemistry') }}" title="Edit">Immunohistochemistry</a><br>
 
             <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
-            <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>
-            <br>
+        <!-- <a class="nav_link" style={{ check_metadata_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp; -->
+            <!-- <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div> -->
+            <!-- <br> -->
 {#        <a class="nav_link" style={{ download_eml_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.download_current') }}" title="Edit">Download EML</a><br>#}
 {#        <a class="nav_link" style={{ export_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.export_package') }}" title="Edit">Export Data Package</a><br>#}
         {# <a class="nav_link" style={{ submit_package_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>#}
-        <a class="nav_link" style={{ send_to_other_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
+        <a class="nav_link" style={{ send_to_other_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Submit Metadata</a><br>
    {% endif %}
     </div>
     <div style="margin-left: 18%;">

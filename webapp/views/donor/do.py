@@ -11,11 +11,17 @@ from webapp.home.forms import (
 )
 
 from webapp.home.metapype_client import (
-    load_eml, save_both_formats, create_donor, add_mother_metadata
+    load_eml, save_both_formats,
+)
+
+from webapp.home.motherpype import (
+    add_mother_metadata, create_donor
 )
 
 from metapype.eml import names
 from metapype.model.node import Node
+
+from webapp.home import motherpype_names as mdb_names
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -51,6 +57,15 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
 
     return new_page
 
+
+"""
+    Function:       donor
+    Params:         filename: the current filename
+    Description:    Updates the current page (for proper navigation on the webpage)
+    Returns:        Returns the result of new_donor function      
+"""
+
+
 @do_bp.route('/donor/<filename>', methods=['GET', 'POST'])
 def donor(filename=None):
     method = request.method
@@ -64,25 +79,32 @@ def donor(filename=None):
             mother_node = metadata_node.find_child("mother")
             if mother_node:
                 node_id = mother_node.id
-                #do_node = mother_node.find_child("donor")
-                #if do_node:
-                #    node_id = do_node.id
         else:
             add_mother_metadata(eml_node)
 
     save_both_formats(filename, eml_node)
+
     set_current_page('donor')
     help = [get_help('publisher')]
-    return newDonor(filename=filename, node_id=node_id,
-                             method=method, node_name='donor',
-                            back_page=PAGE_RELATED_PROJECT_SELECT, next_page=PAGE_IHC, title='Donor',
-#PT5/26                             back_page=PAGE_DONOR, next_page= PAGE_DONOR, title='Donor',
-                             save_and_continue=True, help=help)
+    return new_donor(filename=filename, node_id=node_id,
+                     method=method, node_name='donor',
+                     back_page=PAGE_RELATED_PROJECT_SELECT, next_page=PAGE_IHC, title='Donor',
+                     save_and_continue=True, help=help)
 
-def newDonor(filename=None, node_id=None, method=None,
-                      node_name=None, back_page=None, title=None,
-                      next_page=None, save_and_continue=False, help=None,
-                      project_node_id=None):
+
+"""
+    Function:       new_donor
+    Params:         filename: the current filename
+    Description:    POST Request - Creates the donor nodes based off form values
+                    GET  Request - Updates the values of the donor nodes based off form values 
+    Returns:        Returns the next page (ihc)
+"""
+
+
+def new_donor(filename=None, node_id=None, method=None,
+              node_name=None, back_page=None, title=None,
+              next_page=None, save_and_continue=False, help=None,
+              project_node_id=None):
 
     if BTN_CANCEL in request.form:
         if not project_node_id:
@@ -118,21 +140,21 @@ def newDonor(filename=None, node_id=None, method=None,
             ovaryPosition = form.ovaryPosition.data
             specimenLocation = form.specimenLocation.data
             corpusLuteum = form.corpusLuteum.data
-            specimenCycle = Node('specimenCycle', parent = None)
+            specimenCycle = Node('specimenCycle', parent=None)
             dayOfCycle = form.dayOfCycle.data
             stageOfCycle = form.stageOfCycle.data
             follicular = form.follicular.data
             luteal = form.luteal.data
             slideID = form.slideID.data
             sectionSeqNum = form.sectionSeqNum.data
-            sectionThickness = Node('thickness', parent = None)
+            sectionThickness = Node('thickness', parent=None)
             thickness = form.thickness.data
             thicknessUnit = form.thicknessUnit.data
-            sampleProcessing = Node('sampleProcessing', parent = None)
+            sampleProcessing = Node('sampleProcessing', parent=None)
             fixation = form.fixation.data
             fixationOther = form.fixationOther.data
             stain = form.stain.data
-            stainType = Node('stainType', parent = None)
+            stainType = Node('stainType', parent=None)
             lightMicroscopyStainType = form.lightMicroscopyStainType.data
             sudanStainType = form.sudanStainType.data
             lightMicroscopyStainOther = form.lightMicroscopyStainOther.data
@@ -141,7 +163,7 @@ def newDonor(filename=None, node_id=None, method=None,
             electronMicroscopyStainType = form.electronMicroscopyStainType.data
             electronMicroscopyStainOther = form.electronMicroscopyStainOther.data
             magnification = form.magnification.data
-            microscopeType = Node('microscope', parent = None)
+            microscopeType = Node('microscope', parent=None)
             maker = form.maker.data
             model = form.model.data
             notes = form.notes.data
@@ -189,12 +211,12 @@ def newDonor(filename=None, node_id=None, method=None,
                 notes)
 
             if specimenLocation == 'corpusLuteum':
-                populate_specimen_location(mother_node, corpusLuteumType)
+                populate_specimen_location(mother_node, "corpusLuteumType")
 
             if stageOfCycle == 'follicular':
-                populate_stage_of_cycle(stageOfCycle, mother_node, follicularType)
+                populate_stage_of_cycle(stageOfCycle, mother_node, "follicularType")
             elif stageOfCycle == 'luteal':
-                populate_stage_of_cycle(stageOfCycle, mother_node, lutealType)
+                populate_stage_of_cycle(stageOfCycle, mother_node, "lutealType")
 
 
             save_both_formats(filename=filename, eml_node=eml_node)
@@ -202,7 +224,6 @@ def newDonor(filename=None, node_id=None, method=None,
 
     # Process GET
     if node_id == '1':
-        print('get request NODE_ID = 1')
         form.init_md5()
     elif node_id:
         related_project_node = Node.get_node_instance(node_id)
@@ -211,97 +232,103 @@ def newDonor(filename=None, node_id=None, method=None,
                             next_page=next_page, save_and_continue=save_and_continue, help=help)
 
 
+"""
+    Function:       populate_donor_form
+    Params:         form: the values from the donor form
+                    node: mother_node
+    Description:    populates the html donor form display if the values exist
+"""
 
 
 def populate_donor_form(form: DonorForm, node: Node):
-    donorID_node = node.find_child('donorID')
+    donorID_node = node.find_child(mdb_names.DONOR_ID)
     if donorID_node:
         form.donorID.data = donorID_node.content
-    
-    donorGender_node = node.find_child('donorGender')
+
+    donorGender_node = node.find_child(mdb_names.DONOR_GENDER)
     if donorGender_node:
         form.donorGender.data = donorGender_node.content
-    
-    donorAge_Node = node.find_child('donorAge')
+
+    donorAge_Node = node.find_child(mdb_names.DONOR_AGE)
     if donorAge_Node:
-        donorYears_node = donorAge_Node.find_child('donorYears')
+        donorYears_node = donorAge_Node.find_child(mdb_names.DONOR_YEARS)
         if donorYears_node:
             form.donorYears.data = donorYears_node.content
 
-        donorDays_node = donorAge_Node.find_child('donorDays')
+        donorDays_node = donorAge_Node.find_child(mdb_names.DONOR_DAYS)
         if donorDays_node:
             form.donorDays.data = donorDays_node.content
 
-    donorLifeStage_node = node.find_child('donorLifeStage')
+    donorLifeStage_node = node.find_child(mdb_names.DONOR_LIFE_STAGE)
     if donorLifeStage_node:
         form.donorLifeStage.data = donorLifeStage_node.content
 
-    specimenSeqNum_node = node.find_child('specimenSeqNum')
+    specimenSeqNum_node = node.find_child(mdb_names.SPEC_SEQ_NUM)
     if specimenSeqNum_node:
         form.specimenSeqNum.data = specimenSeqNum_node.content
 
-    specimenTissue_node = node.find_child('specimenTissue')
+    specimenTissue_node = node.find_child(mdb_names.SPEC_TISSUE)
     if specimenTissue_node:
         form.specimenTissue.data = specimenTissue_node.content
 
-    ovaryPosition_node = node.find_child('ovaryPosition')
+    ovaryPosition_node = node.find_child(mdb_names.OVARY_POSITION)
     if ovaryPosition_node:
         form.ovaryPosition.data = ovaryPosition_node.content
 
-    specimenLocation_node = node.find_child('specimenLocation')
+    specimenLocation_node = node.find_child(mdb_names.SPEC_LOCATION)
     if specimenLocation_node:
         form.specimenLocation.data = specimenLocation_node.content
-        corpusLuteum_node = specimenLocation_node.find_child('corpusLuteum')
+        corpusLuteum_node = specimenLocation_node.find_child(mdb_names.CORPUS_LUTEUM)
         if corpusLuteum_node:
             form.corpusLuteum.data = corpusLuteum_node.content
 
-    specimenCycle_node = node.find_child('specimenCycle')
-    if specimenCycle_node: 
-        dayOfCycle_node = specimenCycle_node.find_child('dayOfCycle')
+    specimenCycle_node = node.find_child(mdb_names.SPEC_CYCLE)
+    if specimenCycle_node:
+        dayOfCycle_node = specimenCycle_node.find_child(mdb_names.DAY_OF_CYCLE)
         if dayOfCycle_node:
             form.dayOfCycle.data = dayOfCycle_node.content
-        
-        stageOfCycle_node = specimenCycle_node.find_child('stageOfCycle')
+
+        stageOfCycle_node = specimenCycle_node.find_child(mdb_names.STAGE_OF_CYCLE)
         if stageOfCycle_node:
             form.stageOfCycle.data = stageOfCycle_node.content
-            follicular_node = stageOfCycle_node.find_child('follicular')
+            follicular_node = stageOfCycle_node.find_child(mdb_names.FOLLICULAR)
             if follicular_node:
-                form.stageOfCycle.data = 'follicular'
+                form.stageOfCycle.data = mdb_names.FOLLICULAR
                 form.follicular.data = follicular_node.content
-            luteal_node = stageOfCycle_node.find_child('luteal')
+            luteal_node = stageOfCycle_node.find_child(mdb_names.LUTEAL)
             if luteal_node:
-                form.stageOfCycle.data = 'luteal'
+                form.stageOfCycle.data = mdb_names.LUTEAL
                 form.luteal.data = luteal_node.content
 
-    slideID_node = node.find_child('slideID')
+    slideID_node = node.find_child(mdb_names.SLIDE_ID)
     if slideID_node:
         form.slideID.data = slideID_node.content
 
-    sectionSeqNum_node = node.find_child('sectionSeqNum')
+    sectionSeqNum_node = node.find_child(mdb_names.SEC_SEQ_NUM)
     if sectionSeqNum_node:
         form.sectionSeqNum.data = sectionSeqNum_node.content
-    
-    sectionThickness_node = node.find_child('sectionThickness')
+
+    sectionThickness_node = node.find_child(mdb_names.SECTION_THICKNESS)
     if sectionThickness_node:
-        thickness_node = sectionThickness_node.find_child('thickness')
+        thickness_node = sectionThickness_node.find_child(mdb_names.THICKNESS)
         if thickness_node:
             form.thickness.data = thickness_node.content
-        
-        thicknessUnit_node = sectionThickness_node.find_child('thicknessUnit')
+
+        thicknessUnit_node = sectionThickness_node.find_child(mdb_names.UNIT)
         if thicknessUnit_node:
             form.thicknessUnit.data = thicknessUnit_node.content
-    
-    sampleProcessing_node = node.find_child('sampleProcessing')
+
+    sampleProcessing_node = node.find_child(mdb_names.SAMPLE_PROCESS)
     if sampleProcessing_node:
-        fixation_node = sampleProcessing_node.find_child('fixation')
+        fixation_node = sampleProcessing_node.find_child(mdb_names.FIXATION)
         if fixation_node:
             form.fixation.data = fixation_node.content
 
         fixationOther_node = sampleProcessing_node.find_child('fixationOther')
         if fixationOther_node:
             form.fixationOther.data = fixationOther_node.content
-        
-        stain_node = sampleProcessing_node .find_child('stain')
+
+        stain_node = sampleProcessing_node.find_child(mdb_names.STAIN)
         if stain_node:
             form.stain.data = stain_node.content
 
@@ -318,7 +345,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         lightMicroscopyStainOther_node = stainType_node.find_child('lightMicroscopyStainOther')
         if lightMicroscopyStainOther_node:
             form.lightMicroscopyStainOther.data = lightMicroscopyStainOther_node.content
-        
+
         fluorescentMicroscopyStainType_node = stainType_node.find_child('fluorescentMicroscopyStainType')
         if fluorescentMicroscopyStainType_node:
             form.fluorescentMicroscopyStainType.data = fluorescentMicroscopyStainType_node.content
@@ -334,28 +361,40 @@ def populate_donor_form(form: DonorForm, node: Node):
         electronMicroscopyStainOther_node = stainType_node.find_child('electronMicroscopyStainOther')
         if electronMicroscopyStainOther_node:
             form.electronMicroscopyStainOther.data = electronMicroscopyStainOther_node.content
-    
-    magnification_node = node.find_child('magnification')
+
+    magnification_node = node.find_child(mdb_names.MAGNIFICATION)
     if magnification_node:
         form.magnification.data = magnification_node.content
 
-    microscopeType_node = node.find_child('microscope')
+    microscopeType_node = node.find_child(mdb_names.MICROSCOPE)
     if microscopeType_node:
-        maker_node = microscopeType_node.find_child('maker')
+        maker_node = microscopeType_node.find_child(mdb_names.MICRO_MAKER)
         if maker_node:
             form.maker.data = maker_node.content
 
-        model_node = microscopeType_node.find_child('model')
+        model_node = microscopeType_node.find_child(mdb_names.MICRO_MODEL)
         if model_node:
             form.model.data = model_node.content
 
-        notes_node = microscopeType_node.find_child('notes')
+        notes_node = microscopeType_node.find_child(mdb_names.MICRO_NOTES)
         if notes_node:
             form.notes.data = notes_node.content
 
     form.md5.data = form_md5(form)
 
-def populate_stage_of_cycle(stageOfCycle:None, mother_node:Node, content_value):
+
+"""
+    Function:       populate_stage_of_cycle
+    Params:         stageOfCycle  : node to add children to
+                    mother_node   : parent node
+                    content_value : either 'luteal' or 'follicular'
+    Description:    If the value of stageOfCycle is follicular or luteal we need to create
+                    xml elements of those types instead of having them be the value of 
+                    stageOfCycle - this function does that.
+"""
+
+
+def populate_stage_of_cycle(stageOfCycle: None, mother_node: Node, content_value):
     cycleType_node = mother_node.find_child('specimenCycle')
     stageOfCycle_node = cycleType_node.find_child('stageOfCycle')
     if stageOfCycle == 'follicular':
@@ -370,6 +409,17 @@ def populate_stage_of_cycle(stageOfCycle:None, mother_node:Node, content_value):
             lutealType_node = Node('lutealType', parent=stageOfCycle_node)
             stageOfCycle_node.add_child(lutealType_node)
         lutealType_node.content = content_value
+
+
+"""
+    Function:       populate_specimen_location
+    Params:         mother_node   : parent node 
+                    content_value : 'corpusLuteum'
+    Description:    If the value of specimenLocation is corpusLuteum we need to create
+                    an xml element of that type and populate the specific value for it, this
+                    function does that.
+"""
+
 
 def populate_specimen_location(mother_node:Node, content_value):
     specimenLocation_node = mother_node.find_child('specimenLocation')

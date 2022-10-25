@@ -167,5 +167,5 @@ class SubmitToEDIForm(FlaskForm):
 
 
 class SendToColleagueForm(FlaskForm):
-    colleague_name = StringField("Colleague's Name *", validators=[DataRequired()])
-    email_address = StringField("Colleague's Email Address *", validators=[Email(), DataRequired()])
+    colleague_name = StringField("Colleague's Name *")
+    email_address = StringField("Colleague's Email Address *")

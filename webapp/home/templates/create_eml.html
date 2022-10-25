@@ -6,13 +6,13 @@
     {% set help_new_eml_document_btn = help_new_eml_document_id ~ '_btn' %}
     {% set help_new_eml_document_dialog = help_new_eml_document_id ~ '_dialog' %}
     
-    <h2>New EML Document</h2>
+    <h2>New EML+MOTHER Document</h2>
     <div class="row">
         <div class="col-md-8">
             <form method="POST" action="" class="form" role="form" novalidate>
                 {{ form.csrf_token }}
                 <br>
-                <h5>Enter a name for the new document:</h5>
+                <h5>Enter a name for the new EML+MOTHER document:</h5>
                 <table>
                     <td>{{ wtf.form_field(form.filename, size=120) }}</td>
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>

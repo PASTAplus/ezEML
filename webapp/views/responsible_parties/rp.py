@@ -181,7 +181,7 @@ def responsible_party(filename=None, node_id=None, method=None,
 
             rp_node = Node(node_name, parent=parent_node)
 
-            print(create_responsible_party(
+            create_responsible_party(
                 rp_node,
                 filename,
                 salutation,
@@ -203,7 +203,7 @@ def responsible_party(filename=None, node_id=None, method=None,
                 fax,
                 email,
                 online_url,
-                role))
+                role)
 
             if node_id and len(node_id) != 1:
                 old_rp_node = Node.get_node_instance(node_id)

@@ -1377,6 +1377,9 @@ def send_to_other(filename=None, mailto=None):
             Path(f).rename(upload_folder + '/' + fname)
 
         # copy xml file to uploads folder
+        eml_node = load_eml(filename=current_document)
+        save_both_formats(filename=current_document, eml_node=eml_node)
+        clean_mother_node(eml_node, current_document)
         current_xml = current_document + '.xml'
         shutil.copy2(user_folder + '/' + current_xml, upload_folder)
 

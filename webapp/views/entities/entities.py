@@ -194,7 +194,6 @@ def other_entity(filename=None, node_id=None):
 
             if not entity_name:
                 entity_name = ''
-            print(additional_info)
 
             create_other_entity(
                 dt_node,

@@ -36,10 +36,8 @@ def creator_select(filename=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
-                          'POST', PAGE_CREATOR_SELECT, PAGE_CONTACT_SELECT,    #PT5/26
-                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_CREATOR)          #PT5/26
-#PT5/26                          'POST', PAGE_CREATOR_SELECT, PAGE_TITLE,
-#PT5/26                          PAGE_CONTACT_SELECT, PAGE_CREATOR)
+                          'POST', PAGE_CREATOR_SELECT, PAGE_TITLE,
+                          PAGE_CONTACT_SELECT, PAGE_CREATOR)
         return redirect(url)
 
     # Process GET
@@ -181,7 +179,7 @@ def responsible_party(filename=None, node_id=None, method=None,
 
             rp_node = Node(node_name, parent=parent_node)
 
-            print(create_responsible_party(
+            create_responsible_party(
                 rp_node,
                 filename,
                 salutation,
@@ -203,7 +201,7 @@ def responsible_party(filename=None, node_id=None, method=None,
                 fax,
                 email,
                 online_url,
-                role))
+                role)
 
             if node_id and len(node_id) != 1:
                 old_rp_node = Node.get_node_instance(node_id)
@@ -327,10 +325,8 @@ def contact_select(filename=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
-                          'POST', PAGE_CONTACT_SELECT, PAGE_OTHER_ENTITY_SELECT,   #PT5/26
-                            PAGE_CREATOR_SELECT, PAGE_CONTACT)                     #PT5/26
-#PT5/26                          'POST', PAGE_CONTACT_SELECT, PAGE_CREATOR_SELECT,
-#PT5/26                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_CONTACT)
+                          'POST', PAGE_CONTACT_SELECT, PAGE_CREATOR_SELECT,
+                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_CONTACT)
         return redirect(url)
 
     # Process GET

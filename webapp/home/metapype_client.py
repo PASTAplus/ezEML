@@ -1075,6 +1075,7 @@ def get_check_metadata_status(eml_node: Node = None, filename: str = None):
 
 
 def save_both_formats(filename: str = None, eml_node: Node = None):
+    print("saving both formats")
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename)  # To keep badge up-to-date in UI

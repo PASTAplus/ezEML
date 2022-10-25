@@ -216,6 +216,7 @@ SILVER_NITRATE = "silverNitrate"
 
 MOTHER_PREFIX = "mdb"
 XSI_TYPE = "xsi:type"
+INTELLECTUAL_RIGHTS = 'intellectualRights'
 
 """
 *   SET_VALUE_NODES

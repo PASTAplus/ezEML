@@ -547,6 +547,12 @@ def delete():
     if request.method == 'POST':
         if 'Cancel' in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             user_data.discard_data_table_upload_filenames_for_package(filename)

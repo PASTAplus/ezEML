@@ -232,11 +232,12 @@ def import_data(filename, eml_node):
     return total_size
 
 
-def get_newest_metadata_revision_from_pasta(scope, identifier):
-    get_pasta_newest_revision_url = f"{Config.PASTA_URL}/eml/{scope}/{identifier}?filter=newest"
-    response = requests.get(get_pasta_newest_revision_url)
-    response.raise_for_status()
-    revision = response.text
+def get_metadata_revision_from_pasta(scope, identifier, revision=None):
+    if not revision:
+        get_pasta_newest_revision_url = f"{Config.PASTA_URL}/eml/{scope}/{identifier}?filter=newest"
+        response = requests.get(get_pasta_newest_revision_url)
+        response.raise_for_status()
+        revision = response.text
 
     get_pasta_metadata_url = f"{Config.PASTA_URL}/metadata/eml/{scope}/{identifier}/{revision}"
     response = requests.get(get_pasta_metadata_url)
@@ -256,7 +257,16 @@ def get_pasta_identifiers(scope=''):
     return lines
 
 
+def get_revisions_list(scope, identifier):
+    url = f"{Config.PASTA_URL}/eml/{scope}/{identifier}"
+
+    response = requests.get(url)
+    response.raise_for_status()
+    revisions = response.text.split('\n')
+    return revisions
+
+
 # if __name__ == '__main__':
-#     retrieve_package_from_edi('edi', '1', '1')
+#     retrieve_package_from_edi('edi', '1007')
 #     pass
 

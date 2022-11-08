@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.10.07'
+RELEASE_NUMBER = '2022.11.09'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1174,7 +1174,7 @@ def clean_model(eml_node):
         keywords = keyword_set.find_all_children(names.KEYWORD)
         if len(keywords) == 0:
             keyword_set.parent.remove_child(keyword_set)
-    # Some documents have, due to earlier bugs, taxonomicCoverage nodes that contain no taxonomicClassificaation nodes
+    # Some documents have, due to earlier bugs, taxonomicCoverage nodes that contain no taxonomicClassification nodes
     taxonomic_coverage_nodes = []
     eml_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_coverage_nodes)
     for taxonomic_coverage_node in taxonomic_coverage_nodes:
@@ -1200,7 +1200,26 @@ def clean_model(eml_node):
         taxonid = taxonid_node.content
         if isinstance(taxonid, int):
             taxonid_node.content = str(taxonid)
+    # Some documents have an empty <funding> node. Remove it.
+    funding_nodes = []
+    to_remove = []
+    eml_node.find_all_descendants(names.FUNDING, funding_nodes)
+    for funding_node in funding_nodes:
+        if not funding_node.content and len(funding_node.children) == 0:
+            to_remove.append(funding_node)
+    for node in to_remove:
+        node.parent.remove_child(node)
 
+    # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
+    # funding_nodes = []
+    # to_remove = []
+    # eml_node.find_all_descendants(names.FUNDING, funding_nodes)
+    # for funding_node in funding_nodes:
+    #     award_nodes = funding_node.parent.find_all_children(names.AWARD)
+    #     if len(award_nodes) > 0:
+    #         to_remove.append(funding_node)
+    # for node in to_remove:
+    #     node.parent.remove_child(node)
     # # Some documents have extra tags under intellectualRights that confuse metapype's evaluation function.
     # intellectual_rights_nodes = []
     # eml_node.find_all_descendants(names.INTELLECTUALRIGHTS, intellectual_rights_nodes)
@@ -2264,7 +2283,6 @@ def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=
             post_process_texttype_node(abstract_node)
         else:
             related_project_node.remove_child(abstract_node)
-        return related_project_node
 
         funding_node = related_project_node.find_child(names.FUNDING)
         if not funding_node:
@@ -2273,7 +2291,9 @@ def create_related_project(dataset_node:Node=None, title:str=None, abstract:str=
             funding_node.content = funding
             post_process_texttype_node(funding_node)
         else:
-            project_node.remove_child(funding_node)
+            related_project_node.remove_child(funding_node)
+
+        return related_project_node
 
     except Exception as e:
         logger.error(e)
@@ -2794,7 +2814,7 @@ def get_child_content(parent_node:Node=None, child_name:str=None):
 
 def compose_method_step_description(method_step_node:Node=None):
     description = ''
-    MAX_LEN = 40
+    MAX_LEN = 80
 
     if method_step_node:
         description_node = method_step_node.find_child(names.DESCRIPTION)
@@ -2806,7 +2826,7 @@ def compose_method_step_description(method_step_node:Node=None):
                 description = text
 
             if description and len(description) > MAX_LEN:
-                description = description[0:MAX_LEN]
+                description = f'{description[0:MAX_LEN]}...'
     return description
 
 
@@ -2843,6 +2863,40 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
         if instrumentation:
             instrumentation_node = new_child_node(names.INSTRUMENTATION, parent=method_step_node)
             instrumentation_node.content = instrumentation
+
+
+def create_data_source(data_source_node:Node=None, title:str=None, online_description:str=None, online_url:str=None):
+    if data_source_node:
+        if title is not None:
+            title_node = data_source_node.find_child(names.TITLE)
+            if not title_node:
+                title_node = new_child_node(names.TITLE, parent=data_source_node)
+                # data_source_node.add_child(title_node)
+            title_node.content = title
+
+        if online_description is not None or online_url is not None:
+            distribution_node = data_source_node.find_child(names.DISTRIBUTION)
+            if not distribution_node:
+                distribution_node = new_child_node(names.DISTRIBUTION, parent=data_source_node)
+                # data_source_node.add_child(distribution_node)
+            online_node = distribution_node.find_child(names.ONLINE)
+            if not online_node:
+                online_node = new_child_node(names.ONLINE, parent=distribution_node)
+                # distribution_node.add_child(online_node)
+
+            if online_description:
+                online_description_node = online_node.find_child(names.ONLINEDESCRIPTION)
+                if not online_description_node:
+                    online_description_node = new_child_node(names.ONLINEDESCRIPTION, parent=online_node)
+                    # online_node.add_child(online_description_node)
+                online_description_node.content = online_description
+
+            if online_url:
+                online_url_node = online_node.find_child(names.URL)
+                if not online_url_node:
+                    online_url_node = new_child_node(names.URL, parent=online_node)
+                    # online_node.add_child(online_url_node)
+                online_url_node.content = online_url
 
 
 def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=None):

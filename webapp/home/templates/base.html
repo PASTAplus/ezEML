@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2022.10.07' %}
+{% set release_number = '2022.11.09' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -25,7 +25,7 @@
    go to the handler for the page so it can save the content, after which the hidden button is
    handled in that other page's handler. See, for example, the EML Documents dropdown menu, below. #}
 {% set non_saving_endswith = ['/eml/', '/create', '/open_eml_document', '/close',
-        '/load_data', 'load_other_entity', 'check_metadata',
+        '/load_data', 'load_other_entity', 'check_metadata', 'delete',
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package', 'import_xml',

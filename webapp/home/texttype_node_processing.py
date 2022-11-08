@@ -110,6 +110,10 @@ def add_escapes(txt):
         if close_tag in txt:
             esc_close_tag = f'\\</{name}\\>'
             txt = txt.replace(close_tag, esc_close_tag)
+        content_less_tag = f'<{name}/>'
+        if content_less_tag in txt:
+            esc_content_less_tag = f'\\<{name}/\\>'
+            txt = txt.replace(content_less_tag, esc_content_less_tag)
     return txt
 
 
@@ -199,7 +203,8 @@ def construct_texttype_node(text, parent_name=None):
         return text
     try:
         subtree = metapype_io.from_xml(remove_escapes(text), clean=True, literals=['literalLayout', 'markdown'])
-        validate.tree(subtree)
+        errs = []
+        validate.tree(subtree, errs)
         return subtree
     except Exception as e:
         if e.__class__.__name__ == 'XMLSyntaxError':

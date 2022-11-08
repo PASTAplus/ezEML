@@ -57,11 +57,21 @@ def creator_select(filename=None):
 def creator(filename=None, node_id=None):
     method = request.method
     set_current_page('creator')
-    return responsible_party(filename=filename, node_id=node_id,
-                             method=method, node_name=names.CREATOR,
+    return responsible_party(filename=filename, rp_node_id=node_id,
+                             node_name=names.CREATOR,
                              back_page=PAGE_CREATOR_SELECT,
                              next_page=PAGE_CREATOR_SELECT,
-                             title='Creator')
+                             title = 'Creator')
+
+
+def get_dataset_project_node_id(filename=None):
+    eml_node = load_eml(filename=filename)
+    dataset_node = eml_node.find_child(names.DATASET)
+    project_node = dataset_node.find_child(names.PROJECT)
+    if project_node:
+        return project_node.id
+    else:
+        return None
 
 
 def rp_select_get(filename=None, form=None, rp_name=None,
@@ -70,7 +80,7 @@ def rp_select_get(filename=None, form=None, rp_name=None,
     eml_node = load_eml(filename=filename)
     rp_list = list_responsible_parties(eml_node, rp_name, project_node_id=project_node_id)
     title = rp_plural # rp_name.capitalize()
-    related_project = project_node_id is not None
+    related_project = project_node_id is not None and project_node_id != get_dataset_project_node_id(filename=filename)
     if related_project:
         rp_singular = 'Related ' + rp_singular
         rp_plural = 'Related ' + rp_plural
@@ -101,28 +111,50 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
     return new_page
 
 
-def responsible_party(filename=None, node_id=None, method=None,
-                      node_name=None, back_page=None, title=None,
+def responsible_party(filename=None, rp_node_id=None,
+                      node_name=None, title=None, back_page=None,
                       next_page=None, save_and_continue=False, help=None,
-                      project_node_id=None):
+                      parent_node_id=None):
+
+    eml_node = load_eml(filename=filename)
+
+    if node_name == names.PERSONNEL:
+        if parent_node_id is None:
+            parent_node = eml_node.find_single_node_by_path(['dataset', 'project'])
+            parent_node_id = parent_node.id
+
+    is_project = False
+    is_data_source = False
+    project_node_id = None
+    data_source_node_id = None
+    if parent_node_id:
+        parent_node = Node.get_node_instance(parent_node_id)
+        is_project = parent_node.name in [names.PROJECT, names.RELATED_PROJECT]
+        is_data_source = parent_node.name == names.DATASOURCE
+    if is_project:
+        project_node_id = parent_node_id
+    if is_data_source:
+        data_source_node_id = parent_node_id
 
     if BTN_CANCEL in request.form:
-        if not project_node_id:
-            url = url_for(back_page, filename=filename)
+        if is_project:
+            url = url_for(back_page, filename=filename, project_node_id=parent_node_id)
+        elif is_data_source:
+            data_source_node = Node.get_node_instance(parent_node_id)
+            method_step_node = data_source_node.parent
+            url = url_for(back_page, filename=filename, ms_node_id=method_step_node.id, data_source_node_id=parent_node_id)
         else:
-            url = url_for(back_page, filename=filename, project_node_id=project_node_id)
+            url = url_for(back_page, filename=filename)
         return redirect(url)
 
     form = ResponsiblePartyForm(filename=filename)
-    eml_node = load_eml(filename=filename)
-    dataset_node = eml_node.find_child(names.DATASET)
-    if not dataset_node:
-        dataset_node = Node(names.DATASET, parent=eml_node)
-        add_child(eml_node, dataset_node)
-    parent_node = dataset_node
+    if not parent_node_id:
+        dataset_node = eml_node.find_child(names.DATASET)
+        parent_node_id = dataset_node.id
+        parent_node = dataset_node
+
     role = False
     new_page = select_new_page(back_page, next_page)
-    # new_page = back_page
 
     form_value = request.form
     form_dict = form_value.to_dict(flat=False)
@@ -135,18 +167,6 @@ def responsible_party(filename=None, node_id=None, method=None,
     # set role to True so it will appear as a form field.
     if node_name == names.ASSOCIATEDPARTY or node_name == names.PERSONNEL:
         role = True
-
-    # If this is a project personnel party, place it under the
-    # project node, not under the dataset node
-    if node_name == names.PERSONNEL:
-        if not project_node_id:
-            project_node = dataset_node.find_child(names.PROJECT)
-            if not project_node:
-                project_node = Node(names.PROJECT, parent=dataset_node)
-                add_child(dataset_node, project_node)
-            parent_node = project_node
-        else:
-            parent_node = Node.get_node_instance(project_node_id)
 
     # Process POST
     save = False
@@ -176,7 +196,10 @@ def responsible_party(filename=None, node_id=None, method=None,
             online_url = form.online_url.data
             role = form.role.data
 
-            rp_node = Node(node_name, parent=parent_node)
+            if not rp_node_id or rp_node_id == '1':
+                rp_node = Node(node_name, parent=parent_node)
+            else:
+                rp_node = Node.get_node_instance(rp_node_id)
 
             create_responsible_party(
                 rp_node,
@@ -202,13 +225,13 @@ def responsible_party(filename=None, node_id=None, method=None,
                 online_url,
                 role)
 
-            if node_id and len(node_id) != 1:
-                old_rp_node = Node.get_node_instance(node_id)
+            if rp_node_id and len(rp_node_id) != 1:
+                old_rp_node = Node.get_node_instance(rp_node_id)
                 if old_rp_node:
                     old_rp_parent_node = old_rp_node.parent
                     old_rp_parent_node.replace_child(old_rp_node, rp_node)
                 else:
-                    msg = f"No node found in the node store with node id {node_id}"
+                    msg = f"No node found in the node store with node id {rp_node_id}"
                     raise Exception(msg)
             else:
                 add_child(parent_node, rp_node)
@@ -225,27 +248,181 @@ def responsible_party(filename=None, node_id=None, method=None,
 
         if node_name == names.PUBLISHER:
             return redirect(url)
-        elif new_page == PAGE_PROJECT_PERSONNEL_SELECT:
-            return redirect(url_for(new_page, filename=filename, project_node_id=project_node_id))
+        elif is_project:
+            return redirect(url_for(PAGE_PROJECT_PERSONNEL_SELECT, filename=filename, project_node_id=project_node_id))
+        elif is_data_source:
+            data_source_node = Node.get_node_instance(data_source_node_id)
+            method_step_node = data_source_node.parent
+            return redirect(url_for(PAGE_DATA_SOURCE, filename=filename, ms_node_id=method_step_node.id, data_source_node_id=data_source_node_id))
         else:
-            return redirect(url_for(new_page, filename=filename, node_id=project_node_id))
+            return redirect(url_for(new_page, filename=filename, node_id=parent_node_id))
 
     # Process GET
-    if node_id == '1':
+    if rp_node_id == '1':
         form.init_md5()
     else:
-        if parent_node:
-            rp_nodes = parent_node.find_all_children(child_name=node_name)
-            if rp_nodes:
-                for rp_node in rp_nodes:
-                    if node_id == rp_node.id:
-                        populate_responsible_party_form(form, rp_node)
+        rp_node = Node.get_node_instance(rp_node_id)
+        populate_responsible_party_form(form, rp_node)
 
     if project_node_id:
         title = 'Related ' + title
     help = get_helps([node_name])
     return render_template('responsible_party.html', title=title, node_name=node_name,
                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
+
+#
+# def responsible_party(filename=None, node_id=None, method=None,
+#                       node_name=None, back_page=None, title=None,
+#                       next_page=None, save_and_continue=False, help=None,
+#                       project_node_id=None, data_source_node_id=None):
+#
+#     if BTN_CANCEL in request.form:
+#         if project_node_id:
+#             url = url_for(back_page, filename=filename, project_node_id=project_node_id)
+#         if data_source_node_id:
+#             url = url_for(back_page, filename=filename, ms_node_id=node_id, data_source_node_id=data_source_node_id)
+#         else:
+#             url = url_for(back_page, filename=filename)
+#         return redirect(url)
+#
+#     form = ResponsiblePartyForm(filename=filename)
+#     eml_node = load_eml(filename=filename)
+#     dataset_node = eml_node.find_child(names.DATASET)
+#     if not dataset_node:
+#         dataset_node = Node(names.DATASET, parent=eml_node)
+#         add_child(eml_node, dataset_node)
+#     parent_node = dataset_node
+#     role = False
+#     new_page = select_new_page(back_page, next_page)
+#
+#     form_value = request.form
+#     form_dict = form_value.to_dict(flat=False)
+#     url = select_post(filename, form, form_dict,
+#                       'POST', PAGE_PUBLISHER,
+#                       PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
+#                       PAGE_PUBLISHER, project_node_id=project_node_id)
+#
+#     # If this is an associatedParty or a project personnel element,
+#     # set role to True so it will appear as a form field.
+#     if node_name == names.ASSOCIATEDPARTY or node_name == names.PERSONNEL:
+#         role = True
+#
+#     # If this is a project personnel party, place it under the
+#     # project node, not under the dataset node
+#     if node_name == names.PERSONNEL:
+#         if not project_node_id:
+#             project_node = dataset_node.find_child(names.PROJECT)
+#             if not project_node:
+#                 project_node = Node(names.PROJECT, parent=dataset_node)
+#                 add_child(dataset_node, project_node)
+#             parent_node = project_node
+#         else:
+#             parent_node = Node.get_node_instance(project_node_id)
+#
+#     if data_source_node_id:
+#         parent_node = Node.get_node_instance(data_source_node_id)
+#         new_page = PAGE_METHOD_STEP
+#
+#     # Process POST
+#     save = False
+#     if is_dirty_form(form):
+#         save = True
+#
+#     if form.validate_on_submit():
+#         if save:
+#             salutation = form.salutation.data
+#             gn = form.gn.data
+#             mn = form.mn.data
+#             sn = form.sn.data
+#             user_id = form.user_id.data
+#             organization = form.organization.data
+#             org_id = form.org_id.data
+#             org_id_type = form.org_id_type.data
+#             position_name = form.position_name.data
+#             address_1 = form.address_1.data
+#             address_2 = form.address_2.data
+#             city = form.city.data
+#             state = form.state.data
+#             postal_code = form.postal_code.data
+#             country = form.country.data
+#             phone = form.phone.data
+#             fax = form.fax.data
+#             email = form.email.data
+#             online_url = form.online_url.data
+#             role = form.role.data
+#
+#             rp_node = Node(node_name, parent=parent_node)
+#
+#             create_responsible_party(
+#                 rp_node,
+#                 filename,
+#                 salutation,
+#                 gn,
+#                 mn,
+#                 sn,
+#                 user_id,
+#                 organization,
+#                 org_id,
+#                 org_id_type,
+#                 position_name,
+#                 address_1,
+#                 address_2,
+#                 city,
+#                 state,
+#                 postal_code,
+#                 country,
+#                 phone,
+#                 fax,
+#                 email,
+#                 online_url,
+#                 role)
+#
+#             if node_id and len(node_id) != 1:
+#                 old_rp_node = Node.get_node_instance(node_id)
+#                 if old_rp_node:
+#                     old_rp_parent_node = old_rp_node.parent
+#                     old_rp_parent_node.replace_child(old_rp_node, rp_node)
+#                 else:
+#                     msg = f"No node found in the node store with node id {node_id}"
+#                     raise Exception(msg)
+#             else:
+#                 add_child(parent_node, rp_node)
+#
+#             save_both_formats(filename=filename, eml_node=eml_node)
+#             # flash(f"Changes to the '{node_name}' element have been saved.")
+#
+#             # There is at most only one publisher element, so we don't have a
+#             # list of publishers to navigate back to. Stay on this page after
+#             # saving changes.
+#             # FIXME
+#             if node_name == names.PUBLISHER:
+#                 new_page = PAGE_PUBLICATION_INFO
+#
+#         if node_name == names.PUBLISHER:
+#             return redirect(url)
+#         elif new_page == PAGE_PROJECT_PERSONNEL_SELECT:
+#             return redirect(url_for(new_page, filename=filename, project_node_id=project_node_id))
+#         elif new_page == PAGE_DATA_SOURCE:
+#             return redirect(url_for(new_page, filename=filename, ms_node_id=node_id, data_source_node_id=data_source_node_id))
+#         else:
+#             return redirect(url_for(new_page, filename=filename, node_id=project_node_id))
+#
+#     # Process GET
+#     if node_id == '1':
+#         form.init_md5()
+#     else:
+#         if parent_node:
+#             rp_nodes = parent_node.find_all_children(child_name=node_name)
+#             if rp_nodes:
+#                 for rp_node in rp_nodes:
+#                     if node_id == rp_node.id:
+#                         populate_responsible_party_form(form, rp_node)
+#
+#     if project_node_id:
+#         title = 'Related ' + title
+#     help = get_helps([node_name])
+#     return render_template('responsible_party.html', title=title, node_name=node_name,
+#                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
 
 
 @rp_bp.route('/metadata_provider_select/<filename>', methods=['GET', 'POST'])
@@ -277,8 +454,8 @@ def metadata_provider_select(filename=None):
 def metadata_provider(filename=None, node_id=None):
     method = request.method
     set_current_page('metadata_provider')
-    return responsible_party(filename=filename, node_id=node_id,
-                             method=method, node_name=names.METADATAPROVIDER,
+    return responsible_party(filename=filename, rp_node_id=node_id,
+                             node_name=names.METADATAPROVIDER,
                              back_page=PAGE_METADATA_PROVIDER_SELECT,
                              next_page=PAGE_METADATA_PROVIDER_SELECT,
                              title='Metadata Provider')
@@ -314,8 +491,8 @@ def associated_party_select(filename=None):
 def associated_party(filename=None, node_id=None):
     method = request.method
     set_current_page('associated_party')
-    return responsible_party(filename=filename, node_id=node_id,
-                             method=method, node_name=names.ASSOCIATEDPARTY,
+    return responsible_party(filename=filename, rp_node_id=node_id,
+                             node_name=names.ASSOCIATEDPARTY,
                              back_page=PAGE_ASSOCIATED_PARTY_SELECT,
                              next_page=PAGE_ASSOCIATED_PARTY_SELECT,
                              title='Associated Party')
@@ -347,9 +524,10 @@ def contact_select(filename=None):
 def contact(filename=None, node_id=None):
     method = request.method
     set_current_page('contact')
-    return responsible_party(filename=filename, node_id=node_id,
-                             method=method, node_name=names.CONTACT,
-                             back_page=PAGE_CONTACT_SELECT, next_page=PAGE_CONTACT_SELECT,
+    return responsible_party(filename=filename, rp_node_id=node_id,
+                             node_name=names.CONTACT,
+                             back_page=PAGE_CONTACT_SELECT,
+                             next_page=PAGE_CONTACT_SELECT,
                              title='Contact')
 
 
@@ -367,10 +545,11 @@ def publisher(filename=None):
                 node_id = publisher_node.id
     set_current_page('publisher')
     help = [get_help('publisher')]
-    return responsible_party(filename=filename, node_id=node_id,
-                             method=method, node_name=names.PUBLISHER,
-                             back_page=PAGE_CONTACT_SELECT, title='Publisher',
+    return responsible_party(filename=filename, rp_node_id=node_id,
+                             node_name=names.PUBLISHER,
+                             back_page=PAGE_CONTACT_SELECT,
                              next_page=PAGE_PUBLICATION_INFO,
+                             title='Publisher',
                              save_and_continue=True, help=help)
 
 
@@ -394,7 +573,7 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
     user_id_nodes = node.find_all_children(names.USERID)
     for user_id_node in user_id_nodes:
         directory = user_id_node.attribute_value('directory')
-        if directory == 'https://orcid.org':
+        if 'orcid.org' in directory:
             form.user_id.data = user_id_node.content
         else:
             form.org_id.data = user_id_node.content
@@ -469,9 +648,35 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
 def project_personnel(filename=None, node_id=None, project_node_id=None):
     method = request.method
     set_current_page('project')
-    return responsible_party(filename=filename, node_id=node_id,
-                             method=method, node_name=names.PERSONNEL,
+    return responsible_party(filename=filename, rp_node_id=node_id,
+                             node_name=names.PERSONNEL,
                              back_page=PAGE_PROJECT_PERSONNEL_SELECT,
                              next_page=PAGE_PROJECT_PERSONNEL_SELECT,
                              title='Project Personnel',
-                             project_node_id=project_node_id)
+                             parent_node_id=project_node_id)
+
+
+@rp_bp.route('/data_source_personnel/<filename>/<rp_type>/<rp_node_id>/<data_source_node_id>', methods=['GET', 'POST'])
+@login_required
+def data_source_personnel(filename=None, rp_type=None, rp_node_id=None, data_source_node_id=None):
+    method = request.method
+    set_current_page('data_source')
+    return responsible_party(filename=filename, rp_node_id=rp_node_id,
+                             node_name=rp_type,
+                             back_page=PAGE_DATA_SOURCE,
+                             next_page=PAGE_DATA_SOURCE,
+                             title=f'Data Source {rp_type.capitalize()}',
+                             parent_node_id=data_source_node_id)
+
+
+# @rp_bp.route('/data_source_contact/<filename>/<rp_node_id>/<data_source_node_id>', methods=['GET', 'POST'])
+# @login_required
+# def data_source_contact(filename=None, rp_node_id=None, data_source_node_id=None):
+#     method = request.method
+#     set_current_page('data_source')
+#     return responsible_party(filename=filename, node_id=rp_node_id,
+#                              method=method, node_name=names.CONTACT,
+#                              back_page=PAGE_DATA_SOURCE,
+#                              next_page=PAGE_DATA_SOURCE,
+#                              title='Contact',
+#                              data_source_node_id=data_source_node_id)

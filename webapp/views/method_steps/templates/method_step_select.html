@@ -17,13 +17,13 @@
                 <table class="table table-striped">
                     <tr>
                         <th>Method&nbsp;Step Description</th>
-                        <th>Method&nbsp;Step Instrumentation</th>
+{#                        <th>Method&nbsp;Step Instrumentation</th>#}
                         <th colspan="3"></th>
                     </tr>
                     {% for ms_entry in method_step_list %}
                     <tr>
                         <td>{{ ms_entry.description }}</td>
-                        <td>{{ ms_entry.instrumentation }}</td>
+{#                        <td>{{ ms_entry.instrumentation }}</td>#}
                         {{ macros.up_down_arrow(ms_entry.id, ms_entry.upval) }}
                         {{ macros.up_down_arrow(ms_entry.id, ms_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ ms_entry.id }}" type="submit" value="Edit"/>

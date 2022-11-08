@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_fetch_data_source_2_id, help_fetch_data_source_2_title, help_fetch_data_source_2_content = help[0] %}
+    {% set help_fetch_data_source_2_btn = help_fetch_data_source_2_id ~ '_btn' %}
+    {% set help_fetch_data_source_2_dialog = help_fetch_data_source_2_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Fetch Data Source Info from EDI</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_fetch_data_source_2_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
+                {{ form.csrf_token }}
+                Select the data package <i>scope.identifier</i> for the data source:<br>
+                {{ package_links | safe }}
+
+                <br>
+                <p></p><br>
+                <input class="btn btn-primary" style="width: 260px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_fetch_data_source_2_dialog, help_fetch_data_source_2_title, help_fetch_data_source_2_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_fetch_data_source_2_id, help_fetch_data_source_2_title, help_fetch_data_source_2_content = help[0] %}
+    {% set help_fetch_data_source_2_btn = help_fetch_data_source_2_id ~ '_btn' %}
+    {% set help_fetch_data_source_2_dialog = help_fetch_data_source_2_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_fetch_data_source_2_dialog, help_fetch_data_source_2_btn) }}
+    });
+    </script>
+{% endblock %}

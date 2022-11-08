@@ -86,6 +86,7 @@ actions = {
     'DOWNLOAD_EML_FILE': 'Download EML File',
     'EXPORT_EZEML_DATA_PACKAGE': 'Export ezEML Data Package',
     'FETCH_FROM_EDI': 'Fetch from EDI',
+    'FETCH_PROVENANCE_INFO': 'Fetch Provenance Info from EDI',
     'FILL_TAXONOMIC_HIERARCHY': 'Fill Taxonomic Hierarchy',
     'GET_ASSOCIATED_DATA_FILES': 'Get Associated Data Files',
     'HELP': 'Help',

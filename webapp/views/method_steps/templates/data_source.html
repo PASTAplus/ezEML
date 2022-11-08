@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_data_source_id, help_data_source_title, help_data_source_content = help[0] %}
+    {% set help_data_source_btn = help_data_source_id ~ '_btn' %}
+    {% set help_data_source_dialog = help_data_source_id ~ '_dialog' %}
+    {% set help_data_source_title_id, help_data_source_title_title, help_data_source_title_content = help[1] %}
+    {% set help_data_source_title_btn = help_data_source_title_id ~ '_btn' %}
+    {% set help_data_source_title_dialog = help_data_source_title_id ~ '_dialog' %}
+    {% set help_data_source_online_description_id, help_data_source_online_description_title, help_data_source_online_description_content = help[2] %}
+    {% set help_data_source_online_description_btn = help_data_source_online_description_id ~ '_btn' %}
+    {% set help_data_source_online_description_dialog = help_data_source_online_description_id ~ '_dialog' %}
+    {% set help_data_source_url_id, help_data_source_url_title, help_data_source_url_content = help[3] %}
+    {% set help_data_source_url_btn = help_data_source_url_id ~ '_btn' %}
+    {% set help_data_source_url_dialog = help_data_source_url_id ~ '_dialog' %}
+    {% set help_data_source_creators_id, help_data_source_creators_title, help_data_source_creators_content = help[4] %}
+    {% set help_data_source_creators_btn = help_data_source_creators_id ~ '_btn' %}
+    {% set help_data_source_creators_dialog = help_data_source_creators_id ~ '_dialog' %}
+    {% set help_data_source_contacts_id, help_data_source_contacts_title, help_data_source_contacts_content = help[5] %}
+    {% set help_data_source_contacts_btn = help_data_source_contacts_id ~ '_btn' %}
+    {% set help_data_source_contacts_dialog = help_data_source_contacts_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Data Source</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_data_source_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" novalidate>
+                {{ form.csrf_token }}
+                <table>
+                    <tr>
+                    <td>{{ wtf.form_field(form.title, rows=2, cols=100) }}</td>
+                    <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_data_source_title_btn) }}</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                    <td>{{ wtf.form_field(form.online_description, rows=1, cols=100) }}</td>
+                    <td valign="top" style="padding-top: 25px;padding-left: 5px;">{{ macros.help_button(help_data_source_online_description_btn) }}</td>
+                    </tr>
+                    <tr>
+                    <td>{{ wtf.form_field(form.url, rows=1, cols=100) }}</td>
+                    <td valign="top" style="padding-top: 25px;padding-left: 5px;">{{ macros.help_button(help_data_source_url_btn) }}</td>
+                    </tr>
+                </table>
+
+{#                <h4>Creators</h4>#}
+            <table>
+            <td width="100%">
+                <table class="table table-striped">
+                    <tr>
+                        <th colspan="4">Creators&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    </tr>
+                    {% for creator_entry in creator_list %}
+                    <tr>
+                        <td style="width:60%">{{ creator_entry.label }}</td>
+                        {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.upval) }}
+                        {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.downval) }}
+                        <td align="right"><input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" type="submit" value="Edit"/>
+                        <input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
+
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+            <td valign="top" style="padding-top: 5px;padding-left: 5px;">{{ macros.help_button(help_data_source_creators_btn) }}</td>
+            </table>
+
+                <input class="btn btn-primary" name="{{ data_source_node_id }}" type="submit" value="Add Creator"/>
+                <br/><br/>
+
+            {#                <h4>Contacts</h4>#}
+            <table>
+            <td width="100%">
+
+                <table class="table table-striped">
+                    <tr>
+                        <th colspan="4">Contacts&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    </tr>
+                    {% for contact_entry in contact_list %}
+                    <tr>
+                        <td style="width:60%">{{ contact_entry.label }}</td>
+                        {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.upval) }}
+                        {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.downval) }}
+                        <td align="right"><input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" type="submit" value="Edit"/>
+                        <input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+            <td valign="top" style="padding-top: 5px;padding-left: 5px;">{{ macros.help_button(help_data_source_contacts_btn) }}</td>
+            </table>
+
+                <input class="btn btn-primary" name="{{ data_source_node_id }}" type="submit" value="Add Contact"/>
+                <p>&nbsp;</p>
+
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+
+    {{ macros.help_dialog(help_data_source_dialog, help_data_source_title, help_data_source_content) }}
+    {{ macros.help_dialog(help_data_source_title_dialog, help_data_source_title_title, help_data_source_title_content) }}
+    {{ macros.help_dialog(help_data_source_online_description_dialog, help_data_source_online_description_title, help_data_source_online_description_content) }}
+    {{ macros.help_dialog(help_data_source_url_dialog, help_data_source_url_title, help_data_source_url_content) }}
+    {{ macros.help_dialog(help_data_source_creators_dialog, help_data_source_creators_title, help_data_source_creators_content) }}
+    {{ macros.help_dialog(help_data_source_contacts_dialog, help_data_source_contacts_title, help_data_source_contacts_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_data_source_id, help_data_source_title, help_data_source_content = help[0] %}
+    {% set help_data_source_btn = help_data_source_id ~ '_btn' %}
+    {% set help_data_source_dialog = help_data_source_id ~ '_dialog' %}
+    {% set help_data_source_title_id, help_data_source_title_title, help_data_source_title_content = help[1] %}
+    {% set help_data_source_title_btn = help_data_source_title_id ~ '_btn' %}
+    {% set help_data_source_title_dialog = help_data_source_title_id ~ '_dialog' %}
+    {% set help_data_source_online_description_id, help_data_source_online_description_title, help_data_source_online_description_content = help[2] %}
+    {% set help_data_source_online_description_btn = help_data_source_online_description_id ~ '_btn' %}
+    {% set help_data_source_online_description_dialog = help_data_source_online_description_id ~ '_dialog' %}
+    {% set help_data_source_url_id, help_data_source_url_title, help_data_source_url_content = help[3] %}
+    {% set help_data_source_url_btn = help_data_source_url_id ~ '_btn' %}
+    {% set help_data_source_url_dialog = help_data_source_url_id ~ '_dialog' %}
+    {% set help_data_source_creators_id, help_data_source_creators_title, help_data_source_creators_content = help[4] %}
+    {% set help_data_source_creators_btn = help_data_source_creators_id ~ '_btn' %}
+    {% set help_data_source_creators_dialog = help_data_source_creators_id ~ '_dialog' %}
+    {% set help_data_source_contacts_id, help_data_source_contacts_title, help_data_source_contacts_content = help[5] %}
+    {% set help_data_source_contacts_btn = help_data_source_contacts_id ~ '_btn' %}
+    {% set help_data_source_contacts_dialog = help_data_source_contacts_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_data_source_dialog, help_data_source_btn) }}
+        {{ macros.help_script(help_data_source_title_dialog, help_data_source_title_btn) }}
+        {{ macros.help_script(help_data_source_online_description_dialog, help_data_source_online_description_btn) }}
+        {{ macros.help_script(help_data_source_url_dialog, help_data_source_url_btn) }}
+        {{ macros.help_script(help_data_source_creators_dialog, help_data_source_creators_btn) }}
+        {{ macros.help_script(help_data_source_contacts_dialog, help_data_source_contacts_btn) }}
+    });
+    </script>
+{% endblock %}

@@ -176,6 +176,8 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
 
     # If the request has a project_node_id and no node_id, url_for puts the project_node_id in
     #  a query string
+    if request.args.get('node_id'):
+        node_id = request.args.get('node_id')
     if request.args.get('project_node_id'):
         project_node_id = request.args.get('project_node_id')
 
@@ -293,7 +295,7 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
         form_dict = form_value.to_dict(flat=False)
 
         if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_FUNDING_AWARD_SELECT, filename=filename, node_id=project_node_id)
+            url = url_for(PAGE_FUNDING_AWARD_SELECT, filename=filename, project_node_id=project_node_id)
             return redirect(url)
 
         # if request.method == 'POST' and form.validate_on_submit():

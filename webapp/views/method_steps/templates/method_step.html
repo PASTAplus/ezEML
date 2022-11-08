@@ -11,6 +11,10 @@
     {% set help_method_step_data_sources_id, help_method_step_data_sources_title, help_method_step_data_sources_content = help[2] %}
     {% set help_method_step_data_sources_btn = help_method_step_data_sources_id ~ '_btn' %}
     {% set help_method_step_data_sources_dialog = help_method_step_data_sources_id ~ '_dialog' %}
+    {% set help_deprecated_data_source_id, help_deprecated_data_source_title, help_deprecated_data_source_content = help[3] %}
+    {% set help_deprecated_data_source_btn = help_deprecated_data_source_id ~ '_btn' %}
+    {% set help_deprecated_data_source_dialog = help_deprecated_data_source_id ~ '_dialog' %}
+    {% set deprecated_data_source = deprecated_data_source %}
 
     <h2>Method Step</h2>
     <div class="row">
@@ -26,10 +30,44 @@
                     <td width="100%">{{ wtf.form_field(form.instrumentation, rows=2) }}</td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_instrumentation_btn) }}</td>
                 </table>
+{#                <table width="100%">#}
+{#                    <td width="100%">{{ wtf.form_field(form.data_sources, rows=5) }}</td>#}
+{#                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_data_sources_btn) }}</td>#}
+{#                </table>#}
+
+{#            {% if form.data_sources_list: %}#}
+                <h5><b>Data Sources (Optional)</b></h5>
                 <table width="100%">
-                    <td width="100%">{{ wtf.form_field(form.data_sources, rows=5) }}</td>
+                <td width="100%">
+                <div  style="border: 2px solid lightgray;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                <table class="table table-striped">
+
+                    <tr>
+                        <th>Data Source Title</th>
+                        <th colspan="2"></th>
+                    </tr>
+                    {% for ds_entry in form.data_sources_list %}
+                    <tr>
+                        <td>{{ ds_entry[0] }}</td>
+                        <td width="3%">&nbsp;</td>
+                        <td style="float:right;"><input class="btn btn-primary" name="{{ ds_entry[1] }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                    <input class="btn btn-primary" name="Add Data Source" type="submit" value="Add Data Source"/>
+                <input class="btn btn-primary" name="Fetch Data Source Info from EDI" type="submit" value="Fetch Data Source Info from EDI"/>
+                <p>
+                </div>
+                </td>
                     <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_data_sources_btn) }}</td>
                 </table>
+{#            {% endif %}#}
+
+                <td valign="middle" style="padding-top: 5px;">
+                    <span hidden="hidden">{{ macros.help_button(help_deprecated_data_source_btn) }}</span>
+                </td>
+
                 <br>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
@@ -43,6 +81,7 @@
     {{ macros.help_dialog(help_method_step_description_dialog, help_method_step_description_title, help_method_step_description_content) }}
     {{ macros.help_dialog(help_method_step_instrumentation_dialog, help_method_step_instrumentation_title, help_method_step_instrumentation_content) }}
     {{ macros.help_dialog(help_method_step_data_sources_dialog, help_method_step_data_sources_title, help_method_step_data_sources_content) }}
+    {{ macros.help_dialog(help_deprecated_data_source_dialog, help_deprecated_data_source_title, help_deprecated_data_source_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -56,13 +95,35 @@
     {% set help_method_step_data_sources_id, help_method_step_data_sources_title, help_method_step_data_sources_content = help[2] %}
     {% set help_method_step_data_sources_btn = help_method_step_data_sources_id ~ '_btn' %}
     {% set help_method_step_data_sources_dialog = help_method_step_data_sources_id ~ '_dialog' %}
+    {% set help_deprecated_data_source_id, help_deprecated_data_source_title, help_deprecated_data_source_content = help[3] %}
+    {% set help_deprecated_data_source_btn = help_deprecated_data_source_id ~ '_btn' %}
+    {% set help_deprecated_data_source_dialog = help_deprecated_data_source_id ~ '_dialog' %}
+    {% set deprecated_data_source = deprecated_data_source %}
     <script>
     $(function()
     {
         {{ macros.help_script(help_method_step_description_dialog, help_method_step_description_btn) }}
         {{ macros.help_script(help_method_step_instrumentation_dialog, help_method_step_instrumentation_btn) }}
         {{ macros.help_script(help_method_step_data_sources_dialog, help_method_step_data_sources_btn) }}
-    });
+        {{ macros.help_script(help_deprecated_data_source_dialog, help_deprecated_data_source_btn) }}
+
+        {% if deprecated_data_source %}
+            let deprecated_data_source_dialog = $( '#{{ help_deprecated_data_source_dialog }}' ).dialog({
+                autoOpen: true,
+                width: 800,
+                position: {my: "center", at: "center", of: window}
+            });
+            $( '#{{ help_deprecated_data_source_btn }}' ).button().on('click', function() {
+                if (deprecated_data_source_dialog.dialog('isOpen')) {
+                    {#alert('{{ dns_ns.do_not_show_cb }}');#}
+                    deprecated_data_source_dialog.dialog('close');
+                } else {
+                    deprecated_data_source_dialog.dialog('open');
+                }
+            });
+            $( '#{{ help_deprecated_data_source_btn }}' ).click();
+            document.activeElement.blur();
+        {% endif %}    });
     </script>
     <script>
         {{ macros.check_xml_btn_handler('#check_xml', '#description', 'description') }}

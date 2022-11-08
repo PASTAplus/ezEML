@@ -38,7 +38,7 @@ import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
-import webapp.home.load_data as load_data
+
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -122,7 +122,7 @@ def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None)
             vals[1] = item
         return Eval_Entry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
                           explanation=vals[4], data_table_name=data_table_name, link=link)
-    except:
+    except Exception as exc:
         return None
 
 
@@ -137,12 +137,16 @@ Eval_Entry = collections.namedtuple(
 evaluation = []
 
 
-def find_min_unmet(errs, node_name, child_name):
+def find_min_unmet(errs, node_name, child_name, data_source_node_id=None):
     for err_code, msg, node, *args in errs:
         if err_code == ValidationError.MIN_OCCURRENCE_UNMET:
             err_cause, min = args
-            if node.name == node_name and err_cause == child_name:
-                return True
+            if node.name == node_name and err_cause ==  child_name:
+                if data_source_node_id is None:
+                    return True
+                elif data_source_node_id is not None and \
+                        (node.id == data_source_node_id or node.parent.id == data_source_node_id):
+                        return True
     return False
 
 
@@ -153,12 +157,16 @@ def find_min_unmet_for_choice(errs, node_name):
     return False
 
 
-def find_content_empty(errs, node_name):
+def find_content_empty(errs, node_name, data_source_node_id=None):
     found = []
     for err in errs:
         err_code, _, node, *_ = err
         if err_code == ValidationError.CONTENT_EXPECTED_NONEMPTY and node.name == node_name:
-            found.append(err)
+            if data_source_node_id is None:
+                found.append(err)
+            elif data_source_node_id is not None and \
+                    (node.id == data_source_node_id or node.parent.id == data_source_node_id):
+                    found.append(err)
     return found
 
 
@@ -171,12 +179,14 @@ def find_content_enum(errs, node_name):
     return found
 
 
-def find_err_code(errs, err_code_to_find, node_name):
+def find_err_code(errs, err_code_to_find, node_name, data_source_node_id=None):
     found = []
     for err in errs:
         err_code, _, node, *_ = err
         if err_code == err_code_to_find and node.name == node_name:
-            found.append(err)
+            if data_source_node_id is not None and \
+                    (node.id == data_source_node_id or node.parent.id == data_source_node_id):
+                    found.append(err)
     return found
 
 
@@ -189,27 +199,48 @@ def find_missing_attribute(errs, node_name, attribute_name):
     return None
 
 
-def check_dataset_title(eml_node, doc_name, validation_errs=None):
-    link = url_for(PAGE_TITLE, filename=doc_name)
+def eval_code(ec, is_data_source):
+    if is_data_source:
+        ec = f'{ec}_ds'
+    return ec
+
+
+def check_dataset_title(eml_node, doc_name, validation_errs=None, evaluation_warnings=None, is_data_source=False):
+    if not is_data_source:
+        data_source_node = None
+        link = url_for(PAGE_TITLE, filename=doc_name)
+    else:
+        data_source_node = eml_node
+        ms_node = eml_node.parent
+        link = url_for(PAGE_DATA_SOURCE,
+                       filename=doc_name,
+                       ms_node_id=ms_node.id,
+                       data_source_node_id=data_source_node.id)
     dataset_node = eml_node.find_child(names.DATASET)
     if validation_errs is None:
         validation_errs = validate_via_metapype(dataset_node)
     # Is title node missing?
-    if find_min_unmet(validation_errs, names.DATASET, names.TITLE):
-        add_to_evaluation('title_01', link)
+    if find_min_unmet(validation_errs, names.DATASET, names.TITLE,
+                      data_source_node_id=data_source_node.id if is_data_source else None):
+        add_to_evaluation(eval_code('title_01', is_data_source), link)
         return
     # Is title node content empty?
-    title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
+    if not is_data_source:
+        title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
+    else:
+        title_node = data_source_node.find_child(names.TITLE)
     if title_node:
         validation_errs = validate_via_metapype(title_node)
-    if not title_node or find_content_empty(validation_errs, names.TITLE):
-        add_to_evaluation('title_01', link)
+    if not title_node or find_content_empty(validation_errs, names.TITLE,
+                                            data_source_node_id=data_source_node.id if is_data_source else None):
+        add_to_evaluation(eval_code('title_01', is_data_source), link)
         return
 
-    evaluation_warnings = evaluate_via_metapype(title_node)
-    # Is the title too short?
-    if find_err_code(evaluation_warnings, EvaluationWarning.TITLE_TOO_SHORT, names.TITLE):
-        add_to_evaluation('title_02', link)
+    # Is the title too short? This applies only to the dataset title, not the data source title, since the data source
+    # title is not something we can change.
+    if not is_data_source:
+        if find_err_code(evaluation_warnings, EvaluationWarning.TITLE_TOO_SHORT, names.TITLE):
+            add_to_evaluation(eval_code('title_02', is_data_source), link)
 
 
 def check_id_for_EDI(package_id):
@@ -240,7 +271,7 @@ def check_data_package_id(eml_node, doc_name, validation_errs=None):
 
 def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
                             page:str=None, doc_name:str=None, node_id:str=None,
-                            related_project_node_id:str=None):
+                            related_project_node_id:str=None, is_data_source=False):
     if not related_project_node_id:
         link = url_for(page, filename=doc_name, node_id=node_id)
     else:
@@ -273,18 +304,30 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
         add_to_evaluation('responsible_party_05', link, section, item)
 
 
-def check_creators(eml_node, doc_name, validation_errs=None):
-    link = url_for(PAGE_CREATOR_SELECT, filename=doc_name)
-    dataset_node = eml_node.find_child(names.DATASET)
+def check_creators(eml_node, doc_name, validation_errs=None, evaluation_warnings=None, is_data_source=False):
+    if not is_data_source:
+        data_source_node = None
+        link = url_for(PAGE_CREATOR_SELECT, filename=doc_name)
+    else:
+        data_source_node = eml_node
+        ms_node = eml_node.parent
+        link = url_for(PAGE_DATA_SOURCE,
+                       filename=doc_name,
+                       ms_node_id=ms_node.id,
+                       data_source_node_id=data_source_node.id)
+
     if validation_errs is None:
+        dataset_node = eml_node.find_child(names.DATASET)
         validation_errs = validate_via_metapype(dataset_node)
 
-    if find_min_unmet(validation_errs, names.DATASET, names.CREATOR):
-        add_to_evaluation('creators_01', link)
-    else:
+    if find_min_unmet(validation_errs, names.DATASET if not is_data_source else names.DATASOURCE, names.CREATOR,
+                      data_source_node_id=data_source_node.id if is_data_source else None):
+        add_to_evaluation(eval_code('creators_01', is_data_source), link)
+    if not is_data_source:
         creator_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR])
         for creator_node in creator_nodes:
-            check_responsible_party(creator_node, 'Creators', 'Creator', PAGE_CREATOR, doc_name, creator_node.id)
+            check_responsible_party(creator_node, 'Creators', 'Creator', PAGE_CREATOR, doc_name, creator_node.id,
+                                    is_data_source=is_data_source)
 
 
 def check_metadata_providers(eml_node, doc_name):
@@ -464,6 +507,10 @@ def generate_code_definition_errs(eml_node, doc_name, err_code, errs_found):
         attribute_node = mscale_node.parent
         attribute_list_node = attribute_node.parent
         data_table_node = attribute_list_node.parent
+        data_table_name = data_table_node.find_child(names.ENTITYNAME).content
+
+        code = code_definition_node.find_child(names.CODE).content
+
         link = url_for(PAGE_CODE_DEFINITION, filename=doc_name, dt_node_id=data_table_node.id, att_node_id=attribute_node.id,
                        nom_ord_node_id=nominal_node.id, node_id=code_definition_node.id, mscale=mscale)
         add_to_evaluation(err_code, link, data_table_name=get_data_table_name(data_table_node))
@@ -523,6 +570,11 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             generate_code_definition_errs(eml_node, doc_name, 'attributes_05', found)
         found = find_content_empty(validation_errs, names.DEFINITION)
         if found:
+            if data_table_name == 'Ant rich across trt - copy with metadata':
+                print('=======================================')
+                for err in validation_errs:
+                    print(err[2].id)
+                print('=======================================')
             generate_code_definition_errs(eml_node, doc_name, 'attributes_06', found)
 
     # Numerical
@@ -626,30 +678,66 @@ def check_maintenance(eml_node, doc_name, evaluation_warnings=None):
         add_to_evaluation('maintenance_01', link)
 
 
-def check_contacts(eml_node, doc_name, validation_errs=None):
-    link = url_for(PAGE_CONTACT_SELECT, filename=doc_name)
-    dataset_node = eml_node.find_child(names.DATASET)
+def check_contacts(eml_node, doc_name, validation_errs=None, evaluation_warnings=None, is_data_source=False):
+    if not is_data_source:
+        data_source_node = None
+        link = url_for(PAGE_CONTACT_SELECT, filename=doc_name)
+    else:
+        data_source_node = eml_node
+        ms_node = eml_node.parent
+        link = url_for(PAGE_DATA_SOURCE,
+                       filename=doc_name,
+                       ms_node_id=ms_node.id,
+                       data_source_node_id=data_source_node.id)
+
     if validation_errs is None:
+        dataset_node = eml_node.find_child(names.DATASET)
         validation_errs = validate_via_metapype(dataset_node)
-    if find_min_unmet(validation_errs, names.DATASET, names.CONTACT):
-        add_to_evaluation('contacts_01', link=link)
-    contact_nodes = eml_node.find_all_nodes_by_path([
-        names.DATASET,
-        names.CONTACT
-    ])
-    for contact_node in contact_nodes:
-        check_responsible_party(contact_node, 'Contacts', 'Contact', PAGE_CONTACT,
-                                doc_name, contact_node.id)
+    if find_min_unmet(validation_errs, names.DATASET if not is_data_source else names.DATASOURCE, names.CONTACT,
+                      data_source_node_id=data_source_node.id if is_data_source else None):
+        add_to_evaluation(eval_code('contacts_01', is_data_source), link=link)
+    if not is_data_source:
+        contact_nodes = eml_node.find_all_nodes_by_path([
+            names.DATASET,
+            names.CONTACT
+        ])
+        for contact_node in contact_nodes:
+            check_responsible_party(contact_node, 'Contacts', 'Contact', PAGE_CONTACT,
+                                    doc_name, contact_node.id, is_data_source=is_data_source)
+
+
+def check_data_source(doc_name, data_source_node):
+    validation_errs = validate_via_metapype(data_source_node)
+    evaluation_warnings = evaluate_via_metapype(data_source_node)
+    check_dataset_title(data_source_node, doc_name,
+                        validation_errs=validation_errs,
+                        evaluation_warnings=evaluation_warnings,
+                        is_data_source=True)
+    check_creators(data_source_node, doc_name,
+                   validation_errs=validation_errs,
+                   evaluation_warnings=evaluation_warnings,
+                   is_data_source=True)
+    check_contacts(data_source_node, doc_name,
+                   validation_errs=validation_errs,
+                   evaluation_warnings=evaluation_warnings,
+                   is_data_source=True)
 
 
 def check_method_step(method_step_node, doc_name, node_id):
     link = url_for(PAGE_METHOD_STEP, filename=doc_name, node_id=node_id)
+
+    validation_errs = validate_via_metapype(method_step_node)
     evaluation_warnings = evaluate_via_metapype(method_step_node)
+
+    data_source_nodes = method_step_node.find_all_children(names.DATASOURCE)
+    for data_source_node in data_source_nodes:
+        check_data_source(doc_name, data_source_node)
+
     if find_err_code(evaluation_warnings, EvaluationWarning.METHOD_STEP_DESCRIPTION_MISSING, names.DESCRIPTION):
         add_to_evaluation('methods_02', link)
 
 
-def check_method_steps(eml_node, doc_name, evaluation_warnings=None, validation_errs=None):
+def check_method_steps(eml_node, doc_name, validation_errs=None, evaluation_warnings=None):
     link = url_for(PAGE_METHOD_STEP_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
@@ -813,7 +901,7 @@ def format_data_table_output(entries, output, eml_node):
 def format_output(evaluation, eml_node):
     sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
                 'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
-                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Other Entities', 'Data Package ID']
+                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Data Sources', 'Project', 'Other Entities', 'Data Package ID']
 
     severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
@@ -848,19 +936,19 @@ def check_evaluation_memo(json_filename, eml_node):
     # We save validation results in a pickle file and only recompute them when the json file's content has changed.
     eval_filename = json_filename.replace('.json', '_eval.pkl')
     try:
-        start = datetime.now()
+        # start = datetime.now()
         old_md5, validation_errs, evaluation_warnings = pickle.load(open(eval_filename, 'rb'))
         with open(json_filename, 'rt') as json_file:
             json = json_file.read()
         new_md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
-        end = datetime.now()
-        elapsed = (end - start).total_seconds()
-        print('**** check_evaluation_memo', elapsed)
+        # end = datetime.now()
+        # elapsed = (end - start).total_seconds()
+        # print('**** check_evaluation_memo', elapsed)
         if new_md5 == old_md5:
-            print(f'**** new_md5={new_md5}')
+            # print(f'**** new_md5={new_md5}')
             return new_md5, validation_errs, evaluation_warnings
         else:
-            print(f'**** new_md5={new_md5}, old_md5={old_md5}')
+            # print(f'**** new_md5={new_md5}, old_md5={old_md5}')
             return new_md5, None, None
     except:
         return None, None, None
@@ -896,7 +984,7 @@ def perform_evaluation(eml_node, doc_name):
         validation_errs = validate_via_metapype(eml_node)
         evaluation_warnings = evaluate_via_metapype(eml_node)
 
-    check_dataset_title(eml_node, doc_name, validation_errs)
+    check_dataset_title(eml_node, doc_name, validation_errs, evaluation_warnings)
     check_data_tables(eml_node, doc_name, evaluation_warnings)
     check_creators(eml_node, doc_name, validation_errs)
     check_contacts(eml_node, doc_name, validation_errs)
@@ -908,7 +996,7 @@ def perform_evaluation(eml_node, doc_name):
     check_coverage(eml_node, doc_name, evaluation_warnings)
     check_geographic_coverage(eml_node, doc_name)
     check_maintenance(eml_node, doc_name, evaluation_warnings)
-    check_method_steps(eml_node, doc_name, evaluation_warnings, validation_errs)
+    check_method_steps(eml_node, doc_name, validation_errs, evaluation_warnings)
     check_project(eml_node, doc_name)
     check_other_entities(eml_node, doc_name)
     check_data_package_id(eml_node, doc_name, validation_errs)
@@ -918,7 +1006,7 @@ def perform_evaluation(eml_node, doc_name):
 
     end = datetime.now()
     elapsed = (end - start).total_seconds()
-    print('**** perform_evaluation', elapsed)
+    # print('**** perform_evaluation', elapsed)
 
     return evaluation
 

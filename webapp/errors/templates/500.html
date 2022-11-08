@@ -5,8 +5,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="col-md-8" style="margin-left: 15%;">
+<div class="col-md-6" style="margin-left: 15%;">
     {% block app_content %}
+        <p>&nbsp;</p>
+        <a style="float:right;" href="{{ url_for('home.index') }}">Home</a>
         <p>&nbsp;</p>
         <h4 align="center">An error has occurred when processing your request.<br>
         Please contact support@edirepository.org for

@@ -507,7 +507,7 @@ def load_xml(filename):
 def get_data_table_name(data_table_node):
     data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
     if data_table_name_node:
-        return data_table_name_node.content
+        return data_table_name_node.content.strip()
 
 
 def get_data_table_filename(data_table_node):

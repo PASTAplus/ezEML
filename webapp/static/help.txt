@@ -264,7 +264,7 @@ contents
 Contents	
 You can use ezEML as a "wizard" (i.e., by proceeding through the sections in sequence, filling out the metadata as you go), or you can click on any of the links under <b>Contents</b> to jump directly to that section of the metadata.
 
-For more information on navigating in ezEML, see <a style="color: steelblue;" href="/static/user_guide/navigating.pdf">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+For more information on navigating in ezEML, see <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_user_guide_ezeml">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
@@ -289,6 +289,46 @@ EML requires a data package to have a <b>Data Package ID</b>, but if your data p
 In the event that you've already obtained a Data Package ID (e.g., from an LTER site information manager), however, go ahead and enter it here.
 
 For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
+--------------------
+data_source
+Data Source
+
+A <b>Data Source</b> documents data packages and other data entities used in the creation of the current dataset. They serve to document data <b>provenance</b> and to provide a means of tracking data lineage. Data sources are not required, but are strongly recommended.
+--------------------
+data_source_title
+Title
+
+The Title of the data source. If you use <b>Fetch Data Source Info from EDI</b> to retrieve a data source from EDI's data repository, the title will be filled in automatically.
+--------------------
+data_source_online_description
+Online Description
+
+This element holds a brief description of the online item (e.g., data package). This description element could be used to supply the text for an html anchor tag, for example.
+
+If you use <b>Fetch Data Source Info from EDI</b> to retrieve a data source from EDI's data repository, the online description will be filled in automatically with the text, "This online link references an EML document that describes data used in the creation of this derivative data package." Feel free to change this text as appropriate.
+
+If you are using Data Source to reference data that is not available online, you can leave this field blank.
+--------------------
+data_source_url
+URL
+
+A URL pointing to the online data source. If you use <b>Fetch Data Source Info from EDI</b> to retrieve a data source from EDI's data repository, the URL will be filled in automatically, pointing to the EML document in the repository.
+
+If you are using Data Source to reference data that is not available online, you can leave this field blank.
+--------------------
+data_source_creators
+Creators
+
+The creator(s) of the data source. If you use <b>Fetch Data Source Info from EDI</b> to retrieve a data source from EDI's data repository, the creators will be filled in automatically.
+
+At least one Creator is required.
+--------------------
+data_source_contacts
+Contacts
+
+Persons or organizations who act as contacts regarding the data source. If you use <b>Fetch Data Source Info from EDI</b> to retrieve a data source from EDI's data repository, the contacts will be filled in automatically.
+
+At least one Contact is required.
 --------------------
 data_table
 Data Table
@@ -414,6 +454,18 @@ data_table_online_url
 Online Distribution URL
 If the data table is available online, its URL address.
 --------------------
+deprecated_data_source
+Deprecated Data Source
+Formerly, ezEML allowed you to specify a data source using free-form text. This was a temporary expedient, and is now deprecated.
+
+In the <b>Description</b> text box on this <b>Data Source</b> page, you will see a string <br>
+<code>==================== Data Sources =========================</code>.
+
+Please remove this string and any text that follows it, up to and including the string <br>
+<code>===========================================================</code>.
+
+Use <b>Add Data Source</b> and/or <b>Fetch Data Source Info from EDI</b> to add new data sources. We apologize for the inconvenience.
+--------------------
 export_package
 Export ezEML Data Package
 When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.
@@ -421,6 +473,27 @@ When you have entered all required metadata and uploaded all associated data fil
 <b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for downloading the archive, which you can share with collaborators, for example.
 
 To submit the data package to the EDI data repository, you can go directly to <b><a href="edit/home.submit_package">Send to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission.
+--------------------
+fetch_data_source
+Fetch Data Source Info from EDI
+
+If a data source is a data package in the EDI Data Repository, you can use <b>Fetch Data Source Info from EDI</b> to retrieve the data source's metadata from EDI and populate the data source's metadata fields in ezEML.
+
+Click the <i>scope</i> to which the data package belongs.
+--------------------
+fetch_data_source_2
+Fetch Data Source Info from EDI
+
+If a data source is a data package in the EDI Data Repository, you can use <b>Fetch Data Source Info from EDI</b> to retrieve the data source's metadata from EDI and populate the data source's metadata fields in ezEML.
+
+Click the <i>identifier</i> for the data package. If the data package exists in only one revision, that revision will be fetched immediately. If there are multiple revisions, you will be given the opportunity to choose which revision to fetch.
+--------------------
+fetch_data_source_2a
+Fetch Data Source Info from EDI
+
+If a data source is a data package in the EDI Data Repository, you can use <b>Fetch Data Source Info from EDI</b> to retrieve the data source's metadata from EDI and populate the data source's metadata fields in ezEML.
+
+Click the desired <i>revision</i> of the data package. Its information will be fetched immediately.
 --------------------
 fetch_from_edi
 Fetch a Data Package from EDI
@@ -582,7 +655,7 @@ A typical template might contain a selection of Creators, Geographic Coverages, 
 
 Templates are organized in a folder structure defined by their creators. To expand a folder, click on its name (not the icon). Template names are displayed in blue italics. Click a template name to select the template, then click <b>OK</b>. You will then be asked to provide a name for the new EML document to be created from the template.
 
-See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf" target="_user_guide_ezeml">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T7GAYXS1liI" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
@@ -708,12 +781,16 @@ Method Steps
 Method steps are descriptions of specific steps of the method employed when collecting data. They are intended to be descriptive, i.e., human-readable rather than machine-readable.
 
 The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data and any quality control measures taken.
+
+An additional use of method steps is to specify data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package. Provenance metadata is important in making research transparent and reproducible. To specify provenance for your data package, create a method step and add to it one or more Data Sources that refer to the data package(s) that were used to create the current data package. It is customary to place such provenance method steps at the end of the method steps list. For more on data provenance, see <a style="color: steelblue;" href="/static/user_guide/documenting_data_provenance.pdf" target="_user_guide_ezeml">Documenting Data Provenance</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 --------------------
 method_step_description
 Method Step Description
 Description of the methods employed in collecting or generating a data set or other resource or in quality control and assurance.
 
 Describe the methodology for a project, experiment, or particular data table or the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information my be provided by either referencing a protocol resource or entering the structured protocol information.
+
+If this method step is intended to document data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package, then the description can be something like, "This method step describes provenance-based metadata as specified in the LTER EML Best Practices." In such a case, you should also add one or more Data Sources that refer to the data package(s) that were used in the creation of the current data package.
 --------------------
 method_step_instrumentation
 Method Step Instrumentation
@@ -725,21 +802,17 @@ Example: LACHAT analyzer, model XYX.
 --------------------
 method_step_data_sources
 Method Step Data Sources
-If you used other datasets in this method step, please document them here.
+If you used other datasets in this method step, or if this method step is being used to document data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package, specify the data sources here.
 
-For each dataset used, include, if possible:<br>
+For each dataset used, specify:<br>
 &nbsp;&nbsp;- the datasets's title<br>
 &nbsp;&nbsp;- a URL, DOI, or other globally unique identifier<br>
 &nbsp;&nbsp;- a creator's name and email<br>
 &nbsp;&nbsp;- a contact's name and email.
 
-If you will be submitting your data package to the EDI data repository, our data curators will use this information to fill out data provenance entries in the data package's metadata.
+If the referenced dataset is in the EDI data repository, you can use <b>Fetch Data Source Info from EDI</b> to retrieve the info from EDI and fill it in automatically. Otherwise, use <b>Add Data Source</b> to enter the info manually.
 
-Example:<br>
-Title: Data for Lake Mendota Phosphorus Cycling Model<br>
-DOI: doi:10.6073/pasta/36d0ee7bf67d9dabade404c92be73917<br>
-Creator: Paul C Hanson pchanson@wisc.edu<br>
-Contact: Paul C Hanson pchanson@wisc.edu
+For more on data provenance, see <a style="color: steelblue;" href="/static/user_guide/documenting_data_provenance.pdf" target="_user_guide_ezeml">Documenting Data Provenance</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 --------------------
 name_org_position
 Last Name, Organization, Position Name
@@ -757,7 +830,7 @@ The <b>ezEML</b> link at the top left of each page serves as a "Home" button, ta
 
 It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
 
-See also <a style="color: steelblue;" href="/static/user_guide/navigating.pdf">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+See also <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_user_guide_ezeml">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
@@ -968,7 +1041,7 @@ It's usually best to refrain from using your browser's forward and back buttons.
 
 Notice that there are lots of Help buttons in ezEML (see the circular question mark icons). You may find them helpful.
 
-If you click the checkbox below we won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a style="color: steelblue;" href="/static/user_guide/navigating.pdf">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+If you click the checkbox below we won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_user_guide_ezeml">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 You can also watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 
@@ -1008,7 +1081,7 @@ When you go to the Abstract page in ezEML, what you would see is the following:<
 </pre>
 
 The backslash "escape" characters before the &lt; and &gt; in each XML tag let ezEML distinguish XML tags from normal text that happens to contain &lt; or &gt; characters. If you edit the XML, you must adhere to this convention. Text elements requiring such handling are visually distinguished in two ways: 1) the text is displayed in a different (monospace) font, and 2) a checkmark button <svg style="position: relative;top:4px;" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16.5163 8.93451L11.0597 14.7023L8.0959 11.8984" stroke="black" stroke-width="2"/><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-width="1"/></svg> appears to the right of the element. Clicking the checkmark button causes the XML validity of the element's content to be checked. See also <a style="color: steelblue;" href="/static/user_guide/complex_text.pdf">Editing Complex Text Elements in Imported XML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+            <path d="M16.5163 8.93451L11.0597 14.7023L8.0959 11.8984" stroke="black" stroke-width="2"/><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-width="1"/></svg> appears to the right of the element. Clicking the checkmark button causes the XML validity of the element's content to be checked. See also <a style="color: steelblue;" href="/static/user_guide/complex_text.pdf" target="_user_guide_ezeml">Editing Complex Text Elements in Imported XML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=PNhiBPXWAdA&t=348s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------

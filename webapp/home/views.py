@@ -111,7 +111,7 @@ from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
 from webapp.home.import_data import (
-    import_data, get_pasta_identifiers, get_newest_metadata_revision_from_pasta,
+    import_data, get_pasta_identifiers, get_revisions_list, get_metadata_revision_from_pasta,
     get_data_entity_sizes, convert_file_size
 )
 
@@ -580,6 +580,10 @@ def save():
         flash('No document currently open')
         return render_template('index.html')
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_SAVE, PAGE_SAVE)
+        return redirect(url_for(new_page, filename=current_document))
+
     eml_node = load_eml(filename=current_document)
     if not eml_node:
         flash(f'Unable to open {current_document}')
@@ -624,6 +628,10 @@ def save_as():
                 return redirect(get_back_url())
             else:
                 return render_template('index.html')
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_SAVE_AS, PAGE_SAVE_AS)
+            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             if not current_document:
@@ -2505,7 +2513,7 @@ def fetch_xml_2(scope=''):
     parsed_url = urlparse(request.base_url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
     for id in ids:
-        new_link = f"{base_url}/fetch_xml_3/{scope}.{id}"
+        new_link = f"{base_url}/fetch_xml_2a/{scope}.{id}"
         new_anchor = f'<br><a href="{new_link}">{scope}.{id}</a>'
         package_links = package_links + new_anchor
 
@@ -2513,9 +2521,9 @@ def fetch_xml_2(scope=''):
     return render_template('fetch_xml_2.html', package_links=package_links, form=form, help=help)
 
 
-@home.route('/fetch_xml_3/<scope_identifier>', methods=['GET', 'POST'])
+@home.route('/fetch_xml_2a/<scope_identifier>', methods=['GET', 'POST'])
 @login_required
-def fetch_xml_3(scope_identifier=''):
+def fetch_xml_2a(scope_identifier=''):
 
     form = EDIForm()
 
@@ -2524,14 +2532,57 @@ def fetch_xml_3(scope_identifier=''):
     reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(url_for(PAGE_TITLE, filename=None))
+        filename = user_data.get_active_document()
+        if filename:
+            return redirect(url_for(PAGE_TITLE, filename=filename))
+        else:
+            return redirect(url_for(PAGE_INDEX))
 
     # Process GET
     form.md5.data = form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
+
+    revisions = get_revisions_list(scope, identifier)
+    if len(revisions) == 1:
+        return redirect(url_for('home.fetch_xml_3', scope_identifier=scope_identifier, revision=revisions[0]))
+    else:
+        package_links = ''
+        parsed_url = urlparse(request.base_url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
+        for revision in revisions:
+            new_link = f"{base_url}/fetch_xml_3/{scope}.{identifier}/{revision}"
+            new_anchor = f'<br><a href="{new_link}">{revision}</a>'
+            package_links = package_links + new_anchor
+
+        help = get_helps(['fetch_from_edi'])
+        return render_template('fetch_xml_2a.html', scope_identifier=scope_identifier, package_links=package_links, form=form, help=help)
+
+
+@home.route('/fetch_xml_3/<scope_identifier>/<revision>', methods=['GET', 'POST'])
+@login_required
+def fetch_xml_3(scope_identifier='', revision=''):
+
+    form = EDIForm()
+
+    # Process POST
+
+    reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        filename = user_data.get_active_document()
+        if filename:
+            return redirect(url_for(PAGE_TITLE, filename=filename))
+        else:
+            return redirect(url_for(PAGE_INDEX))
+
+    # Process GET
+    form.md5.data = form_md5(form)
+
+    scope, identifier = scope_identifier.split('.')
+
     try:
-        revision, metadata = get_newest_metadata_revision_from_pasta(scope, identifier)
+        revision, metadata = get_metadata_revision_from_pasta(scope, identifier, revision)
         log_usage(actions['FETCH_FROM_EDI'], f"{scope}.{identifier}.{revision}")
     except (AuthTokenExpired, Unauthorized) as e:
         flash(AUTH_TOKEN_FLASH_MSG, 'error')
@@ -3356,12 +3407,12 @@ def select_post(filename=None, form=None, form_dict=None,
     def extract_ids(key):
         if '|' not in key:
             node_id = key
-            project_node_id = None
+            secondary_node_id = None
         else:
-            node_id, project_node_id = key.split('|')
-            if project_node_id == 'None':
-                project_node_id = None
-        return node_id, project_node_id
+            node_id, secondary_node_id = key.split('|')
+            if secondary_node_id == 'None':
+                secondary_node_id = None
+        return node_id, secondary_node_id
 
     node_id = None
     new_page = None
@@ -3379,10 +3430,10 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = next_page
             elif val == BTN_EDIT:
                 new_page = edit_page
-                node_id, project_node_id = extract_ids(key)
+                node_id, secondary_node_id = extract_ids(key)
             elif val == BTN_REMOVE:
                 new_page = this_page
-                node_id, project_node_id = extract_ids(key)
+                node_id, secondary_node_id = extract_ids(key)
                 eml_node = load_eml(filename=filename)
                 # Get the data table filename, if any, so we can remove it from the uploaded list
                 # dt_node = Node.get_node_instance(node_id)
@@ -3396,7 +3447,7 @@ def select_post(filename=None, form=None, form_dict=None,
                 # node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_REUPLOAD:
-                node_id, project_node_id = extract_ids(key)
+                node_id, secondary_node_id = extract_ids(key)
                 if reupload_page:
                     new_page = reupload_page
                 else:
@@ -3404,15 +3455,20 @@ def select_post(filename=None, form=None, form_dict=None,
                     new_page = PAGE_REUPLOAD
             elif val == UP_ARROW:
                 new_page = this_page
-                node_id, project_node_id = extract_ids(key)
+                node_id, secondary_node_id = extract_ids(key)
                 process_up_button(filename, node_id)
             elif val == DOWN_ARROW:
                 new_page = this_page
-                node_id, project_node_id = extract_ids(key)
+                node_id, secondary_node_id = extract_ids(key)
                 process_down_button(filename, node_id)
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
-                node_id = '1'
+                if node_id is None:
+                    node_id = '1'
+                # if non_breaking('Project Personnel') in val and project_node_id is not None:
+                #    node_id = project_node_id
+                # else:
+                #     node_id = '1'
             elif val == BTN_LOAD_DATA_TABLE:
                 new_page = PAGE_LOAD_DATA
                 node_id = '1'
@@ -3432,8 +3488,14 @@ def select_post(filename=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page in [PAGE_DATA_TABLE, PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
             return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
-        else:
+        elif new_page == PAGE_DATA_SOURCE:
+            return url_for(new_page, filename=filename, ms_node_id=node_id, data_source_node_id=secondary_node_id)
+        elif new_page in [PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT]:
+            return url_for(new_page, filename=filename, project_node_id=project_node_id)
+        elif new_page == PAGE_PROJECT_PERSONNEL:
             return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
+        else:
+            return url_for(new_page, filename=filename, node_id=node_id)
 
 
 def process_up_button(filename:str=None, node_id:str=None):

@@ -75,8 +75,8 @@ class DonorForm(EDIForm):
                                   ("regression", "Regression")], validators=[Optional()])
     slideID = StringField('Slide ID *', 
                         validators=[InputRequired(message='Slide ID is required')])
-    sectionSeqNum = IntegerField('Section Sequence Number *', 
-                                validators=[NumberRange(min=0), InputRequired(message='Section Sequence Number is required')])
+    sectionSeqNum = IntegerField('Section Sequence Number', 
+                                validators=[NumberRange(min=0), Optional()])
     thickness = IntegerField('Section Thickness *', 
                             validators=[NumberRange(min=0), InputRequired(message='Thickness is required')])
     thicknessUnit = SelectField('Section Thickness Units *',

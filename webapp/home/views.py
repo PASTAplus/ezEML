@@ -2583,6 +2583,18 @@ def fetch_xml_3(scope_identifier='', revision=''):
 
     try:
         revision, metadata = get_metadata_revision_from_pasta(scope, identifier, revision)
+
+        # TODO TEMP
+        lines = metadata.decode('utf-8').splitlines()
+        log_info('*** fetch_xml_3 ***')
+        for line in lines:
+            if '<?xml' in line:
+                continue
+            if 'access' in line:
+                break
+            for segment in line.split(' '):
+                log_info(segment)
+
         log_usage(actions['FETCH_FROM_EDI'], f"{scope}.{identifier}.{revision}")
     except (AuthTokenExpired, Unauthorized) as e:
         flash(AUTH_TOKEN_FLASH_MSG, 'error')

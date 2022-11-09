@@ -1361,7 +1361,18 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
                 xml_str = create_full_xml(eml_node)
                 metadata_str = xml_declaration + xml_str
-            
+
+                # TODO TEMP
+                lines = metadata_str.splitlines()
+                log_info('*** save_eml ***')
+                for line in lines:
+                    if '<?xml' in line:
+                        continue
+                    if 'access' in line:
+                        break
+                    for segment in line.split(' '):
+                        log_info(segment)
+
             if metadata_str:
                 user_folder = user_data.get_user_folder_name()
                 if not user_folder:

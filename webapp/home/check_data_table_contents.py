@@ -28,6 +28,19 @@ date_time_format_regex = None
 DATE_TIME_FORMAT_STRINGS_FILENAME = 'webapp/static/dateTimeFormatString_list.csv'
 DATE_TIME_FORMAT_REGEX_FILENAME = 'webapp/static/dateTimeFormatString_regex.csv'
 
+from flask_login import (
+    current_user
+)
+import daiquiri
+logger = daiquiri.getLogger('check_data_table_contents: ' + __name__)
+
+
+def log_info(msg):
+    if current_user and hasattr(current_user, 'get_username'):
+        logger.info(msg, USER=current_user.get_username())
+    else:
+        logger.info(msg)
+
 
 def load_eml_file(eml_file_url:str):
 
@@ -37,6 +50,18 @@ def load_eml_file(eml_file_url:str):
     # Get the eml file
     try:
         response = s.get(eml_file_url)
+
+        # TODO TEMP
+        lines = response.text.splitlines()
+        log_info(f'*** load_eml_file ***  {eml_file_url}')
+        for line in lines:
+            if '<?xml' in line:
+                continue
+            if 'access' in line:
+                break
+            for segment in line.split(' '):
+                log_info(segment)
+
         response.raise_for_status()
     except Exception as err:
         raise ezEMLXMLError(f'Error loading EML file: {err.response.content}')

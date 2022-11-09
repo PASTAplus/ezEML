@@ -1263,7 +1263,27 @@ def fix_nonstring_content(node):
             fix_nonstring_content(child)
 
 
+def dummy():
+    eml_node = Node('eml')
+    eml_node.nsmap = {
+        "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
+      }
+    eml_node.prefix = 'eml'
+    eml_node.extras = {
+        "xsi:schemaLocation": "https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd"
+    }
+    log_info('*** dummy ***')
+    lines = metapype_io.to_xml(eml_node).splitlines()
+    for line in lines:
+        segments = line.split()
+        for segment in segments:
+            log_info(segment)
+
+
 def create_full_xml(eml_node):
+    dummy()
     eml_node.nsmap = {
         "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
         "xsi": "http://www.w3.org/2001/XMLSchema-instance",

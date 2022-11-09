@@ -1383,6 +1383,8 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                     fh.write(metadata_str)
                     fh.flush()
 
+                if format == 'xml':
+                    log_info(f'Saved {format} to {filename}')
                 # if Config.LOG_DEBUG:
                 #     app = Flask(__name__)
                 #     with app.app_context():

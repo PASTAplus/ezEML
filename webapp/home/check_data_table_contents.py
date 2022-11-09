@@ -50,18 +50,6 @@ def load_eml_file(eml_file_url:str):
     # Get the eml file
     try:
         response = s.get(eml_file_url)
-
-        # TODO TEMP
-        lines = response.text.splitlines()
-        log_info(f'*** load_eml_file ***  {eml_file_url}')
-        for line in lines:
-            if '<?xml' in line:
-                continue
-            if 'access' in line:
-                break
-            for segment in line.split(' '):
-                log_info(segment)
-
         response.raise_for_status()
     except Exception as err:
         raise ezEMLXMLError(f'Error loading EML file: {err.response.content}')

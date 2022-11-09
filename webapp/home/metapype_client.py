@@ -1263,27 +1263,7 @@ def fix_nonstring_content(node):
             fix_nonstring_content(child)
 
 
-def dummy():
-    eml_node = Node('eml')
-    eml_node.nsmap = {
-        "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
-        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-        "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
-      }
-    eml_node.prefix = 'eml'
-    eml_node.extras = {
-        "xsi:schemaLocation": "https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd"
-    }
-    log_info('*** dummy ***')
-    lines = metapype_io.to_xml(eml_node).splitlines()
-    for line in lines:
-        segments = line.split()
-        for segment in segments:
-            log_info(segment)
-
-
 def create_full_xml(eml_node):
-    dummy()
     eml_node.nsmap = {
         "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
         "xsi": "http://www.w3.org/2001/XMLSchema-instance",
@@ -1382,17 +1362,6 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 xml_str = create_full_xml(eml_node)
                 metadata_str = xml_declaration + xml_str
 
-                # TODO TEMP
-                lines = metadata_str.splitlines()
-                log_info('*** save_eml ***')
-                for line in lines:
-                    if '<?xml' in line:
-                        continue
-                    if 'access' in line:
-                        break
-                    for segment in line.split(' '):
-                        log_info(segment)
-
             if metadata_str:
                 user_folder = user_data.get_user_folder_name()
                 if not user_folder:
@@ -1403,8 +1372,6 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                     fh.write(metadata_str)
                     fh.flush()
 
-                if format == 'xml':
-                    log_info(f'Saved {format} to {filename}')
                 # if Config.LOG_DEBUG:
                 #     app = Flask(__name__)
                 #     with app.app_context():

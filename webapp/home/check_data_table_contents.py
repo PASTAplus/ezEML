@@ -753,6 +753,7 @@ def reset_data_file_eval_status(document_name, csv_file_name):
 
 
 def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
+    reset_data_file_eval_status(document_name, csv_file_name)
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     errs_obj = json.loads(errors)
     if not errs_obj['errors']:

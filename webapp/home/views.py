@@ -257,6 +257,10 @@ def data_table_errors(data_table_name:str=None):
     if not data_table_node:
         raise ValueError  # TODO: use custom exception
 
+    # TODO TEMP
+    # Save the EML to a file to fixup the namespace declarations
+    save_both_formats(current_document, eml_node)
+
     eml_file_url = check_data_table_contents.get_eml_file_url(current_document, eml_node)
     csv_file_url = check_data_table_contents.get_csv_file_url(current_document, data_table_node)
     csv_filename = check_data_table_contents.get_data_table_filename(data_table_node)

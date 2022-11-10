@@ -9,6 +9,9 @@
     {% set help_project_title_id, help_project_title_title, help_project_title_content = help[1] %}
     {% set help_project_title_btn = help_project_title_id ~ '_btn' %}
     {% set help_project_title_dialog = help_project_title_id ~ '_dialog' %}
+    {% set help_project_funding_id, help_project_funding_title, help_project_funding_content = help[2] %}
+    {% set help_project_funding_btn = help_project_funding_id ~ '_btn' %}
+    {% set help_project_funding_dialog = help_project_funding_id ~ '_dialog' %}
     {% endif %}
 
     <table>
@@ -32,8 +35,8 @@
                 {{ macros.check_xml_end('check_xml_1', model_has_complex_texttypes) }}
                 <br/>
                 {% if form.funding.data %}
-                {{ macros.check_xml_start(font_family) }}{{ wtf.form_field(form.funding, rows=4, cols=100) }}
-                {{ macros.check_xml_end('check_xml_2', model_has_complex_texttypes) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.funding, rows=4, cols=100) }}
+                {{ macros.help_and_check_xml_buttons(help_project_funding_btn, "check_xml_2", model_has_complex_texttypes) }}
                 <br/>
                 {% endif %}
 
@@ -59,6 +62,7 @@
 
     {{ macros.help_dialog(help_project_dialog, help_project_title, help_project_content) }}
     {{ macros.help_dialog(help_project_title_dialog, help_project_title_title, help_project_title_content) }}
+    {{ macros.help_dialog(help_project_funding_dialog, help_project_funding_title, help_project_funding_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -70,6 +74,9 @@
     {% set help_project_title_id, help_project_title_title, help_project_title_content = help[1] %}
     {% set help_project_title_btn = help_project_title_id ~ '_btn' %}
     {% set help_project_title_dialog = help_project_title_id ~ '_dialog' %}
+    {% set help_project_funding_id, help_project_funding_title, help_project_funding_content = help[2] %}
+    {% set help_project_funding_btn = help_project_funding_id ~ '_btn' %}
+    {% set help_project_funding_dialog = help_project_funding_id ~ '_dialog' %}
     {% endif %}
 
     <script>
@@ -77,6 +84,7 @@
     {
         {{ macros.help_script(help_project_dialog, help_project_btn) }}
         {{ macros.help_script(help_project_title_dialog, help_project_title_btn) }}
+        {{ macros.help_script(help_project_funding_dialog, help_project_funding_btn) }}
     });
     </script>
     <script>

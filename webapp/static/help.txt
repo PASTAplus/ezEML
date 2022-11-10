@@ -880,6 +880,16 @@ A descriptive title for the research project.
 
 Example: Species diversity in Tennessee riparian habitats.
 --------------------
+project_funding
+Project Funding
+This text field is for documenting funding sources for the research project. It can include information about grants, contracts, and other sources of funding.
+
+However, the preferred way to document project funding is to use the structured funding awards elements that were added in the newest version of the EML schema (2.2.0). To document funding in this preferred way, click the <b>Funding Awards</b> button.
+
+If you clear the Funding text field, it will no longer be displayed. It is displayed only for backward compatibility with data packages that used the Funding text field.
+
+We recommend that you use the Funding Awards elements instead. Because they are structured, they will be easier to search and more machine-readable.
+--------------------
 pubdate
 Publication Date
 The year or date of public release of data online.

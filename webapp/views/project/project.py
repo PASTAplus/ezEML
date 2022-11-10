@@ -137,10 +137,10 @@ def project(filename=None, project_node_id=None):
 def render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id):
     set_current_page('project')
     if not doing_related_project:
-        help = [get_help('project'), get_help('project_title')]
+        help = [get_help('project'), get_help('project_title'), get_help('project_funding')]
         page_title = 'Project'
     else:
-        help = [get_help('related_project'), get_help('project_title')]
+        help = [get_help('related_project'), get_help('project_title'), get_help('project_funding')]
         page_title = 'Related Project'
 
     return render_template('project.html',

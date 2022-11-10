@@ -196,10 +196,7 @@ def responsible_party(filename=None, rp_node_id=None,
             online_url = form.online_url.data
             role = form.role.data
 
-            if not rp_node_id or rp_node_id == '1':
-                rp_node = Node(node_name, parent=parent_node)
-            else:
-                rp_node = Node.get_node_instance(rp_node_id)
+            rp_node = Node(node_name, parent=parent_node)
 
             create_responsible_party(
                 rp_node,

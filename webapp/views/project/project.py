@@ -60,7 +60,7 @@ def project(filename=None, project_node_id=None):
     if project_node_id:
         try:
             project_node = Node.get_node_instance(project_node_id)
-            doing_related_project = project_node.name == names.RELATED_PROJECT
+            doing_related_project = project_node_id == '1' or project_node.name == names.RELATED_PROJECT
         except:
             pass
 

@@ -25,7 +25,7 @@ class MethodStepForm(EDIForm):
     def field_data(self) -> tuple:
         return (self.description.data,
                 self.instrumentation.data,
-                self.data_sources)
+                self.data_sources.data)
 
 
 class DataSourceForm(EDIForm):

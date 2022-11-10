@@ -56,7 +56,13 @@ def project(filename=None, project_node_id=None):
             dataset_node = Node(names.DATASET, parent=eml_node)
             add_child(eml_node, dataset_node)
 
-    doing_related_project = project_node_id
+    doing_related_project = False
+    if project_node_id:
+        try:
+            project_node = Node.get_node_instance(project_node_id)
+            doing_related_project = project_node.name == names.RELATED_PROJECT
+        except:
+            pass
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
@@ -132,12 +138,11 @@ def render_get_project_page(eml_node, form, filename, doing_related_project, pro
     set_current_page('project')
     if not doing_related_project:
         help = [get_help('project'), get_help('project_title')]
-    else:
-        help = [get_help('related_project'), get_help('project_title')]
-    if not project_node_id:
         page_title = 'Project'
     else:
+        help = [get_help('related_project'), get_help('project_title')]
         page_title = 'Related Project'
+
     return render_template('project.html',
                            title=page_title,
                            filename=filename,

@@ -264,7 +264,7 @@ def responsible_party(filename=None, rp_node_id=None,
         rp_node = Node.get_node_instance(rp_node_id)
         populate_responsible_party_form(form, rp_node)
 
-    if project_node_id:
+    if parent_node and parent_node.name == names.RELATED_PROJECT:
         title = 'Related ' + title
     help = get_helps([node_name])
     return render_template('responsible_party.html', title=title, node_name=node_name,

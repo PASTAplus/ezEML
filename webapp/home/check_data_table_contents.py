@@ -255,6 +255,13 @@ def display_nonprintable(s):
     return ''.join([c if c.isprintable() else "�" for c in s])
 
 
+def match_with_regex(col_values, regex, empty_is_ok=True):
+    if empty_is_ok:
+        regex = f'^({regex})?$'
+    matches = col_values.str.contains(regex)
+    return matches
+
+
 def check_columns_existence_against_metadata(data_table_node, df):
     errors = []
     # Get the column names from the metadata
@@ -305,7 +312,7 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     # Allow empty string
     regex = '^$|' + regex
     try:
-        matches = col_values.str.contains(regex)
+        matches = match_with_regex(col_values, regex)
     except KeyError:
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in data table', column_name, 'Not found')]
@@ -365,7 +372,7 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     # Allow empty string
     codes_regex = '^$|' + codes_regex
     try:
-        matches = col_values.str.contains(codes_regex)
+        matches = match_with_regex(col_values, codes_regex)
     except KeyError:
         return errors   # This indicates the column is missing, but that type of error is reported via
                         # check_columns_existence_against_metadata()
@@ -410,7 +417,7 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
                                   'A <a href="../datetime_formats">supported</a> format',
                                   date_time_format)]
     try:
-        matches = col_values.str.contains(regex)
+        matches = match_with_regex(col_values, regex)
     except KeyError:
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in table', (column_name), 'Not found')]

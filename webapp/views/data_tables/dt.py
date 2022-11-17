@@ -1161,9 +1161,9 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
 
     has_deprecated_units, unknown_units = standard_units.has_deprecated_units(eml_node)
     if not has_deprecated_units:
-        form.standard_unit.choices = [(x, x) for x in standard_units.standard_units]
+        form.standard_unit.choices = [('', '')] + [(x, x) for x in standard_units.standard_units]
     else:
-        form.standard_unit.choices = [(x, x) for x in standard_units.all_units]
+        form.standard_unit.choices = [('', '')] + [(x, x) for x in standard_units.all_units]
 
     attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:

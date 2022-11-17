@@ -101,6 +101,7 @@ import webapp.home.check_data_table_contents as check_data_table_contents
 from webapp.home.check_data_table_contents import format_date_time_formats_list
 from webapp.home.check_metadata import check_eml
 from webapp.home.forms import form_md5
+from webapp.home.standard_units import init_standard_units
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -308,6 +309,7 @@ def init_session_vars():
         session["check_data_tables_status"] = "green"
     if not session.get("privileged_logins"):
         session["privileged_logins"] = Config.PRIVILEGED_LOGINS
+    init_standard_units()
 
 
 @home.before_app_first_request

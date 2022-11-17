@@ -48,6 +48,7 @@ from webapp.home.log_usage import (
 from metapype.eml import names
 from metapype.model.node import Node
 from webapp.home.metapype_client import VariableType, new_child_node
+import webapp.home.standard_units as standard_units
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -1157,11 +1158,12 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
 
 def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,
                                            mscale: str = None):
-    # if mscale is not None:
-    #     if mscale == names.INTERVAL:
-    #         form.mscale_choice.data = names.INTERVAL
-    #     elif mscale == names.RATIO:
-    #         form.mscale_choice.data = names.RATIO
+
+    has_deprecated_units, unknown_units = standard_units.has_deprecated_units(eml_node)
+    if not has_deprecated_units:
+        form.standard_unit.choices = [(x, x) for x in standard_units.standard_units]
+    else:
+        form.standard_unit.choices = [(x, x) for x in standard_units.all_units]
 
     attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:

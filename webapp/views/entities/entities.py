@@ -250,30 +250,38 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
     entity_name_node = node.find_child(names.ENTITYNAME)
     if entity_name_node:
         form.entity_name.data = entity_name_node.content
+
     entity_type_node = node.find_child(names.ENTITYTYPE)
     if entity_type_node:
         form.entity_type.data = entity_type_node.content
+
     file_name_node = node.find_child("filename")
     if file_name_node:
         form.file_name.data = file_name_node.content
+
     physical_node = node.find_child(names.PHYSICAL)
     if physical_node:
+
         data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:
+
             externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
             if externally_defined_format_node:
                 format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
+
                 if format_name_node:
                     form.format_name.data = format_name_node.content
 
-        additional_info_node = node.find_child("additionalInfo")
+        additional_info_node = node.find_child("additionalinfo")
         if additional_info_node:
             form.additional_info.data = additional_info_node.content
 
         distribution_node = physical_node.find_child(names.DISTRIBUTION)
         if distribution_node:
+
             online_node = distribution_node.find_child(names.ONLINE)
             if online_node:
+
                 url_node = online_node.find_child(names.URL)
                 if url_node:
                     form.online_url.data = url_node.content

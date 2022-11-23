@@ -899,20 +899,8 @@ def compose_simple_label(rp_node: Node = None, child_node_name: str = ''):
 
 def from_json(filename):
     eml_node = None
-    # Converted XML file to JSON format -NM 3/2/2022
-    if filename.lower().endswith(".xml"):
-        with open(filename, "r") as file:
-            data = file.read()
-
-        xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
-        converted_file = filename.replace(".xml", ".json")
-
-        with open(converted_file, "w") as file:
-            file.write(xml_to_json)
-            file.close()
-
     try:
-        with open(converted_file, "r") as json_file:
+        with open(filename, "r") as json_file:
             json_text = json_file.read()
             # The JSON may be in one of two formats
             try:
@@ -925,19 +913,19 @@ def from_json(filename):
                 except KeyError as e:
                     logger.error(e)
     except Exception as e:
-        logger.error(e)
+         logger.error(e)
     return eml_node
 
 
-def load_eml(filename: str = None):
+def load_eml(filename:str=None):
     eml_node = None
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         user_folder = '.'
-    # Changed filename extension from json to xml format -NM 3/2/2022
-    filename = f"{user_folder}/{filename}.xml"
+    filename = f"{user_folder}/{filename}.json"
     if os.path.isfile(filename):
         eml_node = from_json(filename)
+
     if eml_node:
         get_check_metadata_status(eml_node, filename)
     return eml_node

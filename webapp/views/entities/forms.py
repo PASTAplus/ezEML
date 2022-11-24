@@ -18,10 +18,10 @@ class OtherEntitySelectForm(EDIForm):
 
 class OtherEntityForm(EDIForm):
     entity_name = StringField('Name *', validators=[])
-    entity_type = StringField('Image Type (e.g., histology) *', validators=[DataRequired(message="Image Type is required")], default='histology')
+    entity_type = StringField('Image Type (e.g., histology) *', validators=[DataRequired(message="Image Type is required")])
 #    entity_description = StringField('Description (Recommended)', validators=[])
 #    object_name = StringField('Source Name (e.g., filename)', validators=[])
-    format_name = StringField('Data Format (e.g., tif) *', validators=[], default='tif')
+    format_name = StringField('Data Format (e.g., tif) *', validators=[])
 #    size = IntegerField('Size (Optional)', validators=[Optional()])
     file_upload = FileField("Upload Image")
 #    file_name = StringField("Filename", validators=[])

@@ -228,17 +228,27 @@ def other_entity(filename=None, node_id=None):
                                     dt_node_id=dt_node_id))
 
     # Process GET
+    eml_node = load_eml(filename=filename)
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = Node(names.DATASET)
+    dt_node = dataset_node.find_child(names.OTHERENTITY)
+    if dt_node:
+        dt_node_id = dt_node.id
+
     if dt_node_id == '1':
+        print("hihi")
         form.init_md5()
-    else:
-        eml_node = load_eml(filename=filename)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
-            if dt_nodes:
-                for dt_node in dt_nodes:
-                    if dt_node_id == dt_node.id:
-                        populate_other_entity_form(form, dt_node)
+    elif dt_node_id:
+        print("hi")
+        populate_other_entity_form(form, dt_node)
+        # if dataset_node:
+        #     dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
+        #     if dt_nodes:
+        #         for dt_node in dt_nodes:
+        #             if dt_node_id == dt_node.id:
+        #                 print("populating")
+        #                 populate_other_entity_form(form, dt_node)
 
     set_current_page('other_entity')
     help = [get_help('other_entity')]
@@ -272,7 +282,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
                 if format_name_node:
                     form.format_name.data = format_name_node.content
 
-        additional_info_node = node.find_child("additionalinfo")
+        additional_info_node = node.find_child("additionalInfo")
         if additional_info_node:
             form.additional_info.data = additional_info_node.content
 

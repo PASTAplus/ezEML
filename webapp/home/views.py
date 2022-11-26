@@ -92,6 +92,8 @@ from werkzeug.utils import secure_filename
 import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
 
+from metapype.model import metapype_io
+
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
@@ -1705,6 +1707,22 @@ def import_package():
             fixup_upload_management()
 
             filename = user_data.get_active_document()
+            # Convert XML file to JSON format
+            user_folder = user_data.get_user_folder_name()
+            if not user_folder:
+                user_folder = '.'
+            # Changed filename extension from json to xml format -NM 3/2/2022
+            filepath = f"{user_folder}/{filename}.xml"
+            print(filepath)
+            with open(filepath, "r") as file:
+                data = file.read()
+
+            xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
+            converted_file = filepath.replace(".xml", ".json")
+
+            with open(converted_file, "w") as file:
+                file.write(xml_to_json)
+                file.close()
 
             # Remove Image data if present
             user_data.clear_temp_folder()

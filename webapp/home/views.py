@@ -523,9 +523,14 @@ def check_metadata(filename:str):
 def download_current():
     current_document = user_data.get_active_document()
     if current_document:
+        user_folder = user_data.get_user_folder_name()
+        current_xml = current_document + '.xml'
+
         # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
+        # create a duplicate before running clean_mother_node on the original xml file
+        shutil.copy(user_folder + '/' + current_xml, user_folder + '/' + 'temp_' + current_xml)
         clean_mother_node(eml_node, current_document)
 
         # Do the download
@@ -533,7 +538,12 @@ def download_current():
         if isinstance(return_value, str):
             flash(return_value)
         else:
-            return return_value
+            try:
+                return return_value
+            finally:
+                # replace the original file with the old copy
+                shutil.move(user_folder + '/' + 'temp_' + current_xml, user_folder + '/' + current_xml)
+
 
 
 @home.route('/download_submission', methods=['GET', 'POST'])
@@ -1381,9 +1391,12 @@ def send_to_other(filename=None, mailto=None):
         # copy xml file to uploads folder
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
-        clean_mother_node(eml_node, current_document)
         current_xml = current_document + '.xml'
-        shutil.copy2(user_folder + '/' + current_xml, upload_folder)
+        # create a duplicate before running clean_mother_node on the original xml file
+        shutil.copy(user_folder + '/' + current_xml, user_folder + '/' + 'temp_' + current_xml)
+        clean_mother_node(eml_node, current_document)
+        shutil.move(user_folder + '/' + current_xml, upload_folder)
+        shutil.move(user_folder + '/' + 'temp_' + current_xml, user_folder + '/' + current_xml)
 
         # create zip of uploads folder
         zipfile_path = os.path.join(user_folder, current_document)

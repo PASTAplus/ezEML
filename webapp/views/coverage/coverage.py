@@ -692,6 +692,9 @@ def save_uploaded_taxonomic_coverage(eml_node, hierarchies, general_coverages, g
         add_child(dataset_node, coverage_node)
 
     for hierarchy, general_coverage in zip(hierarchies, general_coverages):
+        if hierarchy is None:
+            continue
+
         # Each hierarchy gets its own taxonomic coverage node. There are other ways to do this, but this is how ezEML does it.
         taxonomic_coverage_node = Node(names.TAXONOMICCOVERAGE, parent=coverage_node)
         add_child(coverage_node, taxonomic_coverage_node)

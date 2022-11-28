@@ -260,6 +260,7 @@ def process_taxonomic_coverage_file(taxa, authority):
             hierarchy = coverage.fill_taxonomic_coverage(taxon, source_type, '', row, True)
             hierarchies.append(hierarchy)
         except TaxonNotFound as e:
+            hierarchies.append(None) # We need a placeholder for the hierarchy so subsequent hiearchies and general_coverages are in sync.
             errors.append(e.message)
     return hierarchies, general_coverages, errors
 

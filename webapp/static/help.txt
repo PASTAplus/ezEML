@@ -790,7 +790,9 @@ Description of the methods employed in collecting or generating a data set or ot
 
 Describe the methodology for a project, experiment, or particular data table or the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information my be provided by either referencing a protocol resource or entering the structured protocol information.
 
-If this method step is intended to document data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package, then the description can be something like, "This method step describes provenance-based metadata as specified in the LTER EML Best Practices." In such a case, you should also add one or more Data Sources that refer to the data package(s) that were used in the creation of the current data package.
+If this method step is intended to document data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package, then the description can be something like:
+<p style="padding:0px 20px 0px 20px;background-color:#F0F0F0">This method step describes provenance-based metadata as specified in the LTER EML Best Practices.</p>
+In such a case, you should also add one or more Data Sources that refer to the data package(s) that were used in the creation of the current data package.
 --------------------
 method_step_instrumentation
 Method Step Instrumentation

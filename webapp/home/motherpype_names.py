@@ -28,6 +28,7 @@ logger = daiquiri.getLogger("names: " + __name__)
 MOTHER = "mother"
 
 # Donor Elements
+DONOR = "donor"
 DONOR_ID = "donorID"
 DONOR_GENDER = "donorGender"
 

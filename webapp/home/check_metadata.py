@@ -30,6 +30,9 @@ from webapp.pages import *
 import webapp.auth.user_data as user_data
 import webapp.home.load_data_table as load_data_table
 
+from webapp.validate import evaluate_mp
+from webapp.validate.evaluation_warnings_mp import EvaluationWarningMp
+
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
 
@@ -616,24 +619,88 @@ def check_project(eml_node, filename):
             add_to_evaluation('project_03', link)
 
 
-def check_other_entity(entity_node, filename):
-    link = url_for(PAGE_OTHER_ENTITY, filename=filename, node_id=entity_node.id)
+# def check_other_entity(entity_node, filename):
+#     link = url_for(PAGE_OTHER_ENTITY, filename=filename, node_id=entity_node.id)
+#
+#     validation_errors = validate_via_metapype(entity_node)
+#     if find_min_unmet(validation_errors, names.OTHERENTITY, names.ENTITYNAME):
+#         add_to_evaluation('other_entity_01', link)
+#     if find_min_unmet(validation_errors, names.OTHERENTITY, names.ENTITYTYPE):
+#         add_to_evaluation('other_entity_02', link)
+#
+#     evaluation_warnings = evaluate_via_metapype(entity_node)
+#     if find_err_code(evaluation_warnings, EvaluationWarning.OTHER_ENTITY_DESCRIPTION_MISSING, names.OTHERENTITY):
+#         add_to_evaluation('other_entity_03', link)
+#
+#
+# def check_other_entities(eml_node, filename):
+#     other_entity_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.OTHERENTITY])
+#     for other_entity_node in other_entity_nodes:
+#         check_image(other_entity_node, filename)
 
-    validation_errors = validate_via_metapype(entity_node)
-    if find_min_unmet(validation_errors, names.OTHERENTITY, names.ENTITYNAME):
-        add_to_evaluation('other_entity_01', link)
-    if find_min_unmet(validation_errors, names.OTHERENTITY, names.ENTITYTYPE):
-        add_to_evaluation('other_entity_02', link)
 
-    evaluation_warnings = evaluate_via_metapype(entity_node)
-    if find_err_code(evaluation_warnings, EvaluationWarning.OTHER_ENTITY_DESCRIPTION_MISSING, names.OTHERENTITY):
-        add_to_evaluation('other_entity_03', link)
+def check_image(eml_node, filename):
+    link = url_for(PAGE_OTHER_ENTITY, filename=filename)
+    entity_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY])
+    if not entity_node:
+        add_to_evaluation('image_05', link)
+    else:
+        evaluation_warnings = evaluate_via_motherpype(entity_node)
+        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_NAME_MISSING, names.OTHERENTITY):
+            add_to_evaluation('image_01', link)
+        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_TYPE_MISSING, names.OTHERENTITY):
+            add_to_evaluation('image_02', link)
+        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_FORMAT_MISSING, names.OTHERENTITY):
+            add_to_evaluation('image_03', link)
+        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING, names.OTHERENTITY):
+            add_to_evaluation('image_04', link)
 
 
-def check_other_entities(eml_node, filename):
-    other_entity_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.OTHERENTITY])
-    for other_entity_node in other_entity_nodes:
-        check_other_entity(other_entity_node, filename)
+def check_immunohistochemistry(node, filename):
+
+    link = url_for(PAGE_IHC, filename=filename, node_id=node.id)
+
+    validation_errs = evaluate_via_motherpype(node)
+    if find_content_empty(validation_errs, names.TAXONRANKNAME):
+        add_to_evaluation('taxonomic_coverage_01', link)
+    if find_content_empty(validation_errs, names.TAXONRANKVALUE):
+        add_to_evaluation('taxonomic_coverage_02', link)
+
+
+def check_donor(node, filename):
+    link = url_for(PAGE_DONOR, filename=filename, node_id=node.id)
+
+    evaluation_warnings = evaluate_via_motherpype(node)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_ID_MISSING, 'Donor'):
+        add_to_evaluation('donor_01', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_GENDER_MISSING, 'Donor'):
+        add_to_evaluation('donor_02', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING, 'Donor'):
+        add_to_evaluation('donor_03', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING, 'Donor'):
+        add_to_evaluation('donor_04', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING, 'Donor'):
+        add_to_evaluation('donor_05', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING, 'Donor'):
+        add_to_evaluation('donor_06', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SLIDE_ID_MISSING, 'Donor'):
+        add_to_evaluation('donor_07', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING, 'Donor'):
+        add_to_evaluation('donor_08', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_MISSING, 'Donor'):
+        add_to_evaluation('donor_09', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_UNITS_MISSING, 'Donor'):
+        add_to_evaluation('donor_10', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FIXATION_MISSING, 'Donor'):
+        add_to_evaluation('donor_11', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAIN_MISSING, 'Donor'):
+        add_to_evaluation('donor_12', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MAGNIFICATION_MISSING, 'Donor'):
+        add_to_evaluation('donor_13', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING, 'Donor'):
+        add_to_evaluation('donor_14', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING, 'Donor'):
+        add_to_evaluation('donor_15', link)
 
 
 def eval_entry_to_string(eval_entry):
@@ -665,9 +732,9 @@ def format_entry(entry:Eval_Entry):
 
 
 def format_output(evaluation):
-    sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
+    sections = ['Title', 'Image', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
                 'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
-                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Other Entities', 'Data Package ID']
+                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Project', 'Donor', 'Immunohistochemistry', 'Other Entities', 'Data Package ID']
 
     severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
@@ -709,7 +776,10 @@ def perform_evaluation(eml_node, filename):
     check_maintenance(eml_node, filename)
     check_method_steps(eml_node, filename)
     check_project(eml_node, filename)
-    check_other_entities(eml_node, filename)
+    # check_other_entities(eml_node, filename)
+    check_image(eml_node, filename)
+    check_immunohistochemistry(eml_node, filename)
+    check_donor(eml_node, filename)
     check_data_package_id(eml_node, filename)
     
     return evaluation
@@ -746,6 +816,16 @@ def evaluate_via_metapype(node):
     eval = []
     try:
         evaluate.tree(node, eval)
+    except Exception as e:
+        print(f'evaluate_via_metapype: node={node.name} exception={e}')
+    return eval
+
+
+def evaluate_via_motherpype(node):
+    # allows for new evaluation scripts to be added for MOTHER
+    eval = []
+    try:
+        evaluate_mp.tree(node, eval)
     except Exception as e:
         print(f'evaluate_via_metapype: node={node.name} exception={e}')
     return eval

@@ -227,6 +227,9 @@ def delete_eml(filename:str=''):
         json_filename = f'{user_folder}/{filename}.json'
         xml_filename = f'{user_folder}/{filename}.xml'
         eval_filename = f'{user_folder}/{filename}_eval.pkl'
+        # if we're deleting the current document, clear the active file
+        if filename == get_active_document():
+            remove_active_file()
         if os.path.exists(json_filename):
             try:
                 os.remove(json_filename)

@@ -510,6 +510,8 @@ def get_back_url():
         filename = user_data.get_active_document()
         if new_page and filename:
             url = url_for(new_page, filename=filename)
+        elif not filename:
+            url = url_for(PAGE_INDEX)
     return url
 
 
@@ -604,21 +606,24 @@ def save():
 
 @home.route('/manage_packages', methods=['GET', 'POST'])
 @home.route('/manage_packages/<to_delete>', methods=['GET', 'POST'])
+@home.route('/manage_packages/<to_delete>/<action>', methods=['GET', 'POST'])
 @login_required
-def manage_packages(to_delete=None):
+def manage_packages(to_delete=None, action=None):
 
     if to_delete is not None:
-        user_data.delete_eml(filename=to_delete)
-        flash(f'Deleted {to_delete}') # TO DO - handle error cases
+        if to_delete == '____back____':
+            action = '____back____'
+        elif action != '____back____':
+            user_data.delete_eml(filename=to_delete)
+            flash(f'Deleted {to_delete}') # TO DO - handle error cases
 
-    if request.method == 'POST':
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
+    if action == '____back____':
+        return redirect(get_back_url())
 
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_SAVE_AS, PAGE_SAVE_AS)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_SAVE_AS, PAGE_SAVE_AS)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
 
     sort_by = 'package_name'
     reverse = False

@@ -51,7 +51,7 @@
                         <td>{{ ds_entry[0] }}</td>
                         <td width="3%">&nbsp;</td>
                         <td style="float:right;"><input class="btn btn-primary" name="{{ ds_entry[1] }}" type="submit" value="Edit"/>
-                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
+                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>

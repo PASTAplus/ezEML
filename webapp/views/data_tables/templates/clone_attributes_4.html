@@ -63,7 +63,7 @@
                     {% endfor %}
                 </table>
                 <p>&nbsp;</p>
-                <input class="btn btn-primary" onclick="return confirm('Are you sure?');" name="Clone" type="submit" value="Clone Column Properties"/>
+                <input class="btn btn-primary" onclick="return confirm('Are you sure? This action cannot be undone.');" name="Clone" type="submit" value="Clone Column Properties"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons() }}
             </form>

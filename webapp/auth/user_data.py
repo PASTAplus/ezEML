@@ -223,13 +223,19 @@ def data_table_was_uploaded(filename):
 def delete_eml(filename:str=''):
     if filename:
         user_folder = get_user_folder_name()
+        discard_data_table_upload_filenames_for_package(filename)
         json_filename = f'{user_folder}/{filename}.json'
         xml_filename = f'{user_folder}/{filename}.xml'
+        eval_filename = f'{user_folder}/{filename}_eval.pkl'
         if os.path.exists(json_filename):
             try:
                 os.remove(json_filename)
                 try:
                     os.remove(xml_filename)
+                except Exception as e:
+                    pass
+                try:
+                    os.remove(eval_filename)
                 except Exception as e:
                     pass
                 return None

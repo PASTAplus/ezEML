@@ -61,7 +61,7 @@
                         {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.upval) }}
                         {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.downval) }}
                         <td align="right"><input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" type="submit" value="Edit"/>
-                        <input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
+                        <input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
 
                     </tr>
                     {% endfor %}
@@ -87,7 +87,7 @@
                         {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.upval) }}
                         {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.downval) }}
                         <td align="right"><input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" type="submit" value="Edit"/>
-                        <input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" onclick="return confirm('Are you sure?');" type="submit" value="Remove"/></td>
+                        <input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>

@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2022.11.28'
+RELEASE_NUMBER = '2022.11.30'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1077,9 +1077,9 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_me
     if eml_node:
         if not skip_metadata_check:
             get_check_metadata_status(eml_node, filename)
-        check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
-        # save_package_id(eml_node)
-        user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
+            check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+            # save_package_id(eml_node)
+            user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
     return eml_node
 
 
@@ -1121,6 +1121,7 @@ def enforce_dataset_sequence(eml_node:Node=None):
         if dataset_node:
             new_children = []
             sequence = (
+                # names.ALTERNATEIDENTIFIER,
                 names.TITLE,
                 names.CREATOR,
                 names.METADATAPROVIDER,
@@ -1129,6 +1130,8 @@ def enforce_dataset_sequence(eml_node:Node=None):
                 names.ABSTRACT,
                 names.KEYWORDSET,
                 names.INTELLECTUALRIGHTS,
+                # names.LICENSED,
+                # names.DISTRIBUTION,
                 names.COVERAGE,
                 names.MAINTENANCE,
                 names.CONTACT,

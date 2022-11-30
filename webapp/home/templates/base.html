@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2022.11.28' %}
+{% set release_number = '2022.11.30' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -10,8 +10,17 @@
     <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/directory-list.css', version=release_number) }}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
+
+{#    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">#}
+{#    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js">#}
+{#    </script>#}
+{#    <script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js">#}
+{#</script>#}
 {% endblock %}
 
 {% block title %}
@@ -31,7 +40,7 @@
         'about', 'news', 'user_guide', 'import_package', 'import_xml',
         'export_package', '/submit_package'] %}
 {% set non_saving_contains = ['/check_metadata/', '/check_data_tables/',
-        '/data_table_errors/', '/fetch_xml',
+        '/data_table_errors/', '/fetch_xml', '/manage_packages',
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
         'import_package_2', 'import_xml_2', 'export_package_2',
@@ -121,8 +130,11 @@
                             <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
                         </li>
                     {% endif %}
+{#                        <li>#}
+{#                            <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>#}
+{#                        </li>#}
                         <li>
-                            <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>
+                            <a href="{{ url_for('home.manage_packages') }}" title="Manage">Manage...</a>
                         </li>
                     </ul>
                 </li>
@@ -461,6 +473,9 @@
     {% block app_scripts %}
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
+
     <script>
     $(function()
     {

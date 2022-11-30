@@ -33,7 +33,7 @@
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.upval) }}
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>
-                        <td><input class="btn btn-primary" onclick="return confirm('Are you sure?');" name="{{ dt_entry.id }}" type="submit" value="Remove"/></td>
+                        <td><input class="btn btn-primary" onclick="return confirm('Are you sure? This action cannot be undone.');" name="{{ dt_entry.id }}" type="submit" value="Remove"/></td>
                         {% if dt_entry.was_uploaded and dt_entry.object_name %}
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Re-upload"/>
                         </td>

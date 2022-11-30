@@ -81,6 +81,7 @@ from webapp.home.log_usage import (
     actions,
     log_usage,
 )
+from webapp.home.manage_packages import get_data_packages
 
 from webapp.home.metapype_client import ( 
     load_eml, save_both_formats, new_child_node, remove_child, create_eml,
@@ -561,7 +562,6 @@ def delete():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            user_data.discard_data_table_upload_filenames_for_package(filename)
             return_value = user_data.delete_eml(filename=filename)
             log_usage(actions['DELETE_DOCUMENT'], filename)
             if filename == user_data.get_active_document():
@@ -600,6 +600,33 @@ def save():
     flash(f'Saved {current_document}')
          
     return redirect(url_for(PAGE_TITLE, filename=current_document))
+
+
+@home.route('/manage_packages', methods=['GET', 'POST'])
+@home.route('/manage_packages/<to_delete>', methods=['GET', 'POST'])
+@login_required
+def manage_packages(to_delete=None):
+
+    if to_delete is not None:
+        user_data.delete_eml(filename=to_delete)
+        flash(f'Deleted {to_delete}') # TO DO - handle error cases
+
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_SAVE_AS, PAGE_SAVE_AS)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
+    sort_by = 'package_name'
+    reverse = False
+
+    data_packages = get_data_packages(sort_by=sort_by, reverse=reverse)
+    help = get_helps(['manage_packages'])
+
+    return render_template('manage_packages.html', data_packages=data_packages, help=help)
 
 
 def copy_uploads(from_package, to_package):

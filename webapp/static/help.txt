@@ -331,6 +331,12 @@ data_table_online_url
 Online Distribution URL
 If the data table is available online, its URL address.
 --------------------
+donor
+Donor
+Fill in the Donor information below. Fields with an  "*" next to the field name are a required field.
+
+Some fields will be automatically disabled based upon certain selections, e.g., If you select "Bouins" under the "Fixation" field, the "Other Fixation" field will be disabled.
+--------------------
 export_package
 Export ezEML Data Package
 When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.

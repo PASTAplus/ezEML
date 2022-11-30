@@ -85,7 +85,7 @@ def donor(filename=None):
     save_both_formats(filename, eml_node)
 
     set_current_page('donor')
-    help = [get_help('publisher')]
+    help = [get_help('donor')]
     return new_donor(filename=filename, node_id=node_id,
                      method=method, node_name='donor',
                      back_page=PAGE_RELATED_PROJECT_SELECT, next_page=PAGE_IHC, title='Donor',

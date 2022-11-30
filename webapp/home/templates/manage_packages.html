@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+    {% set help_manage_packages_id, help_manage_packages_title, help_manage_packages_content = help[0] %}
+    {% set help_manage_packages_btn = help_manage_packages_id ~ '_btn' %}
+    {% set help_manage_packages_dialog = help_manage_packages_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Manage Data Packages</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_manage_packages_btn) }}</td>
+    </table>
+
+    <div class="col-md-12">
+        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+            <a href="{{ request.referrer }}">Back</a>
+            <p>
+            <table id="data_table" class="table table-striped" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th align="left" width=55%>Package Name</th>
+                <th align="left" width=25%>Date Modified</th>
+                <th align="left" width=10%>Size</th>
+                <th align="left" width=10%></th>
+                </thead>
+                <tbody>
+                {% for data_package in data_packages %}
+                <tr>
+                <td class="eval_table" valign="top">{{ data_package.package_name }}</td>
+                <td class="eval_table" valign="top">{{ data_package.date_modified }}</td>
+                <td class="eval_table" valign="top">{{ data_package.size }}</td>
+                <td class="eval_table" valign="top" align="right">{{ data_package.remove_link|safe }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {{ macros.hidden_buttons() }}
+        </form>
+    </div>
+    {{ macros.help_dialog(help_manage_packages_dialog, help_manage_packages_title, help_manage_packages_content) }}
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    {% set help_manage_packages_id, help_manage_packages_title, help_manage_packages_content = help[0] %}
+    {% set help_manage_packages_btn = help_manage_packages_id ~ '_btn' %}
+    {% set help_manage_packages_dialog = help_manage_packages_id ~ '_dialog' %}
+
+    <script>
+    $(document).ready(function() {
+      $('#data_table').DataTable( {
+          paging: false,
+          searching: false,
+          columns:[null, null, null, {orderable: false}]
+      });
+      $('.dataTables_length').addClass('bs-select');
+      $(".eval_table tr:odd").css("background", "#f4f4f4");
+      $(".eval_table tr:even").css("background", "#fff");
+      $(".eval_table").css("padding", "1px");
+    });
+    $(function()
+    {
+        {{ macros.help_script(help_manage_packages_dialog, help_manage_packages_btn) }}
+    });
+    </script>
+{% endblock %}

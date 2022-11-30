@@ -789,6 +789,8 @@ Method steps are descriptions of specific steps of the method employed when coll
 The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data and any quality control measures taken.
 
 An additional use of method steps is to specify data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package. Provenance metadata is important in making research transparent and reproducible. To specify provenance for your data package, create a method step and add to it one or more Data Sources that refer to the data package(s) that were used to create the current data package. It is customary to place such provenance method steps at the end of the method steps list. For more on data provenance, see <a style="color: steelblue;" href="/static/user_guide/documenting_data_provenance.pdf" target="_user_guide_ezeml">Documenting Data Provenance</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+
+For more on documenting data provenance metadata in ezEML, watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/LkCA_qgDwhc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 method_step_description
 Method Step Description
@@ -799,8 +801,6 @@ Describe the methodology for a project, experiment, or particular data table or 
 If this method step is intended to document data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package, then the description can be something like:
 <p style="padding:0px 20px 0px 20px;background-color:#F0F0F0">This method step describes provenance-based metadata as specified in the LTER EML Best Practices.</p>
 In such a case, you should also add one or more Data Sources that refer to the data package(s) that were used in the creation of the current data package.
-
-For more on documenting data provenance metadata in ezEML, watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/LkCA_qgDwhc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 method_step_instrumentation
 Method Step Instrumentation

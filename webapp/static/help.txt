@@ -799,6 +799,8 @@ Describe the methodology for a project, experiment, or particular data table or 
 If this method step is intended to document data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package, then the description can be something like:
 <p style="padding:0px 20px 0px 20px;background-color:#F0F0F0">This method step describes provenance-based metadata as specified in the LTER EML Best Practices.</p>
 In such a case, you should also add one or more Data Sources that refer to the data package(s) that were used in the creation of the current data package.
+
+For more on documenting data provenance metadata in ezEML, watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/LkCA_qgDwhc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 method_step_instrumentation
 Method Step Instrumentation
@@ -1017,6 +1019,8 @@ To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Cove
 <b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single bulk operation. ezEML will fill in taxonomic hierarchies for the taxa automatically by querying a user-specified taxonomic authority. For details, go to <b>Load Taxonomic Coverage from CSV File</b> and click the Help on that page.
 
 <b>Clear All Taxonomic Coverage</b> will clear all taxonomic coverage so you can start over. This is especially useful when you are developing the CSV file to use in <b>Load Taxonomic Coverage from CSV File</b>. You may need several attempts to finalize the CSV file, and you can clear the coverage between attempts.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/Iuh8tTAQN8Q" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 taxonomic_coverage_fill_hierarchy
 Fill Hierarchy

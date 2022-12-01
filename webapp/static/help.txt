@@ -727,6 +727,8 @@ Select your preferred taxonomic authority from the list and click <b>Upload</b>.
 If you want to use different taxonomic authorities for different subsets of your taxa, create separate CSV files for the subsets and upload them separately.
 
 Please note that the CSV file should be UTF-8 encoded. If you use Microsoft Excel, do "Save As..." and under "File Format" in Excel's Save As dialog, pick "CSV UTF-8".
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/Iuh8tTAQN8Q" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 maintenance
 Maintenance

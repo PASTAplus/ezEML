@@ -11,7 +11,7 @@ from webapp.pages import *
 
 
 Data_Package = collections.namedtuple(
-    'Data_Package', ["package_name", "date_modified", "size", "remove_link"])
+    'Data_Package', ["package_name", "package_link", "date_modified", "size", "remove_link"])
 
 
 def get_dir_size(path='.'):
@@ -65,12 +65,13 @@ def get_data_packages(sort_by='date_modified', reverse=True):
         package_name, file_ext = os.path.splitext(filename)
         if file_ext.lower() != '.json' or package_name == '__user_properties__':
             continue
+        package_link = f'<a href="{url_for(PAGE_OPEN_PACKAGE, package_name=package_name)}">{package_name}</a>'
         date_modified = datetime.fromtimestamp(os.path.getmtime(os.path.join(user_dir, filename))).strftime('%Y-%m-%d %H:%M:%S')
-        size = get_package_size(package_name)
+        size = f"{get_package_size(package_name):,}"
         are_you_sure = "'Are you sure? This action cannot be undone.');"
         endpoint = url_for(PAGE_MANAGE_PACKAGES, to_delete=package_name)
         remove_link = f'<a onclick="return confirm({are_you_sure}" href="{endpoint}">Delete</a>'
-        data_package = Data_Package(package_name, date_modified, size, remove_link)
+        data_package = Data_Package(package_name, package_link, date_modified, size, remove_link)
         packages.append(data_package)
     return sorted(packages, key=lambda x: getattr(x, sort_by), reverse=reverse)
 

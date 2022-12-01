@@ -18,17 +18,19 @@
             <p>
             <table id="data_table" class="table table-striped" width=100% style="padding: 10px;">
                 <thead>
-                <tr><th align="left" width=55%>Package Name</th>
-                <th align="left" width=25%>Date Modified</th>
-                <th align="left" width=10%>Size</th>
-                <th align="left" width=10%></th>
+                <tr><th style="text-align:left;" width=57%>Package Name</th>
+                <th width="3%"></th>
+                <th style="text-align:left;" width=18%>Date Modified</th>
+                <th style="text-align:right;" width=12%>Size</th>
+                <th style="text-align:left;" width=10%></th>
                 </thead>
                 <tbody>
                 {% for data_package in data_packages %}
                 <tr>
-                <td class="eval_table" valign="top">{{ data_package.package_name }}</td>
+                <td class="eval_table" valign="top">{{ data_package.package_link|safe }}</td>
+                <td></td>
                 <td class="eval_table" valign="top">{{ data_package.date_modified }}</td>
-                <td class="eval_table" valign="top">{{ data_package.size }}</td>
+                <td class="eval_table" valign="top" align="right">{{ data_package.size }}</td>
                 <td class="eval_table" valign="top" align="right">{{ data_package.remove_link|safe }}</td>
                 </tr>
                 {% endfor %}
@@ -52,7 +54,7 @@
       $('#data_table').DataTable( {
           paging: false,
           searching: false,
-          columns:[null, null, null, {orderable: false}]
+          columns:[null, {orderable: false}, null, null, {orderable: false}]
       });
       $('.dataTables_length').addClass('bs-select');
       $(".eval_table tr:odd").css("background", "#f4f4f4");

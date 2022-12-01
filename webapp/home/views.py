@@ -920,6 +920,25 @@ def open_eml_document():
                            form=form)
 
 
+@home.route('/open_package/<package_name>', methods=['GET', 'POST'])
+@login_required
+def open_package(package_name):
+    eml_node = load_eml(package_name)
+    if eml_node:
+        current_user.set_filename(package_name)
+        packageid = eml_node.attributes.get('packageId', None)
+        if packageid:
+            current_user.set_packageid(packageid)
+        create_eml(filename=package_name)
+        new_page = PAGE_TITLE
+        log_usage(actions['OPEN_DOCUMENT'])
+        check_data_table_contents.set_check_data_tables_badge_status(package_name, eml_node)
+    else:
+        new_page = PAGE_FILE_ERROR
+
+    return redirect(url_for(new_page, filename=package_name))
+
+
 def get_subdirs(dir):
     print(f"get_subdirs: {dir}")
     subdirs = []

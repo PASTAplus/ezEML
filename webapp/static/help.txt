@@ -1031,6 +1031,8 @@ Enter the Taxon Scientific Name for the most specific relevant taxon (e.g., spec
 The Taxon Scientific Name you enter should be the scientific name for the taxon, not a common name. For a species, this is a binomial name.
 
 If the specified taxon is found in the taxonomic authority database, the Taxon Rank will be set automatically. I.e., if you are going to use <b>Fill Hierarchy</b> for a known taxon, you don't need to worry about getting the taxon rank right. The Taxon Rank selection list is there to cover cases where the taxon you've entered is not found in the supported taxonomic authorities but you want to save it as entered. In such cases, you can still click <b>Save and Continue</b> and the taxon rank and taxon name will be saved in the EML exactly as you've entered them.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/Iuh8tTAQN8Q" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 temporal_coverages
 Temporal Coverage

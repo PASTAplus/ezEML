@@ -81,7 +81,7 @@ def immunohistochemistry(filename=None):
     # Added in 4/8/2022
     save_both_formats(filename, eml_node)
     set_current_page('ihc')
-    help = [get_help('publisher')]
+    help = [get_help('immunohistochemistry')]
     return new_immunohistochemistry(filename=filename, node_id=node_id,
                                     method=method, node_name="immunohistochemistry",
                                     back_page=PAGE_DONOR, next_page=PAGE_SEND_TO_OTHER, title='Immunohistochemistry',  #PT5/26

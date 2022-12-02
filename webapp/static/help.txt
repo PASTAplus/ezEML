@@ -750,7 +750,7 @@ manage_packages
 Manage Data Packages
 The <b>Manage Data Packages</b> page lists the data packages that currently exist in the ezEML account of the logged-in user and lets you delete any packages you no longer need. If you are an Information Manager, for example, or data curator, you may accumulate a number of packages over time, and you may want to delete some of them to keep your account from getting too cluttered.
 
-The table can be sorted by package name, date modified, or size in ascending or descending order. Click on the column header to sort by that column. Click again to reverse the sort order. The size column shows the size of the package in bytes, including the XML metadata file and any data files that have been uploaded to the package.
+The table can be sorted by package name, date modified, or size in ascending or descending order. Click on the column header to sort by that column. Click again to reverse the sort order. The size column shows the size of the package in bytes, including the XML metadata file and any data files that have been uploaded to the package. Clicking on a package name opens that package in ezEML.
 --------------------
 metadataProvider
 Metadata Provider

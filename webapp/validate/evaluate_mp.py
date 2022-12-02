@@ -312,15 +312,15 @@ def _image_rule(node: Node) -> list:
             node
         ))
 
-    if not any(
-        child.name == 'additionalInfo' and child.content
-        for child in node.children
-    ):
-        evaluation.append((
-            EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING,
-            f'Image Description is highly recommended."',
-            node
-        ))
+    # if not any(
+    #     child.name == 'additionalInfo' and child.content
+    #     for child in node.children
+    # ):
+    #     evaluation.append((
+    #         EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING,
+    #         f'Image Description is highly recommended."',
+    #         node
+    #     ))
     return evaluation
 
 def _donor_rule(node: Node) -> list:

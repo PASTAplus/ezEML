@@ -652,8 +652,8 @@ def check_image(eml_node, filename):
             add_to_evaluation('image_02', link)
         if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_FORMAT_MISSING, names.OTHERENTITY):
             add_to_evaluation('image_03', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING, names.OTHERENTITY):
-            add_to_evaluation('image_04', link)
+        # if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING, names.OTHERENTITY):
+        #     add_to_evaluation('image_04', link)
 
 
 def check_immunohistochemistry(node, filename):

@@ -43,7 +43,7 @@ class EvaluationWarningMp(Enum):
     IMAGE_NAME_MISSING = auto()
     IMAGE_TYPE_MISSING = auto()
     IMAGE_FORMAT_MISSING = auto()
-    IMAGE_DESCRIPTION_MISSING = auto()
+    # IMAGE_DESCRIPTION_MISSING = auto()
     DONOR_ID_MISSING = auto()
     DONOR_GENDER_MISSING = auto()
     DONOR_LIFE_STAGE_MISSING = auto()

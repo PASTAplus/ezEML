@@ -25,6 +25,7 @@ from metapype.model.node import Node
 from metapype.eml.evaluation_warnings import EvaluationWarning
 
 from webapp.validate.evaluation_warnings_mp import EvaluationWarningMp
+import webapp.home.motherpype_names as mdb_names
 
 
 logger = daiquiri.getLogger("evaluate: " + __name__)
@@ -325,16 +326,274 @@ def _image_rule(node: Node) -> list:
 
 def _donor_rule(node: Node) -> list:
     evaluation = []
-    id = False
+    print("checking donor")
+    # evaluation.append((
+    #     EvaluationWarningMp.DONOR_ID_MISSING,
+    #     f'Donor ID is required.',
+    #     node
+    # ))
+
+    # array that notes the presence of nodes and their contents
+    donornodes = [False] * 15
+
     for child in node.children:
-        if child.name == names.DONOR_ID and child.content:
-            id = True
-    if not id:
+        if child.name == mdb_names.DONOR_ID and child.content:
+            donornodes[0] = True
+        if child.name == mdb_names.DONOR_GENDER and child.content:
+            donornodes[1] = True
+        if child.name == mdb_names.DONOR_LIFE_STAGE and child.content:
+            donornodes[2] = True
+        if child.name == mdb_names.SPEC_SEQ_NUM and child.content:
+            donornodes[3] = True
+        if child.name == mdb_names.SPEC_TISSUE and child.content:
+            donornodes[4] = True
+        if child.name == mdb_names.OVARY_POSITION and child.content:
+            donornodes[5] = True
+        if child.name == mdb_names.SLIDE_ID and child.content:
+            donornodes[6] = True
+        # if child.name == mdb_names.SEC_SEQ_NUM and child.content:
+        #     donornodes[7] = True
+        if child.name == mdb_names.SECTION_THICKNESS:
+            for schild in child.children:
+                if schild.name == mdb_names.THICKNESS and schild.content:
+                    donornodes[8] = True
+                if schild.name == mdb_names.UNIT and schild.content:
+                    donornodes[9] = True
+        if child.name == mdb_names.SAMPLE_PROCESS:
+            for spchild in child.children:
+                # check for presence of children since they do not count as node content
+                if spchild.name == mdb_names.FIXATION and spchild.children:
+                    donornodes[10] = True
+                if spchild.name == mdb_names.STAIN and spchild.children:
+                    donornodes[11] = True
+        if child.name == mdb_names.MAGNIFICATION and child.content:
+            donornodes[12] = True
+        if child.name == mdb_names.MICROSCOPE:
+            for mchild in child.children:
+                if mchild.name == mdb_names.MICRO_MAKER and mchild.content:
+                    donornodes[13] = True
+                if mchild.name == mdb_names.MICRO_MODEL and mchild.content:
+                    donornodes[14] = True
+
+    if not donornodes[0]:
         evaluation.append((
-            EvaluationWarning.DONOR_ID_MISSING,
-            f'A Donor ID is recommended.',
+            EvaluationWarningMp.DONOR_ID_MISSING,
+            f'Donor ID is required.',
             node
         ))
+    if not donornodes[1]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_GENDER_MISSING,
+            f'Donor Gender is required.',
+            node
+        ))
+    if not donornodes[2]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING,
+            f'Donor Life Stage is required.',
+            node
+        ))
+    if not donornodes[3]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING,
+            f'Donor Specimen Sequence Number is required.',
+            node
+        ))
+    if not donornodes[4]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING,
+            f'Donor Specimen Tissue is required.',
+            node
+        ))
+    if not donornodes[5]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING,
+            f'Donor Ovary Position is required.',
+            node
+        ))
+    if not donornodes[6]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SLIDE_ID_MISSING,
+            f'Donor Slide ID is required.',
+            node
+        ))
+    # if not donornodes[7]:
+    #     evaluation.append((
+    #         EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING,
+    #         f'Donor Section Sequence Number is required.',
+    #         node
+    #     ))
+    if not donornodes[8]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SEC_THICK_MISSING,
+            f'Donor Section Thickness is required.',
+            node
+        ))
+    if not donornodes[9]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SEC_THICK_UNITS_MISSING,
+            f'Donor Section Thickness Units are required.',
+            node
+        ))
+    if not donornodes[10]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_FIXATION_MISSING,
+            f'Donor Stain is required.',
+            node
+        ))
+    if not donornodes[11]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_STAIN_MISSING,
+            f'Donor Fixation is required.',
+            node
+        ))
+    if not donornodes[12]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_MAGNIFICATION_MISSING,
+            f'Donor Magnification is required.',
+            node
+        ))
+    if not donornodes[13]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING,
+            f'Donor Microscope Maker is required.',
+            node
+        ))
+    if not donornodes[14]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING,
+            f'Donor Microscope Model is required.',
+            node
+        ))
+
+    # for child in node.children:
+    #     print("child found")
+    #     if not any(child.name == mdb_names.DONOR_ID and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_ID_MISSING,
+    #             f'Donor ID is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.DONOR_GENDER and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_GENDER_MISSING,
+    #             f'Donor Gender is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.DONOR_LIFE_STAGE and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING,
+    #             f'Donor Life Stage is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.SPEC_SEQ_NUM and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING,
+    #             f'Donor Specimen Sequence Number is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.SPEC_TISSUE and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING,
+    #             f'Donor Specimen Tissue is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.OVARY_POSITION and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING,
+    #             f'Donor Ovary Position is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.SLIDE_ID and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_SLIDE_ID_MISSING,
+    #             f'Donor Slide ID is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.SEC_SEQ_NUM and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING,
+    #             f'Donor Section Sequence Number is required.',
+    #             node
+    #         ))
+    #     if not any(child.name == mdb_names.SECTION_THICKNESS and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_SEC_THICKNESS_MISSING,
+    #             f'Donor Section Thickness is required.',
+    #             node
+    #         ))
+    #     else:
+    #         for schild in child.children:
+    #             if not any(schild.name == mdb_names.THICKNESS and schild.content):
+    #                 evaluation.append((
+    #                     EvaluationWarningMp.DONOR_SEC_THICKNESS_MISSING,
+    #                     f'Donor Section Thickness is required.',
+    #                     node
+    #                 ))
+    #             if not any(schild.name == mdb_names.UNIT and schild.content):
+    #                 evaluation.append((
+    #                     EvaluationWarningMp.DONOR_SEC_THICKNESS_UNITS_MISSING,
+    #                     f'Donor Section Thickness Units are required.',
+    #                     node
+    #                 ))
+    #     if not any(child.name == mdb_names.SAMPLE_PROCESS and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_FIXATION_MISSING,
+    #             f'Donor Fixation is required.',
+    #             node
+    #         ))
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_STAIN_MISSING,
+    #             f'Donor Stain is required.',
+    #             node
+    #         ))
+    #     else:
+    #         for spchild in child.children:
+    #             if not any(spchild.name == mdb_names.FIXATION and spchild.content):
+    #                 evaluation.append((
+    #                     EvaluationWarningMp.DONOR_FIXATION_MISSING,
+    #                     f'Donor Fixation is required.',
+    #                     node
+    #                 ))
+    #             if not any(spchild.name == mdb_names.STAIN and spchild.content):
+    #                 evaluation.append((
+    #                     EvaluationWarningMp.DONOR_STAIN_MISSING,
+    #                     f'Donor Stain is required.',
+    #                     node
+    #                 ))
+    #     if not any(mchild.name == mdb_names.MAGNIFICATION and mchild.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_MAGNIFICATION_MISSING,
+    #             f'Donor Magnification is required.',
+    #             node
+    #         ))
+    #     # missing microscope node means that all microscope properties are missing
+    #     if not any(child.name == mdb_names.MICROSCOPE and child.content):
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING,
+    #             f'Donor Microscope Maker is required.',
+    #             node
+    #         ))
+    #         evaluation.append((
+    #             EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING,
+    #             f'Donor Microscope Model is required.',
+    #             node
+    #         ))
+    #     else:
+    #         for mchild in child.children:
+    #             if not any(mchild.name == mdb_names.MICRO_MAKER and mchild.content):
+    #                 evaluation.append((
+    #                     EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING,
+    #                     f'Donor Microscope Maker is required.',
+    #                     node
+    #                 ))
+    #             if not any(mchild.name == mdb_names.MICRO_MODEL and mchild.content):
+    #                 evaluation.append((
+    #                     EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING,
+    #                     f'Donor Microscope Model is required.',
+    #                     node
+    #                 ))
+
     return evaluation
 
 
@@ -408,5 +667,5 @@ rules = {
     names.OTHERENTITY: _image_rule,
     names.PERSONNEL: _personnel_rule,
     names.TITLE: _title_rule,
-    'Donor': _donor_rule,
+    mdb_names.MOTHER: _donor_rule,
 }

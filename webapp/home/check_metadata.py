@@ -29,6 +29,7 @@ import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
 import webapp.auth.user_data as user_data
 import webapp.home.load_data_table as load_data_table
+import webapp.home.motherpype_names as mdb_names
 
 from webapp.validate import evaluate_mp
 from webapp.validate.evaluation_warnings_mp import EvaluationWarningMp
@@ -656,50 +657,51 @@ def check_image(eml_node, filename):
         #     add_to_evaluation('image_04', link)
 
 
-def check_immunohistochemistry(node, filename):
+def check_immunohistochemistry(eml_node, filename):
+    link = url_for(PAGE_IHC, filename=filename)
+    project_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA])
 
-    link = url_for(PAGE_IHC, filename=filename, node_id=node.id)
-
-    validation_errs = evaluate_via_motherpype(node)
+    validation_errs = evaluate_via_motherpype(eml_node)
     if find_content_empty(validation_errs, names.TAXONRANKNAME):
         add_to_evaluation('taxonomic_coverage_01', link)
     if find_content_empty(validation_errs, names.TAXONRANKVALUE):
         add_to_evaluation('taxonomic_coverage_02', link)
 
 
-def check_donor(node, filename):
-    link = url_for(PAGE_DONOR, filename=filename, node_id=node.id)
+def check_donor(eml_node, filename):
+    link = url_for(PAGE_DONOR, filename=filename)
+    node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER])
 
     evaluation_warnings = evaluate_via_motherpype(node)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_ID_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_ID_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_01', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_GENDER_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_GENDER_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_02', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_03', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_04', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_05', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_06', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SLIDE_ID_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SLIDE_ID_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_07', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_08', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_09', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_UNITS_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_UNITS_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_10', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FIXATION_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FIXATION_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_11', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAIN_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAIN_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_12', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MAGNIFICATION_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MAGNIFICATION_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_13', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_14', link)
-    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING, 'Donor'):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_15', link)
 
 
@@ -824,10 +826,10 @@ def evaluate_via_metapype(node):
 def evaluate_via_motherpype(node):
     # allows for new evaluation scripts to be added for MOTHER
     eval = []
-    try:
-        evaluate_mp.tree(node, eval)
-    except Exception as e:
-        print(f'evaluate_via_metapype: node={node.name} exception={e}')
+    # try:
+    evaluate_mp.tree(node, eval)
+    # except Exception as e:
+    #     print(f'evaluate_via_motherpype: node={node.name} exception={e}')
     return eval
 
 

@@ -89,3 +89,18 @@ ihc_14,Immunohistochemistry,Secondary Antibody Cat Number,WARNING,REQUIRED,Secon
 ihc_15,Immunohistochemistry,Secondary Antibody Source Name,WARNING,REQUIRED,Secondary Antibody <b>Source Name</b> is required.,
 ihc_16,Immunohistochemistry,Secondary Antibody Source City,WARNING,REQUIRED,Secondary Antibody <b>Source City</b> is required.,
 ihc_17,Immunohistochemistry,Secondary Antibody Source State,WARNING,REQUIRED,Secondary Antibody <b>Source State</b> is required.,
+Donor ID is required.
+Donor Gender is required.
+Donor Life Stage is required.
+Donor Specimen Sequence Number is required.
+Donor Specimen Tissue is required.
+Donor Ovary Position is required.
+Donor Slide ID is required.
+Donor Section Sequence Number is required.
+Donor Section Thickness is required.
+Donor Section Thickness Units are required.
+Donor Fixation is required.
+Donor Stain is required.
+Donor Magnification is required.
+Donor Microscope Maker is required.
+Donor Microscope Model is required.

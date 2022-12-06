@@ -110,6 +110,21 @@ def GC(days, base, include_exports, logonly):
 							except FileNotFoundError:
 								pass
 
+			# Remove zip_temp files that are more than 'days' days old
+			zip_temp_dir = os.path.join(user_dir, 'zip_temp')
+			if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):
+				for file in os.listdir(zip_temp_dir):
+					filepath = os.path.join(zip_temp_dir, file)
+					t = os.stat(filepath).st_mtime
+					filetime = today - datetime.datetime.fromtimestamp(t)
+					if filetime.days > days:
+						try:
+							logger.info(f'Removing file {filepath}')
+							if not logonly:
+								os.remove(filepath)
+						except FileNotFoundError:
+							pass
+
 
 if __name__ == '__main__':
 	GC()

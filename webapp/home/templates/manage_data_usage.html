@@ -15,7 +15,14 @@
     <div class="col-md-12">
         <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
             <a href="manage_data_usage/____back____">Back</a>
-            <p>
+            <p>&nbsp;</p>
+            <table style="width: 98%;">
+                <tr>
+                    <td style="text-align: left;">Total usage = {{ total_usage }} MB</td>
+                    <td style="text-align: right;"><a href="manage_data_usage/____gc____">Garbage Collect</a></td>
+                </tr>
+            </table>
+
             <table id="data_table" class="table table-striped" width=100% style="padding: 10px;">
                 <thead>
                 <tr><th style="text-align:left;" width=31%>User Name</th>

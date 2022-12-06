@@ -95,7 +95,8 @@ def get_data_usage(sort_by='user_name', reverse=False):
         zip_temp_size = f"{get_dir_size(os.path.join(path, 'zip_temp')):,}"
         data_usage = Data_Usage(user_name, date_modified, size, uploads_size, exports_size, zip_temp_size, dir_name)
         data_usages.append(data_usage)
-    return sorted(data_usages, key=lambda x: getattr(x, sort_by), reverse=reverse)
+    total_usage = get_dir_size(Config.USER_DATA_DIR)
+    return total_usage, sorted(data_usages, key=lambda x: getattr(x, sort_by), reverse=reverse)
 
 
 if __name__=="__main__":

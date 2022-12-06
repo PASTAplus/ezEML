@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import datetime
 import glob
 import logging
@@ -8,12 +10,15 @@ import sys
 import click
 import daiquiri
 
+from config import Config
+
 
 @click.command()
 @click.option('--days', default=30, help='Remove files if JSON last-modified date greater than this number of days')
-@click.option('--base', default='/home/pasta/ezeml/user-data', help='Base directory from which to crawl the file system.')
+@click.option('--base', default=f'{Config.USER_DATA_DIR}', help='Base directory from which to crawl the file system.')
+@click.option('--include_exports', default=False, help='If True, include exports directories in file system crawl.')
 @click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing.')
-def GC(days, base, logonly):
+def GC(days, base, include_exports, logonly):
 	logfile = os.path.join(base, 'ezEML_GC.log')
 	daiquiri.setup(level=logging.INFO, outputs=(
 		daiquiri.output.Stream(sys.stdout),
@@ -24,7 +29,7 @@ def GC(days, base, logonly):
 	))
 	logger = daiquiri.getLogger(__name__)
 
-	logger.info(f'Start run: ------------------------------------------------------------------------ days={days} logonly={logonly}')
+	logger.info(f'Start run: ---------------------------------------- days={days} base={base} include_exports={include_exports} logonly={logonly}')
 	today = datetime.datetime.today()
 
 	os.chdir(base)
@@ -94,15 +99,16 @@ def GC(days, base, logonly):
 					except FileNotFoundError:
 						pass
 
-					# remove the exports directory for this package
-					exports_dir = os.path.join(user_dir, 'exports', package_name)
-					if os.path.exists(exports_dir) and os.path.isdir(exports_dir):
-						try:
-							logger.info(f'Removing directory {exports_dir}')
-							if not logonly:
-								shutil.rmtree(exports_dir)
-						except FileNotFoundError:
-							pass
+					if include_exports:
+						# remove the exports directory for this package
+						exports_dir = os.path.join(user_dir, 'exports', package_name)
+						if os.path.exists(exports_dir) and os.path.isdir(exports_dir):
+							try:
+								logger.info(f'Removing directory {exports_dir}')
+								if not logonly:
+									shutil.rmtree(exports_dir)
+							except FileNotFoundError:
+								pass
 
 
 if __name__ == '__main__':

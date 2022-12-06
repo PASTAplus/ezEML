@@ -28,6 +28,7 @@ import pickle
 import requests
 from requests_file import FileAdapter
 from shutil import copyfile
+import subprocess
 from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
 
@@ -646,6 +647,9 @@ def manage_data_usage(action=None):
     if action == '____back____':
         return redirect(get_back_url())
 
+    if action == '____gc____':
+        subprocess.run(['webapp/gc.py', '--days=60', '--include_exports=False', '--logonly=False'])
+
     if is_hidden_button():
         new_page = handle_hidden_buttons(PAGE_MANAGE_DATA_USAGE, PAGE_MANAGE_DATA_USAGE)
         current_document = current_user.get_filename()
@@ -654,10 +658,11 @@ def manage_data_usage(action=None):
     sort_by = 'user_name'
     reverse = False
 
-    data_usages = get_data_usage(sort_by=sort_by, reverse=reverse)
+    total_usage, data_usages = get_data_usage(sort_by=sort_by, reverse=reverse)
+    total_usage = math.ceil(total_usage / 1024**2) # MB
     help = get_helps(['manage_packages']) # FIXME
 
-    return render_template('manage_data_usage.html', data_usages=data_usages, help=help)
+    return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, help=help)
 
 
 def copy_uploads(from_package, to_package):

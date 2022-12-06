@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}
+    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}
+    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Manage Data Usage</h2></td>
+{#        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_manage_data_usage_btn) }}</td>#}
+    </table>
+
+    <div class="col-md-12">
+        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+            <a href="manage_data_usage/____back____">Back</a>
+            <p>
+            <table id="data_table" class="table table-striped" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=31%>User Name</th>
+                <th width="3%"></th>
+                <th style="text-align:left;" width=18%>Date Modified</th>
+                <th style="text-align:right;" width=12%>Total Size</th>
+                <th style="text-align:right;" width=12%>Uploads</th>
+                <th style="text-align:right;" width=12%>Exports</th>
+                <th style="text-align:right;" width=12%>Zip_Temp</th>
+                </thead>
+                <tbody>
+                {% for data_usage in data_usages %}
+                <tr>
+                <td class="eval_table" valign="top">{{ data_usage.user_name }}</td>
+                <td></td>
+                <td class="eval_table" valign="top">{{ data_usage.date_modified }}</td>
+                <td class="eval_table" valign="top" align="right">{{ data_usage.size }}</td>
+                <td class="eval_table" valign="top" align="right">{{ data_usage.uploads_size }}</td>
+                <td class="eval_table" valign="top" align="right">{{ data_usage.exports_size }}</td>
+                <td class="eval_table" valign="top" align="right">{{ data_usage.zip_temp_size }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {{ macros.hidden_buttons() }}
+        </form>
+    </div>
+    {{ macros.help_dialog(help_manage_data_usage_dialog, help_manage_data_usage_title, help_manage_data_usage_content) }}
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}
+    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}
+    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}
+
+    <script>
+    $(document).ready(function() {
+      $('#data_table').DataTable( {
+          paging: false,
+          searching: false
+      });
+      $('.dataTables_length').addClass('bs-select');
+      $(".eval_table tr:odd").css("background", "#f4f4f4");
+      $(".eval_table tr:even").css("background", "#fff");
+      $(".eval_table").css("padding", "1px");
+    });
+    $(function()
+    {
+        {{ macros.help_script(help_manage_data_usage_dialog, help_manage_data_usage_btn) }}
+    });
+    </script>
+{% endblock %}

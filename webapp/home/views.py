@@ -81,7 +81,7 @@ from webapp.home.log_usage import (
     actions,
     log_usage,
 )
-from webapp.home.manage_packages import get_data_packages
+from webapp.home.manage_packages import get_data_packages, get_data_usage
 
 from webapp.home.metapype_client import ( 
     load_eml, save_both_formats, new_child_node, remove_child, create_eml,
@@ -610,6 +610,8 @@ def save():
 @login_required
 def manage_packages(to_delete=None, action=None):
 
+    # When a link is clicked to delete a package, we need to pass the package name to the server.
+    # That's what the to_delete parameter is for.
     if to_delete is not None:
         if to_delete == '____back____':
             action = '____back____'
@@ -621,7 +623,7 @@ def manage_packages(to_delete=None, action=None):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SAVE_AS, PAGE_SAVE_AS)
+        new_page = handle_hidden_buttons(PAGE_MANAGE_PACKAGES, PAGE_MANAGE_PACKAGES)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -632,6 +634,30 @@ def manage_packages(to_delete=None, action=None):
     help = get_helps(['manage_packages'])
 
     return render_template('manage_packages.html', data_packages=data_packages, help=help)
+
+
+@home.route('/manage_data_usage', methods=['GET'])
+@home.route('/manage_data_usage/<action>', methods=['GET'])
+@login_required
+def manage_data_usage(action=None):
+
+    # The action parameter is used to signal we want to
+    #  return to the previous page.
+    if action == '____back____':
+        return redirect(get_back_url())
+
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_MANAGE_DATA_USAGE, PAGE_MANAGE_DATA_USAGE)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
+    sort_by = 'user_name'
+    reverse = False
+
+    data_usages = get_data_usage(sort_by=sort_by, reverse=reverse)
+    help = get_helps(['manage_packages']) # FIXME
+
+    return render_template('manage_data_usage.html', data_usages=data_usages, help=help)
 
 
 def copy_uploads(from_package, to_package):

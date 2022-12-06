@@ -7,21 +7,26 @@ from flask import (
 
 from webapp.home.metapype_client import load_eml
 import webapp.auth.user_data as user_data
+from webapp.config import Config
 from webapp.pages import *
 
 
 Data_Package = collections.namedtuple(
     'Data_Package', ["package_name", "package_link", "date_modified", "size", "remove_link"])
 
+Data_Usage = collections.namedtuple(
+    'Data_Usage', ["user_name", "date_modified", "size", "uploads_size", "exports_size", "zip_temp_size", "dir_name"])
+
 
 def get_dir_size(path='.'):
     total = 0
-    with os.scandir(path) as it:
-        for entry in it:
-            if entry.is_file():
-                total += entry.stat().st_size
-            elif entry.is_dir():
-                total += get_dir_size(entry.path)
+    if os.path.exists(path):
+        with os.scandir(path) as it:
+            for entry in it:
+                if entry.is_file():
+                    total += entry.stat().st_size
+                elif entry.is_dir():
+                    total += get_dir_size(entry.path)
     return total
 
 
@@ -76,8 +81,25 @@ def get_data_packages(sort_by='date_modified', reverse=True):
     return sorted(packages, key=lambda x: getattr(x, sort_by), reverse=reverse)
 
 
+def get_data_usage(sort_by='user_name', reverse=False):
+    """Returns a list of data usages by each ezEML user."""
+    data_usages = []
+    user_dirs = user_data.get_all_user_dirs()
+    for dir_name in user_dirs:
+        user_name = dir_name.split('-')[0]
+        path = os.path.join(Config.USER_DATA_DIR, dir_name)
+        date_modified = datetime.fromtimestamp(os.path.getmtime(path)).strftime('%Y-%m-%d %H:%M:%S')
+        size = f"{get_dir_size(path):,}"
+        uploads_size = f"{get_dir_size(os.path.join(path, 'uploads')):,}"
+        exports_size = f"{get_dir_size(os.path.join(path, 'exports')):,}"
+        zip_temp_size = f"{get_dir_size(os.path.join(path, 'zip_temp')):,}"
+        data_usage = Data_Usage(user_name, date_modified, size, uploads_size, exports_size, zip_temp_size, dir_name)
+        data_usages.append(data_usage)
+    return sorted(data_usages, key=lambda x: getattr(x, sort_by), reverse=reverse)
+
+
 if __name__=="__main__":
-    # l = get_data_packages()
+    # l = get_data_usage()
     # for p in l:
     #     print(p)
     pass

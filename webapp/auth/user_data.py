@@ -27,20 +27,28 @@ from webapp.config import Config
 import webapp.home.views as views
 
 logger = daiquiri.getLogger('user_data: ' + __name__)
-USER_DATA_DIR = 'user-data'
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
-TEMPLATE_DIR = 'templates'
+
+
+def get_all_user_dirs():
+    user_dirs = []
+    if os.path.exists(Config.USER_DATA_DIR):
+        for f in os.listdir(Config.USER_DATA_DIR):
+            path = os.path.join(Config.USER_DATA_DIR, f)
+            if os.path.isdir(path) and not f.startswith('.'):
+                user_dirs.append(f)
+    return sorted(user_dirs)
 
 
 def get_template_folder_name():
-    return TEMPLATE_DIR
+    return Config.TEMPLATE_DIR
 
 
 def get_user_folder_name():
-    user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
+    user_folder_name = f'{Config.USER_DATA_DIR}/anonymous-user'
     user_org = current_user.get_user_org()
     if user_org:
-        user_folder_name = f'{USER_DATA_DIR}/{user_org}'
+        user_folder_name = f'{Config.USER_DATA_DIR}/{user_org}'
 
     return user_folder_name
 
@@ -83,8 +91,8 @@ def get_user_document_list():
 def initialize_user_data(cname, uid, auth_token):
     user_folder_name = get_user_folder_name()
     user_uploads_folder_name = get_user_uploads_folder_name()
-    if not os.path.exists(USER_DATA_DIR):
-        os.mkdir(USER_DATA_DIR)
+    if not os.path.exists(Config.USER_DATA_DIR):
+        os.mkdir(Config.USER_DATA_DIR)
     if user_folder_name and not os.path.exists(user_folder_name):
         os.mkdir(user_folder_name)
     if (user_uploads_folder_name and 
@@ -103,7 +111,7 @@ def get_user_properties(folder_name=None):
     if not folder_name:
         user_folder_name = get_user_folder_name()
     else:
-        user_folder_name = f'{USER_DATA_DIR}/{folder_name}'
+        user_folder_name = f'{Config.USER_DATA_DIR}/{folder_name}'
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     user_properties = {}
     # if properties file doesn't exist, create one with an empty dict
@@ -123,7 +131,7 @@ def save_user_properties(user_properties, user_folder_name=None):
     if not user_folder_name:
         user_folder_name = get_user_folder_name()
     else:
-        user_folder_name = f'{USER_DATA_DIR}/{user_folder_name}'
+        user_folder_name = f'{Config.USER_DATA_DIR}/{user_folder_name}'
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     with open(user_properties_filename, 'w') as user_properties_file:
         json.dump(user_properties, user_properties_file)

@@ -50,6 +50,7 @@ class Config(object):
     FROM_NAME = 'EDI Support'
 
     BASE_DIR = "/home/pasta/ezeml"
-    TEMPLATE_DIR = "/home/pasta/ezeml/templates"
+    USER_DATA_DIR = f"{BASE_DIR}/user-data"
+    TEMPLATE_DIR = f"{BASE_DIR}/templates"
 
     PRIVILEGED_LOGINS = []

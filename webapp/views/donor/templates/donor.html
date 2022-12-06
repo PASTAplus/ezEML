@@ -2,15 +2,13 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    {% if help %}
-    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
-    {% set help_rp_btn = help_rp_id ~ '_btn' %}
-    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
-    {% endif %}
+    {% set help_donor_id, help_donor_title, help_donor_content = help[0] %}
+    {% set help_donor_btn = help_donor_id ~ '_btn' %}
+    {% set help_donor_dialog = help_donor_id ~ '_dialog' %}
 
     <table>
         <td><h2>Donor</h2></td>
-        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_donor_btn) }}</td>
     </table>
 
     <div class="row">
@@ -172,16 +170,14 @@
         {{ form.errors }}
     {% endif %} -->
 
-    {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
+    {{ macros.help_dialog(help_donor_dialog, help_donor_title, help_donor_content) }}
 {% endblock %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% if help %}
-    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
-    {% set help_rp_btn = help_rp_id ~ '_btn' %}
-    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
-    {% endif %}
+    {% set help_donor_id, help_donor_title, help_donor_content = help[0] %}
+    {% set help_donor_btn = help_donor_id ~ '_btn' %}
+    {% set help_donor_dialog = help_donor_id ~ '_dialog' %}
      <script type = "text/javascript">
         function specimenLocationFunction(){
             let specimenLocation_box_value = document.getElementById("specimenLocation").value;
@@ -223,7 +219,7 @@
         function fixationFunction(){
             let fixation_box_value = document.getElementById("fixation").value;
             if(fixation_box_value == "other"){
-                document.getElementById("fixationOther").removeAttribute("disabled")
+                document.getElementById("fixationOther").removeAttribute("disabled");
             }
             else {
                 document.getElementById("fixationOther").value = "";
@@ -302,7 +298,7 @@
         function fluorescentMicroscopyStainTypeFunction(){
             let fluorescentMicroscopyStainType_box_value = document.getElementById("fluorescentMicroscopyStainType").value;
             if(fluorescentMicroscopyStainType_box_value == "other"){
-                document.getElementById("fluorescentMicroscopyStainOther").removeAttribute("disabled")
+                document.getElementById("fluorescentMicroscopyStainOther").removeAttribute("disabled");
             }
             else {
                 document.getElementById("fluorescentMicroscopyStainOther").value = "";
@@ -313,7 +309,7 @@
         function electronMicroscopyStainTypeFunction(){
             let electronMicroscopyStainType_box_value = document.getElementById("electronMicroscopyStainType").value;
             if(electronMicroscopyStainType_box_value == "other"){
-                document.getElementById("electronMicroscopyStainOther").removeAttribute("disabled")
+                document.getElementById("electronMicroscopyStainOther").removeAttribute("disabled");
             }
             else {
                 document.getElementById("electronMicroscopyStainOther").value = "";
@@ -324,7 +320,7 @@
     <script>
     $(function()
     {
-        {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
+        {{ macros.help_script(help_donor_dialog, help_donor_btn) }}
     });
     </script>
 {% endblock %}

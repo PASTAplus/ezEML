@@ -2,15 +2,13 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    {% if help %}
-    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
-    {% set help_rp_btn = help_rp_id ~ '_btn' %}
-    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
-    {% endif %}
+    {% set help_immunohistochemistry_id, help_immunohistochemistry_title, help_immunohistochemistry_content = help[0] %}
+    {% set help_immunohistochemistry_btn = help_immunohistochemistry_id ~ '_btn' %}
+    {% set help_immunohistochemistry_dialog = help_immunohistochemistry_id ~ '_dialog' %}
 
     <table>
         <td><h2>Immunohistochemistry</h2></td>
-        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_immunohistochemistry_btn) }}</td>
     </table>
     <div class="row">
         <div class="col-md-10">
@@ -141,21 +139,21 @@
         </div>
     </div>
 
-    {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
+    {{ macros.help_dialog(help_immunohistochemistry_dialog, help_immunohistochemistry_title, help_immunohistochemistry_content) }}
 {% endblock %}
 
 {% block app_scripts %}
     {{ super() }}
     {% if help %}
-    {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
-    {% set help_rp_btn = help_rp_id ~ '_btn' %}
-    {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% set help_immunohistochemistry_id, help_immunohistochemistry_title, help_immunohistochemistry_content = help[0] %}
+    {% set help_immunohistochemistry_btn = help_immunohistochemistry_id ~ '_btn' %}
+    {% set help_immunohistochemistry_dialog = help_immunohistochemistry_id ~ '_dialog' %}
     {% endif %}
 
     <script>
     $(function()
     {
-        {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
+        {{ macros.help_script(help_immunohistochemistry_dialog, help_immunohistochemistry_btn) }}
     });
     </script>
 {% endblock %}

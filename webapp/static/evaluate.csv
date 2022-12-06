@@ -64,7 +64,7 @@ donor_04,Donor,Donor Specimen Sequence Number,WARNING,REQUIRED,Donor <b>Specimen
 donor_05,Donor,Donor Specimen Tissue,WARNING,REQUIRED,Donor <b>Specimen Tissue</b> is required.,
 donor_06,Donor,Donor Ovary Position,WARNING,REQUIRED,Donor <b>Ovary Position</b> is required.,
 donor_07,Donor,Donor Slide ID,WARNING,REQUIRED,Donor <b>Slide ID</b> is required.,
-donor_08,Donor,Donor Section Sequence Number,WARNING,REQUIRED,Donor <b>Section Sequence Number</b> is required.,
+donor_08,Donor,Donor ,WARNING,RECOMMENDED,<b>Donor</b> information should be provided.,
 donor_09,Donor,Donor Section Thickness,WARNING,REQUIRED,Donor <b>Section Thickness</b> is required.,
 donor_10,Donor,Donor Section Thickness Units,WARNING,REQUIRED,Donor <b>Section Thickness Units</b> are required.,
 donor_11,Donor,Donor Fixation,WARNING,REQUIRED,Donor <b>Fixation</b> is required.,

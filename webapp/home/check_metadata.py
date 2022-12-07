@@ -184,7 +184,9 @@ def find_err_code(errs, err_code_to_find, node_name, data_source_node_id=None):
     for err in errs:
         err_code, _, node, *_ = err
         if err_code == err_code_to_find and node.name == node_name:
-            if data_source_node_id is not None and \
+            if data_source_node_id is None:
+                found.append(err)
+            elif data_source_node_id is not None and \
                     (node.id == data_source_node_id or node.parent.id == data_source_node_id):
                     found.append(err)
     return found

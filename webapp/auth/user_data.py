@@ -272,10 +272,9 @@ def download_eml(filename:str='', package_id:str=''):
             #   be in the data repository.
             if package_id:
                 filename_xml = f'{package_id}.xml'
-            relative_pathname = '../' + pathname
             mimetype = 'application/xml'
             try: 
-                return send_file(relative_pathname, 
+                return send_file(pathname,
                     mimetype=mimetype, 
                     as_attachment=True, 
                     attachment_filename=filename_xml,

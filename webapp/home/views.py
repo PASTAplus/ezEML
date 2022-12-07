@@ -675,8 +675,9 @@ def manage_data_usage(action=None):
     total_usage = math.ceil(total_usage / 1024**2) # MB
 
     log_usage(actions['MANAGE_DATA_USAGE'])
+    help = get_helps(['manage_data_usage'])
 
-    return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days)
+    return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days, help=help)
 
 
 def copy_uploads(from_package, to_package):

@@ -750,13 +750,13 @@ manage_data_usage
 Manage Data Usage
 The <b>Manage Data Usage</b> page is for use by system admins. It is available only to the EDI LDAP account. It lists all ezEML accounts and shows the amount of data storage used by each. In addition, it provides an entry point for running garbage collection on ezEML data storage.
 
-Garbage collection looks at all data packages whose metadata has been modified within the specified number of days and deletes their uploaded data tables and other entities. In addition, it deletes the associated ezEML data packages that have been prepared for export, for example by using the Send to EDI command.
+Garbage collection looks at all data packages whose metadata has not been modified within the specified number of days and deletes their uploaded data tables and other entities. In addition, it deletes the associated ezEML data packages that have been prepared for export, for example by the use of the Send to EDI command.
 
 The metadata files themselves are preserved, so the data packages can be reconstituted, if needed, by re-uploading the data tables and other entities.
 
 To perform garbage collection, set the desired number of days and click the <b>Garbage Collect</b> button.
 
-Columns are sortable by clicking on the column header. The "Date Modified" column shows when the most recent modification was made to an ezEML document in the user's account. This is generally different from the system's modified datetime, since the latter may be affected, for example, by garbage collection.
+Columns are sortable by clicking on the column header. The "Date Modified" column shows when the most recent modification was made to an ezEML metadata document in the user's account. This is generally different from the operating system's modified datetime, since the latter may be affected, for example, by garbage collection, even though the user has not been active in the account.
 --------------------
 manage_packages
 Manage Data Packages

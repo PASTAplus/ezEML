@@ -1416,7 +1416,7 @@ def send_to_other(filename=None, mailto=None):
     eml_node = load_eml(filename=filename)
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
     if not title_node or not title_node.content:
-        flash('The data package must have a Title before it can be sent.', 'error')
+        flash('The data package must have a Title before it can be submitted.', 'error')
 
     set_current_page('send_to_other')
     if mailto:

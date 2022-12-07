@@ -463,6 +463,162 @@ def _donor_rule(node: Node) -> list:
     return evaluation
 
 
+def _ihc_rule(node: Node) -> list:
+    evaluation = []
+
+    # array that notes the presence of nodes and their contents
+    ihcnodes = [False] * 17
+
+    for child in node.children:
+        if child.name == mdb_names.TARGET_PROTEIN and child.content:
+            ihcnodes[0] = True
+        if child.name == mdb_names.PRIMARY_ANTIBODY:
+            for schild in child.children:
+                if schild.name == mdb_names.TARGET_SPECIES and schild.content:
+                    ihcnodes[1] = True
+                if schild.name == mdb_names.HOST_SPECIES and schild.content:
+                    ihcnodes[2] = True
+                if schild.name == mdb_names.DILUTION and schild.content:
+                    ihcnodes[3] = True
+                if schild.name == mdb_names.LOT_NUMBER and schild.content:
+                    ihcnodes[4] = True
+                if schild.name == mdb_names.CAT_NUMBER and schild.content:
+                    ihcnodes[5] = True
+                if schild.name == mdb_names.SOURCE:
+                    for srchild in schild.children:
+                        if srchild.name == mdb_names.SOURCE_NAME and srchild.content:
+                            ihcnodes[6] = True
+                        if srchild.name == mdb_names.SOURCE_CITY and srchild.content:
+                            ihcnodes[7] = True
+                        if srchild.name == mdb_names.SOURCE_STATE and srchild.content:
+                            ihcnodes[8] = True
+        if child.name == mdb_names.SECONDARY_ANTIBODY:
+            for schild in child.children:
+                if schild.name == mdb_names.TARGET_SPECIES and schild.content:
+                    ihcnodes[9] = True
+                if schild.name == mdb_names.HOST_SPECIES and schild.content:
+                    ihcnodes[10] = True
+                if schild.name == mdb_names.DILUTION and schild.content:
+                    ihcnodes[11] = True
+                if schild.name == mdb_names.LOT_NUMBER and schild.content:
+                    ihcnodes[12] = True
+                if schild.name == mdb_names.CAT_NUMBER and schild.content:
+                    ihcnodes[13] = True
+                if schild.name == mdb_names.SOURCE:
+                    for srchild in schild.children:
+                        if srchild.name == mdb_names.SOURCE_NAME and srchild.content:
+                            ihcnodes[14] = True
+                        if srchild.name == mdb_names.SOURCE_CITY and srchild.content:
+                            ihcnodes[15] = True
+                        if srchild.name == mdb_names.SOURCE_STATE and srchild.content:
+                            ihcnodes[16] = True
+
+    if not ihcnodes[0]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_TARGET_PROTEIN_MISSING,
+            f'Target Protein is required.',
+            node
+        ))
+    if not ihcnodes[1]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_TARGET_SPECIES_MISSING,
+            f'Primary Antibody Target Species is required.',
+            node
+        ))
+    if not ihcnodes[2]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_HOST_SPECIES_MISSING,
+            f'Primary Antibody Host Species is required.',
+            node
+        ))
+    if not ihcnodes[3]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_DILUTION_MISSING,
+            f'Primary Antibody Dilution is required.',
+            node
+        ))
+    if not ihcnodes[4]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_LOT_NUMBER_MISSING,
+            f'Primary Antibody Lot Number is required.',
+            node
+        ))
+    if not ihcnodes[5]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_CAT_NUMBER_MISSING,
+            f'Primary Antibody Cat Number is required.',
+            node
+        ))
+    if not ihcnodes[6]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_SOURCE_NAME_MISSING,
+            f'Primary Antibody Source Name is required.',
+            node
+        ))
+    if not ihcnodes[7]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_SOURCE_CITY_MISSING,
+            f'Primary Antibody Source City is required.',
+            node
+        ))
+    if not ihcnodes[8]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_SOURCE_STATE_MISSING,
+            f'Primary Antibody Source State is required.',
+            node
+        ))
+    if not ihcnodes[9]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_TARGET_SPECIES_MISSING,
+            f'Secondary Antibody Target Species is required.',
+            node
+        ))
+    if not ihcnodes[10]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_HOST_SPECIES_MISSING,
+            f'Secondary Antibody Host Species is required.',
+            node
+        ))
+    if not ihcnodes[11]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_DILUTION_MISSING,
+            f'Secondary Antibody Dilution is required.',
+            node
+        ))
+    if not ihcnodes[12]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_LOT_NUMBER_MISSING,
+            f'Secondary Antibody Lot Number is required.',
+            node
+        ))
+    if not ihcnodes[13]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_CAT_NUMBER_MISSING,
+            f'Secondary Antibody Cat Number is required.',
+            node
+        ))
+    if not ihcnodes[14]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_NAME_MISSING,
+            f'Secondary Antibody Source Name is required.',
+            node
+        ))
+    if not ihcnodes[15]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_CITY_MISSING,
+            f'Secondary Antibody Source City is required.',
+            node
+        ))
+    if not ihcnodes[16]:
+        evaluation.append((
+            EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_STATE_MISSING,
+            f'Secondary Antibody Source State is required.',
+            node
+        ))
+
+    return evaluation
+
+
 def _personnel_rule(node: Node) -> list:
     return _responsible_party_rule(node)
 
@@ -534,4 +690,5 @@ rules = {
     names.PERSONNEL: _personnel_rule,
     names.TITLE: _title_rule,
     mdb_names.MOTHER: _donor_rule,
+    mdb_names.IHC: _ihc_rule,
 }

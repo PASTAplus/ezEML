@@ -657,55 +657,80 @@ def check_image(eml_node, filename):
         #     add_to_evaluation('image_04', link)
 
 
-def check_immunohistochemistry(eml_node, filename):
+def check_immunohistochemistry(node, filename):
     link = url_for(PAGE_IHC, filename=filename)
-    project_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA])
 
-    validation_errs = evaluate_via_motherpype(eml_node)
-    if find_content_empty(validation_errs, names.TAXONRANKNAME):
-        add_to_evaluation('taxonomic_coverage_01', link)
-    if find_content_empty(validation_errs, names.TAXONRANKVALUE):
-        add_to_evaluation('taxonomic_coverage_02', link)
+    evaluation_warnings = evaluate_via_motherpype(node)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_TARGET_PROTEIN_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_01', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_TARGET_SPECIES_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_02', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_HOST_SPECIES_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_03', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_DILUTION_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_04', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_LOT_NUMBER_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_05', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_CAT_NUMBER_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_06', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_SOURCE_NAME_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_07', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_SOURCE_CITY_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_08', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_SOURCE_STATE_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_09', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_TARGET_SPECIES_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_10', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_HOST_SPECIES_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_11', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_DILUTION_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_12', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_LOT_NUMBER_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_13', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_CAT_NUMBER_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_14', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_NAME_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_15', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_CITY_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_16', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_STATE_MISSING, mdb_names.IHC):
+        add_to_evaluation('ihc_17', link)
 
 
 def check_donor(eml_node, filename):
     link = url_for(PAGE_DONOR, filename=filename)
-    node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER])
 
-    if node:
-        evaluation_warnings = evaluate_via_motherpype(node)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_ID_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_01', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_GENDER_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_02', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_03', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_04', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_05', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_06', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SLIDE_ID_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_07', link)
-        # if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
-        #     add_to_evaluation('donor_08', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_09', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_UNITS_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_10', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FIXATION_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_11', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAIN_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_12', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MAGNIFICATION_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_13', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_14', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING, mdb_names.MOTHER):
-            add_to_evaluation('donor_15', link)
-    else:
-        add_to_evaluation('donor_08', link)
+    evaluation_warnings = evaluate_via_motherpype(eml_node)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_ID_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_01', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_GENDER_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_02', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_03', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_04', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_05', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_06', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SLIDE_ID_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_07', link)
+    # if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
+    #     add_to_evaluation('donor_08', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_09', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_UNITS_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_10', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FIXATION_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_11', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAIN_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_12', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MAGNIFICATION_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_13', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_14', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING, mdb_names.MOTHER):
+        add_to_evaluation('donor_15', link)
 
 
 def eval_entry_to_string(eval_entry):
@@ -768,7 +793,7 @@ def perform_evaluation(eml_node, filename):
     evaluation = []
 
     check_dataset_title(eml_node, filename)
-    check_data_tables(eml_node, filename)
+    # check_data_tables(eml_node, filename)
     check_creators(eml_node, filename)
     check_contacts(eml_node, filename)
     check_associated_parties(eml_node, filename)
@@ -785,7 +810,7 @@ def perform_evaluation(eml_node, filename):
     check_image(eml_node, filename)
     check_immunohistochemistry(eml_node, filename)
     check_donor(eml_node, filename)
-    check_data_package_id(eml_node, filename)
+    # check_data_package_id(eml_node, filename)
     
     return evaluation
 

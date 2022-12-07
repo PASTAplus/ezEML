@@ -3,9 +3,9 @@
 
 
 {% block app_content %}
-    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}
-    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}
-    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}
+{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
+{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
+{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
 
     <table>
         <td><h2>Manage Data Usage</h2></td>
@@ -54,15 +54,15 @@
             {{ macros.hidden_buttons() }}
         </form>
     </div>
-    {{ macros.help_dialog(help_manage_data_usage_dialog, help_manage_data_usage_title, help_manage_data_usage_content) }}
+{#    {{ macros.help_dialog(help_manage_data_usage_dialog, help_manage_data_usage_title, help_manage_data_usage_content) }}#}
 {% endblock %}
 
 
 {% block scripts %}
     {{ super() }}
-    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}
-    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}
-    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}
+{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
+{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
+{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
 
     <script>
     $(document).ready(function() {
@@ -77,7 +77,7 @@
     });
     $(function()
     {
-        {{ macros.help_script(help_manage_data_usage_dialog, help_manage_data_usage_btn) }}
+{#        {{ macros.help_script(help_manage_data_usage_dialog, help_manage_data_usage_btn) }}#}
     });
     </script>
 {% endblock %}

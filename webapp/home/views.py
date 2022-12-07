@@ -634,6 +634,8 @@ def manage_packages(to_delete=None, action=None):
     data_packages = get_data_packages(sort_by=sort_by, reverse=reverse)
     help = get_helps(['manage_packages'])
 
+    log_usage(actions['MANAGE_PACKAGES'])
+
     return render_template('manage_packages.html', data_packages=data_packages, help=help)
 
 
@@ -657,7 +659,7 @@ def manage_data_usage(action=None):
         if 'gc' in request.form and 'days' in request.form:
             days = request.form['days']
             subprocess.run(['webapp/gc.py', f'--days={days}', '--include_exports=True', '--logonly=False'])
-            flash(f'Garbage collection completed.')
+            flash(f'Garbage collection completed. Days={days}.')
 
     if is_hidden_button():
         new_page = handle_hidden_buttons(PAGE_MANAGE_DATA_USAGE, PAGE_MANAGE_DATA_USAGE)
@@ -669,9 +671,10 @@ def manage_data_usage(action=None):
 
     total_usage, data_usages = get_data_usage(sort_by=sort_by, reverse=reverse)
     total_usage = math.ceil(total_usage / 1024**2) # MB
-    help = get_helps(['manage_packages']) # FIXME
 
-    return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days, help=help)
+    log_usage(actions['MANAGE_DATA_USAGE'])
+
+    return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days)
 
 
 def copy_uploads(from_package, to_package):
@@ -1177,6 +1180,8 @@ def get_redirect_target_page():
         return PAGE_SUBMIT_TO_EDI
     elif current_page == 'send_to_other':
         return PAGE_SEND_TO_OTHER
+    elif current_page == 'manage_data_usage':
+        return PAGE_MANAGE_DATA_USAGE
     else:
         return PAGE_TITLE
 

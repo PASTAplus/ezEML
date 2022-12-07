@@ -45,7 +45,8 @@
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
         'import_package_2', 'import_xml_2', 'export_package_2',
         '/send_to_other', '_select', '/load_geo_coverage',
-        '/load_taxonomic_coverage', '/load_taxonomic_coverage_2'] %}
+        '/load_taxonomic_coverage', '/load_taxonomic_coverage_2',
+        '/manage_data_usage'] %}
 {% set ns = namespace(is_non_saving = false) %}
 {% for page in non_saving_endswith %}
     {% if request.path.endswith(page) %}
@@ -313,6 +314,7 @@
             {% set check_data_tables_style = '""'|safe %}
             {% set submit_package_style = '""'|safe %}
             {% set send_to_other_style = '""'|safe %}
+            {% set manage_data_usage_style = '""'|safe %}
 
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
@@ -340,6 +342,7 @@
             {% if page == 'check_data_tables' %}{% set check_data_tables_style = current %}{% endif %}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
+            {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
         <a class="nav_link" style={{ data_table_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
@@ -372,6 +375,11 @@
         {% endif %}
         <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>
         <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
+
+        {% if current_user and current_user.is_authenticated and current_user.is_edi_user() %}
+        <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
+        <a class="nav_link" style={{ manage_data_usage_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.manage_data_usage') }}" title="Edit">Manage Data Usage</a><br>
+        {% endif %}
 
         {% endif %}
     </div>

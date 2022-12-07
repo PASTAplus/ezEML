@@ -104,6 +104,8 @@ actions = {
     'LOAD_TAXONOMIC_COVERAGE': 'Load Taxonomic Coverage',
     'LOGIN': 'Login',
     'LOGOUT': 'Logout',
+    'MANAGE_DATA_USAGE': 'Manage Data Usage',
+    'MANAGE_PACKAGES': 'Manage Packages',
     'NEW_DOCUMENT': 'New',
     'NEW_FROM_TEMPLATE': 'New from Template',
     'OPEN_DOCUMENT': 'Open',

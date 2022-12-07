@@ -79,7 +79,8 @@ def get_user_date_modified(user_dir, date_format='%Y-%m-%d %H:%M:%S'):
     if datetimes:
         return max(datetimes).strftime(date_format)
     else:
-        return None
+        # If there are no packages, then we use the creation date of the user folder.
+        return datetime.fromtimestamp(os.path.getctime(user_dir)).strftime(date_format)
 
 
 def get_data_packages(sort_by='date_modified', reverse=True, date_format='%Y-%m-%d %H:%M:%S'):

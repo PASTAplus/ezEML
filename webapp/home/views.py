@@ -501,6 +501,8 @@ def edit(page:str=None):
             eml_node = load_eml(filename=current_filename, skip_metadata_check=True)
             new_page = page if eml_node else PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=current_filename))
+        else:
+            return redirect(url_for(PAGE_INDEX))
     return render_template('index.html')
 
 

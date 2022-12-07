@@ -16,10 +16,14 @@
         <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
             <a href="manage_data_usage/____back____">Back</a>
             <p>&nbsp;</p>
-            <table style="width: 98%;">
+            <table style="width: 100%;">
                 <tr>
                     <td style="text-align: left;">Total usage = {{ total_usage }} MB</td>
-                    <td style="text-align: right;"><a href="manage_data_usage/____gc____">Garbage Collect</a></td>
+                    <td style="text-align: right;">If unchanged for:&nbsp;
+                        <input type="text" style="text-align: right" size="3" id="days" name="days" value="{{ days }}">
+                        &nbsp;days&nbsp;&nbsp;
+                        <input class="btn btn-primary" style="width: 150px;" name="gc" type="submit" value="Garbage Collect"/>
+                    </td>
                 </tr>
             </table>
 

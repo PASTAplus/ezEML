@@ -62,7 +62,27 @@ def get_package_size(package_name):
     return size
 
 
-def get_data_packages(sort_by='date_modified', reverse=True):
+def get_user_date_modified(user_dir, date_format='%Y-%m-%d %H:%M:%S'):
+    """Get the date modified for a user. This has a special meaning in this context.
+        In the case of a package, it's the date that the JSON was last modified. In the case of a
+        user, it's the most recent date_modified for any of that user's packages. We define
+        date_modified in this way, rather than simply getting the system's date modified for the user
+        folder, because otherwise an action like garbage-collecting old packages would cause the
+        date_modified for the user folder to change, even though the user hasn't actually done anything.
+    """
+    datetimes = []
+    for filename in os.listdir(user_dir):
+        package_name, file_ext = os.path.splitext(filename)
+        if file_ext.lower() != '.json' or package_name == '__user_properties__':
+            continue
+        datetimes.append(datetime.fromtimestamp(os.path.getmtime(os.path.join(user_dir, filename))))
+    if datetimes:
+        return max(datetimes).strftime(date_format)
+    else:
+        return None
+
+
+def get_data_packages(sort_by='date_modified', reverse=True, date_format='%Y-%m-%d %H:%M:%S'):
     """Get a list of data packages from the user's data directory."""
     user_dir = user_data.get_user_folder_name()
     packages = []
@@ -71,7 +91,7 @@ def get_data_packages(sort_by='date_modified', reverse=True):
         if file_ext.lower() != '.json' or package_name == '__user_properties__':
             continue
         package_link = f'<a href="{url_for(PAGE_OPEN_PACKAGE, package_name=package_name)}">{package_name}</a>'
-        date_modified = datetime.fromtimestamp(os.path.getmtime(os.path.join(user_dir, filename))).strftime('%Y-%m-%d %H:%M:%S')
+        date_modified = datetime.fromtimestamp(os.path.getmtime(os.path.join(user_dir, filename))).strftime(date_format)
         size = f"{get_package_size(package_name):,}"
         are_you_sure = "'Are you sure? This action cannot be undone.');"
         endpoint = url_for(PAGE_MANAGE_PACKAGES, to_delete=package_name)
@@ -81,14 +101,14 @@ def get_data_packages(sort_by='date_modified', reverse=True):
     return sorted(packages, key=lambda x: getattr(x, sort_by), reverse=reverse)
 
 
-def get_data_usage(sort_by='user_name', reverse=False):
+def get_data_usage(sort_by='user_name', reverse=False, date_format='%Y-%m-%d %H:%M:%S'):
     """Returns a list of data usages by each ezEML user."""
     data_usages = []
     user_dirs = user_data.get_all_user_dirs()
     for dir_name in user_dirs:
         user_name = dir_name.split('-')[0]
         path = os.path.join(Config.USER_DATA_DIR, dir_name)
-        date_modified = datetime.fromtimestamp(os.path.getmtime(path)).strftime('%Y-%m-%d %H:%M:%S')
+        date_modified = get_user_date_modified(path, date_format=date_format)
         size = f"{get_dir_size(path):,}"
         uploads_size = f"{get_dir_size(os.path.join(path, 'uploads')):,}"
         exports_size = f"{get_dir_size(os.path.join(path, 'exports')):,}"

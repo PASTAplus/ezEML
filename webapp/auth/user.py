@@ -73,6 +73,9 @@ class User(UserMixin):
     def set_filename(self, filename: str = None):
         set_active_document(filename)
 
+    def is_edi_user(self):
+        return self._cname == "EDI" and self._uid == "uid=EDI,o=EDI,dc=edirepository,dc=org"
+
 
 @login.user_loader
 def load_user(session_id):

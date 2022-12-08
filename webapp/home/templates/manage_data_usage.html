@@ -36,7 +36,7 @@
                 <th style="text-align:right;" width=12%>Total Size</th>
                 <th style="text-align:right;" width=12%>Uploads</th>
                 <th style="text-align:right;" width=12%>Exports</th>
-{#                <th style="text-align:right;" width=12%>Zip_Temp</th>#}
+                <th style="text-align:right;" width=12%>Zip_Temp</th>
                 </thead>
                 <tbody>
                 {% for data_usage in data_usages %}
@@ -47,7 +47,7 @@
                 <td class="eval_table" valign="top" align="right">{{ data_usage.size }}</td>
                 <td class="eval_table" valign="top" align="right">{{ data_usage.uploads_size }}</td>
                 <td class="eval_table" valign="top" align="right">{{ data_usage.exports_size }}</td>
-{#                <td class="eval_table" valign="top" align="right">{{ data_usage.zip_temp_size }}</td>#}
+                <td class="eval_table" valign="top" align="right">{{ data_usage.zip_temp_size }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -70,8 +70,8 @@
       $('#data_table').DataTable( {
           paging: true,
           lengthMenu: [
-            [25, 50, 100, -1],
-            [25, 50, 100, 'All'],
+            [20, 50, 100, -1],
+            [20, 50, 100, 'All'],
           ],
           searching: false
       });

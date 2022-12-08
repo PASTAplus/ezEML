@@ -121,7 +121,10 @@ def GC(days, base, include_exports, logonly):
 						try:
 							logger.info(f'Removing file {filepath}')
 							if not logonly:
-								os.remove(filepath)
+								if not os.path.isdir(filepath):
+									os.remove(filepath)
+								else:
+									shutil.rmtree(filepath)
 						except FileNotFoundError:
 							pass
 

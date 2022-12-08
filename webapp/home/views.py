@@ -1670,7 +1670,7 @@ def save_as_ezeml_package_export(archive_file):
     if not current_document:
         raise FileNotFoundError
 
-    user_folder = user_data.get_user_folder_name()
+    user_folder = user_data.get_user_download_folder_name()
 
     # Create the exports folder
     timestamp = datetime.now().date().strftime('%Y_%m_%d') + '_' + datetime.now().time().strftime('%H_%M_%S')

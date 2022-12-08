@@ -54,10 +54,10 @@ def get_user_folder_name():
 
 
 def get_user_download_folder_name():
-    user_folder_name = f'/user-data/anonymous-user'
+    user_folder_name = f'user-data/anonymous-user'
     user_org = current_user.get_user_org()
     if user_org:
-        user_folder_name = f'/user-data/{user_org}'
+        user_folder_name = f'user-data/{user_org}'
 
     return user_folder_name
 

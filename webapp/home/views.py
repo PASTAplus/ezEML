@@ -1696,7 +1696,12 @@ def export_package():
     if request.method == 'POST':
         insert_upload_urls(current_document, eml_node)
         save_both_formats(current_document, eml_node)
-        zipfile_path = zip_package(current_document, eml_node)
+        try:
+            zipfile_path = zip_package(current_document, eml_node)
+        except MissingFileError as err:
+            flash(err.message, category='error')
+            return redirect(get_back_url())
+
         if zipfile_path:
             archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
             if download_url:

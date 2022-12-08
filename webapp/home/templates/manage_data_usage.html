@@ -22,7 +22,7 @@
                     <td style="text-align: right;">If unchanged for:&nbsp;
                         <input type="text" style="text-align: right" size="3" id="days" name="days" value="{{ days }}">
                         &nbsp;days&nbsp;&nbsp;
-                        <input class="btn btn-primary" style="width: 150px;" name="gc" type="submit"
+                        <input class="btn btn-primary" style="width: 150px;" name="gc" type="submit" {{ disabled }}
                                onclick="return confirm('Are you sure? This action cannot be undone.')"  value="Garbage Collect"/>
                     </td>
                 </tr>

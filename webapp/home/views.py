@@ -26,7 +26,6 @@ import pandas as pd
 from pathlib import Path
 import pickle
 import requests
-from requests_file import FileAdapter
 from shutil import copyfile
 import subprocess
 from urllib.parse import urlencode, urlparse, quote, unquote
@@ -677,7 +676,10 @@ def manage_data_usage(action=None):
     log_usage(actions['MANAGE_DATA_USAGE'])
     help = get_helps(['manage_data_usage'])
 
-    return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days, help=help)
+    disabled = "disabled" if request.host == 'ezeml.edirepository.org' else ""  # FIXME TEMP
+
+    return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days,
+                           disabled=disabled, help=help)
 
 
 def copy_uploads(from_package, to_package):

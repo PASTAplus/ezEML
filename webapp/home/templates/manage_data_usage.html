@@ -68,7 +68,11 @@
     <script>
     $(document).ready(function() {
       $('#data_table').DataTable( {
-          paging: false,
+          paging: true,
+          lengthMenu: [
+            [25, 50, 100, -1],
+            [25, 50, 100, 'All'],
+          ],
           searching: false
       });
       $('.dataTables_length').addClass('bs-select');

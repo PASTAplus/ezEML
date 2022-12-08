@@ -108,6 +108,7 @@ def get_data_usage(sort_by='user_name', reverse=False, date_format='%Y-%m-%d %H:
     user_dirs = user_data.get_all_user_dirs()
     for dir_name in user_dirs:
         user_name = dir_name.split('-')[0]
+        user_name = (user_name[:25] + '...') if len(user_name) > 28 else user_name
         path = os.path.join(Config.USER_DATA_DIR, dir_name)
         date_modified = get_user_date_modified(path, date_format=date_format)
         size = f"{get_dir_size(path):,}"

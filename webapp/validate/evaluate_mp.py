@@ -268,60 +268,39 @@ def _metadata_provider_rule(node: Node) -> list:
 
 def _image_rule(node: Node) -> list:
     evaluation = []
-    # description = any(
-    #     child.name == 'additionalInfo' and child.content
-    #     for child in node.children
-    # )
 
-    if not any(
-        child.name == names.ENTITYNAME and child.content
-        for child in node.children
-    ):
+    imagenodes = [False] * 3
+
+    for child in node.children:
+        if child.name == names.ENTITYNAME and child.content:
+            imagenodes[0] = True
+        if child.name == names.ENTITYTYPE and child.content:
+            imagenodes[1] = True
+        if child.name == names.PHYSICAL:
+            ext_node = child.find_single_node_by_path([names.DATAFORMAT, names.EXTERNALLYDEFINEDFORMAT])
+            for extchild in ext_node.children:
+                if extchild.name == names.FORMATNAME and extchild.content:
+                    imagenodes[2] = True
+
+    if not imagenodes[0]:
         evaluation.append((
             EvaluationWarningMp.IMAGE_NAME_MISSING,
             f'Image Name is required."',
             node
         ))
-
-    if not any(
-        child.name == names.ENTITYTYPE and child.content
-        for child in node.children
-    ):
+    if not imagenodes[1]:
         evaluation.append((
             EvaluationWarningMp.IMAGE_TYPE_MISSING,
             f'Image Type is required."',
             node
         ))
-
-    try:
-        ph_node = node.find_child(names.PHYSICAL)
-        fr_node = ph_node.find_child(names.DATAFORMAT)
-        ex_node = fr_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
-        if not any(
-            child.name == names.FORMATNAME and child.content
-            for child in ex_node.children
-        ):
-            evaluation.append((
-                EvaluationWarningMp.IMAGE_FORMAT_MISSING,
-                f'Image Data Format is required."',
-                node
-            ))
-    except:
+    if not imagenodes[2]:
         evaluation.append((
             EvaluationWarningMp.IMAGE_FORMAT_MISSING,
             f'Image Data Format is required."',
             node
         ))
 
-    # if not any(
-    #     child.name == 'additionalInfo' and child.content
-    #     for child in node.children
-    # ):
-    #     evaluation.append((
-    #         EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING,
-    #         f'Image Description is highly recommended."',
-    #         node
-    #     ))
     return evaluation
 
 def _donor_rule(node: Node) -> list:

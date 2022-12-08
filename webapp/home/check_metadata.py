@@ -642,19 +642,16 @@ def check_project(eml_node, filename):
 
 def check_image(eml_node, filename):
     link = url_for(PAGE_OTHER_ENTITY, filename=filename)
-    entity_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY])
-    if not entity_node:
-        add_to_evaluation('image_05', link)
-    else:
-        evaluation_warnings = evaluate_via_motherpype(entity_node)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_NAME_MISSING, names.OTHERENTITY):
-            add_to_evaluation('image_01', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_TYPE_MISSING, names.OTHERENTITY):
-            add_to_evaluation('image_02', link)
-        if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_FORMAT_MISSING, names.OTHERENTITY):
-            add_to_evaluation('image_03', link)
-        # if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING, names.OTHERENTITY):
-        #     add_to_evaluation('image_04', link)
+
+    evaluation_warnings = evaluate_via_motherpype(eml_node)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_NAME_MISSING, names.OTHERENTITY):
+        add_to_evaluation('image_01', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_TYPE_MISSING, names.OTHERENTITY):
+        add_to_evaluation('image_02', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_FORMAT_MISSING, names.OTHERENTITY):
+        add_to_evaluation('image_03', link)
+    # if find_err_code(evaluation_warnings, EvaluationWarningMp.IMAGE_DESCRIPTION_MISSING, names.OTHERENTITY):
+    #     add_to_evaluation('image_04', link)
 
 
 def check_immunohistochemistry(node, filename):
@@ -801,8 +798,8 @@ def perform_evaluation(eml_node, filename):
     check_dataset_abstract(eml_node, filename)
     check_keywords(eml_node, filename)
     check_intellectual_rights(eml_node, filename)
-    check_coverage(eml_node, filename)
-    check_geographic_coverage(eml_node, filename)
+    # check_coverage(eml_node, filename)
+    # check_geographic_coverage(eml_node, filename)
     check_maintenance(eml_node, filename)
     check_method_steps(eml_node, filename)
     check_project(eml_node, filename)
@@ -810,7 +807,7 @@ def perform_evaluation(eml_node, filename):
     check_image(eml_node, filename)
     check_immunohistochemistry(eml_node, filename)
     check_donor(eml_node, filename)
-    # check_data_package_id(eml_node, filename)
+    check_data_package_id(eml_node, filename)
     
     return evaluation
 

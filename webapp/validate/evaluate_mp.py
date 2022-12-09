@@ -307,18 +307,22 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 15
+    donornodes = [False] * 17
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
             donornodes[0] = True
         if child.name == mdb_names.DONOR_GENDER and child.content:
+            if child.content == "Female":
+                donornodes[15] = True
             donornodes[1] = True
         if child.name == mdb_names.DONOR_LIFE_STAGE and child.content:
             donornodes[2] = True
         if child.name == mdb_names.SPEC_SEQ_NUM and child.content:
             donornodes[3] = True
         if child.name == mdb_names.SPEC_TISSUE and child.content:
+            if child.content == "Ovary":
+                donornodes[16] = True
             donornodes[4] = True
         if child.name == mdb_names.OVARY_POSITION and child.content:
             donornodes[5] = True
@@ -436,6 +440,18 @@ def _donor_rule(node: Node) -> list:
         evaluation.append((
             EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING,
             f'Donor Microscope Model is required.',
+            node
+        ))
+    if not donornodes[15]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_GENDER_FEMALE,
+            f'Donor Gender must be female.',
+            node
+        ))
+    if not donornodes[16]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SPEC_TISSUE_OVARY,
+            f'Donor Specimen Tissue must be ovary.',
             node
         ))
 

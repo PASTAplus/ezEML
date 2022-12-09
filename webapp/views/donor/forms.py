@@ -28,16 +28,16 @@ class DonorForm(EDIForm):
                                           ("aging", "Aging")], 
                                  validators=[InputRequired(message='Life Stage is required')])
     specimenSeqNum = IntegerField('Specimen Sequence Number *', 
-                                validators=[NumberRange(min=0), InputRequired(message='Speciment Sequence Number is required')])
+                                validators=[NumberRange(min=0), InputRequired(message='Specimen Sequence Number is required')])
     specimenTissue = StringField('Specimen Tissue *', 
-                                validators=[InputRequired(message='Speciment Tissue is required')], 
+                                validators=[InputRequired(message='Specimen Tissue is required')],
                                 default='ovary')
     ovaryPosition = SelectField('Ovary Position *',
                                 choices=[("", ""),
                                          ("left", "Left"),
                                          ("right", "Right"),
                                          ("unspecified", "Unspecified")], 
-                                validators=[InputRequired(message='Speciment Tissue is required')])
+                                validators=[InputRequired(message='Specimen Tissue is required')])
     specimenLocation = SelectField('Specimen Location',
                                    choices=[("", ""),
                                             ("wholeOvary", "Whole Ovary"),

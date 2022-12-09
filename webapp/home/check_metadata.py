@@ -728,6 +728,10 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_14', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_15', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_GENDER_FEMALE, mdb_names.MOTHER):
+        add_to_evaluation('donor_16', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_TISSUE_OVARY, mdb_names.MOTHER):
+        add_to_evaluation('donor_17', link)
 
 
 def eval_entry_to_string(eval_entry):

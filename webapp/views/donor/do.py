@@ -215,7 +215,7 @@ def new_donor(filename=None, node_id=None, method=None,
                     corpusLuteum)
             elif specimenLocation == "":
                 specimenLocation_node = mother_node.find_child(mdb_names.SPEC_LOCATION)
-                mother_node.remove_child(specimenLocation_node)
+                specimenLocation_node.remove_children()
 
             if stageOfCycle:
                 create_stage_of_cycle(

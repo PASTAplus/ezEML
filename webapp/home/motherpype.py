@@ -114,8 +114,6 @@ def clean_mother_node(eml_node: Node, current_document: None):
         mother_node = meta_node.find_child('mother')
         if mother_node:
             remove_empty_nodes(mother_node)
-            print("*** Mother Node after removale of nodes ***")
-            print(mother_node)
             clean_mother_json(mother_node, 0)
             clean_mother_xml(mother_node, current_document)
 
@@ -155,7 +153,7 @@ def clean_mother_xml(mother_node: Node, current_document):
 """
 
 def remove_empty_nodes(node: Node, parent: Node = None):
-    print(node.name)
+    array = []
     if node.name in mdb_names.OPTIONAL:
         if len(node.children) == 0:
             if node.content is None:

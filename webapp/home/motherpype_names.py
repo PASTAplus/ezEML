@@ -245,3 +245,21 @@ XSI_TYPE = {
     STAGE_OF_CYCLE: "mdb:menstrualStageType"
 }
 
+NILLABLE = {
+    DONOR_AGE,
+    DONOR_DAYS,
+    SPEC_CYCLE,
+    DAY_OF_CYCLE
+}
+
+OPTIONAL = {
+    DONOR_YEARS,
+    DONOR_DAYS,
+    SPEC_LOCATION,
+    STAGE_OF_CYCLE,
+    SEC_SEQ_NUM,
+    IHC,
+    RRID,
+    MICROSCOPE,
+    MICRO_NOTES
+}

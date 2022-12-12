@@ -213,6 +213,9 @@ def new_donor(filename=None, node_id=None, method=None,
                     mother_node, 
                     specimenLocation, 
                     corpusLuteum)
+            elif specimenLocation == "":
+                specimenLocation_node = mother_node.find_child(mdb_names.SPEC_LOCATION)
+                specimenLocation_node.remove_children()
 
             if stageOfCycle:
                 create_stage_of_cycle(
@@ -220,6 +223,10 @@ def new_donor(filename=None, node_id=None, method=None,
                     stageOfCycle, 
                     follicular, 
                     luteal)
+            elif stageOfCycle == "":
+                cycleType_node = mother_node.find_child(mdb_names.SPEC_CYCLE)
+                stageOfCycle_node = cycleType_node.find_child(mdb_names.STAGE_OF_CYCLE)
+                cycleType_node.remove_child(stageOfCycle_node)
 
             if fixation:
                 create_fixation(
@@ -238,6 +245,14 @@ def new_donor(filename=None, node_id=None, method=None,
                     fluorescentMicroscopyStainOther,
                     electronMicroscopyStainType,
                     electronMicroscopyStainOther)
+
+            if notes == "" and maker == "" and model == "":
+                microscopeType_node = mother_node.find_child(mdb_names.MICROSCOPE)
+                mother_node.remove_child(microscopeType_node)
+            elif notes == "":
+                microscopeType_node = mother_node.find_child(mdb_names.MICROSCOPE)
+                microNotes_node = microscopeType_node.find_child(mdb_names.MICRO_NOTES)
+                microscopeType_node.remove_child(microNotes_node)
 
             save_both_formats(filename=filename, eml_node=eml_node)
         return redirect(url_for(new_page, filename = filename))

@@ -161,8 +161,8 @@ class DonorForm(EDIForm):
                                               validators=[Optional()])
     electronMicroscopyStainOther = StringField('Other Electron Stain', validators=[])
     magnification = StringField('Magnification *', validators=[InputRequired(message='Magnification is required')])
-    maker = StringField('Microscope Maker *', validators=[InputRequired(message='Microscope Maker is required')])
-    model = StringField('Microscope Model *', validators=[InputRequired(message='Microscope Model is required')])
+    maker = StringField('Microscope Maker', validators=[Optional()])
+    model = StringField('Microscope Model', validators=[Optional()])
     notes = TextAreaField('Microscope Notes')
     md5 = HiddenField('')
 

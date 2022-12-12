@@ -113,6 +113,9 @@ def clean_mother_node(eml_node: Node, current_document: None):
         meta_node = additional_metadata_node.find_child('metadata')
         mother_node = meta_node.find_child('mother')
         if mother_node:
+            remove_empty_nodes(mother_node)
+            print("*** Mother Node after removale of nodes ***")
+            print(mother_node)
             clean_mother_json(mother_node, 0)
             clean_mother_xml(mother_node, current_document)
 
@@ -137,12 +140,30 @@ def clean_mother_xml(mother_node: Node, current_document):
         metadata = additionalmetadata.find('metadata')
         mother = metadata.find('mother')
         metadata.remove(mother)
-        mother_tree = etree.ElementTree(etree.fromstring(cleaned_mother_node))
+        mother_tree = etree.ElementTree(etree.fromstring(cleaned_mother_node))   # WB 12/09 NEED TO FIX: Pretty sure this is the point where the downloaded xml has the mother and metadata closing tags end up on the same line.
         mother_root = mother_tree.getroot()
         metadata.append(mother_root)
         # THIS OVERWRITES THE XML FILE WITH NEW MDB PREFIXES
         tree.write(f'{user_folder}/{current_document}.xml')
 
+"""
+    Function:   remove_empty_nodes
+    Params:     node : a node within the motherDb xml tree
+    Desc:       This function uses recursion to iterate through each node and remove any nodes that are
+                optional (it relies on the motherpype_names.py file)
+                
+"""
+
+def remove_empty_nodes(node: Node, parent: Node = None):
+    print(node.name)
+    if node.name in mdb_names.OPTIONAL:
+        if len(node.children) == 0:
+            if node.content is None:
+                parent.remove_child(node)
+    else:
+        if len(node.children) > 0:
+            for child in node.children:
+                remove_empty_nodes(child, node)
 
 """
     Function:   clean_mother_json
@@ -154,7 +175,6 @@ def clean_mother_xml(mother_node: Node, current_document):
                 correctly according to the xsd (it relies on the motherpype_names.py file)
                 
 """
-
 
 def clean_mother_json(node: Node, level: int = 0) -> str:
 

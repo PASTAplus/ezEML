@@ -26,7 +26,7 @@ import pandas as pd
 from pathlib import Path
 import pickle
 import requests
-from shutil import copyfile
+from shutil import copyfile, move
 import subprocess
 from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
@@ -1680,7 +1680,7 @@ def save_as_ezeml_package_export(archive_file):
     _, archive_basename = os.path.split(archive_file)
     src = archive_file
     dest = f'{export_folder}/{archive_basename}'
-    copyfile(src, dest)
+    move(src, dest)
 
     parsed_url = urlparse(request.base_url)
     download_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{dest}"

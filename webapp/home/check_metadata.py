@@ -179,11 +179,13 @@ def find_content_enum(errs, node_name):
     return found
 
 
-def find_err_code(errs, err_code_to_find, node_name, data_source_node_id=None):
+def find_err_code(errs, err_code_to_find, node_name, data_source_node_id=None, parent_name=None):
     found = []
     for err in errs:
         err_code, _, node, *_ = err
         if err_code == err_code_to_find and node.name == node_name:
+            if parent_name is not None and node.parent.name != parent_name:
+                continue
             if data_source_node_id is None:
                 found.append(err)
             elif data_source_node_id is not None and \
@@ -241,7 +243,7 @@ def check_dataset_title(eml_node, doc_name, validation_errs=None, evaluation_war
     # Is the title too short? This applies only to the dataset title, not the data source title, since the data source
     # title is not something we can change.
     if not is_data_source:
-        if find_err_code(evaluation_warnings, EvaluationWarning.TITLE_TOO_SHORT, names.TITLE):
+        if find_err_code(evaluation_warnings, EvaluationWarning.TITLE_TOO_SHORT, names.TITLE, parent_name=names.DATASET):
             add_to_evaluation(eval_code('title_02', is_data_source), link)
 
 

@@ -28,6 +28,7 @@ logger = daiquiri.getLogger("names: " + __name__)
 MOTHER = "mother"
 
 # Donor Elements
+DONOR = "donor"
 DONOR_ID = "donorID"
 DONOR_GENDER = "donorGender"
 
@@ -147,6 +148,9 @@ DILUTION = "dilution"
 LOT_NUMBER = "lotNumber"
 CAT_NUMBER = "catNumber"
 SOURCE = "source"
+SOURCE_NAME = "sourceName"
+SOURCE_CITY = "sourceCity"
+SOURCE_STATE = "sourceState"
 RRID = "RRID"
 
 DETECTION_METHOD = "detectionMethod"

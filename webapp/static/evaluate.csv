@@ -1,19 +1,19 @@
 ﻿ID,Section,Item,Severity,Reason,Explanation,Notes
-title_01,Title,Title,ERROR,REQUIRED,A dataset <b>Title</b> is required.,
-title_02,Title,Title,WARNING,RECOMMENDED,The dataset's <b>Title</b> should be at least five words long. Between 7 and 20 words are recommended.,
-creators_01,Creators,Creators,ERROR,REQUIRED,At least one dataset <b>Creator</b> is required.,
+title_01,Title,Title,ERROR,REQUIRED,An image <b>Title</b> is required.,
+title_02,Title,Title,WARNING,RECOMMENDED,The image's <b>Title</b> should be at least five words long. Between 7 and 20 words are recommended.,
+creators_01,Creators,Creators,ERROR,REQUIRED,At least one image <b>Creator</b> is required.,
 responsible_party_01,Party,Party,ERROR,REQUIRED,"At least one of <b>Last Name</b>, <b>Organization</b>, or <b>Position Name</b> is required.",
 responsible_party_02,Party,Party,WARNING,RECOMMENDED,An <b>ORCID ID</b> is recommended.,
 responsible_party_03,Party,Party,ERROR,REQUIRED,A <b>Role</b> is required.,Applies only to parties that require Role.
 responsible_party_04,Party,Party,ERROR,REQUIRED,<b>Last Name</b> is required if First Name or Middle Name/Initial  is given.,"Applies if first or middle name is provided, but no last name."
 responsible_party_05,Party,Party,WARNING,RECOMMENDED,An <b>Email</b> address should be provided.,
 responsible_party_06,Party,Party,ERROR,REQUIRED,An <b>Org ID Type</b> is required if an Org ID is provided.,
-abstract_01,Abstract,Abstract,WARNING,RECOMMENDED,A dataset <b>Abstract</b> should be provided.,
-abstract_02,Abstract,Abstract,WARNING,RECOMMENDED,Consider increasing the length of the dataset's <b>Abstract</b>. 20 or more words is a recommended length.,"Currently, shown if number of words < 20."
-keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be provided to make the dataset more discoverable.,
-keywords_02,Keywords,Keywords,WARNING,RECOMMENDED,Consider adding more <b>Keywords</b> to make the dataset more discoverable.,
+abstract_01,Abstract,Abstract,WARNING,RECOMMENDED,An image <b>Abstract</b> should be provided.,
+abstract_02,Abstract,Abstract,WARNING,RECOMMENDED,Consider increasing the length of the image's <b>Abstract</b>. 20 or more words is a recommended length.,"Currently, shown if number of words < 20."
+keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be provided to make the image more discoverable.,
+keywords_02,Keywords,Keywords,WARNING,RECOMMENDED,Consider adding more <b>Keywords</b> to make the image more discoverable.,
 intellectual_rights_01,Intellectual Rights,Intellectual Rights,WARNING,RECOMMENDED,An <b>Intellectual Rights</b> policy should be specified.,
-coverage_01,Coverage,Coverage,WARNING,RECOMMENDED,"At least one coverage element should be present in a dataset. I.e., at least one of <b>Geographic Coverage</b>, <b>Temporal Coverage</b>, or <b>Taxonomic Coverage</b> should be specified.",
+coverage_01,Coverage,Coverage,WARNING,RECOMMENDED,"At least one coverage element should be present in a image. I.e., at least one of <b>Geographic Coverage</b>, <b>Temporal Coverage</b>, or <b>Taxonomic Coverage</b> should be specified.",
 geographic_coverage_01,Geographic Coverage,Geographic Description,ERROR,REQUIRED,<b>Geographic Description</b> is required.   ,Applies if geographic coverage is present.
 geographic_coverage_02,Geographic Coverage,Bounding Coordinates,ERROR,REQUIRED,<b>Bounding Coordinates</b> are required and must be decimal values.,Applies if geographic coverage is present.
 geographic_coverage_03,Geographic Coverage,West Bounding Coordinate,ERROR,REQUIRED,<b>West Bounding Coordinate</b> must be a decimal value between -180.0 and +180.0.,
@@ -28,7 +28,7 @@ data_table_01,Data Tables,Name,ERROR,REQUIRED,A data table <b>Name</b> is requir
 data_table_02,Data Tables,Description,WARNING,RECOMMENDED,A data table <b>Description</b> is highly recommended.,
 data_table_03,Data Tables,Data Object Name,ERROR,REQUIRED,A <b>Data Object Name</b> is required.,
 data_table_04,Data Tables,Columns,ERROR,REQUIRED,A data table is required to have one or more <b>Columns</b>.,
-data_table_05,Data Tables,Data Tables,WARNING,RECOMMENDED,A dataset should contain at least one <b>Data Table</b>.,
+data_table_05,Data Tables,Data Tables,WARNING,RECOMMENDED,An image should contain at least one <b>Data Table</b>.,
 data_table_06,Data Tables,Data Table File,ERROR,REQUIRED,A data table has changed since it was uploaded. Please re-upload.
 data_table_07,Data Tables,Data Table File,ERROR,REQUIRED,A data table CSV file is missing. Please re-upload.
 attributes_01,Data Tables,Column Definition,ERROR,REQUIRED,A column <b>Definition</b> is required.,For each column present.
@@ -38,11 +38,11 @@ attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable
 attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical variables
 attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables
 attributes_07,Data Tables,Explanation,ERROR,REQUIRED,A Missing Value Code <b>Explanation</b> is required.,For Missing Value Codes
-methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,
+methods_01,Methods,Method Steps,WARNING,RECOMMENDED,An image should define at least one <b>Method Step</b>.,
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,
 project_01,Project,Project Title,ERROR,REQUIRED,The <b>Project Title</b> is required.,
 project_02,Project,Project Personnel,ERROR,REQUIRED,At least one <b>Project Personnel</b> is required.,
-project_03,Project,Project,WARNING,RECOMMENDED,A dataset should define a <b>Project</b>.,
+project_03,Project,Project,WARNING,RECOMMENDED,An image should define a <b>Project</b>.,
 project_04,Project,Funder Name,ERROR,REQUIRED,<b>Funder Name</b> is required.,
 project_05,Project,Award Title,ERROR,REQUIRED,<b>Award Title</b> is required.,
 other_entity_01,Other Entities,Name,ERROR,REQUIRED,Entity <b>Name</b> is required.,
@@ -52,3 +52,42 @@ contacts_01,Contacts,Contacts,ERROR,REQUIRED,At least one <b>Contact</b> is requ
 maintenance_01,Maintenance,Maintenance,ERROR,REQUIRED,Maintenance <b>Description</b> is required.,
 data_package_id_01,Data Package ID,Data Package ID,WARNING,OPTIONAL,A <b>Data Package ID</b> is required by EML but if you are going to submit your data to EDI you may leave it blank and we will provide one.,
 data_package_id_02,Data Package ID,Data Package ID,WARNING,RECOMMENDED,The <b>Data Package ID</b> does not conform to EDI's requirements.
+image_01,Image,Image Name,ERROR,REQUIRED,An <b>Image Name</b> is required.,
+image_02,Image,Image Type,ERROR,REQUIRED,An <b>Image Type</b> is required.,
+image_03,Image,Image Data Format,ERROR,REQUIRED,An <b>Image Data Format</b> is required.,
+image_04,Image,Image Description,WARNING,RECOMMENDED,An Image <b>Description</b> is highly recommended.,
+image_05,Image,Image,ERROR,REQUIRED,<b>Image</b> data is required.,
+donor_01,Donor,Donor ID,ERROR,REQUIRED,A Donor <b>ID</b> is required.,
+donor_02,Donor,Donor Gender,ERROR,REQUIRED,A Donor <b>Gender</b> is required.,
+donor_03,Donor,Donor Life Stage,ERROR,REQUIRED,A Donor <b>Life Stage</b> is required.,
+donor_04,Donor,Donor Specimen Sequence Number,ERROR,REQUIRED,A Donor <b>Specimen Sequence Number</b> is required.,
+donor_05,Donor,Donor Specimen Tissue,ERROR,REQUIRED,A Donor <b>Specimen Tissue</b> is required.,
+donor_06,Donor,Donor Ovary Position,ERROR,REQUIRED,A Donor <b>Ovary Position</b> is required.,
+donor_07,Donor,Donor Slide ID,ERROR,REQUIRED,A Donor <b>Slide ID</b> is required.,
+donor_08,Donor,Donor ,WARNING,RECOMMENDED,<b>Donor</b> information should be provided.,
+donor_09,Donor,Donor Section Thickness,ERROR,REQUIRED,A Donor <b>Section Thickness</b> is required.,
+donor_10,Donor,Donor Section Thickness Units,ERROR,REQUIRED,Donor <b>Section Thickness Units</b> are required.,
+donor_11,Donor,Donor Fixation,ERROR,REQUIRED,A Donor <b>Fixation</b> is required.,
+donor_12,Donor,Donor Stain,ERROR,REQUIRED,A Donor <b>Stain</b> is required.,
+donor_13,Donor,Donor Magnification,ERROR,REQUIRED,A Donor <b>Magnification</b> is required.,
+donor_14,Donor,Donor Microscope Maker,ERROR,REQUIRED,A Donor <b>Microscope Maker</b> is required.,
+donor_15,Donor,Donor Microscope Model,ERROR,REQUIRED,A Donor <b>Microscope Model</b> is required.,
+donor_16,Donor,Donor Gender,ERROR,REQUIRED,Donor <b>Gender</b> must be female.,
+donor_17,Donor,Donor Specimen Tissue,ERROR,REQUIRED,Donor <b>Specimen Tissue</b> must be ovary.,
+ihc_01,Immunohistochemistry,Target Protein,ERROR,REQUIRED,A <b>Target Protein</b> is required.,
+ihc_02,Immunohistochemistry,Primary Antibody Target Species,ERROR,REQUIRED,A Primary Antibody <b>Target Species</b> is required.,
+ihc_03,Immunohistochemistry,Primary Antibody Host Species,ERROR,REQUIRED,A Primary Antibody <b>Host Species</b> is required.,
+ihc_04,Immunohistochemistry,Primary Antibody Dilution,ERROR,REQUIRED,A Primary Antibody <b>Dilution</b> is required.,
+ihc_05,Immunohistochemistry,Primary Antibody Lot Number,ERROR,REQUIRED,A Primary Antibody <b>Lot Number</b> is required.,
+ihc_06,Immunohistochemistry,Primary Antibody Cat Number,ERROR,REQUIRED,A Primary Antibody <b>Cat Number</b> is required.,
+ihc_07,Immunohistochemistry,Primary Antibody Source Name,ERROR,REQUIRED,A Primary Antibody <b>Source Name</b> is required.,
+ihc_08,Immunohistochemistry,Primary Antibody Source City,ERROR,REQUIRED,A Primary Antibody <b>Source City</b> is required.,
+ihc_09,Immunohistochemistry,Primary Antibody Source State,ERROR,REQUIRED,A Primary Antibody <b>Source State</b> is required.,
+ihc_10,Immunohistochemistry,Secondary Antibody Target Species,ERROR,REQUIRED,A Secondary Antibody <b>Target Species</b> is required.,
+ihc_11,Immunohistochemistry,Secondary Antibody Host Species,ERROR,REQUIRED,A Secondary Antibody <b>Host Species</b> is required.,
+ihc_12,Immunohistochemistry,Secondary Antibody Dilution,ERROR,REQUIRED,A Secondary Antibody <b>Dilution</b> is required.,
+ihc_13,Immunohistochemistry,Secondary Antibody Lot Number,ERROR,REQUIRED,A Secondary Antibody <b>Lot Number</b> is required.,
+ihc_14,Immunohistochemistry,Secondary Antibody Cat Number,ERROR,REQUIRED,A Secondary Antibody <b>Cat Number</b> is required.,
+ihc_15,Immunohistochemistry,Secondary Antibody Source Name,ERROR,REQUIRED,A Secondary Antibody <b>Source Name</b> is required.,
+ihc_16,Immunohistochemistry,Secondary Antibody Source City,ERROR,REQUIRED,A Secondary Antibody <b>Source City</b> is required.,
+ihc_17,Immunohistochemistry,Secondary Antibody Source State,ERROR,REQUIRED,A Secondary Antibody <b>Source State</b> is required.,

@@ -84,7 +84,7 @@ def immunohistochemistry(filename=None):
     help = [get_help('immunohistochemistry')]
     return new_immunohistochemistry(filename=filename, node_id=node_id,
                                     method=method, node_name="immunohistochemistry",
-                                    back_page=PAGE_DONOR, next_page=PAGE_SEND_TO_OTHER, title='Immunohistochemistry',  #PT5/26
+                                    back_page=PAGE_DONOR, next_page=PAGE_CHECK, title='Immunohistochemistry',  #PT5/26
                                     save_and_continue=True, help=help)
 
 
@@ -276,15 +276,15 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
 
         source_node = primaryAntibody_node.find_child(mdb_names.SOURCE)
         if source_node:
-            sourceName_node = source_node.find_child("sourceName")
+            sourceName_node = source_node.find_child(mdb_names.SOURCE_NAME)
             if sourceName_node:
                 form.sourceName.data = sourceName_node.content
 
-            sourceCity_node = source_node.find_child("sourceCity")
+            sourceCity_node = source_node.find_child(mdb_names.SOURCE_CITY)
             if sourceCity_node:
                 form.sourceCity.data = sourceCity_node.content
 
-            sourceState_node = source_node.find_child("sourceState")
+            sourceState_node = source_node.find_child(mdb_names.SOURCE_STATE)
             if sourceState_node:
                 form.sourceState.data = sourceState_node.content
 
@@ -316,15 +316,15 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
 
         source_node_2 = secondaryAntibody_node.find_child(mdb_names.SOURCE)
         if source_node_2:
-            sourceName_node_2 = source_node_2.find_child("sourceName")
+            sourceName_node_2 = source_node_2.find_child(mdb_names.SOURCE_NAME)
             if sourceName_node_2:
                 form.sourceName_2.data = sourceName_node_2.content
 
-            sourceCity_node_2 = source_node_2.find_child("sourceCity")
+            sourceCity_node_2 = source_node_2.find_child(mdb_names.SOURCE_CITY)
             if sourceCity_node_2:
                 form.sourceCity_2.data = sourceCity_node_2.content
 
-            sourceState_node_2 = source_node_2.find_child("sourceState")
+            sourceState_node_2 = source_node_2.find_child(mdb_names.SOURCE_STATE)
             if sourceState_node_2:
                 form.sourceState_2.data = sourceState_node_2.content
 

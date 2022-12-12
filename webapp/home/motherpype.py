@@ -594,21 +594,21 @@ def create_immunohistochemistry(ihc_node: Node,
                 source_node = Node(mdb_names.SOURCE, parent=primaryAntibody_node)
                 primaryAntibody_node.add_child(source_node)
         if sourceName:
-            sourceName_node = source_node.find_child("sourceName")
+            sourceName_node = source_node.find_child(mdb_names.SOURCE_NAME)
             if not sourceName_node:
-                sourceName_node = Node("sourceName", parent=source_node)
+                sourceName_node = Node(mdb_names.SOURCE_NAME, parent=source_node)
                 source_node.add_child(sourceName_node)
             sourceName_node.content = sourceName
         if sourceCity:
-            sourceCity_node = source_node.find_child("sourceCity")
+            sourceCity_node = source_node.find_child(mdb_names.SOURCE_CITY)
             if not sourceCity_node:
-                sourceCity_node = Node("sourceCity", parent=source_node)
+                sourceCity_node = Node(mdb_names.SOURCE_CITY, parent=source_node)
                 source_node.add_child(sourceCity_node)
             sourceCity_node.content = sourceCity
         if sourceState:
-            sourceState_node = source_node.find_child("sourceState")
+            sourceState_node = source_node.find_child(mdb_names.SOURCE_STATE)
             if not sourceState_node:
-                sourceState_node = Node("sourceState", parent= source_node)
+                sourceState_node = Node(mdb_names.SOURCE_STATE, parent= source_node)
                 source_node.add_child(sourceState_node)
                 sourceState_node.content = sourceState
         if rrid:
@@ -658,21 +658,21 @@ def create_immunohistochemistry(ihc_node: Node,
                 source_node_2 = Node(mdb_names.SOURCE, parent=secondaryAntibody_node)
                 secondaryAntibody_node.add_child(source_node_2)
         if sourceName_2:
-            sourceName_node_2 = source_node_2.find_child("sourceName")
+            sourceName_node_2 = source_node_2.find_child(mdb_names.SOURCE_NAME)
             if not sourceName_node_2:
-                sourceName_node_2 = Node("sourceName", parent=source_node_2)
+                sourceName_node_2 = Node(mdb_names.SOURCE_NAME, parent=source_node_2)
                 source_node_2.add_child(sourceName_node_2)
             sourceName_node_2.content = sourceName_2
         if sourceCity_2:
-            sourceCity_node_2 = source_node_2.find_child("sourceCity")
+            sourceCity_node_2 = source_node_2.find_child(mdb_names.SOURCE_CITY)
             if not sourceCity_node_2:
-                sourceCity_node_2 = Node("sourceCity", parent=source_node_2)
+                sourceCity_node_2 = Node(mdb_names.SOURCE_CITY, parent=source_node_2)
                 source_node_2.add_child(sourceCity_node_2)
             sourceCity_node_2.content = sourceCity_2
         if sourceState_2:
-            sourceState_node_2 = source_node_2.find_child("sourceState")
+            sourceState_node_2 = source_node_2.find_child(mdb_names.SOURCE_STATE)
             if not sourceState_node_2:
-                sourceState_node_2 = Node("sourceState", parent=source_node_2)
+                sourceState_node_2 = Node(mdb_names.SOURCE_STATE, parent=source_node_2)
                 source_node_2.add_child(sourceState_node_2)
                 sourceState_node_2.content = sourceState_2
         if rrid_2:

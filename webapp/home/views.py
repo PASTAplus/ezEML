@@ -92,6 +92,8 @@ from werkzeug.utils import secure_filename
 import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
 
+from metapype.model import metapype_io
+
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
@@ -521,9 +523,14 @@ def check_metadata(filename:str):
 def download_current():
     current_document = user_data.get_active_document()
     if current_document:
+        user_folder = user_data.get_user_folder_name()
+        current_xml = current_document + '.xml'
+
         # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
+        # create a duplicate before running clean_mother_node on the original xml file
+        shutil.copy(user_folder + '/' + current_xml, user_folder + '/' + 'temp_' + current_xml)
         clean_mother_node(eml_node, current_document)
 
         # Do the download
@@ -531,7 +538,12 @@ def download_current():
         if isinstance(return_value, str):
             flash(return_value)
         else:
-            return return_value
+            try:
+                return return_value
+            finally:
+                # replace the original file with the old copy
+                shutil.move(user_folder + '/' + 'temp_' + current_xml, user_folder + '/' + current_xml)
+
 
 
 @home.route('/download_submission', methods=['GET', 'POST'])
@@ -1379,9 +1391,12 @@ def send_to_other(filename=None, mailto=None):
         # copy xml file to uploads folder
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
-        clean_mother_node(eml_node, current_document)
         current_xml = current_document + '.xml'
-        shutil.copy2(user_folder + '/' + current_xml, upload_folder)
+        # create a duplicate before running clean_mother_node on the original xml file
+        shutil.copy(user_folder + '/' + current_xml, user_folder + '/' + 'temp_' + current_xml)
+        clean_mother_node(eml_node, current_document)
+        shutil.move(user_folder + '/' + current_xml, upload_folder)
+        shutil.move(user_folder + '/' + 'temp_' + current_xml, user_folder + '/' + current_xml)
 
         # create zip of uploads folder
         zipfile_path = os.path.join(user_folder, current_document)
@@ -1401,7 +1416,7 @@ def send_to_other(filename=None, mailto=None):
     eml_node = load_eml(filename=filename)
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
     if not title_node or not title_node.content:
-        flash('The data package must have a Title before it can be sent.', 'error')
+        flash('The data package must have a Title before it can be submitted.', 'error')
 
     set_current_page('send_to_other')
     if mailto:
@@ -1705,6 +1720,22 @@ def import_package():
             fixup_upload_management()
 
             filename = user_data.get_active_document()
+            # Convert XML file to JSON format
+            user_folder = user_data.get_user_folder_name()
+            if not user_folder:
+                user_folder = '.'
+            # Changed filename extension from json to xml format -NM 3/2/2022
+            filepath = f"{user_folder}/{filename}.xml"
+            print(filepath)
+            with open(filepath, "r") as file:
+                data = file.read()
+
+            xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
+            converted_file = filepath.replace(".xml", ".json")
+
+            with open(converted_file, "w") as file:
+                file.write(xml_to_json)
+                file.close()
 
             # Remove Image data if present
             user_data.clear_temp_folder()

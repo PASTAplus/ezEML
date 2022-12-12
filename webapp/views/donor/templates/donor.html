@@ -179,6 +179,9 @@
     {% set help_donor_btn = help_donor_id ~ '_btn' %}
     {% set help_donor_dialog = help_donor_id ~ '_dialog' %}
      <script type = "text/javascript">
+        document.getElementById("donorGender").setAttribute("readonly","readonly");
+        document.getElementById("specimenTissue").setAttribute("readonly","readonly");
+
         function specimenLocationFunction(){
             let specimenLocation_box_value = document.getElementById("specimenLocation").value;
             if(specimenLocation_box_value == "corpusLuteum"){

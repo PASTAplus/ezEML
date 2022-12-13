@@ -267,160 +267,6 @@ def responsible_party(filename=None, rp_node_id=None,
     return render_template('responsible_party.html', title=title, node_name=node_name,
                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
 
-#
-# def responsible_party(filename=None, node_id=None, method=None,
-#                       node_name=None, back_page=None, title=None,
-#                       next_page=None, save_and_continue=False, help=None,
-#                       project_node_id=None, data_source_node_id=None):
-#
-#     if BTN_CANCEL in request.form:
-#         if project_node_id:
-#             url = url_for(back_page, filename=filename, project_node_id=project_node_id)
-#         if data_source_node_id:
-#             url = url_for(back_page, filename=filename, ms_node_id=node_id, data_source_node_id=data_source_node_id)
-#         else:
-#             url = url_for(back_page, filename=filename)
-#         return redirect(url)
-#
-#     form = ResponsiblePartyForm(filename=filename)
-#     eml_node = load_eml(filename=filename)
-#     dataset_node = eml_node.find_child(names.DATASET)
-#     if not dataset_node:
-#         dataset_node = Node(names.DATASET, parent=eml_node)
-#         add_child(eml_node, dataset_node)
-#     parent_node = dataset_node
-#     role = False
-#     new_page = select_new_page(back_page, next_page)
-#
-#     form_value = request.form
-#     form_dict = form_value.to_dict(flat=False)
-#     url = select_post(filename, form, form_dict,
-#                       'POST', PAGE_PUBLISHER,
-#                       PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
-#                       PAGE_PUBLISHER, project_node_id=project_node_id)
-#
-#     # If this is an associatedParty or a project personnel element,
-#     # set role to True so it will appear as a form field.
-#     if node_name == names.ASSOCIATEDPARTY or node_name == names.PERSONNEL:
-#         role = True
-#
-#     # If this is a project personnel party, place it under the
-#     # project node, not under the dataset node
-#     if node_name == names.PERSONNEL:
-#         if not project_node_id:
-#             project_node = dataset_node.find_child(names.PROJECT)
-#             if not project_node:
-#                 project_node = Node(names.PROJECT, parent=dataset_node)
-#                 add_child(dataset_node, project_node)
-#             parent_node = project_node
-#         else:
-#             parent_node = Node.get_node_instance(project_node_id)
-#
-#     if data_source_node_id:
-#         parent_node = Node.get_node_instance(data_source_node_id)
-#         new_page = PAGE_METHOD_STEP
-#
-#     # Process POST
-#     save = False
-#     if is_dirty_form(form):
-#         save = True
-#
-#     if form.validate_on_submit():
-#         if save:
-#             salutation = form.salutation.data
-#             gn = form.gn.data
-#             mn = form.mn.data
-#             sn = form.sn.data
-#             user_id = form.user_id.data
-#             organization = form.organization.data
-#             org_id = form.org_id.data
-#             org_id_type = form.org_id_type.data
-#             position_name = form.position_name.data
-#             address_1 = form.address_1.data
-#             address_2 = form.address_2.data
-#             city = form.city.data
-#             state = form.state.data
-#             postal_code = form.postal_code.data
-#             country = form.country.data
-#             phone = form.phone.data
-#             fax = form.fax.data
-#             email = form.email.data
-#             online_url = form.online_url.data
-#             role = form.role.data
-#
-#             rp_node = Node(node_name, parent=parent_node)
-#
-#             create_responsible_party(
-#                 rp_node,
-#                 filename,
-#                 salutation,
-#                 gn,
-#                 mn,
-#                 sn,
-#                 user_id,
-#                 organization,
-#                 org_id,
-#                 org_id_type,
-#                 position_name,
-#                 address_1,
-#                 address_2,
-#                 city,
-#                 state,
-#                 postal_code,
-#                 country,
-#                 phone,
-#                 fax,
-#                 email,
-#                 online_url,
-#                 role)
-#
-#             if node_id and len(node_id) != 1:
-#                 old_rp_node = Node.get_node_instance(node_id)
-#                 if old_rp_node:
-#                     old_rp_parent_node = old_rp_node.parent
-#                     old_rp_parent_node.replace_child(old_rp_node, rp_node)
-#                 else:
-#                     msg = f"No node found in the node store with node id {node_id}"
-#                     raise Exception(msg)
-#             else:
-#                 add_child(parent_node, rp_node)
-#
-#             save_both_formats(filename=filename, eml_node=eml_node)
-#             # flash(f"Changes to the '{node_name}' element have been saved.")
-#
-#             # There is at most only one publisher element, so we don't have a
-#             # list of publishers to navigate back to. Stay on this page after
-#             # saving changes.
-#             # FIXME
-#             if node_name == names.PUBLISHER:
-#                 new_page = PAGE_PUBLICATION_INFO
-#
-#         if node_name == names.PUBLISHER:
-#             return redirect(url)
-#         elif new_page == PAGE_PROJECT_PERSONNEL_SELECT:
-#             return redirect(url_for(new_page, filename=filename, project_node_id=project_node_id))
-#         elif new_page == PAGE_DATA_SOURCE:
-#             return redirect(url_for(new_page, filename=filename, ms_node_id=node_id, data_source_node_id=data_source_node_id))
-#         else:
-#             return redirect(url_for(new_page, filename=filename, node_id=project_node_id))
-#
-#     # Process GET
-#     if node_id == '1':
-#         form.init_md5()
-#     else:
-#         if parent_node:
-#             rp_nodes = parent_node.find_all_children(child_name=node_name)
-#             if rp_nodes:
-#                 for rp_node in rp_nodes:
-#                     if node_id == rp_node.id:
-#                         populate_responsible_party_form(form, rp_node)
-#
-#     if project_node_id:
-#         title = 'Related ' + title
-#     help = get_helps([node_name])
-#     return render_template('responsible_party.html', title=title, node_name=node_name,
-#                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
-
 
 @rp_bp.route('/metadata_provider_select/<filename>', methods=['GET', 'POST'])
 @login_required
@@ -550,6 +396,17 @@ def publisher(filename=None):
                              save_and_continue=True, help=help)
 
 
+def normalize_directory_for_user_id(directory):
+    # The directory associated with an userId may not have the exact form that ezEML expects.
+    # When ezEML was only handling packages that had been created in ezEML, this wouldn't happen,
+    #  but of course now we are handling packages that have been created in other ways.
+    # This function normalizes the directory to the form that ezEML expects.
+    directory = directory.lower().replace('http:', 'https:')
+    if not directory.endswith('/'):
+        directory += '/'
+    return directory
+
+
 def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
     in_node = node.find_child(names.INDIVIDUALNAME)
     if in_node:
@@ -569,7 +426,7 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
 
     user_id_nodes = node.find_all_children(names.USERID)
     for user_id_node in user_id_nodes:
-        directory = user_id_node.attribute_value('directory')
+        directory = normalize_directory_for_user_id(user_id_node.attribute_value('directory'))
         if 'orcid.org' in directory:
             form.user_id.data = user_id_node.content
         else:
@@ -664,16 +521,3 @@ def data_source_personnel(filename=None, rp_type=None, rp_node_id=None, data_sou
                              next_page=PAGE_DATA_SOURCE,
                              title=f'Data Source {rp_type.capitalize()}',
                              parent_node_id=data_source_node_id)
-
-
-# @rp_bp.route('/data_source_contact/<filename>/<rp_node_id>/<data_source_node_id>', methods=['GET', 'POST'])
-# @login_required
-# def data_source_contact(filename=None, rp_node_id=None, data_source_node_id=None):
-#     method = request.method
-#     set_current_page('data_source')
-#     return responsible_party(filename=filename, node_id=rp_node_id,
-#                              method=method, node_name=names.CONTACT,
-#                              back_page=PAGE_DATA_SOURCE,
-#                              next_page=PAGE_DATA_SOURCE,
-#                              title='Contact',
-#                              data_source_node_id=data_source_node_id)

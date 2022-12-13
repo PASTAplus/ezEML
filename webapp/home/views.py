@@ -2317,6 +2317,8 @@ def import_xml_2(package_name, filename, fetched=False):
         filepath = os.path.join(work_path, filename)
 
         eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+        # We're done with the temp file
+        os.remove(filepath)
 
         if eml_node:
             # save fact that EML was fetched from EDI in additional metadata
@@ -2728,6 +2730,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
     filepath = os.path.join(work_path, filename)
 
     eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+    # We're done with the temp file
+    os.remove(filepath)
 
     if eml_node:
         # save fact that EML was fetched from EDI in additional metadata

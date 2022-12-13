@@ -672,6 +672,7 @@ def manage_data_usage(action=None):
 
     total_usage, data_usages = get_data_usage(sort_by=sort_by, reverse=reverse)
     total_usage = math.ceil(total_usage / 1024**2) # MB
+    total_usage = f"{total_usage:,}"
 
     log_usage(actions['MANAGE_DATA_USAGE'])
     help = get_helps(['manage_data_usage'])

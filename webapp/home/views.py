@@ -315,6 +315,8 @@ def init_session_vars():
 
 def clean_zip_temp_files(days, user_dir, logger, logonly):
     # Remove zip_temp files that are more than 'days' days old
+    if not Config.GC_CLEAN_ZIP_TEMPS:
+        return
     today = datetime.today()
     zip_temp_dir = os.path.join(user_dir, 'zip_temp')
     if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):

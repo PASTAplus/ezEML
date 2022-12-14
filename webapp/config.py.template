@@ -57,6 +57,7 @@ class Config(object):
     GC_BUTTON_ENABLED = True
     GC_DAYS_TO_LIVE = 90
     GC_LOG_ONLY = False
+    GC_CLEAN_ZIP_TEMPS = False
     GC_ZIP_TEMP_DTL = 1
 
     PRIVILEGED_LOGINS = []

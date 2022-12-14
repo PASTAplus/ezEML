@@ -378,7 +378,13 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
 
     with open(full_path) as file:
         next(file)
-        line_terminator = repr(file.newlines).replace("'", "")
+        # TODO TEMP
+        # If the file has mixed line terminators, we get a tuple of line terminators, but PASTA doesn't
+        #  support that. So we just use the first one.
+        newlines = file.newlines
+        if newlines is not None and isinstance(newlines, tuple):
+            newlines = newlines[0]
+        line_terminator = repr(newlines).replace("'", "")
     record_delimiter_node = Node(names.RECORDDELIMITER, parent=text_format_node)
     metapype_client.add_child(text_format_node, record_delimiter_node)
     record_delimiter_node.content = line_terminator

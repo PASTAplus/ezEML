@@ -63,16 +63,20 @@ def remove_backups(json_file, user_dir, logger, logonly):
 		pass
 
 
-def remove_exports(package_name, user_dir, logger, logonly):
-	# remove the exports directory for a package
+def remove_exports(package_name, exports_days, user_dir, logger, logonly):
+	# remove the exports directory for a package if older than exports_days
 	exports_dir = os.path.join(user_dir, 'exports', package_name)
 	if os.path.exists(exports_dir) and os.path.isdir(exports_dir):
-		try:
-			logger.info(f'Removing directory {exports_dir}')
-			if not logonly:
-				shutil.rmtree(exports_dir)
-		except FileNotFoundError:
-			pass
+		t = os.stat(exports_dir).st_mtime
+		today = datetime.datetime.today()
+		filetime = today - datetime.datetime.fromtimestamp(t)
+		if filetime.days > exports_days:
+			try:
+				logger.info(f'Removing directory {exports_dir}')
+				if not logonly:
+					shutil.rmtree(exports_dir)
+			except FileNotFoundError:
+				pass
 
 
 def clean_zip_temp_files(days, user_dir, logger, logonly):
@@ -96,12 +100,10 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 					pass
 
 
-def clean_orphaned_uploads(user_dir, logger, logonly):
-	# Remove directories in the uploads directory for which there is no corresponding JSON file
-	uploads_dir = os.path.join(user_dir, 'uploads')
-	if os.path.exists(uploads_dir) and os.path.isdir(uploads_dir):
-		for file in os.listdir(uploads_dir):
-			filepath = os.path.join(uploads_dir, file)
+def clean_orphans_from_directory(user_dir, dirname, logger, logonly):
+	if os.path.exists(dirname) and os.path.isdir(dirname):
+		for file in os.listdir(dirname):
+			filepath = os.path.join(dirname, file)
 			if os.path.isdir(filepath):
 				if file.startswith('.'):
 					continue
@@ -113,6 +115,18 @@ def clean_orphaned_uploads(user_dir, logger, logonly):
 							shutil.rmtree(filepath)
 					except FileNotFoundError:
 						pass
+
+
+def clean_orphaned_uploads(user_dir, logger, logonly):
+	# Remove directories in the uploads directory for which there is no corresponding JSON file
+	uploads_dir = os.path.join(user_dir, 'uploads')
+	clean_orphans_from_directory(user_dir, uploads_dir, logger, logonly)
+
+
+def clean_orphaned_exports(user_dir, logger, logonly):
+	# Remove directories in the exports directory for which there is no corresponding JSON file
+	exports_dir = os.path.join(user_dir, 'exports')
+	clean_orphans_from_directory(user_dir, exports_dir, logger, logonly)
 
 
 def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
@@ -144,11 +158,12 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 
 
 @click.command()
-@click.option('--days', default=90, help='Remove files if JSON last-modified date greater than this number of days')
+@click.option('--days', default=90, help='Remove files if JSON last-modified date greater than this number of days.')
 @click.option('--base', default=f'{Config.USER_DATA_DIR}', help='Base directory from which to crawl the file system.')
 @click.option('--include_exports', default=False, help='If True, include exports directories in file system crawl.')
+@click.option('--exports_days', default=1, help='If including exports, remove exports older than this number of days.')
 @click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing.')
-def GC(days, base, include_exports, logonly):
+def GC(days, base, include_exports, exports_days, logonly):
 	logfile = os.path.join(base, 'ezEML_GC.log')
 	daiquiri.setup(level=logging.INFO, outputs=(
 		daiquiri.output.Stream(sys.stdout),
@@ -180,6 +195,8 @@ def GC(days, base, include_exports, logonly):
 			for file in os.listdir(user_dir):
 				if not file.lower().endswith('.json'):
 					continue
+				if file == '__user_properties__.json':
+					continue
 				filepath = os.path.join(user_dir, file)
 				t = os.stat(filepath).st_mtime
 				filetime = today - datetime.datetime.fromtimestamp(t)
@@ -195,15 +212,18 @@ def GC(days, base, include_exports, logonly):
 					remove_backups(file, user_dir, logger, logonly)
 
 					if include_exports:
-						# remove the exports directory for this package
-						remove_exports(package_name, user_dir, logger, logonly)
+						# remove expired exports for this package
+						remove_exports(package_name, exports_days, user_dir, logger, logonly)
 
 			# Remove zip_temp files that are more than a day old
 			# These should be cleaned up as we go, but just in case...
-			clean_zip_temp_files(1, user_dir, logger, logonly)
+			clean_zip_temp_files(Config.GC_ZIP_TEMPS_DAYS_TO_LIVE, user_dir, logger, logonly)
 
 			# Remove orphaned directories in the uploads directory
 			clean_orphaned_uploads(user_dir, logger, logonly)
+
+			# Remove orphaned directories in the exports directory
+			clean_orphaned_exports(user_dir, logger, logonly)
 
 			# Remove xml and eval pkl files for which there is no corresponding JSON file
 			clean_orphaned_xml_and_eval_files(user_dir, logger, logonly)

@@ -336,7 +336,7 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 
 @home.before_app_first_request
 def cleanup_zip_temp_folders():
-    if not Config.GC_CLEAN_ZIP_TEMPS:
+    if not Config.GC_CLEAN_ZIP_TEMPS_ON_STARTUP:
         return
     # get the directories
     base = Config.USER_DATA_DIR
@@ -699,7 +699,10 @@ def manage_data_usage(action=None):
     if request.method == 'POST':
         if 'gc' in request.form and 'days' in request.form:
             days = request.form['days']
-            subprocess.run(['webapp/gc.py', f'--days={days}', '--include_exports=True', '--logonly=False'])
+            subprocess.run(['webapp/gc.py', f'--days={days}',
+                            f'--include_exports={Config.GC_INCLUDE_EXPORTS}',
+                            f'--exports_days={Config.GC_EXPORTS_DAYS_TO_LIVE}',
+                            f'--logonly={Config.GC_LOG_ONLY}'])
             flash(f'Garbage collection completed. Days={days}.')
 
     if is_hidden_button():

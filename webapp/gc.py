@@ -144,7 +144,7 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 
 
 @click.command()
-@click.option('--days', default=30, help='Remove files if JSON last-modified date greater than this number of days')
+@click.option('--days', default=90, help='Remove files if JSON last-modified date greater than this number of days')
 @click.option('--base', default=f'{Config.USER_DATA_DIR}', help='Base directory from which to crawl the file system.')
 @click.option('--include_exports', default=False, help='If True, include exports directories in file system crawl.')
 @click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing.')

@@ -649,7 +649,7 @@ def manage_data_usage(action=None):
         flash('You are not authorized to access the Manage Data Usage page', 'error')
         return redirect(url_for(PAGE_INDEX))
 
-    days = "60"  # default number of days to filter on
+    days = "90"  # default number of days to filter on
 
     # The action parameter is used to signal we want to
     #  return to the previous page.

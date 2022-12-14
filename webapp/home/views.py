@@ -68,6 +68,8 @@ from webapp.home.forms import (
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm
 )
 
+from webapp.gc import clean_zip_temp_files
+
 from webapp.home.load_data import (
     load_data_table, load_other_entity, delete_data_files, get_md5_hash
 )
@@ -338,7 +340,7 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 def cleanup_zip_temp_folders():
     if not Config.GC_CLEAN_ZIP_TEMPS_ON_STARTUP:
         return
-    # get the directories
+    # get the user directories
     base = Config.USER_DATA_DIR
     for dir in os.listdir(base):
         if os.path.isdir(os.path.join(base, dir)):
@@ -348,7 +350,7 @@ def cleanup_zip_temp_folders():
             # got a user directory
             user_dir = os.path.join(base, dir)
 
-            days = Config.GC_ZIP_TEMP_DTL
+            days = Config.GC_ZIP_TEMPS_DAYS_TO_LIVE
             logonly = Config.GC_LOG_ONLY
             clean_zip_temp_files(days, user_dir, logger, logonly)
 

@@ -315,8 +315,6 @@ def init_session_vars():
 
 def clean_zip_temp_files(days, user_dir, logger, logonly):
     # Remove zip_temp files that are more than 'days' days old
-    if not Config.GC_CLEAN_ZIP_TEMPS:
-        return
     today = datetime.today()
     zip_temp_dir = os.path.join(user_dir, 'zip_temp')
     if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):
@@ -338,6 +336,8 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 
 @home.before_app_first_request
 def cleanup_zip_temp_folders():
+    if not Config.GC_CLEAN_ZIP_TEMPS:
+        return
     # get the directories
     base = Config.USER_DATA_DIR
     for dir in os.listdir(base):
@@ -717,7 +717,10 @@ def manage_data_usage(action=None):
     log_usage(actions['MANAGE_DATA_USAGE'])
     help = get_helps(['manage_data_usage'])
 
-    disabled = not Config.GC_BUTTON_ENABLED
+    if not Config.GC_BUTTON_ENABLED:
+        disabled = 'disabled'
+    else:
+        disabled = ''
 
     return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days,
                            disabled=disabled, help=help)

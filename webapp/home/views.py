@@ -26,7 +26,7 @@ import pandas as pd
 from pathlib import Path
 import pickle
 import requests
-from shutil import copyfile, move
+from shutil import copyfile, move, rmtree
 import subprocess
 from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
@@ -311,6 +311,44 @@ def init_session_vars():
     if not session.get("privileged_logins"):
         session["privileged_logins"] = Config.PRIVILEGED_LOGINS
     init_standard_units()
+
+
+def clean_zip_temp_files(days, user_dir, logger, logonly):
+    # Remove zip_temp files that are more than 'days' days old
+    today = datetime.today()
+    zip_temp_dir = os.path.join(user_dir, 'zip_temp')
+    if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):
+        for file in os.listdir(zip_temp_dir):
+            filepath = os.path.join(zip_temp_dir, file)
+            t = os.stat(filepath).st_mtime
+            filetime = today - datetime.fromtimestamp(t)
+            if filetime.days >= days:
+                try:
+                    logger.info(f'Removing file {filepath}')
+                    if not logonly:
+                        if not os.path.isdir(filepath):
+                            os.remove(filepath)
+                        else:
+                            rmtree(filepath)
+                except FileNotFoundError:
+                    pass
+
+
+@home.before_app_first_request
+def cleanup_zip_temp_folders():
+    # get the directories
+    base = Config.USER_DATA_DIR
+    for dir in os.listdir(base):
+        if os.path.isdir(os.path.join(base, dir)):
+            if dir.startswith('.'):
+                continue
+
+            # got a user directory
+            user_dir = os.path.join(base, dir)
+
+            days = 0
+            logonly = True
+            clean_zip_temp_files(days, user_dir, logger, logonly)
 
 
 @home.before_app_first_request

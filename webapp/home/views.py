@@ -346,8 +346,8 @@ def cleanup_zip_temp_folders():
             # got a user directory
             user_dir = os.path.join(base, dir)
 
-            days = 0
-            logonly = True
+            days = Config.GC_ZIP_TEMP_DTL
+            logonly = Config.GC_LOG_ONLY
             clean_zip_temp_files(days, user_dir, logger, logonly)
 
 
@@ -687,7 +687,7 @@ def manage_data_usage(action=None):
         flash('You are not authorized to access the Manage Data Usage page', 'error')
         return redirect(url_for(PAGE_INDEX))
 
-    days = "90"  # default number of days to filter on
+    days = Config.GC_DAYS_TO_LIVE  # default number of days to filter on
 
     # The action parameter is used to signal we want to
     #  return to the previous page.
@@ -715,7 +715,7 @@ def manage_data_usage(action=None):
     log_usage(actions['MANAGE_DATA_USAGE'])
     help = get_helps(['manage_data_usage'])
 
-    disabled = "disabled" if request.host == 'ezeml.edirepository.org' else ""  # FIXME TEMP
+    disabled = not Config.GC_BUTTON_ENABLED
 
     return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days,
                            disabled=disabled, help=help)

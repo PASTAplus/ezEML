@@ -53,4 +53,10 @@ class Config(object):
     USER_DATA_DIR = f"{BASE_DIR}/user-data"
     TEMPLATE_DIR = f"{BASE_DIR}/templates"
 
+    # Garbage collection
+    GC_BUTTON_ENABLED = True
+    GC_DAYS_TO_LIVE = 90
+    GC_LOG_ONLY = False
+    GC_ZIP_TEMP_DTL = 1
+
     PRIVILEGED_LOGINS = []

@@ -18,6 +18,7 @@ import os.path
 from json import JSONDecodeError
 from pathlib import Path
 import pickle
+import shutil
 
 import daiquiri
 from flask import send_file, Flask, current_app
@@ -247,20 +248,29 @@ def delete_eml(filename:str=''):
         # if we're deleting the current document, clear the active file
         if filename == get_active_document():
             remove_active_file()
+        exception = None
         if os.path.exists(json_filename):
             try:
                 os.remove(json_filename)
                 try:
                     os.remove(xml_filename)
-                except Exception as e:
+                except FileNotFoundError as e:
                     pass
                 try:
                     os.remove(eval_filename)
-                except Exception as e:
+                except FileNotFoundError as e:
                     pass
-                return None
             except Exception as e:
-                return str(e)
+                exception = str(e)
+                pass
+            try:
+                uploads_path = os.path.join(user_folder, "uploads")
+                if os.path.isdir(os.path.join(uploads_path, filename)):
+                    shutil.rmtree(os.path.join(uploads_path, filename))
+            except Exception as e:
+                exception = str(e)
+                pass
+            return exception
         else:
             msg = f'Data package not found: {filename}'
             return msg

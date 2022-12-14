@@ -13,6 +13,136 @@ import daiquiri
 from config import Config
 
 
+def clean_csv_and_zip_files(user_dir, logger, logonly):
+	# remove csv and zip files, if any, left over from earlier versions of ezEML
+	try:
+		os.chdir(user_dir)
+		filelist = list(set(glob.glob(f'{user_dir}/*.csv') + glob.glob(f'{user_dir}/*.zip') +
+							glob.glob(f'{user_dir}/*.ezeml')))
+		# Iterate over the list of filepaths & remove each file.
+		for fpath in filelist:
+			try:
+				logger.info(f'Removing file {fpath}')
+				if not logonly:
+					os.remove(fpath)
+			except:
+				logger.error(f'Error while deleting file: {fpath}')
+	except FileNotFoundError:
+		pass
+
+
+def remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly):
+	# remove the uploads dir for this package
+	uploads_dir = os.path.join(base, user_dir, 'uploads', package_name)
+	if os.path.exists(uploads_dir) and os.path.isdir(uploads_dir):
+		try:
+			logger.info(f'Removing directory {uploads_dir}')
+			if not logonly:
+				shutil.rmtree(uploads_dir)
+		except FileNotFoundError as err:
+			logger.error(err)
+			pass
+
+
+def remove_backups(json_file, user_dir, logger, logonly):
+	# remove the backups for this JSON file
+	backups_dir = os.path.join(user_dir, 'backups')
+	try:
+		os.chdir(backups_dir)
+		filelist = glob.glob(f'{backups_dir}/{json_file}.*')
+		# Iterate over the list of filepaths & remove each file.
+		for fpath in filelist:
+			if os.path.exists(os.path.join(backups_dir, fpath)):
+				try:
+					logger.info(f'Removing file {fpath}')
+					if not logonly:
+						os.remove(fpath)
+				except:
+					logger.error(f'Error while deleting file {fpath}')
+	except FileNotFoundError:
+		pass
+
+
+def remove_exports(package_name, user_dir, logger, logonly):
+	# remove the exports directory for a package
+	exports_dir = os.path.join(user_dir, 'exports', package_name)
+	if os.path.exists(exports_dir) and os.path.isdir(exports_dir):
+		try:
+			logger.info(f'Removing directory {exports_dir}')
+			if not logonly:
+				shutil.rmtree(exports_dir)
+		except FileNotFoundError:
+			pass
+
+
+def clean_zip_temp_files(days, user_dir, logger, logonly):
+	# Remove zip_temp files that are more than 'days' days old
+	today = datetime.datetime.today()
+	zip_temp_dir = os.path.join(user_dir, 'zip_temp')
+	if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):
+		for file in os.listdir(zip_temp_dir):
+			filepath = os.path.join(zip_temp_dir, file)
+			t = os.stat(filepath).st_mtime
+			filetime = today - datetime.datetime.fromtimestamp(t)
+			if filetime.days > days:
+				try:
+					logger.info(f'Removing file {filepath}')
+					if not logonly:
+						if not os.path.isdir(filepath):
+							os.remove(filepath)
+						else:
+							shutil.rmtree(filepath)
+				except FileNotFoundError:
+					pass
+
+
+def clean_orphaned_uploads(user_dir, logger, logonly):
+	# Remove directories in the uploads directory for which there is no corresponding JSON file
+	uploads_dir = os.path.join(user_dir, 'uploads')
+	if os.path.exists(uploads_dir) and os.path.isdir(uploads_dir):
+		for file in os.listdir(uploads_dir):
+			filepath = os.path.join(uploads_dir, file)
+			if os.path.isdir(filepath):
+				if file.startswith('.'):
+					continue
+				json_file = os.path.join(user_dir, file) + '.json'
+				if not os.path.exists(json_file):
+					try:
+						logger.info(f'Removing orphaned directory {filepath}')
+						if not logonly:
+							shutil.rmtree(filepath)
+					except FileNotFoundError:
+						pass
+
+
+def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
+	# Remove xml and eval pkl files for which there is no corresponding JSON file
+
+	json_filelist = glob.glob(f'{user_dir}/*.json')
+	xml_filelist = glob.glob(f'{user_dir}/*.xml')
+	eval_filelist = glob.glob(f'{user_dir}/*_eval.pkl')
+
+	for xml_file in xml_filelist:
+		json_file = xml_file[:-4] + '.json'
+		if json_file not in json_filelist:
+			try:
+				logger.info(f'Removing orphaned file {xml_file}')
+				if not logonly:
+					os.remove(xml_file)
+			except FileNotFoundError:
+				pass
+
+	for eval_file in eval_filelist:
+		json_file = eval_file[:-9] + '.json'
+		if json_file not in json_filelist:
+			try:
+				logger.info(f'Removing orphaned file {eval_file}')
+				if not logonly:
+					os.remove(eval_file)
+			except FileNotFoundError:
+				pass
+
+
 @click.command()
 @click.option('--days', default=30, help='Remove files if JSON last-modified date greater than this number of days')
 @click.option('--base', default=f'{Config.USER_DATA_DIR}', help='Base directory from which to crawl the file system.')
@@ -44,20 +174,7 @@ def GC(days, base, include_exports, logonly):
 			user_dir = os.path.join(base, dir)
 
 			# remove csv and zip files, if any, left over from earlier versions of ezEML
-			try:
-				os.chdir(user_dir)
-				filelist = list(set(glob.glob(f'{user_dir}/*.csv') + glob.glob(f'{user_dir}/*.zip') +
-									glob.glob(f'{user_dir}/*.ezeml')))
-				# Iterate over the list of filepaths & remove each file.
-				for fpath in filelist:
-					try:
-						logger.info(f'Removing file {fpath}')
-						if not logonly:
-							os.remove(fpath)
-					except:
-						logger.error(f'Error while deleting file: {fpath}')
-			except FileNotFoundError:
-				pass
+			clean_csv_and_zip_files(user_dir, logger, logonly)
 
 			# find json files that haven't been modified recently
 			for file in os.listdir(user_dir):
@@ -72,61 +189,24 @@ def GC(days, base, include_exports, logonly):
 					package_name = os.path.splitext(file)[0]
 
 					# remove the uploads dir for this package
-					uploads_dir = os.path.join(base, user_dir, 'uploads', package_name)
-					if os.path.exists(uploads_dir) and os.path.isdir(uploads_dir):
-						try:
-							logger.info(f'Removing directory {uploads_dir}')
-							if not logonly:
-								shutil.rmtree(uploads_dir)
-						except FileNotFoundError as err:
-							logger.error(err)
-							pass
+					remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly)
 
 					# remove the backups for this JSON file
-					backups_dir = os.path.join(user_dir, 'backups')
-					try:
-						os.chdir(backups_dir)
-						filelist = glob.glob(f'{backups_dir}/{file}.*')
-						# Iterate over the list of filepaths & remove each file.
-						for fpath in filelist:
-							if os.path.exists(os.path.join(backups_dir, fpath)):
-								try:
-									logger.info(f'Removing file {fpath}')
-									if not logonly:
-										os.remove(fpath)
-								except:
-									logger.error(f'Error while deleting file {fpath}')
-					except FileNotFoundError:
-						pass
+					remove_backups(file, user_dir, logger, logonly)
 
 					if include_exports:
 						# remove the exports directory for this package
-						exports_dir = os.path.join(user_dir, 'exports', package_name)
-						if os.path.exists(exports_dir) and os.path.isdir(exports_dir):
-							try:
-								logger.info(f'Removing directory {exports_dir}')
-								if not logonly:
-									shutil.rmtree(exports_dir)
-							except FileNotFoundError:
-								pass
+						remove_exports(package_name, user_dir, logger, logonly)
 
-			# Remove zip_temp files that are more than 'days' days old
-			zip_temp_dir = os.path.join(user_dir, 'zip_temp')
-			if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):
-				for file in os.listdir(zip_temp_dir):
-					filepath = os.path.join(zip_temp_dir, file)
-					t = os.stat(filepath).st_mtime
-					filetime = today - datetime.datetime.fromtimestamp(t)
-					if filetime.days > days:
-						try:
-							logger.info(f'Removing file {filepath}')
-							if not logonly:
-								if not os.path.isdir(filepath):
-									os.remove(filepath)
-								else:
-									shutil.rmtree(filepath)
-						except FileNotFoundError:
-							pass
+			# Remove zip_temp files that are more than a day old
+			# These should be cleaned up as we go, but just in case...
+			clean_zip_temp_files(1, user_dir, logger, logonly)
+
+			# Remove orphaned directories in the uploads directory
+			clean_orphaned_uploads(user_dir, logger, logonly)
+
+			# Remove xml and eval pkl files for which there is no corresponding JSON file
+			clean_orphaned_xml_and_eval_files(user_dir, logger, logonly)
 
 
 if __name__ == '__main__':

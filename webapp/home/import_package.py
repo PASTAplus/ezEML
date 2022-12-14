@@ -195,3 +195,7 @@ def import_ezeml_package(output_package_name=None):
             else:
                 dest_file = os.path.join(user_path, filename)
         shutil.copyfile(src_file, dest_file)
+
+    # Remove the files from the temp folder
+    for filename in files:
+        os.remove(os.path.join(work_path, filename))

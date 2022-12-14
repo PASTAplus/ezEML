@@ -3565,6 +3565,15 @@ def close():
     return render_template('index.html')
 
 
+def remove_from_uploads(filename):
+    package_name = user_data.get_active_document()
+    uploads_dir = user_data.get_user_uploads_folder_name()
+    uploaded_file = os.path.join(uploads_dir, package_name, filename)
+    if os.path.exists(uploaded_file):
+        logger.info(f'Removing file {uploaded_file}')
+        os.remove(uploaded_file)
+
+
 def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
                 next_page=None, edit_page=None, project_node_id=None, reupload_page=None):
@@ -3601,13 +3610,14 @@ def select_post(filename=None, form=None, form_dict=None,
                 node_id, secondary_node_id = extract_ids(key)
                 eml_node = load_eml(filename=filename)
                 # Get the data table filename, if any, so we can remove it from the uploaded list
-                # dt_node = Node.get_node_instance(node_id)
-                # if dt_node and dt_node.name == names.DATATABLE:
-                #     object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
-                #     if object_name_node:
-                #         object_name = object_name_node.content
-                #         if object_name:
-                #             user_data.discard_data_table_upload_filename(object_name)
+                dt_node = Node.get_node_instance(node_id)
+                if dt_node and dt_node.name == names.DATATABLE:
+                    object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+                    if object_name_node:
+                        object_name = object_name_node.content
+                        if object_name:
+                            user_data.discard_data_table_upload_filename(object_name)
+                            remove_from_uploads(object_name)
                 remove_child(node_id=node_id)
                 # node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)

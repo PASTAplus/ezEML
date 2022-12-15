@@ -13,6 +13,11 @@ import daiquiri
 from config import Config
 
 
+def short_name(filename):
+	# return the filename with the user directory removed
+	return filename.replace(Config.BASE_DIR, '')
+
+
 def clean_csv_and_zip_files(user_dir, logger, logonly):
 	# remove csv and zip files, if any, left over from earlier versions of ezEML
 	try:
@@ -22,7 +27,7 @@ def clean_csv_and_zip_files(user_dir, logger, logonly):
 		# Iterate over the list of filepaths & remove each file.
 		for fpath in filelist:
 			try:
-				logger.info(f'Removing misplaced file {fpath}')
+				logger.info(f'Removing misplaced file {short_name(fpath)}')
 				if not logonly:
 					os.remove(fpath)
 			except:
@@ -37,9 +42,9 @@ def remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly
 	if os.path.exists(uploads_dir) and os.path.isdir(uploads_dir):
 		try:
 			if age:
-				logger.info(f'Removing uploads directory {uploads_dir} ...package is {age} days old')
+				logger.info(f'Removing expired uploads directory {short_name(uploads_dir)} ...package is {age} days old')
 			else:
-				logger.info(f'Removing expired uploads directory {uploads_dir}')
+				logger.info(f'Removing expired uploads directory {short_name(uploads_dir)}')
 			if not logonly:
 				shutil.rmtree(uploads_dir)
 		except FileNotFoundError as err:
@@ -57,7 +62,7 @@ def remove_backups(json_file, user_dir, logger, logonly):
 		for fpath in filelist:
 			if os.path.exists(os.path.join(backups_dir, fpath)):
 				try:
-					logger.info(f'Removing backup file {fpath}')
+					logger.info(f'Removing backup file {short_name(fpath)}')
 					if not logonly:
 						os.remove(fpath)
 				except:
@@ -76,9 +81,9 @@ def remove_exports(package_name, exports_days, user_dir, logger, logonly, age=No
 		if filetime.days > exports_days:
 			try:
 				if age:
-					logger.info(f'Removing exports directory {exports_dir} ...package is {age} days old')
+					logger.info(f'Removing expired exports directory {short_name(exports_dir)} ...package is {age} days old')
 				else:
-					logger.info(f'Removing expired exports directory {exports_dir}')
+					logger.info(f'Removing expired exports directory {short_name(exports_dir)}')
 				if not logonly:
 					shutil.rmtree(exports_dir)
 			except FileNotFoundError:
@@ -96,7 +101,7 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 			filetime = today - datetime.datetime.fromtimestamp(t)
 			if filetime.days > days:
 				try:
-					logger.info(f'Removing zip_temp file {filepath}')
+					logger.info(f'Removing zip_temp file {short_name(filepath)}')
 					if not logonly:
 						if not os.path.isdir(filepath):
 							os.remove(filepath)
@@ -106,7 +111,7 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 					pass
 
 
-def clean_orphans_from_directory(user_dir, dirname, logger, logonly):
+def clean_orphans_from_directory(user_dir, dirname, dirtype, logger, logonly):
 	if os.path.exists(dirname) and os.path.isdir(dirname):
 		for file in os.listdir(dirname):
 			filepath = os.path.join(dirname, file)
@@ -116,7 +121,7 @@ def clean_orphans_from_directory(user_dir, dirname, logger, logonly):
 				json_file = os.path.join(user_dir, file) + '.json'
 				if not os.path.exists(json_file):
 					try:
-						logger.info(f'Removing orphaned {dirname} directory {filepath}')
+						logger.info(f'Removing orphaned {dirtype} directory {short_name(filepath)}')
 						if not logonly:
 							shutil.rmtree(filepath)
 					except FileNotFoundError:
@@ -126,13 +131,13 @@ def clean_orphans_from_directory(user_dir, dirname, logger, logonly):
 def clean_orphaned_uploads(user_dir, logger, logonly):
 	# Remove directories in the uploads directory for which there is no corresponding JSON file
 	uploads_dir = os.path.join(user_dir, 'uploads')
-	clean_orphans_from_directory(user_dir, uploads_dir, logger, logonly)
+	clean_orphans_from_directory(user_dir, uploads_dir, "uploads", logger, logonly)
 
 
 def clean_orphaned_exports(user_dir, logger, logonly):
 	# Remove directories in the exports directory for which there is no corresponding JSON file
 	exports_dir = os.path.join(user_dir, 'exports')
-	clean_orphans_from_directory(user_dir, exports_dir, logger, logonly)
+	clean_orphans_from_directory(user_dir, exports_dir, "exports", logger, logonly)
 
 
 def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
@@ -146,7 +151,7 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 		json_file = xml_file[:-4] + '.json'
 		if json_file not in json_filelist:
 			try:
-				logger.info(f'Removing orphaned xml file {xml_file}')
+				logger.info(f'Removing orphaned xml file {short_name(xml_file)}')
 				if not logonly:
 					os.remove(xml_file)
 			except FileNotFoundError:
@@ -156,7 +161,7 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 		json_file = eval_file[:-9] + '.json'
 		if json_file not in json_filelist:
 			try:
-				logger.info(f'Removing orphaned eval file {eval_file}')
+				logger.info(f'Removing orphaned eval file {short_name(eval_file)}')
 				if not logonly:
 					os.remove(eval_file)
 			except FileNotFoundError:

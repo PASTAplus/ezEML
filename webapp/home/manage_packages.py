@@ -81,8 +81,14 @@ def get_user_date_modified(user_dir, date_format='%Y-%m-%d %H:%M:%S'):
     if datetimes:
         return max(datetimes).strftime(date_format)
     else:
-        # If there are no packages, then we use the creation date of the user folder.
-        return datetime.fromtimestamp(os.path.getctime(user_dir)).strftime(date_format)
+        # If there are no packages, then we use the last modified date of the user properties file.
+        user_properties_file = os.path.join(user_dir, '__user_properties__.json')
+        if os.path.isfile(user_properties_file):
+            return datetime.fromtimestamp(os.path.getmtime(user_properties_file)).strftime(date_format)
+        else:
+            # This should never happen, but just in case... It unfortunately doesn't actually give the
+            # creation date of the dir, but it's better than nothing.
+            return datetime.fromtimestamp(os.path.getctime(user_dir)).strftime(date_format)
 
 
 def get_data_packages(sort_by='date_modified', reverse=True, date_format='%Y-%m-%d %H:%M:%S'):

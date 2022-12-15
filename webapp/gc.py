@@ -10,7 +10,7 @@ import sys
 import click
 import daiquiri
 
-from webapp.config import Config
+from config import Config
 
 
 def clean_csv_and_zip_files(user_dir, logger, logonly):

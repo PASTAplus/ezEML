@@ -22,7 +22,7 @@ def clean_csv_and_zip_files(user_dir, logger, logonly):
 		# Iterate over the list of filepaths & remove each file.
 		for fpath in filelist:
 			try:
-				logger.info(f'Removing file {fpath}')
+				logger.info(f'Removing misplaced file {fpath}')
 				if not logonly:
 					os.remove(fpath)
 			except:
@@ -31,12 +31,15 @@ def clean_csv_and_zip_files(user_dir, logger, logonly):
 		pass
 
 
-def remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly):
+def remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly, age=None):
 	# remove the uploads dir for this package
 	uploads_dir = os.path.join(base, user_dir, 'uploads', package_name)
 	if os.path.exists(uploads_dir) and os.path.isdir(uploads_dir):
 		try:
-			logger.info(f'Removing directory {uploads_dir}')
+			if age:
+				logger.info(f'Removing uploads directory {uploads_dir} ...package is {age} days old')
+			else:
+				logger.info(f'Removing expired uploads directory {uploads_dir}')
 			if not logonly:
 				shutil.rmtree(uploads_dir)
 		except FileNotFoundError as err:
@@ -54,7 +57,7 @@ def remove_backups(json_file, user_dir, logger, logonly):
 		for fpath in filelist:
 			if os.path.exists(os.path.join(backups_dir, fpath)):
 				try:
-					logger.info(f'Removing file {fpath}')
+					logger.info(f'Removing backup file {fpath}')
 					if not logonly:
 						os.remove(fpath)
 				except:
@@ -63,7 +66,7 @@ def remove_backups(json_file, user_dir, logger, logonly):
 		pass
 
 
-def remove_exports(package_name, exports_days, user_dir, logger, logonly):
+def remove_exports(package_name, exports_days, user_dir, logger, logonly, age=None):
 	# remove the exports directory for a package if older than exports_days
 	exports_dir = os.path.join(user_dir, 'exports', package_name)
 	if os.path.exists(exports_dir) and os.path.isdir(exports_dir):
@@ -72,7 +75,10 @@ def remove_exports(package_name, exports_days, user_dir, logger, logonly):
 		filetime = today - datetime.datetime.fromtimestamp(t)
 		if filetime.days > exports_days:
 			try:
-				logger.info(f'Removing directory {exports_dir}')
+				if age:
+					logger.info(f'Removing exports directory {exports_dir} ...package is {age} days old')
+				else:
+					logger.info(f'Removing expired exports directory {exports_dir}')
 				if not logonly:
 					shutil.rmtree(exports_dir)
 			except FileNotFoundError:
@@ -90,7 +96,7 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 			filetime = today - datetime.datetime.fromtimestamp(t)
 			if filetime.days > days:
 				try:
-					logger.info(f'Removing file {filepath}')
+					logger.info(f'Removing zip_temp file {filepath}')
 					if not logonly:
 						if not os.path.isdir(filepath):
 							os.remove(filepath)
@@ -110,7 +116,7 @@ def clean_orphans_from_directory(user_dir, dirname, logger, logonly):
 				json_file = os.path.join(user_dir, file) + '.json'
 				if not os.path.exists(json_file):
 					try:
-						logger.info(f'Removing orphaned directory {filepath}')
+						logger.info(f'Removing orphaned {dirname} directory {filepath}')
 						if not logonly:
 							shutil.rmtree(filepath)
 					except FileNotFoundError:
@@ -140,7 +146,7 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 		json_file = xml_file[:-4] + '.json'
 		if json_file not in json_filelist:
 			try:
-				logger.info(f'Removing orphaned file {xml_file}')
+				logger.info(f'Removing orphaned xml file {xml_file}')
 				if not logonly:
 					os.remove(xml_file)
 			except FileNotFoundError:
@@ -150,7 +156,7 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 		json_file = eval_file[:-9] + '.json'
 		if json_file not in json_filelist:
 			try:
-				logger.info(f'Removing orphaned file {eval_file}')
+				logger.info(f'Removing orphaned eval file {eval_file}')
 				if not logonly:
 					os.remove(eval_file)
 			except FileNotFoundError:
@@ -206,16 +212,16 @@ def GC(days, base, include_exports, exports_days, logonly):
 					package_name = os.path.splitext(file)[0]
 
 					# remove the uploads dir for this package
-					remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly)
+					remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly, age=filetime.days)
 
 					# remove the backups for this JSON file
 					remove_backups(file, user_dir, logger, logonly)
 
 					if include_exports:
 						# remove expired exports for this package
-						remove_exports(package_name, exports_days, user_dir, logger, logonly)
+						remove_exports(package_name, exports_days, user_dir, logger, logonly, age=filetime.days)
 
-			# Remove zip_temp files that are more than a day old
+			# Remove zip_temp files that are more than some number of days old
 			# These should be cleaned up as we go, but just in case...
 			clean_zip_temp_files(Config.GC_ZIP_TEMPS_DAYS_TO_LIVE, user_dir, logger, logonly)
 

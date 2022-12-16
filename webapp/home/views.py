@@ -68,7 +68,7 @@ from webapp.home.forms import (
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm
 )
 
-# from webapp.gc import clean_zip_temp_files
+import webapp.utils as utils
 
 from webapp.home.load_data import (
     load_data_table, load_other_entity, delete_data_files, get_md5_hash
@@ -3569,9 +3569,11 @@ def remove_from_uploads(filename):
     package_name = user_data.get_active_document()
     uploads_dir = user_data.get_user_uploads_folder_name()
     uploaded_file = os.path.join(uploads_dir, package_name, filename)
-    if os.path.exists(uploaded_file):
-        logger.info(f'Removing file {uploaded_file}')
-        os.remove(uploaded_file)
+
+    filelist = glob.glob(f'{uploaded_file}*')  # We want to get the eval file, if any, as well
+    for f in filelist:
+        logger.info(f'Removing file {f}')
+        utils.remove(f)
 
 
 def select_post(filename=None, form=None, form_dict=None,

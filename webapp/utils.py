@@ -1,3 +1,4 @@
+import os
 import os.path
 
 
@@ -18,3 +19,8 @@ def path_join(*paths):
         if path is None:
             return None
     return os.path.join(*paths)
+
+
+def remove(path):
+    if path is not None:
+        os.remove(path)

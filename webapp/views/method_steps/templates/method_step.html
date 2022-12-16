@@ -50,11 +50,15 @@
                     <tr>
                         <td>{{ ds_entry[0] }}</td>
                         <td width="3%">&nbsp;</td>
-                        <td style="float:right;"><input class="btn btn-primary" name="{{ ds_entry[1] }}" type="submit" value="Edit"/>
-                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
+                        <td>
+                            <span style="float:right;">
+                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/>
+                            </span></td>
                     </tr>
                     {% endfor %}
                 </table>
+                &nbsp;
                     <input class="btn btn-primary" name="Add Data Source" type="submit" value="Add Data Source"/>
                 <input class="btn btn-primary" name="Fetch Data Source Info from EDI" type="submit" value="Fetch Data Source Info from EDI"/>
                 <p>

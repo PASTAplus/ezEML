@@ -12,6 +12,8 @@ import requests
 from requests_file import FileAdapter
 from typing import List
 
+from webapp.utils import path_exists, path_isdir, path_join
+
 import webapp.auth.user_data as user_data
 from webapp.config import Config
 from webapp.home.import_data import convert_file_size
@@ -587,8 +589,8 @@ def clear_eval_files():
     uploads_folder = f'/Users/jide/git/ezEML/user-data/EDI-1a438b985e1824a5aa709daa1b6e12d2/uploads'
     subdirs = []
     for file in os.listdir(uploads_folder):
-        filepath = os.path.join(uploads_folder, file)
-        if os.path.isdir(filepath):
+        filepath = path_join(uploads_folder, file)
+        if path_isdir(filepath):
             subdirs.append(filepath)
     for subdir in subdirs:
         filelist = glob.glob(f'{subdir}/*_eval_*')
@@ -598,47 +600,6 @@ def clear_eval_files():
         filelist = glob.glob(f'{subdir}/*_eval')
         for filepath in filelist:
             os.remove(filepath)
-
-
-def find_large_data_tables():
-    import os
-    filenames = get_existing_eml_files()
-    print(f'{len(filenames)} files in total')
-    i = 0
-    maxsize = 0
-    maxcols = 0
-    for filename in filenames:
-        try:
-            scope, identifier, revision, *_ = filename.split('.')
-        except:
-            continue
-        # For now, just the edi scope
-        if scope != 'edi':
-            continue
-        eml_node = load_xml(os.path.join(EML_FILES_PATH, filename))
-        data_table_nodes = eml_node.find_all_nodes_by_path(
-            [names.DATASET, names.DATATABLE])
-        for data_table_node in data_table_nodes:
-            data_table_name = get_data_table_name(data_table_node)
-            size_node = data_table_node.find_descendant(names.SIZE)
-            size = size_node.content
-            attribute_nodes = []
-            data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
-            columns = len(attribute_nodes)
-            do_print = False
-            if size and (int(size) > maxsize or int(size) > 100 * 1024 * 1024):
-                if int(size) > maxsize:
-                    maxsize = int(size)
-                do_print = True
-            if columns and columns > maxcols:
-                maxcols = columns
-                do_print = True
-            if do_print:
-                print(filename)
-                print(data_table_name, size, columns)
-            i += 1
-            if i > 100:
-                break
 
 
 def make_blanks_visible(s:str):
@@ -689,13 +650,13 @@ def generate_error_info_for_webpage(data_table_node, errors):
 
 
 def get_eml_file_url(document_name, eml_node):
-    filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
-    if os.path.exists(filepath):
+    filepath = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
+    if path_exists(filepath):
         return f'file://{filepath}'
     package_id = eml_node.attribute_value('packageId')
     if package_id:
-        filepath = f'{os.path.join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
-        if os.path.exists(filepath):
+        filepath = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
+        if path_exists(filepath):
             return f'file://{filepath}'
     return None
 
@@ -706,7 +667,11 @@ def get_csv_file_url(document_name, data_table_node):
 
 
 def get_csv_filepath(document_name, csv_file_name):
-    return os.path.join(user_data.get_document_uploads_folder_name(document_name), csv_file_name)
+    try:
+        return os.path.join(user_data.get_document_uploads_folder_name(document_name), csv_file_name)
+    except:
+        log_info(f"get_csv_filepath: {document_name}, {csv_file_name}")
+        return None
 
 
 def get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash):
@@ -742,9 +707,9 @@ def get_data_file_eval_status(data_table_node, document_name, csv_file_name, met
         return 'black'
     # Returns green, yellow, red, or black.
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
-    if os.path.exists(archive_filepath):
+    if path_exists(archive_filepath):
         return "red"
-    if os.path.exists(ok_filepath):
+    if path_exists(ok_filepath):
         return "green"
     return "yellow"
 
@@ -773,9 +738,9 @@ def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
 
 def get_data_file_eval(document_name, csv_file_name, metadata_hash):
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
-    if not os.path.exists(archive_filepath):
+    if not path_exists(archive_filepath):
         archive_filepath = ok_filepath
-        if not os.path.exists(archive_filepath):
+        if not path_exists(archive_filepath):
             # There may exist a version with a different hash. If so, it's obsolete and we want to delete it.
             matches = glob.glob(wildcard_filepath)
             for match in matches:
@@ -787,7 +752,7 @@ def get_data_file_eval(document_name, csv_file_name, metadata_hash):
 
 def csv_file_exists(document_name, csv_file_name):
     csv_filepath = get_csv_filepath(document_name, csv_file_name)
-    return os.path.exists(csv_filepath)
+    return path_exists(csv_filepath)
 
 
 def create_check_data_tables_status_page_content(document_name, eml_node):
@@ -914,12 +879,4 @@ def collapse_error_info_for_column(column_errors):
 
 
 if __name__ == "__main__":
-    find_large_data_tables()
-    clear_eval_files()
-    import sys
-    sys.exit(0)
-
-    # load_date_time_format_files('/Users/jide/git/ezeml/webapp/static/dateTimeFormatString_list.csv',
-    #                             '/Users/jide/git/ezeml/webapp/static/dateTimeFormatString_regex.csv')
-    # result = check_date_time_format_specification('YYYY-MM-DD')
-    # result = check_date_time_format_specification('foobar')
+    pass

@@ -1148,6 +1148,8 @@ def enforce_dataset_sequence(eml_node:Node=None):
 
 
 def clean_model(eml_node):
+    if not eml_node:
+        return
     try:
         # There are some documents that have a spurious filename attribute, which gets propagated if the
         #  document is copied via Save As. Clean it up.

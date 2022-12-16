@@ -17,7 +17,7 @@ class MethodStepSelectForm(EDIForm):
 
 
 class MethodStepForm(EDIForm):
-    description = StringField('Description *', widget=TextArea(), validators=[DataRequired(message='Description is required')])
+    description = StringField('Description *', widget=TextArea(), validators=[])
     instrumentation = StringField('Instrumentation (Optional)', widget=TextArea(), validators=[])
     data_sources = StringField('Data Sources (Optional)', widget=TextArea(), validators=[])
     md5 = HiddenField('')

@@ -401,9 +401,12 @@ def normalize_directory_for_user_id(directory):
     # When ezEML was only handling packages that had been created in ezEML, this wouldn't happen,
     #  but of course now we are handling packages that have been created in other ways.
     # This function normalizes the directory to the form that ezEML expects.
-    directory = directory.lower().replace('http:', 'https:')
-    if not directory.endswith('/'):
-        directory += '/'
+    if directory is not None:
+        directory = directory.lower().replace('http:', 'https:')
+        if not directory.endswith('/'):
+            directory += '/'
+    else:
+        directory = ''
     return directory
 
 

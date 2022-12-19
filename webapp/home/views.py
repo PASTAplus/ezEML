@@ -248,7 +248,8 @@ def data_table_errors(data_table_name:str=None):
 
     if is_hidden_button():
         new_page = handle_hidden_buttons(PAGE_DATA_TABLE_ERRORS, PAGE_DATA_TABLE_ERRORS)
-        return redirect(url_for(new_page, filename=current_document))
+        if new_page != PAGE_DATA_TABLE_ERRORS:
+            return redirect(url_for(new_page, filename=current_document))
 
     eml_node = load_eml(filename=current_document)
     data_table_nodes = []

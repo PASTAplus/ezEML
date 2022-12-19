@@ -15,6 +15,7 @@
 import daiquiri
 from flask import Blueprint, render_template, request
 from flask_login import current_user
+from flask_wtf.csrf import CSRFError
 from webapp import app
 
 
@@ -57,3 +58,9 @@ def bad_request(error):
 def bad_request(error):
     log_error(error)
     return render_template('500.html'), 500
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+    log_error(error)
+    return render_template('401.html'), 400

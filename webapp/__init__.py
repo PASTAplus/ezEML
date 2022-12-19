@@ -42,8 +42,6 @@ login = LoginManager(app)
 login.login_view = 'auth.login'
 
 app.config['MAX_COOKIE_SIZE'] = 65535
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['WTF_CSRF_TIME_LIMIT'] = 10
 
 # Importing these modules causes the routes and error handlers to be associated
 # with the blueprint. It is important to note that the modules are imported at

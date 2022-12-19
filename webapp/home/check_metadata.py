@@ -115,7 +115,7 @@ scopes = [
 
 def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None):
     try:
-        vals = session[f'__eval__{id}']
+        vals = current_app.config.get(f'__eval__{id}')
         if section:
             vals[0] = section
         if item:

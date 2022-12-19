@@ -438,7 +438,7 @@ def fixup_upload_management():
 
 @home.before_app_request
 def load_eval_entries():
-    if session.get('__eval__title_01'):
+    if current_app.config.get('__eval__title_01'):
         return
     rows = []
     with open('webapp/static/evaluate.csv') as csv_file:
@@ -447,7 +447,7 @@ def load_eval_entries():
             rows.append(row)
     for row_num in range(1, len(rows)):
         id, *vals = rows[row_num]
-        session[f'__eval__{id}'] = vals
+        current_app.config[f'__eval__{id}'] = vals
 
 
 @home.before_app_request

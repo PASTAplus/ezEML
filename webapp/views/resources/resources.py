@@ -77,7 +77,7 @@ def title(filename=None):
     current_packageid = current_user.get_filename()
     pid = os.getpid()
     metapype_store_size = len(Node.store)
-    log_info(f'Title    user={user_name}, package={current_packageid}, PID={pid}, metapype_store_size={metapype_store_size}')
+    log_info(f'Title    PID={pid}, user={user_name}, package={current_packageid}, metapype_store_size={metapype_store_size}')
 
     form = TitleForm()
 

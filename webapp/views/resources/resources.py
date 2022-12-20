@@ -1,3 +1,4 @@
+import os
 import daiquiri
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for, session
@@ -71,8 +72,12 @@ def log_info(msg):
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 @login_required
 def title(filename=None):
+
+    user_name = current_user.get_username()
+    current_packageid = current_user.get_filename()
+    pid = os.getpid()
     metapype_store_size = len(Node.store)
-    log_info(f'Title    metapype_store_size={metapype_store_size}')
+    log_info(f'Title    user={user_name}, package={current_packageid}, PID={pid}, metapype_store_size={metapype_store_size}')
 
     form = TitleForm()
 

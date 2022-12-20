@@ -71,7 +71,8 @@ def log_info(msg):
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 @login_required
 def title(filename=None):
-    log_info(f'Title')
+    metapype_store_size = len(Node.store)
+    log_info(f'Title    metapype_store_size={metapype_store_size}')
 
     form = TitleForm()
 

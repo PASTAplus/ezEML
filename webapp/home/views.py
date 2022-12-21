@@ -147,9 +147,6 @@ def url_of_interest():
         url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
         if url_prefix not in request.url:
             return False
-        # edit_prefix = f"{url_prefix}edit/"
-        # if edit_prefix in request.url:
-        #     return False
     return True
 
 
@@ -175,9 +172,6 @@ def clear_metapype_store(response):
         store_len = len(Node.store)
         log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}  {id(Node.store)}')
         Node.store.clear()
-        store_len = len(Node.store)
-        if store_len != 0:
-            log_info(f'*** after clear_metapype_store ***: store_len={store_len}     {request.url}  {id(Node.store)}')
     return response
 
 

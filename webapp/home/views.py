@@ -175,6 +175,9 @@ def clear_metapype_store(response):
         store_len = len(Node.store)
         log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')
         Node.store.clear()
+        store_len = len(Node.store)
+        if store_len != 0:
+            log_info(f'*** after clear_metapype_store ***: store_len={store_len}     {request.url}')
     return response
 
 

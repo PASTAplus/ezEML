@@ -21,6 +21,10 @@ class InvalidXMLError(ezEMLError):
     pass
 
 
+class MetapypeStoreIsNonEmpty(ezEMLError):
+    pass
+
+
 class MissingFileError(ezEMLError):
     pass
 

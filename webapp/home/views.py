@@ -53,6 +53,7 @@ from webapp.home.exceptions import (
     ezEMLError,
     AuthTokenExpired,
     DataTableError,
+    MetapypeStoreIsNonEmpty,
     MissingFileError,
     Unauthorized,
     UnicodeDecodeErrorInternal
@@ -128,12 +129,48 @@ from webapp.home.texttype_node_processing import (
     model_has_complex_texttypes
 )
 
+
+app = Flask(__name__)
+
+
 logger = daiquiri.getLogger('views: ' + __name__)
 home = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
 keywords = {}
 
 AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be caused by a login timeout. Please log out, log back in, and try again.'
+
+
+def url_of_interest():
+    parsed_url = urlparse(request.base_url)
+    url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
+    if url_prefix not in request.url:
+        return False
+    # edit_prefix = f"{url_prefix}edit/"
+    # if edit_prefix in request.url:
+    #     return False
+    return True
+
+
+@home.before_app_request
+def check_metapype_store():
+    if url_of_interest():
+        store_len = len(Node.store)
+        if store_len > 0:
+            log_info(f'*********************************************')
+            log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
+            log_info(f'*********************************************')
+            Node.store.clear()
+            # raise MetapypeStoreIsNonEmpty(f'Node.store is not empty: {store_len}')
+
+
+@home.after_app_request
+def clear_metapype_store(response):
+    if url_of_interest():
+        store_len = len(Node.store)
+        log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')
+        Node.store.clear()
+    return response
 
 
 def log_error(msg):

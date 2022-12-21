@@ -2,7 +2,7 @@ import ast
 import numpy as np
 import os
 import pandas as pd
-
+import shutil
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
@@ -28,7 +28,7 @@ from webapp.views.coverage.taxonomy import (
 )
 
 from webapp.auth.user_data import (
-    get_document_uploads_folder_name
+    get_document_uploads_folder_name, get_user_folder_name
 )
 
 from webapp.home.forms import is_dirty_form, form_md5, LoadDataForm
@@ -662,6 +662,16 @@ def load_taxonomic_coverage(filename):
                     flash(f'Load CSV file failed. {ex.args[0]}', 'error')
 
                 if errors:
+                    # Save errors to a file
+                    user_path = get_user_folder_name()
+                    work_path = os.path.join(user_path, 'zip_temp')
+                    if not os.path.exists(work_path):
+                        os.makedirs(work_path)
+                    filepath = os.path.join(work_path, "taxonomic_coverage_errors.txt")
+                    with open(filepath, 'w') as f:
+                        for error in errors:
+                            f.write(f'{error}\r')
+
                     return redirect(url_for(PAGE_LOAD_TAXONOMIC_COVERAGE_2,
                                             errors=encode_for_query_string(errors)))
                 else:
@@ -677,8 +687,20 @@ def load_taxonomic_coverage(filename):
 @cov_bp.route('/load_taxonomic_coverage_2/<errors>', methods=['GET', 'POST'])
 @login_required
 def load_taxonomic_coverage_2(errors):
+    # Read errors from file
+    user_path = get_user_folder_name()
+    work_path = os.path.join(user_path, 'zip_temp')
+    filepath = os.path.join(work_path, "taxonomic_coverage_errors.txt")
+    errors = ''
+    try:
+        with open(filepath, 'r') as f:
+            errors = f.readlines()
+    except FileNotFoundError:
+        pass
+    shutil.rmtree(work_path)
+
     return render_template('load_taxonomic_coverage_2.html',
-                           errors=decode_from_query_string(errors))
+                           errors=errors)
 
 
 def save_uploaded_taxonomic_coverage(eml_node, hierarchies, general_coverages, global_authority):

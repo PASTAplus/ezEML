@@ -159,7 +159,7 @@ def check_metapype_store():
         if store_len > 0:
             Node.store.clear()
             log_info(f'********************************************************')
-            log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}  {id(Node.store)}')
+            log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
             log_info(f'********************************************************')
             # raise MetapypeStoreIsNonEmpty(f'Node.store is not empty: {store_len}')
 
@@ -170,7 +170,7 @@ def clear_metapype_store(response):
         return response
     if url_of_interest():
         store_len = len(Node.store)
-        log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}  {id(Node.store)}')
+        log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')
         Node.store.clear()
     return response
 

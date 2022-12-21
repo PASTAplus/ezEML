@@ -154,6 +154,8 @@ def url_of_interest():
 
 @home.before_app_request
 def check_metapype_store():
+    if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
+        return
     if url_of_interest():
         store_len = len(Node.store)
         if store_len > 0:
@@ -166,6 +168,8 @@ def check_metapype_store():
 
 @home.after_app_request
 def clear_metapype_store(response):
+    if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
+        return response
     if url_of_interest():
         store_len = len(Node.store)
         log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')

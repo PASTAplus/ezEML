@@ -564,16 +564,18 @@ def get_back_url():
 def slow_poke():
     import time
     from datetime import datetime
+    entry = datetime.now()
+    entry_time = entry.strftime("%H:%M:%S")
     time.sleep(60)
     user_name = current_user.get_username()
     current_packageid = current_user.get_filename()
     pid = os.getpid()
     metapype_store_size = len(Node.store)
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
+    leaving = datetime.now()
+    leaving_time = leaving.strftime("%H:%M:%S")
 
     return render_template('slow_poke.html', user=user_name, package=current_packageid, pid=pid,
-                           store_size=metapype_store_size, time=current_time)
+                           store_size=metapype_store_size, entry=entry_time, leaving=leaving_time)
 
 
 @home.route('/about')

@@ -672,8 +672,7 @@ def load_taxonomic_coverage(filename):
                         for error in errors:
                             f.write(f'{error}\r')
 
-                    return redirect(url_for(PAGE_LOAD_TAXONOMIC_COVERAGE_2,
-                                            errors=encode_for_query_string(errors)))
+                    return redirect(url_for(PAGE_LOAD_TAXONOMIC_COVERAGE_2))
                 else:
                     return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=document))
 
@@ -684,9 +683,9 @@ def load_taxonomic_coverage(filename):
                            help=help)
 
 
-@cov_bp.route('/load_taxonomic_coverage_2/<errors>', methods=['GET', 'POST'])
+@cov_bp.route('/load_taxonomic_coverage_2/', methods=['GET', 'POST'])
 @login_required
-def load_taxonomic_coverage_2(errors):
+def load_taxonomic_coverage_2():
     # Read errors from file
     user_path = get_user_folder_name()
     work_path = os.path.join(user_path, 'zip_temp')

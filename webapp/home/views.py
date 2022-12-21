@@ -560,6 +560,17 @@ def get_back_url():
     return url
 
 
+@home.route('/slow_poke')
+def slow_poke():
+    import time
+    time.sleep(10)
+    user_name = current_user.get_username()
+    current_packageid = current_user.get_filename()
+    pid = os.getpid()
+    metapype_store_size = len(Node.store)
+    return render_template('slow_poke.html', user=user_name, package=current_packageid, pid=pid, store_size=metapype_store_size)
+
+
 @home.route('/about')
 def about():
     return render_template('about.html', back_url=get_back_url(), title='About')

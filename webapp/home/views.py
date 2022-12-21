@@ -147,9 +147,9 @@ def url_of_interest():
         url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
         if url_prefix not in request.url:
             return False
-        edit_prefix = f"{url_prefix}edit/"
-        if edit_prefix in request.url:
-            return False
+        # edit_prefix = f"{url_prefix}edit/"
+        # if edit_prefix in request.url:
+        #     return False
     return True
 
 

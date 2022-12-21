@@ -142,13 +142,14 @@ AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be cau
 
 
 def url_of_interest():
-    parsed_url = urlparse(request.base_url)
-    url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
-    if url_prefix not in request.url:
-        return False
-    # edit_prefix = f"{url_prefix}edit/"
-    # if edit_prefix in request.url:
-    #     return False
+    if Config.MEM_FILTER_URLS_TO_CLEAR_METAPYPE_STORE:
+        parsed_url = urlparse(request.base_url)
+        url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
+        if url_prefix not in request.url:
+            return False
+        # edit_prefix = f"{url_prefix}edit/"
+        # if edit_prefix in request.url:
+        #     return False
     return True
 
 
@@ -158,11 +159,12 @@ def check_metapype_store():
         return
     if url_of_interest():
         store_len = len(Node.store)
+        log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
         if store_len > 0:
-            log_info(f'*********************************************')
-            log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
-            log_info(f'*********************************************')
             Node.store.clear()
+            log_info(f'********************************************************')
+            log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
+            log_info(f'********************************************************')
             # raise MetapypeStoreIsNonEmpty(f'Node.store is not empty: {store_len}')
 
 

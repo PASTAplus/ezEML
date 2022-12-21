@@ -29,7 +29,7 @@ daiquiri.setup(level=logging.INFO,
                outputs=[
                    daiquiri.output.File(logfile,
                                              formatter=daiquiri.formatter.ExtrasFormatter(
-                                                fmt=("%(asctime)s [PID %(process)d] [%(levelname)s]" +
+                                                fmt=("%(asctime)s [PID %(process)d] [%(threadName)s] [%(levelname)s]" +
                                                      "%(extras)s %(name)s -> %(message)s"),
                                                 keywords=None)), 'stdout'
                 ])

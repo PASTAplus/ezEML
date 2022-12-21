@@ -564,7 +564,7 @@ def get_back_url():
 def slow_poke():
     import time
     from datetime import datetime
-    time.sleep(10)
+    time.sleep(60)
     user_name = current_user.get_username()
     current_packageid = current_user.get_filename()
     pid = os.getpid()

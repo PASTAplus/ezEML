@@ -40,7 +40,7 @@ pytz==2022.1
 pytzdata==2020.1
 requests==2.27.1
 rfc3986==2.0.0
-setuptools==62.1.0
+setuptools==65.5.1
 six==1.16.0
 tomli==2.0.1
 urllib3==1.26.9

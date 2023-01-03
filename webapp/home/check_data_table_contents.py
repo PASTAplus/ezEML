@@ -11,6 +11,7 @@ import re
 import requests
 from requests_file import FileAdapter
 from typing import List
+import warnings
 
 from webapp.utils import path_exists, path_isdir, path_join
 
@@ -260,6 +261,7 @@ def display_nonprintable(s):
 def match_with_regex(col_values, regex, empty_is_ok=True):
     if empty_is_ok:
         regex = f'^({regex})?$'
+    warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
     matches = col_values.str.contains(regex)
     return matches
 
@@ -321,6 +323,7 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     mvc = get_missing_value_codes(data_table_node, column_name)
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
+        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
         mvc_matches = col_values.str.contains(mvc_regex)
         # Errors are rows with matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
@@ -381,6 +384,7 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     mvc = get_missing_value_codes(data_table_node, column_name)
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
+        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
         mvc_matches = col_values.str.contains(mvc_regex)
         # Errors are rows with matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
@@ -426,6 +430,7 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     mvc = get_missing_value_codes(data_table_node, column_name)
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
+        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
         mvc_matches = col_values.str.contains(mvc_regex)
         # Errors are rows with matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)

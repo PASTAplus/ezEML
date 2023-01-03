@@ -2392,7 +2392,7 @@ def import_xml():
                                             filename=package_name,
                                             fetched=False))
                 else:
-                    flash(f"{package_name} was imported without errors")
+                    flash(f"Metadata for {package_name} was imported without errors")
                     return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=False))
             else:
                 raise Exception  # TODO: Error handling
@@ -2451,7 +2451,7 @@ def import_xml_2(package_name, filename, fetched=False):
                                         fetched=fetched))
 
             else:
-                flash(f"{package_name} was imported without errors")
+                flash(f"Metadata for {package_name} was imported without errors")
                 return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=fetched))
         else:
             raise Exception  # TODO: Error handling
@@ -2860,7 +2860,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
                                     filename=package_name,
                                     fetched=True))
         else:
-            flash(f"{package_name} was imported without errors")
+            flash(f"Metadata for {package_name} was imported without errors")
             return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=True))
     else:
         raise Exception  # TODO: Error handling

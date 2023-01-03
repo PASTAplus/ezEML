@@ -171,8 +171,8 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
     return data_entity_node
 
 
-def ingest_other_entity(dataset_node, upload_dir, object_name):
-    return load_data.load_other_entity(dataset_node, upload_dir, object_name)
+def ingest_other_entity(dataset_node, upload_dir, object_name, node_id):
+    return load_data.load_other_entity(dataset_node, upload_dir, object_name, node_id)
 
 
 def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
@@ -188,7 +188,7 @@ def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
             dataset_node.replace_child(data_entity_node, new_data_entity_node)
         if data_entity_type == names.OTHERENTITY:
             # upload the other_entity
-            new_data_entity_node = ingest_other_entity(dataset_node, upload_dir, object_name)
+            new_data_entity_node = ingest_other_entity(dataset_node, upload_dir, object_name, data_entity_node.id)
             dataset_node.replace_child(data_entity_node, new_data_entity_node)
 
 

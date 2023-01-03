@@ -1,5 +1,5 @@
 from wtforms import (
-    StringField, SelectField, HiddenField, validators
+    StringField, SelectField, HiddenField, validators, RadioField
 )
 
 from wtforms.validators import (
@@ -16,6 +16,9 @@ class immunohistochemistryForm(EDIForm):
 
 
 class immunohistochemistryForm(EDIForm):
+    # IHC
+    isIHC = RadioField('Is this image immunohistochemistry?', choices=['Yes', 'No'], default='No',
+                       render_kw={'onclick': "isIHCFunction()"})
     # Protein
     targetProtein = StringField('Target Protein *', validators=[InputRequired(message='Target Protein is required')])
     # Primary Antibody

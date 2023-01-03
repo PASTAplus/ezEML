@@ -16,8 +16,15 @@
                 <table>
                     <tr>
                         <td>
+                        <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="50%">
+                        <tr>
+                            <td style="padding: 10px 20px;"><h5>Is this image immunohistochemistry?</h5></td>
+                            <td style="padding: 10px 20px;">{{ wtf.form_field(form.isIHC) }}</td>
+                        </tr>
+                        </table>
                         <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                         <tr>
+                            <caption></caption>
                             <td style="padding: 10px 20px;" width="40%">{{ wtf.form_field(form.targetProtein) }}</td>
                             <td width="1%">&nbsp;</td>
                             <td class="table_cell">
@@ -149,6 +156,25 @@
     {% set help_immunohistochemistry_btn = help_immunohistochemistry_id ~ '_btn' %}
     {% set help_immunohistochemistry_dialog = help_immunohistochemistry_id ~ '_dialog' %}
     {% endif %}
+
+    <script type = "text/javascript">
+        function isIHCFunction(){
+            document.getElementById("targetProtein").value = "Cool";
+
+            let isIHC_value = document.getElementById("isIHC").value;
+            var elements = document.getElementsByTagName('*');
+            if(isIHC_value == "No"){
+                for (var i=0, max=elements.length; i<max; i++){
+                    elements[i].setAttribute("readonly","readonly");
+                }
+            }
+            else{
+                for (var i=0, max=elements.length; i<max; i++){
+                    elements[i].setAttribute("readonly","");
+                }
+            }
+        }
+    </script>
 
     <script>
     $(function()

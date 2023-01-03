@@ -5,7 +5,10 @@
     {% set help_submit_package_id, help_submit_package_title, help_submit_package_content = help[0] %}
     {% set help_submit_package_btn = help_submit_package_id ~ '_btn' %}
     {% set help_submit_package_dialog = help_submit_package_id ~ '_dialog' %}
-    
+    {% set help_submit_success_id, help_submit_success_title, help_submit_success_content = help[1] %}
+    {% set help_submit_success_btn = help_submit_success_id ~ '_btn' %}
+    {% set help_submit_success_dialog = help_submit_success_id ~ '_dialog' %}
+
     <table>
         <td><h2>Send Data Package to EDI</h2></td>
         <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_submit_package_btn) }}</td>
@@ -69,6 +72,7 @@
     </form>
         </div>
     {{ macros.help_dialog(help_submit_package_dialog, help_submit_package_title, help_submit_package_content) }}
+    {{ macros.help_dialog(help_submit_success_dialog, help_submit_success_title, help_submit_success_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -76,11 +80,24 @@
     {% set help_submit_package_id, help_submit_package_title, help_submit_package_content = help[0] %}
     {% set help_submit_package_btn = help_submit_package_id ~ '_btn' %}
     {% set help_submit_package_dialog = help_submit_package_id ~ '_dialog' %}
+    {% set help_submit_success_id, help_submit_success_title, help_submit_success_content = help[1] %}
+    {% set help_submit_success_btn = help_submit_success_id ~ '_btn' %}
+    {% set help_submit_success_dialog = help_submit_success_id ~ '_dialog' %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_submit_package_dialog, help_submit_package_btn) }}
+        {{ macros.help_script(help_submit_success_dialog, help_submit_success_btn) }}
+        let success = JSON.parse('{{ success | tojson }}');
+        if (success == 'True') {
+            let help_submit_success_dialog = $('#{{ help_submit_success_dialog }}').dialog({
+                autoOpen: true,
+                width: 400,
+                position: {my: "center", at: "center", of: window}
+            });
+            help_submit_success_dialog.dialog('open');
+        }
     });
     </script>
 {% endblock %}

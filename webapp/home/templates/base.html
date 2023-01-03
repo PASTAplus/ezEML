@@ -38,7 +38,7 @@
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package', 'import_xml',
-        'export_package', '/submit_package'] %}
+        'export_package'] %}
 {% set non_saving_contains = ['/check_metadata/', '/check_data_tables/',
         '/data_table_errors/', '/fetch_xml', '/manage_packages',
         '/import_parties_2/', '/import_geo_coverage_2/',
@@ -46,7 +46,7 @@
         'import_package_2', 'import_xml_2', 'export_package_2',
         '/send_to_other', '_select', '/load_geo_coverage',
         '/load_taxonomic_coverage', '/load_taxonomic_coverage_2',
-        '/manage_data_usage'] %}
+        '/manage_data_usage', '/submit_package'] %}
 {% set ns = namespace(is_non_saving = false) %}
 {% for page in non_saving_endswith %}
     {% if request.path.endswith(page) %}

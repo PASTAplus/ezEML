@@ -587,13 +587,13 @@ def edit(page:str=None):
     return render_template('index.html')
 
 
-def get_back_url():
+def get_back_url(success=False):
     url = url_for(PAGE_INDEX)
     if current_user.is_authenticated:
         new_page = get_redirect_target_page()
         filename = user_data.get_active_document()
         if new_page and filename:
-            url = url_for(new_page, filename=filename)
+            url = url_for(new_page, filename=filename, success=success)
         elif not filename:
             url = url_for(PAGE_INDEX)
     return url
@@ -1095,7 +1095,7 @@ def open_package(package_name):
 
 
 def get_subdirs(dir):
-    print(f"get_subdirs: {dir}")
+    # print(f"get_subdirs: {dir}")
     subdirs = []
     for fname in sorted(os.listdir(dir), key=str.lower):
         if os.path.isdir(os.path.join(dir, fname)):
@@ -1104,7 +1104,7 @@ def get_subdirs(dir):
 
 
 def get_files(dir):
-    print(f"get_files: {dir}")
+    # print(f"get_files: {dir}")
     files = []
     for fname in sorted(os.listdir(dir), key=str.lower):
         if os.path.isdir(os.path.join(dir, fname)) or fname.endswith('.json'):
@@ -1917,8 +1917,10 @@ def insert_upload_urls(current_document, eml_node):
 
 
 @home.route('/submit_package', methods=['GET', 'POST'])
+@home.route('/submit_package/<filename>', methods=['GET', 'POST'])
+@home.route('/submit_package/<filename>/<success>', methods=['GET', 'POST'])
 @login_required
-def submit_package():
+def submit_package(filename=None, success=None):
     form = SubmitToEDIForm()
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -1943,8 +1945,7 @@ def submit_package():
                 zipfile_path_without_data = zip_package(current_document, eml_node, include_data=False)
             except ezEMLError as e:
                 flash(str(e), 'error')
-                print(redirect(get_back_url()))
-                return redirect(get_back_url())
+                return redirect(get_back_url(success=False))
 
             if zipfile_path and zipfile_path_without_data:
                 _, download_url = save_as_ezeml_package_export(zipfile_path)
@@ -1961,18 +1962,19 @@ def submit_package():
                     log_usage(actions['SEND_TO_EDI'], name, email_address)
                     flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
                     flash(f"If you don't hear back from us within 48 hours, please contact us at support@edirepository.org.")
+                    success = True
                 else:
                     log_usage(actions['SEND_TO_EDI'], 'failed')
                     flash(f'Email failed to send', 'error')
 
-            return redirect(get_back_url())
+            return redirect(get_back_url(success=success))
 
     set_current_page('submit_package')
-    help = get_helps(['submit_package'])
+    help = get_helps(['submit_package', 'submit_package_success'])
     return render_template('submit_package.html',
                            title='Send to EDI',
                            check_metadata_status=get_check_metadata_status(eml_node, current_document),
-                           form=form, help=help)
+                           form=form, help=help, success=success)
 
 
 def get_shortened_url(long_url):

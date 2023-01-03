@@ -1022,6 +1022,12 @@ To send your package to someone other than EDI, use <b>Send to Colleague</b>.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=ouacOxpL0V4&t=136s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
+submit_package_success
+Package Sent to EDI
+Your package has been sent to the data curation team at EDI. We will notify you when it has been added to the repository.
+
+If you don't hear back from us within 48 hours, please contact us at support@edirepository.org.
+--------------------
 taxonomic_coverages
 Taxonomic Coverage
 <b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study. This helps users find data relevant to their research interests.

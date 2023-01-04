@@ -59,7 +59,7 @@ import webapp.home.check_data_table_contents as check_data_table_contents
 
 from webapp.buttons import *
 from webapp.pages import *
-
+from webapp.utils import null_string
 
 if Config.LOG_DEBUG:
     app = Flask(__name__)
@@ -1212,6 +1212,16 @@ def clean_model(eml_node):
     for funding_node in funding_nodes:
         if not funding_node.content and len(funding_node.children) == 0:
             to_remove.append(funding_node)
+    for node in to_remove:
+        node.parent.remove_child(node)
+    # Some documents have a <distribution> node that contains only an empty <online> node. Remove it.
+    distribution_nodes = []
+    to_remove = []
+    eml_node.find_all_descendants(names.DISTRIBUTION, distribution_nodes)
+    for distribution_node in distribution_nodes:
+        online_nodes = distribution_node.find_all_children(names.ONLINE)
+        if len(online_nodes) == 1 and not online_nodes[0].content and len(online_nodes[0].children) == 0:
+            to_remove.append(distribution_node)
     for node in to_remove:
         node.parent.remove_child(node)
 
@@ -2872,14 +2882,14 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
 
 def create_data_source(data_source_node:Node=None, title:str=None, online_description:str=None, online_url:str=None):
     if data_source_node:
-        if title is not None:
+        if not null_string(title):
             title_node = data_source_node.find_child(names.TITLE)
             if not title_node:
                 title_node = new_child_node(names.TITLE, parent=data_source_node)
                 # data_source_node.add_child(title_node)
             title_node.content = title
 
-        if online_description is not None or online_url is not None:
+        if not null_string(online_description) or not null_string(online_url):
             distribution_node = data_source_node.find_child(names.DISTRIBUTION)
             if not distribution_node:
                 distribution_node = new_child_node(names.DISTRIBUTION, parent=data_source_node)
@@ -2889,14 +2899,14 @@ def create_data_source(data_source_node:Node=None, title:str=None, online_descri
                 online_node = new_child_node(names.ONLINE, parent=distribution_node)
                 # distribution_node.add_child(online_node)
 
-            if online_description:
+            if not null_string(online_description):
                 online_description_node = online_node.find_child(names.ONLINEDESCRIPTION)
                 if not online_description_node:
                     online_description_node = new_child_node(names.ONLINEDESCRIPTION, parent=online_node)
                     # online_node.add_child(online_description_node)
                 online_description_node.content = online_description
 
-            if online_url:
+            if not null_string(online_url):
                 online_url_node = online_node.find_child(names.URL)
                 if not online_url_node:
                     online_url_node = new_child_node(names.URL, parent=online_node)

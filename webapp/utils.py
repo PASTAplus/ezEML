@@ -24,3 +24,9 @@ def path_join(*paths):
 def remove(path):
     if path is not None:
         os.remove(path)
+
+
+def null_string(s):
+    if s is None:
+        return True
+    return s.isspace() or len(s) == 0

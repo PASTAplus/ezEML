@@ -130,7 +130,7 @@ def display_simple_texttype_node(text_node: Node = None) -> str:
     # Currently, this handles simple cases with paras only (paras may be contained in sections)
     if not text_node:
         return ''
-    if text_node.content:
+    if text_node.content and not text_node.content.isspace():
         return text_node.content
     text = ''
     para_nodes = []

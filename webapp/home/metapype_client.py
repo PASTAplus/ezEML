@@ -1225,6 +1225,29 @@ def clean_model(eml_node):
     for node in to_remove:
         node.parent.remove_child(node)
 
+    # The EML standard permits multiple instrumentation nodes, but the ezEML UI does not.
+    # If there are multiple instrumentation nodes, we will compromise by putting the
+    # instrumentation content in a single node, separated by newlines. The other
+    # instrumentation nodes will be deleted.
+    method_step_nodes = []
+    eml_node.find_all_descendants(names.METHODSTEP, method_step_nodes)
+    for method_step_node in method_step_nodes:
+        instrumentation = ''
+        instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)
+        index = 0
+        for instrumentation_node in instrumentation_nodes:
+            if not null_string(instrumentation_node.content):
+                instrumentation += f"{instrumentation_node.content}\n"
+            if index > 0:
+                method_step_node.remove_child(instrumentation_node)
+            index += 1
+        if instrumentation:
+            instrumentation_node = method_step_node.find_child(names.INSTRUMENTATION)
+            if instrumentation_node:
+                if instrumentation.endswith('\n'):
+                    instrumentation = instrumentation[:-1]
+                instrumentation_node.content = instrumentation
+
     # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []
     # to_remove = []
@@ -2876,7 +2899,25 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
             post_process_texttype_node(description_node)
 
         if instrumentation:
-            instrumentation_node = new_child_node(names.INSTRUMENTATION, parent=method_step_node)
+            instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)
+            if len(instrumentation_nodes) > 1:
+                # The EML standard permits multiple instrumentation nodes, but the ezEML UI does not.
+                # If there are multiple instrumentation nodes, we will compromise by putting the
+                # instrumentation content in a single node, separated by newlines. The other
+                # instrumentation nodes will be deleted.
+                content = ''
+                index = 0
+                for instrumentation_node in instrumentation_nodes:
+                    if not null_string(instrumentation_node.content):
+                        content += f"{instrumentation_node.content}\n"
+                    if index > 0:
+                        method_step_node.remove_child(instrumentation_node)
+                    index += 1
+                instrumentation = f"{content}{instrumentation}"
+            instrumentation_node = method_step_node.find_child(names.INSTRUMENTATION)
+            if not instrumentation_node:
+                instrumentation_node = new_child_node(names.INSTRUMENTATION, parent=method_step_node)
+
             instrumentation_node.content = instrumentation
 
 

@@ -823,6 +823,8 @@ Description of instruments used for measurement and recording data.
 This may include any instruments used in the data collection or quality control and quality assurance. The description should provide vendor, model number, optional equipment, etc.
 
 Example: LACHAT analyzer, model XYX.
+
+<b>Please note:</b> The EML standard allows multiple instrumentation elements to be associated with a single method step, but the ezEML interface only allows for one. To specify multiple instrumentation descriptions, enter them on separate lines. If an EML document is imported into ezEML that contains multiple instrumentation elements for a method step, they will be displayed in the same <b>Instrumentation</b> field, on separate lines, and they will be saved in a single instrumentation element in the metadata.
 --------------------
 method_step_data_sources
 Method Step Data Sources

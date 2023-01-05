@@ -287,6 +287,7 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
             #     data_sources = description[begin+len(data_sources_marker_begin)+1:end-1]
             #     description = description[0:begin-1]
 
+        instrumentation = ''
         instrumentation_node = ms_node.find_child(names.INSTRUMENTATION)
         if instrumentation_node:
             instrumentation = instrumentation_node.content

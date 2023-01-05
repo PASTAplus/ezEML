@@ -523,47 +523,46 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
 
     object_name_node.content = data_file
 
+    physical_node = other_entity_node.find_descendant(names.PHYSICAL)
+
     file_size = get_file_size(full_path)
     if file_size is not None:
-        if not doing_reupload:
+        size_node = other_entity_node.find_descendant(names.SIZE)
+        if size_node is None:
             size_node = Node(names.SIZE, parent=physical_node)
             metapype_client.add_child(physical_node, size_node)
-            size_node.add_attribute('unit', 'byte')
-        else:
-            size_node = other_entity_node.find_descendant(names.SIZE)
-
+        size_node.add_attribute('unit', 'byte')
         size_node.content = str(file_size)
 
     md5_hash = get_md5_hash(full_path)
     if md5_hash is not None:
-        if not doing_reupload:
+        hash_node = physical_node.find_descendant(names.AUTHENTICATION)
+        if hash_node is None:
             hash_node = Node(names.AUTHENTICATION, parent=physical_node)
             metapype_client.add_child(physical_node, hash_node)
-            hash_node.add_attribute('method', 'MD5')
-        else:
-            hash_node = other_entity_node.find_descendant(names.AUTHENTICATION)
-
+        hash_node.add_attribute('method', 'MD5')
         hash_node.content = str(md5_hash)
 
-    if not doing_reupload:
+    data_format_node = physical_node.find_descendant(names.DATAFORMAT)
+    if data_format_node is None:
         data_format_node = Node(names.DATAFORMAT, parent=physical_node)
         metapype_client.add_child(physical_node, data_format_node)
 
-        externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
-        metapype_client.add_child(data_format_node, externally_defined_format_node)
+    # If the package was created in ezEML, the dataFormat will be externallyDefinedFormat.
+    # We force that to be the case here, so that's what ezEML knows how to handle.
+    data_format_node.children = []
 
-        format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
-        metapype_client.add_child(externally_defined_format_node, format_name_node)
-    else:
-        format_name_node = other_entity_node.find_descendant(names.FORMATNAME)
+    externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+    metapype_client.add_child(data_format_node, externally_defined_format_node)
 
+    format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+    metapype_client.add_child(externally_defined_format_node, format_name_node)
     format_name_node.content = format_name_from_data_file(data_file)
 
     if not doing_reupload:
         entity_type_node = metapype_client.new_child_node(names.ENTITYTYPE, parent=other_entity_node)
     else:
         entity_type_node = other_entity_node.find_descendant(names.ENTITYTYPE)
-
     entity_type_node.content = format_name_from_data_file(data_file)
 
     user_data.add_data_table_upload_filename(data_file)

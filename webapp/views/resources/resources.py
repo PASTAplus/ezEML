@@ -44,6 +44,7 @@ from webapp.pages import *
 from webapp.home.views import process_up_button, process_down_button, get_help, get_helps
 from metapype.eml import names
 from metapype.model.node import Node
+from webapp.config import Config
 
 from webapp.home.intellectual_rights import (
     INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
@@ -76,8 +77,11 @@ def title(filename=None):
     user_name = current_user.get_username()
     current_packageid = current_user.get_filename()
     pid = os.getpid()
-    metapype_store_size = len(Node.store)
-    log_info(f'Title    PID={pid}, user={user_name}, package={current_packageid}, metapype_store_size={metapype_store_size}')
+    metapype_store = ''
+    if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
+        metapype_store_size = len(Node.store)
+        metapype_store = f', metapype_store_size={metapype_store_size}'
+    log_info(f'Title    PID={pid}, user={user_name}, package={current_packageid}{metapype_store}')
 
     form = TitleForm()
 

@@ -781,7 +781,7 @@ def check_project_node(project_node, doc_name, related_project_id=None):
     if not related_project_id:
         link = url_for(PAGE_PROJECT, filename=doc_name)
     else:
-        link = url_for(PAGE_PROJECT, filename=doc_name, node_id=related_project_id)
+        link = url_for(PAGE_PROJECT, filename=doc_name, project_node_id=related_project_id)
     validation_errors = validate_via_metapype(project_node)
     name = project_node.name
     if find_min_unmet(validation_errors, name, names.TITLE):

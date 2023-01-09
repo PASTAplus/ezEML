@@ -246,13 +246,14 @@ def guess_missing_value_code(filepath, delimiter, quotechar, colname):
         if mvcode:
             break
     if not mvcode:
+        """
+        Scanning existing EML files shows that the following codes are used quite often. Since they are likely to be
+        very uncommon as actual data values, we will take them to be missing value codes if they are present in the data.
+        The only missing value codes that are used more often are NA, NaN, NAN, none, NULL, Null."""
         for val in col_values:
-            try:
-                if re.match(r'-?999*(.0+)?$', val):
-                    mvcode = val
-                    break
-            except:
-                pass
+            if val.startswith('9999') or val.startswith('-9999'):
+                mvcode = val
+                break
     return mvcode
 
 

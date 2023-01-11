@@ -3182,16 +3182,28 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
                                form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
 
 
-def data_table_is_unique(eml_node, data_table_filename):
-    data_table_name, _ = os.path.splitext(os.path.basename(data_table_filename))
+def data_filename_is_unique(eml_node, data_filename):
+    """
+    Check if the data filename is unique across both data tables and other entities.
+    """
+    data_entity_name, _ = os.path.splitext(os.path.basename(data_filename))
     data_table_nodes = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     for data_table_node in data_table_nodes:
-        data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
-        if data_table_name_node and data_table_name_node.content == data_table_name:
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        if entity_name_node and entity_name_node.content == data_entity_name:
             return False
-        data_table_object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-        if data_table_object_name_node and data_table_object_name_node.content == data_table_filename:
+        object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+        if object_name_node and object_name_node.content == data_filename:
+            return False
+    other_entity_nodes = []
+    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+    for other_entity_node in other_entity_nodes:
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        if entity_name_node and entity_name_node.content == data_entity_name:
+            return False
+        object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+        if object_name_node and object_name_node.content == data_filename:
             return False
     return True
 
@@ -3233,9 +3245,9 @@ def load_data(filename=None):
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             elif allowed_data_file(filename):
-                # Make sure we don't already have a data table with this name
-                if not data_table_is_unique(eml_node, filename):
-                    flash('The selected name has already been used in this data package. Data table names must be unique within a data package.', 'error')
+                # Make sure we don't already have a data table or other entity with this name
+                if not data_filename_is_unique(eml_node, filename):
+                    flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
                     return redirect(request.url)
 
                 # Make sure the user's uploads directory exists
@@ -3538,6 +3550,12 @@ def load_entity(node_id=None):
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             else:
+                # Make sure we don't already have a data table or other entity with this name
+                eml_node = load_eml(filename=document)
+                if not data_filename_is_unique(eml_node, filename):
+                    flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
+                    return redirect(request.url)
+
                 file.save(os.path.join(uploads_folder, filename))
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'

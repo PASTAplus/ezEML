@@ -296,11 +296,12 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
         data_sources_nodes = ms_node.find_all_children(names.DATASOURCE)
         if data_sources_nodes:
             for ds_node in data_sources_nodes:
+                title = ''  # If we have a data source with no title, we still want to list it so it can be removed
                 title_node = ds_node.find_child(names.TITLE)
                 if title_node:
                     title = title_node.content
                     title = (title[:67] + '...') if len(title) > 70 else title
-                    data_sources_list.append((title, f'{ms_node_id}|{ds_node.id}'))
+                data_sources_list.append((title, f'{ms_node_id}|{ds_node.id}'))
 
         form.description.data = description
         form.instrumentation.data = instrumentation

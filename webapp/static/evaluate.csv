@@ -52,6 +52,7 @@ attributes_08,Data Tables,DateTime Format,WARNING,RECOMMENDED,The DateTime <b>Fo
 methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,
 methods_03,Methods,Methods,ERROR,REQUIRED,The metadata contains an empty <b>Methods</b> section. EML does not permit a Methods section to be empty.,
+methods_04,Data Sources,Online,ERROR,REQUIRED,If either an <b>Online Description</b> or <b>URL</b> is given for a data source then both are required.,
 project_01,Project,Project Title,ERROR,REQUIRED,The <b>Project Title</b> is required.,
 project_02,Project,Project Personnel,ERROR,REQUIRED,At least one <b>Project Personnel</b> is required.,
 project_03,Project,Project,WARNING,RECOMMENDED,A dataset should define a <b>Project</b>.,

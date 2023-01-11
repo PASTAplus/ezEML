@@ -602,6 +602,9 @@ def get_back_url(success=False):
 
 @home.route('/slow_poke')
 def slow_poke():
+    """
+    This is a dummy page that was used to test multi-threading. It is no longer used.
+    """
     import time
     from datetime import datetime
     entry = datetime.now()
@@ -791,6 +794,9 @@ def manage_data_usage(action=None):
 
 
 def copy_uploads(from_package, to_package):
+    """
+    Copy the uploads from one package to another as part of the 'Save As' operation.
+    """
     from_folder = user_data.get_document_uploads_folder_name(from_package)
     to_folder = user_data.get_document_uploads_folder_name(to_package)
     for filename in os.listdir(from_folder):
@@ -856,7 +862,7 @@ def save_as():
         # else:
         #     return redirect(url_for(PAGE_SAVE_AS, filename=current_filename))
 
-     # Process GET
+    # Process GET
     if current_document:
         # form.filename.data = current_filename
         help = get_helps(['save_as_document'])
@@ -931,14 +937,12 @@ def check_metadata(filename:str):
 @login_required
 def datetime_formats():
     content = format_date_time_formats_list()
-    # log_usage(actions['CHECK_METADATA'])
 
     # Process POST
     if request.method == 'POST':
         return redirect(url_for(PAGE_DATETIME_FORMATS))
 
     else:
-        # set_current_page('check_metadata')
         return render_template('datetime_formats.html', content=content)
 
 
@@ -1913,8 +1917,11 @@ def insert_upload_urls(current_document, eml_node):
     parsed_url = urlparse(request.base_url)
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{uploads_folder}"
 
-    insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.DATATABLE)
-    insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.OTHERENTITY)
+    if 'localhost:5000' not in uploads_url_prefix:
+        # When working locally, the generated URL will be flagged by Flask as invalid. This is a pain in the neck, since
+        #  we can't leave the page without clearing the URL. So, we'll just skip the URL insertion when working locally.
+        insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.DATATABLE)
+        insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.OTHERENTITY)
 
 
 @home.route('/submit_package', methods=['GET', 'POST'])
@@ -1993,9 +2000,9 @@ def send_to_other_email(name, email_address, title, url):
     email_address_quoted = quote(email_address)
     title_quoted = quote(title)
     url = get_shortened_url(url)  # Note; get_shortened_url handles blank chars
-    msg_quoted = f'mailto:{email_address}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name}%3A%0D%0A%0D%0A' \
+    msg_quoted = f'mailto:{email_address_quoted}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name_quoted}%3A%0D%0A%0D%0A' \
           f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
-          f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
+          f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title_quoted}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
           f'available%20for%20download%20here%3A%20{url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
           f'After%20you%20download%20the%20package%2C%20you%20can%20import%20it%20into%20ezEML%2C%20or%20you%20can%20' \
           f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \

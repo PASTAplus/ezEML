@@ -710,6 +710,41 @@ def check_contacts(eml_node, doc_name, validation_errs=None, evaluation_warnings
                                     doc_name, contact_node.id, is_data_source=is_data_source)
 
 
+def check_distribution_element(distribution_node, doc_name):
+    """
+    This assumes the distribution node is a child of a dataSource node, which is a child of a methodStep node.
+    """
+    data_source_node = distribution_node.parent
+    ms_node = data_source_node.parent
+    link = url_for(PAGE_DATA_SOURCE,
+                   filename=doc_name,
+                   ms_node_id=ms_node.id,
+                   data_source_node_id=data_source_node.id)
+    # We do ad hoc checking here because what ezEML requires is not what the EML schema requires.
+    # For ezEML, if a distribution element is present it must have an online element child, and the
+    # online element must have both an onlineDescription element child and a url element child, both
+    # of which must have nonempty text content.
+    error = False
+    online_node = distribution_node.find_child(names.ONLINE)
+    if online_node:
+        online_description_node = online_node.find_child(names.ONLINEDESCRIPTION)
+        if online_description_node:
+            online_description = online_description_node.content
+            if not online_description:
+                error = True
+        url_node = online_node.find_child(names.URL)
+        if url_node:
+            url = url_node.content
+            if not url:
+                error = True
+        if not online_description_node or not url_node:
+            error = True
+    else:
+        error = True
+    if error:
+        add_to_evaluation('methods_04', link)
+
+
 def check_data_source(doc_name, data_source_node):
     validation_errs = validate_via_metapype(data_source_node)
     evaluation_warnings = evaluate_via_metapype(data_source_node)
@@ -725,6 +760,9 @@ def check_data_source(doc_name, data_source_node):
                    validation_errs=validation_errs,
                    evaluation_warnings=evaluation_warnings,
                    is_data_source=True)
+    distribution_node = data_source_node.find_descendant(names.DISTRIBUTION)
+    if distribution_node:
+        check_distribution_element(distribution_node, doc_name)
 
 
 def check_method_step(method_step_node, doc_name, node_id):

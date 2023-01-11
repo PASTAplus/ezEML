@@ -12,13 +12,14 @@
     6/20/20
 """
 
-import collections
 from datetime import datetime
 from enum import Enum
 import hashlib
 import os
 import pickle
 import time
+
+from dataclasses import dataclass
 
 import daiquiri
 from flask import (
@@ -72,6 +73,17 @@ class EvalType(Enum):
     OPTIONAL = 4
 
 
+@dataclass
+class EvalEntry:
+    section: str
+    item: str
+    severity: EvalSeverity
+    type: EvalType
+    explanation: str
+    data_table_name: str = None
+    link: str = None
+
+
 scopes = [
     'ecotrends',
     'edi',
@@ -120,7 +132,7 @@ def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None)
             vals[0] = section
         if item:
             vals[1] = item
-        return Eval_Entry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
+        return EvalEntry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
                           explanation=vals[4], data_table_name=data_table_name, link=link)
     except Exception as exc:
         return None
@@ -130,11 +142,6 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
     entry = get_eval_entry(id, link, section, item, data_table_name)
     if entry:
         evaluation.append(entry)
-
-
-Eval_Entry = collections.namedtuple(
-    'Evaluate_Entry', ["section", "item", "severity", "type", "explanation", "data_table_name", "link"])
-evaluation = []
 
 
 def find_min_unmet(errs, node_name, child_name, data_source_node_id=None):
@@ -899,7 +906,7 @@ def collect_entries(evaluation, section):
     return [entry for entry in evaluation if entry.section == section]
 
 
-def format_entry(entry:Eval_Entry):
+def format_entry(entry:EvalEntry):
     output = '<tr>'
     output += f'<td class="eval_table" valign="top"><a href="{entry.link}">{entry.item}</a></td>'
     output += f'<td class="eval_table" valign="top">{entry.severity.name.title()}</td>'
@@ -979,7 +986,7 @@ def check_evaluation_memo(json_filename, eml_node):
     eval_filename = json_filename.replace('.json', '_eval.pkl')
     try:
         # start = datetime.now()
-        old_md5, validation_errs, evaluation_warnings = pickle.load(open(eval_filename, 'rb'))
+        old_md5, validation_errs, evaluation_warnings, evaluation = pickle.load(open(eval_filename, 'rb'))
         with open(json_filename, 'rt') as json_file:
             json = json_file.read()
         new_md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
@@ -988,15 +995,15 @@ def check_evaluation_memo(json_filename, eml_node):
         # print('**** check_evaluation_memo', elapsed)
         if new_md5 == old_md5:
             # print(f'**** new_md5={new_md5}')
-            return new_md5, validation_errs, evaluation_warnings
+            return new_md5, validation_errs, evaluation_warnings, evaluation
         else:
             # print(f'**** new_md5={new_md5}, old_md5={old_md5}')
-            return new_md5, None, None
+            return new_md5, None, None, None
     except:
-        return None, None, None
+        return None, None, None, None
 
 
-def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings):
+def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings, evaluation):
     eval_filename = json_filename.replace('.json', '_eval.pkl')
     try:
         if md5 == None:
@@ -1004,10 +1011,16 @@ def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation
                 json = json_file.read()
             md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
         with open(eval_filename, 'wb') as f:
-            pickle.dump((md5, validation_errs, evaluation_warnings), f)
-    except:
+            pickle.dump((md5, validation_errs, evaluation_warnings, evaluation), f)
+    except Exception as e:
         if os.path.exists(eval_filename):
             os.remove(eval_filename)
+
+
+def display_elapsed(start, msg):
+    end = datetime.now()
+    elapsed = (end - start).total_seconds()
+    print(f"**** {msg} {elapsed}")
 
 
 def perform_evaluation(eml_node, doc_name):
@@ -1018,14 +1031,21 @@ def perform_evaluation(eml_node, doc_name):
     user_folder = user_data.get_user_folder_name()
     json_filename = f'{user_folder}/{doc_name}.json'
 
-    md5, validation_errs, evaluation_warnings = check_evaluation_memo(json_filename, eml_node)
+    md5, validation_errs, evaluation_warnings, evaluation = check_evaluation_memo(json_filename, eml_node)
     need_to_memoize = False
-    if validation_errs == None or evaluation_warnings == None:
+    # if validation_errs == None or evaluation_warnings == None:
+    if evaluation is None:
+        evaluation = []
         # print('memoize')
         need_to_memoize = True
         validation_errs = validate_via_metapype(eml_node)
         evaluation_warnings = evaluate_via_metapype(eml_node)
 
+    if not need_to_memoize:
+        display_elapsed(start, '**** perform_evaluation')
+        return evaluation
+
+    display_elapsed(start, '**** starting checks')
     check_dataset_title(eml_node, doc_name, validation_errs, evaluation_warnings)
     check_data_tables(eml_node, doc_name, evaluation_warnings)
     check_creators(eml_node, doc_name, validation_errs)
@@ -1044,11 +1064,9 @@ def perform_evaluation(eml_node, doc_name):
     check_data_package_id(eml_node, doc_name, validation_errs)
 
     if need_to_memoize:
-        memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings)
+        memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings, evaluation)
 
-    end = datetime.now()
-    elapsed = (end - start).total_seconds()
-    # print('**** perform_evaluation', elapsed)
+    display_elapsed(start, '**** perform_evaluation')
 
     return evaluation
 
@@ -1058,7 +1076,7 @@ def check_metadata_status(eml_node, doc_name):
     errors = 0
     warnings = 0
     for entry in evaluations:
-        _, _, severity, _, _, _, _ = entry
+        severity = entry.severity
         if severity == EvalSeverity.ERROR:
             errors += 1
         if severity == EvalSeverity.WARNING:

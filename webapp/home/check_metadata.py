@@ -1020,7 +1020,7 @@ def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation
 def display_elapsed(start, msg):
     end = datetime.now()
     elapsed = (end - start).total_seconds()
-    print(f"**** {msg} {elapsed}")
+    # print(f"**** {msg} {elapsed}")
 
 
 def perform_evaluation(eml_node, doc_name):

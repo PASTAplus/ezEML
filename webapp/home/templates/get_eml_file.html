@@ -11,7 +11,7 @@
                 {{ form.csrf_token }}
                 <table>
                     <tr><h4>Select a user:</h5></tr>
-                    <tr>{{ form.user(style="list-style:none;") }}</tr>
+                    <tr>{{ form.user(style="list-style:none;", class_="input_value") }}</tr>
                     <tr>&nbsp;<p/></tr>
                     <tr><input class="btn btn-primary" name="Select" type="submit" value="Select"/>&nbsp;
                     <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>

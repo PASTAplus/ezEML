@@ -8,13 +8,13 @@
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/directory-list.css', version=release_number) }}">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
     <script src="//code.jquery.com/jquery-1.12.4.js"></script>
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/directory-list.css', version=release_number) }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
 
 {#    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">#}
 {#    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js">#}
@@ -394,7 +394,7 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ super() }}
+{#    {{ super() }}#}
     <script>
     $(function()
     {
@@ -483,6 +483,7 @@
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
 
     <script>
     $(function()

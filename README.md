@@ -1,2 +1,2 @@
-# metadata-eml
-A web front-end for the metapype-eml client
+# ezEML
+An EDI web front-end for the metapype-eml client

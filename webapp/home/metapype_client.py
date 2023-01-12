@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.01.04'
+RELEASE_NUMBER = '2023.01.11'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -176,6 +176,11 @@ def sort_package_ids(packages):
 
 
 def list_data_packages(flag_current=False, include_current=True):
+    """
+    Returns a list of data packages in the current user's account, as tuples suitable for
+    use in a select list.  If flag_current is True, the current package is indicated. If
+    include_current is False, the current package is excluded from the list.
+    """
     choices = []
     user_documents = sorted(user_data.get_user_document_list(), key=str.casefold)
     current_annotation = ' (current data package)' if flag_current else ''
@@ -280,7 +285,9 @@ def move_down(parent_node:Node, child_node:Node):
 
 
 def force_missing_value_codes(attribute_node, codes):
-    # Apply the missing value code, if any. This will apply the first missing value code.
+    """
+    Replace nan values with the missing value code, if any. This will apply the first missing value code.
+    """
     missing_value_code_node = attribute_node.find_descendant(names.CODE)
     if missing_value_code_node:
         missing_value = missing_value_code_node.content
@@ -371,6 +378,9 @@ def compose_entity_label(entity_node:Node=None):
 
 
 def nominal_ordinal_from_attribute(att_node:Node=None):
+    """
+    If attribute has nominal or ordinal measurementScale, return its nominal or ordinal node. Otherwise return None.
+    """
     if att_node:
         nominal_node = att_node.find_single_node_by_path([
             names.MEASUREMENTSCALE, names.NOMINAL
@@ -811,6 +821,12 @@ def compose_taxonomic_label(txc_node:Node=None, label:str=''):
 
 
 def reconcile_roles(node, target_class):
+    """
+    When importing a responsible party, the source node may or may not have a role and the target
+    class may or may not require a role. If the target doesn't have role as an allowed child, remove
+    the role, if present. If the target requires a role and the source doesn't have one, add a role
+    child with empty content.
+    """
     if target_class in ['Creators', 'Metadata Providers', 'Contacts']:
         role_node = node.find_child(names.ROLE)
         if role_node:
@@ -947,7 +963,11 @@ def import_related_project_nodes(target_package, node_ids_to_import):
         add_child(parent_node, new_node)
     save_both_formats(target_package, target_eml_node)
 
+
 def compose_rp_label(rp_node:Node=None):
+    """
+    What we display for a responsible party depends on the type of responsible party.
+    """
     label = ''
     if rp_node:
         individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
@@ -1098,6 +1118,9 @@ def log_as_xml(node: Node):
 
 
 def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=None):
+    """
+    Do "Save As", saving the current document under a new document name.
+    """
     msg = None
     if new_filename and eml_node and new_filename != old_filename:
         save_both_formats(filename=new_filename, eml_node=eml_node)
@@ -1109,14 +1132,13 @@ def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=
     return msg
 
 
-def collect_children(parent_node:Node, child_name:str, children:list):
-    children.extend(parent_node.find_all_children(child_name))
-
-
 def enforce_dataset_sequence(eml_node:Node=None):
+    def collect_children(parent_node: Node, child_name: str, children: list):
+        children.extend(parent_node.find_all_children(child_name))
+
+    # Children of dataset node need to be in sequence. This happens "naturally" when ezEML is used as a
+    #  wizard, but not when jumping around between sections
     if eml_node:
-        # Children of dataset node need to be in sequence. This happens "naturally" when ezEML is used as a
-        #  wizard, but not when jumping around between sections
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             new_children = []
@@ -1148,6 +1170,10 @@ def enforce_dataset_sequence(eml_node:Node=None):
 
 
 def clean_model(eml_node):
+    """
+    Perform various cleanups on the model. This is called when a model is saved. Its purpose is to deal with
+    cases where an existing model has glitches due to earlier bugs or because we've changed how we're doing things.
+    """
     if not eml_node:
         return
     try:
@@ -1315,10 +1341,12 @@ def create_full_xml(eml_node):
 
 
 def fixup_categorical_variables(eml_node):
+    """
+    There was a bug that caused some Categorical variables to have None as variable type.
+    Existing ezEML documents may still contain such variables. Here we fix them.
+    """
     # Importing here to sidestep circular import problem.
     from webapp.views.data_tables.dt import change_measurement_scale
-    # There was a bug that caused some Categorical variables to have None as variable type.
-    # Existing ezEML documents may still contain such variables. Here we fix them.
     data_table_nodes = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     for data_table_node in data_table_nodes:
@@ -1375,20 +1403,6 @@ def pickle_eml(filename:str=None, eml_node:Node=None):
 
 
 def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
-    # if Config.LOG_DEBUG:
-    #     app = Flask(__name__)
-    #     with app.app_context():
-    #         if format == 'json':
-    #             if eml_node:
-    #                 current_app.logger.info(f'save_eml (json)... eml_node.id={eml_node.id}')
-    #             else:
-    #                 current_app.logger.info(f'save_eml (json)... eml_node is None')
-    #         if format == 'xml':
-    #             if eml_node:
-    #                 current_app.logger.info(f'save_eml (xml)... eml_node.id={eml_node.id}')
-    #             else:
-    #                 current_app.logger.info(f'save_eml (xml)... eml_node is None')
-
     if filename:
         if eml_node is not None:
             metadata_str = None
@@ -1409,14 +1423,6 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 with open(filename, "w") as fh:
                     fh.write(metadata_str)
                     fh.flush()
-
-                # if Config.LOG_DEBUG:
-                #     app = Flask(__name__)
-                #     with app.app_context():
-                #         if format == 'json':
-                #             current_app.logger.info(f'save_eml (json)... done')
-                #         if format == 'xml':
-                #             current_app.logger.info(f'save_eml (xml)... done')
         else:
             raise Exception(f"No EML node was supplied for saving EML.")
     else:
@@ -1424,10 +1430,10 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
 
 
 def evaluate_node(node:Node):
-    msg = 'pass'
     if node:
-        msg = evaluate.node(node)
-    return msg
+        return evaluate.node(node)
+    else:
+        return 'pass'
 
 
 def validate_tree(node:Node):
@@ -1461,7 +1467,7 @@ def create_eml(filename=None):
         access_node = create_access(parent_node=eml_node)
         initialize_access_rules(access_node)
 
-        dataset_node = new_child_node(names.DATASET, parent=eml_node)
+        _ = new_child_node(names.DATASET, parent=eml_node)
 
         try:
             save_both_formats(filename=filename, eml_node=eml_node)
@@ -1470,9 +1476,9 @@ def create_eml(filename=None):
 
 
 def initialize_access_rules(access_node:Node):
-    ''' 
+    """
     Initialize the access element with default access rules for user and public
-    '''
+    """
     if current_user.is_authenticated:
         user_allow_node = new_child_node(names.ALLOW, parent=access_node)
 
@@ -2125,6 +2131,7 @@ def create_pubdate(pubdate=None, filename=None):
         save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
+
 
 def create_other_entity(
     entity_node:Node=None, 
@@ -2923,36 +2930,53 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
 
 def create_data_source(data_source_node:Node=None, title:str=None, online_description:str=None, online_url:str=None):
     if data_source_node:
-        if not null_string(title):
-            title_node = data_source_node.find_child(names.TITLE)
-            if not title_node:
-                title_node = new_child_node(names.TITLE, parent=data_source_node)
-                # data_source_node.add_child(title_node)
-            title_node.content = title
+        if title is None:
+            title = ''
+        title_node = data_source_node.find_child(names.TITLE)
+        if not title_node:
+            title_node = new_child_node(names.TITLE, parent=data_source_node)
+        title_node.content = title
 
-        if not null_string(online_description) or not null_string(online_url):
-            distribution_node = data_source_node.find_child(names.DISTRIBUTION)
-            if not distribution_node:
-                distribution_node = new_child_node(names.DISTRIBUTION, parent=data_source_node)
-                # data_source_node.add_child(distribution_node)
-            online_node = distribution_node.find_child(names.ONLINE)
-            if not online_node:
-                online_node = new_child_node(names.ONLINE, parent=distribution_node)
-                # distribution_node.add_child(online_node)
+        if online_description is None:
+            online_description = ''
+        if online_url is None:
+            online_url = ''
 
-            if not null_string(online_description):
-                online_description_node = online_node.find_child(names.ONLINEDESCRIPTION)
-                if not online_description_node:
-                    online_description_node = new_child_node(names.ONLINEDESCRIPTION, parent=online_node)
-                    # online_node.add_child(online_description_node)
-                online_description_node.content = online_description
+        distribution_node = data_source_node.find_child(names.DISTRIBUTION)
+        if not distribution_node:
+            distribution_node = new_child_node(names.DISTRIBUTION, parent=data_source_node)
 
-            if not null_string(online_url):
-                online_url_node = online_node.find_child(names.URL)
-                if not online_url_node:
-                    online_url_node = new_child_node(names.URL, parent=online_node)
-                    # online_node.add_child(online_url_node)
-                online_url_node.content = online_url
+        # We do not support the full EML schema here. The schema allows offline and inline elements, but ezEML
+        #  only supports online. In addition, the schema allows connection and connectionDefinition elements as
+        #  children of the online element, but ezEML supports only the url element.
+        online_node = distribution_node.find_child(names.ONLINE)
+        if not online_node:
+            online_node = new_child_node(names.ONLINE, parent=distribution_node)
+
+        online_description_node = online_node.find_child(names.ONLINEDESCRIPTION)
+        if online_description:
+            if not online_description_node:
+                online_description_node = new_child_node(names.ONLINEDESCRIPTION, parent=online_node)
+            online_description_node.content = online_description
+        else:
+            # We don't allow an empty online description, so we will delete the node if it exists
+            if online_description_node:
+                online_node.remove_child(online_description_node)
+
+        online_url_node = online_node.find_child(names.URL)
+        if online_url:
+            if not online_url_node:
+                online_url_node = new_child_node(names.URL, parent=online_node)
+            online_url_node.content = online_url
+        else:
+            # We don't allow an empty online URL, so we will delete the node if it exists
+            if online_url_node:
+                online_node.remove_child(online_url_node)
+
+        # If online node was created and now there is no online description nor url, delete the distribution node
+        # The user may have just cleared the online description and url fields.
+        if len(online_node.children) == 0:
+            data_source_node.remove_child(distribution_node)
 
 
 def create_keyword(keyword_node:Node=None, keyword:str=None, keyword_type:str=None):

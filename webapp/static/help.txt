@@ -10,11 +10,13 @@ An abstract is not required, but it is highly recommended.
 --------------------
 add_load_data_tables
 Add/Load Data Tables
-You can create a data table's metadata "from scratch" via <b>Add Data Table from Scratch</b>, or you can load an existing data table CSV file via <b>Load Data Table from CSV File</b>.
+You can create a data table's metadata "from scratch" via <b>Add Data Table from Scratch</b>, or you can load an existing data table CSV file via <b>Load Data Table from CSV File</b>. Use the latter method if you have a CSV file available; it will save you time and effort.
 
-In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
+When you use <b>Load Data Table from CSV File</b>, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 
-CSV files are assumed to contain a single header row and no footer rows. ezEML accepts several other field delimiters besides commas, including tabs.
+ezEML follows common practice by applying the term "CSV" loosely: the file may use commas as field delimiters, or it may use one of several other field delimiters: tabs, semicolons, colons, or vertical bars ("|"). The CSV file must have a single header row and no footer rows.
+
+The CSV file must be <b>UTF-8 encoded</b>. If you save the file in Microsoft Excel, select "CSV UTF-8 (Comma delimited) (.csv)" as the File Format. Note that Excel, like ezEML, applies the term "CSV" loosely and will save the file with a ".csv" extension even if you use a different field delimiter.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/P_87XcXyvug" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------

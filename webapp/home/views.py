@@ -3017,7 +3017,7 @@ def get_data_file():
     form = SelectUserForm()
 
     if BTN_CANCEL in request.form:
-        return redirect(get_back_url())
+        return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
     if request.method == 'POST':
         user = form.user.data
@@ -3025,7 +3025,7 @@ def get_data_file():
 
     if request.method == 'GET':
         # Get the list of users
-        user_data_dir = user_data.USER_DATA_DIR
+        user_data_dir = Config.USER_DATA_DIR
         filelist = glob.glob(f'{user_data_dir}/*')
         files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
         # print(files)
@@ -3035,9 +3035,9 @@ def get_data_file():
 
 def download_data_file(filename: str = '', user: str=''):
     if filename:
-        user_data_dir = user_data.USER_DATA_DIR
-        filepath = f'../{user_data_dir}/{user}/uploads/{filename}'
-        return send_file(filepath, as_attachment=True, attachment_filename=os.path.basename(filename))
+        user_data_dir = Config.USER_DATA_DIR
+        filepath = f'{user_data_dir}/{user}/uploads/{filename}'
+        return send_file(filepath, as_attachment=True, download_name=os.path.basename(filename))
 
 
 @home.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
@@ -3052,7 +3052,7 @@ def get_data_file_2(user):
     form = SelectDataFileForm()
 
     if BTN_CANCEL in request.form:
-        return redirect(get_back_url())
+        return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
     if request.method == 'POST':
         data_file = form.data_file.data
@@ -3062,7 +3062,7 @@ def get_data_file_2(user):
     if request.method == 'GET':
         # Get the list of data files for the user
         csv_list = []
-        user_data_dir = user_data.USER_DATA_DIR
+        user_data_dir = Config.USER_DATA_DIR
         dir_list = glob.glob(f'{user_data_dir}/{user}/uploads/*')
         dirs = sorted(dir_list, key=str.casefold)
         for dir in dirs:
@@ -3090,7 +3090,7 @@ def get_eml_file():
     form = SelectUserForm()
 
     if BTN_CANCEL in request.form:
-        return redirect(get_back_url())
+        return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
     if request.method == 'POST':
         user = form.user.data
@@ -3098,7 +3098,7 @@ def get_eml_file():
 
     if request.method == 'GET':
         # Get the list of users
-        user_data_dir = user_data.USER_DATA_DIR
+        user_data_dir = Config.USER_DATA_DIR
         filelist = glob.glob(f'{user_data_dir}/*')
         files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
         # print(files)
@@ -3110,7 +3110,7 @@ def download_eml_file(filename: str = '', user: str=''):
     if filename:
         # We will create and download a zip file with both the xml and json files
         edi_user_folder = user_data.get_user_folder_name()
-        user_folder = os.path.join(user_data.USER_DATA_DIR, user)
+        user_folder = os.path.join(Config.USER_DATA_DIR, user)
         basename = os.path.splitext(os.path.basename(filename))[0]
         xml_file_pathname = os.path.join(user_folder, basename) + '.xml'
         json_file_pathname = os.path.join(user_folder, basename) + '.json'
@@ -3130,7 +3130,7 @@ def download_eml_file(filename: str = '', user: str=''):
         else:
             log_info(f'File not found: {json_file_pathname}')
         zip_object.close()
-        return send_file('../' + zip_file_pathname, as_attachment=True, attachment_filename=basename + '.zip')
+        return send_file(zip_file_pathname, as_attachment=True, download_name=basename + '.zip')
 
 
 @home.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
@@ -3145,7 +3145,7 @@ def get_eml_file_2(user):
     form = SelectEMLFileForm()
 
     if BTN_CANCEL in request.form:
-        return redirect(get_back_url())
+        return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
     if request.method == 'POST':
         eml_file = form.eml_file.data
@@ -3155,7 +3155,7 @@ def get_eml_file_2(user):
     if request.method == 'GET':
         # Get the list of eml files for the user
         csv_list = []
-        user_data_dir = user_data.USER_DATA_DIR
+        user_data_dir = Config.USER_DATA_DIR
         xml_files = glob.glob(f'{user_data_dir}/{user}/*.xml')
         xml_files = sorted([os.path.basename(x) for x in xml_files], key=str.casefold)
         form.eml_file.choices = xml_files

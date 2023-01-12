@@ -296,10 +296,9 @@ def download_eml(filename:str='', package_id:str=''):
                 return send_file(pathname,
                     mimetype=mimetype, 
                     as_attachment=True, 
-                    attachment_filename=filename_xml,
-                    add_etags=True, 
-                    cache_timeout=None, 
-                    conditional=False, 
+                    download_name=filename_xml,
+                    etag=True,
+                    conditional=False,
                     last_modified=None)
             except Exception as e:
                 return str(e)

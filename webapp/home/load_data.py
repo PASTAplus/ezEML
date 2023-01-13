@@ -318,8 +318,8 @@ def check_column_name_uniqueness(csv_file_path, delimiter):
 
 def load_data_table(uploads_path: str = None, data_file: str = '',
                     num_header_rows: str = '1', delimiter: str = ',', quote_char: str = '"'):
-    # if Config.LOG_DEBUG:
-    log_info(f'Entering load_data_table: {data_file}')
+    if Config.LOG_DEBUG:
+        log_info(f'Entering load_data_table: {data_file}')
 
     full_path = f'{uploads_path}/{data_file}'
 
@@ -421,7 +421,8 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
             # dtype = data_frame.dtypes[col]
 
             var_type, codes = infer_col_type(data_frame, col)
-            log_info(f'col: {col}  var_type: {var_type}')
+            if Config.LOG_DEBUG:
+                log_info(f'col: {col}  var_type: {var_type}')
 
             column_vartypes.append(var_type)
             column_names.append(col)
@@ -492,8 +493,8 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
                 metapype_client.add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
 
-    # if Config.LOG_DEBUG:
-    # log_info(f'Leaving load_data_table')
+    if Config.LOG_DEBUG:
+        log_info(f'Leaving load_data_table')
 
     return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame, missing_value_code
 

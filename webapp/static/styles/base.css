@@ -6,6 +6,10 @@ html {
     color: red
 }
 
+.input_value {
+    font-weight: normal!important;
+}
+
 .table-bordered {
     border: 1px solid black;
 }

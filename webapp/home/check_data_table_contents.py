@@ -610,6 +610,7 @@ def clear_eval_files():
 def make_blanks_visible(s:str):
     if not s:
         return s, ''
+    s = str(s)
     blank = '<span style="color:red;font-size:100%;font-weight:bold;">\u274f</span>'
     # Also considered \u2420 and \u25a1
     if s.isspace():

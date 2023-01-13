@@ -62,5 +62,5 @@ def bad_request(error):
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(error):
-    log_error(error)
+    log_error('**** A CSRF error occurred: {0}'.format(error.description))
     return render_template('401.html'), 400

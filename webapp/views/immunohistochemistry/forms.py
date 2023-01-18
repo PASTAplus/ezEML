@@ -17,8 +17,8 @@ class immunohistochemistryForm(EDIForm):
 
 class immunohistochemistryForm(EDIForm):
     # IHC
-    isIHC = RadioField('Is this image immunohistochemistry?', choices=['Yes', 'No'], default='No',
-                       render_kw={'onclick': "isIHCFunction()"})
+    isIHC = SelectField('', choices=['Yes', 'No'],
+                       render_kw={'onchange': "isIHCfunction()"})
     # Protein
     targetProtein = StringField('Target Protein *', validators=[InputRequired(message='Target Protein is required')])
     # Primary Antibody

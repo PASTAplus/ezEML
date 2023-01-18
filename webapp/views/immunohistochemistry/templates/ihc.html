@@ -13,75 +13,76 @@
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                <table>
+                <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="50%">
                     <tr>
-                        <td>
-                        <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="50%">
-                        <tr>
-                            <td style="padding: 10px 20px;"><h5>Is this image immunohistochemistry?</h5></td>
-                            <td style="padding: 10px 20px;">{{ wtf.form_field(form.isIHC) }}</td>
-                        </tr>
-                        </table>
-                        <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
-                        <tr>
-                            <caption></caption>
-                            <td style="padding: 10px 20px;" width="40%">{{ wtf.form_field(form.targetProtein) }}</td>
-                            <td width="1%">&nbsp;</td>
-                            <td class="table_cell">
-                                <span style="color:{{ optional }};">{{ wtf.form_field(form.detectionMethod) }}</span>
-                            </td>
-                            <td width="3%">&nbsp;</td>
-                        </tr>
-                        <tr>
-                            <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%" >
-                            <caption>Primary Antibody</caption>
-                            <td width="3%"></td>
-                            <td width="30%">
-                            {{ wtf.form_field(form.targetSpecies) }}
-                            </td>
-                            <td width="3%">&nbsp;</td>
-                            <td width="30%">
-                            {{ wtf.form_field(form.hostSpecies) }}
-                            </td>
-                            <td width="3%">&nbsp;</td>
-                            <td width="30%">
-                            {{ wtf.form_field(form.dilution) }}
-                            </td>
-                            <tr>
-                            <td width="3%"></td>
-                            <td width="30%">
-                            {{ wtf.form_field(form.lotNumber) }}
-                            </td>
-                            <td width="3%">&nbsp;</td>
-                            <td width="30%">
-                            {{ wtf.form_field(form.catNumber) }}
-                            </td>
-                            <td width="3%">&nbsp;</td>
-                            </tr>
-                            <tr>
-                            <td width="3%">&nbsp;</td>
-                            <td width = "30%"> {{ wtf.form_field(form.sourceName) }}</td>
-                            <td width="3%">&nbsp;</td>
-                            <td width = "30%"> {{ wtf.form_field(form.sourceCity) }}</td>
-                            <td width="3%">&nbsp;</td>
-                            <td width = "30%"> {{ wtf.form_field(form.sourceState) }}</td>
-                            </tr>
-                            <tr>
-                            <td width="3%"></td>
-                            <td width="30%">{{ wtf.form_field(form.rrid) }}</td>
-                            <td width="3%">&nbsp;</td>
-                            <td width="30%">
-                            {{ wtf.form_field(form.clonality) }}
-                            </td>
-                            </tr>
-                            </table>
-                        </tr>
-                        </table>
-                        </td>
+                        <td style="padding: 10px 20px;"><h5><b>Is this image immunohistochemistry?</b></h5></td>
+                        <td style="padding: 10px 20px;">{{ wtf.form_field(form.isIHC) }}</td>
                     </tr>
                 </table>
-                <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%" >
-                <caption>Secondary Antibody</caption>
+                <div id="showIHC">
+                    <table>
+                        <tr>
+                            <td>
+                            <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                            <tr>
+                                <caption></caption>
+                                <td style="padding: 10px 20px;" width="40%">{{ wtf.form_field(form.targetProtein) }}</td>
+                                <td width="1%">&nbsp;</td>
+                                <td class="table_cell">
+                                    <span style="color:{{ optional }};">{{ wtf.form_field(form.detectionMethod) }}</span>
+                                </td>
+                                <td width="3%">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%" >
+                                <caption>Primary Antibody</caption>
+                                <td width="3%"></td>
+                                <td width="30%">
+                                {{ wtf.form_field(form.targetSpecies) }}
+                                </td>
+                                <td width="3%">&nbsp;</td>
+                                <td width="30%">
+                                {{ wtf.form_field(form.hostSpecies) }}
+                                </td>
+                                <td width="3%">&nbsp;</td>
+                                <td width="30%">
+                                {{ wtf.form_field(form.dilution) }}
+                                </td>
+                                <tr>
+                                <td width="3%"></td>
+                                <td width="30%">
+                                {{ wtf.form_field(form.lotNumber) }}
+                                </td>
+                                <td width="3%">&nbsp;</td>
+                                <td width="30%">
+                                {{ wtf.form_field(form.catNumber) }}
+                                </td>
+                                <td width="3%">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                <td width="3%">&nbsp;</td>
+                                <td width = "30%"> {{ wtf.form_field(form.sourceName) }}</td>
+                                <td width="3%">&nbsp;</td>
+                                <td width = "30%"> {{ wtf.form_field(form.sourceCity) }}</td>
+                                <td width="3%">&nbsp;</td>
+                                <td width = "30%"> {{ wtf.form_field(form.sourceState) }}</td>
+                                </tr>
+                                <tr>
+                                <td width="3%"></td>
+                                <td width="30%">{{ wtf.form_field(form.rrid) }}</td>
+                                <td width="3%">&nbsp;</td>
+                                <td width="30%">
+                                {{ wtf.form_field(form.clonality) }}
+                                </td>
+                                </tr>
+                                </table>
+                            </tr>
+                            </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="border: 2px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%" >
+                        <caption>Secondary Antibody</caption>
                             <td width="3%"></td>
                             <td width="30%">
                             <span style="color:{{ optional }};">{{ wtf.form_field(form.targetSpecies_2) }}</span>
@@ -117,22 +118,22 @@
                             <td width="3%"></td>
                             <td width="30%">{{ wtf.form_field(form.rrid_2) }}</td>
                             </tr>
-                            </table>
-                        </tr>
-                        </table>
-                        </td>
-                    </tr>
-                </table>
+                    </table>
+                </div>
 
                 {% if not save_and_continue %}
-                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <div style="padding: 20px 0px;">
+                    <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
+                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                </div>
 {#                {% if next_page %}#}
 {#                <input class="btn btn-primary" name="Next" type="submit" value="Next"/>#}
 {#                {% endif %}#}
                 {% else %}
-                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
-                <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
+                <div style="padding: 20px 0px;">
+                    <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                    <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
+                </div>
                 {% endif %}
                 {% if node_name != 'publisher' %}
                     {{ macros.hidden_buttons() }}
@@ -158,22 +159,16 @@
     {% endif %}
 
     <script type = "text/javascript">
-        function isIHCFunction(){
-            document.getElementById("targetProtein").value = "Cool";
-
-            let isIHC_value = document.getElementById("isIHC").value;
-            var elements = document.getElementsByTagName('*');
-            if(isIHC_value == "No"){
-                for (var i=0, max=elements.length; i<max; i++){
-                    elements[i].setAttribute("readonly","readonly");
-                }
+        function isIHCfunction(){
+            let isIHCvalue = document.getElementById("isIHC").value;
+            if(isIHCvalue == "Yes"){
+                document.getElementById("showIHC").style.display = "block";
             }
             else{
-                for (var i=0, max=elements.length; i<max; i++){
-                    elements[i].setAttribute("readonly","");
-                }
+                document.getElementById("showIHC").style.display = "none";
             }
         }
+        isIHCfunction();
     </script>
 
     <script>

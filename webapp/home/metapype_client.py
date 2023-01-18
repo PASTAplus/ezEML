@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.01.11'
+RELEASE_NUMBER = '2023.01.18'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1132,6 +1132,77 @@ def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=
     return msg
 
 
+def strip_elements_added_by_pasta(filename:str=None, eml_node:Node=None):
+    """
+    PASTA adds an alternateIdentifier element to the EML document to record the package's DOI, and it adds a distribution
+    element at the dataset level to record the package's URL on PASTA. We strip these elements when importing a document
+    so that if the document is submitted to the repository as a revision we won't accumulate multiple such elements.
+    """
+    modified = False
+    dataset_node = eml_node.find_child(names.DATASET)
+    alternate_id_nodes = dataset_node.find_all_children(names.ALTERNATEIDENTIFIER)
+    for alternate_id_node in alternate_id_nodes:
+        if alternate_id_node and 'pasta' in alternate_id_node.content:
+            dataset_node.remove_child(alternate_id_node)
+            modified = True
+    distribution_nodes = dataset_node.find_all_children(names.DISTRIBUTION)
+    for distribution_node in distribution_nodes:
+        online_nodes = distribution_node.find_all_children(names.ONLINE)
+        for online_node in online_nodes:
+            url_node = online_node.find_child(names.URL)
+            if url_node and url_node.content and 'pasta' in url_node.content:
+                dataset_node.remove_child(distribution_node)
+                modified = True
+    if modified:
+        save_both_formats(filename=filename, eml_node=eml_node)
+    return eml_node
+
+
+def package_contains_elements_unhandled_by_ezeml(filename:str=None, eml_node:Node=None):
+    """
+    There are a number of elements in EML that are not exposed by the ezEML user interface. We preserve such elements
+    in the model, but we want to warn the user if the document contains such elements.
+    If the package contains element(s) unhandled by ezEML, this function returns a sorted list of the element names.
+
+    Note: We don't want to include the alternateIdentifier and distribution elements that PASTA adds to the document,
+    so we strip those elements before checking for unhandled elements.
+    """
+    unhandled = [
+        names.ALTERNATEIDENTIFIER,
+        names.SHORTNAME,
+        names.LANGUAGE,
+        names.SERIES,
+        names.ADDITIONALINFO,
+        names.LICENSED,
+        names.DISTRIBUTION,
+        names.ANNOTATION,
+        names.PURPOSE,
+        names.INTRODUCTION,
+        names.GETTINGSTARTED,
+        names.ACKNOWLEDGEMENTS,
+        # names.REFERENCEPUBLICATION,
+        # names.USAGECITATION,
+        # names.LITERATURECITED,
+        # names.ANNOTATIONS
+    ]
+    found = set()
+
+    if eml_node:
+        eml_node = strip_elements_added_by_pasta(filename, eml_node)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            for child in dataset_node.children:
+                if child.name in unhandled:
+                    if child.name != 'distribution':
+                        found.add(child.name)
+                    else:
+                        found.add('distribution (at dataset level)')
+        # annotations_node = eml_node.find_child(names.ANNOTATIONS)
+        # if annotations_node:
+        #     found.add(names.ANNOTATIONS)
+    return sorted(found)
+
+
 def enforce_dataset_sequence(eml_node:Node=None):
     def collect_children(parent_node: Node, child_name: str, children: list):
         children.extend(parent_node.find_all_children(child_name))
@@ -1143,18 +1214,27 @@ def enforce_dataset_sequence(eml_node:Node=None):
         if dataset_node:
             new_children = []
             sequence = (
-                # names.ALTERNATEIDENTIFIER,
+                names.ALTERNATEIDENTIFIER,
+                names.SHORTNAME,
                 names.TITLE,
                 names.CREATOR,
                 names.METADATAPROVIDER,
                 names.ASSOCIATEDPARTY,
                 names.PUBDATE,
+                names.LANGUAGE,
+                names.SERIES,
                 names.ABSTRACT,
                 names.KEYWORDSET,
+                names.ADDITIONALINFO,
                 names.INTELLECTUALRIGHTS,
-                # names.LICENSED,
-                # names.DISTRIBUTION,
+                names.LICENSED,
+                names.DISTRIBUTION,
                 names.COVERAGE,
+                names.ANNOTATION,
+                names.PURPOSE,
+                names.INTRODUCTION,
+                names.GETTINGSTARTED,
+                names.ACKNOWLEDGEMENTS,
                 names.MAINTENANCE,
                 names.CONTACT,
                 names.PUBLISHER,

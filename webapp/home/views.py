@@ -98,7 +98,7 @@ from webapp.home.metapype_client import (
     add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
     add_imported_from_xml_metadata, get_imported_from_xml_metadata,
     clear_taxonomy_imported_from_xml, taxonomy_imported_from_xml,
-    is_hidden_button, handle_hidden_buttons
+    is_hidden_button, handle_hidden_buttons, package_contains_elements_unhandled_by_ezeml
 )
 
 import webapp.home.check_data_table_contents as check_data_table_contents
@@ -2496,7 +2496,7 @@ def process_other_errors(filename, other_errs):
 
 
 def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_errs=None, child_errs=None,
-                                    other_errs=None, pruned_nodes=None):
+                                     other_errs=None, pruned_nodes=None, unhandled_elements=None):
     err_html = ''
     err_text = ''
 
@@ -2506,10 +2506,15 @@ def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_err
     other_errs = decode_from_query_string(other_errs)
     pruned_nodes = decode_from_query_string(pruned_nodes)
 
-    excluded_nodes = set(unknown_nodes)
+    if len(unhandled_elements) > 0:
+        err_html, err_text = display_list(err_html, err_text, unhandled_elements,
+            "The following EML element types are preserved by ezEML but are not exposed by the user interface. "
+            "If you wish to edit any of these elements, you will need to use an XML editor:")
 
     err_html, err_text = display_list(err_html, err_text, unknown_nodes,
         "The following EML element types are unknown to ezEML, so they have been omitted:")
+
+    excluded_nodes = set(unknown_nodes)
 
     processed_child_errs = []
     for err in child_errs:
@@ -2542,7 +2547,7 @@ def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_err
     err_heading = ""
     if len(excluded_nodes) > 0:
         err_heading = "<br>ezEML does not cover the complete EML standard. It imports as much of the EML " \
-                      "as possible, but in this case it had to omit some EML elements. Details follow:<p><br>"
+                      "as possible, but in this case it had to omit some EML elements.<p><br>"
 
     return err_html, err_text, err_heading
 
@@ -2601,8 +2606,11 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
     # Process GET
     form.md5.data = form_md5(form)
 
+    unhandled_elements = package_contains_elements_unhandled_by_ezeml(filename, eml_node)
+
     err_html, err_text, err_heading = construct_xml_error_descriptions(filename, unknown_nodes, attr_errs,
-                                                                       child_errs, other_errs, pruned_nodes)
+                                                                       child_errs, other_errs, pruned_nodes,
+                                                                       unhandled_elements)
 
     try:
         mb = get_data_size(filename)
@@ -3008,6 +3016,9 @@ def clear_distribution_url(entity_node):
 @home.route('/get_data_file/', methods=['GET', 'POST'])
 @login_required
 def get_data_file():
+    """
+    This route is an admin tool for use by the EDI user to download an uploaded data file from any user's account.
+    """
     if current_user and hasattr(current_user, 'get_username'):
         username = current_user.get_username()
         if username != 'EDI':
@@ -3081,6 +3092,9 @@ def get_data_file_2(user):
 @home.route('/get_eml_file/', methods=['GET', 'POST'])
 @login_required
 def get_eml_file():
+    """
+    This route is an admin tool for use by the EDI user to download an EML file from any user's account.
+    """
     if current_user and hasattr(current_user, 'get_username'):
         username = current_user.get_username()
         if username != 'EDI':

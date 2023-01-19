@@ -157,38 +157,44 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
             sourceState_2 = form.sourceState_2.data
             rrid_2 = form.rrid_2.data
             detectionMethod = form.detectionMethod.data
+            isIHC = form.isIHC.data
 
-#PT4/25            ihc_node = Node(node_name, parent=parent_node)
-#PT4/25            new_ihc_node = create_immunohistochemistry(
-            create_immunohistochemistry( #PT4/25
-                ihc_node,
-                filename,
-                targetProtein,
-                primaryAntibody,
-                clonality,
-                targetSpecies,
-                hostSpecies,
-                dilution,
-                lotNumber,
-                catNumber,
-                source,
-                sourceName,
-                sourceCity,
-                sourceState,
-                rrid,
-                secondaryAntibody,
-                targetSpecies_2,
-                hostSpecies_2,
-                dilution_2,
-                lotNumber_2,
-                catNumber_2,
-                source_2,
-                sourceName_2,
-                sourceCity_2,
-                sourceState_2,
-                rrid_2,
-                detectionMethod,
-            )
+            for child in ihc_node.children:
+                print(child)
+
+            if isIHC == 'Yes':
+                create_immunohistochemistry( #PT4/25
+                    ihc_node,
+                    filename,
+                    targetProtein,
+                    primaryAntibody,
+                    clonality,
+                    targetSpecies,
+                    hostSpecies,
+                    dilution,
+                    lotNumber,
+                    catNumber,
+                    source,
+                    sourceName,
+                    sourceCity,
+                    sourceState,
+                    rrid,
+                    secondaryAntibody,
+                    targetSpecies_2,
+                    hostSpecies_2,
+                    dilution_2,
+                    lotNumber_2,
+                    catNumber_2,
+                    source_2,
+                    sourceName_2,
+                    sourceCity_2,
+                    sourceState_2,
+                    rrid_2,
+                    detectionMethod,
+                )
+            else:
+                ihc_node.remove_children()
+
 
 #PT4/25            if node_id and len(node_id) != 1:
 #PT4/25                old_ihc_node = Node.get_node_instance(node_id)
@@ -232,6 +238,11 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
 
 
 def populate_ihc_form(form: immunohistochemistryForm, node: Node):
+    if node.children:
+        form.isIHC.data = "Yes"
+    else:
+        form.isIHC.data = "No"
+
     protein_node = node.find_child(mdb_names.TARGET_PROTEIN)
     if protein_node:
 #PT4/25        proteinName_node = protein_node.find_child("targetProtein")

@@ -345,12 +345,12 @@ def _donor_rule(node: Node) -> list:
                     donornodes[11] = True
         if child.name == mdb_names.MAGNIFICATION and child.content:
             donornodes[12] = True
-        if child.name == mdb_names.MICROSCOPE:
-            for mchild in child.children:
-                if mchild.name == mdb_names.MICRO_MAKER and mchild.content:
-                    donornodes[13] = True
-                if mchild.name == mdb_names.MICRO_MODEL and mchild.content:
-                    donornodes[14] = True
+        # if child.name == mdb_names.MICROSCOPE:
+        #     for mchild in child.children:
+        #         if mchild.name == mdb_names.MICRO_MAKER and mchild.content:
+        #             donornodes[13] = True
+        #         if mchild.name == mdb_names.MICRO_MODEL and mchild.content:
+        #             donornodes[14] = True
 
     if not donornodes[0]:
         evaluation.append((
@@ -430,18 +430,18 @@ def _donor_rule(node: Node) -> list:
             f'Donor Magnification is required.',
             node
         ))
-    if not donornodes[13]:
-        evaluation.append((
-            EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING,
-            f'Donor Microscope Maker is required.',
-            node
-        ))
-    if not donornodes[14]:
-        evaluation.append((
-            EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING,
-            f'Donor Microscope Model is required.',
-            node
-        ))
+    # if not donornodes[13]:
+    #     evaluation.append((
+    #         EvaluationWarningMp.DONOR_MICRO_MAKER_MISSING,
+    #         f'Donor Microscope Maker is required.',
+    #         node
+    #     ))
+    # if not donornodes[14]:
+    #     evaluation.append((
+    #         EvaluationWarningMp.DONOR_MICRO_MODEL_MISSING,
+    #         f'Donor Microscope Model is required.',
+    #         node
+    #     ))
     if not donornodes[15]:
         evaluation.append((
             EvaluationWarningMp.DONOR_GENDER_FEMALE,

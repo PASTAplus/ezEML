@@ -91,7 +91,7 @@ def login():
                 next_page = url_for(PAGE_INDEX)
         return redirect(next_page)
     return render_template(
-        'login.html', form=form, auth=Config.AUTH, target=Config.TARGET
+        'login2.html', form=form, auth=Config.AUTH, target=Config.TARGET
     )
 
 

@@ -275,6 +275,7 @@ def abstract(filename=None):
 @res_bp.route('/intellectual_rights/<filename>', methods=['GET', 'POST'])
 def intellectual_rights(filename=None):
     form = IntellectualRightsForm(filename=filename)
+    data_lower = ""
     if(form.intellectual_rights_radio.data):
         data_lower = form.intellectual_rights_radio.data.lower()
 

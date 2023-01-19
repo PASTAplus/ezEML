@@ -186,12 +186,12 @@
             let specimenLocation_box_value = document.getElementById("specimenLocation").value;
             if(specimenLocation_box_value == "corpusLuteum"){
                 document.getElementById("corpusLuteum").removeAttribute("disabled");
-                document.getElementById("corpusLuteum").attribute.required = "required";
+<!--                document.getElementById("corpusLuteum").attribute.required = "required";-->
             }
             else {
                 document.getElementById("corpusLuteum").value = "";
                 document.getElementById("corpusLuteum").setAttribute("disabled","disabled");
-                document.getElementById("corpusLuteum").attribute.required = "";
+<!--                document.getElementById("corpusLuteum").attribute.required = "";-->
             }
         }
 
@@ -201,21 +201,21 @@
                 document.getElementById("follicular").value = "";
                 document.getElementById("follicular").setAttribute("disabled","disabled");
                 document.getElementById("luteal").removeAttribute("disabled");
-                document.getElementById("luteal").attribute.required = "required";
+<!--                document.getElementById("luteal").attribute.required = "required";-->
             }
             else if (stageOfCycle_box_value == "follicular") {
                 document.getElementById("luteal").value = "";
                 document.getElementById("luteal").setAttribute("disabled","disabled");
                 document.getElementById("follicular").removeAttribute("disabled");
-                document.getElementById("follicular").attribute.required = "required";
+<!--                document.getElementById("follicular").attribute.required = "required";-->
             }
             else {
                 document.getElementById("luteal").value = "";
                 document.getElementById("follicular").value = "";
                 document.getElementById("follicular").setAttribute("disabled","disabled");
                 document.getElementById("luteal").setAttribute("disabled","disabled");
-                document.getElementById("luteal").attribute.required = "";
-                document.getElementById("follicular").attribute.required = "";
+<!--                document.getElementById("luteal").attribute.required = "";-->
+<!--                document.getElementById("follicular").attribute.required = "";-->
             }
         }
 
@@ -242,7 +242,7 @@
                 document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","disabled");
                 document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","disabled");
                 document.getElementById("lightMicroscopyStainType").removeAttribute("disabled");
-                document.getElementById("lightMicroscopyStainType").attribute.required = "required";
+<!--                document.getElementById("lightMicroscopyStainType").attribute.required = "required";-->
             }
             else if(stainType_box_value == "fluorescentMicroscopyStain"){
                 document.getElementById("lightMicroscopyStainType").value = "";
@@ -256,7 +256,7 @@
                 document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
                 document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","disabled");
                 document.getElementById("fluorescentMicroscopyStainType").removeAttribute("disabled");
-                document.getElementById("fluorescentMicroscopyStainType").attribute.required = "required";
+<!--                document.getElementById("fluorescentMicroscopyStainType").attribute.required = "required";-->
             }
             else { //electronMicroscopyStain
                 document.getElementById("lightMicroscopyStainType").value = "";
@@ -270,7 +270,7 @@
                 document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
                 document.getElementById("fluorescentMicroscopyStainOther").setAttribute("disabled","disabled");
                 document.getElementById("electronMicroscopyStainType").removeAttribute("disabled");
-                document.getElementById("electronMicroscopyStainType").attribute.required = "required";
+<!--                document.getElementById("electronMicroscopyStainType").attribute.required = "required";-->
             }
         }
 
@@ -280,21 +280,21 @@
                 document.getElementById("lightMicroscopyStainOther").value = "";
                 document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
                 document.getElementById("sudanStainType").removeAttribute("disabled");
-                document.getElementById("sudanStainType").attribute.required = "required";
+<!--                document.getElementById("sudanStainType").attribute.required = "required";-->
             }
             else if(lightMicroscopyStainType_box_value == "other"){
                 document.getElementById("sudanStainType").value = "";
                 document.getElementById("sudanStainType").setAttribute("disabled","disabled");
                 document.getElementById("lightMicroscopyStainOther").removeAttribute("disabled");
-                document.getElementById("lightMicroscopyStainOther").attribute.required = "required";
+<!--                document.getElementById("lightMicroscopyStainOther").attribute.required = "required";-->
             }
             else {
                 document.getElementById("sudanStainType").value = "";
                 document.getElementById("lightMicroscopyStainOther").value = "";
                 document.getElementById("sudanStainType").setAttribute("disabled","disabled");
                 document.getElementById("lightMicroscopyStainOther").setAttribute("disabled","disabled");
-                document.getElementById("sudanStainType").attribute.required = "";
-                document.getElementById("lightMicroscopyStainOther").attribute.required = "";
+<!--                document.getElementById("sudanStainType").attribute.required = "";-->
+<!--                document.getElementById("lightMicroscopyStainOther").attribute.required = "";-->
             }
         }
 
@@ -319,6 +319,16 @@
                 document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","disabled");
             }
         }
+
+<!--        Grey out areas where appropriate on page load-->
+        specimenLocationFunction();
+        stageOfCycleFunction();
+        fixationFunction();
+        stainTypeFunction();
+        lightMicroscopyStainTypeFunction();
+        fluorescentMicroscopyStainTypeFunction();
+        electronMicroscopyStainTypeFunction();
+
     </script>
     <script>
     $(function()

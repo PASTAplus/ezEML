@@ -39,8 +39,11 @@ auth_bp = Blueprint('auth', __name__, template_folder='templates')
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        flash(current_user.get_username() + ', you are already logged in...')
-        return redirect(url_for(PAGE_INDEX))
+        filename = get_active_document()
+        if filename:
+            return redirect(url_for(PAGE_TITLE, filename=filename))
+        else:
+            return redirect(url_for(PAGE_INDEX))
     # Process POST
     form = LoginForm()
     if form.validate_on_submit():

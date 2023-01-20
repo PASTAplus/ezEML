@@ -558,6 +558,7 @@ def get_helps(ids):
 def index():
     if current_user.is_authenticated:
         current_document = user_data.get_active_document()
+        new_page = PAGE_INDEX
         if current_document:
             eml_node = load_eml(filename=current_document)
             if eml_node:
@@ -566,7 +567,10 @@ def index():
                 user_data.remove_active_file()
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=current_document))
-    return render_template('index.html')
+        else:
+            return render_template('index.html')
+    else:
+        return redirect(url_for(PAGE_LOGIN))
 
 
 @home.route('/edit/<page>')

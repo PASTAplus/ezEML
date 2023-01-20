@@ -737,7 +737,7 @@ Login
 
 If you have an EDI account, you're welcome to use it to log in, but you don't need an EDI account to use ezEML. You can log in using your Google, ORCID, or GitHub account, instead.
 
-The login simply lets us identify you. ezEML stores your EML documents based on the login you use. Documents you create using a given login will be available to you when log back in using that same login. If you use a different login, ezEML will show you a different set of documents. So, it's a good idea to keep track of which login(s) you use.
+The login simply lets us identify you. ezEML stores your EML documents based on the login you use. Documents you create using a given login will be available to you when you log back in using that same login. If you use a different login, ezEML will show you a different set of documents. So, it's a good idea to keep track of which login(s) you use.
 --------------------
 maintenance
 Maintenance

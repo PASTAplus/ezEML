@@ -234,9 +234,9 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
-                    {% if url_for(request.endpoint) != '/eml/auth/login' %}
-                        <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                        {% endif %}
+                    {% if url_for(request.endpoint, **request.view_args) != '/eml/auth/login' %}
+                        <li><a href="/eml/edit/login">Login</a></li>
+                    {% endif %}
                 {% else %}
                 <li>
                     <table style="height: 50px;" valign="middle">

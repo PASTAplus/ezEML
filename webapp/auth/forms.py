@@ -24,5 +24,4 @@ class LoginForm(FlaskForm):
     # domain_choices = [('edi', 'EDI'), ('lter', 'LTER')]
     username = StringField('EDI Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
-    # domain = SelectField('Domain', choices=domain_choices)
     submit = SubmitField('Login Using EDI Account')

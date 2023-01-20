@@ -8,7 +8,11 @@
 
     <script>
         function displayEDILogin() {
-            $("#EDI").css('display', 'block');
+            if ($("#EDI").css('display') == 'none') {
+                $("#EDI").css('display', 'block');
+            } else {
+                $("#EDI").css('display', 'none');
+            }
         }
     </script>
 
@@ -16,28 +20,32 @@
     <div style="padding-top: 15px;"/>
     <p></p>
 
-    <h4>Click one of the options below.</h4>
+    <h4 style="padding-left: 0px;">Click one of the options below.</h4>
 
     <table>
-        <td>You do not need an EDI account to use ezEML.</td>
-        <td style="width: 50px;">&nbsp;</td>
+        <td style="padding-left: 0px;">You do not need an EDI account to use ezEML.</td>
+        <td style="width: 45px;">&nbsp;</td>
         <td valign="top" style="padding-top: 0px;padding-left: 5px;">{{ macros.help_button(help_login_btn) }}</td>
     </table>
 	<p>
         <p>&nbsp;</p>
-        <a style="padding-left: 40px;" href="{{ auth }}/login/google?target={{ target }}" onclick="log_login_usage('google');"><img src="/static/btn_google_signin_light_normal_web.png"/></a>
+        <a style="padding-left: 30px;" href="{{ auth }}/login/google?target={{ target }}" onclick="log_login_usage('google');"><img src="/static/btn_google_signin_light_normal_web.png"/></a>
         <p>&nbsp;</p>
-	    <a style="padding-left: 40px;" href="{{ auth }}/login/orcid?target={{ target }}" onclick="log_login_usage('orcid');"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
+	    <a style="padding-left: 30px;" href="{{ auth }}/login/orcid?target={{ target }}" onclick="log_login_usage('orcid');"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
         <p>&nbsp;</p>
-	    <a style="padding-left: 40px;" href="{{ auth }}/login/github?target={{ target }}" onclick="log_login_usage('github');"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+	    <a style="padding-left: 30px;" href="{{ auth }}/login/github?target={{ target }}" onclick="log_login_usage('github');"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
         <p>&nbsp;</p>
-	    <a style="padding-left: 105px;cursor: pointer;" onclick="displayEDILogin();"><img style="width: 70px;height: 70px;" src="/static/EDI-logo-300DPI_5.png"/></a>
-{#        <p>&nbsp;</p>#}
+	    <a style="padding-left: 95px;cursor: pointer;" onclick="displayEDILogin();"><img style="width: 70px;height: 70px;" src="/static/EDI-logo-300DPI_5.png"/></a>
 
     </p>
-    <div id="EDI" class="row" style="display: none;padding-top: 2em;">
-        <div class="col-md-6">
-            {{ wtf.quick_form(form) }}
+    <div id="EDI" class="row" style="display: none;padding-top: 2em;padding-left: 15px;">
+        <div class="col-md-6" style="padding-left: 0px;">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.username, size=50) }}
+                {{ wtf.form_field(form.password, size=50) }}
+                <input class="btn btn-primary" name="Login Using EDI Account" type="submit" value="Login Using EDI Account"/>
+            </form>
         </div>
     </div>
 	<div style="padding-top: 2em;">

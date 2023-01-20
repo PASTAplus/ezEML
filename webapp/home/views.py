@@ -575,11 +575,11 @@ def index():
 
 @home.route('/edit/<page>')
 def edit(page:str=None):
-    '''
+    """
     The edit page allows for direct editing of a top-level element such as
     title, abstract, creators, etc. This function simply redirects to the
-    specified page, passing the packageid as the only parameter.
-    '''
+    specified page, passing the packageId as the only parameter.
+    """
     if current_user.is_authenticated and page:
         current_filename = user_data.get_active_document()
         if current_filename:
@@ -589,7 +589,8 @@ def edit(page:str=None):
             return redirect(url_for(new_page, filename=current_filename))
         else:
             return redirect(url_for(PAGE_INDEX))
-    return render_template('index.html')
+    else:
+        return redirect(url_for(PAGE_LOGIN))
 
 
 def get_back_url(success=False):

@@ -2,49 +2,62 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% set help_login_id, help_login_title, help_login_content = help[0] %}
+    {% set help_login_btn = help_login_id ~ '_btn' %}
+    {% set help_login_dialog = help_login_id ~ '_dialog' %}
+
+    <script>
+        function displayEDILogin() {
+            $("#EDI").css('display', 'block');
+        }
+    </script>
+
     <h2>Login</h2>
     <div style="padding-top: 15px;"/>
     <p></p>
-    <div style="border: 2px solid steelblue;padding: 15px;">
-        <b>Important:</b> ezEML stores your EML documents according to your login information. If you
-        create an EML document under a particular account, when you log into that account in the future,
-        you'll find that ezEML knows about the previously created EML document.
-        But if you log in using a different account, ezEML will not be able to recognize you as the
-        same user who created the earlier document, so you won’t have access to it. So, it's important to remember
-        what login you use.
-    </div>
-    <p>&nbsp;</p>
-    <h4>Click one of the icons below to log in using your Google, GitHub, or ORCID login credentials.</h4>
+
+    <h4>Click one of the options below.</h4>
+
+    <table>
+        <td>You do not need an EDI account to use ezEML.</td>
+        <td style="width: 50px;">&nbsp;</td>
+        <td valign="top" style="padding-top: 0px;padding-left: 5px;">{{ macros.help_button(help_login_btn) }}</td>
+    </table>
 	<p>
-        <a href="{{ auth }}/login/google?target={{ target }}" onclick="log_login_usage('google');"><img src="/static/btn_google_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
-	    <a href="{{ auth }}/login/github?target={{ target }}" onclick="log_login_usage('github');"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
-	    <a href="{{ auth }}/login/orcid?target={{ target }}" onclick="log_login_usage('orcid');"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
+        <p>&nbsp;</p>
+        <a style="padding-left: 40px;" href="{{ auth }}/login/google?target={{ target }}" onclick="log_login_usage('google');"><img src="/static/btn_google_signin_light_normal_web.png"/></a>
+        <p>&nbsp;</p>
+	    <a style="padding-left: 40px;" href="{{ auth }}/login/orcid?target={{ target }}" onclick="log_login_usage('orcid');"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
+        <p>&nbsp;</p>
+	    <a style="padding-left: 40px;" href="{{ auth }}/login/github?target={{ target }}" onclick="log_login_usage('github');"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+        <p>&nbsp;</p>
+	    <a style="padding-left: 105px;cursor: pointer;" onclick="displayEDILogin();"><img style="width: 70px;height: 70px;" src="/static/EDI-logo-300DPI_5.png"/></a>
+{#        <p>&nbsp;</p>#}
+
     </p>
-    <p>&nbsp;</p>
-    <hr style="border:1px solid grey;">
-    <p>&nbsp;</p>
-    <h5>Alternatively, if you have an EDI account, you may log in using your EDI credentials instead, below.<br>Note: you are not
-        required to have an EDI account to use ezEML or to submit data to the EDI repository.</h5>
-    <p>&nbsp;</p>
-    <div class="row">
+    <div id="EDI" class="row" style="display: none;padding-top: 2em;">
         <div class="col-md-6">
             {{ wtf.quick_form(form) }}
         </div>
     </div>
-	<div style="padding-top: 2em">
+	<div style="padding-top: 2em;">
         <p>
             Please read our <a class="searchsubcat" href="https://edirepository.org/about/edi-policy#privacy-policy">
-            privacy policy</a> to know what information we collect about you and to understand your privacy rights.
+            privacy policy</a> to know what information we<br>collect about you and to understand your privacy rights.
         </p>
     </div>
 
     </div>
-
+    {{ macros.help_dialog(help_login_dialog, help_login_title, help_login_content) }}
 {% endblock %}
 
 
 {% block app_scripts %}
     {{ super() }}
+    {% set help_login_id, help_login_title, help_login_content = help[0] %}
+    {% set help_login_btn = help_login_id ~ '_btn' %}
+    {% set help_login_dialog = help_login_id ~ '_dialog' %}
+
     {% import '_config.html' as config %}
     <script>
     function log_login_usage(login_type)
@@ -53,5 +66,9 @@
         let url = '{{ config.ajax_host }}' + 'log_login_usage/' + login_type;
         $.get(url, function(response, status) {});
     }
+    $(function()
+    {
+        {{ macros.help_script(help_login_dialog, help_login_btn) }}
+    });
     </script>
 {% endblock %}

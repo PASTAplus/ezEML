@@ -29,6 +29,7 @@ from webapp.home.log_usage import (
     actions,
     log_usage,
 )
+from webapp.home.views import get_helps
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -90,8 +91,9 @@ def login():
             else:
                 next_page = url_for(PAGE_INDEX)
         return redirect(next_page)
+    help = get_helps(['login'])
     return render_template(
-        'login2.html', form=form, auth=Config.AUTH, target=Config.TARGET
+        'login.html', form=form, auth=Config.AUTH, target=Config.TARGET, help=help
     )
 
 
@@ -99,7 +101,7 @@ def login():
 def logout():
     log_usage(actions['LOGOUT'])
     logout_user()
-    return redirect(url_for(PAGE_INDEX))
+    return redirect(url_for(PAGE_LOGIN))
 
 
 def authenticate(user_dn=None, password=None):

@@ -14,6 +14,10 @@ from webapp.home.custom_validators import IntegerField
 
 
 class DonorForm(EDIForm):
+    speciesTest = SelectField('Species',
+                                choices=[("mammalian", "Mammalian"),
+                                         ("estrous", "Estrous")],
+                                render_kw={'onchange': "speciesFunction(this.id, 'donorLifeStage')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
     donorGender = StringField('Gender *', validators=[InputRequired(message='Gender is required')], default='female')
     donorYears = IntegerField('Years', validators=[NumberRange(min=0), Optional()])
@@ -25,7 +29,13 @@ class DonorForm(EDIForm):
                                           ("prepubertal", "Prepubertal"),
                                           ("pubertal", "Pubertal"),
                                           ("adult", "Adult"),
-                                          ("aging", "Aging")], 
+                                          ("aging", "Aging"),
+                                          ("proestrus", "Proestrus"),
+                                          ("estrus", "Estrus"),
+                                          ("metestrus", "Metestrus"),
+                                          ("diestrus", "Diestrus"),
+                                          ("anestrus", "Anestrus"),
+                                          ("unspecified", "Unspecified")],
                                  validators=[InputRequired(message='Life Stage is required')])
     specimenSeqNum = IntegerField('Specimen Sequence Number *', 
                                 validators=[NumberRange(min=0), InputRequired(message='Specimen Sequence Number is required')])

@@ -28,6 +28,8 @@
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorDays) }}</td>
                             <td width="2%">&nbsp;</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.speciesTest) }}</td>
+                            <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.donorLifeStage) }}</td>
                             <td width="2%">&nbsp;</td>
                         </tr>
@@ -320,6 +322,24 @@
             }
         }
 
+        function speciesFunction(s1, s2){
+            var s1 = document.getElementById(s1);
+            var s2 = document.getElementById(s2);
+            s2.innerHTML = "";
+            if(s1.value == "mammalian"){
+                var optionArray = ["|","fetal|Fetal","neonatal|Neonatal","prepubertal|Prepubertal","pubertal|Pubertal","adult|Adult","aging|Aging"];
+            } else{
+                var optionArray = ["|","proestrus|Proestrus","estrus|Estrus","metestrus|Metestrus","diestrus|Diestrus","anestrus|Anestrus","unspecified|Unspecified"];
+            }
+            for(var option in optionArray){
+                var pair = optionArray[option].split("|");
+                var newOption = document.createElement("option");
+                newOption.value = pair[0];
+                newOption.innerHTML = pair[1];
+                s2.options.add(newOption);
+            }
+        }
+
 <!--        Grey out areas where appropriate on page load-->
         specimenLocationFunction();
         stageOfCycleFunction();
@@ -328,6 +348,7 @@
         lightMicroscopyStainTypeFunction();
         fluorescentMicroscopyStainTypeFunction();
         electronMicroscopyStainTypeFunction();
+        speciesFunction('speciesTest', 'donorLifeStage');
 
     </script>
     <script>

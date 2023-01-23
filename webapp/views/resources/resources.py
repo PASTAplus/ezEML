@@ -111,7 +111,7 @@ def data_package_id(filename=None):
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_CHECK
+            new_page = PAGE_DONOR
         elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
         elif BTN_HIDDEN_SAVE in request.form:

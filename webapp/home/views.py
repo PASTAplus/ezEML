@@ -2387,6 +2387,9 @@ def import_xml():
 
             eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
 
+            # We're done with the temp file
+            utils.remove_zip_temp_folder()
+
             if eml_node:
                 add_imported_from_xml_metadata(eml_node, filename, package_name)
                 has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
@@ -2439,8 +2442,9 @@ def import_xml_2(package_name, filename, fetched=False):
         filepath = os.path.join(work_path, filename)
 
         eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+
         # We're done with the temp file
-        os.remove(filepath)
+        utils.remove_zip_temp_folder()
 
         if eml_node:
             # save fact that EML was fetched from EDI in additional metadata
@@ -2860,8 +2864,9 @@ def fetch_xml_3(scope_identifier='', revision=''):
     filepath = os.path.join(work_path, filename)
 
     eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+
     # We're done with the temp file
-    os.remove(filepath)
+    utils.remove_zip_temp_folder()
 
     if eml_node:
         # save fact that EML was fetched from EDI in additional metadata

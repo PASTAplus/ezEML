@@ -1,5 +1,8 @@
 import os
 import os.path
+import shutil
+
+import webapp.auth.user_data as user_data
 
 
 def path_exists(path):
@@ -24,6 +27,12 @@ def path_join(*paths):
 def remove(path):
     if path is not None:
         os.remove(path)
+
+
+def remove_zip_temp_folder():
+    user_path = user_data.get_user_folder_name()
+    work_path = os.path.join(user_path, 'zip_temp')
+    shutil.rmtree(work_path)
 
 
 def null_string(s):

@@ -139,6 +139,10 @@ def parse_xml_file(filename, filepath):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node) # TODO: error-handling
+    if eml_node.name != names.EML:
+        log_info(f"*******************************")
+        log_info(f"root node returned by metapype_io.from_xml has name {eml_node.name}")
+        log_info(f"*******************************")
     pruned_nodes = set()
     errs = []
     unknown_nodes = None

@@ -220,6 +220,9 @@ def delete_eml(filename: str = ''):
         user_folder = get_user_folder_name()
         json_filename = f'{user_folder}/{filename}.json'
         xml_filename = f'{user_folder}/{filename}.xml'
+        document_uploads_folder = os.path.join(get_user_uploads_folder_name(), filename)
+        clear_folder(document_uploads_folder)
+        os.rmdir(document_uploads_folder)
         if os.path.exists(json_filename):
             try:
                 os.remove(json_filename)

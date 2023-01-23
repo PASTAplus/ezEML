@@ -656,6 +656,7 @@ def open_eml_document():
             if eml_node:
                 current_user.set_filename(filename)
                 packageid = eml_node.attributes.get('packageId', None)
+                user_data.clear_temp_folder()
                 if packageid:
                     current_user.set_packageid(packageid)
                 create_eml(filename=filename)

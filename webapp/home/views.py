@@ -372,7 +372,7 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
                         if not os.path.isdir(filepath):
                             os.remove(filepath)
                         else:
-                            rmtree(filepath)
+                            rmtree(filepath, ignore_errors=True)
                 except FileNotFoundError:
                     pass
 

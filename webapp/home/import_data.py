@@ -7,6 +7,7 @@ import daiquiri
 from flask import flash
 from flask_login import current_user
 import requests
+from urllib.request import urlretrieve
 
 from metapype.eml import names
 
@@ -193,15 +194,17 @@ def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
 
 
 def retrieve_data_entity(upload_dir, object_name, url):
+    file_path = os.path.join(upload_dir, object_name)
     if Config.PASTA_URL in url:
         response = send_authorized_pasta_request(url)
         response.raise_for_status()
-
-        file_path = os.path.join(upload_dir, object_name)
         with open(file_path, "wb") as file:
             file.write(response.content)
     else:
-        pass
+        try:
+            urlretrieve(url, file_path)
+        except Exception:
+            pass
 
 
 def retrieve_data_entities(upload_dir, entities_wth_sizes):

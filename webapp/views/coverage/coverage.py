@@ -696,7 +696,7 @@ def load_taxonomic_coverage_2():
             errors = f.readlines()
     except FileNotFoundError:
         pass
-    shutil.rmtree(work_path)
+    shutil.rmtree(work_path, ignore_errors=True)
 
     return render_template('load_taxonomic_coverage_2.html',
                            errors=errors)

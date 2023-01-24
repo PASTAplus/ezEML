@@ -92,7 +92,7 @@ def save_xml_file(file):
     work_path = os.path.join(user_path, 'zip_temp')
 
     try:
-        shutil.rmtree(work_path)
+        shutil.rmtree(work_path, ignore_errors=True)
     except FileNotFoundError:
         pass
 

@@ -62,7 +62,7 @@ def upload_ezeml_package(file, package_name=None):
     work_path = os.path.join(user_path, 'zip_temp')
 
     try:
-        shutil.rmtree(work_path)
+        shutil.rmtree(work_path, ignore_errors=True)
     except FileNotFoundError:
         pass
 
@@ -197,4 +197,4 @@ def import_ezeml_package(output_package_name=None):
         shutil.copyfile(src_file, dest_file)
 
     # Remove the temp folder
-    shutil.rmtree(work_path)
+    shutil.rmtree(work_path, ignore_errors=True)

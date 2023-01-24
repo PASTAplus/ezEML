@@ -32,7 +32,7 @@ def remove(path):
 def remove_zip_temp_folder():
     user_path = user_data.get_user_folder_name()
     work_path = os.path.join(user_path, 'zip_temp')
-    shutil.rmtree(work_path)
+    shutil.rmtree(work_path, ignore_errors=True)
 
 
 def null_string(s):

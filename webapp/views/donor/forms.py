@@ -17,7 +17,7 @@ class DonorForm(EDIForm):
     speciesTest = SelectField('Species',
                                 choices=[("mammalian", "Mammalian"),
                                          ("estrous", "Estrous")],
-                                render_kw={'onchange': "speciesFunction(this.id, 'donorLifeStage')"})
+                                render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
     donorGender = StringField('Gender *', validators=[InputRequired(message='Gender is required')], default='female')
     donorYears = IntegerField('Years', validators=[NumberRange(min=0), Optional()])
@@ -64,7 +64,12 @@ class DonorForm(EDIForm):
                                         ("pre-ovulatory", "Pre-Ovulatory"),
                                         ("ovulation", "Ovulation"),
                                         ("luteal", "Luteal"),
-                                        ("unspecified", "Unspecified")],
+                                        ("unspecified", "Unspecified"),
+                                        ("proestrus", "Proestrus"),
+                                        ("estrus", "Estrus"),
+                                        ("metestrus", "Metestrus"),
+                                        ("diestrus", "Diestrus"),
+                                        ("anestrus", "Anestrus")],
                                render_kw={'onchange': "stageOfCycleFunction()"})
     follicular = SelectField('Follicular values',
                              choices=[("", ""),

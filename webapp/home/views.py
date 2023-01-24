@@ -351,8 +351,12 @@ def init_session_vars():
         session["check_metadata_status"] = "green"
     if not session.get("check_data_tables_status"):
         session["check_data_tables_status"] = "green"
-    if not session.get("privileged_logins"):
-        session["privileged_logins"] = Config.PRIVILEGED_LOGINS
+    if not session.get("admin_logins"):
+        session["admin_logins"] = Config.ADMIN_LOGINS
+    if not session.get("beta_tester_logins"):
+        session["beta_tester_logins"] = Config.BETA_TESTER_LOGINS
+    if not session.get("data_curator_logins"):
+        session["data_curator_logins"] = Config.DATA_CURATOR_LOGINS
     init_standard_units()
 
 
@@ -753,8 +757,8 @@ def manage_packages(to_delete=None, action=None):
 @home.route('/manage_data_usage/<action>', methods=['GET', 'POST'])
 @login_required
 def manage_data_usage(action=None):
-    # This page is available only to the EDI user
-    if not current_user.is_edi_user():
+    # This page is available only to admins and data_curators
+    if not current_user.is_admin() and not current_user.is_data_curator():
         flash('You are not authorized to access the Manage Data Usage page', 'error')
         return redirect(url_for(PAGE_INDEX))
 
@@ -795,7 +799,7 @@ def manage_data_usage(action=None):
         disabled = ''
 
     return render_template('manage_data_usage.html', total_usage=total_usage, data_usages=data_usages, days=days,
-                           disabled=disabled, help=help)
+                           disabled=disabled, is_admin=current_user.is_admin(), help=help)
 
 
 def copy_uploads(from_package, to_package):
@@ -3027,13 +3031,11 @@ def clear_distribution_url(entity_node):
 @login_required
 def get_data_file():
     """
-    This route is an admin tool for use by the EDI user to download an uploaded data file from any user's account.
+    This route is an admin tool for use by the EDI team to download an uploaded data file from any user's account.
     """
-    if current_user and hasattr(current_user, 'get_username'):
-        username = current_user.get_username()
-        if username != 'EDI':
-            flash('The get_data_file page is available only to the EDI user.', 'error')
-            return render_template('index.html')
+    if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
+        flash('You are not authorized to use Download Data.', 'error')
+        return render_template('index.html')
 
     form = SelectUserForm()
 
@@ -3064,11 +3066,9 @@ def download_data_file(filename: str = '', user: str=''):
 @home.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
 @login_required
 def get_data_file_2(user):
-    if current_user and hasattr(current_user, 'get_username'):
-        username = current_user.get_username()
-        if username != 'EDI':
-            flash('The get_data_file page is available only to the EDI user.', 'error')
-            return render_template('index.html')
+    if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
+        flash('You are not authorized to use Download Data.', 'error')
+        return render_template('index.html')
 
     form = SelectDataFileForm()
 
@@ -3103,13 +3103,11 @@ def get_data_file_2(user):
 @login_required
 def get_eml_file():
     """
-    This route is an admin tool for use by the EDI user to download an EML file from any user's account.
+    This route is an admin tool for use by the EDI team to download an EML file from any user's account.
     """
-    if current_user and hasattr(current_user, 'get_username'):
-        username = current_user.get_username()
-        if username != 'EDI':
-            flash('The get_eml_file page is available only to the EDI user.', 'error')
-            return render_template('index.html')
+    if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
+        flash('You are not authorized to use Download EML (XML and JSON).', 'error')
+        return render_template('index.html')
 
     form = SelectUserForm()
 
@@ -3160,11 +3158,12 @@ def download_eml_file(filename: str = '', user: str=''):
 @home.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
 @login_required
 def get_eml_file_2(user):
-    if current_user and hasattr(current_user, 'get_username'):
-        username = current_user.get_username()
-        if username != 'EDI':
-            flash('The get_eml_file page is available only to the EDI user.', 'error')
-            return render_template('index.html')
+    """
+    This route is an admin tool for use by the EDI team to download an EML file from any user's account.
+    """
+    if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
+        flash('You are not authorized to use Download EML (XML and JSON).', 'error')
+        return render_template('index.html')
 
     form = SelectEMLFileForm()
 

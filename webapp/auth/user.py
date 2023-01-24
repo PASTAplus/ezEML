@@ -17,14 +17,13 @@ import hashlib
 import daiquiri
 from flask_login import UserMixin
 
-from webapp import (
-    login
-)
-
+from webapp import login
 from webapp.auth.user_data import (
     set_active_packageid, get_active_packageid,
     set_active_document, get_active_document
 )
+from webapp.config import Config
+
 
 logger = daiquiri.getLogger('user.py: ' + __name__)
 
@@ -75,6 +74,24 @@ class User(UserMixin):
 
     def is_edi_user(self):
         return self._cname == "EDI" and self._uid == "uid=EDI,o=EDI,dc=edirepository,dc=org"
+
+    def is_admin(self):
+        try:
+            return self.get_username() in Config.ADMIN_LOGINS
+        except AttributeError:
+            return False
+
+    def is_beta_tester(self):
+        try:
+            return self.get_username() in Config.BETA_TESTER_LOGINS
+        except AttributeError:
+            return False
+
+    def is_data_curator(self):
+        try:
+            return self.get_username() in Config.DATA_CURATOR_LOGINS
+        except AttributeError:
+            return False
 
 
 @login.user_loader

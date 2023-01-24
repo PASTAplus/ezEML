@@ -3223,7 +3223,7 @@ def data_filename_is_unique(eml_node, data_filename):
     other_entity_nodes = []
     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
     for other_entity_node in other_entity_nodes:
-        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        entity_name_node = other_entity_node.find_child(names.ENTITYNAME)
         if entity_name_node and entity_name_node.content == data_entity_name:
             return False
         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)

@@ -27,8 +27,8 @@
                             <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorYears) }}</td>
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorDays) }}</td>
-                            <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.speciesTest) }}</td>
+<!--                            <td width="2%">&nbsp;</td>-->
+<!--                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.speciesTest) }}</td>-->
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.donorLifeStage) }}</td>
                             <td width="2%">&nbsp;</td>
@@ -322,26 +322,26 @@
             }
         }
 
-        function speciesFunction(s1, s2){
-            var s1 = document.getElementById(s1);
-            var s2 = document.getElementById(s2);
-<!--            Keep previous selection instead of overriding it-->
-            var selection = s2.value;
-            s2.innerHTML = "";
-            if(s1.value == "mammalian"){
-                var optionArray = ["|","fetal|Fetal","neonatal|Neonatal","prepubertal|Prepubertal","pubertal|Pubertal","adult|Adult","aging|Aging"];
-            } else{
-                var optionArray = ["|","proestrus|Proestrus","estrus|Estrus","metestrus|Metestrus","diestrus|Diestrus","anestrus|Anestrus","unspecified|Unspecified"];
-            }
-            for(var option in optionArray){
-                var pair = optionArray[option].split("|");
-                var newOption = document.createElement("option");
-                newOption.value = pair[0];
-                newOption.innerHTML = pair[1];
-                s2.options.add(newOption);
-            }
-            s2.value = selection;
-        }
+<!--        function speciesFunction(s1, s2){-->
+<!--            var s1 = document.getElementById(s1);-->
+<!--            var s2 = document.getElementById(s2);-->
+<!--&lt;!&ndash;            Keep previous selection instead of overriding it&ndash;&gt;-->
+<!--            var selection = s2.value;-->
+<!--            s2.innerHTML = "";-->
+<!--            if(s1.value == "mammalian"){-->
+<!--                var optionArray = ["|","fetal|Fetal","neonatal|Neonatal","prepubertal|Prepubertal","pubertal|Pubertal","adult|Adult","aging|Aging"];-->
+<!--            } else{-->
+<!--                var optionArray = ["|","proestrus|Proestrus","estrus|Estrus","metestrus|Metestrus","diestrus|Diestrus","anestrus|Anestrus","unspecified|Unspecified"];-->
+<!--            }-->
+<!--            for(var option in optionArray){-->
+<!--                var pair = optionArray[option].split("|");-->
+<!--                var newOption = document.createElement("option");-->
+<!--                newOption.value = pair[0];-->
+<!--                newOption.innerHTML = pair[1];-->
+<!--                s2.options.add(newOption);-->
+<!--            }-->
+<!--            s2.value = selection;-->
+<!--        }-->
 
 <!--        Grey out areas where appropriate on page load-->
         specimenLocationFunction();

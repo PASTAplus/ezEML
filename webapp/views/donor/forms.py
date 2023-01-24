@@ -29,13 +29,7 @@ class DonorForm(EDIForm):
                                           ("prepubertal", "Prepubertal"),
                                           ("pubertal", "Pubertal"),
                                           ("adult", "Adult"),
-                                          ("aging", "Aging"),
-                                          ("proestrus", "Proestrus"),
-                                          ("estrus", "Estrus"),
-                                          ("metestrus", "Metestrus"),
-                                          ("diestrus", "Diestrus"),
-                                          ("anestrus", "Anestrus"),
-                                          ("unspecified", "Unspecified")],
+                                          ("aging", "Aging")],
                                  validators=[InputRequired(message='Life Stage is required')])
     specimenSeqNum = IntegerField('Specimen Sequence Number *', 
                                 validators=[NumberRange(min=0), InputRequired(message='Specimen Sequence Number is required')])

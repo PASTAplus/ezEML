@@ -237,10 +237,8 @@ def other_entity(filename=None, node_id=None):
         dt_node_id = dt_node.id
 
     if dt_node_id == '1':
-        print("hihi")
         form.init_md5()
     elif dt_node_id:
-        print("hi")
         populate_other_entity_form(form, dt_node)
         # if dataset_node:
         #     dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
@@ -256,7 +254,6 @@ def other_entity(filename=None, node_id=None):
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
-    print("are we here?")
     entity_name_node = node.find_child(names.ENTITYNAME)
     if entity_name_node:
         form.entity_name.data = entity_name_node.content

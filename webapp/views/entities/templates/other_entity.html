@@ -20,7 +20,7 @@
                 {{ wtf.form_field(form.format_name) }}
                 <table>
                     <td width="50%">{{ wtf.form_field(form.file_upload) }}</td>
-                    <td><b>Uploaded Image</b><br>{{ image_name|safe }}</td>
+                    <td width="50%" style="vertical-align:top; padding-left: 25px"><b>Uploaded Image</b><br>{{ image_name|safe }}</td>
                 </table>
 
                 {{ wtf.form_field(form.additional_info) }}

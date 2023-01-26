@@ -52,7 +52,7 @@
 
                                 <table>
                                     <td width="1%">&nbsp;</td>
-                                    <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.speciesTest) }}</td>
+                                    <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.donorType) }}</td>
                                     <td width="1%">&nbsp;</td>
                                     <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.dayOfCycle) }}</td>
                                     <td width="1%">&nbsp;</td>
@@ -333,9 +333,11 @@
             var selection = s2.value;
             s2.innerHTML = "";
             if(s1.value == "mammalian"){
-                var optionArray = ["|","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal","unspecified|Unspecified"];
-            } else{
-                var optionArray = ["|","proestrus|Proestrus","estrus|Estrus","metestrus|Metestrus","diestrus|Diestrus","anestrus|Anestrus","unspecified|Unspecified"];
+                var optionArray = ["unspecified|Unspecified","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal"];
+            }else if(s1.value == "estrous"){
+                var optionArray = ["unspecified|Unspecified","proestrous|Proestrous","estrous|Estrous","metestrous|Metestrous","diestrous|Diestrous","anestrous|Anestrous"];
+            }else{
+                var optionArray = ["unspecified|Unspecified"];
             }
             for(var option in optionArray){
                 var pair = optionArray[option].split("|");
@@ -355,7 +357,6 @@
         lightMicroscopyStainTypeFunction();
         fluorescentMicroscopyStainTypeFunction();
         electronMicroscopyStainTypeFunction();
-        speciesFunction('speciesTest', 'stageOfCycle');
 
     </script>
     <script>

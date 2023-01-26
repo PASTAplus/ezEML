@@ -358,6 +358,41 @@ def populate_donor_form(form: DonorForm, node: Node):
             if unspecified_node:
                 form.stageOfCycle.data = unspecified_node.name
 
+            proestrous_node = stageOfCycle_node.find_child(mdb_names.PROESTROUS)
+            if proestrous_node:
+                form.stageOfCycle.data = proestrous_node.name
+            estrous_node = stageOfCycle_node.find_child(mdb_names.ESTROUS)
+            if estrous_node:
+                form.stageOfCycle.data = estrous_node.name
+            metestrous_node = stageOfCycle_node.find_child(mdb_names.METESTROUS)
+            if metestrous_node:
+                form.stageOfCycle.data = metestrous_node.name
+            diestrous_node = stageOfCycle_node.find_child(mdb_names.DIESTROUS)
+            if diestrous_node:
+                form.stageOfCycle.data = diestrous_node.name
+            anestrous_node = stageOfCycle_node.find_child(mdb_names.ANESTROUS)
+            if anestrous_node:
+                form.stageOfCycle.data = anestrous_node.name
+
+        mammalStages = {
+            "follicular",
+            "pre-ovulatory",
+            "ovulation",
+            "luteal",
+        }
+        estrousStages = {
+            "proestrous",
+            "estrous",
+            "metestrous",
+            "diestrous",
+            "anestrous",
+        }
+
+        if form.stageOfCycle.data in mammalStages:
+            form.donorType.data = "mammalian"
+        elif form.stageOfCycle.data in estrousStages:
+            form.donorType.data = "estrous"
+
     slideID_node = node.find_child(mdb_names.SLIDE_ID)
     if slideID_node:
         form.slideID.data = slideID_node.content
@@ -624,6 +659,22 @@ def create_stage_of_cycle(mother_node: Node, stageOfCycle: None, follicular: Non
     elif stageOfCycle == mdb_names.EMPTY_UNSPECIFIED:
             unspecified_node = Node(mdb_names.EMPTY_UNSPECIFIED, parent=stageOfCycle_node)
             stageOfCycle_node.add_child(unspecified_node)
+
+    elif stageOfCycle == mdb_names.PROESTROUS:
+        proestrous_node = Node(mdb_names.PROESTROUS, parent=stageOfCycle_node)
+        stageOfCycle_node.add_child(proestrous_node)
+    elif stageOfCycle == mdb_names.ESTROUS:
+        estrous_node = Node(mdb_names.ESTROUS, parent=stageOfCycle_node)
+        stageOfCycle_node.add_child(estrous_node)
+    elif stageOfCycle == mdb_names.METESTROUS:
+        metestrous_node = Node(mdb_names.METESTROUS, parent=stageOfCycle_node)
+        stageOfCycle_node.add_child(metestrous_node)
+    elif stageOfCycle == mdb_names.DIESTROUS:
+        diestrous_node = Node(mdb_names.DIESTROUS, parent=stageOfCycle_node)
+        stageOfCycle_node.add_child(diestrous_node)
+    elif stageOfCycle == mdb_names.ANESTROUS:
+        anestrous_node = Node(mdb_names.ANESTROUS, parent=stageOfCycle_node)
+        stageOfCycle_node.add_child(anestrous_node)
 
 
 """

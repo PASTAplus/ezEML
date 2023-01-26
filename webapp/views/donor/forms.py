@@ -14,8 +14,9 @@ from webapp.home.custom_validators import IntegerField
 
 
 class DonorForm(EDIForm):
-    speciesTest = SelectField('Species',
-                                choices=[("mammalian", "Mammalian"),
+    donorType = SelectField('Cycle Type',
+                                choices=[("",""),
+                                         ("mammalian", "Mammalian"),
                                          ("estrous", "Estrous")],
                                 render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
@@ -59,17 +60,16 @@ class DonorForm(EDIForm):
                                         ("albicans", "Albicans")], validators=[Optional()])
     dayOfCycle = StringField('Day Of Cycle', validators=[])
     stageOfCycle = SelectField('Stage Of Cycle',
-                               choices=[("", ""),
+                               choices=[("unspecified", "Unspecified"),
                                         ("follicular", "Follicular"),
                                         ("pre-ovulatory", "Pre-Ovulatory"),
                                         ("ovulation", "Ovulation"),
                                         ("luteal", "Luteal"),
-                                        ("unspecified", "Unspecified"),
-                                        ("proestrus", "Proestrus"),
-                                        ("estrus", "Estrus"),
-                                        ("metestrus", "Metestrus"),
-                                        ("diestrus", "Diestrus"),
-                                        ("anestrus", "Anestrus")],
+                                        ("proestrous", "Proestrous"),
+                                        ("estrous", "Estrous"),
+                                        ("metestrous", "Metestrous"),
+                                        ("diestrous", "Diestrous"),
+                                        ("anestrous", "Anestrous")],
                                render_kw={'onchange': "stageOfCycleFunction()"})
     follicular = SelectField('Follicular values',
                              choices=[("", ""),

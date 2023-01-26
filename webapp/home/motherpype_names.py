@@ -93,6 +93,12 @@ LUTEAL = "luteal"                # child of STAGE_OF_CYCLE
 # LATE = "late"     (this is defined already but here as a placeholder)
 REGRESSING = "regressing"  # unique luteal value
 # UNSPECIFIED = "unspecified"  (this is defined already but here as a placeholder) # child of STAGE_OF_CYCLE
+# estrous types
+PROESTROUS = "proestrous"
+ESTROUS = "estrous"
+METESTROUS = "metestrous"
+DIESTROUS = "diestrous"
+ANESTROUS = "anestrous"
 
 SLIDE_ID = "slideID"
 SEC_SEQ_NUM = "sectionSeqNum"

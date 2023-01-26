@@ -18,7 +18,11 @@
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
                 {{ wtf.form_field(form.format_name) }}
-                {{ wtf.form_field(form.file_upload) }}
+                <table>
+                    <td width="50%">{{ wtf.form_field(form.file_upload) }}</td>
+                    <td width="50%" style="vertical-align:top; padding-left: 25px"><b>Uploaded Image</b><br>{{ image_name|safe }}</td>
+                </table>
+
                 {{ wtf.form_field(form.additional_info) }}
 
                 <table>

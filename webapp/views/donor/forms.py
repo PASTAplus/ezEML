@@ -14,6 +14,11 @@ from webapp.home.custom_validators import IntegerField
 
 
 class DonorForm(EDIForm):
+    donorType = SelectField('Cycle Type',
+                                choices=[("",""),
+                                         ("mammalian", "Mammalian"),
+                                         ("estrous", "Estrous")],
+                                render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
     donorGender = StringField('Gender *', validators=[InputRequired(message='Gender is required')], default='female')
     donorYears = IntegerField('Years', validators=[NumberRange(min=0), Optional()])
@@ -25,7 +30,7 @@ class DonorForm(EDIForm):
                                           ("prepubertal", "Prepubertal"),
                                           ("pubertal", "Pubertal"),
                                           ("adult", "Adult"),
-                                          ("aging", "Aging")], 
+                                          ("aging", "Aging")],
                                  validators=[InputRequired(message='Life Stage is required')])
     specimenSeqNum = IntegerField('Specimen Sequence Number *', 
                                 validators=[NumberRange(min=0), InputRequired(message='Specimen Sequence Number is required')])
@@ -55,12 +60,16 @@ class DonorForm(EDIForm):
                                         ("albicans", "Albicans")], validators=[Optional()])
     dayOfCycle = StringField('Day Of Cycle', validators=[])
     stageOfCycle = SelectField('Stage Of Cycle',
-                               choices=[("", ""),
+                               choices=[("unspecified", "Unspecified"),
                                         ("follicular", "Follicular"),
                                         ("pre-ovulatory", "Pre-Ovulatory"),
                                         ("ovulation", "Ovulation"),
                                         ("luteal", "Luteal"),
-                                        ("unspecified", "Unspecified")],
+                                        ("proestrous", "Proestrous"),
+                                        ("estrous", "Estrous"),
+                                        ("metestrous", "Metestrous"),
+                                        ("diestrous", "Diestrous"),
+                                        ("anestrous", "Anestrous")],
                                render_kw={'onchange': "stageOfCycleFunction()"})
     follicular = SelectField('Follicular values',
                              choices=[("", ""),

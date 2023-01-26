@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder, clear_temp_folder
+    get_temp_folder, clear_temp_folder, get_temp_file_name
 )
 
 from metapype.eml import names
@@ -237,10 +237,8 @@ def other_entity(filename=None, node_id=None):
         dt_node_id = dt_node.id
 
     if dt_node_id == '1':
-        print("hihi")
         form.init_md5()
     elif dt_node_id:
-        print("hi")
         populate_other_entity_form(form, dt_node)
         # if dataset_node:
         #     dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
@@ -252,11 +250,10 @@ def other_entity(filename=None, node_id=None):
 
     set_current_page('other_entity')
     help = [get_help('other_entity')]
-    return render_template('other_entity.html', title='Other Entity', form=form, help=help)
+    return render_template('other_entity.html', title='Other Entity', form=form, help=help, image_name=get_temp_file_name())
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
-    print("are we here?")
     entity_name_node = node.find_child(names.ENTITYNAME)
     if entity_name_node:
         form.entity_name.data = entity_name_node.content

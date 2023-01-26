@@ -10,16 +10,16 @@
 {#    <div class="row">#}
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
-                EML requires a data package to have a <b>Data Package ID</b>, but if you are going to submit
-                to EDI you can leave it blank. Then, when you use <a href="{{ url_for('home.submit_package') }}">
-                <b>Submit to EDI</b></a> to send your package to EDI, our data curation team will take care of assigning an
-                ID and adding it to the metadata for you.
-                <p></p>
-                In the event that you've already obtained a Data Package ID (e.g., from your site data manager), enter it here.
-                <p></p>
-                For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
-                <p>&nbsp;</p>
-                <p></p>
+<!--                EML requires a data package to have a <b>Data Package ID</b>, but if you are going to submit-->
+<!--                to EDI you can leave it blank. Then, when you use <a href="{{ url_for('home.submit_package') }}">-->
+<!--                <b>Submit to EDI</b></a> to send your package to EDI, our data curation team will take care of assigning an-->
+<!--                ID and adding it to the metadata for you.-->
+<!--                <p></p>-->
+<!--                In the event that you've already obtained a Data Package ID (e.g., from your site data manager), enter it here.-->
+<!--                <p></p>-->
+<!--                For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.-->
+<!--                <p>&nbsp;</p>-->
+<!--                <p></p>-->
 
                 <table>
                     <td>{{ wtf.form_field(form.data_package_id, size=100) }}</td>

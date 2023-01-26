@@ -39,26 +39,32 @@
                             <table width="100%">
                                 <tr>
                                 <td width="1%">&nbsp;</td>
-                                <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.specimenSeqNum) }}</td>
+                                <td style="padding: 5px 10px; vertical-align:bottom;" width="20%">{{ wtf.form_field(form.specimenSeqNum) }}</td>
                                 <td width="1%">&nbsp;</td>
-                                <td style="padding: 1px 5px;" width="20%">{{ wtf.form_field(form.specimenTissue) }}</td>
+                                <td style="padding: 5px 5px; vertical-align:bottom;" width="20%">{{ wtf.form_field(form.specimenTissue) }}</td>
                                 <td width="1%">&nbsp;</td>
-                                <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.ovaryPosition) }}</td>
+                                <td style="padding: 5px 10px; vertical-align:bottom;" width="20%">{{ wtf.form_field(form.ovaryPosition) }}</td>
                                 <td width="1%">&nbsp;</td>
-                                <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.specimenLocation) }}</td>
+                                <td style="padding: 5px 10px; vertical-align:bottom;" width="20%">{{ wtf.form_field(form.specimenLocation) }}</td>
                                 <td width="1%">&nbsp;</td>
-                                <td style="padding: 1px 5px;" width="20%">{{ wtf.form_field(form.corpusLuteum) }}</td>
+                                <td style="padding: 5px 5px; vertical-align:bottom;" width="20%">{{ wtf.form_field(form.corpusLuteum) }}</td>
                                 <td width="1%">&nbsp;</td>
 
                                 <table>
+                                    <td width="1%">&nbsp;</td>
+                                    <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.donorType) }}</td>
                                     <td width="1%">&nbsp;</td>
                                     <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.dayOfCycle) }}</td>
                                     <td width="1%">&nbsp;</td>
                                     <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.stageOfCycle) }}</td>
                                     <td width="1%">&nbsp;</td>
-                                    <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.follicular) }}</td>
+                                </table>
+
+                                <table>
                                     <td width="1%">&nbsp;</td>
-                                    <td style="padding: 1px 5px;" width="25%">{{ wtf.form_field(form.luteal) }}</td>
+                                    <td style="padding: 5px 10px;" width="50%">{{ wtf.form_field(form.follicular) }}</td>
+                                    <td width="1%">&nbsp;</td>
+                                    <td style="padding: 1px 5px;" width="50%">{{ wtf.form_field(form.luteal) }}</td>
                                     <td width="1%">&nbsp;</td>
                                 </table>
                                 </tr>
@@ -73,13 +79,13 @@
                         <table width="100%">
                         <tr>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="32%">{{ wtf.form_field(form.slideID) }}</td>
+                            <td style="padding: 5px 10px; vertical-align:bottom;" width="32%">{{ wtf.form_field(form.slideID) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="20%">{{ wtf.form_field(form.sectionSeqNum) }}</td>
+                            <td style="padding: 5px 10px; vertical-align:bottom;" width="20%">{{ wtf.form_field(form.sectionSeqNum) }}</td>
                                 <td width="1%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.thickness) }}</td>
+                            <td style="padding: 5px 10px; vertical-align:bottom;" width="30%">{{ wtf.form_field(form.thickness) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.thicknessUnit) }}</td>
+                            <td style="padding: 5px 10px; vertical-align:bottom;" width="30%">{{ wtf.form_field(form.thicknessUnit) }}</td>
                             <td width="2%">&nbsp;</td>
                         </tr>
                         </table>
@@ -318,6 +324,29 @@
                 document.getElementById("electronMicroscopyStainOther").value = "";
                 document.getElementById("electronMicroscopyStainOther").setAttribute("disabled","disabled");
             }
+        }
+
+        function speciesFunction(s1, s2){
+            var s1 = document.getElementById(s1);
+            var s2 = document.getElementById(s2);
+<!--            Keep previous selection instead of overriding it-->
+            var selection = s2.value;
+            s2.innerHTML = "";
+            if(s1.value == "mammalian"){
+                var optionArray = ["unspecified|Unspecified","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal"];
+            }else if(s1.value == "estrous"){
+                var optionArray = ["unspecified|Unspecified","proestrous|Proestrous","estrous|Estrous","metestrous|Metestrous","diestrous|Diestrous","anestrous|Anestrous"];
+            }else{
+                var optionArray = ["unspecified|Unspecified"];
+            }
+            for(var option in optionArray){
+                var pair = optionArray[option].split("|");
+                var newOption = document.createElement("option");
+                newOption.value = pair[0];
+                newOption.innerHTML = pair[1];
+                s2.options.add(newOption);
+            }
+            s2.value = selection;
         }
 
 <!--        Grey out areas where appropriate on page load-->

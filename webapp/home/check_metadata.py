@@ -811,7 +811,7 @@ def perform_evaluation(eml_node, filename):
     check_image(eml_node, filename)
     check_immunohistochemistry(eml_node, filename)
     check_donor(eml_node, filename)
-    check_data_package_id(eml_node, filename)
+    # check_data_package_id(eml_node, filename)
     
     return evaluation
 

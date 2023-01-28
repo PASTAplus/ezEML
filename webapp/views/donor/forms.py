@@ -16,7 +16,7 @@ from webapp.home.custom_validators import IntegerField
 class DonorForm(EDIForm):
     donorType = SelectField('Cycle Type',
                                 choices=[("",""),
-                                         ("mammalian", "Mammalian"),
+                                         ("menstrual", "Menstrual"),
                                          ("estrous", "Estrous")],
                                 render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])

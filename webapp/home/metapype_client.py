@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.01.25'
+RELEASE_NUMBER = '2023.01.27'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -404,7 +404,6 @@ def list_codes_and_definitions(att_node:Node=None):
             names.CODEDEFINITION
         ])
         if code_definition_nodes:
-
             Code_Definition_Entry = collections.namedtuple(
                             'Code_Definition_Entry',
                             ["id", "code", "definition", "upval", "downval"],

@@ -98,7 +98,8 @@ from webapp.home.metapype_client import (
     add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
     add_imported_from_xml_metadata, get_imported_from_xml_metadata,
     clear_taxonomy_imported_from_xml, taxonomy_imported_from_xml,
-    is_hidden_button, handle_hidden_buttons, package_contains_elements_unhandled_by_ezeml
+    is_hidden_button, handle_hidden_buttons, package_contains_elements_unhandled_by_ezeml,
+    strip_elements_added_by_pasta
 )
 
 import webapp.home.check_data_table_contents as check_data_table_contents
@@ -2390,6 +2391,7 @@ def import_xml():
                 return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
 
             eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+            eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
             # We're done with the temp file
             utils.remove_zip_temp_folder()
@@ -2446,6 +2448,7 @@ def import_xml_2(package_name, filename, fetched=False):
         filepath = os.path.join(work_path, filename)
 
         eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+        eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
         # We're done with the temp file
         utils.remove_zip_temp_folder()
@@ -2868,6 +2871,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
     filepath = os.path.join(work_path, filename)
 
     eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+    eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
     # We're done with the temp file
     utils.remove_zip_temp_folder()

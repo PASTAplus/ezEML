@@ -57,6 +57,8 @@ def title(filename=None):
             save = True
         if save:
             create_title(title=form.title.data, filename=filename)
+            create_data_package_id(form.title.data, filename)
+            set_active_packageid(form.title.data)
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:

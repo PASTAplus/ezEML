@@ -52,9 +52,9 @@
 
                                 <table>
                                     <td width="1%">&nbsp;</td>
-                                    <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.donorType) }}</td>
-                                    <td width="1%">&nbsp;</td>
                                     <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.dayOfCycle) }}</td>
+                                    <td width="1%">&nbsp;</td>
+                                    <td style="padding: 1px 5px;" width="15%">{{ wtf.form_field(form.donorType) }}</td>
                                     <td width="1%">&nbsp;</td>
                                     <td style="padding: 5px 10px;" width="25%">{{ wtf.form_field(form.stageOfCycle) }}</td>
                                     <td width="1%">&nbsp;</td>
@@ -185,7 +185,7 @@
     {% set help_donor_btn = help_donor_id ~ '_btn' %}
     {% set help_donor_dialog = help_donor_id ~ '_dialog' %}
      <script type = "text/javascript">
-        document.getElementById("donorGender").setAttribute("readonly","readonly");
+<!--        document.getElementById("donorGender").setAttribute("readonly","readonly");-->
         document.getElementById("specimenTissue").setAttribute("readonly","readonly");
 
         function specimenLocationFunction(){
@@ -332,7 +332,7 @@
 <!--            Keep previous selection instead of overriding it-->
             var selection = s2.value;
             s2.innerHTML = "";
-            if(s1.value == "mammalian"){
+            if(s1.value == "menstrual"){
                 var optionArray = ["unspecified|Unspecified","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal"];
             }else if(s1.value == "estrous"){
                 var optionArray = ["unspecified|Unspecified","proestrous|Proestrous","estrous|Estrous","metestrous|Metestrous","diestrous|Diestrous","anestrous|Anestrous"];
@@ -357,6 +357,7 @@
         lightMicroscopyStainTypeFunction();
         fluorescentMicroscopyStainTypeFunction();
         electronMicroscopyStainTypeFunction();
+        speciesFunction("donorType", "stageOfCycle");
 
     </script>
     <script>

@@ -257,8 +257,6 @@ XSI_TYPE = {
 
 NILLABLE = {
     DONOR_AGE,
-    DONOR_DAYS,
-    DONOR_YEARS,
     SPEC_CYCLE,
     DAY_OF_CYCLE
 }

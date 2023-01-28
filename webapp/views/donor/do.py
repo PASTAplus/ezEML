@@ -389,7 +389,7 @@ def populate_donor_form(form: DonorForm, node: Node):
         }
 
         if form.stageOfCycle.data in mammalStages:
-            form.donorType.data = "mammalian"
+            form.donorType.data = "menstrual"
         elif form.stageOfCycle.data in estrousStages:
             form.donorType.data = "estrous"
 

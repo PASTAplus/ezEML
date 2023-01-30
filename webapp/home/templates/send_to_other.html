@@ -7,45 +7,21 @@
     {% set help_send_to_colleague_dialog = help_send_to_colleague_id ~ '_dialog' %}
     
     <table>
-        <td><h2>Send Data Package to a Colleague</h2></td>
+        <td><h2>Submit Metadata</h2></td>
         <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_send_to_colleague_btn) }}</td>
     </table>
-{#        <div class="col-md-10">#}
-{##}
-{#        <p>When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML,#}
-{#        you're ready to submit your data package to the data repository#}
-{#        hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.#}
-
-    <div class="col-md-6" style="border: 1px solid steelblue;padding: 10px;margin-left:15px;">
-        <b>Important:</b> The versions of the data files that will be included in your data package are the versions you've
-        uploaded to ezEML. If you've modified a data file since it was uploaded, you will need to use <b>Re-upload</b>
-        to provide ezEML with the updated version prior to sending. Go to <b><a href="edit/dt.data_table_select">Data Tables</a></b> and/or
-        <b><a href="edit/ent.other_entity_select">Other Entities</a></b> to do any needed re-uploads. Then return to this page to
-        send your package.
-    </div>
-    <div class="col-md-3" style="border: 1px solid steelblue;padding: 10px;margin-left:43px;">
-        <b>Note:</b> To send your current data and metadata <i>to EDI</i>, go to
-        <b><a href="edit/home.send_to_colleague">Send to EDI</a></b>. See also <b>Sending Your
-        Package to EDI</b> in the <b><a href="user_guide">User Guide</a></b>.
-    </div>
         <div class="col-md-10">
     <form method="POST" action="" class="form" role="form" novalidate>
         {{ form.csrf_token }}
-    <br>
     <table>
-        <tr><td>
-        <table>
-            <td>{{ wtf.form_field(form.colleague_name, size=100) }}</td>
-{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
-        </table>
-        </td>
-            <td width="5%">&nbsp;</td>
-        <td>
-        <table>
-            <td>{{ wtf.form_field(form.email_address, size=100) }}</td>
-{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
-        </table>
-        </td></tr>
+        <tr>
+            <td width="200"><b>Image File</b></td>
+            <td><b>XML File</b></td>
+        </tr>
+        <tr>
+            <td>{{ image_name|safe }}</td>
+            <td>{{ xml_name|safe + '.xml' }}</td>
+        </tr>
     </table>
         <p></p>
 {#        <h5>If you have any notes for EDI data curators, enter them below.</h5>#}
@@ -53,19 +29,19 @@
 {#            <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>#}
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
 {#        </table>#}
-        {% if check_metadata_status == 'red' %}
+{#        {% if check_metadata_status == 'red' %}
             <p><span style="color:red;">Your metadata contains one or more errors.</span><span style="color:black;"> To see what the errors
                 are, click <b><a href=""{{ url_for('home.edit', page='home.check_metadata') }}">Check Metadata</a></b>.
-            You may wish to correct the errors before sending, but you can go ahead and send your package as is,
+            You may wish to correct the errors before sending, but you can go ahead and submit your package as is,
                 if you choose. The one exception is that the data package must have a
                 <b><a href="{{ url_for('home.edit', page='res.title') }}">Title</a></b>. </span></p>
-        {% endif %}
+        {% endif %}#}
     <p></p>
-        Click the <b>Prepare Package for Colleague</b> button to prepare the package to be sent. An email containing a download
+{#        Click the <b>Submit Metadata</b> button to prepare the package to be sent. An email containing a download
         link for the package will be generated for you to use. You will have the opportunity to edit the email and personalize
-        it as you see fit before sending it to your colleague.<p></p>&nbsp;<br>
+        it as you see fit before sending it to your colleague.<p></p>&nbsp;<br>#}
 
-                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Prepare Package for Colleague"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Submit Metadata" formnovalidate="True"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
     </form>

@@ -2,28 +2,31 @@
 
 {% block app_content %}
     <span style="float:right;">Release {{ release_number }}</span>
-    <h4 align="left">About ezEML</h4>
+    <h4 align="left">About ezEML+MOTHER</h4>
 
     <p>&nbsp;</p>
-    <p><b>ezEML</b> is a form-based online application designed to streamline the creation of metadata in the <a href="https://eml.ecoinformatics.org/" target=""_blank"><b>Ecological Metadata Language (EML)</b></a>. If you're not sure what we mean by metadata,
-    or if you've never heard of EML, please see the <a style="color: steelblue;" href="/static/user_guide/terminology.pdf" target="_ezeml_user_guide">Some Terminology</a> section of the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+    <p>
+        <b>ezEML+MOTHER</b> is a form-based online application designed to streamline the creation of metadata in the Ecological Metadata Language (EML) 
+        with additional metadata for MOTHER (Multispecies Ovarian Tissue Histology Electronic Repository). Metadata is data that describes a data 
+        source and is a crucial component of the FAIR Guiding Principles for scientific data management and stewardship. For MOTHER, a data source 
+        is a histology slide of an ovary. EML essentially documents the provenance of the data (e.g., contact, intellectual rights, funding sources, etc.) 
+        and the inclusion of the MOTHER additional metadata documents information pertaining to the ovarian histology slide and its donor animal.
+    </p>
+    
+    <p>
+        ezEML+MOTHER leveraged the existing ezEML tool (<a style="color: steelblue;" href="https://ezeml.edirepository.org/eml/">ezEML Repository</a>), 
+        which was created by the Environmental Data Initiative (EDI). In Fall 2021, the ezEML github project was forked and customized for the MOTHER 
+        project. The tool assists users in the creation of an EML+MOTHER document, which is saved in an XML (eXtensible Markup Language) file that 
+        must adhere to the EML and MOTHER structural specifications.
     </p>
 
-    <p>Since the EML standard was designed to handle an enormous variety of data scenarios, EML is complex and the learning curve to creating it can be steep.
-        But many data scenarios require only a relatively small subset of EML, and in such scenarios ezEML can greatly simplify the process of
-        creating EML, especially for users who are new to EML or use it only infrequently.</p>
-
-    <p>ezEML can be used as a “wizard” leading the user through EML document creation step by step, or it can be used in a more user-directed fashion.
-        Among other things, it supports checking the EML for correctness and completeness, importing EML content from other ezEML documents, uploading data tables and inferring most of their characteristics, and
-        downloading the finished EML document as an EML XML file for downstream use in a data workflow.</p>
-
-    <p>ezEML was created by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
-    It employs EDI's Metapype library, which is a general-purpose framework for creating and validating metadata, along with Metapype’s implementation of validation rules for the EML 2.2.0 standard.
+    <p>
+        For MOTHER, where a donor animal may have multiple histology slides, a user can upload an existing EML+MOTHER XML document and then change 
+        the specifics related only to the new slide being described.
     </p>
 
-    <p>ezEML is aimed at the “long tail” of scientists and others who want to prepare their dataset for submission to a data repository but are not themselves proficient in the details of EML editing. ezEML is designed to give such users a do-it-yourself tool that can handle the great majority of typical datasets.
-    </p><p>
-        We hope you find it useful, and we welcome your feedback at <a href="mailto:support@environmentaldatainitiative.org">support@environmentaldatainitiative.org</a>!</p>
+    <p>
+        Your feedback is welcome (email).
     </p>
     <br>
     <b><a href={{ back_url }}>Back</a></b>

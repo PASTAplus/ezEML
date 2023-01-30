@@ -16,8 +16,13 @@
 import math
 
 from wtforms import (
-    validators, ValidationError
+    validators, ValidationError, IntegerField
 )
+
+from metapype.model.node import Node
+from metapype.eml.evaluation_warnings import EvaluationWarning
+
+from webapp.home import motherpype_names as names
 
 def valid_length(min:int=10, max:int=1000):
     message = f'Must be between {min} and {max} characters long'
@@ -68,3 +73,27 @@ def valid_longitude(min:float=-180.0, max:float=180.0):
         #     raise ValidationError("Missing value")
 
     return _valid_longitude
+
+class IntegerField(IntegerField):
+    def process_formdata(self, valuelist):
+        if not valuelist:
+            return
+
+        try:
+            self.data = int(valuelist[0])
+        except ValueError as exc:
+            self.data = None
+
+def _intellectual_rights_rule(node: Node) -> list:
+    evaluation = []
+    rights = False
+    for child in node.children:
+        if child.name == names.INTELLECTUAL_RIGHTS and child.content:
+            rights = True
+    if not rights:
+        evaluation.append((
+            EvaluationWarning.INTELLECTUAL_RIGHTS_MISSING,
+            f'Intellectual Rights are recommended.',
+            node
+        ))
+    return evaluation

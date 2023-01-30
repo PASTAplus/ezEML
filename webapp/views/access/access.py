@@ -41,7 +41,6 @@ def access_select_get(filename=None, form=None):
     access_rules_list = []
     title = 'Access Rules'
     eml_node = load_eml(filename=filename)
-
     if eml_node:
         access_rules_list = list_access_rules(eml_node)
 

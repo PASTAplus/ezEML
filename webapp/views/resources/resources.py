@@ -50,17 +50,20 @@ def title(filename=None):
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
     # if request.method == 'POST':
-        new_page = PAGE_DATA_TABLE_SELECT
+#PT5/26        new_page = PAGE_DATA_TABLE_SELECT
+        new_page = PAGE_OTHER_ENTITY  #PT5/26
         save = False
         if is_dirty_form(form):
             save = True
-
         if save:
             create_title(title=form.title.data, filename=filename)
+            create_data_package_id(form.title.data, filename)
+            set_active_packageid(form.title.data)
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_DATA_TABLE_SELECT
+#PT5/26            new_page = PAGE_DATA_TABLE_SELECT
+            new_page = PAGE_OTHER_ENTITY #PT5/26
         elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
         elif BTN_HIDDEN_SAVE in request.form:
@@ -110,7 +113,7 @@ def data_package_id(filename=None):
             form.md5.data = form_md5(form)
 
         if 'Next' in request.form:
-            new_page = PAGE_CHECK
+            new_page = PAGE_DONOR
         elif BTN_HIDDEN_CHECK in request.form:
             new_page = PAGE_CHECK
         elif BTN_HIDDEN_SAVE in request.form:
@@ -274,6 +277,9 @@ def abstract(filename=None):
 @res_bp.route('/intellectual_rights/<filename>', methods=['GET', 'POST'])
 def intellectual_rights(filename=None):
     form = IntellectualRightsForm(filename=filename)
+    data_lower = ""
+    if(form.intellectual_rights_radio.data):
+        data_lower = form.intellectual_rights_radio.data.lower()
 
     # Process POST
     # if request.method == 'POST' and form.validate_on_submit():
@@ -283,9 +289,9 @@ def intellectual_rights(filename=None):
             submit_type = 'Save Changes'
 
         if submit_type == 'Save Changes':
-            if form.intellectual_rights_radio.data == 'CC0':
+            if data_lower == 'CC0'.lower():
                 intellectual_rights = INTELLECTUAL_RIGHTS_CC0
-            elif form.intellectual_rights_radio.data == 'CCBY':
+            elif data_lower == 'CCBY'.lower():
                 intellectual_rights = INTELLECTUAL_RIGHTS_CC_BY
             else:
                 intellectual_rights = form.intellectual_rights.data

@@ -53,7 +53,8 @@ def project(filename=None, node_id=None):
 
         if 'Next' in request.form:
             if not node_id:
-                new_page = PAGE_OTHER_ENTITY_SELECT
+#PT5/26                new_page = PAGE_OTHER_ENTITY_SELECT
+                new_page = PAGE_DONOR  #PT5/26
             else:
                 new_page = PAGE_RELATED_PROJECT_SELECT
         elif BTN_PROJECT_PERSONNEL in request.form:
@@ -394,7 +395,8 @@ def related_project_select(filename=None):
         form_dict = form_value.to_dict(flat=False)
         url = related_project_select_post(filename, form, form_dict,
                                   'POST', PAGE_RELATED_PROJECT_SELECT, PAGE_METHOD_STEP_SELECT,
-                                  PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT)
+                                          PAGE_DONOR, PAGE_PROJECT)  #PT5/26
+#PT5/26                                  PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT)
         return redirect(url)
 
     # Process GET

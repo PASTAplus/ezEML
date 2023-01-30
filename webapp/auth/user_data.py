@@ -18,6 +18,7 @@ import os.path
 from json import JSONDecodeError
 from pathlib import Path
 import pickle
+import glob
 
 import daiquiri
 from flask import send_file, Flask, current_app
@@ -50,7 +51,7 @@ def get_user_uploads_folder_name():
 def get_document_uploads_folder_name(document_name=None):
     if not document_name:
         if get_active_document():
-            document_name  = get_active_document()
+            document_name = get_active_document()
     if document_name:
         document_uploads_folder = os.path.join(get_user_uploads_folder_name(), document_name)
         Path(document_uploads_folder).mkdir(parents=True, exist_ok=True)
@@ -82,10 +83,10 @@ def initialize_user_data(cname, uid):
         os.mkdir(USER_DATA_DIR)
     if user_folder_name and not os.path.exists(user_folder_name):
         os.mkdir(user_folder_name)
-    if (user_uploads_folder_name and 
-        os.path.exists(user_folder_name) and not 
-        os.path.exists(user_uploads_folder_name)
-       ):
+    if (user_uploads_folder_name and
+            os.path.exists(user_folder_name) and not
+            os.path.exists(user_uploads_folder_name)
+    ):
         os.mkdir(user_uploads_folder_name)
     user_properties = get_user_properties()
     user_properties['cname'] = cname
@@ -214,7 +215,7 @@ def data_table_was_uploaded(filename):
     return [get_active_document(), filename.lower()] in uploaded_files
 
 
-def delete_eml(filename:str=''):
+def delete_eml(filename: str = ''):
     if filename:
         user_folder = get_user_folder_name()
         json_filename = f'{user_folder}/{filename}.json'
@@ -237,7 +238,7 @@ def delete_eml(filename:str=''):
         return msg
 
 
-def download_eml(filename:str=''):
+def download_eml(filename: str = ''):
     if filename:
         user_folder = get_user_folder_name()
         filename_xml = f'{filename}.xml'
@@ -248,15 +249,45 @@ def download_eml(filename:str=''):
                 filename_xml = f'{package_id}.xml'
             relative_pathname = '../' + pathname
             mimetype = 'application/xml'
-            try: 
-                return send_file(relative_pathname, 
-                    mimetype=mimetype, 
-                    as_attachment=True, 
-                    attachment_filename=filename_xml,
-                    add_etags=True, 
-                    cache_timeout=None, 
-                    conditional=False, 
-                    last_modified=None)
+            try:
+                return send_file(relative_pathname,
+                                 mimetype=mimetype,
+                                 as_attachment=True,
+                                 attachment_filename=filename_xml,
+                                 add_etags=True,
+                                 cache_timeout=None,
+                                 conditional=False,
+                                 last_modified=None)
+            except Exception as e:
+                return str(e)
+        else:
+            msg = f'Data package not found: {filename}'
+            return msg
+    else:
+        msg = f'No package ID was specified'
+        return msg
+
+
+def download_zip(filename: str = ''):
+    if filename:
+        user_folder = get_user_folder_name()
+        filename_zip = f'{filename}.zip'
+        pathname = f'{user_folder}/{filename_zip}'
+        if os.path.exists(pathname):
+            package_id = get_active_packageid()
+            if package_id:
+                filename_zip = f'{package_id}.zip'
+            relative_pathname = '../' + pathname
+            mimetype = 'application/zip'
+            try:
+                return send_file(relative_pathname,
+                                 mimetype=mimetype,
+                                 as_attachment=True,
+                                 attachment_filename=filename_zip,
+                                 add_etags=True,
+                                 cache_timeout=None,
+                                 conditional=False,
+                                 last_modified=None)
             except Exception as e:
                 return str(e)
         else:
@@ -322,3 +353,35 @@ def remove_active_file():
     if os.path.exists(active_file):
         os.remove(active_file)
 
+
+def get_temp_folder() -> str:
+    # make sure that temp folder exists then return its address
+    temp_folder = get_user_folder_name() + '/temp'
+    if not os.path.isdir(temp_folder):
+        os.makedirs(temp_folder)
+    return temp_folder
+
+
+def get_temp_file_name() -> str:
+    # obtains the name of last image in temp folder
+    image_name = None
+    temp_folder = get_temp_folder()
+    images = glob.glob(os.path.join(temp_folder, '*'))
+    for f in images:
+        image_name = os.path.basename(f)
+    return image_name
+
+
+def clear_folder(folder: str):
+    files = glob.glob(os.path.join(folder, '*'))
+
+    for f in files:
+        os.remove(f)
+
+
+def clear_temp_folder():
+    clear_folder(get_temp_folder())
+
+
+def get_zip_file_path() -> str:
+    return os.path.join(get_user_folder_name(), Config.ACTIVE_PACKAGE, '.zip')

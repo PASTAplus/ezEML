@@ -1,6 +1,11 @@
+import os
+import glob
+
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
 )
+
+from werkzeug.utils import secure_filename
 
 from webapp.home.views import (
     process_up_button, process_down_button, set_current_page,
@@ -54,6 +59,10 @@ from webapp.home.metapype_client import (
     create_access
 )
 
+from webapp.auth.user_data import(
+    get_temp_folder, clear_temp_folder, get_temp_file_name
+)
+
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -76,7 +85,8 @@ def other_entity_select(filename=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT,
-                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY)
+#PT5/26                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY)
+                          PAGE_CONTACT_SELECT, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY) #PT5/26
         return redirect(url)
 
     # Process GET
@@ -90,9 +100,13 @@ def other_entity_select(filename=None):
                            oe_list=oe_list, form=form, help=help)
 
 
-@ent_bp.route('/other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
+@ent_bp.route('/other_entity/<filename>/', methods=['GET', 'POST'])
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
+
+    #set temp folder
+    temp_folder = get_temp_folder()
+
     form = OtherEntityForm(filename=filename)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -101,7 +115,7 @@ def other_entity(filename=None, node_id=None):
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
-        next_page = PAGE_OTHER_ENTITY_SELECT
+        next_page = PAGE_CONTACT_SELECT
 
         auto_save = False  # if user clicked to edit, we need to save other entity first
         if 'Access' in request.form:
@@ -150,14 +164,33 @@ def other_entity(filename=None, node_id=None):
 
             entity_name = form.entity_name.data
             entity_type = form.entity_type.data
-            entity_description = form.entity_description.data
-            object_name = form.object_name.data
+#            entity_description = form.entity_description.data
+#            object_name = form.object_name.data
+            file_upload = form.file_upload.data
             format_name = form.format_name.data
-            size = str(form.size.data) if form.size.data else ''
-            md5_hash = form.md5_hash.data
+            additional_info = form.additional_info.data
+#            size = str(form.size.data) if form.size.data else ''
+#            md5_hash = form.md5_hash.data
             online_url = form.online_url.data
 
-            dt_node = Node(names.OTHERENTITY, parent=dataset_node)
+            #overwrite name and file type if uploaded file is present
+            if file_upload is not None:
+                file_name = secure_filename(file_upload.filename)
+                file_upload_name_split = os.path.splitext(file_name)
+                entity_name = file_upload_name_split[0]
+                format_name = file_upload_name_split[1].strip('.') #remove dot to stay consistent with expected user input
+
+                #remove any preexisting files in temp folder then upload new image to it
+                clear_temp_folder()
+
+                file_upload.save(os.path.join(temp_folder, file_name))
+            else:
+                file_name = entity_name + '.' + format_name
+
+            dt_node = dataset_node.find_child(names.OTHERENTITY)
+            if not dt_node:
+                dt_node = Node(names.OTHERENTITY, parent=dataset_node)
+                dataset_node.add_child(dt_node)
 
             if not entity_name:
                 entity_name = ''
@@ -166,49 +199,16 @@ def other_entity(filename=None, node_id=None):
                 dt_node,
                 entity_name,
                 entity_type,
-                entity_description,
-                object_name,
+                file_name,
+#                entity_description,
+#                object_name,
                 format_name,
-                size,
-                md5_hash,
+                additional_info,
+#                size,
+#                md5_hash,
                 online_url)
 
-            if dt_node_id and len(dt_node_id) != 1:
-                old_dt_node = Node.get_node_instance(dt_node_id)
-                if old_dt_node:
 
-                    old_physical_node = old_dt_node.find_child(names.PHYSICAL)
-                    if old_physical_node:
-                        old_distribution_node = old_physical_node.find_child(names.DISTRIBUTION)
-                        if old_distribution_node:
-                            access_node = old_distribution_node.find_child(names.ACCESS)
-                            if access_node:
-                                physical_node = dt_node.find_child(names.PHYSICAL)
-                                if physical_node:
-                                    distribution_node = dt_node.find_child(names.DISTRIBUTION)
-                                    if distribution_node:
-                                        old_distribution_node.remove_child(access_node)
-                                        add_child(distribution_node, access_node)
-
-                    methods_node = old_dt_node.find_child(names.METHODS)
-                    if methods_node:
-                        old_dt_node.remove_child(methods_node)
-                        add_child(dt_node, methods_node)
-
-                    coverage_node = old_dt_node.find_child(names.COVERAGE)
-                    if coverage_node:
-                        old_dt_node.remove_child(coverage_node)
-                        add_child(dt_node, coverage_node)
-
-                    dataset_parent_node = old_dt_node.parent
-                    dataset_parent_node.replace_child(old_dt_node, dt_node)
-                    dt_node_id = dt_node.id
-                else:
-                    msg = f"No node found in the node store with node id {dt_node_id}"
-                    raise Exception(msg)
-            else:
-                add_child(dataset_node, dt_node)
-                dt_node_id = dt_node.id
 
             save_both_formats(filename=filename, eml_node=eml_node)
 
@@ -228,21 +228,29 @@ def other_entity(filename=None, node_id=None):
                                     dt_node_id=dt_node_id))
 
     # Process GET
+    eml_node = load_eml(filename=filename)
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = Node(names.DATASET)
+    dt_node = dataset_node.find_child(names.OTHERENTITY)
+    if dt_node:
+        dt_node_id = dt_node.id
+
     if dt_node_id == '1':
         form.init_md5()
-    else:
-        eml_node = load_eml(filename=filename)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if dataset_node:
-            dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
-            if dt_nodes:
-                for dt_node in dt_nodes:
-                    if dt_node_id == dt_node.id:
-                        populate_other_entity_form(form, dt_node)
+    elif dt_node_id:
+        populate_other_entity_form(form, dt_node)
+        # if dataset_node:
+        #     dt_nodes = dataset_node.find_all_children(names.OTHERENTITY)
+        #     if dt_nodes:
+        #         for dt_node in dt_nodes:
+        #             if dt_node_id == dt_node.id:
+        #                 print("populating")
+        #                 populate_other_entity_form(form, dt_node)
 
     set_current_page('other_entity')
     help = [get_help('other_entity')]
-    return render_template('other_entity.html', title='Other Entity', form=form, help=help)
+    return render_template('other_entity.html', title='Other Entity', form=form, help=help, image_name=get_temp_file_name())
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
@@ -254,24 +262,12 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
     if entity_type_node:
         form.entity_type.data = entity_type_node.content
 
-    entity_description_node = node.find_child(names.ENTITYDESCRIPTION)
-    if entity_description_node:
-        form.entity_description.data = entity_description_node.content
+    file_name_node = node.find_child("filename")
+    if file_name_node:
+        form.file_name.data = file_name_node.content
 
     physical_node = node.find_child(names.PHYSICAL)
     if physical_node:
-
-        object_name_node = physical_node.find_child(names.OBJECTNAME)
-        if object_name_node:
-            form.object_name.data = object_name_node.content
-
-        size_node = physical_node.find_child(names.SIZE)
-        if size_node:
-            form.size.data = size_node.content
-
-        md5_hash_node = physical_node.find_child(names.AUTHENTICATION)
-        if md5_hash_node:
-            form.md5_hash.data = md5_hash_node.content
 
         data_format_node = physical_node.find_child(names.DATAFORMAT)
         if data_format_node:
@@ -282,6 +278,10 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
 
                 if format_name_node:
                     form.format_name.data = format_name_node.content
+
+        additional_info_node = node.find_child("additionalInfo")
+        if additional_info_node:
+            form.additional_info.data = additional_info_node.content
 
         distribution_node = physical_node.find_child(names.DISTRIBUTION)
         if distribution_node:

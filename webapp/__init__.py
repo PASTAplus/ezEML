@@ -79,3 +79,9 @@ app.register_blueprint(res_bp, url_prefix='/eml')
 
 from webapp.views.responsible_parties.rp import rp_bp
 app.register_blueprint(rp_bp, url_prefix='/eml')
+
+from webapp.views.donor.do import do_bp
+app.register_blueprint(do_bp, url_prefix='/eml')
+
+from webapp.views.immunohistochemistry.ihc import ihc_bp
+app.register_blueprint(ihc_bp, url_prefix='/eml')

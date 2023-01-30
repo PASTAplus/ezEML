@@ -39,6 +39,7 @@ from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io, metapype_io
 
+
 from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
@@ -898,20 +899,8 @@ def compose_simple_label(rp_node: Node = None, child_node_name: str = ''):
 
 def from_json(filename):
     eml_node = None
-    # Converted XML file to JSON format -NM 3/2/2022
-    if filename.lower().endswith(".xml"):
-        with open(filename, "r") as file:
-            data = file.read()
-    
-        xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
-        converted_file = filename.replace(".xml", ".json")
-
-        with open(converted_file, "w") as file:
-            file.write(xml_to_json)
-            file.close()
-
     try:
-        with open(converted_file, "r") as json_file:
+        with open(filename, "r") as json_file:
             json_text = json_file.read()
             # The JSON may be in one of two formats
             try:
@@ -924,17 +913,16 @@ def from_json(filename):
                 except KeyError as e:
                     logger.error(e)
     except Exception as e:
-        logger.error(e)
+         logger.error(e)
     return eml_node
 
 
-def load_eml(filename: str = None):
+def load_eml(filename:str=None):
     eml_node = None
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         user_folder = '.'
-    # Changed filename extension from json to xml format -NM 3/2/2022
-    filename = f"{user_folder}/{filename}.xml"
+    filename = f"{user_folder}/{filename}.json"
     if os.path.isfile(filename):
         eml_node = from_json(filename)
 
@@ -1079,10 +1067,12 @@ def save_both_formats(filename: str = None, eml_node: Node = None):
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename)  # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
-    add_eml_editor_metadata(eml_node)
+    #FIXME
+    #add_eml_editor needs to be fixed as a footer for the xml file, since it will delete
+    #the entire mother node if ran. -NPM 4/8/2022
+    #add_eml_editor_metadata(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
-
 
 def save_eml(filename: str = None, eml_node: Node = None, format: str = 'json'):
     if Config.LOG_DEBUG:
@@ -1102,14 +1092,12 @@ def save_eml(filename: str = None, eml_node: Node = None, format: str = 'json'):
     if filename:
         if eml_node is not None:
             metadata_str = None
-
             if format == 'json':
                 metadata_str = metapype_io.to_json(eml_node)
             elif format == 'xml':
                 xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
                 xml_str = export.to_xml(eml_node)
                 metadata_str = xml_declaration + xml_str
-
             if metadata_str:
                 user_folder = user_data.get_user_folder_name()
                 if not user_folder:
@@ -1166,17 +1154,17 @@ def create_eml(filename=None):
 
     if not eml_node:
         eml_node = Node(names.EML)
+        eml_node = Node(names.EML)
         eml_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
-
-        access_node = create_access(parent_node=eml_node)
-        initialize_access_rules(access_node)
-
+#PT5/27        access_node = create_access(parent_node=eml_node)
+#PT5/27        initialize_access_rules(access_node)
         dataset_node = new_child_node(names.DATASET, parent=eml_node)
 
         try:
             save_both_formats(filename=filename, eml_node=eml_node)
         except Exception as e:
             logger.error(e)
+
 
 
 def initialize_access_rules(access_node: Node):
@@ -1469,6 +1457,7 @@ def add_eml_editor_metadata(eml_node: Node = None):
     eml_editor_node.add_attribute('release', RELEASE_NUMBER)
 
 
+
 def fix_up_custom_units(eml_node: Node = None):
     # The additionalMetadata nodes are handled differently from how they were handled initially.
     # Pre-existing data packages need to be fixed up. Newly-created data packages will be correct, but
@@ -1641,7 +1630,6 @@ def create_title(title=None, filename=None):
         save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         logger.error(e)
-
     return title_node
 
 
@@ -1734,56 +1722,107 @@ def create_pubdate(pubdate=None, filename=None):
         logger.error(e)
 
 
+def clear_other_entity(entity_node: Node = None):
+    try:
+        entity_name_node = entity_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            entity_name_node.content = None
+
+        physical_node = entity_node.find_child(names.PHYSICAL)
+        if physical_node:
+            object_name_node = physical_node.find_child(names.OBJECTNAME)
+            if object_name_node:
+                object_name_node.content = None
+
+            data_format_node = physical_node.find_child(names.DATAFORMAT)
+            if data_format_node:
+                externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
+                if externally_defined_format_node:
+                    format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
+                    if format_name_node:
+                        format_name_node.content = None
+
+        entity_type_node = entity_node.find_child(names.ENTITYTYPE)
+        if entity_type_node:
+            entity_type_node.content = None
+
+        additional_info_node = entity_node.find_child("additionalInfo")
+        if additional_info_node:
+            additional_info_node.content = None
+        return entity_node
+
+    except Exception as e:
+        logger.error(e)
+
+
 def create_other_entity(
         entity_node: Node = None,
         entity_name: str = None,
         entity_type: str = None,
-        entity_description: str = None,
         object_name: str = None,
+#        entity_description: str = None,
+#        object_name: str = None,
         format_name: str = None,
-        size: str = None,
-        md5_hash: str = None,
+        additional_info: str = None,
+#        size: str = None,
+#        md5_hash: str = None,
         online_url: str = None):
+
     try:
+        entity_name_node = entity_node.find_child(names.ENTITYNAME)
+        if not entity_name_node:
+            entity_name_node = Node(names.ENTITYNAME, parent=entity_node)
+            entity_node.add_child(entity_name_node)
+        entity_name_node.content = entity_name
 
-        if not entity_node:
-            entity_node = Node(names.OTHERENTITY)
+        physical_node = entity_node.find_child(names.PHYSICAL)
+        if not physical_node:
+            physical_node = Node(names.PHYSICAL, parent=entity_node)
+            entity_node.add_child(physical_node)
 
-        if entity_name:
-            entity_name_node = new_child_node(names.ENTITYNAME, parent=entity_node)
-            entity_name_node.content = entity_name
+        object_name_node = physical_node.find_child(names.OBJECTNAME)
+        if not object_name_node:
+            object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+            physical_node.add_child(object_name_node)
+        object_name_node.content = object_name
 
-        if entity_type:
-            entity_type_node = new_child_node(names.ENTITYTYPE, parent=entity_node)
-            entity_type_node.content = entity_type
+        data_format_node = physical_node.find_child(names.DATAFORMAT)
+        if not data_format_node:
+            data_format_node = Node(names.DATAFORMAT, parent=physical_node)
+            physical_node.add_child(data_format_node)
 
-        if entity_description:
-            entity_description_node = new_child_node(names.ENTITYDESCRIPTION, parent=entity_node)
-            entity_description_node.content = entity_description
+        externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
+        if not externally_defined_format_node:
+            externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+            data_format_node.add_child(externally_defined_format_node)
 
-        if object_name or format_name or online_url:
+        format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
+        if not format_name_node:
+            format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+            externally_defined_format_node.add_child(format_name_node)
+        format_name_node.content = format_name
 
-            physical_node = new_child_node(names.PHYSICAL, parent=entity_node)
+        entity_type_node = entity_node.find_child(names.ENTITYTYPE)
+        if not entity_type_node:
+            entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
+            entity_node.add_child(entity_type_node)
+        entity_type_node.content = entity_type
 
-            if object_name:
-                object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node)
-                object_name_node.content = object_name
+        additional_info_node = entity_node.find_child("additionalInfo")
+        if not additional_info_node:
+            additional_info_node = Node("additionalInfo", parent=entity_node)
+            entity_node.add_child(additional_info_node)
+        additional_info_node.content = additional_info
 
-            if format_name:
-                data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
-                externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
-                format_name_node = new_child_node(names.FORMATNAME, parent=externally_defined_format_node)
-                format_name_node.content = format_name
+#            if size:
+#                size_node = new_child_node(names.SIZE, parent=physical_node)
+#                size_node.add_attribute('unit', 'byte')
+#                size_node.content = size
 
-            if size:
-                size_node = new_child_node(names.SIZE, parent=physical_node)
-                size_node.add_attribute('unit', 'byte')
-                size_node.content = size
-
-            if md5_hash:
-                hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
-                hash_node.add_attribute('method', 'MD5')
-                hash_node.content = str(md5_hash)
+#            if md5_hash:
+#                hash_node = new_child_node(names.AUTHENTICATION, parent=physical_node)
+#                hash_node.add_attribute('method', 'MD5')
+#                hash_node.content = str(md5_hash)
 
         if online_url:
             distribution_node = new_child_node(names.DISTRIBUTION, parent=physical_node)
@@ -2157,6 +2196,7 @@ def create_taxonomic_coverage(
         logger.error(e)
 
 
+
 def create_responsible_party(responsible_party_node: Node = None,
                              filename: str = None,
                              salutation: str = None,
@@ -2267,6 +2307,7 @@ def create_responsible_party(responsible_party_node: Node = None,
 
     except Exception as e:
         logger.error(e)
+
 
 
 def list_funding_awards(eml_node: Node = None, node_id=None):

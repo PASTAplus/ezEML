@@ -14,11 +14,16 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 <h5>Enter a keyword below or select one from the LTER Controlled Vocabulary keyword list at the right:</h5>
-                <table border="0">
-                <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword, size="100") }}</td>
+                <span style="color:{{ optional }};">
+                    {{ wtf.form_field(form.keyword, size="100") }}
+                    </span>
+
+                <!-- The above "span" tag was put in inplace of the below commented code block to temporarily hid the LTER keyword dropdown. -->
+                <!-- <table border="0">
+                <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword, size="100") }}</td> 
                 <td width="2%"></td>
                 <td valign="bottom" width="45%">{{ wtf.form_field(form.lter_keyword_select) }}</td>
-                </table>
+                </table> -->
                 <br/>
                 <span style="color:{{ optional }};">
                 {{ wtf.form_field(form.keyword_type) }}

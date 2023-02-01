@@ -131,7 +131,7 @@
 {#                {% endif %}#}
                 {% else %}
                 <div style="padding: 20px 0px;">
-                    <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                    <input class="btn btn-primary" name="Next" id="submit" type="submit" value="Save and Continue"/>
                     <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 </div>
                 {% endif %}
@@ -163,9 +163,11 @@
             let isIHCvalue = document.getElementById("isIHC").value;
             if(isIHCvalue == "Yes"){
                 document.getElementById("showIHC").style.display = "block";
+                document.getElementById("submit").removeAttribute("formnovalidate");
             }
             else{
                 document.getElementById("showIHC").style.display = "none";
+                document.getElementById("submit").toggleAttribute("formnovalidate");
             }
         }
         isIHCfunction();

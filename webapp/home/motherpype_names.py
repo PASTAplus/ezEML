@@ -228,6 +228,9 @@ MOTHER_PREFIX = "mdb"
 XSI_TYPE = "xsi:type"
 INTELLECTUAL_RIGHTS = 'intellectualRights'
 
+FILENAME = "filename"
+ADDITIONAL_INFO = "additionalInfo"
+
 """
 *   SET_VALUE_NODES
 *   A list containing the names of the elements whose value is defined within the tag

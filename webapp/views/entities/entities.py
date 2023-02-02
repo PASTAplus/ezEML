@@ -71,6 +71,7 @@ from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help
 
+from webapp.home import motherpype_names as mdb_names
 
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
 
@@ -262,7 +263,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
     if entity_type_node:
         form.entity_type.data = entity_type_node.content
 
-    file_name_node = node.find_child("filename")
+    file_name_node = node.find_child(mdb_names.FILENAME)
     if file_name_node:
         form.file_name.data = file_name_node.content
 
@@ -279,7 +280,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
                 if format_name_node:
                     form.format_name.data = format_name_node.content
 
-        additional_info_node = node.find_child("additionalInfo")
+        additional_info_node = node.find_child(mdb_names.ADDITIONAL_INFO)
         if additional_info_node:
             form.additional_info.data = additional_info_node.content
 

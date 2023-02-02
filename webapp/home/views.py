@@ -631,7 +631,6 @@ def create():
             create_eml(filename=filename)
             current_user.set_filename(filename)
             current_user.set_packageid(None)
-            user_data.clear_temp_folder()   # clear temp folder data if present
             return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
@@ -656,7 +655,6 @@ def open_eml_document():
             if eml_node:
                 current_user.set_filename(filename)
                 packageid = eml_node.attributes.get('packageId', None)
-                user_data.clear_temp_folder()
                 if packageid:
                     current_user.set_packageid(packageid)
                 create_eml(filename=filename)
@@ -1387,7 +1385,7 @@ def send_to_other(filename=None, mailto=None):
         images = glob.glob(os.path.join(temp_folder, '*'))
         for f in images:
             fname = os.path.basename(f)
-            Path(f).rename(upload_folder + '/' + fname)
+            shutil.copy(f, f'{upload_folder}/{fname}')
 
         # copy xml file to uploads folder
         eml_node = load_eml(filename=current_document)

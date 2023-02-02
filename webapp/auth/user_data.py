@@ -356,7 +356,7 @@ def remove_active_file():
 
 def get_temp_folder() -> str:
     # make sure that temp folder exists then return its address
-    temp_folder = get_user_folder_name() + '/temp'
+    temp_folder = f'{get_user_folder_name()}/temp/{current_user.get_filename()}'
     if not os.path.isdir(temp_folder):
         os.makedirs(temp_folder)
     return temp_folder

@@ -1377,7 +1377,7 @@ def send_to_other(filename=None, mailto=None):
             flash('The image requires a Title.', 'error')
             return redirect(get_back_url())
 
-        name_node = dataset_node.find_child(names.ENTITYNAME)
+        name_node = dataset_node.find_single_node_by_path([names.OTHERENTITY, names.ENTITYNAME])
         name = ''
         if name_node:
             name = name_node.content
@@ -1423,7 +1423,8 @@ def send_to_other(filename=None, mailto=None):
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
     if not title_node or not title_node.content:
         flash('The image must have a Title before it can be submitted.', 'error')
-    name_node = eml_node.find_single_node_by_path([names.DATASET, names.ENTITYNAME])
+    name_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY, names.ENTITYNAME])
+    print(name_node)
     if not name_node or not name_node.content:
         flash('The image must have a Name before it can be submitted.', 'error')
 
@@ -1433,7 +1434,7 @@ def send_to_other(filename=None, mailto=None):
         form.email_address.data = ''
         help = get_helps(['send_to_colleague_2'])
         return render_template('send_to_other_2.html',
-                               title='Send to Other',
+                               title='Submit Metadata',
                                # mailto=mailto,
                                # mailto_html=mailto_html,
                                # mailto_raw=mailto_raw,
@@ -1443,7 +1444,7 @@ def send_to_other(filename=None, mailto=None):
     else:
         help = get_helps(['send_to_colleague'])
         return render_template('send_to_other.html',
-                               title='Send to Other',
+                               title='Submit Metadata',
                                #set image and xml file names to display
                                image_name=user_data.get_temp_file_name(),
                                xml_name=current_user.get_filename(),

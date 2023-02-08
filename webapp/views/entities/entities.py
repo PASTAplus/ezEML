@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder, clear_temp_folder, get_temp_file_name
+    get_temp_folder, clear_temp_folder, get_temp_file_name, get_active_document
 )
 
 from metapype.eml import names
@@ -1244,3 +1244,4 @@ def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=No
     else:
         set_current_page('other_entity')
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, filename=filename)
+

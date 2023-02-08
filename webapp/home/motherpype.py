@@ -191,13 +191,20 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
     if node.name in mdb_names.XSI_TYPE:
         node.add_extras("xsi:type", mdb_names.XSI_TYPE[node.name])
 
-    if node.name in mdb_names.NILLABLE and node.content == None:
-        node.add_extras("xsi:nil", "true")
+    # if node.name in mdb_names.NILLABLE and node.content == None:
+    #     node.add_extras("xsi:nil", "true")
+    #     print(node.name, node.extras, node.children)
 
+    nil_nodes = []
     for child in node.children:
         child_node = node.find_child(child.name)
         if child_node:
+            if child_node.name in mdb_names.NILLABLE and child_node.content == None:
+                print(child_node.name)
+                nil_nodes.append(True)
+                print(nil_nodes)
             clean_mother_json(child_node, level + 1)
+
 
 
 """

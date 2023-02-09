@@ -79,6 +79,8 @@ from webapp.home.motherpype import clean_mother_node, get_image_name_node
 
 from webapp.home.check_metadata import check_eml
 
+from webapp.home import motherpype_names as mdb_names
+
 from webapp.buttons import *
 from webapp.pages import *
 
@@ -528,7 +530,7 @@ def download_current():
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
         # create a duplicate before running clean_mother_node on the original xml file
-        shutil.copy(user_folder + '/' + current_xml, user_folder + '/' + 'temp_' + current_xml)
+        shutil.copy(f'{user_folder}/{current_xml}', f'{user_folder}/temp_{current_xml}')
         clean_mother_node(eml_node, current_document)
 
         # Do the download
@@ -540,7 +542,7 @@ def download_current():
                 return return_value
             finally:
                 # replace the original file with the old copy
-                shutil.move(user_folder + '/' + 'temp_' + current_xml, user_folder + '/' + current_xml)
+                shutil.move(f'{user_folder}/temp_{current_xml}', f'{user_folder}/{current_xml}')
 
 
 
@@ -1424,7 +1426,6 @@ def send_to_other(filename=None, mailto=None):
     if not title_node or not title_node.content:
         flash('The image must have a Title before it can be submitted.', 'error')
     name_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY, names.ENTITYNAME])
-    print(name_node)
     if not name_node or not name_node.content:
         flash('The image must have a Name before it can be submitted.', 'error')
 
@@ -1736,7 +1737,6 @@ def import_package():
                 user_folder = '.'
             # Changed filename extension from json to xml format -NM 3/2/2022
             filepath = f"{user_folder}/{filename}.xml"
-            print(filepath)
             with open(filepath, "r") as file:
                 data = file.read()
 
@@ -1754,6 +1754,14 @@ def import_package():
             if dataset_node:
                 for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
                     clear_other_entity(entity_node)
+                title_node = dataset_node.find_child(names.TITLE)
+                if title_node:
+                    dataset_node.remove_child(title_node)
+            slideID_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER, mdb_names.SLIDE_ID])
+            if slideID_node:
+                slideID_node.parent.remove_child(slideID_node)
+                print("yeah")
+
 
             save_both_formats(filename=filename, eml_node=eml_node)
 
@@ -1761,7 +1769,7 @@ def import_package():
 
     # Process GET
     help = get_helps(['import_package'])
-    return render_template('import_package.html', title='Import an ezEML Data Package',
+    return render_template('import_package.html', title='Upload XML File',
                            packages=package_list, form=form, help=help)
 
 
@@ -1789,7 +1797,7 @@ def import_package_2(package_name):
 
     # Process GET
     help = get_helps(['import_package_2'])
-    return render_template('import_package_2.html', title='Import an ezEML Data Package',
+    return render_template('import_package_2.html', title='Upload XML File',
                            package_name=package_name, form=form, help=help)
 
 

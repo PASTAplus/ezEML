@@ -281,8 +281,8 @@ def populate_donor_form(form: DonorForm, node: Node):
         form.donorID.data = donorID_node.content
 
     donorGender_node = node.find_child(mdb_names.DONOR_GENDER)
-    if donorGender_node:
-        form.donorGender.data = "Female"
+    if donorGender_node.content:
+        form.donorGender.data = donorGender_node.content
 
     donorAge_Node = node.find_child(mdb_names.DONOR_AGE)
     if donorAge_Node:
@@ -303,8 +303,8 @@ def populate_donor_form(form: DonorForm, node: Node):
         form.specimenSeqNum.data = specimenSeqNum_node.content
 
     specimenTissue_node = node.find_child(mdb_names.SPEC_TISSUE)
-    if specimenTissue_node:
-        form.specimenTissue.data = "Ovary"
+    if specimenTissue_node.content:
+        form.specimenTissue.data = specimenTissue_node.content
 
     ovaryPosition_node = node.find_child(mdb_names.OVARY_POSITION)
     if ovaryPosition_node:

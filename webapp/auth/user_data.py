@@ -25,6 +25,7 @@ from flask import send_file, Flask, current_app
 from flask_login import current_user
 
 from webapp.config import Config
+from webapp.home.motherpype import get_image_name_node
 import webapp.home.views as views
 
 logger = daiquiri.getLogger('user_data: ' + __name__)
@@ -240,12 +241,17 @@ def delete_eml(filename: str = ''):
 
 def download_eml(filename: str = ''):
     if filename:
+        # change XML file name to that of the image if image present
+        image_name = get_image_name_node()
+
         user_folder = get_user_folder_name()
         filename_xml = f'{filename}.xml'
         pathname = f'{user_folder}/{filename_xml}'
         if os.path.exists(pathname):
             package_id = get_active_packageid()
-            if package_id:
+            if image_name:
+                filename_xml = f'{image_name}.xml'
+            elif package_id:
                 filename_xml = f'{package_id}.xml'
             relative_pathname = '../' + pathname
             mimetype = 'application/xml'

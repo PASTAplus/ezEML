@@ -802,7 +802,7 @@ def perform_evaluation(eml_node, filename):
     check_dataset_abstract(eml_node, filename)
     check_keywords(eml_node, filename)
     check_intellectual_rights(eml_node, filename)
-    # check_coverage(eml_node, filename)
+    check_coverage(eml_node, filename)
     # check_geographic_coverage(eml_node, filename)
     check_maintenance(eml_node, filename)
     check_method_steps(eml_node, filename)

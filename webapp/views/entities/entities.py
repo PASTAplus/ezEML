@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder, clear_temp_folder, get_temp_file_name
+    get_temp_folder, clear_temp_folder, get_temp_file_name, get_active_document
 )
 
 from metapype.eml import names
@@ -251,7 +251,7 @@ def other_entity(filename=None, node_id=None):
 
     set_current_page('other_entity')
     help = [get_help('other_entity')]
-    return render_template('other_entity.html', title='Other Entity', form=form, help=help, image_name=get_temp_file_name())
+    return render_template('other_entity.html', title='Image', form=form, help=help, image_name=get_temp_file_name())
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
@@ -1244,3 +1244,4 @@ def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=No
     else:
         set_current_page('other_entity')
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, filename=filename)
+

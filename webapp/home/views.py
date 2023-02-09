@@ -75,11 +75,11 @@ from webapp.home.metapype_client import (
     import_project_nodes, get_check_metadata_status, clear_other_entity
 )
 
-from webapp.home.motherpype import (
-    clean_mother_node
-)
+from webapp.home.motherpype import clean_mother_node, get_image_name_node
 
 from webapp.home.check_metadata import check_eml
+
+from webapp.home import motherpype_names as mdb_names
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -530,7 +530,7 @@ def download_current():
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
         # create a duplicate before running clean_mother_node on the original xml file
-        shutil.copy(user_folder + '/' + current_xml, user_folder + '/' + 'temp_' + current_xml)
+        shutil.copy(f'{user_folder}/{current_xml}', f'{user_folder}/temp_{current_xml}')
         clean_mother_node(eml_node, current_document)
 
         # Do the download
@@ -542,7 +542,7 @@ def download_current():
                 return return_value
             finally:
                 # replace the original file with the old copy
-                shutil.move(user_folder + '/' + 'temp_' + current_xml, user_folder + '/' + current_xml)
+                shutil.move(f'{user_folder}/temp_{current_xml}', f'{user_folder}/{current_xml}')
 
 
 
@@ -1359,6 +1359,7 @@ def send_to_other(filename=None, mailto=None):
     user_folder = user_data.get_user_folder_name()
     upload_folder = user_data.get_document_uploads_folder_name()
     temp_folder = user_data.get_temp_folder()
+    image_name = get_image_name_node()
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
@@ -1375,7 +1376,15 @@ def send_to_other(filename=None, mailto=None):
         if title_node:
             title = title_node.content
         if not title:
-            flash('The data package requires a Title', 'error')
+            flash('The image requires a Title.', 'error')
+            return redirect(get_back_url())
+
+        name_node = dataset_node.find_single_node_by_path([names.OTHERENTITY, names.ENTITYNAME])
+        name = ''
+        if name_node:
+            name = name_node.content
+        if not name:
+            flash('The image requires a Name.', 'error')
             return redirect(get_back_url())
 
         # clear appropriate uploads folder
@@ -1392,10 +1401,10 @@ def send_to_other(filename=None, mailto=None):
         save_both_formats(filename=current_document, eml_node=eml_node)
         current_xml = current_document + '.xml'
         # create a duplicate before running clean_mother_node on the original xml file
-        shutil.copy(user_folder + '/' + current_xml, user_folder + '/' + 'temp_' + current_xml)
+        shutil.copy(f'{user_folder}/{current_xml}',f'{user_folder}/temp_{current_xml}')
         clean_mother_node(eml_node, current_document)
-        shutil.move(user_folder + '/' + current_xml, upload_folder)
-        shutil.move(user_folder + '/' + 'temp_' + current_xml, user_folder + '/' + current_xml)
+        shutil.move(user_folder + '/' + current_xml, f'{upload_folder}/{image_name}.xml')
+        shutil.move(f'{user_folder}/temp_{current_xml}', f'{user_folder}/{current_xml}')
 
         # create zip of uploads folder
         zipfile_path = os.path.join(user_folder, current_document)
@@ -1415,7 +1424,10 @@ def send_to_other(filename=None, mailto=None):
     eml_node = load_eml(filename=filename)
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
     if not title_node or not title_node.content:
-        flash('The data package must have a Title before it can be submitted.', 'error')
+        flash('The image must have a Title before it can be submitted.', 'error')
+    name_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY, names.ENTITYNAME])
+    if not name_node or not name_node.content:
+        flash('The image must have a Name before it can be submitted.', 'error')
 
     set_current_page('send_to_other')
     if mailto:
@@ -1423,7 +1435,7 @@ def send_to_other(filename=None, mailto=None):
         form.email_address.data = ''
         help = get_helps(['send_to_colleague_2'])
         return render_template('send_to_other_2.html',
-                               title='Send to Other',
+                               title='Submit Metadata',
                                # mailto=mailto,
                                # mailto_html=mailto_html,
                                # mailto_raw=mailto_raw,
@@ -1433,7 +1445,7 @@ def send_to_other(filename=None, mailto=None):
     else:
         help = get_helps(['send_to_colleague'])
         return render_template('send_to_other.html',
-                               title='Send to Other',
+                               title='Submit Metadata',
                                #set image and xml file names to display
                                image_name=user_data.get_temp_file_name(),
                                xml_name=current_user.get_filename(),
@@ -1725,7 +1737,6 @@ def import_package():
                 user_folder = '.'
             # Changed filename extension from json to xml format -NM 3/2/2022
             filepath = f"{user_folder}/{filename}.xml"
-            print(filepath)
             with open(filepath, "r") as file:
                 data = file.read()
 
@@ -1743,6 +1754,13 @@ def import_package():
             if dataset_node:
                 for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
                     clear_other_entity(entity_node)
+                title_node = dataset_node.find_child(names.TITLE)
+                if title_node:
+                    dataset_node.remove_child(title_node)
+            slideID_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER, mdb_names.SLIDE_ID])
+            if slideID_node:
+                slideID_node.parent.remove_child(slideID_node)
+
 
             save_both_formats(filename=filename, eml_node=eml_node)
 
@@ -1750,7 +1768,7 @@ def import_package():
 
     # Process GET
     help = get_helps(['import_package'])
-    return render_template('import_package.html', title='Import an ezEML Data Package',
+    return render_template('import_package.html', title='Upload XML File',
                            packages=package_list, form=form, help=help)
 
 
@@ -1778,7 +1796,7 @@ def import_package_2(package_name):
 
     # Process GET
     help = get_helps(['import_package_2'])
-    return render_template('import_package_2.html', title='Import an ezEML Data Package',
+    return render_template('import_package_2.html', title='Upload XML File',
                            package_name=package_name, form=form, help=help)
 
 

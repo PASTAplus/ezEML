@@ -1760,7 +1760,6 @@ def import_package():
             slideID_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER, mdb_names.SLIDE_ID])
             if slideID_node:
                 slideID_node.parent.remove_child(slideID_node)
-                print("yeah")
 
 
             save_both_formats(filename=filename, eml_node=eml_node)

@@ -499,6 +499,11 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
 def load_df(attribute_node):
     attribute_list_node = attribute_node.parent
     data_table_node = attribute_list_node.parent
+    object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+    if object_name_node:
+        data_file = object_name_node.content
+    else:
+        return None
     data_file = data_table_node.find_descendant(names.OBJECTNAME).content
 
     uploads_folder = user_data.get_document_uploads_folder_name()
@@ -521,7 +526,8 @@ def load_df(attribute_node):
 def force_datetime_type(attribute_node):
     # If we are changing a column to datetime type, go to the data table file and pick up the datetime format
     data_frame = load_df(attribute_node)
-
+    if not data_frame:
+        return None
     column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     return infer_datetime_format(data_frame[column_name][1])
 
@@ -529,6 +535,8 @@ def force_datetime_type(attribute_node):
 def force_categorical_codes(attribute_node):
     # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
     data_frame = load_df(attribute_node)
+    if not data_frame:
+        return None
 
     column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     codes = data_frame[column_name].unique().tolist()
@@ -586,9 +594,12 @@ def change_measurement_scale(attribute_node, old_mscale, new_mscale):
         set_storage_type(attribute_node, 'string')
         new_scale_node = new_child_node(names.NOMINAL, mscale_node)
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
-        sorted_codes = force_categorical_codes(attribute_node)
-
         enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
+
+        sorted_codes = force_categorical_codes(attribute_node)
+        if not sorted_codes:
+            return
+
         for child in enumerated_domain_node.children:
             enumerated_domain_node.remove_child(child)
 
@@ -612,7 +623,9 @@ def change_measurement_scale(attribute_node, old_mscale, new_mscale):
         set_storage_type(attribute_node, 'dateTime')
         new_scale_node = new_child_node(names.DATETIME, mscale_node)
         format_string_node = new_child_node(names.FORMATSTRING, new_scale_node)
-        format_string_node.content = force_datetime_type(attribute_node)
+        format_string = force_datetime_type(attribute_node)
+        if format_string:
+            format_string_node.content = format_string
 
 
 def attribute_select_post(filename=None, form=None, form_dict=None,
@@ -873,6 +886,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
                                         break
 
     data_table_name = ''
+    attribute_name = ''
     dt_node = Node.get_node_instance(dt_node_id)
     if dt_node:
         entity_name_node = dt_node.find_child(names.ENTITYNAME)

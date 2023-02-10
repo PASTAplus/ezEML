@@ -1070,6 +1070,9 @@ def save_package_id(eml_node):
 
 
 def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_metadata_check:bool=False):
+    # if user_data.is_document_locked(filename):
+    #     raise exceptions.LockOwnedByAnotherUser(f"Document {filename} is locked by another user.")
+
     eml_node = None
     if folder_name:
         user_folder = folder_name
@@ -1427,6 +1430,7 @@ def fixup_categorical_variables(eml_node):
     # Importing here to sidestep circular import problem.
     from webapp.views.data_tables.dt import change_measurement_scale
     data_table_nodes = []
+    file_name = ''
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     for data_table_node in data_table_nodes:
         attributes_to_fix = []
@@ -1453,7 +1457,7 @@ def fixup_categorical_variables(eml_node):
                 if attribute_name_node:
                     attribute_name = attribute_name_node.content
                     if file_name and attribute_name:
-                        log_info(f'fixup_categorical_variables: fixing "{attribute_name}" in  {file_name}')
+                        log_info(f'fixup_categorical_variables: fixing "{attribute_name}" in {file_name}')
                     change_measurement_scale(attribute_node, None, VariableType.CATEGORICAL.name)
 
 

@@ -528,6 +528,9 @@ def generate_code_definition_errs(eml_node, doc_name, err_code, errs_found):
 
 
 def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, data_table_name:str):
+    # attr_name_node = attrib_node.find_child(names.ATTRIBUTENAME)
+    # attr_name = attr_name_node.content if attr_name_node else None
+    # log_info(f"Checking attribute {attr_name} in data table {data_table_name}")
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     page = None
@@ -536,7 +539,9 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
         mscale = metapype_client.VariableType.CATEGORICAL.name
         data_table_name = None
         if data_table_node:
-            data_table_name = data_table_node.find_child(names.ENTITYNAME).content
+            entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+            if entity_name_node:
+                data_table_name = entity_name_node.content
         attrib_name = None
         if attrib_node:
             attrib_name_node = attrib_node.find_child(names.ATTRIBUTENAME)
@@ -556,7 +561,9 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
     if not page:
         data_table_name = None
         if data_table_node:
-            data_table_name = data_table_node.find_child(names.ENTITYNAME).content
+            entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+            if entity_name_node:
+                data_table_name = entity_name_node.content
         attrib_name = None
         if attrib_node:
             attrib_name_node = attrib_node.find_child(names.ATTRIBUTENAME)

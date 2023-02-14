@@ -1125,7 +1125,7 @@ def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=
     """
     msg = None
     if new_filename and eml_node and new_filename != old_filename:
-        save_both_formats(filename=new_filename, eml_node=eml_node)
+        save_both_formats(filename=new_filename, eml_node=eml_node.copy())
     elif new_filename == old_filename:
         msg = 'New package id and old package id are the same'
     else:

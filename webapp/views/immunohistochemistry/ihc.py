@@ -159,9 +159,6 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
             detectionMethod = form.detectionMethod.data
             isIHC = form.isIHC.data
 
-            for child in ihc_node.children:
-                print(child)
-
             if isIHC == 'Yes':
                 create_immunohistochemistry( #PT4/25
                     ihc_node,

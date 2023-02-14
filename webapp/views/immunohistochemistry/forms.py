@@ -76,3 +76,8 @@ class immunohistochemistryForm(EDIForm):
                 self.sourceState_2.data,
                 self.rrid_2.data,
                 self.detectionMethod.data)
+
+    def validate(self):
+        if self.isIHC.data == "No":
+            return True
+        return super()

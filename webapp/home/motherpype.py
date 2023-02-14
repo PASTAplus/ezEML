@@ -194,7 +194,7 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
         if all(c.content is None for c in node.children):
             node.add_extras("xsi:nil", "true")
             print(node.name, node.extras)
-    elif node.name in mdb_names.NILLABLE and len(node.children) == 0 and node.content is None:
+    elif node.name in mdb_names.NILLABLE and len(node.children) == 0 and (node.content is None or node.content is ""):
         node.add_extras("xsi:nil", "true")
         print(node.name, node.extras)
 

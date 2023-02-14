@@ -38,7 +38,8 @@ from webapp.home.metapype_client import (
     create_datetime_attribute, create_numerical_attribute,
     create_categorical_or_text_attribute, force_missing_value_codes,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute,
-    handle_hidden_buttons, check_val_for_hidden_buttons
+    handle_hidden_buttons, check_val_for_hidden_buttons,
+    handle_custom_unit_additional_metadata
 )
 from webapp.home.log_usage import (
     actions,
@@ -2134,7 +2135,7 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
 def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids):
     form = SelectDataTableColumnsForm()
 
-    _ = load_eml(source_filename)
+    source_eml_node = load_eml(source_filename)
     source_attr_ids_list = source_attr_ids.strip('][').split(', ')
     source_attrs = []
     for source_attr_id in source_attr_ids_list:
@@ -2144,7 +2145,7 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         source_attr_node = source_attr_name_node.parent
         source_attrs.append((source_attr_name, source_attr_node.id))
 
-    _ = load_eml(target_filename)
+    target_eml_node = load_eml(target_filename)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_attrs = []
     target_dt_attr_nodes = []
@@ -2170,8 +2171,33 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
                 #  so the source and target lists will match up. The clone_column_properties function will ignore the
                 #  attributes for which no target was selected.
                 target_attr_ids.append(val[0])
-        target_eml_node = load_eml(target_filename)
+
         clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)
+
+        # If column has a custom unit, we need to add the additionalMetadata for it
+        if source_eml_node and source_attr_node:
+            custom_unit_node = source_attr_node.find_descendant(names.CUSTOMUNIT)
+            if custom_unit_node:
+                custom_unit = custom_unit_node.content
+                custom_unit_description = None
+                if custom_unit:
+                    # We need to look in the source eml's additionalMetadata for the custom unit description, if any
+                    unit_nodes = source_eml_node.find_all_nodes_by_path([names.ADDITIONALMETADATA,
+                                                                         names.METADATA,
+                                                                         names.UNITLIST,
+                                                                         names.UNIT])
+                    for unit_node in unit_nodes:
+                        id = unit_node.attribute_value('id')
+                        name = unit_node.attribute_value('name')
+                        if id == custom_unit or name == custom_unit:
+                            custom_unit_description_node = unit_node.find_child(names.DESCRIPTION)
+                            if custom_unit_description_node:
+                                custom_unit_description = custom_unit_description_node.content
+                            handle_custom_unit_additional_metadata(target_eml_node,
+                                                                   custom_unit,
+                                                                   custom_unit_description)
+                            break
+
         log_usage(actions['CLONE_COLUMN_PROPERTIES'], source_filename, table_name_in, target_filename, table_name_out)
         save_both_formats(target_filename, target_eml_node)
         return redirect(url_for('dt.data_table_select', filename=target_filename))

@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder, clear_temp_folder, get_temp_file_name
+    get_temp_folder, clear_temp_folder, get_temp_file_name, get_active_document
 )
 
 from metapype.eml import names
@@ -71,6 +71,7 @@ from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help
 
+from webapp.home import motherpype_names as mdb_names
 
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
 
@@ -250,7 +251,7 @@ def other_entity(filename=None, node_id=None):
 
     set_current_page('other_entity')
     help = [get_help('other_entity')]
-    return render_template('other_entity.html', title='Other Entity', form=form, help=help, image_name=get_temp_file_name())
+    return render_template('other_entity.html', title='Image', form=form, help=help, image_name=get_temp_file_name())
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
@@ -262,7 +263,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
     if entity_type_node:
         form.entity_type.data = entity_type_node.content
 
-    file_name_node = node.find_child("filename")
+    file_name_node = node.find_child(mdb_names.FILENAME)
     if file_name_node:
         form.file_name.data = file_name_node.content
 
@@ -279,7 +280,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
                 if format_name_node:
                     form.format_name.data = format_name_node.content
 
-        additional_info_node = node.find_child("additionalInfo")
+        additional_info_node = node.find_child(mdb_names.ADDITIONAL_INFO)
         if additional_info_node:
             form.additional_info.data = additional_info_node.content
 
@@ -1243,3 +1244,4 @@ def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=No
     else:
         set_current_page('other_entity')
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form, filename=filename)
+

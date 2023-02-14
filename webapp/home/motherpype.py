@@ -40,7 +40,9 @@ from metapype.model import mp_io, metapype_io
 
 import webapp.home.motherpype_names as mdb_names
 
-from webapp.home.metapype_client import save_both_formats
+from webapp.home.metapype_client import (
+    save_both_formats, load_eml
+)
 
 from webapp.home.check_metadata import check_metadata_status
 
@@ -322,13 +324,13 @@ def add_mother_metadata(eml_node: Node = None, filename=None):
 def create_donor(mother_node: Node,
                  filename: str = None,
                  donorId: str = None,
-                 donorGender: str = "Female",
+                 donorGender: str = None,
                  ageType: Node = None,
                  ageYears: int = None,
                  ageDays: int = None,
                  lifeStage: str = None,
                  specimenSeqNum: int = None,
-                 specimenTissue: str = "Ovary",
+                 specimenTissue: str = None,
                  ovaryPosition: str = None,
                  specimenLocation: str = None,
                  dayOfCycle: str = None,
@@ -699,3 +701,10 @@ def create_immunohistochemistry(ihc_node: Node,
 
     except Exception as e:
         logger.error(e)
+
+def get_image_name_node() -> str:
+    eml_node = load_eml(filename=user_data.get_active_document())
+    entity_name_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY, names.ENTITYNAME])
+    if entity_name_node:
+        return entity_name_node.content
+    return None

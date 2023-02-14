@@ -20,7 +20,7 @@
                 {{ wtf.form_field(form.format_name) }}
                 <table>
                     <td width="50%">{{ wtf.form_field(form.file_upload) }}</td>
-                    <td width="50%" style="vertical-align:top; padding-left: 25px"><b>Uploaded Image</b><br>{{ image_name|safe }}</td>
+                    <td width="50%" style="vertical-align:top; padding-left: 25px"><b>Uploaded Image</b><br><div id = iname>{{ image_name|safe }}</div></td>
                 </table>
 
                 {{ wtf.form_field(form.additional_info) }}
@@ -91,22 +91,27 @@
             document.getElementById("format_name").value = upload_format;
             document.getElementById("format_name").setAttribute("disabled","disabled");
         });
-    </script>
 
-    <script>
         function resetButtons(){
             document.getElementById("entity_name").removeAttribute("disabled");
             document.getElementById("format_name").removeAttribute("disabled");
         }
-    </script>
 
+        function disableFields(){
+            var image_name = document.getElementById("iname").innerHTML;
+            if (image_name != "None"){
+                document.getElementById("entity_name").setAttribute("disabled","disabled");
+                document.getElementById("format_name").setAttribute("disabled","disabled");
+            }
+        }
 
-    <script>
-    $(function()
-    {
-        document.getElementById("entity_name").toggleAttribute("required");
-        document.getElementById("format_name").toggleAttribute("required");
-        {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
-    });
+        disableFields();
+
+        $(function()
+        {
+            document.getElementById("entity_name").toggleAttribute("required");
+            document.getElementById("format_name").toggleAttribute("required");
+            {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
+        });
     </script>
 {% endblock %}

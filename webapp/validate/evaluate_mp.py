@@ -313,7 +313,7 @@ def _donor_rule(node: Node) -> list:
         if child.name == mdb_names.DONOR_ID and child.content:
             donornodes[0] = True
         if child.name == mdb_names.DONOR_GENDER and child.content:
-            if child.content == "Female":
+            if child.content == "female":
                 donornodes[15] = True
             donornodes[1] = True
         if child.name == mdb_names.DONOR_LIFE_STAGE and child.content:
@@ -321,7 +321,7 @@ def _donor_rule(node: Node) -> list:
         if child.name == mdb_names.SPEC_SEQ_NUM and child.content:
             donornodes[3] = True
         if child.name == mdb_names.SPEC_TISSUE and child.content:
-            if child.content == "Ovary":
+            if child.content == "ovary":
                 donornodes[16] = True
             donornodes[4] = True
         if child.name == mdb_names.OVARY_POSITION and child.content:

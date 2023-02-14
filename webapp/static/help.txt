@@ -428,7 +428,7 @@ Select the geographic coverages to import.
 If none are shown, none are available in the selected data package.
 --------------------
 import_package
-Import an ezEML Data Package
+Upload XML File
 <b>Import an ezEML Data Package</b> lets you import a data package archive file that was exported from ezEML (see <b>Export ezEML Data Package</b>).
 
 The data package archive file may have been sent to you by a collaborator, for example. Alternatively, you may have submitted a data package to EDI (see <b>Submit to EDI</b>), and EDI's data curators may have found it necessary to make corrections or other changes to your data package. In that case, EDI's data curators will send you an updated data package archive file so you can import it and keep your ezEML account up to date.

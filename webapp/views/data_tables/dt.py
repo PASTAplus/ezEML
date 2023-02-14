@@ -520,7 +520,10 @@ def load_df(attribute_node):
     else:
         quote_char = '"'
 
-    return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+    try:
+        return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+    except FileNotFoundError as e:
+        return None
 
 
 def force_datetime_type(attribute_node):
@@ -535,7 +538,7 @@ def force_datetime_type(attribute_node):
 def force_categorical_codes(attribute_node):
     # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
     data_frame = load_df(attribute_node)
-    if not data_frame:
+    if data_frame is None:
         return None
 
     column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
@@ -547,6 +550,10 @@ def force_categorical_codes(attribute_node):
         for code in codes:
             if not math.isnan(code):
                 try:
+                    int_code = int(code)
+                    if int_code != code:
+                        ok = False
+                        break
                     int_codes.append(int(code))
                 except:
                     ok = False

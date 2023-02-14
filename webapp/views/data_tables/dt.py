@@ -2041,7 +2041,7 @@ def clone_categorical_attribute(source_node_copy, target_node):
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
 
         # Capture the target's code nodes
-        target_code_definition_nodes = enumerated_domain_target_node.find_all_children(names.CODEDEFINITION)
+        # target_code_definition_nodes = enumerated_domain_target_node.find_all_children(names.CODEDEFINITION)
 
         # Replace the target with copy of the source
         target_parent = target_node.parent
@@ -2052,18 +2052,31 @@ def clone_categorical_attribute(source_node_copy, target_node):
         source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
         source_copy_name_node.content = target_name
 
+        '''
+        We used to handle categorical columns as described in the User Guide:
+            "For Categorical columns, the codes in the target data table are not changed, but their
+            definitions are filled in by using the definitions for the corresponding codes in the source
+            data table. This way, the lists of codes will match what’s in the target data table’s CSV
+            file, but the code definitions won’t all have to be re-entered for codes that are in
+            common between the two tables.
+        
+        We have since decided to remove this restriction and now just replace the target's codes and definitions
+        with the source's codes and definitions. This is because the user may have added codes to the source
+        that are not in the target, and we want to pick up those codes as well.
+        '''
+
         # Replace the target code definition nodes with the ones we saved
-        target_node = source_node_copy
-        enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
-        for code_definition_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
-            enumerated_domain_target_node.remove_child(code_definition_node)
-        for code_definition_node in target_code_definition_nodes:
-            add_child(enumerated_domain_target_node, code_definition_node)
-            code_target_node = code_definition_node.find_child(names.CODE)
-            definition_target_node = code_definition_node.find_child(names.DEFINITION)
-            code = str(code_target_node.content)
-            if code in source_codes_and_definitions:
-                definition_target_node.content = source_codes_and_definitions[code]
+        # target_node = source_node_copy
+        # enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
+        # for code_definition_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
+        #     enumerated_domain_target_node.remove_child(code_definition_node)
+        # for code_definition_node in target_code_definition_nodes:
+        #     add_child(enumerated_domain_target_node, code_definition_node)
+        #     code_target_node = code_definition_node.find_child(names.CODE)
+        #     definition_target_node = code_definition_node.find_child(names.DEFINITION)
+        #     code = str(code_target_node.content)
+        #     if code in source_codes_and_definitions:
+        #         definition_target_node.content = source_codes_and_definitions[code]
         return True
     else:
         return False

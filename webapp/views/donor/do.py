@@ -76,7 +76,7 @@ def donor(filename=None):
         additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
         if additional_metadata_node:
             metadata_node = additional_metadata_node.find_child(names.METADATA)
-            mother_node = metadata_node.find_child("mother")
+            mother_node = metadata_node.find_child(mdb_names.MOTHER)
             if mother_node:
                 node_id = mother_node.id
         else:

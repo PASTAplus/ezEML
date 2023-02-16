@@ -530,7 +530,7 @@ def load_df(attribute_node):
 def force_datetime_type(attribute_node):
     # If we are changing a column to datetime type, go to the data table file and pick up the datetime format
     data_frame = load_df(attribute_node)
-    if not data_frame:
+    if data_frame is None:
         return None
     column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     return infer_datetime_format(data_frame[column_name][1])

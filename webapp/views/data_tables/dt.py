@@ -589,6 +589,8 @@ def change_measurement_scale(attribute_node, old_mscale, new_mscale):
     # clear its children
     if mscale_node:
         mscale_node.remove_children()
+    else:
+        mscale_node = new_child_node(names.MEASUREMENTSCALE, attribute_node)
 
     # construct new children
     if new_mscale == VariableType.NUMERICAL.name:

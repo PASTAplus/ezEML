@@ -1922,8 +1922,7 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
 
 def insert_upload_urls(current_document, eml_node):
     user_folder = user_data.get_user_download_folder_name()
-    uploads_folder = f'{user_folder}/uploads/{current_document}'
-
+    uploads_folder = f'{user_folder}/uploads/{quote(current_document)}'
     parsed_url = urlparse(request.base_url)
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{uploads_folder}"
 

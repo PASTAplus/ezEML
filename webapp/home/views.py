@@ -2375,7 +2375,7 @@ def import_xml():
             # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
             #  separately keeping track of the original filename and the possibly modified filename.
             # filename = secure_filename(file.filename)
-            filename = file.filename
+            filename = unquote(file.filename)
 
             if not os.path.splitext(filename)[1] == '.xml':
                 flash('Please select a file with file extension ".xml".', 'error')

@@ -258,6 +258,23 @@ XSI_TYPE = {
     STAGE_OF_CYCLE: "mdb:menstrualStageType"
 }
 
+MAMMAL_STAGE = {
+    FOLLICULAR: "mdb:menstrualStageType",
+    PRE_OVULATORY: "mdb:menstrualStageType",
+    OVULATION: "mdb:menstrualStageType",
+    LUTEAL: "mdb:menstrualStageType"
+}
+
+ESTROUS_STAGE = {
+    PROESTROUS: "mdb:estrousStageType",
+    ESTROUS: "mdb:estrousStageType",
+    METESTROUS: "mdb:estrousStageType",
+    DIESTROUS: "mdb:estrousStageType",
+    ANESTROUS: "mdb:estrousStageType"
+}
+
+CYCLE_STAGE = {**MAMMAL_STAGE, **ESTROUS_STAGE, EMPTY_UNSPECIFIED: ""}
+
 NILLABLE = {
     DONOR_AGE,
     SPEC_CYCLE,

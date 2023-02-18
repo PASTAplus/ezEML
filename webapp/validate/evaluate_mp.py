@@ -307,7 +307,7 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 17
+    donornodes = [False] * 19
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
@@ -334,6 +334,13 @@ def _donor_rule(node: Node) -> list:
             for schild in child.children:
                 if schild.name == mdb_names.THICKNESS and schild.content:
                     donornodes[8] = True
+                    # check if Section Thickness is a positive integer
+                    try:
+                        val = int(schild.content)
+                        if val < 0:
+                            raise ValueError
+                    except ValueError:
+                        donornodes[17] = True
                 if schild.name == mdb_names.UNIT and schild.content:
                     donornodes[9] = True
         if child.name == mdb_names.SAMPLE_PROCESS:
@@ -345,6 +352,17 @@ def _donor_rule(node: Node) -> list:
                     donornodes[11] = True
         if child.name == mdb_names.MAGNIFICATION and child.content:
             donornodes[12] = True
+        if child.name == mdb_names.SPEC_CYCLE:
+            for spcchild in child.children:
+                if spcchild.name == mdb_names.STAGE_OF_CYCLE:
+                    for stgchild in child.children:
+                        print(stgchild.name)
+                        for stgchild in stgchild.children:
+                            print(stgchild.name)
+                            if stgchild.name in mdb_names.CYCLE_STAGE:
+                                print("valid")
+                                donornodes[18] = True
+
         # if child.name == mdb_names.MICROSCOPE:
         #     for mchild in child.children:
         #         if mchild.name == mdb_names.MICRO_MAKER and mchild.content:
@@ -452,6 +470,18 @@ def _donor_rule(node: Node) -> list:
         evaluation.append((
             EvaluationWarningMp.DONOR_SPEC_TISSUE_OVARY,
             f'Donor Specimen Tissue must be ovary.',
+            node
+        ))
+    if donornodes[17]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SEC_THICK_POSITIVE_INT,
+            f'Donor Section Thickness must be a positive integer.',
+            node
+        ))
+    if not donornodes[18]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_STAGE_OF_CYCLE_ENUM,
+            f'Donor Stage of Cycle must be a valid stage.',
             node
         ))
 

@@ -193,7 +193,8 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
     if node.name in mdb_names.XSI_TYPE:
         if node.name == mdb_names.STAGE_OF_CYCLE:
             for child in node.children:
-                node.add_extras("xsi:type", mdb_names.CYCLE_STAGE[child.name])
+                if child.name != mdb_names.EMPTY_UNSPECIFIED:
+                    node.add_extras("xsi:type", mdb_names.CYCLE_STAGE[child.name])
         else:
             node.add_extras("xsi:type", mdb_names.XSI_TYPE[node.name])
     for child in node.children:

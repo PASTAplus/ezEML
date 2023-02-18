@@ -43,6 +43,7 @@ from metapype.model import mp_io, metapype_io
 from webapp.home.check_metadata import check_metadata_status
 
 import webapp.auth.user_data as user_data
+import webapp.home.motherpype_names as mdb_names
 
 if Config.LOG_DEBUG:
     app = Flask(__name__)
@@ -1746,7 +1747,7 @@ def clear_other_entity(entity_node: Node = None):
         if entity_type_node:
             entity_type_node.content = None
 
-        additional_info_node = entity_node.find_child("additionalInfo")
+        additional_info_node = entity_node.find_child(mdb_names.ADDITIONAL_INFO)
         if additional_info_node:
             additional_info_node.content = None
         return entity_node
@@ -1802,17 +1803,17 @@ def create_other_entity(
             externally_defined_format_node.add_child(format_name_node)
         format_name_node.content = format_name
 
+        additional_info_node = entity_node.find_child(mdb_names.ADDITIONAL_INFO)
+        if not additional_info_node:
+            additional_info_node = Node(mdb_names.ADDITIONAL_INFO, parent=entity_node)
+            entity_node.add_child(additional_info_node)
+        additional_info_node.content = additional_info
+
         entity_type_node = entity_node.find_child(names.ENTITYTYPE)
         if not entity_type_node:
             entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
             entity_node.add_child(entity_type_node)
         entity_type_node.content = entity_type
-
-        additional_info_node = entity_node.find_child("additionalInfo")
-        if not additional_info_node:
-            additional_info_node = Node("additionalInfo", parent=entity_node)
-            entity_node.add_child(additional_info_node)
-        additional_info_node.content = additional_info
 
 #            if size:
 #                size_node = new_child_node(names.SIZE, parent=physical_node)

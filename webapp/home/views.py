@@ -14,6 +14,8 @@
     7/23/18
 """
 import ast
+import urllib.parse
+
 import daiquiri
 from datetime import date, datetime
 import glob
@@ -1880,17 +1882,27 @@ def keep_existing_url(distribution_node, uploads_folder):
     #  before uploading to PASTA. In such a case, we want to leave existing distribution nodes as we've found them, so
     #  they will point to the original user's ezEML account and package.
     url_node = distribution_node.find_descendant(names.URL)
+    # This encodes the URL correctly, undoing the incorrect encoding that was done in an earlier version of ezEML.
+    encode_distribution_url(url_node)
     if url_node:
         url = url_node.content
         if url:
-            # In an earlier, incorrect version of this code, we encoded via the following method:
-            incorrectly_encoded = uploads_folder.replace(' ', '%20')
-            # We need to check for both the correctly encoded and incorrectly encoded versions of the uploads folder
-            #  because we don't know which version was used when the URL was created.
-            if uploads_folder not in url and quote(uploads_folder) not in url and incorrectly_encoded not in url:
-                # log_info(f"keep_existing_url returning True for {url}")
+            if uploads_folder not in url:
+                # The URL points to a different location, not to the user's account, so we'll leave it alone.
                 return True
     return False
+
+
+def encode_distribution_url(url_node):
+    url = url_node.content
+    if url:
+        subs = url.split('/uploads/')
+        if len(subs) > 1:
+            # The reason we do the convoluted replace, unquote, quote is that the URL may have been encoded
+            #  incorrectly by a previous version of ezEML. We want to make sure we encode it correctly.
+            url = subs[0] + '/uploads/' + quote(unquote(subs[1].replace('%20', ' ')))
+        url_node.content = url
+    return url
 
 
 def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
@@ -1917,7 +1929,8 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             online_node = new_child_node(names.ONLINE, distribution_node)
             url_node = new_child_node(names.URL, online_node)
             url_node.add_attribute('function', 'download')
-            url_node.content = f"{uploads_url_prefix}/{object_name}".replace(' ', '%20')
+            url_node.content = f"{uploads_url_prefix}/{object_name}"
+            encode_distribution_url(url_node)
             # log_info(f"  object_name={object_name_node.content}... url={url_node.content}")
         except Exception as err:
             flash(err)

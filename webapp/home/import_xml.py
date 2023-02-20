@@ -4,6 +4,7 @@ import shutil
 
 import daiquiri
 from flask_login import current_user
+from urllib.parse import unquote
 
 from metapype.eml import names, validate
 from metapype.model import metapype_io
@@ -101,7 +102,7 @@ def save_xml_file(file):
     except FileExistsError:
         pass
 
-    filename = file.filename
+    filename = unquote(file.filename)
     filepath = os.path.join(work_path, filename)
     file.save(filepath)
     return filepath

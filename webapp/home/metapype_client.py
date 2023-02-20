@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.01.27'
+RELEASE_NUMBER = '2023.02.19'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')

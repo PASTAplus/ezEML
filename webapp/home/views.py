@@ -1883,7 +1883,11 @@ def keep_existing_url(distribution_node, uploads_folder):
     if url_node:
         url = url_node.content
         if url:
-            if uploads_folder not in url and quote(uploads_folder) not in url:
+            # In an earlier, incorrect version of this code, we encoded via the following method:
+            incorrectly_encoded = uploads_folder.replace(' ', '%20')
+            # We need to check for both the correctly encoded and incorrectly encoded versions of the uploads folder
+            #  because we don't know which version was used when the URL was created.
+            if uploads_folder not in url and quote(uploads_folder) not in url and incorrectly_encoded not in url:
                 # log_info(f"keep_existing_url returning True for {url}")
                 return True
     return False

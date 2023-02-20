@@ -471,17 +471,26 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
         if country_node:
             form.country.data = country_node.content
 
-        phone_node = node.find_child(names.PHONE)
-        if phone_node:
-            form.phone.data = phone_node.content
-
-
     phone_nodes = node.find_all_children(names.PHONE)
+    have_voice = False
+    have_fax = False
     for phone_node in phone_nodes:
         phone_type = phone_node.attribute_value('phonetype')
-        if phone_type == 'facsimile':
+        if phone_type:
+            phone_type = phone_type.lower()
+        if phone_type == 'facsimile' or phone_type == 'fax':
+            if have_fax:
+                # We already have a fax number, so skip this one. We can only display one fax number.
+                # Cases of multiple fax numbers will only occur if the EML was created by another tool.
+                continue
+            have_fax = True
             form.fax.data = phone_node.content
-        else:
+        elif phone_type == 'voice' or phone_type == 'telephone' or phone_type is None:
+            if have_voice:
+                # We already have a voice number, so skip this one. We can only display one voice number.
+                # Cases of multiple voice numbers will only occur if the EML was created by another tool.
+                continue
+            have_voice = True
             form.phone.data = phone_node.content
 
     email_node = node.find_child(names.ELECTRONICMAILADDRESS)

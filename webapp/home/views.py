@@ -1789,6 +1789,14 @@ def zip_package(current_document=None, eml_node=None, include_data=True):
     return zipfile_path
 
 
+def encode_export_url(dest):
+    subs = dest.split('/exports/')
+    if len(subs) > 1:
+        return f'{subs[0]}/exports/{urllib.parse.quote(subs[1])}'
+    else:
+        return dest
+
+
 def save_as_ezeml_package_export(archive_file):
     current_document = current_user.get_filename()
     if not current_document:
@@ -1806,8 +1814,9 @@ def save_as_ezeml_package_export(archive_file):
     dest = f'{export_folder}/{archive_basename}'
     move(src, dest)
 
+    encoded_dest = encode_export_url(dest)
     parsed_url = urlparse(request.base_url)
-    download_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{dest}"
+    download_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{encoded_dest}"
     return archive_basename, download_url
 
 

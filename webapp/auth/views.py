@@ -59,6 +59,7 @@ oauth.register(
 
 @auth.route("/login", methods=['GET', 'POST'])
 def login():
+    session.clear()
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("auth.callback", _external=True)
     )

@@ -76,7 +76,7 @@ def donor(filename=None):
         additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
         if additional_metadata_node:
             metadata_node = additional_metadata_node.find_child(names.METADATA)
-            mother_node = metadata_node.find_child("mother")
+            mother_node = metadata_node.find_child(mdb_names.MOTHER)
             if mother_node:
                 node_id = mother_node.id
         else:
@@ -374,23 +374,9 @@ def populate_donor_form(form: DonorForm, node: Node):
             if anestrous_node:
                 form.stageOfCycle.data = anestrous_node.name
 
-        mammalStages = {
-            "follicular",
-            "pre-ovulatory",
-            "ovulation",
-            "luteal",
-        }
-        estrousStages = {
-            "proestrous",
-            "estrous",
-            "metestrous",
-            "diestrous",
-            "anestrous",
-        }
-
-        if form.stageOfCycle.data in mammalStages:
+        if form.stageOfCycle.data in mdb_names.MAMMAL_STAGE:
             form.donorType.data = "menstrual"
-        elif form.stageOfCycle.data in estrousStages:
+        elif form.stageOfCycle.data in mdb_names.ESTROUS_STAGE:
             form.donorType.data = "estrous"
 
     slideID_node = node.find_child(mdb_names.SLIDE_ID)

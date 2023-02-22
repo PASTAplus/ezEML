@@ -297,7 +297,7 @@
         {% if page != 'creator' and
               page != 'contact' and
               page != 'associated_party' and
-              page != 'metadata_provider'%}<a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">People</a><br>{% endif %}
+              page != 'metadata_provider'%}<a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">People</a><br>{% endif %}
         {% if page == 'creator' %}<a class="nav_link" style={{ creator_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">People</a><br>{% endif %}
         {% if page == 'contact' %}<a class="nav_link" style={{ contact_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">People</a><br>{% endif %}
         {% if page == 'associated_party' %}<a class="nav_link" style={{ associated_party_style }} onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">People</a><br>{% endif %}

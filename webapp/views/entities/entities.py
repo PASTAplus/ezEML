@@ -87,7 +87,7 @@ def other_entity_select(filename=None):
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_OTHER_ENTITY_SELECT, PAGE_PROJECT,
 #PT5/26                          PAGE_DATA_PACKAGE_ID, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY)
-                          PAGE_CONTACT_SELECT, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY) #PT5/26
+                          PAGE_CREATOR_SELECT, PAGE_OTHER_ENTITY, reupload_page=PAGE_REUPLOAD_OTHER_ENTITY) #PT5/26
         return redirect(url)
 
     # Process GET
@@ -116,7 +116,7 @@ def other_entity(filename=None, node_id=None):
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
-        next_page = PAGE_CONTACT_SELECT
+        next_page = PAGE_CREATOR_SELECT
 
         auto_save = False  # if user clicked to edit, we need to save other entity first
         if 'Access' in request.form:

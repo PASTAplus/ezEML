@@ -356,11 +356,8 @@ def _donor_rule(node: Node) -> list:
             for spcchild in child.children:
                 if spcchild.name == mdb_names.STAGE_OF_CYCLE:
                     for stgchild in child.children:
-                        print(stgchild.name)
-                        for stgchild in stgchild.children:
-                            print(stgchild.name)
-                            if stgchild.name in mdb_names.CYCLE_STAGE:
-                                print("valid")
+                        for stage in stgchild.children:
+                            if stage.name in mdb_names.CYCLE_STAGE:
                                 donornodes[18] = True
 
         # if child.name == mdb_names.MICROSCOPE:

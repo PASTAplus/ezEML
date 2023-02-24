@@ -258,6 +258,8 @@ XSI_TYPE = {
     STAGE_OF_CYCLE: "mdb:menstrualStageType"
 }
 
+# Names for enumeration validators
+
 MAMMAL_STAGE = {
     FOLLICULAR: "mdb:menstrualStageType",
     PRE_OVULATORY: "mdb:menstrualStageType",
@@ -274,6 +276,69 @@ ESTROUS_STAGE = {
 }
 
 CYCLE_STAGE = {**MAMMAL_STAGE, **ESTROUS_STAGE, EMPTY_UNSPECIFIED: ""}
+
+MAMMAL_STAGE_VALUES = {
+    FETAL,
+    NEONATAL,
+    PRE_PUBERTAL,
+    PUBERTAL,
+    ADULT,
+    AGING
+}
+
+OVARY_POSITION_VALUES = {
+    "left",
+    "right",
+    EMPTY_UNSPECIFIED
+}
+
+CORPUS_LUTEUM_VALUES = {
+    EARLY,
+    MID,
+    LATE,
+    ALBICANS
+}
+
+FOLLICULAR_VALUES = {
+    EARLY,
+    MID,
+    LATE
+}
+
+LUTEAL_VALUES = {
+    EARLY,
+    MID,
+    LATE,
+    REGRESSING
+}
+
+UNIT_VALUES = {
+    "microns",
+    "nm"
+}
+
+SUDAN_VALUES = {
+    "III",
+    "IV",
+    "Black B",
+    "Oil Red O",
+    "Osmium tetroxide",
+}
+
+CLONALITY_VALUES = {
+    MONOCLONAL,
+    POLYCLONAL
+}
+
+DETECTION_METHOD_VALUES = {
+    "ABC (avidin-biotin complex)",
+    "Alkaline phosphatase",
+    "Diaminobenzidine",
+    "FITC",
+    "Horseradish Peroxidase",
+    "LSAB (labeled streptavidin-biotin)",
+    "RPE"
+}
 
 NILLABLE = {
     DONOR_AGE,

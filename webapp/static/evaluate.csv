@@ -13,7 +13,8 @@ abstract_02,Abstract,Abstract,WARNING,RECOMMENDED,Consider increasing the length
 keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be provided to make the image more discoverable.,
 keywords_02,Keywords,Keywords,WARNING,RECOMMENDED,Consider adding more <b>Keywords</b> to make the image more discoverable.,
 intellectual_rights_01,Intellectual Rights,Intellectual Rights,WARNING,RECOMMENDED,An <b>Intellectual Rights</b> policy should be specified.,
-coverage_01,Coverage,Coverage,WARNING,RECOMMENDED,"At least one coverage element should be present in a image. I.e., at least one of <b>Geographic Coverage</b>, <b>Temporal Coverage</b>, or <b>Taxonomic Coverage</b> should be specified.",
+coverage_01,Coverage,Coverage,ERROR,REQUIRED,"<b>Taxonomic Coverage</b> is required.",
+coverage_02,Coverage,Coverage,WARNING,RECOMMENDED,"<b>Temporal Coverage</b> is highly recommended, e.g. collection date.",
 geographic_coverage_01,Geographic Coverage,Geographic Description,ERROR,REQUIRED,<b>Geographic Description</b> is required.   ,Applies if geographic coverage is present.
 geographic_coverage_02,Geographic Coverage,Bounding Coordinates,ERROR,REQUIRED,<b>Bounding Coordinates</b> are required and must be decimal values.,Applies if geographic coverage is present.
 geographic_coverage_03,Geographic Coverage,West Bounding Coordinate,ERROR,REQUIRED,<b>West Bounding Coordinate</b> must be a decimal value between -180.0 and +180.0.,

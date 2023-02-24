@@ -64,100 +64,28 @@ def _creator_rule(node: Node) -> list:
 
 def _dataset_rule(node: Node) -> list:
     evaluation = []
-    abstract_node = None
-    coverage_node = None
-    datatable_node = None
-    intellectual_rights_node = None
-    keywordset_nodes = []
-    methods_node = None
-    project_node = None
+
+    datanodes = [False] * 2
     for child in node.children:
-        if child.name == names.ABSTRACT:
-            abstract_node = child
-        elif child.name == names.COVERAGE:
-            coverage_node = child
-        elif child.name == names.DATATABLE:
-            datatable_node = child
-        elif child.name == names.INTELLECTUALRIGHTS:
-            intellectual_rights_node = child
-        elif child.name == names.KEYWORDSET:
-            keywordset_nodes.append(child)
-        elif child.name == names.METHODS:
-            methods_node = child
-        elif child.name == names.PROJECT:
-            project_node = child
+        if child.name == names.COVERAGE:
+            for cchild in child.children:
+                if cchild.name == names.TAXONOMICCOVERAGE:
+                    datanodes[0] = True
+                if cchild.name == names.TEMPORALCOVERAGE:
+                    datanodes[1] = True
 
-    if abstract_node:
-        content = get_text_content(abstract_node)
-        if content:
-            words = content.split()
-            if len(words) < 20:
-                evaluation.append((
-                    EvaluationWarning.DATASET_ABSTRACT_TOO_SHORT,
-                    f'Consider increasing the length of the dataset''s abstract.',
-                    node
-                ))
-        else:
-            evaluation.append((
-                EvaluationWarning.DATASET_ABSTRACT_MISSING,
-                f'A dataset abstract should be provided.',
-                node
-            ))
-    else:
+    if not datanodes[0]:
         evaluation.append((
-            EvaluationWarning.DATASET_ABSTRACT_MISSING,
-            f'A dataset abstract should be provided.',
+            EvaluationWarningMp.TAXONOMIC_COVERAGE_MISSING,
+            f'Taxonomic Coverage is required."',
             node
         ))
-    if not (coverage_node and coverage_node.children):
+    if not datanodes[1]:
         evaluation.append((
-            EvaluationWarning.DATASET_COVERAGE_MISSING,
-            f'At least one coverage element should be present in a dataset. I.e., at least one of Geographic Coverage,'
-            f' Temporal Coverage, or Taxonomic Coverage should be specified.',
+            EvaluationWarningMp.TEMPORAL_COVERAGE_MISSING,
+            f'Temporal Coverage is highly recommended, e.g. collection date."',
             node
         ))
-    if not datatable_node:
-        evaluation.append((
-            EvaluationWarning.DATATABLE_MISSING,
-            f'A dataset should contain at least one Data Table.',
-            node
-        ))
-    if not (intellectual_rights_node and intellectual_rights_node.content):
-        evaluation.append((
-            EvaluationWarning.INTELLECTUAL_RIGHTS_MISSING,
-            f'An Intellectual Rights policy should be specified.',
-            node
-        ))
-    if not keywordset_nodes:
-        evaluation.append((
-            EvaluationWarning.KEYWORDS_MISSING,
-            f'Keywords should be provided to make the dataset more discoverable.',
-            node
-        ))
-    else:
-        num_keywords = 0
-        for keywordset_node in keywordset_nodes:
-            keyword_nodes = keywordset_node.find_all_children(names.KEYWORD)
-            num_keywords += len(keyword_nodes)
-        if num_keywords < 5:
-            evaluation.append((
-                EvaluationWarning.KEYWORDS_INSUFFICIENT,
-                f'Consider adding more keywords to make the dataset more discoverable.',
-                node
-            ))
-    if not methods_node:
-        evaluation.append((
-            EvaluationWarning.DATASET_METHOD_STEPS_MISSING,
-            f'A dataset should contain at least one Method Step.',
-            node
-        ))
-    if not project_node:
-        evaluation.append((
-            EvaluationWarning.DATASET_PROJECT_MISSING,
-            f'A dataset should contain a Project.',
-            node
-        ))
-
     return evaluation
 
 

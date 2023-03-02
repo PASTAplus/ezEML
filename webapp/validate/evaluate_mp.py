@@ -62,28 +62,60 @@ def _creator_rule(node: Node) -> list:
     return _responsible_party_rule(node)
 
 
+def check_taxon(node: Node, rank, value):
+    nodes = [False] * 2
+    for child in node.children:
+        if child.name == rank and child.content == value:
+            nodes[0] = True
+        if child.name == names.TAXONRANKVALUE and child.content:
+            nodes[1] = True
+    if all(nodes):
+        return True
+    for child in node.children:
+        if child.name == names.TAXONOMICCLASSIFICATION:
+            return check_taxon(child, rank, value)
+    return False
+
+
 def _dataset_rule(node: Node) -> list:
     evaluation = []
 
-    datanodes = [False] * 2
+    datanodes = [False] * 4
     for child in node.children:
         if child.name == names.COVERAGE:
             for cchild in child.children:
                 if cchild.name == names.TAXONOMICCOVERAGE:
                     datanodes[0] = True
+                    # check that any genus or species is present at all in the project
+                    if check_taxon(cchild, names.TAXONRANKNAME, 'Genus'):
+                        datanodes[2] = True
+                    if check_taxon(cchild, names.TAXONRANKNAME, 'Species'):
+                        datanodes[3] = True
                 if cchild.name == names.TEMPORALCOVERAGE:
                     datanodes[1] = True
 
     if not datanodes[0]:
         evaluation.append((
             EvaluationWarningMp.TAXONOMIC_COVERAGE_MISSING,
-            f'Taxonomic Coverage is required."',
+            f'Taxonomic Coverage is required.',
             node
         ))
     if not datanodes[1]:
         evaluation.append((
             EvaluationWarningMp.TEMPORAL_COVERAGE_MISSING,
-            f'Temporal Coverage is highly recommended, e.g. collection date."',
+            f'Temporal Coverage is highly recommended, e.g. collection date.',
+            node
+        ))
+    if not datanodes[2]:
+        evaluation.append((
+            EvaluationWarningMp.TAXONOMIC_COVERAGE_GENUS_MISSING,
+            f'Taxon Genus is required',
+            node
+        ))
+    if not datanodes[3]:
+        evaluation.append((
+            EvaluationWarningMp.TAXONOMIC_COVERAGE_SPECIES_MISSING,
+            f'Taxon Species is required',
             node
         ))
     return evaluation

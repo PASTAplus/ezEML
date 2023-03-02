@@ -336,6 +336,10 @@ def check_coverage(eml_node, filename):
     evaluation_warnings = evaluate_via_motherpype(dataset_node)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.TAXONOMIC_COVERAGE_MISSING, names.DATASET):
         add_to_evaluation('taxonomic_coverage_03', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.TAXONOMIC_COVERAGE_GENUS_MISSING, names.DATASET):
+        add_to_evaluation('taxonomic_coverage_04', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.TAXONOMIC_COVERAGE_SPECIES_MISSING, names.DATASET):
+        add_to_evaluation('taxonomic_coverage_05', link)
 
     link = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=filename)
 

@@ -103,7 +103,7 @@ def callback():
 #    password = form.password.data
     # auth_token = authenticate(user_dn=user_dn, password=password)
     auth_token = token["access_token"]
-    if auth_token is not None and auth_token != "teapot":
+    if auth_token is not None:
 #        pasta_token = PastaToken(auth_token)
 #        uid = pasta_token.uid.split(",")[0]
 #        uid = token['id_token']

@@ -331,12 +331,20 @@ def check_taxonomic_coverage(node, filename):
 def check_coverage(eml_node, filename):
     dataset_node = eml_node.find_child(names.DATASET)
 
-    link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=filename)
+    link = url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=filename)
 
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    evaluation_warnings = evaluate_via_motherpype(dataset_node)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.TAXONOMIC_COVERAGE_MISSING, names.DATASET):
+        add_to_evaluation('taxonomic_coverage_03', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.TAXONOMIC_COVERAGE_GENUS_MISSING, names.DATASET):
+        add_to_evaluation('taxonomic_coverage_04', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.TAXONOMIC_COVERAGE_SPECIES_MISSING, names.DATASET):
+        add_to_evaluation('taxonomic_coverage_05', link)
 
-    if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
-        add_to_evaluation('coverage_01', link)
+    link = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=filename)
+
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.TEMPORAL_COVERAGE_MISSING, names.DATASET):
+        add_to_evaluation('temporal_coverage_01', link)
 
     taxonomic_classification_nodes = []
     dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)

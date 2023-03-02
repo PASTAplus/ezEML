@@ -13,7 +13,7 @@ abstract_02,Abstract,Abstract,WARNING,RECOMMENDED,Consider increasing the length
 keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be provided to make the image more discoverable.,
 keywords_02,Keywords,Keywords,WARNING,RECOMMENDED,Consider adding more <b>Keywords</b> to make the image more discoverable.,
 intellectual_rights_01,Intellectual Rights,Intellectual Rights,WARNING,RECOMMENDED,An <b>Intellectual Rights</b> policy should be specified.,
-coverage_01,Coverage,Coverage,WARNING,RECOMMENDED,"At least one coverage element should be present in a image. I.e., at least one of <b>Geographic Coverage</b>, <b>Temporal Coverage</b>, or <b>Taxonomic Coverage</b> should be specified.",
+temporal_coverage_01,Temporal Coverage,Temporal Coverage,WARNING,RECOMMENDED,"<b>Temporal Coverage</b> is highly recommended, e.g. collection date.",
 geographic_coverage_01,Geographic Coverage,Geographic Description,ERROR,REQUIRED,<b>Geographic Description</b> is required.   ,Applies if geographic coverage is present.
 geographic_coverage_02,Geographic Coverage,Bounding Coordinates,ERROR,REQUIRED,<b>Bounding Coordinates</b> are required and must be decimal values.,Applies if geographic coverage is present.
 geographic_coverage_03,Geographic Coverage,West Bounding Coordinate,ERROR,REQUIRED,<b>West Bounding Coordinate</b> must be a decimal value between -180.0 and +180.0.,
@@ -24,6 +24,9 @@ geographic_coverage_07,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,If <
 geographic_coverage_08,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,An invalid value was encountered for <b>Altitude Units</b>. See the Help for a list of permitted values.,
 taxonomic_coverage_01,Taxonomic Coverage,Taxon Rank,ERROR,REQUIRED,Taxon Rank is required,
 taxonomic_coverage_02,Taxonomic Coverage,Taxon Scientific Name,ERROR,REQUIRED,Taxon Scientific Name is required,
+taxonomic_coverage_03,Taxonomic Coverage,Taxonomic Coverage,ERROR,REQUIRED,<b>Taxonomic Coverage</b> is required.,
+taxonomic_coverage_04,Taxonomic Coverage,Taxon Genus,ERROR,REQUIRED,Taxon <b>Genus</b> is required.,
+taxonomic_coverage_05,Taxonomic Coverage,Taxon Species,ERROR,REQUIRED,Taxon <b>Species</b> is required.,
 data_table_01,Data Tables,Name,ERROR,REQUIRED,A data table <b>Name</b> is required.,
 data_table_02,Data Tables,Description,WARNING,RECOMMENDED,A data table <b>Description</b> is highly recommended.,
 data_table_03,Data Tables,Data Object Name,ERROR,REQUIRED,A <b>Data Object Name</b> is required.,

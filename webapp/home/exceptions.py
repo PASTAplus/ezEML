@@ -29,6 +29,10 @@ class MissingFileError(ezEMLError):
     pass
 
 
+class NumberOfColumnsHasChanged(ezEMLError):
+    pass
+
+
 class TaxonNotFound(ezEMLError):
     pass
 

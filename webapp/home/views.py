@@ -57,6 +57,7 @@ from webapp.home.exceptions import (
     DataTableError,
     MetapypeStoreIsNonEmpty,
     MissingFileError,
+    NumberOfColumnsHasChanged,
     Unauthorized,
     UnicodeDecodeErrorInternal
 )
@@ -3047,6 +3048,9 @@ def column_names_changed(filepath, delimiter, quote_char, dt_node):
                 if attribute_name_node:
                     old_column_names.append(attribute_name_node.content)
 
+    if len(old_column_names) != len(new_column_names):
+        raise NumberOfColumnsHasChanged(f'Number of columns has changed from {len(old_column_names)} to {len(new_column_names)}.')
+
     return old_column_names != new_column_names
 
 
@@ -3386,11 +3390,16 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
                                         saved_filename=saved_filename,
                                         dt_node_id=dt_node_id),
                                 code=307)
+        except NumberOfColumnsHasChanged as err:
+            flash('The number of columns in the uploaded file is different from the number of columns in the table '
+                  'it is replacing. Instead of using Re-upload, you will need to upload the table as a new '
+                  'table. You can then use "Clone Column Properties from Another Data Table" to copy the column '
+                  'properties that the tables have in common, after which you can delete the old version.', 'error')
+            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
         except UnicodeDecodeError as err:
             errors = display_decode_error_lines(filepath)
             filename = os.path.basename(filepath)
             return render_template('encoding_error.html', filename=filename, errors=errors)
-
     try:
         new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
             uploads_folder, saved_filename, num_header_rows, delimiter, quote_char)

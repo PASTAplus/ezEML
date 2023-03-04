@@ -497,13 +497,11 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
 
 
-def load_df(attribute_node):
+def load_df(attribute_node, usecols=None):
     attribute_list_node = attribute_node.parent
     data_table_node = attribute_list_node.parent
     object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-    if object_name_node:
-        data_file = object_name_node.content
-    else:
+    if not object_name_node:
         return None
     data_file = data_table_node.find_descendant(names.OBJECTNAME).content
 
@@ -522,27 +520,30 @@ def load_df(attribute_node):
         quote_char = '"'
 
     try:
-        return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+        if len(usecols) == 1 and usecols[0] is not None:
+            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char, usecols=usecols)
+        else:
+            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
     except FileNotFoundError as e:
         return None
 
 
 def force_datetime_type(attribute_node):
     # If we are changing a column to datetime type, go to the data table file and pick up the datetime format
-    data_frame = load_df(attribute_node)
+    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    data_frame = load_df(attribute_node, usecols=[column_name])
     if data_frame is None:
         return None
-    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     return infer_datetime_format(data_frame[column_name][1])
 
 
 def force_categorical_codes(attribute_node):
     # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
-    data_frame = load_df(attribute_node)
+    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    data_frame = load_df(attribute_node, usecols=[column_name])
     if data_frame is None:
         return None
 
-    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     codes = data_frame[column_name].unique().tolist()
     if data_frame.dtypes[column_name] == np.float64:
         # See if the codes can be treated as ints

@@ -3432,7 +3432,8 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
             os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
 
             if types_changed:
-                err_string = 'Please note: One or more columns in the new table have a different data type than they had in the old table.<ul>'
+                err_string = 'Please note: One or more columns in the new table have a different data type than they '\
+                             'had in the old table.<ul>'
                 for col_name, old_type, new_type, attr_node in types_changed:
                     dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
                     err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'

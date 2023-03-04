@@ -402,9 +402,9 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
         # If the number of rows is greater than a million, we will base the metadata on what we see in the
         #  first million rows.
         if num_rows > 10**6:
-            flash(f'The number of rows in the file is greater than 1 million. ezEML uses the first million rows to '
-                  f'determine the data types of the columns. If the first million rows are not representative of '
-                  f'the entire file, you may need to manually correct the data types.')
+            flash(f'The number of rows in {os.path.basename(full_path)} is greater than 1 million. ezEML uses the '
+                  f'first million rows to determine the data types of the columns. If the first million rows are not '
+                  f'representative of the entire file, you may need to manually correct the data types.')
         data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=min(num_rows, 10**6))
     except pd.errors.ParserError as e:
         raise DataTableError(e.args[0])

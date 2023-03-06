@@ -135,6 +135,7 @@ def new_donor(filename=None, node_id=None, method=None,
             donorYears = form.donorYears.data
             donorDays = form.donorDays.data
             donorLifeStage = form.donorLifeStage.data
+            donorType = form.donorType.data
             specimenSeqNum = form.specimenSeqNum.data
             specimenTissue = form.specimenTissue.data
             ovaryPosition = form.ovaryPosition.data
@@ -223,6 +224,13 @@ def new_donor(filename=None, node_id=None, method=None,
                     stageOfCycle, 
                     follicular, 
                     luteal)
+                cycleType_node = mother_node.find_child(mdb_names.SPEC_CYCLE)
+                stageOfCycle_node = cycleType_node.find_child(mdb_names.STAGE_OF_CYCLE)
+                if donorType == "menstrual":
+                    stageOfCycle_node.add_extras("xsi:type", "mdb:menstrualStageType")
+                elif donorType == "estrous":
+                    stageOfCycle_node.add_extras("xsi:type", "mdb:estrousStageType")
+
             elif stageOfCycle == "":
                 cycleType_node = mother_node.find_child(mdb_names.SPEC_CYCLE)
                 stageOfCycle_node = cycleType_node.find_child(mdb_names.STAGE_OF_CYCLE)
@@ -374,10 +382,12 @@ def populate_donor_form(form: DonorForm, node: Node):
             if anestrous_node:
                 form.stageOfCycle.data = anestrous_node.name
 
-        if form.stageOfCycle.data in mdb_names.MAMMAL_STAGE:
-            form.donorType.data = "menstrual"
-        elif form.stageOfCycle.data in mdb_names.ESTROUS_STAGE:
-            form.donorType.data = "estrous"
+        if stageOfCycle_node:
+            xsi_type = stageOfCycle_node.extras.pop("xsi:type")
+            if xsi_type == "mdb:menstrualStageType":
+                form.donorType.data = "menstrual"
+            if xsi_type == "mdb:estrousStageType":
+                form.donorType.data = "estrous"
 
     slideID_node = node.find_child(mdb_names.SLIDE_ID)
     if slideID_node:

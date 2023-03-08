@@ -11,6 +11,7 @@ import re
 import requests
 from requests_file import FileAdapter
 from typing import List
+import urllib.parse
 import warnings
 
 from webapp.utils import path_exists, path_isdir, path_join
@@ -46,7 +47,6 @@ def log_info(msg):
 
 
 def load_eml_file(eml_file_url:str):
-
     s = requests.Session()
     s.mount('file://', FileAdapter())
 
@@ -538,10 +538,13 @@ def get_data_table_name(data_table_node):
         return data_table_name_node.content.strip()
 
 
-def get_data_table_filename(data_table_node):
+def get_data_table_filename(data_table_node, encoded_for_url=False):
     data_table_object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
     if data_table_object_name_node:
-        return data_table_object_name_node.content
+        if not encoded_for_url:
+            return data_table_object_name_node.content
+        else:
+            return urllib.parse.quote(data_table_object_name_node.content)
 
 
 def get_data_table_size(data_table_node):
@@ -658,8 +661,9 @@ def generate_error_info_for_webpage(data_table_node, errors):
 
 def get_eml_file_url(document_name, eml_node):
     filepath = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
+    encoded_for_url = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), urllib.parse.quote(document_name))}.xml'
     if path_exists(filepath):
-        return f'file://{filepath}'
+        return f'file://{encoded_for_url}'
     package_id = eml_node.attribute_value('packageId')
     if package_id:
         filepath = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), package_id)}.xml'
@@ -670,7 +674,7 @@ def get_eml_file_url(document_name, eml_node):
 
 def get_csv_file_url(document_name, data_table_node):
     csv_file_name = get_data_table_filename(data_table_node)
-    return f'file://{os.path.join(Config.BASE_DIR, user_data.get_document_uploads_folder_name(), csv_file_name)}'
+    return f'file://{os.path.join(Config.BASE_DIR, user_data.get_document_uploads_folder_name(encoded_for_url=True), urllib.parse.quote(csv_file_name))}'
 
 
 def get_csv_filepath(document_name, csv_file_name):

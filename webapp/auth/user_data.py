@@ -19,6 +19,7 @@ from json import JSONDecodeError
 from pathlib import Path
 import pickle
 import shutil
+import urllib.parse
 
 import daiquiri
 from flask import send_file, Flask, current_app
@@ -77,10 +78,12 @@ def get_user_uploads_folder_name():
     return user_uploads_folder_name
 
 
-def get_document_uploads_folder_name(document_name=None):
+def get_document_uploads_folder_name(document_name=None, encoded_for_url=False):
     if not document_name:
         if get_active_document():
             document_name  = get_active_document()
+            if encoded_for_url:
+                document_name = urllib.parse.quote(document_name)
     if document_name:
         document_uploads_folder = os.path.join(get_user_uploads_folder_name(), document_name)
         Path(document_uploads_folder).mkdir(parents=True, exist_ok=True)

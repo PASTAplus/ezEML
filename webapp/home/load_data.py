@@ -316,6 +316,11 @@ def check_column_name_uniqueness(csv_file_path, delimiter):
             raise DataTableError("Duplicated column name. Please make column names unique and try again.")
 
 
+def get_num_rows(csv_filepath, delimiter: str = ',', quote_char: str = '"'):
+    df = pd.read_csv(csv_filepath, encoding='utf8', usecols=[0], sep=delimiter, quotechar=quote_char)
+    return df.shape[0]
+
+
 def load_data_table(uploads_path: str = None, data_file: str = '',
                     num_header_rows: str = '1', delimiter: str = ',', quote_char: str = '"'):
     if Config.LOG_DEBUG:
@@ -393,7 +398,14 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
 
     # log_info('pd.read_csv')
     try:
-        data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
+        num_rows = get_num_rows(full_path, delimiter=delimiter, quote_char=quote_char)
+        # If the number of rows is greater than a million, we will base the metadata on what we see in the
+        #  first million rows.
+        if num_rows > 10**6:
+            flash(f'The number of rows in {os.path.basename(full_path)} is greater than 1 million. ezEML uses the '
+                  f'first million rows to determine the data types of the columns. If the first million rows are not '
+                  f'representative of the entire file, you may need to manually correct the data types.')
+        data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=min(num_rows, 10**6))
     except pd.errors.ParserError as e:
         raise DataTableError(e.args[0])
 
@@ -405,9 +417,7 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
 
         number_of_records = Node(names.NUMBEROFRECORDS, parent=datatable_node)
         metapype_client.add_child(datatable_node, number_of_records)
-        row_count = data_frame.shape[0]
-        record_count = row_count
-        number_of_records.content = f'{record_count}'
+        number_of_records.content = f'{num_rows}'
 
         attribute_list_node = Node(names.ATTRIBUTELIST, parent=datatable_node)
         metapype_client.add_child(datatable_node, attribute_list_node)

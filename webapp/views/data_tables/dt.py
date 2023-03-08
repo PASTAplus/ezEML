@@ -38,7 +38,8 @@ from webapp.home.metapype_client import (
     create_datetime_attribute, create_numerical_attribute,
     create_categorical_or_text_attribute, force_missing_value_codes,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute,
-    handle_hidden_buttons, check_val_for_hidden_buttons
+    handle_hidden_buttons, check_val_for_hidden_buttons,
+    handle_custom_unit_additional_metadata
 )
 from webapp.home.log_usage import (
     actions,
@@ -496,13 +497,11 @@ def attribute_measurement_scale_get(filename, form, att_node_id):
     return render_template('attribute_measurement_scale.html', entity_name=name, form=form)
 
 
-def load_df(attribute_node):
+def load_df(attribute_node, usecols=None):
     attribute_list_node = attribute_node.parent
     data_table_node = attribute_list_node.parent
     object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-    if object_name_node:
-        data_file = object_name_node.content
-    else:
+    if not object_name_node:
         return None
     data_file = data_table_node.find_descendant(names.OBJECTNAME).content
 
@@ -520,25 +519,31 @@ def load_df(attribute_node):
     else:
         quote_char = '"'
 
-    return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+    try:
+        if len(usecols) == 1 and usecols[0] is not None:
+            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char, usecols=usecols)
+        else:
+            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+    except FileNotFoundError as e:
+        return None
 
 
 def force_datetime_type(attribute_node):
     # If we are changing a column to datetime type, go to the data table file and pick up the datetime format
-    data_frame = load_df(attribute_node)
-    if not data_frame:
-        return None
     column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    data_frame = load_df(attribute_node, usecols=[column_name])
+    if data_frame is None:
+        return None
     return infer_datetime_format(data_frame[column_name][1])
 
 
 def force_categorical_codes(attribute_node):
     # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
-    data_frame = load_df(attribute_node)
-    if not data_frame:
+    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    data_frame = load_df(attribute_node, usecols=[column_name])
+    if data_frame is None:
         return None
 
-    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     codes = data_frame[column_name].unique().tolist()
     if data_frame.dtypes[column_name] == np.float64:
         # See if the codes can be treated as ints
@@ -547,6 +552,10 @@ def force_categorical_codes(attribute_node):
         for code in codes:
             if not math.isnan(code):
                 try:
+                    int_code = int(code)
+                    if int_code != code:
+                        ok = False
+                        break
                     int_codes.append(int(code))
                 except:
                     ok = False
@@ -579,7 +588,10 @@ def change_measurement_scale(attribute_node, old_mscale, new_mscale):
     mscale_node = attribute_node.find_child(names.MEASUREMENTSCALE)
 
     # clear its children
-    mscale_node.remove_children()
+    if mscale_node:
+        mscale_node.remove_children()
+    else:
+        mscale_node = new_child_node(names.MEASUREMENTSCALE, attribute_node)
 
     # construct new children
     if new_mscale == VariableType.NUMERICAL.name:
@@ -2034,7 +2046,7 @@ def clone_categorical_attribute(source_node_copy, target_node):
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
 
         # Capture the target's code nodes
-        target_code_definition_nodes = enumerated_domain_target_node.find_all_children(names.CODEDEFINITION)
+        # target_code_definition_nodes = enumerated_domain_target_node.find_all_children(names.CODEDEFINITION)
 
         # Replace the target with copy of the source
         target_parent = target_node.parent
@@ -2045,18 +2057,31 @@ def clone_categorical_attribute(source_node_copy, target_node):
         source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
         source_copy_name_node.content = target_name
 
+        '''
+        We used to handle categorical columns as described in the User Guide:
+            "For Categorical columns, the codes in the target data table are not changed, but their
+            definitions are filled in by using the definitions for the corresponding codes in the source
+            data table. This way, the lists of codes will match what’s in the target data table’s CSV
+            file, but the code definitions won’t all have to be re-entered for codes that are in
+            common between the two tables.
+        
+        We have since decided to remove this restriction and now just replace the target's codes and definitions
+        with the source's codes and definitions. This is because the user may have added codes to the source
+        that are not in the target, and we want to pick up those codes as well.
+        '''
+
         # Replace the target code definition nodes with the ones we saved
-        target_node = source_node_copy
-        enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
-        for code_definition_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
-            enumerated_domain_target_node.remove_child(code_definition_node)
-        for code_definition_node in target_code_definition_nodes:
-            add_child(enumerated_domain_target_node, code_definition_node)
-            code_target_node = code_definition_node.find_child(names.CODE)
-            definition_target_node = code_definition_node.find_child(names.DEFINITION)
-            code = str(code_target_node.content)
-            if code in source_codes_and_definitions:
-                definition_target_node.content = source_codes_and_definitions[code]
+        # target_node = source_node_copy
+        # enumerated_domain_target_node = target_node.find_descendant(names.ENUMERATEDDOMAIN)
+        # for code_definition_node in enumerated_domain_target_node.find_all_children(names.CODEDEFINITION):
+        #     enumerated_domain_target_node.remove_child(code_definition_node)
+        # for code_definition_node in target_code_definition_nodes:
+        #     add_child(enumerated_domain_target_node, code_definition_node)
+        #     code_target_node = code_definition_node.find_child(names.CODE)
+        #     definition_target_node = code_definition_node.find_child(names.DEFINITION)
+        #     code = str(code_target_node.content)
+        #     if code in source_codes_and_definitions:
+        #         definition_target_node.content = source_codes_and_definitions[code]
         return True
     else:
         return False
@@ -2114,7 +2139,7 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
 def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids):
     form = SelectDataTableColumnsForm()
 
-    _ = load_eml(source_filename)
+    source_eml_node = load_eml(source_filename)
     source_attr_ids_list = source_attr_ids.strip('][').split(', ')
     source_attrs = []
     for source_attr_id in source_attr_ids_list:
@@ -2124,7 +2149,7 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         source_attr_node = source_attr_name_node.parent
         source_attrs.append((source_attr_name, source_attr_node.id))
 
-    _ = load_eml(target_filename)
+    target_eml_node = load_eml(target_filename)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_attrs = []
     target_dt_attr_nodes = []
@@ -2150,8 +2175,33 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
                 #  so the source and target lists will match up. The clone_column_properties function will ignore the
                 #  attributes for which no target was selected.
                 target_attr_ids.append(val[0])
-        target_eml_node = load_eml(target_filename)
+
         clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)
+
+        # If column has a custom unit, we need to add the additionalMetadata for it
+        if source_eml_node and source_attr_node:
+            custom_unit_node = source_attr_node.find_descendant(names.CUSTOMUNIT)
+            if custom_unit_node:
+                custom_unit = custom_unit_node.content
+                custom_unit_description = None
+                if custom_unit:
+                    # We need to look in the source eml's additionalMetadata for the custom unit description, if any
+                    unit_nodes = source_eml_node.find_all_nodes_by_path([names.ADDITIONALMETADATA,
+                                                                         names.METADATA,
+                                                                         names.UNITLIST,
+                                                                         names.UNIT])
+                    for unit_node in unit_nodes:
+                        id = unit_node.attribute_value('id')
+                        name = unit_node.attribute_value('name')
+                        if id == custom_unit or name == custom_unit:
+                            custom_unit_description_node = unit_node.find_child(names.DESCRIPTION)
+                            if custom_unit_description_node:
+                                custom_unit_description = custom_unit_description_node.content
+                            handle_custom_unit_additional_metadata(target_eml_node,
+                                                                   custom_unit,
+                                                                   custom_unit_description)
+                            break
+
         log_usage(actions['CLONE_COLUMN_PROPERTIES'], source_filename, table_name_in, target_filename, table_name_out)
         save_both_formats(target_filename, target_eml_node)
         return redirect(url_for('dt.data_table_select', filename=target_filename))

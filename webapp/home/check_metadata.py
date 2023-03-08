@@ -481,6 +481,9 @@ def get_attribute_type(attrib_node:Node):
     mscale_node = attrib_node.find_child(names.MEASUREMENTSCALE)
     # Formerly, Categorical variables were nominal. But now that we're importing externally created XML
     #  files, they may be ordinal.
+    if not mscale_node:
+        # TODO - Temporary hack
+        return None
     nominal_or_ordinal_node = mscale_node.find_child(names.NOMINAL)
     if not nominal_or_ordinal_node:
         nominal_or_ordinal_node = mscale_node.find_child(names.ORDINAL)

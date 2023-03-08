@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.01.27'
+RELEASE_NUMBER = '2023.02.19'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1125,7 +1125,7 @@ def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=
     """
     msg = None
     if new_filename and eml_node and new_filename != old_filename:
-        save_both_formats(filename=new_filename, eml_node=eml_node)
+        save_both_formats(filename=new_filename, eml_node=eml_node.copy())
     elif new_filename == old_filename:
         msg = 'New package id and old package id are the same'
     else:
@@ -1958,6 +1958,7 @@ def fix_up_custom_units(eml_node:Node=None):
     #  we need to check if this package needs fixup.
     # In addition, we check here whether we have custom units in the additionalMetadata that are no
     #  longer needed, because they no longer appear in a data table.
+    # And if there are no custom units in the additionalMetadata, we remove the additionalMetadata node.
     unitlist_node = eml_node.find_descendant(names.UNITLIST)
     if unitlist_node:
         metadata_node = unitlist_node.parent
@@ -1975,6 +1976,15 @@ def fix_up_custom_units(eml_node:Node=None):
         for unit_node in unit_nodes:
             if unit_node.attribute_value('id') not in custom_units:
                 unitlist_node.remove_child(unit_node)
+        # If there are no custom units, remove the unitlist, metadata, and additionalMetadata nodes if they're empty
+        unit_nodes = unitlist_node.find_all_children(names.UNIT)
+        if len(unit_nodes) == 0:
+            metadata_node.remove_child(unitlist_node)
+            if not metadata_node.children:
+                additional_metadata_node = metadata_node.parent
+                additional_metadata_node.remove_child(metadata_node)
+                if not additional_metadata_node.children:
+                    eml_node.remove_child(additional_metadata_node)
 
 
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):

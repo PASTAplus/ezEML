@@ -190,13 +190,8 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
                 del node.attributes["value"]
             node.add_extras("value", node.content)
             node.content = ""  # if the node value is an attribute, delete the content after adding it as such
+            
     if node.name in mdb_names.XSI_TYPE:
-        if node.name == mdb_names.STAGE_OF_CYCLE:
-            for child in node.children:
-                if child.name != mdb_names.EMPTY_UNSPECIFIED:
-                    node.add_extras("xsi:type", mdb_names.CYCLE_STAGE[child.name])
-        else:
-            node.add_extras("xsi:type", mdb_names.XSI_TYPE[node.name])
         node.add_extras("xsi:type", mdb_names.XSI_TYPE[node.name])
 
     if node.name in mdb_names.NILLABLE:

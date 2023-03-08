@@ -333,11 +333,11 @@
             var selection = s2.value;
             s2.innerHTML = "";
             if(s1.value == "menstrual"){
-                var optionArray = ["unspecified|Unspecified","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal"];
+                var optionArray = ["|","unspecified|Unspecified","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal"];
             }else if(s1.value == "estrous"){
-                var optionArray = ["unspecified|Unspecified","proestrous|Proestrous","estrous|Estrous","metestrous|Metestrous","diestrous|Diestrous","anestrous|Anestrous"];
+                var optionArray = ["|","unspecified|Unspecified","proestrous|Proestrous","estrous|Estrous","metestrous|Metestrous","diestrous|Diestrous","anestrous|Anestrous"];
             }else{
-                var optionArray = ["unspecified|Unspecified"];
+                var optionArray = ["|"];
             }
             for(var option in optionArray){
                 var pair = optionArray[option].split("|");

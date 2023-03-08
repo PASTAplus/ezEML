@@ -2,9 +2,12 @@ abstract
 Abstract
 The <b>Abstract</b> will be used for full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
 
+
 In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the data package is ongoing or completed.
 
+
 Some general methods description is appropriate, and broad classes of measured parameters should also be included.  For a large number of parameters, use categories instead of listing all parameters (e.g. use the term “nutrients” instead of nitrate, phosphate, calcium, etc.), in combination with the parameters that seem most relevant for search.
+
 
 An abstract is not required, but it is highly recommended.
 --------------------
@@ -12,7 +15,9 @@ add_load_data_tables
 Add/Load Data Tables
 You can create a data table's metadata "from scratch" via <b>Add Data Table from Scratch</b>, or you can load an existing data table CSV file via <b>Load Data Table from CSV File</b>.
 
+
 In the latter case, many of the data table's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
+
 
 CSV files are assumed to contain a single header row.
 --------------------
@@ -20,11 +25,13 @@ add_load_other_entities
 Add/Load Other Entities
 You can create an other entity's metadata "from scratch" via <b>Add Other Entity from Scratch</b>, or you can load an existing other entity file via <b>Load Other Entity from File</b>.
 
+
 In the latter case, a number of the other entity's characteristics will be automatically extracted or inferred from the file, but some others will still need to be entered or modified manually. <b>Note: If the file is modified after it is loaded, it will need to be re-uploaded, since some of the inferred metadata (e.g., checksum, file size) is version-specific.</b>
 --------------------
 associatedParty
 Associated Party
 Associated parties are other people who were involved with the data in some way (field technicians, students, assistants, etc.).
+
 
 Associated parties are not required.
 --------------------
@@ -32,18 +39,22 @@ associated_parties
 Associated Parties
 Associated parties are other people who were involved with the data in some way (field technicians, students, assistants, etc.).
 
+
 Associated parties are not required.
 --------------------
 attribute_definition
 Column Definition
 A precise definition of the column. It explains the contents of the column fully so that a data user can interpret the column accurately.
 
+
 Example: "spden" is the number of individuals of all macro invertebrate species found in the plot.
 --------------------
 attribute_label
 Column Label
 
+
 A descriptive label that can be used to display the name of a column. This is often a longer name than the column name and may consist of multiple words. It is not constrained by system limitations on length or special characters in the way the column name is constrained.
+
 
 For example, a column with a name of 'spcode' might have a column label of 'Species Code'.
 --------------------
@@ -51,11 +62,13 @@ attribute_name
 Column Name
 Column name is the official name of the column. This is usually a short, sometimes cryptic name that is used to refer to the column. Many systems have restrictions on the length of column names and on the use of special characters such as spaces in the name, so the column name may not be ideal for display purposes (use Label for display).
 
+
 The column name is usually the name of the variable in the header of a data file.
 --------------------
 attribute_datetime_format
 Format String
 A format string that describes the format for a DateTime value from the Gregorian calendar.
+
 
 DateTime values should be expressed in a format that conforms to the ISO 8601 standard. To describe the format, construct a string representation of the format using the following symbols:
 <ul>
@@ -91,6 +104,7 @@ attribute_datetime_precision
 DateTime Precision
 A quantitative indication of the precision of a date or time value.
 
+
 The precision should be interpreted in the smallest units represented by the dateTime format. For example, if a dateTime value has a format of "hh:mm:ss.sss", then "seconds" are the smallest unit and the precision should be expressed in seconds. Thus, a precision value of "0.01" would mean that measurements were precise to the nearest hundredth of a second, even though the format string might indicate that values were written down with 3 decimal places.
 --------------------
 attribute_number_type
@@ -105,11 +119,13 @@ attribute_numerical_precision
 Precision
 The precision of the measurement.
 
+
 Precision indicates how close together or how repeatable measurements are. A precise measuring instrument will give very nearly the same result each time it is used. This means that someone interpreting the data should expect that if a measurement were repeated, most measured values would fall within the interval specified by the precision. The value of precision should be expressed in the same unit as the measurement. For example, for a column with unit "meter", a precision of "0.1" would be interpreted to mean that most repeat measurements would fall within an interval of 1/10th of a meter.
 --------------------
 attribute_storage_type
 Storage Type
 <b>Storage Type</b> provides a "hint" for processing systems as to how the column's data might be represented in a system or language. Values for this field are by default drawn from the XML Schema data types standard values, such as: integer, double, string, etc.
+
 
 <b>Storage Type System</b> specifies the system used to define the storage types. It should be an identifier of a well known and published typing system. The default and recommended system is the XML Schema data type system. For details go to http://www.w3.org. If another system is used (such as Java or C++ types), <b>Storage Type System</b> should be changed accordingly.
 --------------------
@@ -117,7 +133,9 @@ award
 Funding Award
 Information on a funding award associated with the project.
 
+
 Required fields are provided for the name of the funding agency and the title of the award.
+
 
 Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
 --------------------
@@ -125,11 +143,13 @@ award_number
 Award Number
 The unique identifier used by the funder to uniquely identify an award.
 
+
 These are typically alphanumeric values that are unique within the system used by a given funder. The number should be listed using the canonical form that each funder uses to express its award numbers and should not be prefixed or postfixed with extra text such as the acronym of the funder or the name of the funder, which is available instead in the Funder Name field.
 --------------------
 award_title
 Award Title
 The title of the award or grant. This field is required.
+
 
 Example:  Scientia Arctica: A Knowledge Archive for Discovery and Reproducible Science in the Arctic
 --------------------
@@ -137,7 +157,9 @@ award_url
 Award URL
 The URL associated with award.
 
+
 Typically, the Award URL is use to find and locate the award, and it generally addresses the internet location to find out more information about the award.
+
 
 It should point to a funder site for the award, rather than a project site.
 --------------------
@@ -145,7 +167,9 @@ awards
 Funding Awards
 The funding awards for the project.
 
+
 Each funding award is described by the name of the funding agency and the title of the award.
+
 
 Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
 --------------------
@@ -153,15 +177,19 @@ bounding_altitudes
 Bounding Altitudes
 <b>Bounding Altitudes</b> lets you specify altitudinal (elevation) measurements for the bounding box being described. The minimum and maximum altitudes should be in reference to a known datum (e.g., Mean Sea Level), which should be specified as part of the Geographic Description.
 
+
 If any of the fields (Altitude Minimum, Altitude Maximum, Altitude Units) are filled in, they all must be.
 --------------------
 bounding_coordinates
 Bounding Coordinates
 <b>Bounding Coordinates</b> are the four margins (N, S, E, W) of a bounding box, or when considered in lat-lon pairs, the corners of the box. These elements are meant to convey general information and are not for accurate mapping.
 
+
 The limits of coverage of a data set should be expressed as <b>decimal latitudes and longitudes</b>. By convention, latitudes and longitudes are referenced to the Equator and to the Prime Meridian, respectively. By definition, the 0 and 180 meridians themselves do not belong in either hemisphere, but local conventions may place them in either.
 
+
 All coordinates are typed as decimals. Since all four elements are required, a bounding area that is a single point should use the same values for North Bounding Coordinate and South Bounding Coordinate, and likewise for West Bounding Coordinate and East Bounding Coordinate.
+
 
 In the case of a data set that comprises all longitudes (e.g., a horizontal band between 2 parallels that fully encompasses the earth), use a West Bounding Coordinate of -180.0 and an eastBoundingCoordinate of 180.0 (or +180.0).
 --------------------
@@ -169,13 +197,16 @@ clone_attributes_general
 Clone Column Properties from Another Data Table
 Suppose you’ve uploaded one data table and filled out its columns’ properties, and then you upload a second data table, and some or all of the second table’s columns have the same properties (except possibly for column name) as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table.
 
+
 In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package you prepared with ezEML at an earlier time.
 --------------------
 clone_attributes_1
 Clone Column Properties from Another Data Table
 Suppose you’ve uploaded one data table and filled out its columns’ properties, and then you upload a second data table, and some or all of the second table’s columns have the same properties (except possibly for column name) as particular columns in the first table. It would be inconvenient to have to enter the second table’s columns’ properties all over again. Instead, you can use <b>Clone Column Properties from Another Data Table</b> to “clone” the properties of selected columns in the first table into specified columns in the second table.
 
+
 In the scenario above, we refer to the first data table as the <b>source</b> table and the second data table as the <b>target</b> table. The source table is not required to be in the current data package. It could be in another data package you prepared with ezEML at an earlier time.
+
 
 Begin by selecting the data package that contains the source data table. This may be the current data package or some other one. Then click <b>Open for Cloning</b>.
 --------------------
@@ -187,7 +218,9 @@ clone_attributes_3
 Clone Column Properties
 Having selected the source data table, the next step is to select the particular columns in the source data table whose properties you wish to clone.
 
+
 Select one or more columns, then click <b>Select Columns</b>.
+
 
 <b>Note:</b> If you want to clone a number of columns, you can do them all in the same pass, or you can do one or a few columns at a time if that seems more manageable. I.e., you can clone some columns, take a look at the result, then clone some more columns, etc., by going through the <b>Clone Column Properties from Another Data Table</b> process repeatedly.
 --------------------
@@ -195,9 +228,12 @@ clone_attributes_4
 Clone Column Properties
 Having selected the particular columns whose properties you wish to clone, the next step is to match them up with the columns in the target data table that will receive the cloned properties.
 
+
 For each Source Column, select a Target Column in the target data table, then click <b>Clone Column Properties</b>. Note that the source and target columns do not have to have the same names in the two tables or appear in the same order.
 
+
 The properties of the source columns will be copied into the target columns, except that the <b>Name</b> of each target column will not be changed.
+
 
 Categorical columns get special handling: codes in the target column are preserved, but if a code exists in the source column, the source column's definition for the code is used.
 --------------------
@@ -205,21 +241,24 @@ contact
 Contact
 At least one <b>Contact</b> is required.
 
+
 Full contact information should be included for the position of data manager or other designated contact and should be kept current and independent of personnel changes. If multiple contacts are listed (e.g. both a data and site manager) all should be kept current. Technicians who performed the work belong under <b>Associated Party</b> rather than <b>Contact</b>.
 --------------------
 contacts
 Contacts
 At least one <b>Contact</b> is required.
 
+
 Full contact information should be included for the position of data manager or other designated contact and should be kept current and independent of personnel changes. If multiple contacts are listed (e.g. both a data and site manager) all should be kept current. Technicians who performed the work belong under <b>Associated Party</b> rather than <b>Contact</b>.
 --------------------
 contents
-Contents	
+Contents
 You can use ezEML as a "wizard" (i.e., by proceeding through the sections in sequence, filling out the metadata as you go), or you can click on any of the links under <b>Contents</b> to jump directly to that section of the metadata.
 --------------------
 creator
 Creator
 A creator is considered to be an author of the data package, i.e. a person responsible for intellectual input into its creation. At least one creator is required.
+
 
 For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
 --------------------
@@ -227,7 +266,9 @@ creators
 Creators
 The creator is considered to be the author of the data package, i.e. the person(s) responsible for intellectual input into its creation. At least one creator is required.
 
+
 For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
+
 
 Citations generally list creator names in the order given in the EML metadata.
 --------------------
@@ -235,7 +276,9 @@ data_package_id
 Data Package ID
 EML requires a data package to have a <b>Data Package ID</b>, but if your data package is going to be submitted to EDI's data repository by using <b>Submit to EDI</b>, you can leave the Data Package ID blank. Our data curators will supply an ID when they receive your data package.
 
+
 In the event that you've already obtained a Data Package ID (e.g., from an LTER site information manager), however, go ahead and enter it here.
+
 
 For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
 --------------------
@@ -251,7 +294,9 @@ data_table_reupload
 Re-upload Data Table
 The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again.
 
+
 Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
+
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 --------------------
@@ -259,11 +304,15 @@ data_table_reupload_full
 Re-upload Data Table
 The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the properties of the data table and its columns all over again.
 
+
 Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
+
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 
+
 Choose the CSV file containing the updated data table, and set the Field Delimiter and Quote Character, as needed. Then click <b>Re-upload</b> to perform the update. Table properties such as Size, Number of Records, and MD5 Checksum will be recalculated automatically. Properties of the data table's columns will be preserved to the extent possible.
+
 
 The CSV file's name is not required to be the same as the name of the CSV file uploaded previously.
 --------------------
@@ -271,11 +320,13 @@ data_table_name
 Data Table Name
 The name identifies the data table in the data package.
 
+
 Example: SpeciesAbundance1996
 --------------------
 data_table_description
 Data Table Description
 Text generally describing the data table and relevant information about its contents.
+
 
 Example: Species abundance data for 1996 at the VCR LTER
 --------------------
@@ -307,11 +358,13 @@ data_table_quote_character
 Quote Character
 Character used to quote values for delimiter escaping.
 
+
 If your data table is a CSV file with fields separated by commas, for example, then a text field that contains one or more commas will appear to be multiple fields. To deal with such cases where the field delimiter is used within a text field, enclose the text field in quotes. <b>Quote Character</b> defines which "flavor" of quotes you are using, double quotes (") or single quotes (').
 --------------------
 data_table_record_delimiter
 Record Delimiter
 Character(s) used to delimit records (e.g., rows).
+
 
 The record delimiter is usually a linefeed (\n) on UNIX, a carriage return (\r) on MacOS, or both (\r\n) on Windows/DOS.
 --------------------
@@ -319,11 +372,13 @@ data_table_case_sensitive
 Case Sensitive
 Specifies text case sensitivity of the data in the data table. The valid values are yes or no.
 
+
 If it is set to yes, then values that differ only in case (e.g.,LOW, low) represent distinct values. If set to no, then values that differ only in case represent the same value.
 --------------------
 data_table_number_of_records
 Number of Records
 The integer count of the number of records in the data table.
+
 
 It should only include records that represent observations. I.e., it would not include any details of physical formatting such as the number of header lines.
 --------------------
@@ -335,13 +390,16 @@ donor
 Donor
 Fill in the Donor information below. Fields with an  " <b>*</b> " next to the field name are a required field.
 
+
 Some fields will be automatically disabled based upon certain selections, e.g., If you select "Bouins" under the "Fixation" field, the "Other Fixation" field will be disabled.
 --------------------
 export_package
 Export ezEML Data Package
 When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.
 
+
 <b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for downloading the archive, which you can share with collaborators, for example.
+
 
 To submit the data package to the EDI data repository, you can go directly to <b><a href="edit/home.submit_package">Submit to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission.
 --------------------
@@ -349,11 +407,13 @@ funder_identifiers
 Funder Identifier(s)
 One or more canonical identifiers that reference the funder. If entering more than one identifier, separate them by commas.
 
+
 These identifiers should be globally unique. The most common form of a funder identifier is a DOI identifier of an institution or program drawn from the CrossRef Open Funder Registry (https://github.com/Crossref/open-funder-registry), which assigns DOIs to each funding agency and to their programs and links these together in a navigable hierarchy.
 --------------------
 funder_name
 Funder Name
 The name of the funding institution, with fully expanded acronyms to show the full, official name of the funding agency. This field is required.
+
 
 In general, this should match the official name of the funder as listed in an Authority such as the Open Funder Registry.
 --------------------
@@ -361,13 +421,16 @@ geographic_coverages
 Geographic Coverage
 <b>Geographic Coverage</b> describes locations of research sites and areas related to the data, and is intended for general placement of points on a map.
 
+
 At least one <b>Geographic Coverage</b> element should be included, whose bounding coordinates describe the extent of the data. As a default, this could be the nominal boundaries of a sampling area. A more accurate extent (recommended) would be the maximum extent of the data, for each of north, south, east, and west.
+
 
 Additional <b>Geographic Coverage</b> elements should be included if there are significant distances between study sites and grouping them in one bounding box would be misleading or confusing. For example, a cross-site study should have bounding boxes for each site.
 --------------------
 geographic_coverages_csv_file
 Add / Load Geographic Coverage
 You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML by clicking <b>Add Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
+
 
 In the latter case, the CSV file is required to have the following format:
 <ul>
@@ -382,6 +445,7 @@ In the latter case, the CSV file is required to have the following format:
 <li>If you are not specifying Bounding Altitudes, leave the corresponding table cells blank.
 </ul>
 
+
 Example:<br>
 geographicDescription,northBoundingCoordinate,southBoundingCoordinate,eastBoundingCoordinate,westBoundingCoordinate,minimumAltitude,maximumAltitude,altitudeUnits<br>
 Lake Wingra,43.062543,43.058787,-89.415478,-89.432468,0.00,2.50,meter<br>
@@ -391,15 +455,19 @@ geographic_description
 Geographic Description
 <b>Geographic Description</b> is a short text description of a data package's geographic areal domain. A text description is especially important to provide a geographic setting when the extent of the data set cannot be well described by the "bounding coordinates", or in the case of data which are not specifically geospatial.
 
+
 In cases where the "bounding coordinates" do not adequately describe the extent of the data set, the discrepancy can be identified and described here.
 
+
 The coordinates may define a rectangle around a country, with this Geographic Description containing a disclaimer and/or further details concerning the border. E.g., a study of the diseases of salmon may not have a specific geographic extent associated with it, but the salmon were collected in the states of Washington and Oregon. The "bounding coordinates" might form a general rectangle around the states of Washington and Oregon, but the Geographic Description" might describe the fact that the study actually took place only along certain rivers within those states.
+
 
 Geographic Description can also contain information about the collection of bounding coordinates, e.g., an altitude value that is referenced to Mean Lower Low Water, or the projection system that the latitude and longitude coordinates were taken from.</para>
 --------------------
 immunohistochemistry
 Immunohistochemistry
-The Immunohistochemistry form is not required. 
+The Immunohistochemistry form is not required.
+
 
 However, in the event that this form is used, all fields containing an " <b>*</b> " will be required in order to save data from this form.
 --------------------
@@ -407,11 +475,13 @@ import_funding_awards
 Import Funding Awards
 You may import the details for one or more funding awards from another data package.
 
+
 Note that you may also "import" from the current data package, to "copy and paste" a funding award to which you can then make edits.
 --------------------
 import_funding_awards_2
 Import Funding Awards
 Select the funding awards to import.
+
 
 If none are shown, none are available in the selected data package.
 --------------------
@@ -419,25 +489,30 @@ import_geographic_coverage
 Import Geographic Coverage
 You may import selected geographic coverage details from another data package.
 
+
 Currently, only geographic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
 import_geographic_coverage_2
 Import Geographic Coverage
 Select the geographic coverages to import.
 
+
 If none are shown, none are available in the selected data package.
 --------------------
 import_package
-Upload XML File
-<b>Import an ezEML Data Package</b> lets you import a data package archive file that was exported from ezEML (see <b>Export ezEML Data Package</b>).
+Upload XML
+<b>Upload XML</b> lets you upload an xml file that was downloaded from ezEML+MOTHER.
 
-The data package archive file may have been sent to you by a collaborator, for example. Alternatively, you may have submitted a data package to EDI (see <b>Submit to EDI</b>), and EDI's data curators may have found it necessary to make corrections or other changes to your data package. In that case, EDI's data curators will send you an updated data package archive file so you can import it and keep your ezEML account up to date.
+
+Once you have created the XML metadata for a donor animal for its first histology image that you want to share, you can upload the XML file for a new document associated with any other histology images for the donor. Note that all information except the Title, Image, and Slide ID will be uploaded for the new document.  Since the Title, Image, and Slide ID are unique per slide, this information must be entered for each slide.
 --------------------
 import_package_2
 Import an ezEML Data Package
 If the data package you are importing has the same name as one that already exists in your ezEML account, ezEML asks you whether you'd like to replace the existing package or import the package as a copy, instead. This is similar to what happens when you use "Save As" in a program like Microsoft Word, for example.
 
+
 If you elect to <b>Replace</b> the package, the existing version will be overwritten by the new version.
+
 
 Suppose, instead, that you elect to <b>Copy</b> the package. If the existing package is called my_data_package, then the new version will be saved as my_data_package_COPY (or my_data_package_COPY2,  my_data_package_COPY3, etc., as needed).
 --------------------
@@ -445,11 +520,13 @@ import_related_projects
 Import Related Projects
 You may import one or more projects from another data package to be incorporated in the current data package as related projects.
 
+
 The projects you import may be a main project or a related project in the other data package, but in the current data package they will be treated as related projects.
 --------------------
 import_related_projects_2
 Import Related Projects
 Select the projects you wish to import as related projects.
+
 
 If none are listed, none are available in the selected data package.
 --------------------
@@ -457,7 +534,9 @@ import_responsible_parties
 Import Responsible Parties
 You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
 
+
 The parties you import do not have to be used for the same purpose in this data package as they were in the other data package. For example, a person who was a Contact in another data package can be imported into this data package as an Associated Party.
+
 
 <b>Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.</b>
 --------------------
@@ -465,13 +544,16 @@ import_responsible_parties_2
 Import Responsible Parties
 Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
 
+
 If none are listed, none are available in the selected data package.
 --------------------
 import_taxonomic_coverage
 Import Taxonomic Coverage
 You may import selected taxonomic coverage details from another data package.
 
+
 Note that you may also "import" from the current data package, to "copy and paste" a taxonomy you can then edit.
+
 
 Currently, only taxonomic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
@@ -479,11 +561,13 @@ import_taxonomic_coverage_2
 Import Taxonomic Coverage
 Select the taxonomic coverages to import.
 
+
 If none are shown, none are available in the selected data package.
 --------------------
 intellectual_rights
 Intellectual Rights
 Intellectual rights are controlled at the source, however it is recommended that data be released with as few restrictions as possible.
+
 
 EDI's default policy is <b>CC0</b>. The LTER Network-wide default policy is <b>CC BY</b>. Please consult those organizations for more information and more details.
 This includes information about the frequency of update and whether there is ongoing data collection.
@@ -492,21 +576,22 @@ keywords
 Keywords
 It is recommended that meaningful sets of keywords be provided.
 
-One set of keywords may identify the contributing organization(s), e.g., the LTER or OBFS site, LTREB or Macrosystems project, especially if data are co-funded or funding is leveraged.
 
-Meaningful geographic place names also are appropriate (e.g. state, city, county).
+One set of keywords may identify the contributing organization(s), especially if data are co-funded or funding is leveraged.
 
-Note: Communities sometimes have specific requests for keywords to assist in searches. E.g, the LTER requests that keywords should include LTER core research area(s), the network acronym (LTER, ILTER, etc.), three-letter site acronym and site name. In addition to specific keywords, relevant conceptual keywords should also be included, e.g., from the LTER Controlled Vocabulary.
+
 --------------------
 maintenance
 Maintenance
 A description of the maintenance of this data resource.
+
 
 This includes information about the frequency of update and whether there is ongoing data collection.
 --------------------
 maintenance_description
 Maintenance Description
 A text description of the maintenance of this data resource.
+
 
 It may consist of multiple paragraphs.
 --------------------
@@ -518,11 +603,13 @@ metadataProvider
 Metadata Provider
 A metadata provider is a person(s) or organization(s) responsible for producing or providing the metadata content.
 
+
 For primary data sets generated by LTER sites, the LTER site should typically be listed under Metadata Provider using the Organization Name field. For acquired data sets, where the Creator and Associated Party are not the same people who produced the metadata content, the actual metadata content provider should be listed instead.
 --------------------
 metadata_providers
 Metadata Providers
 The metadata provider is the person(s) or organization(s) responsible for producing or providing the metadata content.
+
 
 For primary data sets generated by LTER sites, the LTER site should typically be listed under Metadata Provider using the Organization Name field. For acquired data sets, where the Creator and Associated Party are not the same people who produced the metadata content, the actual metadata content provider should be listed instead.
 --------------------
@@ -530,13 +617,18 @@ measurement_scale
 Variable Type
 Columns (variables) can have the following types: Categorical, Numerical, Text, or DateTime.
 
+
 <b>Categorical</b> variables contain alphanumeric codes used to categorize data. Examples of categorical variables are 1 for Male and 2 for Female, or M for Male and F for Female. Some categorical variable codes convey an order (e.g., Low, Medium, High), others do not.
+
 
 <b>Numerical</b> variables contain ordinary numerical data, i.e., numerical values not used for categorization. Values may be integers (e.g., counts of specimens) or real numbers (e.g., temperature, pH). Units are required for all numerical variables.
 
+
 <b>Text</b> variables contain text values not used for categorization. Examples include names or identification numbers of experimental subjects.
 
+
 <b>DateTime</b> variables contain date and time values. Note that time <i>durations</i> should be treated as Numerical values.
+
 
 To change the type of a variable (e.g., from Categorical to Text) click <b>Change Type</b> and select the new type.
 --------------------
@@ -544,11 +636,13 @@ metadata_providers
 Metadata Providers
 The metadata provider is the person(s) or organization(s) responsible for producing or providing the metadata content.
 
+
 Metadata providers are not required.
 --------------------
 methods
 Method Steps
 Method steps are descriptions of specific steps of the method employed when collecting data. They are intended to be descriptive, i.e., human-readable rather than machine-readable.
+
 
 The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, relevant literature, software, instrumentation, source data and any quality control measures taken.
 --------------------
@@ -556,13 +650,16 @@ method_step_description
 Method Step Description
 Description of the methods employed in collecting or generating a data set or other resource or in quality control and assurance.
 
+
 Describe the methodology for a project, experiment, or particular data table or the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information my be provided by either referencing a protocol resource or entering the structured protocol information.
 --------------------
 method_step_instrumentation
 Method Step Instrumentation
 Description of instruments used for measurement and recording data.
 
+
 This may include any instruments used in the data collection or quality control and quality assurance. The description should provide vendor, model number, optional equipment, etc.
+
 
 Example: LACHAT analyzer, model XYX.
 --------------------
@@ -570,13 +667,16 @@ method_step_data_sources
 Method Step Data Sources
 If you used other datasets in this method step, please document them here.
 
+
 For each dataset used, include, if possible:<br>
 &nbsp;&nbsp;- the datasets's title<br>
 &nbsp;&nbsp;- a URL, DOI, or other globally unique identifier<br>
 &nbsp;&nbsp;- a creator's name and email<br>
 &nbsp;&nbsp;- a contact's name and email.
 
+
 If you will be submitting your data package to the EDI data repository, our data curators will use this information to fill out data provenance entries in the data package's metadata.
+
 
 Example:<br>
 Title: Data for Lake Mendota Phosphorus Cycling Model<br>
@@ -592,37 +692,43 @@ nav
 Navigating in ezEML
 The <b>Save and Continue</b> button saves any changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
 
+
 The <b>Reset Changes</b> button clears the changes you've made on the current page and leaves you on that page.
+
 
 <i>You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a </i><b>Cancel</b><i> button, which lets you exit that page without saving.</i>
 
+
 The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
 
+
 It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
+
 
 See also <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_ezeml_user_guide">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 --------------------
 new_eml_document
 Document Name
-Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
+Provide a document name for the metadata. This is the name by which the document will be known to ezEML+MOTHER. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to the tool at a later time.
 
-This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
+
+This document name will not appear in the XML itself.
 --------------------
 other_entities
 Other Entities
 <b>Other Entities</b> are data entities other than data tables that will be included in the data package. They are identified by their names.
 
+
 Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
 --------------------
 other_entity
-Other Entity
-An <b>Other Entity</b> is a data entity other than a data table that will be included in the data package. Other Entities are identified by their names.
-
-Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
+Image
+An <b>Image</b> requires a name, its type and format. The digitized ovary slide image should be selected using the <b>Browse</b> button under the label <b>Upload Image</b>. Include any <b>Additional Information </b> about the image, if desired. The <b>Upload and Continue</b> will upload the image, associating the image with the document, and it automatically fills in the name and data format fields.
 --------------------
 other_entity_reupload
 Re-upload Other Entity
 The purpose of <b>Re-upload Other Entity</b> is to let you update an other entity file without having to enter the properties of the other entity all over again. In addition, it updates the file size and checksum, which are part of the metadata describing the other entity.
+
 
 Moreover, if you later use <b>Export Data Package</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package, ready to be submitted to a data repository.
 --------------------
@@ -630,13 +736,16 @@ personnel
 Project Personnel
 Contact and role information for a person/organization involved in the research project.
 
+
 Note that Role is a required field.
 --------------------
 project
 Project
 This documents the research context of a data package or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
 
+
 To document <i>methods</i> specific to a data package, use <b>Methods</b>.
+
 
 A project is required to have a Project Title.
 --------------------
@@ -644,13 +753,16 @@ project_title
 Project Title
 A descriptive title for the research project.
 
+
 Example: Species diversity in Tennessee riparian habitats.
 --------------------
 pubdate
 Publication Date
 The year or date of public release of data online.
 
+
 Because this element may be used in constructing citations, the publication date also should  reflect the 'recentness' of a package. I.e., it should be updated along with significant revisions or data additions (e.g., corrected data or additions to an ongoing time series).
+
 
 There is an argument for publication date referring to the original date of release, but this is probably only useful for static data packages, or if the only metadata changes are to enhance discovery.
 --------------------
@@ -658,11 +770,13 @@ publisher
 Publisher
 The organization producing the EML metadata (e.g., an LTER site or field station).
 
+
 Publisher is not required by EML. If you submit your data to the EDI data repository, EDI will be entered automatically as the publisher in the published EML.
 --------------------
 pubplace
 Publication Place
 The location where the resource was published, which may be different from where the resource was created.
+
 
 Example: Madison, WI, USA
 --------------------
@@ -670,11 +784,13 @@ pubdate
 Publication Date
 The date of publication.
 
+
 Publication date is not required by EML. If you submit your data to the EDI data repository, the date of publication will be entered automatically by EDI.
 --------------------
 related_project
 Related Project
 A project may be associated with related projects. EML treats one project as the main or primary project, which can then have one or more related projects as "children".
+
 
 Splitting projects up in this way lets you associate different funding awards with different Principal Investigators, for example.
 --------------------
@@ -686,11 +802,13 @@ project_title
 Project Title
 A descriptive title for the research project.
 
+
 Example: Species diversity in Tennessee riparian habitats.
 --------------------
 save_as_document
 Document Name
 Provide a document name for the data package. This is the name by which the document will be known to ezEML. Think of it as you would a file name (without file extension). It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
+
 
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 --------------------
@@ -698,9 +816,12 @@ send_to_colleague
 Send to Colleague
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you can send the entire package to a colleague (e.g., an LTER Information Manager) via <b>Send to Colleague</b>.
 
+
 When you click <b>Prepare Package for Colleague</b>, an ezEML Data Package zip file is generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
 
+
 After the zip file has been created, a suggested email message is generated for you to send to your colleague. This email contains the link that your colleague will need to use to download the zip file. You will have the opportunity to edit the email message as you see fit before sending it.
+
 
 To send your package to the EDI Data Repository instead, use <b>Send to EDI</b>.
 --------------------
@@ -708,15 +829,19 @@ send_to_colleague_2
 Send to Colleague
 An ezEML Data Package zip file has been generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
 
+
 A suggested email message to your colleague is displayed. This email contains the link that your colleague will need to use to download the zip file. You can click <b>Copy to Clipboard</b> to copy the message to the system clipboard, ready to be pasted into an email. Or, if you have a default email client configured in your browser, you can click <b>Open in Email Client</b> to open the message in your email client directly. Either way, you can edit and personalize the email message as you see fit before sending it.
 --------------------
 storage_type
 Storage Type
 This element describes the storage type for data in a RDBMS (or other data management system) field.
 
+
 Values for this field are by default drawn from the XML Schema Datatypes standard values, such as: integer, double, string, etc. If the XML Schema Datatypes are not used, the type system from which the values are derived should be specified in the Storage Type System field.
 
+
 Storage Type represents a 'hint' to processing systems as to how the column's contents might be represented in a system or language.
+
 
 Examples:
   integer
@@ -726,7 +851,9 @@ storage_type_system
 Storage Type System
 The system used to define the storage types. This should be an identifier of a well known and published typing system.
 
+
 The default and recommended system is the XML Schema data type system. For details go to http://www.w3.org. If another system is used (such as Java or C++ types), typeSystem should be changed to match the system.
+
 
 Examples:
   http://www.w3.org/2001/XMLSchema-datatypes
@@ -738,11 +865,15 @@ submit_package
 Send to EDI
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://environmentaldatainitiative.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
 
+
 When you click <b>Send to EDI</b>, an ezEML Data Package archive file is generated, and an email is automatically sent to the data curators at EDI. This email contains a link to the archive file. EDI's data curators will download the archive file, check its contents, make corrections as needed, and submit the data package to EDI's repository.
+
 
 Please provide your name and email so that EDI's data curators can contact you with any questions they have and to let you know when the submission has been completed. If you have questions (about particular entries in your metadata, for example), please use the <b>Notes</b> text area to describe them so EDI can assist you better.
 
+
 <b>Please note:</b> When you click <b>Send to EDI</b>, your data package is sent to EDI's data curators for review. There will be some amount of delay before your package appears in EDI's Data Portal. EDI's data curators will email you when the package has been added to the repository.
+
 
 To send your package to someone other than EDI, use <b>Send to Colleague</b>.
 --------------------
@@ -750,15 +881,19 @@ taxonomic_coverages
 Taxonomic Coverage
 <b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study.
 
+
 The lowest available level, preferably the species binomial and common name should always be included, but higher-level taxa should also be included to support broader taxonomic searches. ezEML can fill in the higher-level taxa for you by accessing a taxonomic authority online.
 --------------------
 taxonomic_coverage_fill_hierarchy
 Fill Hierarchy
 <b>Fill Hierarchy</b> retrieves and lists the higher-level taxa associated with a given taxon.
 
+
 Enter the Taxon Scientific Name for the most specific relevant taxon (e.g., species or genus), select a taxonomic authority to access, and click <b>Fill Hierarchy</b>. ezEML will send requests to the selected taxonomic authority to retrieve the higher-level taxa, as well as any associated common names, and the taxon ID for each taxon. The taxon IDs let ezEML construct links to the corresponding pages on the taxonomic authority website. These data will be entered in the EML document as well.
 
+
 The Taxon Scientific Name you enter should be the scientific name for the taxon, not a common name. For a species, this is a binomial name.
+
 
 If the specified taxon is found in the taxonomic authority database, the Taxon Rank will be set automatically. I.e., if you are going to use <b>Fill Hierarchy</b> for a known taxon, you don't need to worry about getting the taxon rank right. The Taxon Rank selection list is there to cover cases where the taxon you've entered is not found in the supported taxonomic authorities but you want to save it as entered. In such cases, you can still click <b>Save and Continue</b> and the taxon rank and taxon name will be saved in the EML exactly as you've entered them.
 --------------------
@@ -766,34 +901,46 @@ temporal_coverages
 Temporal Coverage
 <b>Temporal Coverage</b> represents the period of time the data were collected, not the year the study was conducted if it uses retrospective or historical data.
 
+
 Two formats are allowed, either a 4-digit year, or a date in ISO format: YYYY-MM-DD.
 --------------------
 title
 Title
 The <b>Title</b> field provides a description of the data package. It should be long enough to differentiate it from other similar resources.
 
+
 It should be descriptive and should mention the data collected, geographic context, research site, and time frame (i.e., what, where, and when).
+
 
 Example: <i>Vernal pool amphibian density data, Isla Vista, 1990-1996.</i>
 --------------------
 welcome
 Welcome to ezEML
 
+
 Welcome to ezEML! Here is some initial guidance on its use.
+
 
 You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a <b>Cancel</b> button, which lets you exit that page without saving.
 
+
 <b>Save and Continue</b> buttons save any changes you've made on the current page and move you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
+
 
 <b>Reset Changes</b> buttons clear the changes you've made on the current page and leave you on that page.
 
+
 The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
+
 
 It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
 
+
 Notice that there are lots of Help buttons in ezEML (see the circular question mark icons). You may find them helpful.
 
+
 We won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_ezeml_user_guide">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+
 
 We hope you find ezEML useful, and we welcome your feedback at <a style="color: steelblue;" href="mailto:support.environmentaldatainitiative.org">support.environmentaldatainitiative.org</a>.
 --------------------

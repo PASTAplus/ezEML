@@ -1770,49 +1770,35 @@ def create_other_entity(
         online_url: str = None):
 
     try:
-        entity_name_node = entity_node.find_child(names.ENTITYNAME)
-        if not entity_name_node:
-            entity_name_node = Node(names.ENTITYNAME, parent=entity_node)
-            entity_node.add_child(entity_name_node)
+        entity_node.remove_children()
+
+        entity_name_node = Node(names.ENTITYNAME, parent=entity_node)
+        entity_node.add_child(entity_name_node)
         entity_name_node.content = entity_name
 
-        physical_node = entity_node.find_child(names.PHYSICAL)
-        if not physical_node:
-            physical_node = Node(names.PHYSICAL, parent=entity_node)
-            entity_node.add_child(physical_node)
+        physical_node = Node(names.PHYSICAL, parent=entity_node)
+        entity_node.add_child(physical_node)
 
-        object_name_node = physical_node.find_child(names.OBJECTNAME)
-        if not object_name_node:
-            object_name_node = Node(names.OBJECTNAME, parent=physical_node)
-            physical_node.add_child(object_name_node)
+        object_name_node = Node(names.OBJECTNAME, parent=physical_node)
+        physical_node.add_child(object_name_node)
         object_name_node.content = object_name
 
-        data_format_node = physical_node.find_child(names.DATAFORMAT)
-        if not data_format_node:
-            data_format_node = Node(names.DATAFORMAT, parent=physical_node)
-            physical_node.add_child(data_format_node)
+        data_format_node = Node(names.DATAFORMAT, parent=physical_node)
+        physical_node.add_child(data_format_node)
 
-        externally_defined_format_node = data_format_node.find_child(names.EXTERNALLYDEFINEDFORMAT)
-        if not externally_defined_format_node:
-            externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
-            data_format_node.add_child(externally_defined_format_node)
+        externally_defined_format_node = Node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+        data_format_node.add_child(externally_defined_format_node)
 
-        format_name_node = externally_defined_format_node.find_child(names.FORMATNAME)
-        if not format_name_node:
-            format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
-            externally_defined_format_node.add_child(format_name_node)
+        format_name_node = Node(names.FORMATNAME, parent=externally_defined_format_node)
+        externally_defined_format_node.add_child(format_name_node)
         format_name_node.content = format_name
 
-        additional_info_node = entity_node.find_child(mdb_names.ADDITIONAL_INFO)
-        if not additional_info_node:
-            additional_info_node = Node(mdb_names.ADDITIONAL_INFO, parent=entity_node)
-            entity_node.add_child(additional_info_node)
+        additional_info_node = Node(mdb_names.ADDITIONAL_INFO, parent=entity_node)
+        entity_node.add_child(additional_info_node)
         additional_info_node.content = additional_info
 
-        entity_type_node = entity_node.find_child(names.ENTITYTYPE)
-        if not entity_type_node:
-            entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
-            entity_node.add_child(entity_type_node)
+        entity_type_node = Node(names.ENTITYTYPE, parent=entity_node)
+        entity_node.add_child(entity_type_node)
         entity_type_node.content = entity_type
 
 #            if size:

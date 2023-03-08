@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
+{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
+{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
+
+    <table>
+        <td><h2>Collaborate</h2></td>
+{#        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_manage_data_usage_btn) }}</td>#}
+    </table>
+
+    <div class="col-md-12">
+        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+
+        <h4>My Collaborations</h4>
+            <table class="collab_table display compact" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=35%>Package</th>
+                <th style="text-align:left;" width=16%>Owner</th>
+                <th style="text-align:left;" width=16%>Collaborator</th>
+                <th style="text-align:left;" width=18%>Status</th>
+                <th style="text-align:left;" width=15%>Action</th>
+                </thead>
+                <tbody>
+                {% for collaboration in collaborations %}
+                <tr>
+                <td class="collab_table" valign="top">{{ collaboration.package }}</td>
+                <td class="collab_table" valign="top">
+                    {% if collaboration.owner_login == user %}
+                    <b>
+                    {% endif %}
+                    {{ collaboration.owner_name }}
+                    {% if collaboration.owner_login == user %}
+                    </b>
+                    {% endif %}
+                </td>
+                <td class="collab_table" valign="top">
+                    {% if collaboration.collaborator_login == user %}
+                    <b>
+                    {% endif %}
+                    {{ collaboration.collaborator_name }}
+                    {% if collaboration.collaborator_login == user %}
+                    </b>
+                    {% endif %}
+                </td>
+                <td class="collab_table" valign="top">{{ collaboration.status }}</td>
+                <td class="collab_table" valign="top">{{ collaboration.action|safe }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        <p>&nbsp;</p>
+        {% if invitations|length > 0 %}
+        <h4>My Pending Invitations</h4>
+            <table class="collab_table display compact" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=40%>Package</th>
+                <th style="text-align:left;" width=20%>Invitee</th>
+                <th style="text-align:left;" width=20%>Invitee Email</th>
+                <th style="text-align:left;" width=10%>Date</th>
+                <th style="text-align:left;" width=10%>Action</th>
+                </thead>
+                <tbody>
+                {% for invitation in invitations %}
+                <tr>
+                <td class="collab_table" valign="top">{{ invitation.package }}</td>
+                <td class="collab_table" valign="top">{{ invitation.invitee_name }}</td>
+                <td class="collab_table" valign="top">{{ invitation.invitee_email }}</td>
+                <td class="collab_table" valign="top">{{ invitation.date }}</td>
+                <td class="collab_table" valign="top"></td>
+{#                <td class="collab_table" valign="top">{{ collaboration.action|safe }}</td>#}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        <p>&nbsp;</p>
+        {% endif %}
+            {#        <p>&nbsp;</p>#}
+{#            For the active document, <b>edi.100.4</b>:<p></p>#}
+            <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
+        &nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Accept an Invitation"/>&nbsp;&nbsp;
+
+        {% if dev %}
+        <p></p>
+        <hr style="border-color: gray">
+        <p></p>
+
+        <h4>Users</h4>
+            <table class="collab_table display compact" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=10%>user_id</th>
+                <th style="text-align:left;" width=50%>user_login</th>
+                <th style="text-align:left;">active_package_id</th>
+                </thead>
+                <tbody>
+                {% for user in user_list %}
+                <tr>
+                <td class="collab_table" valign="top">{{ user.user_id }}</td>
+                <td class="collab_table" valign="top">{{ user.user_login }}</td>
+                <td class="collab_table" valign="top">{{ user.active_package_id }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        <h4>Packages</h4>
+            <table class="collab_table display compact" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=10%>package_id</th>
+                <th style="text-align:left;" width=50%>package_name</th>
+                <th style="text-align:left;" width=40%>owner_login</th>
+                </thead>
+                <tbody>
+                {% for package in package_list %}
+                <tr>
+                <td class="collab_table" valign="top">{{ package.package_id }}</td>
+                <td class="collab_table" valign="top">{{ package.package_name }}</td>
+                <td class="collab_table" valign="top">{{ package.owner_login }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        <h4>Locks</h4>
+            <table class="collab_table display compact" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=40%>Package</th>
+                <th style="text-align:left;" width=20%>Owner</th>
+                <th style="text-align:left;" width=20%>Locked By</th>
+                <th style="text-align:left;" width=20%>Timestamp</th>
+                </thead>
+                <tbody>
+                {% for lock in lock_list %}
+                <tr>
+                <td class="collab_table" valign="top">{{ lock.package_name }}</td>
+                <td class="collab_table" valign="top">{{ lock.owner }}
+                </td>
+                <td class="collab_table" valign="top">
+                    {{ lock.locked_by }}
+                </td>
+                <td class="collab_table" valign="top">{{ lock.timestamp }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        <h4>Collaborations</h4>
+            <table class="collab_table" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=20%>collab_id</th>
+                <th style="text-align:left;" width=20%>owner_id</th>
+                <th style="text-align:left;" width="20%">collaborator_id</th>
+                <th style="text-align:left;" width="20%">package_id</th>
+                </thead>
+                <tbody>
+                {% for collaboration in collaboration_list %}
+                <tr>
+                <td class="collab_table" valign="top">{{ collaboration.collab_id }}</td>
+                <td class="collab_table" valign="top">{{ collaboration.owner_id }}</td>
+                <td class="collab_table" valign="top">{{ collaboration.collaborator_id }}</td>
+                <td class="collab_table" valign="top">{{ collaboration.package_id }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+        <p></p>
+            {{ macros.hidden_buttons() }}
+        </form>
+    </div>
+    {{ macros.help_dialog(help_manage_data_usage_dialog, help_manage_data_usage_title, help_manage_data_usage_content) }}
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
+{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
+{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
+    <script>
+    $(document).ready(function()
+    {
+      $(".collab_table tr:odd").css("background", "#f4f4f4");
+      $(".collab_table tr:even").css("background", "#fff");
+      $(".collab_table").css("padding", "3px");
+    });
+    </script>
+{% endblock %}

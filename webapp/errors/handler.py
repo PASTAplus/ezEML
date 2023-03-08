@@ -17,6 +17,8 @@ from flask import Blueprint, render_template, request
 from flask_login import current_user
 from flask_wtf.csrf import CSRFError
 from webapp import app
+from webapp.home.exceptions import LockOwnedByAnotherUser
+from webapp.config import Config
 
 
 logger = daiquiri.getLogger('handler: ' + __name__)
@@ -58,6 +60,15 @@ def bad_request(error):
 def bad_request(error):
     log_error(error)
     return render_template('500.html'), 500
+
+
+@app.errorhandler(LockOwnedByAnotherUser)
+def handle_lock_is_not_owned_by_user(error):
+    log_error('Attempt to access a locked document: {0}'.format(error.message))
+    return render_template('locked_by_another.html',
+                           package_name=error.package_name,
+                           locked_by=error.user_name,
+                           lock_timeout=Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES), 403
 
 
 @app.errorhandler(CSRFError)

@@ -175,14 +175,15 @@ def sort_package_ids(packages):
     return sorted(packages, key=lambda x: parse_package_id(x))
 
 
-def list_data_packages(flag_current=False, include_current=True):
+def list_data_packages(flag_current=False, include_current=True, current_user_directory_only=True):
     """
     Returns a list of data packages in the current user's account, as tuples suitable for
     use in a select list.  If flag_current is True, the current package is indicated. If
     include_current is False, the current package is excluded from the list.
     """
     choices = []
-    user_documents = sorted(user_data.get_user_document_list(), key=str.casefold)
+    user_documents = sorted(user_data.get_user_document_list(current_user_directory_only=current_user_directory_only),
+                            key=str.casefold)
     current_annotation = ' (current data package)' if flag_current else ''
     for document in user_documents:
         pid_tuple = (document, document)
@@ -1070,8 +1071,7 @@ def save_package_id(eml_node):
 
 
 def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_metadata_check:bool=False):
-    # if user_data.is_document_locked(filename):
-    #     raise exceptions.LockOwnedByAnotherUser(f"Document {filename} is locked by another user.")
+    user_data.is_document_locked(filename)
 
     eml_node = None
     if folder_name:

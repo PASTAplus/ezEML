@@ -263,6 +263,9 @@
                     {% if current_user.get_filename() %}
                         &nbsp;&nbsp;
                     &nbsp;&nbsp;Active EML Document: <strong>{{ current_user.get_filename() }}</strong>
+                        {% if current_user.get_file_owner() %}
+                            &nbsp;&nbsp;<i>[owned by <strong>{{ current_user.get_file_owner() }}</strong>]</i>
+                        {% endif %}
                     {% endif %}
                 </li>
             </ul>
@@ -316,6 +319,7 @@
             {% set check_data_tables_style = '""'|safe %}
             {% set submit_package_style = '""'|safe %}
             {% set send_to_other_style = '""'|safe %}
+            {% set collaborate_style = '""'|safe %}
             {% set manage_data_usage_style = '""'|safe %}
 
             {% set page = session['current_page'] %}
@@ -344,6 +348,8 @@
             {% if page == 'check_data_tables' %}{% set check_data_tables_style = current %}{% endif %}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
+            {% if page == 'collaborate' %}{% set collaborate_style = current %}{% endif %}
+            {% if page == 'grant_access' %}{% set grant_access_style = current %}{% endif %}
             {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
@@ -375,6 +381,9 @@
             <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
             <br>
         {% endif %}
+        <a class="nav_link" style={{ collaborate_style }}; href="{{ url_for('home.edit', page='collab.collaborate', dev='dev') }}" title="Edit">Collaborate</a><br>
+{#        <a class="nav_link" style={{ grant_access_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.grant_access') }}" title="Edit">Enable EDI Curation</a><br>#}
+            <br>
         <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>
         <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
 
@@ -471,7 +480,7 @@
         {#       e = null;#}
         {#   }#}
         {#})#}
-     });
+        });
     </script>
 
     <script>

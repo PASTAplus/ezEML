@@ -77,6 +77,7 @@ def log_usage(action, *args):
 
 
 actions = {
+    'ACCEPT_INVITATION': 'Accept Invitation',
     'CHECK_DATA_TABLES': 'Check Data Tables',
     'CHECK_METADATA': 'Check Metadata',
     'CHECK_XML': 'Check XML',
@@ -98,6 +99,7 @@ actions = {
     'IMPORT_RELATED_PROJECTS': 'Import Related Projects',
     'IMPORT_RESPONSIBLE_PARTIES': 'Import Responsible Parties',
     'IMPORT_TAXONOMIC_COVERAGE': 'Import Taxonomic Coverage',
+    'INVITE_COLLABORATOR': 'Invite a Collaborator',
     'LOAD_DATA_TABLE': 'Load Data Table',
     'LOAD_GEOGRAPHIC_COVERAGE': 'Load Geographic Coverage',
     'LOAD_OTHER_ENTITY': 'Load Other Entity',

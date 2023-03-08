@@ -698,6 +698,9 @@ Intellectual rights are controlled at the source, however it is recommended that
 EDI's default policy is <b>CC0</b>. The LTER Network-wide default policy is <b>CC BY</b>. Please consult those organizations for more information and more details.
 This includes information about the frequency of update and whether there is ongoing data collection.
 --------------------
+invite_collaborator
+Invite a Collaborator
+--------------------
 keywords
 Keywords
 It is recommended that meaningful sets of keywords be provided.

@@ -53,7 +53,6 @@ from webapp.home.exceptions import (
     ezEMLError,
     AuthTokenExpired,
     DataTableError,
-    MetapypeStoreIsNonEmpty,
     MissingFileError,
     Unauthorized,
     UnicodeDecodeErrorInternal
@@ -107,7 +106,12 @@ from webapp.home.check_data_table_contents import format_date_time_formats_list
 from webapp.home.check_metadata import check_eml
 from webapp.home.forms import form_md5
 from webapp.home.standard_units import init_standard_units
-
+from webapp.views.collaborations.collaborations import (
+    init_db,
+    close_package,
+    release_acquired_lock
+)
+import webapp.views.collaborations.collaborations as collaborations
 from webapp.buttons import *
 from webapp.pages import *
 
@@ -348,6 +352,8 @@ def data_table_errors(data_table_name:str=None):
 
 @home.before_app_request
 def init_session_vars():
+    init_db()
+
     if not session.get("check_metadata_status"):
         session["check_metadata_status"] = "green"
     if not session.get("check_data_tables_status"):
@@ -579,7 +585,8 @@ def index():
 
 
 @home.route('/edit/<page>')
-def edit(page:str=None):
+@home.route('/edit/<page>/dev')
+def edit(page:str=None, dev=None):
     """
     The edit page allows for direct editing of a top-level element such as
     title, abstract, creators, etc. This function simply redirects to the
@@ -588,9 +595,12 @@ def edit(page:str=None):
     if current_user.is_authenticated and page:
         current_filename = user_data.get_active_document()
         if current_filename:
-            # We skip metadata check here because we will do load_eml again on the target page
-            eml_node = load_eml(filename=current_filename, skip_metadata_check=True)
-            new_page = page if eml_node else PAGE_FILE_ERROR
+            if page != PAGE_COLLABORATE:
+                # We skip metadata check here because we will do load_eml again on the target page
+                eml_node = load_eml(filename=current_filename, skip_metadata_check=True)
+                new_page = page if eml_node else PAGE_FILE_ERROR
+            else:
+                new_page = page
             return redirect(url_for(new_page, filename=current_filename))
         else:
             return redirect(url_for(PAGE_INDEX))
@@ -687,6 +697,8 @@ def delete():
             if isinstance(return_value, str):
                 flash(return_value)
             else:
+                user_login = current_user.get_user_login()
+                close_package(user_login)
                 flash(f'Deleted {filename}')
             return redirect(url_for(PAGE_INDEX))
 
@@ -793,6 +805,7 @@ def manage_data_usage(action=None):
 
     log_usage(actions['MANAGE_DATA_USAGE'])
     help = get_helps(['manage_data_usage'])
+    set_current_page('manage_data_usage')
 
     if not Config.GC_BUTTON_ENABLED:
         disabled = 'disabled'
@@ -1056,6 +1069,47 @@ def create():
     return render_template('create_eml.html', help=help, form=form)
 
 
+@home.route('/display_tables', methods=['GET', 'POST'])
+@login_required
+def display_tables():
+    from webapp.home.collaborations import User, Package, Collaboration, CollaborationStatus, Lock
+    users = User.query.all()
+    packages = Package.query.all()
+    collaborations = Collaboration.query.all()
+    collaboration_statuses = CollaborationStatus.query.all()
+    locks = Lock.query.all()
+    return render_template('display_tables.html', users=users, packages=packages, collaborations=collaborations,
+                           collaboration_statuses=collaboration_statuses, locks=locks)
+
+
+def open_document(filename, owner=None):
+    """
+    This code is used both in opening a document via the Open... menu selection and via an Open link on the Collaborate
+    page. In the latter case, it is assumed that the caller has set the active_package_id before calling. This is
+    needed so that load_eml() looks in the correct folder for the EML file.
+    """
+    # Check if the document is locked by another user
+    if user_data.is_document_locked(filename):
+        flash(f'{filename} is currently locked by another user. Please select another document.', 'error')
+        return redirect(url_for(PAGE_TITLE, filename=filename))
+
+    eml_node = load_eml(filename)
+    if eml_node:
+        current_user.set_filename(filename)
+        if owner:
+            current_user.set_file_owner(owner)
+        packageid = eml_node.attributes.get('packageId', None)
+        if packageid:
+            current_user.set_packageid(packageid)
+        create_eml(filename=filename)
+        new_page = PAGE_TITLE
+        log_usage(actions['OPEN_DOCUMENT'])
+        check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+    else:
+        new_page = PAGE_FILE_ERROR
+    return redirect(url_for(new_page, filename=filename))
+
+
 @home.route('/open_eml_document', methods=['GET', 'POST'])
 @login_required
 def open_eml_document():
@@ -1070,21 +1124,15 @@ def open_eml_document():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            eml_node = load_eml(filename)
-            if eml_node:
-                current_user.set_filename(filename)
-                packageid = eml_node.attributes.get('packageId', None)
-                if packageid:
-                    current_user.set_packageid(packageid)
-                create_eml(filename=filename)
-                new_page = PAGE_TITLE
-                log_usage(actions['OPEN_DOCUMENT'])
-                check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+            user_login = current_user.get_user_login()
+            # Get a lock on the package, if available
+            lock = collaborations.open_package(user_login, filename)
+            # Open the document
+            try:
+                return open_document(filename)
+            except:
+                release_acquired_lock(lock)
 
-            else:
-                new_page = PAGE_FILE_ERROR
-            return redirect(url_for(new_page, filename=filename))
-    
     # Process GET
     return render_template('open_eml_document.html', title='Open EML Document', 
                            form=form)
@@ -1975,15 +2023,15 @@ def submit_package(filename=None, success=None):
                 msg += get_imported_from_xml_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
                 to_address = [Config.TO]
-                sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address, sender_name=name, sender_email=email_address)
-                if sent:
+                sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address)
+                if sent is True:
                     log_usage(actions['SEND_TO_EDI'], name, email_address)
                     flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
                     flash(f"If you don't hear back from us within 48 hours, please contact us at support@edirepository.org.")
                     success = True
                 else:
                     log_usage(actions['SEND_TO_EDI'], 'failed')
-                    flash(f'Email failed to send', 'error')
+                    flash(sent, 'error')
 
             return redirect(get_back_url(success=success))
 
@@ -3666,12 +3714,12 @@ def load_metadata():
 def close():
     current_document = current_user.get_filename()
     
+    log_usage(actions['CLOSE_DOCUMENT'])
+    current_user.set_filename(None)
+    user_login = current_user.get_user_login()
+    close_package(user_login)
     if current_document:
-        log_usage(actions['CLOSE_DOCUMENT'])
-        current_user.set_filename(None)
-        flash(f'Closed {current_document}')
-    else:
-        flash("There was no package open")
+        flash(f'Closed "{current_document}"')
 
     set_current_page('')
 

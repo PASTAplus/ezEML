@@ -30,6 +30,7 @@ from webapp.home.log_usage import (
     log_usage,
 )
 from webapp.home.views import get_helps
+from webapp.views.collaborations.collaborations import close_package
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
@@ -103,7 +104,9 @@ def login():
 @auth_bp.route('/logout', methods=['GET'])
 def logout():
     log_usage(actions['LOGOUT'])
+    user_login = current_user.get_user_login()
     logout_user()
+    close_package(user_login)
     return redirect(url_for(PAGE_LOGIN))
 
 

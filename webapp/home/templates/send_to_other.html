@@ -41,7 +41,7 @@
         link for the package will be generated for you to use. You will have the opportunity to edit the email and personalize
         it as you see fit before sending it to your colleague.<p></p>&nbsp;<br>#}
 
-                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Submit Metadata" formnovalidate="True"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Submit Metadata" formnovalidate="True" onclick="clicked(event)"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
     </form>
@@ -68,5 +68,11 @@
     {
         {{ macros.help_script(help_send_to_colleague_dialog, help_send_to_colleague_btn) }}
     });
+    function clicked(e)
+    {
+        if(!confirm("A document has already been submitted with the same name. Do you wish to overwrite it?")){
+            e.preventDefault();
+        }
+    }
     </script>
 {% endblock %}

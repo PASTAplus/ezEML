@@ -1,4 +1,4 @@
-name: ezeml
+name: ezeml-burp
 channels:
   - defaults
   - conda-forge
@@ -91,4 +91,8 @@ dependencies:
   - zipp=3.11.0
   - flask-sqlalchemy
   - flask-migrate
+  - pip
+  - pip:
+      - lxml==4.9.2
+      - metapype==0.0.24
 prefix: /home/pasta/anaconda3/envs/ezeml

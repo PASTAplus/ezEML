@@ -1,15 +1,16 @@
 name: ezeml
 channels:
-  - conda-forge
   - defaults
+  - conda-forge
 dependencies:
   - _libgcc_mutex=0.1
   - _openmp_mutex=4.5
+  - alembic=1.8.1
   - asn1crypto=1.5.1
   - attrs=22.2.0
   - brotlipy=0.7.0
   - bzip2=1.0.8
-  - ca-certificates=2022.12.7
+  - ca-certificates=2023.01.10
   - certifi=2022.12.7
   - cffi=1.15.1
   - charset-normalizer=2.1.1
@@ -25,10 +26,14 @@ dependencies:
   - flask=2.2.2
   - flask-bootstrap=3.3.7.1
   - flask-login=0.6.2
+  - flask-migrate=4.0.4
+  - flask-sqlalchemy=3.0.2
   - flask-wtf=1.0.1
+  - greenlet=2.0.1
   - icu=69.1
   - idna=3.4
   - importlib-metadata=6.0.0
+  - importlib_resources=5.2.0
   - iniconfig=2.0.0
   - itsdangerous=2.1.2
   - jansson=2.14
@@ -51,10 +56,11 @@ dependencies:
   - libuuid=2.32.1
   - libxml2=2.9.14
   - libzlib=1.2.13
+  - mako=1.2.3
   - markupsafe=2.1.1
   - ncurses=6.3
   - numpy=1.24.1
-  - openssl=3.0.7
+  - openssl=3.0.8
   - packaging=22.0
   - pandas=1.5.2
   - pcre=8.45
@@ -77,6 +83,7 @@ dependencies:
   - rfc3986=2.0.0
   - setuptools=65.6.3
   - six=1.16.0
+  - sqlalchemy=1.4.39
   - tk=8.6.12
   - tomli=2.0.1
   - urllib3=1.26.13
@@ -92,4 +99,4 @@ dependencies:
   - pip:
       - lxml==4.9.2
       - metapype==0.0.24
-prefix: /home/servilla/anaconda3/envs/ezeml
+prefix: /home/pasta/anaconda3/envs/ezeml

@@ -2077,7 +2077,7 @@ def create_categorical_or_text_attribute(
 
             text_domain_node = new_child_node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
             definition_node = new_child_node(names.DEFINITION, parent=text_domain_node)
-            definition_node.content = attribute_definition
+            definition_node.content = "text"
 
             # get rid of enumeratedDomain node, if any
             enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)

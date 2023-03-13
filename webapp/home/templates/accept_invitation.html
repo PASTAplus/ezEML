@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_accept_invitation_id, help_accept_invitation_title, help_accept_invitation_content = help[0] %}
+    {% set help_accept_invitation_btn = help_accept_invitation_id ~ '_btn' %}
+    {% set help_accept_invitation_dialog = help_accept_invitation_id ~ '_dialog' %}
+    
+    <table>
+        <td><h2>Accept an Invitation to Collaborate</h2></td>
+        <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_accept_invitation_btn) }}</td>
+    </table>
+
+        <div class="col-md-10">
+    <form method="POST" action="" class="form" role="form" novalidate>
+        {{ form.csrf_token }}
+    <br>
+        Enter the invitation code you received in the email that invited you to collaborate.
+        <p></p>
+        Make sure you are logged into ezEML using the same account you will use in editing the data package.
+        <p></p>
+        When you accept the invitation, your account will be added to the list of collaborators for the data package,
+        and the owner of the data package will receive an email notifying them of your acceptance.
+        <br>
+        <br>
+        <div style="width: 125px;">
+        {{ wtf.form_field(form.invitation_code, size=10) }}
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </div>
+    <p>&nbsp;</p>
+                <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Accept Invitation"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
+                {{ macros.hidden_buttons() }}
+    </form>
+        </div>
+
+    {% if mailto %}
+    <a id="mail_link" style="visibility:hidden;" href="{{ mailto }}">Click me</a>
+    <script>
+        document.getElementById("mail_link").click();
+    </script>
+    {% endif %}
+
+    {{ macros.help_dialog(help_accept_invitation_dialog, help_accept_invitation_title, help_accept_invitation_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_accept_invitation_id, help_accept_invitation_title, help_accept_invitation_content = help[0] %}
+    {% set help_accept_invitation_btn = help_accept_invitation_id ~ '_btn' %}
+    {% set help_accept_invitation_dialog = help_accept_invitation_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_accept_invitation_dialog, help_accept_invitation_btn) }}
+    });
+    </script>
+{% endblock %}

@@ -57,11 +57,11 @@
         <h4>My Pending Invitations</h4>
             <table class="collab_table display compact" width=100% style="padding: 10px;">
                 <thead>
-                <tr><th style="text-align:left;" width=40%>Package</th>
+                <tr><th style="text-align:left;" width=35%>Package</th>
                 <th style="text-align:left;" width=20%>Invitee</th>
                 <th style="text-align:left;" width=20%>Invitee Email</th>
                 <th style="text-align:left;" width=10%>Date</th>
-                <th style="text-align:left;" width=10%>Action</th>
+                <th style="text-align:left;" width=15%>Action</th>
                 </thead>
                 <tbody>
                 {% for invitation in invitations %}
@@ -70,8 +70,7 @@
                 <td class="collab_table" valign="top">{{ invitation.invitee_name }}</td>
                 <td class="collab_table" valign="top">{{ invitation.invitee_email }}</td>
                 <td class="collab_table" valign="top">{{ invitation.date }}</td>
-                <td class="collab_table" valign="top"></td>
-{#                <td class="collab_table" valign="top">{{ collaboration.action|safe }}</td>#}
+                <td class="collab_table" valign="top">{{ invitation.action|safe }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

@@ -72,6 +72,7 @@ InvitationRecord is a dataclass that is used to represent an invitation in a dis
 """
 @dataclass()
 class InvitationRecord:
+    invitation_id: int
     package_id: int
     package: str
     invitee_name: str
@@ -79,22 +80,11 @@ class InvitationRecord:
     date: str
     action: str
 
-    # def __post_init__(self):
-    #     current_user_login = current_user.get_user_org()
-    #     self.owner_name = collaborations.display_name(self.owner_login)
-    #     self.collaborator_name = collaborations.display_name(self.collaborator_login)
-    #     if not self.locked_by_id:
-    #         self.status = 'Available'
-    #         if self.collaborator_login == current_user_login:
-    #             link = url_for(PAGE_OPEN_BY_COLLABORATOR, collaborator_id=self.collaborator_id,
-    #                            package_id=self.package_id)
-    #             self.action = f'<a href="{link}">Open</a>'
-    #     else:
-    #         self.locked_by = collaborations._get_user(self.locked_by_id).user_login
-    #         self.status = 'Locked by ' + collaborations.display_name(self.locked_by)
-    #         if self.locked_by == current_user_login:
-    #             link = url_for(PAGE_RELEASE_LOCK, package_id=self.package_id)
-    #             self.action = f'<a href="{link}">Release lock</a>'
+    def __post_init__(self):
+        current_user_login = current_user.get_user_org()
+        if current_user_login == collaborations.get_package_owner(self.package_id).user_login:
+            link = url_for(PAGE_CANCEL_INVITATION, invitation_id=self.invitation_id)
+            self.action = f'<a href="{link}">Cancel invitation</a>'
 
     def __lt__(self, other):
         if self.package.lower() < other.package.lower():

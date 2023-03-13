@@ -27,9 +27,8 @@ import webapp.home.exceptions as exceptions
 import daiquiri
 import logging
 
-# Set the logging level to DEBUG
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
 logger = daiquiri.getLogger('collaborations: ' + __name__)
 
@@ -568,6 +567,7 @@ def get_invitations(user_login):
         for invitation in invitations:
             try:
                 invitation_records.append(InvitationRecord(
+                    invitation_id=invitation.invitation_id,
                     package_id=invitation.package_id,
                     package=invitation.package.package_name,
                     invitee_name=invitation.invitee_name,
@@ -623,6 +623,15 @@ def accept_invitation(user_login, invitation_code, session=None):
 
 def remove_invitation(invitation_code):
     invitation = Invitation.query.filter_by(invitation_code=invitation_code).first()
+    if invitation:
+        with db_session() as session:
+            session.delete(invitation)
+        return True
+    return False
+
+
+def cancel_invitation(invitation_id):
+    invitation = Invitation.query.filter_by(invitation_id=invitation_id).first()
     if invitation:
         with db_session() as session:
             session.delete(invitation)

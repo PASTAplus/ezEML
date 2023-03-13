@@ -1075,7 +1075,7 @@ def create():
 @home.route('/display_tables', methods=['GET', 'POST'])
 @login_required
 def display_tables():
-    from webapp.home.collaborations import User, Package, Collaboration, CollaborationStatus, Lock
+    from webapp.views.collaborations.model import User, Package, Collaboration, CollaborationStatus, Lock
     users = User.query.all()
     packages = Package.query.all()
     collaborations = Collaboration.query.all()
@@ -1894,11 +1894,6 @@ def export_package():
                 return redirect(url_for('home.export_package_2', package_name=archive_basename,
                                         download_url=make_tiny(download_url), safe=''))
 
-        # archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
-        # if download_url:
-        #     return redirect(url_for('home.export_package_2', package_name=archive_basename,
-        #                             download_url=get_shortened_url(download_url), safe=''))
-
     # Process GET
     help = get_helps(['export_package'])
     return render_template('export_package.html', back_url=get_back_url(), title='Export Data Package', help=help)
@@ -1927,8 +1922,6 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, e
         '   Package name: ' + archive_name + '\n\n' + \
         '   Download URL: ' + encoded_url + '\n\n' + \
         '   Download URL without data files: ' + encoded_url_without_data + '\n\n'
-        # '   Download URL: ' + get_shortened_url(download_url) + '\n\n' + \
-        # '   Download URL without data files: ' + get_shortened_url(download_url_without_data) + '\n\n'
     if notes:
         msg += '   Sender\'s Notes: ' + notes
     return msg

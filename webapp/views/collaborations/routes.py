@@ -1,5 +1,5 @@
 import daiquiri
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
@@ -154,11 +154,11 @@ def compose_inform_inviter_of_acceptance_email(inviter_name, invitee_name, invit
     return msg_raw
 
 
-def compose_invite_collaborator_email(name, sender_name, sender_email, title, invitation_code):
+def compose_invite_collaborator_email(name, sender_name, sender_email, title, invitation_code, ezeml_url):
     msg_html = Markup(f'Dear {name}:<p><br>'
         f'I am inviting you to collaborate with me on editing a data package in ezEML.<p><br>Data Package Title: "{title}"<p>' \
         f'To accept the invitation, please do the following:<p>' \
-        f'- go to https://ezeml.edirepository.org and log in using the login account you will use to edit the package<br>' \
+        f'- go to {ezeml_url} and log in using the login account you will use to edit the package<br>' \
         f'- in ezEML, click the "Collaborate" link<br>' \
         f'- on the "Collaborate" page, click the "Accept an Invitation" button<br>' \
         f'- enter this invitation code: {invitation_code}<p>' \
@@ -168,7 +168,7 @@ def compose_invite_collaborator_email(name, sender_name, sender_email, title, in
     msg_raw = f'Dear {name}:\n\n' \
         f'I am inviting you to collaborate with me on editing a data package in ezEML.\n\nData Package Title: "{title}"\n\n' \
         f'To accept the invitation, please do the following:\n' \
-        f'- go to https://ezeml.edirepository.org and log in using the login account you will use to edit the package\n' \
+        f'- go to {ezeml_url} and log in using the login account you will use to edit the package\n' \
         f'- in ezEML, click the "Collaborate" link\n' \
         f'- on the "Collaborate" page, click the "Accept an Invitation" button\n' \
         f'- enter this invitation code: {invitation_code}\n\n' \
@@ -206,7 +206,8 @@ def invite_collaborator(filename=None):
             email_address = form.data['email_address']
             title = title_node.content
 
-            # user_login = current_user.get_user_login()
+            parsed_url = urlparse(request.base_url)
+            ezeml_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
 
             # Generate an Invitation record in the database
             invitation_code = collaborations.create_invitation(filename, user_name, user_email,
@@ -215,7 +216,8 @@ def invite_collaborator(filename=None):
             try:
                 mailto, mailto_html, mailto_raw = compose_invite_collaborator_email(collaborator_name,
                                                                                     user_name, user_email,
-                                                                                    title, invitation_code)
+                                                                                    title, invitation_code,
+                                                                                    ezeml_url)
             except Exception as e:
                 collaborations.remove_invitation(invitation_code)
                 raise
@@ -281,3 +283,13 @@ def release_lock(package_id):
     collaborations.release_lock(user_login, package_id)
     current_document = user_data.get_active_document()
     return redirect(url_for(PAGE_COLLABORATE, filename=current_document))
+
+
+@collab_bp.route('/cancel_invitation/<invitation_id>', methods=['GET', 'POST'])
+@collab_bp.route('/cancel_invitation/<invitation_id>/<filename>', methods=['GET', 'POST'])
+@login_required
+def cancel_invitation(invitation_id, filename=None):
+    collaborations.cancel_invitation(invitation_id)
+    if not filename:
+        filename = user_data.get_active_document()
+    return redirect(url_for(PAGE_COLLABORATE, filename=filename))

@@ -282,7 +282,7 @@ def release_lock(package_id):
     package_id = int(package_id)
     collaborations.release_lock(user_login, package_id)
     current_document = user_data.get_active_document()
-    return redirect(url_for(PAGE_COLLABORATE, filename=current_document))
+    return redirect(url_for(PAGE_CLOSE, filename=current_document))
 
 
 @collab_bp.route('/cancel_invitation/<invitation_id>', methods=['GET', 'POST'])

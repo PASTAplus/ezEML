@@ -84,10 +84,15 @@ def collaborate(filename=None, dev=None):
     package_list = get_package_output()
     lock_list = get_lock_output()
     set_current_page('collaborate')
+    if current_user.get_file_owner():
+        owned_by_other = True
+    else:
+        owned_by_other = False
 
     return render_template('collaborate.html', collaborations=my_collaborations, invitations=my_invitations,
-                           user=current_user.get_user_login(), collaboration_list=collaboration_list,
-                           user_list=user_list, package_list=package_list, lock_list=lock_list, dev=dev)
+                           user=current_user.get_user_login(), owned_by_other=owned_by_other,
+                           collaboration_list=collaboration_list, user_list=user_list, package_list=package_list,
+                           lock_list=lock_list, dev=dev)
 
 
 @collab_bp.route('/accept_invitation/<filename>', methods=['GET', 'POST'])

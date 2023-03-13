@@ -77,10 +77,11 @@
             </table>
         <p>&nbsp;</p>
         {% endif %}
-            {#        <p>&nbsp;</p>#}
+                    <p>&nbsp;</p>
 {#            For the active document, <b>edi.100.4</b>:<p></p>#}
+        {% if not owned_by_other %}
             <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
-        &nbsp;&nbsp;
+        {% endif %}&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Accept an Invitation"/>&nbsp;&nbsp;
 
         {% if dev %}

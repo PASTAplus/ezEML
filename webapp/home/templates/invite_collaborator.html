@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_invite_collaborator_id, help_invite_collaborator_title, help_invite_collaborator_content = help[0] %}
+    {% set help_invite_collaborator_btn = help_invite_collaborator_id ~ '_btn' %}
+    {% set help_invite_collaborator_dialog = help_invite_collaborator_id ~ '_dialog' %}
+    
+    <table>
+        <td><h2>Invite a Collaborator</h2></td>
+        <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_invite_collaborator_btn) }}</td>
+    </table>
+
+
+        <div class="col-md-10">
+    <form method="POST" action="" class="form" role="form" novalidate>
+        {{ form.csrf_token }}
+    <br>
+        An invitation email will be sent to your collaborator using the information you provide below.<br>
+        The email will contain an identifying code and instructions that will allow your collaborator to join your project.
+        <p></p>
+        So that we can compose the email, please provide the following information:
+        <ul>
+            <li>Your name and email address</li>
+            <li>The name and email address of your collaborator</li>
+        </ul>
+        <p></p>
+        The email will be sent from email address support@edirepository.org. You may want to let your collaborator know
+        to expect an email from that address so they don't accidentally delete it as spam.
+        <br>
+        <br>
+    <table>
+        <tr><td>
+        <table>
+            <td>{{ wtf.form_field(form.user_name, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        </td>
+            <td width="5%">&nbsp;</td>
+        <td>
+        <table>
+            <td>{{ wtf.form_field(form.user_email, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        </td></tr>
+
+    </table>
+        <p></p>    <table>
+        <tr><td>
+        <table>
+            <td>{{ wtf.form_field(form.collaborator_name, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        </td>
+            <td width="5%">&nbsp;</td>
+        <td>
+        <table>
+            <td>{{ wtf.form_field(form.email_address, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        </td></tr>
+    </table>
+        <p></p>
+    <p></p>
+{#        Click the <b>Prepare Package for Colleague</b> button to prepare the package to be sent. An email containing a download#}
+{#        link for the package will be generated for you to use. You will have the opportunity to edit the email and personalize#}
+{#        it as you see fit before sending it to your colleague.<p></p>&nbsp;<br>#}
+
+                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Send Invitation"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
+                {{ macros.hidden_buttons() }}
+    </form>
+        </div>
+
+    {% if mailto %}
+    <a id="mail_link" style="visibility:hidden;" href="{{ mailto }}">Click me</a>
+    <script>
+        document.getElementById("mail_link").click();
+    </script>
+    {% endif %}
+
+    {{ macros.help_dialog(help_invite_collaborator_dialog, help_invite_collaborator_title, help_invite_collaborator_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_invite_collaborator_id, help_invite_collaborator_title, help_invite_collaborator_content = help[0] %}
+    {% set help_invite_collaborator_btn = help_invite_collaborator_id ~ '_btn' %}
+    {% set help_invite_collaborator_dialog = help_invite_collaborator_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_invite_collaborator_dialog, help_invite_collaborator_btn) }}
+    });
+    </script>
+{% endblock %}

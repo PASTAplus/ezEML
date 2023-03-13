@@ -1356,6 +1356,15 @@ def clean_model(eml_node):
                     instrumentation = instrumentation[:-1]
                 instrumentation_node.content = instrumentation
 
+    # ezEML and EAL both had a bug that caused the attributeDefinition value to be copied into the definition node that
+    #  is a child of the textDomain node. They should instead put "text" in that definition node.
+    text_domain_nodes = []
+    eml_node.find_all_descendants(names.TEXTDOMAIN, text_domain_nodes)
+    for text_domain_node in text_domain_nodes:
+        definition_node = text_domain_node.find_child(names.DEFINITION)
+        if definition_node:
+            definition_node.content = 'text'
+
     # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []
     # to_remove = []
@@ -2077,7 +2086,7 @@ def create_categorical_or_text_attribute(
 
             text_domain_node = new_child_node(names.TEXTDOMAIN, parent=non_numeric_domain_node)
             definition_node = new_child_node(names.DEFINITION, parent=text_domain_node)
-            definition_node.content = attribute_definition
+            definition_node.content = "text"
 
             # get rid of enumeratedDomain node, if any
             enumerated_domain_node = non_numeric_domain_node.find_child(names.ENUMERATEDDOMAIN)

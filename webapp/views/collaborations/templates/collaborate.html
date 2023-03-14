@@ -3,13 +3,16 @@
 
 
 {% block app_content %}
-{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
-{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
-{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
+    {% set help_collaborate_general_id, help_collaborate_general_title, help_collaborate_general_content = help[0] %}
+    {% set help_collaborate_general_btn = help_collaborate_general_id ~ '_btn' %}
+    {% set help_collaborate_general_dialog = help_collaborate_general_id ~ '_dialog' %}
+    {% set help_collaborate_invite_accept_id, help_collaborate_invite_accept_title, help_collaborate_invite_accept_content = help[1] %}
+    {% set help_collaborate_invite_accept_btn = help_collaborate_invite_accept_id ~ '_btn' %}
+    {% set help_collaborate_invite_accept_dialog = help_collaborate_invite_accept_id ~ '_dialog' %}
 
     <table>
         <td><h2>Collaborate</h2></td>
-{#        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_manage_data_usage_btn) }}</td>#}
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_collaborate_general_btn) }}</td>
     </table>
 
     <div class="col-md-12">
@@ -58,9 +61,9 @@
             <table class="collab_table display compact" width=100% style="padding: 10px;">
                 <thead>
                 <tr><th style="text-align:left;" width=35%>Package</th>
-                <th style="text-align:left;" width=20%>Invitee</th>
-                <th style="text-align:left;" width=20%>Invitee Email</th>
-                <th style="text-align:left;" width=10%>Date</th>
+                <th style="text-align:left;" width=16%>Invitee</th>
+                <th style="text-align:left;" width=16%>Invitee Email</th>
+                <th style="text-align:left;" width=18%>Date</th>
                 <th style="text-align:left;" width=15%>Action</th>
                 </thead>
                 <tbody>
@@ -78,13 +81,18 @@
         <p>&nbsp;</p>
         {% endif %}
         <p>&nbsp;</p>
-        {% if not owned_by_other %}
+        {% if not invitation_disabled %}
             <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
         {% else %}
-            <input class="btn btn-primary" style="width: 160px;" disabled title="You can only invite collaborators for packages you own."
+            <input class="btn btn-primary" style="width: 160px;" disabled
+                   title="You can only invite collaborators if you have a document open and it is one that you own."
                    name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
         {% endif %}&nbsp;&nbsp;
             <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Accept an Invitation"/>&nbsp;&nbsp;
+{#    <table>#}
+{#        <td><h2>Collaborate</h2></td>#}
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_collaborate_invite_accept_btn) }}</td>
+{#    </table>#}
 
         {% if dev %}
         <p></p>
@@ -174,21 +182,30 @@
             {{ macros.hidden_buttons() }}
         </form>
     </div>
-    {{ macros.help_dialog(help_manage_data_usage_dialog, help_manage_data_usage_title, help_manage_data_usage_content) }}
+    {{ macros.help_dialog(help_collaborate_general_dialog, help_collaborate_general_title, help_collaborate_general_content) }}
+    {{ macros.help_dialog(help_collaborate_invite_accept_dialog, help_collaborate_invite_accept_title, help_collaborate_invite_accept_content) }}
 {% endblock %}
 
 
 {% block scripts %}
     {{ super() }}
-{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
-{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
-{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
+    {% set help_collaborate_general_id, help_collaborate_general_title, help_collaborate_general_content = help[0] %}
+    {% set help_collaborate_general_btn = help_collaborate_general_id ~ '_btn' %}
+    {% set help_collaborate_general_dialog = help_collaborate_general_id ~ '_dialog' %}
+    {% set help_collaborate_invite_accept_id, help_collaborate_invite_accept_title, help_collaborate_invite_accept_content = help[1] %}
+    {% set help_collaborate_invite_accept_btn = help_collaborate_invite_accept_id ~ '_btn' %}
+    {% set help_collaborate_invite_accept_dialog = help_collaborate_invite_accept_id ~ '_dialog' %}
     <script>
     $(document).ready(function()
     {
       $(".collab_table tr:odd").css("background", "#f4f4f4");
       $(".collab_table tr:even").css("background", "#fff");
       $(".collab_table").css("padding", "3px");
+    });
+    $(function()
+    {
+        {{ macros.help_script(help_collaborate_general_dialog, help_collaborate_general_btn) }}
+        {{ macros.help_script(help_collaborate_invite_accept_dialog, help_collaborate_invite_accept_btn) }}
     });
     </script>
 {% endblock %}

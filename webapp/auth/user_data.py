@@ -269,6 +269,11 @@ def data_table_was_uploaded(filename):
     return [get_active_document(), filename.lower()] in uploaded_files
 
 
+def remove_file_from_collaborations(filename):
+    user_login = current_user.get_user_org()
+    collaborations.remove_package(user_login, filename)
+
+
 def delete_eml(filename:str=''):
     if filename:
         user_folder = get_user_folder_name(current_user_directory_only=True)
@@ -279,6 +284,7 @@ def delete_eml(filename:str=''):
         # if we're deleting the current document, clear the active file
         if filename == get_active_document():
             remove_active_file()
+        remove_file_from_collaborations(filename)
         exception = None
         if os.path.exists(json_filename):
             try:

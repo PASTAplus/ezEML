@@ -266,6 +266,23 @@ def _add_lock(package_id, locked_by, session=None):
         return lock
 
 
+def remove_package(owner_login, package_name, session=None):
+    # To be called when an ezEML document is deleted. Remove all records associated with the package.
+    with db_session(session) as session:
+        package = get_package(owner_login, package_name, session)
+        if package:
+            # Remove any collaborations associated with the package.
+            collaborations = Collaboration.query.filter_by(package_id=package.package_id).all()
+            for collaboration in collaborations:
+                session.delete(collaboration)
+            # Remove any locks associated with the package.
+            lock = _get_lock(package.package_id)
+            if lock:
+                session.delete(lock)
+            # Remove the package record.
+            session.delete(package)
+
+
 def remove_collaboration(collab_id, session=None):
     with db_session(session) as session:
         collaboration = Collaboration.query.filter_by(collab_id=collab_id).first()

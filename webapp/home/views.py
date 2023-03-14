@@ -598,7 +598,7 @@ def edit(page:str=None, dev=None):
     if current_user.is_authenticated and page:
         current_filename = user_data.get_active_document()
         if current_filename:
-            if page != PAGE_COLLABORATE:
+            if page not in [PAGE_COLLABORATE, PAGE_INVITE_COLLABORATOR, PAGE_ACCEPT_INVITATION]:
                 # We skip metadata check here because we will do load_eml again on the target page
                 eml_node = load_eml(filename=current_filename, skip_metadata_check=True)
                 new_page = page if eml_node else PAGE_FILE_ERROR

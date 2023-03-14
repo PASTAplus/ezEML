@@ -88,11 +88,13 @@ def collaborate(filename=None, dev=None):
         owned_by_other = True
     else:
         owned_by_other = False
+    invitation_disabled = owned_by_other or not filename
+    help = get_helps(['collaborate_general', 'collaborate_invite_accept'])
 
     return render_template('collaborate.html', collaborations=my_collaborations, invitations=my_invitations,
-                           user=current_user.get_user_login(), owned_by_other=owned_by_other,
+                           user=current_user.get_user_login(), invitation_disabled=invitation_disabled,
                            collaboration_list=collaboration_list, user_list=user_list, package_list=package_list,
-                           lock_list=lock_list, dev=dev)
+                           lock_list=lock_list, help=help, dev=dev)
 
 
 @collab_bp.route('/accept_invitation/<filename>', methods=['GET', 'POST'])
@@ -131,7 +133,7 @@ def accept_invitation(filename=None, invitation_code=None):
                                               to_name=inviter_name)
                     if sent is True:
                         log_usage(actions['ACCEPT_INVITATION'], inviter_name, invitee_name)
-                        flash(f'An email has been sent to {inviter_name} to tell them you have accepted their invitation.',
+                        flash(f'An email has been sent to {inviter_name} ({inviter_email}) to tell them you have accepted their invitation.',
                               'info')
                 except InvitationNotFound:
                     flash('The invitation code was not found. Check that you entered it correctly. Otherwise, it '
@@ -166,7 +168,7 @@ def compose_invite_collaborator_email(name, sender_name, sender_email, title, in
         f'- go to {ezeml_url} and log in using the login account you will use to edit the package<br>' \
         f'- in ezEML, click the "Collaborate" link<br>' \
         f'- on the "Collaborate" page, click the "Accept an Invitation" button<br>' \
-        f'- enter this invitation code: {invitation_code}<p>' \
+        f'- enter this invitation code: <b>{invitation_code}</b><p>' \
         f'After you accept the invitation, you will be able to edit the data package with me in ezEML.<p>' \
         f'To learn more about ezEML, go to https://ezeml.edirepository.org.<p>' \
         f'Thanks!<p>{sender_name}<br>{sender_email}')
@@ -184,6 +186,7 @@ def compose_invite_collaborator_email(name, sender_name, sender_email, title, in
     return msg_quoted, msg_html, msg_raw
 
 
+# @collab_bp.route('/invite_collaborator', methods=['GET', 'POST'])
 @collab_bp.route('/invite_collaborator/<filename>', methods=['GET', 'POST'])
 @login_required
 def invite_collaborator(filename=None):
@@ -245,7 +248,7 @@ def invite_collaborator(filename=None):
     set_current_page('collaborate')
     help = get_helps(['invite_collaborator'])
     return render_template('invite_collaborator.html',
-                           title='Invite a Collaborator',
+                           title=filename,
                            form=form, help=help)
 
 

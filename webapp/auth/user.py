@@ -103,6 +103,15 @@ class User(UserMixin):
         except AttributeError:
             return False
 
+    def is_whitelisted_user(self):
+        try:
+            if Config.SERVER_LOGINS_WHITELIST:
+                return self.get_username() in Config.SERVER_LOGINS_WHITELIST
+            else:
+                return True
+        except AttributeError:
+            return False
+
 
 @login.user_loader
 def load_user(session_id):

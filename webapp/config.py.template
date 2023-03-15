@@ -71,3 +71,4 @@ class Config(object):
     ADMIN_LOGINS = []
     BETA_TESTER_LOGINS = []
     DATA_CURATOR_LOGINS = []
+    SERVER_LOGINS_WHITELIST = []

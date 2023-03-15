@@ -72,32 +72,32 @@ A format string that describes the format for a DateTime value from the Gregoria
 
 DateTime values should be expressed in a format that conforms to the ISO 8601 standard. To describe the format, construct a string representation of the format using the following symbols:
 <ul>
-<li>              Y   year
-<li>              M   month
-<li>              W   month abbreviation (e.g., JAN)
-<li>              D   day
-<li>              h   hour
-<li>              m   minute
-<li>              s   second
-<li>              T   time designator (demarcates date and time parts of date-time)
-<li>              Z   UTC designator, indicating value is in UTC time
-<li>              .   indicates a decimal fraction of a unit
-<li>              +/- indicates a positive or negative number, or a positive or negative time zone adjustment relative to UTC
-<li>              -   indicates a separator between date components
-<li>              A/P am or pm designator
+<li>          	Y   year
+<li>          	M   month
+<li>          	W   month abbreviation (e.g., JAN)
+<li>          	D   day
+<li>          	h   hour
+<li>          	m   minute
+<li>          	s   second
+<li>          	T   time designator (demarcates date and time parts of date-time)
+<li>          	Z   UTC designator, indicating value is in UTC time
+<li>          	.   indicates a decimal fraction of a unit
+<li>          	+/- indicates a positive or negative number, or a positive or negative time zone adjustment relative to UTC
+<li>          	-   indicates a separator between date components
+<li>          	A/P am or pm designator
 </ul>
-              Any other character in the format string is interpreted as a
-              separator character.  Here are some examples of the format
-              strings that can be constructed.
+          	Any other character in the format string is interpreted as a
+          	separator character.  Here are some examples of the format
+          	strings that can be constructed.
 <pre>
-                 Format string          Example value<br>
-                 -------------------    ------------------<br>
-  ISO Date       YYYY-MM-DD             2002-10-14<br>
-  ISO Datetime   YYYY-MM-DDThh:mm:ss    2002-10-14T09:13:45<br>
+             	Format string      	Example value<br>
+             	-------------------	------------------<br>
+  ISO Date   	YYYY-MM-DD         	2002-10-14<br>
+  ISO Datetime   YYYY-MM-DDThh:mm:ss	2002-10-14T09:13:45<br>
   ISO Datetime   YYYY-MM-DDThh:mm:ss-hh 2002-10-14T09:13:45-07<br>
-  ISO Time       hh:mm:ss               17:13:45<br>
-  ISO Time       hh:mm:ss.sss           09:13:45.432<br>
-  ISO Time       hh:mm.mm               09:13.42
+  ISO Time   	hh:mm:ss           	17:13:45<br>
+  ISO Time   	hh:mm:ss.sss       	09:13:45.432<br>
+  ISO Time   	hh:mm.mm           	09:13.42
 </pre>
 --------------------
 attribute_datetime_precision
@@ -724,6 +724,10 @@ Examples might include scripts in Python or R, zip files containing ancillary da
 other_entity
 Image
 An <b>Image</b> requires a name, its type and format. The digitized ovary slide image should be selected using the <b>Browse</b> button under the label <b>Upload Image</b>. Include any <b>Additional Information </b> about the image, if desired. The <b>Upload and Continue</b> will upload the image, associating the image with the document, and it automatically fills in the name and data format fields.
+--------------------
+other_entity_info
+Additional Info
+Although not required, it is suggested to add key:value pairs for measurement data.
 --------------------
 other_entity_reupload
 Re-upload Other Entity

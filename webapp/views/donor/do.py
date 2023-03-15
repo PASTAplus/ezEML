@@ -382,8 +382,9 @@ def populate_donor_form(form: DonorForm, node: Node):
             if anestrous_node:
                 form.stageOfCycle.data = anestrous_node.name
 
-        if stageOfCycle_node:
-            xsi_type = stageOfCycle_node.extras.pop("xsi:type")
+        extras = stageOfCycle_node.extras
+        if stageOfCycle_node and "xsi:type" in extras:
+            xsi_type = extras.pop("xsi:type")
             if xsi_type == "mdb:menstrualStageType":
                 form.donorType.data = "menstrual"
             if xsi_type == "mdb:estrousStageType":

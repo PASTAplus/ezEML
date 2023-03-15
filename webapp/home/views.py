@@ -1448,7 +1448,6 @@ def send_to_other(filename=None, mailto=None):
         uploads = glob.glob(os.path.join(upload_folder, '*'))
         for f in uploads:
             form.overwrite_existing.data = "Yes"
-            print(f)
 
         return render_template('send_to_other.html',
                                title='Submit Metadata',

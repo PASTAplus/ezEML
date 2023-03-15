@@ -329,8 +329,7 @@
         function speciesFunction(s1, s2){
             var s1 = document.getElementById(s1);
             var s2 = document.getElementById(s2);
-<!--            Keep previous selection instead of overriding it-->
-            var selection = s2.value;
+
             s2.innerHTML = "";
             if(s1.value == "menstrual"){
                 var optionArray = ["|","unspecified|Unspecified","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal"];
@@ -346,7 +345,14 @@
                 newOption.innerHTML = pair[1];
                 s2.options.add(newOption);
             }
-            s2.value = selection;
+        }
+
+<!--        Keep previous selection instead of overriding it-->
+        function speciesPrev(s1, s2){
+            var stage = document.getElementById(s2);
+            var previous = stage.value;
+            speciesFunction(s1, s2);
+            stage.value = previous;
         }
 
 <!--        Grey out areas where appropriate on page load-->
@@ -357,7 +363,7 @@
         lightMicroscopyStainTypeFunction();
         fluorescentMicroscopyStainTypeFunction();
         electronMicroscopyStainTypeFunction();
-        speciesFunction("donorType", "stageOfCycle");
+        speciesPrev("donorType", "stageOfCycle");
 
     </script>
     <script>

@@ -382,13 +382,14 @@ def populate_donor_form(form: DonorForm, node: Node):
             if anestrous_node:
                 form.stageOfCycle.data = anestrous_node.name
 
-        extras = stageOfCycle_node.extras
-        if stageOfCycle_node and "xsi:type" in extras:
-            xsi_type = extras.pop("xsi:type")
-            if xsi_type == "mdb:menstrualStageType":
-                form.donorType.data = "menstrual"
-            if xsi_type == "mdb:estrousStageType":
-                form.donorType.data = "estrous"
+        if stageOfCycle_node:
+            extras = stageOfCycle_node.extras
+            if "xsi:type" in extras:
+                xsi_type = extras.pop("xsi:type")
+                if xsi_type == "mdb:menstrualStageType":
+                    form.donorType.data = "menstrual"
+                if xsi_type == "mdb:estrousStageType":
+                    form.donorType.data = "estrous"
 
     slideID_node = node.find_child(mdb_names.SLIDE_ID)
     if slideID_node:

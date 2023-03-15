@@ -38,7 +38,7 @@ auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
 
 def is_whitelisted_username(username):
-    if Config.SERVER_LOGINS_WHITELIST:
+    if hasattr(Config, 'SERVER_LOGINS_WHITELIST') and Config.SERVER_LOGINS_WHITELIST:
         return username in Config.SERVER_LOGINS_WHITELIST
     else:
         return True

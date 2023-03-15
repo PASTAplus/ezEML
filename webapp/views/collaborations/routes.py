@@ -88,7 +88,7 @@ def collaborate(filename=None, dev=None):
         owned_by_other = True
     else:
         owned_by_other = False
-    invitation_disabled = owned_by_other or not filename
+    invitation_disabled = owned_by_other or not current_user.get_filename()
     help = get_helps(['collaborate_general', 'collaborate_invite_accept'])
 
     return render_template('collaborate.html', collaborations=my_collaborations, invitations=my_invitations,

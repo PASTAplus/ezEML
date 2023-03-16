@@ -552,6 +552,14 @@ def get_collaborations(user_login):
             else:
                 status = None
             lock = _get_lock(collaboration.package_id)
+            # If the lock has timed out, remove it. We do this here because a collaborator cannot open a locked package
+            #  and has no way to remove the lock.
+            if lock:
+                t1 = datetime.now()
+                t2 = lock.timestamp
+                if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
+                    # The lock has timed out, so remove it
+                    session.delete(lock)
             try:
                 collaboration_records.append(CollaborationRecord(
                     collab_id=collaboration.collab_id,

@@ -47,7 +47,8 @@ class CollaborationRecord:
             link = url_for(PAGE_REMOVE_COLLABORATION, collab_id=self.collab_id)
             if len(self.action) > 0:
                 self.action += '<br>'
-            onclick = f"return confirm('Are you sure? This action cannot be undone.');"
+            onclick = f"return confirm('Are you sure? This will end the collaboration for all participants and '" \
+                      f"cannot be undone.');"
             self.action += f'<a href="{link}" onclick="{onclick}">End collaboration</a>'
 
     def __lt__(self, other):

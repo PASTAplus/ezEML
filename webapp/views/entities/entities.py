@@ -69,7 +69,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, get_help
+from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
 from webapp.home import motherpype_names as mdb_names
 
@@ -250,7 +250,7 @@ def other_entity(filename=None, node_id=None):
         #                 populate_other_entity_form(form, dt_node)
 
     set_current_page('other_entity')
-    help = [get_help('other_entity')]
+    help = get_helps(['other_entity', 'other_entity_info'])
     return render_template('other_entity.html', title='Image', form=form, help=help, image_name=get_temp_file_name())
 
 

@@ -76,6 +76,11 @@ def collaborate(filename=None, dev=None):
         if request.form.get(BTN_SUBMIT) == BTN_ACCEPT_INVITATION:
             return redirect(url_for(PAGE_ACCEPT_INVITATION, filename=filename, dev=dev))
 
+        if request.form.get(BTN_SUBMIT) == BTN_CLEAN_UP_DATABASE:
+            collaborations.cleanup_db()
+            flash('The database has been cleaned up.', 'success')
+            return redirect(url_for(PAGE_COLLABORATE, filename=filename, dev=dev))
+
     my_collaborations = get_collaborations(current_user.get_user_login())
     my_invitations = get_invitations(current_user.get_user_login())
 

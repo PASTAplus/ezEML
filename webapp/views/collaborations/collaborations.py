@@ -684,30 +684,41 @@ def init_db():
     db.create_all()
 
 
-def test_stub():
-    return
-    with db_session() as session:
-        jide = add_user('jide-7a03c1e6f4528a6f9c4b1ae3cec24b39', session=session)
-        cgries = add_user('Corinna_Gries-0cefc3d7c9858476b71dbb3ab442fca6', session=session)
-        edi = add_user('EDI-1a438b985e1824a5aa709daa1b6e12d2', session=session)
-        csmith = add_user('csmith-3baeec96846153563e16e334d058e7b8', session=session)
-
-        package_1 = _add_package(owner_id=jide.user_id, package_name='A sample data package', session=session)
-        package_2 = _add_package(owner_id=jide.user_id, package_name='edi.100.4', session=session)
-        package_3 = _add_package(owner_id=edi.user_id, package_name='edi.1.1', session=session)
-
-        _add_collaboration(owner_id=jide.user_id, collaborator_id=cgries.user_id, package_id=package_2.package_id,
-                           status='Active', session=session)
-        _add_collaboration(owner_id=jide.user_id, collaborator_id=csmith.user_id, package_id=package_1.package_id,
-                           status='Invitation pending', session=session)
-        _add_collaboration(owner_id=jide.user_id, collaborator_id=edi.user_id, package_id=package_2.package_id,
-                           status='Active', session=session)
-        _add_collaboration(owner_id=jide.user_id, collaborator_id=csmith.user_id, package_id=package_2.package_id,
-                           status='Active', session=session)
-        _add_collaboration(owner_id=edi.user_id, collaborator_id=jide.user_id, package_id=package_3.package_id,
-                           status='Active', session=session)
-
-    return get_collaborations(current_user.get_user_org())
+def cleanup_db(session=None):
+    with db_session(session) as session:
+        # Remove locks that have timed out. This shouldn't be necessary, but it will help guard against gradual
+        # accumulation of zombie locks. For the removed locks, clear the active_package_id for the user who held the
+        # lock.
+        locks = Lock.query.all()
+        for lock in locks:
+            t1 = datetime.now()
+            t2 = lock.timestamp
+            if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
+                # The lock has timed out
+                # Clear the active_package_id for the user who held the lock
+                _set_active_package_id(lock.locked_by, None, session=session)
+                # Remove the lock
+                session.delete(lock)
+        # Remove packages that have no locks and no collaborations
+        packages = Package.query.all()
+        for package in packages:
+            locks = Lock.query.filter_by(package_id=package.package_id).all()
+            if not locks:
+                collaborations = Collaboration.query.filter_by(package_id=package.package_id).all()
+                if not collaborations:
+                    session.delete(package)
+        # Remove users that are not referenced by any packages, collaborations, or locks
+        users = User.query.all()
+        for user in users:
+            packages = Package.query.filter_by(owner_id=user.user_id).all()
+            if not packages:
+                collaborations = Collaboration.query.filter_by(owner_id=user.user_id).all()
+                if not collaborations:
+                    collaborations = Collaboration.query.filter_by(collaborator_id=user.user_id).all()
+                    if not collaborations:
+                        locks = Lock.query.filter_by(locked_by=user.user_id).all()
+                        if not locks:
+                            session.delete(user)
 
 
 if __name__ == '__main__':

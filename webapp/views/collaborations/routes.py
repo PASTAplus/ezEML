@@ -97,6 +97,7 @@ def collaborate(filename=None, dev=None):
                            lock_list=lock_list, help=help, dev=dev)
 
 
+@collab_bp.route('/accept_invitation', methods=['GET', 'POST'])
 @collab_bp.route('/accept_invitation/<filename>', methods=['GET', 'POST'])
 @collab_bp.route('/accept_invitation/<filename>/<invitation_code>', methods=['GET', 'POST'])
 @login_required
@@ -137,7 +138,7 @@ def accept_invitation(filename=None, invitation_code=None):
                               'info')
                 except InvitationNotFound:
                     flash('The invitation code was not found. Check that you entered it correctly. Otherwise, it '
-                          'was already accepted, has expired, or has been cancelled.')
+                          'was already accepted, has expired, or has been cancelled.', 'error')
                 except InvitationBeingAcceptedByOwner:
                     flash('You are the originator of this invitation. You cannot accept your own invitation.', 'error')
                 except Exception as e:

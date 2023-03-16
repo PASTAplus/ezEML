@@ -29,7 +29,7 @@ class CollaborateForm(FlaskForm):
 
 
 class AcceptInvitationForm(FlaskForm):
-    invitation_code = StringField("Invitation Code *", validators=[DataRequired()])
+    invitation_code = StringField("Invitation Code *")
 
 
 class InviteCollaboratorForm(FlaskForm):

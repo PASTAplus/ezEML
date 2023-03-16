@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2023.02.19' %}
+{% set release_number = '2023.03.15' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -388,7 +388,7 @@
             <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
             <br>
         {% endif %}
-        <a class="nav_link" style={{ collaborate_style }}; href="{{ url_for('home.edit', page='collab.collaborate', dev='dev') }}" title="Edit">Collaborate</a><br>
+{#        <a class="nav_link" style={{ collaborate_style }}; href="{{ url_for('home.edit', page='collab.collaborate', dev='dev') }}" title="Edit">Collaborate</a><br>#}
 {#        <a class="nav_link" style={{ grant_access_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.grant_access') }}" title="Edit">Enable EDI Curation</a><br>#}
             <br>
         <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>

@@ -135,7 +135,8 @@ def display_text_type_node(text_node: Node = None) -> str:
     text = ''
     para_nodes = text_node.find_all_children(names.PARA)
     for para_node in para_nodes:
-        text += f'{para_node.content}\n'
+        if para_node.content:
+            text += f'{para_node.content}\n'
     return text
 
 

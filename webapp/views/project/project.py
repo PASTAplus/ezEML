@@ -132,7 +132,8 @@ def populate_project_form(form: ProjectForm, project_node: Node):
             if not abstract:
                 para_node = abstract_node.find_child(names.PARA)
                 if para_node:
-                    abstract = para_node.content
+                    if para_node.content:
+                        abstract = para_node.content
                 else:
                     section_node = abstract_node.find_child(names.SECTION)
                     if section_node:

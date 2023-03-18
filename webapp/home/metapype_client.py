@@ -135,7 +135,8 @@ def display_text_type_node(text_node: Node = None) -> str:
     text = ''
     para_nodes = text_node.find_all_children(names.PARA)
     for para_node in para_nodes:
-        text += f'{para_node.content}\n'
+        if para_node.content:
+            text += f'{para_node.content}\n'
     return text
 
 
@@ -1850,13 +1851,20 @@ def create_intellectual_rights(filename: str = None, intellectual_rights: str = 
     dataset_node = eml_node.find_child(names.DATASET)
     if dataset_node:
         intellectual_rights_node = dataset_node.find_child(names.INTELLECTUALRIGHTS)
-        if not intellectual_rights_node:
-            intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
+        if intellectual_rights_node:
+            dataset_node.remove_child(intellectual_rights_node)
+        intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
     else:
         dataset_node = new_child_node(names.DATASET, parent=eml_node)
         intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
 
-    intellectual_rights_node.content = intellectual_rights
+    if intellectual_rights:
+        para_node = intellectual_rights_node.find_child(names.PARA)
+        if not para_node:
+            para_node = new_child_node(names.PARA, parent=intellectual_rights_node)
+        para_node.content = intellectual_rights
+    else:
+        intellectual_rights_node.remove_children()
 
     try:
         save_both_formats(filename=filename, eml_node=eml_node)

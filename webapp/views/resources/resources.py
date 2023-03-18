@@ -322,7 +322,10 @@ def intellectual_rights(filename=None):
         names.INTELLECTUALRIGHTS
     ])
     if intellectual_rights_node:
-        ir_content = intellectual_rights_node.content
+        para_node = intellectual_rights_node.find_child(names.PARA)
+        ir_content = ''
+        if hasattr(para_node, 'content'):
+            ir_content = para_node.content
         if ir_content == INTELLECTUAL_RIGHTS_CC0:
             form.intellectual_rights_radio.data = 'CC0'
             form.intellectual_rights.data = ''
@@ -331,7 +334,7 @@ def intellectual_rights(filename=None):
             form.intellectual_rights.data = ''
         else:
             form.intellectual_rights_radio.data = "Other"
-            form.intellectual_rights.data = intellectual_rights_node.content
+            form.intellectual_rights.data = ir_content
 
     form.md5.data = form_md5(form)
 

@@ -1,4 +1,4 @@
-name: ezeml-burp
+name: ezeml
 channels:
   - defaults
   - conda-forge

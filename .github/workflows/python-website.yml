@@ -40,7 +40,7 @@ jobs:
         sed -i "s/BASE_DIR = \"\/home\/pasta\/ezeml\"/BASE_DIR = \"${PWD//\//\\/}\"/" ./webapp/config.py
         nohup python run.py&
         sleep 5
-        if curl -sSf http://127.0.0.1:8000 > /dev/null; then
+        if curl -sSf http://127.0.0.1:5000/eml/auth/login > /dev/null; then
           echo "Website is up and running"
         else
           echo "Website is down"

@@ -37,12 +37,10 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Check website status
       run: |
+
         cp ./webapp/config.py.template ./webapp/config.py
         sed -i "s/BASE_DIR = \"\/home\/pasta\/ezeml\"/BASE_DIR = \"${PWD//\//\\/}\"/" ./webapp/config.py
-        
-        echo $PWD
-        cat ./webapp/config.py
-        ls ./webapp/home/templates
+        echo "{% set ajax_host = 'https://ezeml.edirepository.org/eml/' %}" > ./webapp/home/templates/_config.html
         
         nohup python run.py&
         sleep 5

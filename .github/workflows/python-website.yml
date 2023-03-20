@@ -39,6 +39,11 @@ jobs:
       run: |
         cp ./webapp/config.py.template ./webapp/config.py
         sed -i "s/BASE_DIR = \"\/home\/pasta\/ezeml\"/BASE_DIR = \"${PWD//\//\\/}\"/" ./webapp/config.py
+        
+        echo $PWD
+        cat ./webapp/config.py
+        ls ./webapp/home/templates
+        
         nohup python run.py&
         sleep 5
         if curl -sSf http://127.0.0.1:5000/eml/auth/login > /dev/null; then

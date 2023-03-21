@@ -269,7 +269,7 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 19
+    donornodes = [False] * 22
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
@@ -280,6 +280,8 @@ def _donor_rule(node: Node) -> list:
             donornodes[1] = True
         if child.name == mdb_names.DONOR_LIFE_STAGE and child.content:
             donornodes[2] = True
+            if child.content in mdb_names.MAMMAL_STAGE_VALUES:
+                donornodes[19] = True
         if child.name == mdb_names.SPEC_SEQ_NUM and child.content:
             donornodes[3] = True
         if child.name == mdb_names.SPEC_TISSUE and child.content:
@@ -288,6 +290,8 @@ def _donor_rule(node: Node) -> list:
             donornodes[4] = True
         if child.name == mdb_names.OVARY_POSITION and child.content:
             donornodes[5] = True
+            if child.content in mdb_names.OVARY_POSITION_VALUES:
+                donornodes[20] = True
         if child.name == mdb_names.SLIDE_ID and child.content:
             donornodes[6] = True
         # if child.name == mdb_names.SEC_SEQ_NUM and child.content:
@@ -305,6 +309,8 @@ def _donor_rule(node: Node) -> list:
                         donornodes[17] = True
                 if schild.name == mdb_names.UNIT and schild.content:
                     donornodes[9] = True
+                    if schild.content in mdb_names.UNIT_VALUES:
+                        donornodes[21] = True
         if child.name == mdb_names.SAMPLE_PROCESS:
             for spchild in child.children:
                 # check for presence of children since they do not count as node content
@@ -441,6 +447,24 @@ def _donor_rule(node: Node) -> list:
         evaluation.append((
             EvaluationWarningMp.DONOR_STAGE_OF_CYCLE_ENUM,
             f'Donor Stage of Cycle must be a valid stage.',
+            node
+        ))
+    if not donornodes[19]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_LIFE_STAGE_ENUM,
+            f'Donor Life Stage must be a valid stage.',
+            node
+        ))
+    if not donornodes[20]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_OVARY_POSITION_ENUM,
+            f'Donor Ovary Position must be a valid position.',
+            node
+        ))
+    if not donornodes[21]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SEC_THICK_UNITS_ENUM,
+            f'Donor Ovary Position must be a valid position.',
             node
         ))
 

@@ -269,7 +269,7 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 22
+    donornodes = [False] * 25
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
@@ -327,6 +327,14 @@ def _donor_rule(node: Node) -> list:
                         for stage in stgchild.children:
                             if stage.name in mdb_names.CYCLE_STAGE:
                                 donornodes[18] = True
+                            if stage.name == mdb_names.FOLLICULAR and stage.content not in mdb_names.FOLLICULAR_VALUES:
+                                donornodes[23] = True
+                            if stage.name == mdb_names.LUTEAL and stage.content not in mdb_names.LUTEAL_VALUES:
+                                donornodes[24] = True
+        if child.name == mdb_names.SPEC_LOCATION:
+            for slchild in child.children:
+                if slchild.name == mdb_names.CORPUS_LUTEUM and slchild.content not in mdb_names.CORPUS_LUTEUM_VALUES:
+                    donornodes[22] = True
 
         # if child.name == mdb_names.MICROSCOPE:
         #     for mchild in child.children:
@@ -465,6 +473,24 @@ def _donor_rule(node: Node) -> list:
         evaluation.append((
             EvaluationWarningMp.DONOR_SEC_THICK_UNITS_ENUM,
             f'Donor Ovary Position must be a valid position.',
+            node
+        ))
+    if donornodes[22]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_CORPUS_LUTEUM_ENUM,
+            f'Donor Corpus Luteum Type must be a valid type.',
+            node
+        ))
+    if donornodes[23]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_FOLLICULAR_ENUM,
+            f'Donor Follicular Values must be a valid type.',
+            node
+        ))
+    if donornodes[24]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_LUTEAL_ENUM,
+            f'Donor Luteal Values must be a valid type.',
             node
         ))
 

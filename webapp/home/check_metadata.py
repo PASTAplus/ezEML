@@ -753,6 +753,12 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_18', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAGE_OF_CYCLE_ENUM, mdb_names.MOTHER):
         add_to_evaluation('donor_19', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_CORPUS_LUTEUM_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_23', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FOLLICULAR_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_24', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LUTEAL_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_25', link)
 
 
 def eval_entry_to_string(eval_entry):

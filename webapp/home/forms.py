@@ -169,3 +169,4 @@ class SubmitToEDIForm(FlaskForm):
 class SendToColleagueForm(FlaskForm):
     colleague_name = StringField("Colleague's Name *")
     email_address = StringField("Colleague's Email Address *")
+    overwrite_existing = HiddenField()

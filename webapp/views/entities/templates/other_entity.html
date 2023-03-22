@@ -5,6 +5,9 @@
     {% set help_other_entity_id, help_other_entity_title, help_other_entity_content = help[0] %}
     {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
+    {% set help_other_entity_info_id, help_other_entity_info_title, help_other_entity_info_content = help[1] %}
+    {% set help_other_entity_info_btn = help_other_entity_info_id ~ '_btn' %}
+    {% set help_other_entity_info_dialog = help_other_entity_info_id ~ '_dialog' %}
 
     <table>
         <td><h2>Image</h2></td>
@@ -23,7 +26,10 @@
                     <td width="50%" style="vertical-align:top; padding-left: 25px"><b>Uploaded Image</b><br><div id = iname>{{ image_name|safe }}</div></td>
                 </table>
 
-                {{ wtf.form_field(form.additional_info) }}
+                <table>
+                    <td width="100%">{{ wtf.form_field(form.additional_info, size=100) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_other_entity_info_btn) }}</td>
+                </table>
 
                 <table>
                 <tr>
@@ -71,6 +77,7 @@
         </div>
     </div>
     {{ macros.help_dialog(help_other_entity_dialog, help_other_entity_title, help_other_entity_content) }}
+    {{ macros.help_dialog(help_other_entity_info_dialog, help_other_entity_info_title, help_other_entity_info_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -78,6 +85,9 @@
     {% set help_other_entity_id, help_other_entity_title, help_other_entity_content = help[0] %}
     {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
+    {% set help_other_entity_info_id, help_other_entity_info_title, help_other_entity_info_content = help[1] %}
+    {% set help_other_entity_info_btn = help_other_entity_info_id ~ '_btn' %}
+    {% set help_other_entity_info_dialog = help_other_entity_info_id ~ '_dialog' %}
 
     <script type = "text/javascript">
         $("#file_upload").change(function(){
@@ -112,6 +122,7 @@
             document.getElementById("entity_name").toggleAttribute("required");
             document.getElementById("format_name").toggleAttribute("required");
             {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
+            {{ macros.help_script(help_other_entity_info_dialog, help_other_entity_info_btn) }}
         });
     </script>
 {% endblock %}

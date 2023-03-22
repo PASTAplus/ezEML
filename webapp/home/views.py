@@ -455,9 +455,9 @@ def save_as():
                             eml_node=eml_node)
             if isinstance(return_value, str):
                 flash(return_value)
-                new_filename = current_document  # Revert back to the old filename
+                # new_filename = current_document  # Revert back to the old filename
             else:
-                copy_uploads(current_document, new_document)
+                # copy_uploads(current_document, new_document)
                 current_user.set_filename(filename=new_document)
                 flash(f'Saved as {new_document}')
             new_page = PAGE_TITLE   # Return the Response object
@@ -1444,6 +1444,11 @@ def send_to_other(filename=None, mailto=None):
                                form=form, help=help)
     else:
         help = get_helps(['send_to_colleague'])
+
+        uploads = glob.glob(os.path.join(upload_folder, '*'))
+        for f in uploads:
+            form.overwrite_existing.data = "Yes"
+
         return render_template('send_to_other.html',
                                title='Submit Metadata',
                                #set image and xml file names to display

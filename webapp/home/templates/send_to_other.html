@@ -5,7 +5,7 @@
     {% set help_send_to_colleague_id, help_send_to_colleague_title, help_send_to_colleague_content = help[0] %}
     {% set help_send_to_colleague_btn = help_send_to_colleague_id ~ '_btn' %}
     {% set help_send_to_colleague_dialog = help_send_to_colleague_id ~ '_dialog' %}
-    
+
     <table>
         <td><h2>Submit Metadata</h2></td>
         <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_send_to_colleague_btn) }}</td>
@@ -41,11 +41,12 @@
         link for the package will be generated for you to use. You will have the opportunity to edit the email and personalize
         it as you see fit before sending it to your colleague.<p></p>&nbsp;<br>#}
 
-                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Submit Metadata" formnovalidate="True"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 260px;" name="Submit" type="submit" value="Submit Metadata" formnovalidate="True" onclick="clicked(event)"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
     </form>
         </div>
+    <span style="visibility: hidden;">{{ wtf.form_field(form.overwrite_existing) }}</span>
 
     {% if mailto %}
     <a id="mail_link" style="visibility:hidden;" href="{{ mailto }}">Click me</a>
@@ -68,5 +69,15 @@
     {
         {{ macros.help_script(help_send_to_colleague_dialog, help_send_to_colleague_btn) }}
     });
+
+    function clicked(e)
+    {
+        var s1 = document.getElementById("overwrite_existing").value;
+        if (s1 == "Yes"){
+            if(!confirm("A document has already been submitted with the same name. Do you wish to overwrite it?")){
+                e.preventDefault();
+            }
+        }
+    }
     </script>
 {% endblock %}

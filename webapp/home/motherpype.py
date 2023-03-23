@@ -196,8 +196,11 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
 
     if node.name in mdb_names.NILLABLE:
         if len(node.children) > 0:
-            if all(c.content is None for c in node.children):
+            if all((c.content is None or c.content == "") and c.name != mdb_names.STAGE_OF_CYCLE for c in node.children):
                 node.add_extras("xsi:nil", "true")
+                node.remove_children()
+            else:
+                node.extras.pop('xsi:nil', None)
         elif len(node.children) == 0 and (node.content is None or node.content == ""):
             node.add_extras("xsi:nil", "true")
         elif node.content is not None:

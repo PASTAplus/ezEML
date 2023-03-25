@@ -83,17 +83,17 @@ class EvaluationWarningMp(Enum):
     TAXONOMIC_COVERAGE_MISSING = auto()
     TAXONOMIC_COVERAGE_GENUS_MISSING = auto()
     TAXONOMIC_COVERAGE_SPECIES_MISSING = auto()
-    DONOR_LIFE_STAGE_ENUM = auto()
-    DONOR_OVARY_POSITION_ENUM = auto()
-    DONOR_STAGE_OF_CYCLE_ENUM = auto()
-    DONOR_CORPUS_LUTEUM_ENUM = auto()
-    DONOR_FOLLICULAR_ENUM = auto()
-    DONOR_LUTEAL_ENUM = auto()
-    DONOR_SEC_THICK_UNITS_ENUM = auto()
-    DONOR_SUDAN_STAIN_ENUM = auto()
-    IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM = auto()
-    IHC_SECONDARY_ANTIBODY_CLONALITY_ENUM = auto()
-
-
-
-
+    DONOR_LIFE_STAGE_ENUM = auto()  # Complete
+    DONOR_OVARY_POSITION_ENUM = auto()  # Complete
+    DONOR_STAGE_OF_CYCLE_ENUM = auto()  # Complete
+    DONOR_CORPUS_LUTEUM_ENUM = auto()  # Complete
+    DONOR_FOLLICULAR_ENUM = auto()  # Complete
+    DONOR_LUTEAL_ENUM = auto()  # Complete
+    DONOR_SEC_THICK_UNITS_ENUM = auto()  # Complete
+    DONOR_SUDAN_STAIN_ENUM = auto()     # Complete
+    IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM = auto()    # Complete
+    DONOR_YEARS_NON_NEGATIVE = auto()   # Complete
+    DONOR_DAYS_NON_NEGATIVE = auto()    # Complete
+    DONOR_SPEC_SEQ_NUM_NON_NEGATIVE = auto()    # Complete
+    DONOR_DAY_OF_CYCLE_NON_NEGATIVE = auto()    # Complete
+    DONOR_SEC_SEQ_NUM_NON_NEGATIVE = auto()     # Complete

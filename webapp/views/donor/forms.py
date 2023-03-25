@@ -72,7 +72,7 @@ class DonorForm(EDIForm):
                                         ("diestrous", "Diestrous"),
                                         ("anestrous", "Anestrous")],
                                render_kw={'onchange': "stageOfCycleFunction()"})
-    follicular = SelectField('Follicular values',
+    follicular = SelectField('Follicular Values',
                              choices=[("", ""),
                                       ("early", "Early"),
                                       ("mid", "Mid"),
@@ -82,7 +82,7 @@ class DonorForm(EDIForm):
                                   ("early", "Early"),
                                   ("mid", "Mid"),
                                   ("late", "Late"),
-                                  ("regression", "Regression")], validators=[Optional()])
+                                  ("regressing", "Regressing")], validators=[Optional()])
     slideID = StringField('Slide ID *', 
                         validators=[InputRequired(message='Slide ID is required')])
     sectionSeqNum = IntegerField('Section Sequence Number', 

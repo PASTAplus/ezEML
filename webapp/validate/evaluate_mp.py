@@ -269,7 +269,7 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 19
+    donornodes = [False] * 40
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
@@ -280,14 +280,25 @@ def _donor_rule(node: Node) -> list:
             donornodes[1] = True
         if child.name == mdb_names.DONOR_LIFE_STAGE and child.content:
             donornodes[2] = True
+            if child.content in mdb_names.MAMMAL_STAGE_VALUES:
+                donornodes[19] = True
         if child.name == mdb_names.SPEC_SEQ_NUM and child.content:
-            donornodes[3] = True
+            try:
+                val = int(child.content)
+                if val < 0:
+                    raise ValueError
+                else:
+                    donornodes[3] = True
+            except ValueError:
+                pass
         if child.name == mdb_names.SPEC_TISSUE and child.content:
             if child.content == "ovary":
                 donornodes[16] = True
             donornodes[4] = True
         if child.name == mdb_names.OVARY_POSITION and child.content:
             donornodes[5] = True
+            if child.content in mdb_names.OVARY_POSITION_VALUES:
+                donornodes[20] = True
         if child.name == mdb_names.SLIDE_ID and child.content:
             donornodes[6] = True
         # if child.name == mdb_names.SEC_SEQ_NUM and child.content:
@@ -299,12 +310,14 @@ def _donor_rule(node: Node) -> list:
                     # check if Section Thickness is a positive integer
                     try:
                         val = int(schild.content)
-                        if val < 0:
+                        if val <= 0:
                             raise ValueError
                     except ValueError:
                         donornodes[17] = True
                 if schild.name == mdb_names.UNIT and schild.content:
                     donornodes[9] = True
+                    if schild.content in mdb_names.UNIT_VALUES:
+                        donornodes[21] = True
         if child.name == mdb_names.SAMPLE_PROCESS:
             for spchild in child.children:
                 # check for presence of children since they do not count as node content
@@ -312,6 +325,12 @@ def _donor_rule(node: Node) -> list:
                     donornodes[10] = True
                 if spchild.name == mdb_names.STAIN and spchild.children:
                     donornodes[11] = True
+                    for stchild in spchild.children:
+                        if stchild.name == mdb_names.LIGHT_MICRO_STAIN:
+                            for lmchild in stchild.children:
+                                if lmchild.name == mdb_names.SUDAN and lmchild.content not in mdb_names.SUDAN_VALUES:
+                                    donornodes[25] = True
+
         if child.name == mdb_names.MAGNIFICATION and child.content:
             donornodes[12] = True
         if child.name == mdb_names.SPEC_CYCLE:
@@ -321,6 +340,65 @@ def _donor_rule(node: Node) -> list:
                         for stage in stgchild.children:
                             if stage.name in mdb_names.CYCLE_STAGE:
                                 donornodes[18] = True
+                            if stage.name == mdb_names.FOLLICULAR and stage.content not in mdb_names.FOLLICULAR_VALUES:
+                                donornodes[23] = True
+                            if stage.name == mdb_names.LUTEAL and stage.content not in mdb_names.LUTEAL_VALUES:
+                                donornodes[24] = True
+                if spcchild.name == mdb_names.DAY_OF_CYCLE:
+                    if spcchild.content:
+                        try:
+                            val = int(spcchild.content)
+                            if val < 0:
+                                raise ValueError
+                            else:
+                                donornodes[28] = True
+                        except ValueError:
+                            pass
+                    else:
+                        donornodes[28] = True   # Node is not required to have content
+        if child.name == mdb_names.SPEC_LOCATION:
+            for slchild in child.children:
+                if slchild.name == mdb_names.CORPUS_LUTEUM and slchild.content not in mdb_names.CORPUS_LUTEUM_VALUES:
+                    donornodes[22] = True
+        if child.name == mdb_names.DONOR_AGE:
+            for achild in child.children:
+                if achild.name == mdb_names.DONOR_YEARS:
+                    if achild.content:
+                        try:
+                            val = int(achild.content)
+                            if val < 0:
+                                raise ValueError
+                            else:
+                                donornodes[26] = True
+                        except ValueError:
+                            pass
+                    else:
+                        donornodes[26] = True   # Node is not required to have content
+                if achild.name == mdb_names.DONOR_DAYS:
+                    if achild.content:
+                        try:
+                            val = int(achild.content)
+                            if val < 0:
+                                raise ValueError
+                            else:
+                                donornodes[27] = True
+                        except ValueError:
+                            pass
+                    else:
+                        donornodes[27] = True  # Node is not required to have content
+        if child.name == mdb_names.SEC_SEQ_NUM:
+            if child.content:
+                try:
+                    val = int(child.content)
+                    if val < 0:
+                        raise ValueError
+                    else:
+                        donornodes[29] = True
+                except ValueError:
+                    pass
+            else:
+                donornodes[29] = True  # Node is not required to have content
+
 
         # if child.name == mdb_names.MICROSCOPE:
         #     for mchild in child.children:
@@ -350,7 +428,7 @@ def _donor_rule(node: Node) -> list:
     if not donornodes[3]:
         evaluation.append((
             EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING,
-            f'Donor Specimen Sequence Number is required.',
+            f'Donor Specimen Sequence Number is required and must be a non-negative value.',
             node
         ))
     if not donornodes[4]:
@@ -443,6 +521,72 @@ def _donor_rule(node: Node) -> list:
             f'Donor Stage of Cycle must be a valid stage.',
             node
         ))
+    if not donornodes[19]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_LIFE_STAGE_ENUM,
+            f'Donor Life Stage must be a valid stage.',
+            node
+        ))
+    if not donornodes[20]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_OVARY_POSITION_ENUM,
+            f'Donor Ovary Position must be a valid position.',
+            node
+        ))
+    if not donornodes[21]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SEC_THICK_UNITS_ENUM,
+            f'Donor Ovary Position must be a valid position.',
+            node
+        ))
+    if donornodes[22]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_CORPUS_LUTEUM_ENUM,
+            f'Donor Corpus Luteum Type must be a valid type.',
+            node
+        ))
+    if donornodes[23]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_FOLLICULAR_ENUM,
+            f'Donor Follicular Values must be a valid type.',
+            node
+        ))
+    if donornodes[24]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_LUTEAL_ENUM,
+            f'Donor Luteal Values must be a valid type.',
+            node
+        ))
+    if donornodes[25]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SUDAN_STAIN_ENUM,
+            f'Donor Sudan Stain Value must be a valid value.',
+            node
+        ))
+    if not donornodes[26]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_YEARS_NON_NEGATIVE,
+            f'Donor Years must be a non-negative value.',
+            node
+        ))
+    if not donornodes[27]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_DAYS_NON_NEGATIVE,
+            f'Donor Days must be a non-negative value.',
+            node
+        ))
+    if not donornodes[28]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_DAY_OF_CYCLE_NON_NEGATIVE,
+            f'Donor Day Of Cycle must be a non-negative value.',
+            node
+        ))
+    if not donornodes[29]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SEC_SEQ_NUM_NON_NEGATIVE,
+            f'Donor Section Sequence Number must be a non-negative value.',
+            node
+        ))
 
     return evaluation
 
@@ -452,7 +596,7 @@ def _ihc_rule(node: Node) -> list:
 
     if node.children:
         # array that notes the presence of nodes and their contents
-        ihcnodes = [False] * 17
+        ihcnodes = [False] * 18
 
         for child in node.children:
             if child.name == mdb_names.TARGET_PROTEIN and child.content:
@@ -477,6 +621,8 @@ def _ihc_rule(node: Node) -> list:
                                 ihcnodes[7] = True
                             if srchild.name == mdb_names.SOURCE_STATE and srchild.content:
                                 ihcnodes[8] = True
+                    if schild.name == mdb_names.CLONALITY and schild.content not in mdb_names.CLONALITY_VALUES:
+                        ihcnodes[17] = True
             if child.name == mdb_names.SECONDARY_ANTIBODY:
                 for schild in child.children:
                     if schild.name == mdb_names.TARGET_SPECIES and schild.content:
@@ -598,6 +744,12 @@ def _ihc_rule(node: Node) -> list:
             evaluation.append((
                 EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_STATE_MISSING,
                 f'Secondary Antibody Source State is required.',
+                node
+            ))
+        if ihcnodes[17]:
+            evaluation.append((
+                EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM,
+                f'Primary Antibody Clonality must be a valid value.',
                 node
             ))
 

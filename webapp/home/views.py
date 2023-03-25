@@ -46,7 +46,7 @@ from webapp import mailout
 
 from webapp.config import Config
 
-import csv
+# import csv
 
 from webapp.home.exceptions import DataTableError, MissingFileError
 
@@ -218,19 +218,6 @@ def fixup_upload_management():
     # now we can delete the files we've copied
     for file in to_delete:
         os.remove(file)
-
-
-@home.before_app_request
-@home.before_app_first_request
-def load_eval_entries():
-    rows = []
-    with open('webapp/static/evaluate.csv') as csv_file:
-        csv_reader = csv.reader(csv_file)
-        for row in csv_reader:
-            rows.append(row)
-    for row_num in range(1, len(rows)):
-        id, *vals = rows[row_num]
-        session[f'__eval__{id}'] = vals
 
 
 @home.before_app_request

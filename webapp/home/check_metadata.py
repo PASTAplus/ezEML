@@ -13,6 +13,7 @@
 """
 
 import collections
+import csv
 from enum import Enum
 
 from flask import (
@@ -36,6 +37,16 @@ from webapp.validate.evaluation_warnings_mp import EvaluationWarningMp
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
+
+evals = {}
+rows = []
+with open('webapp/static/evaluate.csv') as csv_file:
+    csv_reader = csv.reader(csv_file)
+    for row in csv_reader:
+        rows.append(row)
+for row_num in range(1, len(rows)):
+    id, *vals = rows[row_num]
+    evals[f'__eval__{id}'] = vals
 
 
 class EvalSeverity(Enum):
@@ -94,7 +105,7 @@ scopes = [
 
 def get_eval_entry(id, link=None, section=None, item=None):
     try:
-        vals = session[f'__eval__{id}']
+        vals = evals[f'__eval__{id}']
         if section:
             vals[0] = section
         if item:
@@ -700,6 +711,8 @@ def check_immunohistochemistry(node, filename):
         add_to_evaluation('ihc_16', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_STATE_MISSING, mdb_names.IHC):
         add_to_evaluation('ihc_17', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM, mdb_names.IHC):
+        add_to_evaluation('ihc_18', link)
 
 
 def check_donor(eml_node, filename):
@@ -712,12 +725,18 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_02', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LIFE_STAGE_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_03', link)
+    else:
+        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LIFE_STAGE_ENUM, mdb_names.MOTHER):
+            add_to_evaluation('donor_20', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_04', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_TISSUE_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_05', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_OVARY_POSITION_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_06', link)
+    else:
+        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_OVARY_POSITION_ENUM, mdb_names.MOTHER):
+            add_to_evaluation('donor_21', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SLIDE_ID_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_07', link)
     # if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_MISSING, mdb_names.MOTHER):
@@ -726,6 +745,9 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_09', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_UNITS_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_10', link)
+    else:
+        if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_THICK_UNITS_ENUM, mdb_names.MOTHER):
+            add_to_evaluation('donor_22', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FIXATION_MISSING, mdb_names.MOTHER):
         add_to_evaluation('donor_11', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAIN_MISSING, mdb_names.MOTHER):
@@ -744,6 +766,22 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_18', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_STAGE_OF_CYCLE_ENUM, mdb_names.MOTHER):
         add_to_evaluation('donor_19', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_CORPUS_LUTEUM_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_23', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_FOLLICULAR_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_24', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LUTEAL_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_25', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SUDAN_STAIN_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_26', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_YEARS_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_27', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_DAYS_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_28', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_DAY_OF_CYCLE_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_29', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_30', link)
 
 
 def eval_entry_to_string(eval_entry):

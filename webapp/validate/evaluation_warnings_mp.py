@@ -92,3 +92,8 @@ class EvaluationWarningMp(Enum):
     DONOR_SEC_THICK_UNITS_ENUM = auto()  # Complete
     DONOR_SUDAN_STAIN_ENUM = auto()     # Complete
     IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM = auto()    # Complete
+    DONOR_YEARS_NON_NEGATIVE = auto()   # Complete
+    DONOR_DAYS_NON_NEGATIVE = auto()    # Complete
+    DONOR_SPEC_SEQ_NUM_NON_NEGATIVE = auto()    # Complete
+    DONOR_DAY_OF_CYCLE_NON_NEGATIVE = auto()    # Complete
+    DONOR_SEC_SEQ_NUM_NON_NEGATIVE = auto()     # Complete

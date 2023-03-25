@@ -269,7 +269,7 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 26
+    donornodes = [False] * 40
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
@@ -283,7 +283,14 @@ def _donor_rule(node: Node) -> list:
             if child.content in mdb_names.MAMMAL_STAGE_VALUES:
                 donornodes[19] = True
         if child.name == mdb_names.SPEC_SEQ_NUM and child.content:
-            donornodes[3] = True
+            try:
+                val = int(child.content)
+                if val < 0:
+                    raise ValueError
+                else:
+                    donornodes[3] = True
+            except ValueError:
+                pass
         if child.name == mdb_names.SPEC_TISSUE and child.content:
             if child.content == "ovary":
                 donornodes[16] = True
@@ -303,7 +310,7 @@ def _donor_rule(node: Node) -> list:
                     # check if Section Thickness is a positive integer
                     try:
                         val = int(schild.content)
-                        if val < 0:
+                        if val <= 0:
                             raise ValueError
                     except ValueError:
                         donornodes[17] = True
@@ -337,10 +344,61 @@ def _donor_rule(node: Node) -> list:
                                 donornodes[23] = True
                             if stage.name == mdb_names.LUTEAL and stage.content not in mdb_names.LUTEAL_VALUES:
                                 donornodes[24] = True
+                if spcchild.name == mdb_names.DAY_OF_CYCLE:
+                    if spcchild.content:
+                        try:
+                            val = int(spcchild.content)
+                            if val < 0:
+                                raise ValueError
+                            else:
+                                donornodes[28] = True
+                        except ValueError:
+                            pass
+                    else:
+                        donornodes[28] = True   # Node is not required to have content
         if child.name == mdb_names.SPEC_LOCATION:
             for slchild in child.children:
                 if slchild.name == mdb_names.CORPUS_LUTEUM and slchild.content not in mdb_names.CORPUS_LUTEUM_VALUES:
                     donornodes[22] = True
+        if child.name == mdb_names.DONOR_AGE:
+            for achild in child.children:
+                if achild.name == mdb_names.DONOR_YEARS:
+                    if achild.content:
+                        try:
+                            val = int(achild.content)
+                            if val < 0:
+                                raise ValueError
+                            else:
+                                donornodes[26] = True
+                        except ValueError:
+                            pass
+                    else:
+                        donornodes[26] = True   # Node is not required to have content
+                if achild.name == mdb_names.DONOR_DAYS:
+                    if achild.content:
+                        try:
+                            val = int(achild.content)
+                            if val < 0:
+                                raise ValueError
+                            else:
+                                donornodes[27] = True
+                        except ValueError:
+                            pass
+                    else:
+                        donornodes[27] = True  # Node is not required to have content
+        if child.name == mdb_names.SEC_SEQ_NUM:
+            if child.content:
+                try:
+                    val = int(child.content)
+                    if val < 0:
+                        raise ValueError
+                    else:
+                        donornodes[29] = True
+                except ValueError:
+                    pass
+            else:
+                donornodes[29] = True  # Node is not required to have content
+
 
         # if child.name == mdb_names.MICROSCOPE:
         #     for mchild in child.children:
@@ -370,7 +428,7 @@ def _donor_rule(node: Node) -> list:
     if not donornodes[3]:
         evaluation.append((
             EvaluationWarningMp.DONOR_SPEC_SEQ_NUM_MISSING,
-            f'Donor Specimen Sequence Number is required.',
+            f'Donor Specimen Sequence Number is required and must be a non-negative value.',
             node
         ))
     if not donornodes[4]:
@@ -503,6 +561,30 @@ def _donor_rule(node: Node) -> list:
         evaluation.append((
             EvaluationWarningMp.DONOR_SUDAN_STAIN_ENUM,
             f'Donor Sudan Stain Value must be a valid value.',
+            node
+        ))
+    if not donornodes[26]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_YEARS_NON_NEGATIVE,
+            f'Donor Years must be a non-negative value.',
+            node
+        ))
+    if not donornodes[27]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_DAYS_NON_NEGATIVE,
+            f'Donor Days must be a non-negative value.',
+            node
+        ))
+    if not donornodes[28]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_DAY_OF_CYCLE_NON_NEGATIVE,
+            f'Donor Day Of Cycle must be a non-negative value.',
+            node
+        ))
+    if not donornodes[29]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SEC_SEQ_NUM_NON_NEGATIVE,
+            f'Donor Section Sequence Number must be a non-negative value.',
             node
         ))
 

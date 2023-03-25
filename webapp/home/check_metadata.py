@@ -774,6 +774,14 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_25', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SUDAN_STAIN_ENUM, mdb_names.MOTHER):
         add_to_evaluation('donor_26', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_YEARS_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_27', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_DAYS_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_28', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_DAY_OF_CYCLE_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_29', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_NON_NEGATIVE, mdb_names.MOTHER):
+        add_to_evaluation('donor_30', link)
 
 
 def eval_entry_to_string(eval_entry):

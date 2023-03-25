@@ -35,7 +35,9 @@ USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
 def get_user_folder_name():
     user_folder_name = f'{USER_DATA_DIR}/anonymous-user'
-    user_org = current_user.get_user_org()
+    user_org = False
+    if current_user.is_authenticated:
+        user_org = current_user.get_user_org()
     if user_org:
         user_folder_name = f'{USER_DATA_DIR}/{user_org}'
 
@@ -394,3 +396,10 @@ def clear_temp_folder():
 
 def get_zip_file_path() -> str:
     return os.path.join(get_user_folder_name(), Config.ACTIVE_PACKAGE, '.zip')
+
+
+def get_eval_file_name():
+    user_folder_name = get_user_folder_name()
+    eval_file_name = f'{user_folder_name}/eval.csv'
+
+    return eval_file_name

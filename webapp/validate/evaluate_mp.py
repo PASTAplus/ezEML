@@ -269,7 +269,7 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 25
+    donornodes = [False] * 26
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
@@ -318,6 +318,12 @@ def _donor_rule(node: Node) -> list:
                     donornodes[10] = True
                 if spchild.name == mdb_names.STAIN and spchild.children:
                     donornodes[11] = True
+                    for stchild in spchild.children:
+                        if stchild.name == mdb_names.LIGHT_MICRO_STAIN:
+                            for lmchild in stchild.children:
+                                if lmchild.name == mdb_names.SUDAN and lmchild.content not in mdb_names.SUDAN_VALUES:
+                                    donornodes[25] = True
+
         if child.name == mdb_names.MAGNIFICATION and child.content:
             donornodes[12] = True
         if child.name == mdb_names.SPEC_CYCLE:
@@ -493,6 +499,12 @@ def _donor_rule(node: Node) -> list:
             f'Donor Luteal Values must be a valid type.',
             node
         ))
+    if donornodes[25]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SUDAN_STAIN_ENUM,
+            f'Donor Sudan Stain Value must be a valid value.',
+            node
+        ))
 
     return evaluation
 
@@ -502,7 +514,7 @@ def _ihc_rule(node: Node) -> list:
 
     if node.children:
         # array that notes the presence of nodes and their contents
-        ihcnodes = [False] * 17
+        ihcnodes = [False] * 18
 
         for child in node.children:
             if child.name == mdb_names.TARGET_PROTEIN and child.content:
@@ -527,6 +539,8 @@ def _ihc_rule(node: Node) -> list:
                                 ihcnodes[7] = True
                             if srchild.name == mdb_names.SOURCE_STATE and srchild.content:
                                 ihcnodes[8] = True
+                    if schild.name == mdb_names.CLONALITY and schild.content not in mdb_names.CLONALITY_VALUES:
+                        ihcnodes[17] = True
             if child.name == mdb_names.SECONDARY_ANTIBODY:
                 for schild in child.children:
                     if schild.name == mdb_names.TARGET_SPECIES and schild.content:
@@ -648,6 +662,12 @@ def _ihc_rule(node: Node) -> list:
             evaluation.append((
                 EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_STATE_MISSING,
                 f'Secondary Antibody Source State is required.',
+                node
+            ))
+        if ihcnodes[17]:
+            evaluation.append((
+                EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM,
+                f'Primary Antibody Clonality must be a valid value.',
                 node
             ))
 

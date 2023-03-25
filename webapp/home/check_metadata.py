@@ -13,6 +13,7 @@
 """
 
 import collections
+import csv
 from enum import Enum
 
 from flask import (
@@ -36,6 +37,16 @@ from webapp.validate.evaluation_warnings_mp import EvaluationWarningMp
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
+
+evals = {}
+rows = []
+with open('webapp/static/evaluate.csv') as csv_file:
+    csv_reader = csv.reader(csv_file)
+    for row in csv_reader:
+        rows.append(row)
+for row_num in range(1, len(rows)):
+    id, *vals = rows[row_num]
+    evals[f'__eval__{id}'] = vals
 
 
 class EvalSeverity(Enum):
@@ -94,7 +105,7 @@ scopes = [
 
 def get_eval_entry(id, link=None, section=None, item=None):
     try:
-        vals = session[f'__eval__{id}']
+        vals = evals[f'__eval__{id}']
         if section:
             vals[0] = section
         if item:
@@ -700,6 +711,8 @@ def check_immunohistochemistry(node, filename):
         add_to_evaluation('ihc_16', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_SECONDARY_ANTIBODY_SOURCE_STATE_MISSING, mdb_names.IHC):
         add_to_evaluation('ihc_17', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM, mdb_names.IHC):
+        add_to_evaluation('ihc_18', link)
 
 
 def check_donor(eml_node, filename):
@@ -759,6 +772,8 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_24', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_LUTEAL_ENUM, mdb_names.MOTHER):
         add_to_evaluation('donor_25', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SUDAN_STAIN_ENUM, mdb_names.MOTHER):
+        add_to_evaluation('donor_26', link)
 
 
 def eval_entry_to_string(eval_entry):

@@ -90,6 +90,5 @@ class EvaluationWarningMp(Enum):
     DONOR_FOLLICULAR_ENUM = auto()  # Complete
     DONOR_LUTEAL_ENUM = auto()  # Complete
     DONOR_SEC_THICK_UNITS_ENUM = auto()  # Complete
-    DONOR_SUDAN_STAIN_ENUM = auto()
-    IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM = auto()
-    IHC_SECONDARY_ANTIBODY_CLONALITY_ENUM = auto()
+    DONOR_SUDAN_STAIN_ENUM = auto()     # Complete
+    IHC_PRIMARY_ANTIBODY_CLONALITY_ENUM = auto()    # Complete

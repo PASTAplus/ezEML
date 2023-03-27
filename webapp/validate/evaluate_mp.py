@@ -82,7 +82,7 @@ def check_taxon(node: Node, rank, value):
 def _dataset_rule(node: Node) -> list:
     evaluation = []
 
-    datanodes = [False] * 4
+    datanodes = [False] * 5
     for child in node.children:
         if child.name == names.COVERAGE:
             for cchild in child.children:
@@ -95,6 +95,10 @@ def _dataset_rule(node: Node) -> list:
                         datanodes[3] = True
                 if cchild.name == names.TEMPORALCOVERAGE:
                     datanodes[1] = True
+        if child.name == names.INTELLECTUALRIGHTS:
+            for cchild in child.children:
+                if cchild.name == names.PARA and cchild.content:
+                    datanodes[4] = True
 
     if not datanodes[0]:
         evaluation.append((
@@ -118,6 +122,12 @@ def _dataset_rule(node: Node) -> list:
         evaluation.append((
             EvaluationWarningMp.TAXONOMIC_COVERAGE_SPECIES_MISSING,
             f'Taxon Species is required',
+            node
+        ))
+    if not datanodes[4]:
+        evaluation.append((
+            EvaluationWarningMp.INTELLECTUAL_RIGHTS_MISSING,
+            f'An Intellectual Rights policy should be specified.,',
             node
         ))
     return evaluation

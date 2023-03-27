@@ -321,9 +321,9 @@ def check_keywords(eml_node, filename):
 def check_intellectual_rights(eml_node, filename):
     link = url_for(PAGE_INTELLECTUAL_RIGHTS, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    evaluation_warnings = evaluate_via_motherpype(dataset_node)
 
-    if find_err_code(evaluation_warnings, EvaluationWarning.INTELLECTUAL_RIGHTS_MISSING, names.DATASET):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.INTELLECTUAL_RIGHTS_MISSING, names.DATASET):
         add_to_evaluation('intellectual_rights_01', link)
         return
 

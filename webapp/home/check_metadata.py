@@ -321,9 +321,9 @@ def check_keywords(eml_node, filename):
 def check_intellectual_rights(eml_node, filename):
     link = url_for(PAGE_INTELLECTUAL_RIGHTS, filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
-    evaluation_warnings = evaluate_via_metapype(dataset_node)
+    evaluation_warnings = evaluate_via_motherpype(dataset_node)
 
-    if find_err_code(evaluation_warnings, EvaluationWarning.INTELLECTUAL_RIGHTS_MISSING, names.DATASET):
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.INTELLECTUAL_RIGHTS_MISSING, names.DATASET):
         add_to_evaluation('intellectual_rights_01', link)
         return
 
@@ -361,6 +361,12 @@ def check_coverage(eml_node, filename):
     dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
     for taxonomic_classification_node in taxonomic_classification_nodes:
         check_taxonomic_coverage(taxonomic_classification_node, filename)
+
+    link = url_for(PAGE_INTELLECTUAL_RIGHTS, filename=filename)
+
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.INTELLECTUAL_RIGHTS_MISSING, names.DATASET):
+        add_to_evaluation('intellectual_rights_01', link)
+        return
 
 
 def check_geographic_coverage(eml_node, filename):
@@ -851,7 +857,7 @@ def perform_evaluation(eml_node, filename):
     check_metadata_providers(eml_node, filename)
     check_dataset_abstract(eml_node, filename)
     check_keywords(eml_node, filename)
-    check_intellectual_rights(eml_node, filename)
+    # check_intellectual_rights(eml_node, filename)
     check_coverage(eml_node, filename)
     # check_geographic_coverage(eml_node, filename)
     check_maintenance(eml_node, filename)

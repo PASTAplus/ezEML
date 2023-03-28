@@ -348,7 +348,7 @@ def _donor_rule(node: Node) -> list:
                 if spcchild.name == mdb_names.STAGE_OF_CYCLE:
                     for stgchild in child.children:
                         for stage in stgchild.children:
-                            if stage.name in mdb_names.CYCLE_STAGE:
+                            if stage.name not in mdb_names.CYCLE_STAGE:
                                 donornodes[18] = True
                             if stage.name == mdb_names.FOLLICULAR and stage.content not in mdb_names.FOLLICULAR_VALUES:
                                 donornodes[23] = True
@@ -525,7 +525,7 @@ def _donor_rule(node: Node) -> list:
             f'Donor Section Thickness must be a positive integer.',
             node
         ))
-    if not donornodes[18]:
+    if donornodes[18]:
         evaluation.append((
             EvaluationWarningMp.DONOR_STAGE_OF_CYCLE_ENUM,
             f'Donor Stage of Cycle must be a valid stage.',

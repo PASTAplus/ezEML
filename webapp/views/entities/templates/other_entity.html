@@ -92,8 +92,11 @@
     <script type = "text/javascript">
         $("#file_upload").change(function(){
             var upload_path = document.getElementById("file_upload").value;
-            let upload_name = upload_path.split('\\').pop().split('/').pop().split('.')[0];
-            let upload_format = upload_path.split('.').pop();
+            let upload_file = upload_path.split(/[\\/]/).pop();
+            dot_pos = upload_file.indexOf(".");
+
+            upload_name = upload_file.substring(0, dot_pos);
+            upload_format = upload_file.slice(dot_pos + 1);
 
             document.getElementById("entity_name").value = upload_name;
             document.getElementById("entity_name").setAttribute("disabled","disabled");

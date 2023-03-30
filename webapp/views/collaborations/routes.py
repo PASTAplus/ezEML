@@ -105,6 +105,33 @@ def collaborate(filename=None, dev=None):
                            lock_list=lock_list, help=help, dev=dev)
 
 
+@collab_bp.route('/enable_edi_curation/<filename>', methods=['GET', 'POST'])
+@login_required
+def enable_edi_curation(filename=None):
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
+    if request.method == 'POST':
+        # See if a collaboration with EDI Curators already exists
+
+        # Back up the current package
+
+        # Create a group collaboration with EDI Curators
+
+        # Send an email to EDI Curators to let them know that a new package is available for curation
+
+
+
+        # if request.form.get(BTN_SUBMIT) == BTN_ENABLE_EDI_CURATION:
+        #     collaborations.enable_edi_curation(current_user.get_user_login(), current_user.get_filename())
+        flash('EDI curation has been enabled for this package.', 'success')
+        return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))
+
+    return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))
+
+
 @collab_bp.route('/accept_invitation', methods=['GET', 'POST'])
 @collab_bp.route('/accept_invitation/<filename>', methods=['GET', 'POST'])
 @collab_bp.route('/accept_invitation/<filename>/<invitation_code>', methods=['GET', 'POST'])

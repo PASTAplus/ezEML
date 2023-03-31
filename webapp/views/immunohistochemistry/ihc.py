@@ -125,8 +125,10 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
 
     # Process POST
 
+    isIHC = form.isIHC.data
+
     save = False
-    if is_dirty_form(form):
+    if is_dirty_form(form) or isIHC == 'No':
         save = True
 
     if form.validate_on_submit() and method == 'POST': # I added 'and method == ' PT4/25
@@ -157,7 +159,6 @@ def new_immunohistochemistry(filename=None, node_id=None, method=None,
             sourceState_2 = form.sourceState_2.data
             rrid_2 = form.rrid_2.data
             detectionMethod = form.detectionMethod.data
-            isIHC = form.isIHC.data
 
             if isIHC == 'Yes':
                 create_immunohistochemistry( #PT4/25

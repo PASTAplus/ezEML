@@ -43,7 +43,7 @@ class DonorForm(EDIForm):
                                          ("right", "Right"),
                                          ("unspecified", "Unspecified")], 
                                 validators=[InputRequired(message='Specimen Tissue is required')])
-    specimenLocation = SelectField('Specimen Location',
+    specimenLocation = SelectField('Specimen Location *',
                                    choices=[("", ""),
                                             ("wholeOvary", "Whole Ovary"),
                                             ("ovarianCortex", "Ovarian Cortex"),
@@ -51,7 +51,8 @@ class DonorForm(EDIForm):
                                             ("follicle", "Follicle"),
                                             ("corpusLuteum", "Corpus Luteum"),
                                             ("unspecified", "Unspecified")],
-                                   render_kw={'onchange': "specimenLocationFunction()"})
+                                   render_kw={'onchange': "specimenLocationFunction()"},
+                                   validators=[InputRequired(message='Specimen Location is required')])
     corpusLuteum = SelectField('Corpus Luteum Type',
                                choices=[("", ""),
                                         ("early", "Early"),

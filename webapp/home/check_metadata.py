@@ -788,6 +788,8 @@ def check_donor(eml_node, filename):
         add_to_evaluation('donor_29', link)
     if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SEC_SEQ_NUM_NON_NEGATIVE, mdb_names.MOTHER):
         add_to_evaluation('donor_30', link)
+    if find_err_code(evaluation_warnings, EvaluationWarningMp.DONOR_SPEC_LOCATION_CHOICE, mdb_names.MOTHER):
+        add_to_evaluation('donor_31', link)
 
 
 def eval_entry_to_string(eval_entry):

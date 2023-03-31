@@ -365,153 +365,104 @@ def create_donor(mother_node: Node,
                  model: str = None,
                  notes: str = None):
     try:
+        ihc_original = mother_node.find_child(mdb_names.IHC)
+        ihc_node = Node(mdb_names.IHC, parent=mother_node)
+        if ihc_original:
+            ihc_node = ihc_original.copy()
+        mother_node.remove_children()
+
         # if donorId:
-        donorId_node = mother_node.find_child(mdb_names.DONOR_ID)
-        if not donorId_node:  # PT4/25
-            donorId_node = Node(mdb_names.DONOR_ID, parent=mother_node)
-            mother_node.add_child(donorId_node)
+        donorId_node = Node(mdb_names.DONOR_ID, parent=mother_node)
+        mother_node.add_child(donorId_node)
         donorId_node.content = donorId
         # if donorGender:
-        donorGender_node = mother_node.find_child(mdb_names.DONOR_GENDER)
-        if not donorGender_node:
-            donorGender_node = Node(mdb_names.DONOR_GENDER, parent=mother_node)
-            mother_node.add_child(donorGender_node)
+        donorGender_node = Node(mdb_names.DONOR_GENDER, parent=mother_node)
+        mother_node.add_child(donorGender_node)
         donorGender_node.content = donorGender
         # if ageType:
-        ageType_node = mother_node.find_child(mdb_names.DONOR_AGE)
-        if not ageType_node:
-            ageType_node = Node(mdb_names.DONOR_AGE, parent=mother_node)
-            mother_node.add_child(ageType_node)
+        ageType_node = Node(mdb_names.DONOR_AGE, parent=mother_node)
+        mother_node.add_child(ageType_node)
         # if ageYears:
-        ageYears_node = ageType_node.find_child(mdb_names.DONOR_YEARS)
-        if not ageYears_node:
-            ageYears_node = Node(mdb_names.DONOR_YEARS, parent=ageType_node)
-            ageType_node.add_child(ageYears_node)
+        ageYears_node = Node(mdb_names.DONOR_YEARS, parent=ageType_node)
+        ageType_node.add_child(ageYears_node)
         ageYears_node.content = ageYears
         # if ageDays:
-        ageDays_node = ageType_node.find_child(mdb_names.DONOR_DAYS)
-        if not ageDays_node:
-            ageDays_node = Node(mdb_names.DONOR_DAYS, parent=ageType_node)
-            ageType_node.add_child(ageDays_node)
+        ageDays_node = Node(mdb_names.DONOR_DAYS, parent=ageType_node)
+        ageType_node.add_child(ageDays_node)
         ageDays_node.content = ageDays
         # if lifeStage:
-        lifeStage_node = mother_node.find_child(mdb_names.DONOR_LIFE_STAGE)
-        if not lifeStage_node:
-            lifeStage_node = Node(mdb_names.DONOR_LIFE_STAGE, parent=mother_node)
-            mother_node.add_child(lifeStage_node)
+        lifeStage_node = Node(mdb_names.DONOR_LIFE_STAGE, parent=mother_node)
+        mother_node.add_child(lifeStage_node)
         lifeStage_node.content = lifeStage
         # if specimenSeqNum:
-        specimenSeqNum_node = mother_node.find_child(mdb_names.SPEC_SEQ_NUM)
-        if not specimenSeqNum_node:
-            specimenSeqNum_node = Node(mdb_names.SPEC_SEQ_NUM, parent=mother_node)
-            mother_node.add_child(specimenSeqNum_node)
+        specimenSeqNum_node = Node(mdb_names.SPEC_SEQ_NUM, parent=mother_node)
+        mother_node.add_child(specimenSeqNum_node)
         specimenSeqNum_node.content = specimenSeqNum
         # if specimenTissue:
-        specimenTissue_node = mother_node.find_child(mdb_names.SPEC_TISSUE)
-        if not specimenTissue_node:
-            specimenTissue_node = Node(mdb_names.SPEC_TISSUE, parent=mother_node)
-            mother_node.add_child(specimenTissue_node)
+        specimenTissue_node = Node(mdb_names.SPEC_TISSUE, parent=mother_node)
+        mother_node.add_child(specimenTissue_node)
         specimenTissue_node.content = specimenTissue
         # if ovaryPosition:
-        ovaryPosition_node = mother_node.find_child(mdb_names.OVARY_POSITION)
-        if not ovaryPosition_node:
-            ovaryPosition_node = Node(mdb_names.OVARY_POSITION, parent=mother_node)
-            mother_node.add_child(ovaryPosition_node)
+        ovaryPosition_node = Node(mdb_names.OVARY_POSITION, parent=mother_node)
+        mother_node.add_child(ovaryPosition_node)
         ovaryPosition_node.content = ovaryPosition
         # if specimenLocation:
-        specimenLocation_node = mother_node.find_child(mdb_names.SPEC_LOCATION)
-        if not specimenLocation_node:
-            specimenLocation_node = Node(mdb_names.SPEC_LOCATION, parent=mother_node)
-            mother_node.add_child(specimenLocation_node)
-        cycleType_node = mother_node.find_child(mdb_names.SPEC_CYCLE)
-        if not cycleType_node:
-            cycleType_node = Node(mdb_names.SPEC_CYCLE, parent=mother_node)
-            mother_node.add_child(cycleType_node)
+        specimenLocation_node = Node(mdb_names.SPEC_LOCATION, parent=mother_node)
+        mother_node.add_child(specimenLocation_node)
+        cycleType_node = Node(mdb_names.SPEC_CYCLE, parent=mother_node)
+        mother_node.add_child(cycleType_node)
         # if dayOfCycle:
-        dayOfCycle_node = cycleType_node.find_child(mdb_names.DAY_OF_CYCLE)
-        if not dayOfCycle_node:
-            dayOfCycle_node = Node(mdb_names.DAY_OF_CYCLE, parent=cycleType_node)
-            cycleType_node.add_child(dayOfCycle_node)
+        dayOfCycle_node = Node(mdb_names.DAY_OF_CYCLE, parent=cycleType_node)
+        cycleType_node.add_child(dayOfCycle_node)
         dayOfCycle_node.content = dayOfCycle
         # if stageOfCycle:
-        stageOfCycle_node = cycleType_node.find_child(mdb_names.STAGE_OF_CYCLE)
-        if not stageOfCycle_node:
-            stageOfCycle_node = Node(mdb_names.STAGE_OF_CYCLE, parent=cycleType_node)
-            cycleType_node.add_child(stageOfCycle_node)
-        slideID_node = mother_node.find_child(mdb_names.SLIDE_ID)
-        if not slideID_node:
-            slideID_node = Node(mdb_names.SLIDE_ID, parent=mother_node)
-            mother_node.add_child(slideID_node)
+        stageOfCycle_node = Node(mdb_names.STAGE_OF_CYCLE, parent=cycleType_node)
+        cycleType_node.add_child(stageOfCycle_node)
+        slideID_node = Node(mdb_names.SLIDE_ID, parent=mother_node)
+        mother_node.add_child(slideID_node)
         slideID_node.content = slideID
         # if sectionSeqNum:
-        sectionSeqNum_node = mother_node.find_child(mdb_names.SEC_SEQ_NUM)
-        if not sectionSeqNum_node:
-            sectionSeqNum_node = Node(mdb_names.SEC_SEQ_NUM, parent=mother_node)
-            mother_node.add_child(sectionSeqNum_node)
+        sectionSeqNum_node = Node(mdb_names.SEC_SEQ_NUM, parent=mother_node)
+        mother_node.add_child(sectionSeqNum_node)
         sectionSeqNum_node.content = sectionSeqNum
         # if sectionThicknessType:
-        sectionThicknessType_node = mother_node.find_child(mdb_names.SECTION_THICKNESS)
-        if not sectionThicknessType_node:
-            sectionThicknessType_node = Node(mdb_names.SECTION_THICKNESS, parent=mother_node)
-            mother_node.add_child(sectionThicknessType_node)
+        sectionThicknessType_node = Node(mdb_names.SECTION_THICKNESS, parent=mother_node)
+        mother_node.add_child(sectionThicknessType_node)
         # if sectionThickness:
-        sectionThickness_node = sectionThicknessType_node.find_child(mdb_names.THICKNESS)
-        if not sectionThickness_node:
-            sectionThickness_node = Node(mdb_names.THICKNESS, parent=sectionThicknessType_node)
-            sectionThicknessType_node.add_child(sectionThickness_node)
+        sectionThickness_node = Node(mdb_names.THICKNESS, parent=sectionThicknessType_node)
+        sectionThicknessType_node.add_child(sectionThickness_node)
         sectionThickness_node.content = sectionThickness
         # if sectionThicknessUnit:
-        sectionThicknessUnit_node = sectionThicknessType_node.find_child(mdb_names.UNIT)
-        if not sectionThicknessUnit_node:
-            sectionThicknessUnit_node = Node(mdb_names.UNIT, parent=sectionThicknessType_node)
-            sectionThicknessType_node.add_child(sectionThicknessUnit_node)
+        sectionThicknessUnit_node = Node(mdb_names.UNIT, parent=sectionThicknessType_node)
+        sectionThicknessType_node.add_child(sectionThicknessUnit_node)
         sectionThicknessUnit_node.content = sectionThicknessUnit
         # if sampleProcessingType:
-        sampleProcessingType_node = mother_node.find_child(mdb_names.SAMPLE_PROCESS)
-        if not sampleProcessingType_node:
-            sampleProcessingType_node = Node(mdb_names.SAMPLE_PROCESS, parent=mother_node)
-            mother_node.add_child(sampleProcessingType_node)
+        sampleProcessingType_node = Node(mdb_names.SAMPLE_PROCESS, parent=mother_node)
+        mother_node.add_child(sampleProcessingType_node)
         # if fixation:
-        fixation_node = sampleProcessingType_node.find_child(mdb_names.FIXATION)
-        if not fixation_node:
-            fixation_node = Node(mdb_names.FIXATION, parent=sampleProcessingType_node)
-            sampleProcessingType_node.add_child(fixation_node)
-        stain_node = sampleProcessingType_node.find_child(mdb_names.STAIN)
-        if not stain_node:
-            stain_node = Node(mdb_names.STAIN, parent=sampleProcessingType_node)
-            sampleProcessingType_node.add_child(stain_node)
-        magnification_node = mother_node.find_child(mdb_names.MAGNIFICATION)
-        if not magnification_node:
-            magnification_node = Node(mdb_names.MAGNIFICATION, parent=mother_node)
-            mother_node.add_child(magnification_node)
+        fixation_node = Node(mdb_names.FIXATION, parent=sampleProcessingType_node)
+        sampleProcessingType_node.add_child(fixation_node)
+        stain_node = Node(mdb_names.STAIN, parent=sampleProcessingType_node)
+        sampleProcessingType_node.add_child(stain_node)
+        magnification_node = Node(mdb_names.MAGNIFICATION, parent=mother_node)
+        mother_node.add_child(magnification_node)
         magnification_node.content = magnification
-        # if ihc
-        ihc_node = mother_node.find_child(mdb_names.IHC)
-        if not ihc_node:
-            ihc_node = Node(mdb_names.IHC, parent=mother_node)
-            mother_node.add_child(ihc_node)
+
+        mother_node.add_child(ihc_node)
         # if microscopeType:
-        microscopeType_node = mother_node.find_child(mdb_names.MICROSCOPE)
-        if not microscopeType_node:
-            microscopeType_node = Node(mdb_names.MICROSCOPE, parent=mother_node)
-            mother_node.add_child(microscopeType_node)
+        microscopeType_node = Node(mdb_names.MICROSCOPE, parent=mother_node)
+        mother_node.add_child(microscopeType_node)
         # if maker:
-        maker_node = microscopeType_node.find_child(mdb_names.MICRO_MAKER)
-        if not maker_node:
-            maker_node = Node(mdb_names.MICRO_MAKER, parent=microscopeType_node)
-            microscopeType_node.add_child(maker_node)
+        maker_node = Node(mdb_names.MICRO_MAKER, parent=microscopeType_node)
+        microscopeType_node.add_child(maker_node)
         maker_node.content = maker
         # if model:
-        model_node = microscopeType_node.find_child(mdb_names.MICRO_MODEL)
-        if not model_node:
-            model_node = Node(mdb_names.MICRO_MODEL, parent=microscopeType_node)
-            microscopeType_node.add_child(model_node)
+        model_node = Node(mdb_names.MICRO_MODEL, parent=microscopeType_node)
+        microscopeType_node.add_child(model_node)
         model_node.content = model
         # if notes:
-        notes_node = microscopeType_node.find_child(mdb_names.MICRO_NOTES)
-        if not notes_node:
-            notes_node = Node(mdb_names.MICRO_NOTES, parent=microscopeType_node)
-            microscopeType_node.add_child(notes_node)
+        notes_node = Node(mdb_names.MICRO_NOTES, parent=microscopeType_node)
+        microscopeType_node.add_child(notes_node)
         notes_node.content = notes
 
         return mother_node
@@ -555,151 +506,102 @@ def create_immunohistochemistry(ihc_node: Node,
                                 rrid_2: str = None,
                                 detectionMethod: str = None):
     try:
+        ihc_node.remove_children()
         if targetProtein:
-            targetProtein_node = ihc_node.find_child(mdb_names.TARGET_PROTEIN) #PT4/25
-            if not targetProtein_node: #PT4/25
-                targetProtein_node = Node(mdb_names.TARGET_PROTEIN, parent=ihc_node)
-                ihc_node.add_child(targetProtein_node)
+            targetProtein_node = Node(mdb_names.TARGET_PROTEIN, parent=ihc_node)
+            ihc_node.add_child(targetProtein_node)
             targetProtein_node.content = targetProtein
         if primaryAntibody:
-            primaryAntibody_node = ihc_node.find_child(mdb_names.PRIMARY_ANTIBODY)
-            if not primaryAntibody_node:
-                primaryAntibody_node = Node(mdb_names.PRIMARY_ANTIBODY, parent=ihc_node)
-                ihc_node.add_child(primaryAntibody_node)
+            primaryAntibody_node = Node(mdb_names.PRIMARY_ANTIBODY, parent=ihc_node)
+            ihc_node.add_child(primaryAntibody_node)
         if clonality:
-            clonality_node = primaryAntibody_node.find_child(mdb_names.CLONALITY)
-            if not clonality_node:
-                clonality_node = Node(mdb_names.CLONALITY, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(clonality_node)
+            clonality_node = Node(mdb_names.CLONALITY, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(clonality_node)
             clonality_node.content = clonality
         if targetSpecies:
-            targetSpecies_node = primaryAntibody_node.find_child(mdb_names.TARGET_SPECIES)
-            if not targetSpecies_node:
-                targetSpecies_node = Node(mdb_names.TARGET_SPECIES, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(targetSpecies_node)
+            targetSpecies_node = Node(mdb_names.TARGET_SPECIES, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(targetSpecies_node)
             targetSpecies_node.content = targetSpecies
         if hostSpecies:
-            hostSpecies_node = primaryAntibody_node.find_child(mdb_names.HOST_SPECIES)
-            if not hostSpecies_node:
-                hostSpecies_node = Node(mdb_names.HOST_SPECIES, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(hostSpecies_node)
+            hostSpecies_node = Node(mdb_names.HOST_SPECIES, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(hostSpecies_node)
             hostSpecies_node.content = hostSpecies
         if dilution:
-            dilution_node = primaryAntibody_node.find_child(mdb_names.DILUTION)
-            if not dilution_node:
-                dilution_node = Node(mdb_names.DILUTION, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(dilution_node)
+            dilution_node = Node(mdb_names.DILUTION, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(dilution_node)
             dilution_node.content = dilution
         if lotNumber:
-            lotNumber_node = primaryAntibody_node.find_child(mdb_names.LOT_NUMBER)
-            if not lotNumber_node:
-                lotNumber_node = Node(mdb_names.LOT_NUMBER, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(lotNumber_node)
+            lotNumber_node = Node(mdb_names.LOT_NUMBER, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(lotNumber_node)
             lotNumber_node.content = lotNumber
         if catNumber:
-            catNumber_node = primaryAntibody_node.find_child(mdb_names.CAT_NUMBER)
-            if not catNumber_node:
-                catNumber_node = Node(mdb_names.CAT_NUMBER, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(catNumber_node)
+            catNumber_node = Node(mdb_names.CAT_NUMBER, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(catNumber_node)
             catNumber_node.content = catNumber
         if source:
-            source_node = primaryAntibody_node.find_child(mdb_names.SOURCE)
-            if not source_node:
-                source_node = Node(mdb_names.SOURCE, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(source_node)
+            source_node = Node(mdb_names.SOURCE, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(source_node)
         if sourceName:
-            sourceName_node = source_node.find_child(mdb_names.SOURCE_NAME)
-            if not sourceName_node:
-                sourceName_node = Node(mdb_names.SOURCE_NAME, parent=source_node)
-                source_node.add_child(sourceName_node)
+            sourceName_node = Node(mdb_names.SOURCE_NAME, parent=source_node)
+            source_node.add_child(sourceName_node)
             sourceName_node.content = sourceName
         if sourceCity:
-            sourceCity_node = source_node.find_child(mdb_names.SOURCE_CITY)
-            if not sourceCity_node:
-                sourceCity_node = Node(mdb_names.SOURCE_CITY, parent=source_node)
-                source_node.add_child(sourceCity_node)
+            sourceCity_node = Node(mdb_names.SOURCE_CITY, parent=source_node)
+            source_node.add_child(sourceCity_node)
             sourceCity_node.content = sourceCity
         if sourceState:
-            sourceState_node = source_node.find_child(mdb_names.SOURCE_STATE)
-            if not sourceState_node:
-                sourceState_node = Node(mdb_names.SOURCE_STATE, parent= source_node)
-                source_node.add_child(sourceState_node)
-                sourceState_node.content = sourceState
+            sourceState_node = Node(mdb_names.SOURCE_STATE, parent= source_node)
+            source_node.add_child(sourceState_node)
+            sourceState_node.content = sourceState
         if rrid:
-            rrid_node = primaryAntibody_node.find_child(mdb_names.RRID)
-            if not rrid_node:
-                rrid_node = Node(mdb_names.RRID, parent=primaryAntibody_node)
-                primaryAntibody_node.add_child(rrid_node)
+            rrid_node = Node(mdb_names.RRID, parent=primaryAntibody_node)
+            primaryAntibody_node.add_child(rrid_node)
             rrid_node.content = rrid
         if secondaryAntibody:
-            secondaryAntibody_node = ihc_node.find_child(mdb_names.SECONDARY_ANTIBODY)
-            if not secondaryAntibody_node:
-                secondaryAntibody_node = Node(mdb_names.SECONDARY_ANTIBODY, parent=ihc_node)
-                ihc_node.add_child(secondaryAntibody_node)
+            secondaryAntibody_node = Node(mdb_names.SECONDARY_ANTIBODY, parent=ihc_node)
+            ihc_node.add_child(secondaryAntibody_node)
         if targetSpecies_2:
-            targetSpecies_node_2 = secondaryAntibody_node.find_child(mdb_names.TARGET_SPECIES)
-            if not targetSpecies_node_2:
-                targetSpecies_node_2 = Node(mdb_names.TARGET_SPECIES, parent=secondaryAntibody_node)
-                secondaryAntibody_node.add_child(targetSpecies_node_2)
+            targetSpecies_node_2 = Node(mdb_names.TARGET_SPECIES, parent=secondaryAntibody_node)
+            secondaryAntibody_node.add_child(targetSpecies_node_2)
             targetSpecies_node_2.content = targetSpecies_2
         if hostSpecies_2:
-            hostSpecies_node_2 = secondaryAntibody_node.find_child(mdb_names.HOST_SPECIES)
-            if not hostSpecies_node_2:
-                hostSpecies_node_2 = Node(mdb_names.HOST_SPECIES, parent=secondaryAntibody_node)
-                secondaryAntibody_node.add_child(hostSpecies_node_2)
+            hostSpecies_node_2 = Node(mdb_names.HOST_SPECIES, parent=secondaryAntibody_node)
+            secondaryAntibody_node.add_child(hostSpecies_node_2)
             hostSpecies_node_2.content = hostSpecies_2
         if dilution_2:
-            dilution_node_2 = secondaryAntibody_node.find_child(mdb_names.DILUTION)
-            if not dilution_node_2:
-                dilution_node_2 = Node(mdb_names.DILUTION, parent=secondaryAntibody_node)
-                secondaryAntibody_node.add_child(dilution_node_2)
+            dilution_node_2 = Node(mdb_names.DILUTION, parent=secondaryAntibody_node)
+            secondaryAntibody_node.add_child(dilution_node_2)
             dilution_node_2.content = dilution_2
         if lotNumber_2:
-            lotNumber_node_2 = secondaryAntibody_node.find_child(mdb_names.LOT_NUMBER)
-            if not lotNumber_node_2:
-                lotNumber_node_2 = Node(mdb_names.LOT_NUMBER, parent=secondaryAntibody_node)
-                secondaryAntibody_node.add_child(lotNumber_node_2)
+            lotNumber_node_2 = Node(mdb_names.LOT_NUMBER, parent=secondaryAntibody_node)
+            secondaryAntibody_node.add_child(lotNumber_node_2)
             lotNumber_node_2.content = lotNumber_2
         if catNumber_2:
-            catNumber_node_2 = secondaryAntibody_node.find_child(mdb_names.CAT_NUMBER)
-            if not catNumber_node_2:
-                catNumber_node_2 = Node(mdb_names.CAT_NUMBER, parent=secondaryAntibody_node)
-                secondaryAntibody_node.add_child(catNumber_node_2)
+            catNumber_node_2 = Node(mdb_names.CAT_NUMBER, parent=secondaryAntibody_node)
+            secondaryAntibody_node.add_child(catNumber_node_2)
             catNumber_node_2.content = catNumber_2
         if source_2:
-            source_node_2 = secondaryAntibody_node.find_child(mdb_names.SOURCE)
-            if not source_node_2:
-                source_node_2 = Node(mdb_names.SOURCE, parent=secondaryAntibody_node)
-                secondaryAntibody_node.add_child(source_node_2)
+            source_node_2 = Node(mdb_names.SOURCE, parent=secondaryAntibody_node)
+            secondaryAntibody_node.add_child(source_node_2)
         if sourceName_2:
-            sourceName_node_2 = source_node_2.find_child(mdb_names.SOURCE_NAME)
-            if not sourceName_node_2:
-                sourceName_node_2 = Node(mdb_names.SOURCE_NAME, parent=source_node_2)
-                source_node_2.add_child(sourceName_node_2)
+            sourceName_node_2 = Node(mdb_names.SOURCE_NAME, parent=source_node_2)
+            source_node_2.add_child(sourceName_node_2)
             sourceName_node_2.content = sourceName_2
         if sourceCity_2:
-            sourceCity_node_2 = source_node_2.find_child(mdb_names.SOURCE_CITY)
-            if not sourceCity_node_2:
-                sourceCity_node_2 = Node(mdb_names.SOURCE_CITY, parent=source_node_2)
-                source_node_2.add_child(sourceCity_node_2)
+            sourceCity_node_2 = Node(mdb_names.SOURCE_CITY, parent=source_node_2)
+            source_node_2.add_child(sourceCity_node_2)
             sourceCity_node_2.content = sourceCity_2
         if sourceState_2:
-            sourceState_node_2 = source_node_2.find_child(mdb_names.SOURCE_STATE)
-            if not sourceState_node_2:
-                sourceState_node_2 = Node(mdb_names.SOURCE_STATE, parent=source_node_2)
-                source_node_2.add_child(sourceState_node_2)
-                sourceState_node_2.content = sourceState_2
+            sourceState_node_2 = Node(mdb_names.SOURCE_STATE, parent=source_node_2)
+            source_node_2.add_child(sourceState_node_2)
+            sourceState_node_2.content = sourceState_2
         if rrid_2:
-            rrid_node_2 = secondaryAntibody_node.find_child(mdb_names.RRID)
-            if not rrid_node_2:
-                rrid_node_2 = Node(mdb_names.RRID, parent=secondaryAntibody_node)
-                secondaryAntibody_node.add_child(rrid_node_2)
+            rrid_node_2 = Node(mdb_names.RRID, parent=secondaryAntibody_node)
+            secondaryAntibody_node.add_child(rrid_node_2)
             rrid_node_2.content = rrid
         if detectionMethod:
-            detectionMethod_node = ihc_node.find_child(mdb_names.DETECTION_METHOD)
-            if not detectionMethod_node:
-                detectionMethod_node = Node(mdb_names.DETECTION_METHOD, parent=ihc_node)
-                ihc_node.add_child(detectionMethod_node)
+            detectionMethod_node = Node(mdb_names.DETECTION_METHOD, parent=ihc_node)
+            ihc_node.add_child(detectionMethod_node)
             detectionMethod_node.content = detectionMethod
 
         return ihc_node

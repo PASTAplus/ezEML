@@ -177,7 +177,7 @@ def other_entity(filename=None, node_id=None):
             #overwrite name and file type if uploaded file is present
             if file_upload is not None:
                 file_name = secure_filename(file_upload.filename)
-                file_upload_name_split = os.path.splitext(file_name)
+                file_upload_name_split = file_name.split(os.extsep, 1)
                 entity_name = file_upload_name_split[0]
                 format_name = file_upload_name_split[1].strip('.') #remove dot to stay consistent with expected user input
 

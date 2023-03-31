@@ -349,7 +349,6 @@ NILLABLE = {
 }
 
 OPTIONAL = {
-    SPEC_LOCATION,
     STAGE_OF_CYCLE,
     SEC_SEQ_NUM,
     IHC,

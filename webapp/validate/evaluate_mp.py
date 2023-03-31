@@ -279,7 +279,7 @@ def _donor_rule(node: Node) -> list:
     evaluation = []
 
     # array that notes the presence of nodes and their contents
-    donornodes = [False] * 40
+    donornodes = [False] * 31
 
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:

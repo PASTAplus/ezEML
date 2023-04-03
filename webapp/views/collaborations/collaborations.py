@@ -5,13 +5,26 @@ from sqlalchemy.types import TypeDecorator, String
 
 from dataclasses import dataclass
 from datetime import datetime, date
+from enum import Enum
 from flask import url_for, Blueprint
 from flask_login import current_user
 
 from webapp import db #, engine
 from webapp.config import Config
 
-from webapp.views.collaborations.model import Collaboration, CollaborationStatus, Invitation, Lock, Package, User
+from webapp.views.collaborations.model import (
+    Collaboration,
+    CollaborationStatus,
+    GroupCollaboration,
+    GroupLock,
+    Invitation,
+    Lock,
+    Package,
+    User,
+    UserGroup,
+    UserGroupMembership
+)
+
 from webapp.views.collaborations.data_classes import (
     CollaborationRecord,
     InvitationRecord,
@@ -40,6 +53,22 @@ logger = daiquiri.getLogger('views: ' + __name__)
 # Session = scoped_session(sessionmaker(bind=engine))
 
 
+class CollaborationCase(Enum):
+    LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL = 1
+    LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP = 2
+    LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR = 3
+    LOGGED_IN_USER_IS_GROUP_COLLABORATOR = 4
+
+
+class CollaborationAction(Enum):
+    APPLY_GROUP_LOCK = 1
+    END_COLLABORATION = 2
+    END_GROUP_COLLABORATION = 3
+    OPEN = 4
+    RELEASE_GROUP_LOCK = 5
+    RELEASE_LOCK = 6
+
+
 def display_name(user_login: str) -> str:
     try:
         if user_login:
@@ -49,13 +78,6 @@ def display_name(user_login: str) -> str:
     except:
         ijk = 1
         return ''
-
-
-# def set_active_package_for_collaborator(collaborator_id, package_id):
-#     collaborator = _get_user(collaborator_id)
-#     if not collaborator:
-#         raise exceptions.CollaborationDatabaseError(f'Collaborator {collaborator_id} does not exist.')
-#     _set_active_package_id(collaborator_id, package_id)
 
 
 def set_active_package(user_login, package_name, owner_login=None, session=None):
@@ -179,6 +201,19 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
             #  only entry point for a collaborator to open a package is through the collaboration page.
             active_package = set_active_package(user_login, package_name, owner_login=user_login, session=session)
 
+        # See if a group lock exists for the package.
+        group_lock = _get_group_lock(active_package.package_id)
+        if group_lock:
+            # Check if the current user is a member of the group.
+            if not is_group_member(user_login, group_lock.locked_by, session=session):
+                # The lock has not timed out, so raise an exception.
+                package_name = active_package.package_name
+                locked_by = display_name(_get_user(group_lock.locked_by).user_login)
+                message = f'Package {package_name} is currently locked by {locked_by}'
+                raise exceptions.LockOwnedByAGroup(message=message,
+                                                   package_name=package_name,
+                                                   user_name=locked_by)
+
         # See if a lock exists for the package.
         lock = _get_lock(active_package.package_id)
         if lock:
@@ -204,7 +239,7 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
                     message = f'Package {package_name} is currently locked by {locked_by}'
                     raise exceptions.LockOwnedByAnotherUser(message=message,
                                                             package_name=package_name,
-                                                            user_name=locked_by)
+                                                            group_name=locked_by)
         else:
             # The package is unlocked, so lock it.
             _add_lock(active_package.package_id, user.user_id, session=session)
@@ -255,6 +290,22 @@ def _get_lock(package_id):
     return lock
 
 
+def get_lock_status(package_id, session=None):
+    locked_by_id = None
+    group_locked_by_id = None
+    individual_locked_by_id = None
+    with db_session(session) as session:
+        group_lock = _get_group_lock(package_id)
+        if group_lock:
+            group_locked_by_id = group_lock.locked_by
+            locked_by_id = group_locked_by_id
+        individual_lock = _get_lock(package_id)
+        if individual_lock:
+            individual_locked_by_id = individual_lock.locked_by
+            locked_by_id = individual_locked_by_id
+    return locked_by_id, group_locked_by_id, individual_locked_by_id
+
+
 def _add_lock(package_id, locked_by, session=None):
     with db_session(session) as session:
         lock = _get_lock(package_id)
@@ -290,6 +341,20 @@ def remove_collaboration(collab_id, session=None):
             session.delete(collaboration)
 
 
+def remove_group_collaboration(group_collab_id, session=None):
+    with db_session(session) as session:
+        group_collaboration = _get_group_collaboration(group_collab_id)
+        if group_collaboration:
+            # We delete the individual collaborations first, then the group collaboration.
+            package_id = group_collaboration.package_id
+            for member in get_group_members(group_collaboration.user_group_id, session=session):
+                member_user = _get_user(member.user_id)
+                collaboration = get_collaboration(member_user.user_id, package_id, session=session)
+                if collaboration:
+                    remove_collaboration(collaboration.collab_id, session=session)
+            session.delete(group_collaboration)
+
+
 def _remove_lock(package_id, session=None):
     with db_session(session) as session:
         lock = _get_lock(package_id)
@@ -320,6 +385,52 @@ def release_lock(user_login, package_id, session=None):
         user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
         if lock and lock.locked_by == user_id:
             _remove_lock(package_id, session=session)
+
+
+def _get_group_lock(package_id):
+    try:
+        lock = GroupLock.query.filter_by(package_id=package_id).first()
+    except Exception as exc:
+        lock = None
+    return lock
+
+
+def add_group_lock(package_id, locked_by, session=None):
+    with db_session(session) as session:
+        group_lock = _get_group_lock(package_id)
+        if not group_lock:
+            group_lock = GroupLock(package_id=package_id, locked_by=locked_by)
+            session.add(group_lock)
+            session.flush()
+        # Remove individual lock if locked by a non-member of the group.
+        lock = _get_lock(package_id)
+        if lock:
+            in_group = False
+            members = get_group_members(group_lock.locked_by, session=session)
+            for member in members:
+                if member.user_id == lock.locked_by:
+                    in_group = True
+                    break
+            if not in_group:
+                _remove_lock(package_id, session=session)
+        return group_lock
+
+
+def _remove_group_lock(package_id, session=None):
+    with db_session(session) as session:
+        lock = _get_group_lock(package_id)
+        if lock:
+            session.delete(lock)
+
+
+def release_group_lock(package_id, session=None):
+    with db_session(session) as session:
+        group = GroupCollaboration.query.filter_by(package_id=package_id).first()
+        if group:
+            _remove_group_lock(package_id, session=session)
+            for member in get_group_members(group.user_group_id, session=session):
+                member_user = _get_user(member.user_id)
+                release_lock(member_user.user_login, package_id, session=session)
 
 
 def set_active_package_id(user_id, package_id, session=None):
@@ -532,25 +643,154 @@ def get_lock_output():
         return lock_list
 
 
-# Returns the list of collaborations for a given user, to be display on the Collaboration page
+def get_groups_for_user(user_id, session=None):
+    groups = []
+    with db_session(session) as session:
+        group_memberships = UserGroupMembership.query.filter_by(user_id=user_id).all()
+        for group_membership in group_memberships:
+            user_group = UserGroup.query.filter_by(user_group_id=group_membership.user_group_id).first()
+            if user_group:
+                groups.append(user_group)
+    return groups
+
+
+def get_locked_by_id(package_id, session=None):
+    with db_session(session) as session:
+        lock = _get_group_lock(package_id)
+        if not lock:
+            lock = _get_lock(package_id)
+        if lock:
+            return lock.locked_by
+
+
+def get_group_collaborations(user_id, session=None):
+    """
+    Handling group collaborations:
+    We build a list of collaboration records and a set of collaboration_ids to suppress because they are details
+     of group membership and the user is not a member of the group.
+    - Find group collaborations where the user is the package owner
+        For each such collaboration, if the user is not a member of the group, we want to suppress the ordinary
+        collaborations with members of the group
+    - Find group collaborations where the user is a member
+        First, find groups where the user is a member
+        For each such group, find the group collaborations where the user is not the owner
+    """
+    collaboration_records = []
+    collaborations_to_suppress = set()
+    with db_session(session) as session:
+        groups_for_user = get_groups_for_user(user_id, session=session)
+        # First, where the user is package owner
+        group_collaborations = GroupCollaboration.query.filter_by(owner_id=user_id).all()
+        for group_collaboration in group_collaborations:
+            # Is the user a member?
+            if group_collaboration.user_group not in groups_for_user:
+                # No, so we want to suppress the ordinary collaborations with members of the group
+                for member in get_group_members(group_collaboration.user_group.user_group_id):
+                    collaborations_to_suppress.add((group_collaboration.package_id, member.user_id))
+            group_as_user = get_user(fake_login_for_group(group_collaboration.user_group.user_group_name),
+                                     session=session)
+            # lock = _get_group_lock(group_collaboration.package_id)
+            # if not lock:
+            #     lock = _get_lock(group_collaboration.package_id)
+            collaboration_records.append(CollaborationRecord(
+                collaboration_case=CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP,
+                collab_id=f"G{group_collaboration.group_collab_id}",
+                package_id=group_collaboration.package_id,
+                package=group_collaboration.package.package_name,
+                owner_id=group_collaboration,
+                owner_login=group_collaboration.owner.user_login,
+                owner_name='',
+                collaborator_is_group=True,
+                collaborator_id=group_as_user.user_id,
+                collaborator_login=group_as_user.user_login,
+                collaborator_name='',
+                status=None,
+                locked_by_id=get_locked_by_id(group_collaboration.package_id, session=session),
+                locked_by='',
+                action=''))
+
+        # Second, where the user is a member. Here, we want to add each group member as a collaborator
+        groups = get_groups_for_user(user_id, session=session)
+        for group in groups:
+            group_collaborations = GroupCollaboration.query.filter_by(user_group_id=group.user_group_id).all()
+            for group_collaboration in group_collaborations:
+                if group_collaboration.owner_id != user_id:
+                    group_as_user = get_user(fake_login_for_group(group_collaboration.user_group.user_group_name),
+                                             session=session)
+                    # group_lock = _get_group_lock(group_collaboration.package_id)
+                    collaboration_records.append(CollaborationRecord(
+                        collaboration_case=CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR,
+                        collab_id=f"G{group_collaboration.group_collab_id}",
+                        package_id=group_collaboration.package_id,
+                        package=group_collaboration.package.package_name,
+                        owner_id=group_collaboration,
+                        owner_login=group_collaboration.owner.user_login,
+                        owner_name='',
+                        collaborator_is_group=True,
+                        collaborator_id=group_as_user.user_id,
+                        collaborator_login=group_as_user.user_login,
+                        collaborator_name=group_collaboration.user_group.user_group_name,
+                        status=None,
+                        locked_by_id=get_locked_by_id(group_collaboration.package_id, session=session),
+                        locked_by='',
+                        action=''))
+
+                    members = get_group_members(group_collaboration.user_group.user_group_id, session=session)
+                    lock = _get_lock(group_collaboration.package_id)
+                    for member in members:
+                        # if member.user_id == user_id:
+                        #     # We skip the user because they will be added in the processing of ordinary, non-group
+                        #     #  collaborations.
+                        #     continue
+                        collaboration = get_collaboration(member.user_id, group_collaboration.package_id)
+                        collaboration_records.append(CollaborationRecord(
+                            collaboration_case=CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR,
+                            collab_id=collaboration.collab_id,
+                            package_id=group_collaboration.package_id,
+                            package=group_collaboration.package.package_name,
+                            owner_id=group_collaboration,
+                            owner_login=group_collaboration.owner.user_login,
+                            owner_name='',
+                            collaborator_is_group=False,
+                            collaborator_id=member.user_id,
+                            collaborator_login=member.user.user_login,
+                            collaborator_name='',
+                            status=None,
+                            locked_by_id=get_locked_by_id(group_collaboration.package_id, session=session),
+                            locked_by='',
+                            action=''))
+    return collaboration_records, collaborations_to_suppress
+
+
+# Returns the list of collaborations for a given user, to be displayed on the Collaboration page
 def get_collaborations(user_login):
     if not user_login:
         return []
     # Get all collaborations where the user is the owner or the collaborator
-    collaboration_records = []
     with db_session() as session:
-        # First, where the user is owner
         user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
+        # Get group collaborations involving this user
+        collaboration_records, collaborations_to_suppress = get_group_collaborations(user_id, session=session)
+        # Now get the ordinary collaborations, adding them to the collaboration_records list
+        # First, where the user is owner
         collaborations = Collaboration.query.filter_by(owner_id=user_id).all()
-        # Then, where the user is collaborator
-        collaborations.extend(Collaboration.query.filter_by(collaborator_id=user_id).all())
+        annotated_collaborations = []
         for collaboration in collaborations:
+            annotated_collaborations.append((collaboration, CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL))
+        # Then, where the user is collaborator
+        collaborations= Collaboration.query.filter_by(collaborator_id=user_id).all()
+        for collaboration in collaborations:
+            annotated_collaborations.append((collaboration, CollaborationCase.LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR))
+        for collaboration, collaboration_case in annotated_collaborations:
+            if (collaboration.package_id, collaboration.collaborator_id) in collaborations_to_suppress:
+                continue
             owner_id = collaboration.owner_id
             status = _get_collaboration_status(collaboration.collab_id)
             if status:
                 status = status.status
             else:
                 status = None
+            locked_by = None
             lock = _get_lock(collaboration.package_id)
             # If the lock has timed out, remove it. We do this here because a collaborator cannot open a locked package
             #  and has no way to remove the lock.
@@ -560,19 +800,23 @@ def get_collaborations(user_login):
                 if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
                     # The lock has timed out, so remove it
                     session.delete(lock)
+                else:
+                    locked_by = lock.locked_by
             try:
                 collaboration_records.append(CollaborationRecord(
+                    collaboration_case=collaboration.collaboration_case,
                     collab_id=collaboration.collab_id,
                     package_id=collaboration.package_id,
                     package=collaboration.package.package_name,
                     owner_id=owner_id,
                     owner_login=collaboration.owner.user_login,
                     owner_name='',
+                    collaborator_is_group=False,
                     collaborator_id=collaboration.collaborator_id,
                     collaborator_login=collaboration.collaborator.user_login,
                     collaborator_name='',
                     status=status,
-                    locked_by_id=lock.locked_by if lock else None,
+                    locked_by_id=locked_by,
                     locked_by='',
                     action=''))
             except Exception as e:
@@ -688,8 +932,137 @@ def create_invitation(filename, inviter_name, inviter_email, invitee_name, invit
         return invitation_code
 
 
+def get_user_group(user_group_name, create_if_not_found=True, session=None):
+    with db_session(session) as session:
+        user_group = UserGroup.query.filter_by(user_group_name=user_group_name).first()
+        if not user_group and create_if_not_found:
+            user_group = add_user_group(user_group_name, session=session)
+        return user_group
+
+
+def add_user_group(user_group_name, session=None):
+    with db_session(session) as session:
+        user_group = get_user_group(user_group_name, create_if_not_found=False, session=session)
+        if not user_group:
+            user_group = UserGroup(user_group_name=user_group_name)
+            session.add(user_group)
+            session.flush()
+        return user_group
+
+
+def get_user_group_membership(user_group_id, user_id, create_if_not_found=False, session=None):
+    with db_session(session) as session:
+        user_group_membership = UserGroupMembership.query.filter_by(user_group_id=user_group_id, user_id=user_id).first()
+        if not user_group_membership and create_if_not_found:
+            user_group_membership = UserGroupMembership(user_group_id=user_group_id, user_id=user_id)
+            session.add(user_group_membership)
+        return user_group_membership
+
+
+def _get_group_collaboration(group_collab_id):
+    group_collaboration = GroupCollaboration.query.filter_by(group_collab_id=group_collab_id).first()
+    return group_collaboration
+
+
+def get_group_collaboration(user_group_id, package_id):
+    group_collaboration = GroupCollaboration.query.filter_by(user_group_id=user_group_id, package_id=package_id).first()
+    return group_collaboration
+
+
+def get_group_members(user_group_id, session=None):
+    with db_session(session) as session:
+        user_group_memberships = UserGroupMembership.query.filter_by(user_group_id=user_group_id).all()
+        return user_group_memberships
+
+
+def is_group_member(user_login, user_group_id, session=None):
+    with db_session(session) as session:
+        user = get_user(user_login, session=session)
+        if user:
+            user_id = user.user_id
+            user_group_membership = UserGroupMembership.query.filter_by(user_id=user_id, user_group_id=user_group_id).first()
+            return user_group_membership is not None
+        return False
+
+
+def add_group_collaboration(user_login, user_group_name, package_name, session=None):
+    with db_session(session) as session:
+        user = get_user(user_login, session=session)
+        if not user:
+            raise exceptions.UserNotFound(f'User {user_login} not found')
+        owner_id = user.user_id
+        package = _get_package(owner_id, package_name, create_if_not_found=False, session=session)
+        if not package or package.owner_id != owner_id:
+            raise exceptions.UserIsNotTheOwner(f'User {user_login} is not the owner of package {package_name}')
+
+        user_group = get_user_group(user_group_name, session=session)
+        group_collaboration = get_group_collaboration(user_group.user_group_id, package.package_id)
+        if group_collaboration:
+            raise exceptions.CollaboratingWithGroupAlready(
+                f'Group collaboration already exists for group {user_group_name} and package {package_name}')
+
+        group_collaboration = GroupCollaboration(owner_id=owner_id,
+                                                 user_group_id=user_group.user_group_id,
+                                                 package_id=package.package_id)
+        session.add(group_collaboration)
+        session.flush()
+        # Add all the members of the group as collaborators
+        user_group_memberships = get_group_members(user_group.user_group_id, session=session)
+        for user_group_membership in user_group_memberships:
+            if owner_id != user_group_membership.user_id:
+                _add_collaboration(owner_id, user_group_membership.user_id, package.package_id, session=session)
+        return group_collaboration
+
+
 def init_db():
     db.create_all()
+    init_groups()
+    # test_stub()
+
+
+def fake_login_for_group(user_group_name):
+    # We prepend a null character to the group name to ensure that it is not a valid login and to put it ahead
+    # of group members in the sort order for display purposes
+    return "\0" + user_group_name + "-group_collaboration"
+
+
+def init_groups():
+    with db_session() as session:
+        groups = Config.COLLABORATAION_GROUPS
+        for user_group_name in groups.keys():
+            # We want a user representing each group so that we can add them as collaborators
+            _ = add_user(user_login=fake_login_for_group(user_group_name), session=session)
+        for user_group_name, members in groups.items():
+            user_group = add_user_group(user_group_name=user_group_name, session=session)
+            for member in members:
+                user = get_user(member, create_if_not_found=True, session=session)
+                user_group_membership = get_user_group_membership(user_group_id=user_group.user_group_id,
+                                                                  user_id=user.user_id,
+                                                                  create_if_not_found=True,
+                                                                  session=session)
+
+
+def test_stub():
+    with db_session() as session:
+        # Add user EDI
+        edi_user = add_user("EDI-1a438b985e1824a5aa709daa1b6e12d2", session=session)
+        jide_user = add_user("jide-7a03c1e6f4528a6f9c4b1ae3cec24b39", session=session)
+        curation_team = get_user_group("EDI Curators", create_if_not_found=False, session=session)
+        # Create three packages, two owned by EDI, one owned by jide
+        package_1 = get_package("EDI-1a438b985e1824a5aa709daa1b6e12d2", "edi.1.1", create_if_not_found=True, session=session)
+        package_2 = get_package("EDI-1a438b985e1824a5aa709daa1b6e12d2", "edi.2.2", create_if_not_found=True, session=session)
+        package_3 = get_package("jide-7a03c1e6f4528a6f9c4b1ae3cec24b39", "A sample data package",
+                                create_if_not_found=True, session=session)
+        # Create a collaboration between EDI and jide for the package owned by jide
+        _add_collaboration(jide_user.user_id, edi_user.user_id, package_3.package_id, session=session)
+        # Create a collaboration between EDI and jide for a package owned by EDI
+        _add_collaboration(edi_user.user_id, jide_user.user_id, package_1.package_id, session=session)
+        # Create a group collaboration between EDI and EDI Curation Team for the other package owned by EDI
+        try:
+            group_collaboration_1 = add_group_collaboration(edi_user.user_login, "EDI Curators", package_2.package_name, session=session)
+        except Exception as e:
+            pass
+        # add_group_lock(package_2.package_id, group_collaboration_1.group_collab_id, session=session)
 
 
 def cleanup_db(session=None):

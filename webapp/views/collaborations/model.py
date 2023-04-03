@@ -35,6 +35,26 @@ class User(db.Model):
         return f'<User {self.user_id} {self.user_login} {self.active_package_id}>'
 
 
+class UserGroup(db.Model):
+    user_group_id = db.Column(db.Integer, primary_key=True)
+    user_group_name = db.Column(db.String(1024), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<UserGroup {self.user_group_id}>'
+
+
+class UserGroupMembership(db.Model):
+    user_group_membership_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    user_group_id = db.Column(db.Integer, db.ForeignKey('user_group.user_group_id'), nullable=False)
+    __table_args__ = (db.UniqueConstraint('user_id', 'user_group_id', name='_user_user_group_uc'),)
+
+    user = db.relationship('User', foreign_keys=[user_id])
+
+    def __repr__(self):
+        return f'<UserGroupMembership {self.user_group_membership_id} {self.user_id} {self.user_group_id}>'
+
+
 class Package(db.Model):
     package_id = db.Column(db.Integer, primary_key=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
@@ -46,6 +66,21 @@ class Package(db.Model):
 
     def __repr__(self):
         return f'<Package {self.package_id} {self.owner_id} {self.package_name}>'
+
+
+class GroupCollaboration(db.Model):
+    group_collab_id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    user_group_id = db.Column(db.Integer, db.ForeignKey('user_group.user_group_id'), nullable=False)
+    package_id = db.Column(db.Integer, db.ForeignKey('package.package_id'), nullable=False)
+    __table_args__ = (db.UniqueConstraint('user_group_id', 'package_id', name='_user_group_package_uc'),)
+
+    owner = db.relationship('User', foreign_keys=[owner_id])
+    user_group = db.relationship('UserGroup', foreign_keys=[user_group_id])
+    package = db.relationship('Package', foreign_keys=[package_id])
+
+    def __repr__(self):
+        return f'<GroupCollaboration {self.group_collab_id} {self.user_group_id} {self.package_id}>'
 
 
 class Collaboration(db.Model):
@@ -111,6 +146,18 @@ class UTCDateTime(TypeDecorator):
         return None
 
 
+class GroupLock(db.Model):
+    group_lock_id = db.Column(db.Integer, primary_key=True)
+    package_id = db.Column(db.Integer, db.ForeignKey('package.package_id'), unique=True, nullable=False)
+    locked_by = db.Column(db.Integer, db.ForeignKey('user_group.user_group_id'), nullable=False)
+
+    package = db.relationship('Package', foreign_keys=[package_id])
+    locked_by_group = db.relationship('UserGroup', foreign_keys=[locked_by])
+
+    def __repr__(self):
+        return f'<GroupLock {self.group_lock_id} {self.package_id} {self.locked_by}>'
+
+
 class Lock(db.Model):
     """
     Note that Lock does not have a collab_id field. This is because a package may be opened before any collaboration
@@ -120,7 +167,6 @@ class Lock(db.Model):
     lock_id = db.Column(db.Integer, primary_key=True)
     package_id = db.Column(db.Integer, db.ForeignKey('package.package_id'), unique=True, nullable=False)
     locked_by = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
-    # timestamp = db.Column(UTCDateTime, unique=False, nullable=False)
     timestamp = db.Column(db.DateTime, unique=False, nullable=False)
     comment = db.Column(db.String(128), unique=False, nullable=True)
 
@@ -130,7 +176,7 @@ class Lock(db.Model):
     def owner_id(self):
         try:
             return self.package.owner_id
-        except:
+        except Exception:
             return None
 
     @owner_id.setter

@@ -61,6 +61,10 @@ class CollaborationError(ezEMLError):
     pass
 
 
+class CollaboratingWithGroupAlready(CollaborationError):
+    pass
+
+
 class InvitationNotFound(CollaborationError):
     pass
 
@@ -73,9 +77,23 @@ class LockHasTimedOut(CollaborationError):
     pass
 
 
+class LockOwnedByAGroup(CollaborationError):
+    pass
+
+
 class LockOwnedByAnotherUser(CollaborationError):
     pass
 
 
 class CollaborationDatabaseError(CollaborationError):
     pass
+
+
+class UserIsNotTheOwner(CollaborationError):
+    pass
+
+
+class UserNotFound(CollaborationError):
+    pass
+
+

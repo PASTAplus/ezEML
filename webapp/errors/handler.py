@@ -17,7 +17,7 @@ from flask import Blueprint, render_template, request
 from flask_login import current_user
 from flask_wtf.csrf import CSRFError
 from webapp import app
-from webapp.home.exceptions import LockOwnedByAnotherUser
+from webapp.home.exceptions import LockOwnedByAGroup, LockOwnedByAnotherUser
 from webapp.config import Config
 
 
@@ -60,6 +60,14 @@ def bad_request(error):
 def bad_request(error):
     log_error(error)
     return render_template('500.html'), 500
+
+
+@app.errorhandler(LockOwnedByAGroup)
+def handle_locked_by_a_group(error):
+    log_error('Attempt to access a locked document: {0}'.format(error.message))
+    return render_template('locked_by_group.html',
+                           package_name=error.package_name,
+                           locked_by=error.user_name), 403
 
 
 @app.errorhandler(LockOwnedByAnotherUser)

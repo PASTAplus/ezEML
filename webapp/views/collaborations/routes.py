@@ -28,8 +28,11 @@ from webapp.home.log_usage import (
 
 from webapp.home.views import get_helps, set_current_page, open_document
 from webapp.home.exceptions import (
+    CollaboratingWithGroupAlready,
     InvitationBeingAcceptedByOwner,
-    InvitationNotFound
+    InvitationNotFound,
+    UserIsNotTheOwner,
+    UserNotFound
 )
 
 import webapp.views.collaborations.collaborations as collaborations
@@ -113,21 +116,29 @@ def enable_edi_curation(filename=None):
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
-    if request.method == 'POST':
-        # See if a collaboration with EDI Curators already exists
+    try:
+        user_login = current_user.get_user_login()
+
+        # Create a group collaboration with EDI Curators
+        group_collaboration = collaborations.add_group_collaboration(user_login, 'EDI Curators', filename)
+
+        # Activate group lock
+        if group_collaboration:
+            collaborations.add_group_lock(package_id=group_collaboration.package_id,
+                                          locked_by=group_collaboration.user_group_id)
 
         # Back up the current package
 
-        # Create a group collaboration with EDI Curators
-
         # Send an email to EDI Curators to let them know that a new package is available for curation
 
-
-
-        # if request.form.get(BTN_SUBMIT) == BTN_ENABLE_EDI_CURATION:
-        #     collaborations.enable_edi_curation(current_user.get_user_login(), current_user.get_filename())
         flash('EDI curation has been enabled for this package.', 'success')
-        return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))
+
+    except UserIsNotTheOwner:
+        flash('Only the owner of the package can enable EDI curation for it.', 'error')
+        # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
+    except CollaboratingWithGroupAlready:
+        flash('EDI curation is already enabled for this package.', 'error')
+        # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
 
     return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))
 
@@ -292,7 +303,10 @@ def invite_collaborator(filename=None):
 @collab_bp.route('/remove_collaboration/<collab_id>/<filename>', methods=['GET', 'POST'])
 @login_required
 def remove_collaboration(collab_id, filename=None):
-    collaborations.remove_collaboration(collab_id)
+    if not collab_id.startswith('G'):
+        collaborations.remove_collaboration(collab_id)
+    else:
+        collaborations.remove_group_collaboration(collab_id)
     return redirect(url_for(PAGE_COLLABORATE, filename=filename))
 
 
@@ -317,6 +331,24 @@ def open_by_collaborator(collaborator_id, package_id):
         return open_document(filename, owner=collaborations.display_name(owner_login))
     except Exception as e:
         release_acquired_lock(lock)
+
+
+@collab_bp.route('/apply_group_lock/<package_id>/<group_id>', methods=['GET', 'POST'])
+@login_required
+def apply_group_lock(package_id, group_id):
+    collaborations.add_group_lock(int(package_id), group_id)
+    current_document = user_data.get_active_document()
+    return redirect(url_for(PAGE_COLLABORATE, filename=current_document))
+
+
+@collab_bp.route('/release_group_lock/<package_id>', methods=['GET', 'POST'])
+@login_required
+def release_group_lock(package_id):
+    # user_login = current_user.get_user_login()
+    package_id = int(package_id)
+    collaborations.release_group_lock(package_id)
+    current_document = user_data.get_active_document()
+    return redirect(url_for(PAGE_COLLABORATE, filename=current_document))
 
 
 @collab_bp.route('/release_lock/<package_id>', methods=['GET', 'POST'])

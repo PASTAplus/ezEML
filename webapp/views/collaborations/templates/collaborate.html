@@ -30,7 +30,7 @@
                 <tbody>
                 {% for collaboration in collaborations %}
                 <tr>
-                <td class="collab_table" valign="top">{{ collaboration.package }}</td>
+                <td class="collab_table" valign="top">{{ collaboration.package_name }}</td>
                 <td class="collab_table" valign="top">
                     {% if collaboration.owner_login == user %}
                     <b>
@@ -49,8 +49,8 @@
                     </b>
                     {% endif %}
                 </td>
-                <td class="collab_table" valign="top">{{ collaboration.status }}</td>
-                <td class="collab_table" valign="top">{{ collaboration.action|safe }}</td>
+                <td class="collab_table" valign="top">{{ collaboration.status_str }}</td>
+                <td class="collab_table" valign="top">{{ collaboration.action_str|safe }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

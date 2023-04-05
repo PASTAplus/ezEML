@@ -1431,6 +1431,24 @@ def create_full_xml(eml_node):
     return metapype_io.to_xml(eml_node)
 
 
+def fixup_eml_namespaces_on_import(eml_node):
+    # If we have fetched an EML document created using an older version of the EML schema, we need to
+    #  recursively fix up the namespaces.
+
+    def fix_node(node, nsmap):
+        node.nsmap = nsmap
+        for child in node.children:
+            fix_node(child, nsmap)
+        return node
+
+    nsmap = {
+        "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
+      }
+    return fix_node(eml_node, nsmap)
+
+
 def fixup_categorical_variables(eml_node):
     """
     There was a bug that caused some Categorical variables to have None as variable type.

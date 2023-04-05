@@ -62,6 +62,7 @@ def load_eml_file(eml_file_url:str):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node)
+    eml_node = metapype_client.fixup_eml_namespaces_on_import(eml_node)
     return eml_node
 
 
@@ -529,6 +530,7 @@ def load_xml(filename):
         xml = "".join(f.readlines())
     eml_node = metapype_io.from_xml(xml)
     assert isinstance(eml_node, Node)
+    eml_node = metapype_client.fixup_eml_namespaces_on_import(eml_node)
     return eml_node
 
 

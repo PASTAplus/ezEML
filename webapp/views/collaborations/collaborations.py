@@ -248,7 +248,7 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
                     message = f'Package {package_name} is currently locked by {locked_by}'
                     raise exceptions.LockOwnedByAnotherUser(message=message,
                                                             package_name=package_name,
-                                                            group_name=locked_by)
+                                                            user_name=locked_by)
         else:
             # The package is unlocked, so lock it.
             _add_lock(active_package.package_id, user.user_id, session=session)
@@ -681,14 +681,11 @@ def _calculate_lock_status(logged_in_user_id, package_id, session=None):
                 else:
                     return LockStatus.LOCKED_BY_ANOTHER_USER, individual_locked_by_id
             else:
-                # There is a group lock. There are several cases...
-                if not individual_locked_by_id:
-                    return LockStatus.LOCKED_BY_GROUP_ONLY, group_locked_by_id
+                # There is a group lock. There are two cases...
+                if individual_locked_by_id == logged_in_user_id:
+                    return LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER, individual_locked_by_id
                 else:
-                    if individual_locked_by_id == logged_in_user_id:
-                        return LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER, individual_locked_by_id
-                    else:
-                        return LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER, individual_locked_by_id
+                    return LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER, individual_locked_by_id
         else:
             # There is a group lock but no individual lock
             return LockStatus.LOCKED_BY_GROUP_ONLY, group_locked_by_id
@@ -710,13 +707,18 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL:
             if lock_status == LockStatus.NOT_LOCKED and user_id != logged_in_user_id:
                 actions.append(CollaborationAction.OPEN)
+            if lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER and user_id == logged_in_user_id:
+                actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
 
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
             pass
 
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR:
             if lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER:
-                actions.append(CollaborationAction.RELEASE_LOCK)
+                actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
+                # actions.append(CollaborationAction.END_GROUP_COLLABORATION)
+            if lock_status == LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER:
+                actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
                 actions.append(CollaborationAction.END_GROUP_COLLABORATION)
 
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR:
@@ -730,13 +732,16 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
                             actions.append(CollaborationAction.RELEASE_GROUP_LOCK)
                             if locked_by_id == logged_in_user_id:
                                 actions.append(CollaborationAction.END_GROUP_COLLABORATION)
+                        elif lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER:
+                            actions.append(CollaborationAction.APPLY_GROUP_LOCK)
             else:
                 # Doing an entry for a group member
                 if lock_status in [LockStatus.NOT_LOCKED, LockStatus.LOCKED_BY_GROUP_ONLY]:
                     if user_id == str(logged_in_user_id):
                         actions.append(CollaborationAction.OPEN)
-                if lock_status == LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER:
-                    actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
+                if lock_status in [LockStatus.LOCKED_BY_LOGGED_IN_USER, LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER]:
+                    if user_id == str(logged_in_user_id):
+                        actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
         return actions
 
 
@@ -780,6 +785,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                 collaboration_case=collaboration_case,
                 lock_status=lock_status,
                 actions=actions,
+                collab_id=group_collaboration.group_collab_id,
                 package_id=group_collaboration.package_id,
                 package_name=group_collaboration.package.package_name,
                 owner_id=group_collaboration,
@@ -805,13 +811,14 @@ def get_group_collaborations(logged_in_user_id, session=None):
                     collaboration_case = CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR
                     lock_status, locked_by_id = _calculate_lock_status(logged_in_user_id,
                                                                        group_collaboration.package_id, session=session)
-                    actions = _calculate_actions(logged_in_user_id, group_as_user.user_id,
+                    actions = _calculate_actions(logged_in_user_id, f'G{group_as_user.user_id}',
                                                  group_collaboration.user_group,
                                                  collaboration_case, lock_status, locked_by_id, session=session)
                     collaboration_records.append(CollaborationRecord2(
                         collaboration_case=collaboration_case,
                         lock_status=lock_status,
                         actions=actions,
+                        collab_id=group_collaboration.group_collab_id,
                         package_id=group_collaboration.package_id,
                         package_name=group_collaboration.package.package_name,
                         owner_id=group_collaboration,
@@ -841,6 +848,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                             collaboration_case=collaboration_case,
                             lock_status=lock_status,
                             actions=actions,
+                            collab_id=group_collaboration.group_collab_id,
                             package_id=group_collaboration.package_id,
                             package_name=group_collaboration.package.package_name,
                             owner_id=group_collaboration,
@@ -863,28 +871,29 @@ def get_collaborations(user_login):
         return []
     # Get all collaborations where the user is the owner or the collaborator
     with db_session() as session:
-        user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
+        logged_in_user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
         # Get group collaborations involving this user
-        collaboration_records, collaborations_to_suppress = get_group_collaborations(user_id, session=session)
+        collaboration_records, collaborations_to_suppress = get_group_collaborations(logged_in_user_id, session=session)
         # Now get the ordinary collaborations, adding them to the collaboration_records list
         # First, where the user is owner
-        collaborations = Collaboration.query.filter_by(owner_id=user_id).all()
+        collaborations = Collaboration.query.filter_by(owner_id=logged_in_user_id).all()
         annotated_collaborations = []
         for collaboration in collaborations:
             annotated_collaborations.append((collaboration, CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL))
         # Then, where the user is collaborator
-        collaborations= Collaboration.query.filter_by(collaborator_id=user_id).all()
+        collaborations = Collaboration.query.filter_by(collaborator_id=logged_in_user_id).all()
         for collaboration in collaborations:
             annotated_collaborations.append((collaboration, CollaborationCase.LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR))
         for collaboration, collaboration_case in annotated_collaborations:
             if (collaboration.package_id, collaboration.collaborator_id) in collaborations_to_suppress:
                 continue
             owner_id = collaboration.owner_id
-            status = _get_collaboration_status(collaboration.collab_id)
-            if status:
-                status = status.status
-            else:
-                status = None
+
+            # status = _get_collaboration_status(collaboration.collab_id)
+            # if status:
+            #     status = status.status
+            # else:
+            #     status = None
             locked_by = None
             lock = _get_lock(collaboration.package_id)
             # If the lock has timed out, remove it. We do this here because a collaborator cannot open a locked package
@@ -897,23 +906,30 @@ def get_collaborations(user_login):
                     session.delete(lock)
                 else:
                     locked_by = lock.locked_by
+
+            lock_status, locked_by_id = _calculate_lock_status(logged_in_user_id,
+                                                               collaboration.package_id, session=session)
+            actions = _calculate_actions(logged_in_user_id, collaboration.collaborator_id, None,
+                                         collaboration_case, lock_status, locked_by_id, session=session)
+
             try:
-                collaboration_records.append(CollaborationRecord(
-                    collaboration_case=collaboration.collaboration_case,
+                collaboration_records.append(CollaborationRecord2(
+                    collaboration_case=collaboration_case,
+                    lock_status=lock_status,
+                    actions=actions,
                     collab_id=collaboration.collab_id,
                     package_id=collaboration.package_id,
-                    package=collaboration.package.package_name,
+                    package_name=collaboration.package.package_name,
                     owner_id=owner_id,
                     owner_login=collaboration.owner.user_login,
                     owner_name='',
-                    collaborator_is_group=False,
                     collaborator_id=collaboration.collaborator_id,
                     collaborator_login=collaboration.collaborator.user_login,
                     collaborator_name='',
-                    status=status,
                     locked_by_id=locked_by,
                     locked_by='',
-                    action=''))
+                    status_str='',
+                    action_str=''))
             except Exception as e:
                 pass
         return sorted(collaboration_records)

@@ -7,6 +7,7 @@ from urllib.parse import unquote
 import webapp.auth.user_data as user_data
 
 from webapp.home.exceptions import InvalidXMLError
+from webapp.home.metapype_client import fixup_eml_namespaces_on_import
 
 from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
@@ -241,6 +242,7 @@ def try_it():
             xml = "".join(f.readlines())
         eml_node = metapype_io.from_xml(xml, clean=True, literals=['literalLayout', 'markdown'])
         assert isinstance(eml_node, Node)
+        eml_node = fixup_eml_namespaces_on_import(eml_node)
         return eml_node
 
     def json_from_xml(filename):

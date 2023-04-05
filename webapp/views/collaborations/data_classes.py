@@ -13,6 +13,7 @@ class CollaborationRecord2:
     collaboration_case: Enum
     lock_status: Enum
     actions: list
+    collab_id: int
     package_id: int
     package_name: str
     owner_id: int
@@ -26,6 +27,11 @@ class CollaborationRecord2:
     status_str: str
     action_str: str
 
+    def update_action_str(self, action_str):
+        if len(self.action_str) > 0:
+            self.action_str += '<br>'
+        self.action_str += action_str
+
     def __post_init__(self):
         current_user_login = current_user.get_user_org()
         current_user_id = collaborations.get_user(current_user_login).user_id
@@ -33,14 +39,25 @@ class CollaborationRecord2:
         self.collaborator_name = collaborations.display_name(self.collaborator_login)
 
         is_group_entry = self.collaborator_login.endswith('-group_collaboration')
-        if is_group_entry:
-            self.locked_by = self.collaborator_login
-        else:
+        # if is_group_entry:
+        #     self.locked_by = self.collaborator_login
+        # else:
+        if self.locked_by_id is not None:
             self.locked_by = collaborations._get_user(self.locked_by_id).user_login
 
         # Status
         if self.lock_status == collaborations.LockStatus.NOT_LOCKED:
             self.status_str = 'Available'
+
+        if self.lock_status == collaborations.LockStatus.LOCKED_BY_LOGGED_IN_USER:
+            if not is_group_entry:
+                self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
+            else:
+                # The group lock is available
+                self.status_str = 'Available'
+
+        if self.lock_status == collaborations.LockStatus.LOCKED_BY_ANOTHER_USER:
+            self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_ONLY:
             if self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR and\
@@ -50,10 +67,10 @@ class CollaborationRecord2:
                 self.status_str = 'Available'
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER:
-            self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
-            if self.collaborator_id == current_user_id:
-                link = url_for(PAGE_RELEASE_LOCK, package_id=self.package_id)
-                self.action_str = f'<a href="{link}">Release lock</a>'
+            if not is_group_entry:
+                self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
+            else:
+                self.status_str = 'Locked by ' + collaborations.display_name(self.collaborator_login)
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER:
             self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
@@ -64,10 +81,34 @@ class CollaborationRecord2:
                 if self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR:
                     link = url_for(PAGE_OPEN_BY_COLLABORATOR, collaborator_id=self.collaborator_id,
                                    package_id=self.package_id)
-                    self.action_str = f'<a href="{link}">Open</a>'
-            if action == collaborations.CollaborationAction.RELEASE_INDIVIDUAL_LOCK:
-                pass
+                    self.update_action_str(f'<a href="{link}">Open</a>')
 
+            if action == collaborations.CollaborationAction.RELEASE_INDIVIDUAL_LOCK:
+                # if self.collaborator_id == current_user_id:
+                link = url_for(PAGE_RELEASE_LOCK, package_id=self.package_id)
+                self.update_action_str(f'<a href="{link}">Release lock</a>')
+
+            if action == collaborations.CollaborationAction.RELEASE_GROUP_LOCK:
+                link = url_for(PAGE_RELEASE_GROUP_LOCK, package_id=self.package_id)
+                self.update_action_str(f'<a href="{link}">Release group lock</a>')
+
+            if action == collaborations.CollaborationAction.APPLY_GROUP_LOCK:
+                link = url_for(PAGE_APPLY_GROUP_LOCK,
+                               package_id=self.package_id,
+                               group_id=self.collaborator_id)
+                self.update_action_str(f'<a href="{link}">Apply group lock</a>')
+
+            if action == collaborations.CollaborationAction.END_COLLABORATION:
+                link = url_for(PAGE_REMOVE_COLLABORATION, collab_id=self.collab_id)
+                onclick = f"return confirm('Are you sure? This will end the collaboration for all participants and " \
+                          f"cannot be undone.');"
+                self.update_action_str(f'<a href="{link}" onclick="{onclick}">End collaboration</a>')
+
+            if action == collaborations.CollaborationAction.END_GROUP_COLLABORATION:
+                link = url_for(PAGE_REMOVE_COLLABORATION, collab_id=self.collab_id)
+                onclick = f"return confirm('Are you sure? This will end the collaboration for all participants and " \
+                                  f"cannot be undone.');"
+                self.update_action_str(f'<a href="{link}" onclick="{onclick}">End group collaboration</a>')
 
     def __lt__(self, other):
         if self.package_name < other.package_name:

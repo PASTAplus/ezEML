@@ -13,7 +13,7 @@ from metapype.eml.validation_errors import ValidationError
 
 import webapp.auth.user_data as user_data
 
-from webapp.home.metapype_client import list_files_in_dir
+from webapp.home.metapype_client import list_files_in_dir, fixup_eml_namespaces_on_import
 
 logger = daiquiri.getLogger('import_xml: ' + __name__)
 
@@ -140,6 +140,8 @@ def parse_xml_file(filename, filepath):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node) # TODO: error-handling
+    eml_node = fixup_eml_namespaces_on_import(eml_node)
+
     if eml_node.name != names.EML:
         log_info(f"*******************************")
         log_info(f"root node returned by metapype_io.from_xml has name {eml_node.name}")

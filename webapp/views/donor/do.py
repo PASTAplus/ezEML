@@ -558,6 +558,8 @@ def populate_donor_form(form: DonorForm, node: Node):
     magnification_node = node.find_child(mdb_names.MAGNIFICATION)
     if magnification_node:
         form.magnification.data = magnification_node.attributes.get("value", None)
+        if not form.magnification.data:
+            form.magnification.data = magnification_node.content
 
     microscopeType_node = node.find_child(mdb_names.MICROSCOPE)
     if microscopeType_node:

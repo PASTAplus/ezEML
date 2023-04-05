@@ -341,8 +341,11 @@ def _donor_rule(node: Node) -> list:
                                 if lmchild.name == mdb_names.SUDAN and lmchild.content not in mdb_names.SUDAN_VALUES:
                                     donornodes[25] = True
 
-        if child.name == mdb_names.MAGNIFICATION and child.content:
-            donornodes[12] = True
+        if child.name == mdb_names.MAGNIFICATION:
+            if child.attributes.get("value", None):
+                donornodes[12] = True
+            elif child.content:
+                donornodes[12] = True
         if child.name == mdb_names.SPEC_CYCLE:
             for spcchild in child.children:
                 if spcchild.name == mdb_names.STAGE_OF_CYCLE:

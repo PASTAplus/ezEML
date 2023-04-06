@@ -341,8 +341,11 @@ def _donor_rule(node: Node) -> list:
                                 if lmchild.name == mdb_names.SUDAN and lmchild.content not in mdb_names.SUDAN_VALUES:
                                     donornodes[25] = True
 
-        if child.name == mdb_names.MAGNIFICATION and child.content:
-            donornodes[12] = True
+        if child.name == mdb_names.MAGNIFICATION:
+            if child.attributes.get("value", None):
+                donornodes[12] = True
+            elif child.content:
+                donornodes[12] = True
         if child.name == mdb_names.SPEC_CYCLE:
             for spcchild in child.children:
                 if spcchild.name == mdb_names.STAGE_OF_CYCLE:
@@ -370,6 +373,8 @@ def _donor_rule(node: Node) -> list:
             for slchild in child.children:
                 if slchild.name == mdb_names.CORPUS_LUTEUM and slchild.content not in mdb_names.CORPUS_LUTEUM_VALUES:
                     donornodes[22] = True
+                if slchild.name not in mdb_names.SPEC_LOCATION_VALUES:
+                    donornodes[30] = True
         if child.name == mdb_names.DONOR_AGE:
             for achild in child.children:
                 if achild.name == mdb_names.DONOR_YEARS:
@@ -595,6 +600,12 @@ def _donor_rule(node: Node) -> list:
         evaluation.append((
             EvaluationWarningMp.DONOR_SEC_SEQ_NUM_NON_NEGATIVE,
             f'Donor Section Sequence Number must be a non-negative value.',
+            node
+        ))
+    if donornodes[30]:
+        evaluation.append((
+            EvaluationWarningMp.DONOR_SPEC_LOCATION_CHOICE,
+            f'Donor Specimen Location is required and must be a valid value.',
             node
         ))
 

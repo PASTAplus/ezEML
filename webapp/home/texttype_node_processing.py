@@ -242,8 +242,8 @@ def try_it():
             xml = "".join(f.readlines())
         eml_node = metapype_io.from_xml(xml, clean=True, literals=['literalLayout', 'markdown'])
         assert isinstance(eml_node, Node)
-        eml_node = metapype_client.fixup_eml_namespaces_on_import(eml_node)
-        return eml_node
+        eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
+        return eml_node, nsmap_changed
 
     def json_from_xml(filename):
         eml_node = load_xml(filename)
@@ -254,7 +254,7 @@ def try_it():
     def scan_files():
         i = 0
         for filename in get_existing_eml_files():
-            eml_node = load_xml(os.path.join(EML_FILES_PATH, filename))
+            eml_node, _ = load_xml(os.path.join(EML_FILES_PATH, filename))
             if model_has_complex_texttypes(eml_node):
                 print(f"{filename}")
                 i += 1

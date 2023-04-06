@@ -2418,7 +2418,8 @@ def import_xml():
             if package_name in user_data.get_user_document_list():
                 return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
 
-            eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+            eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
+                parse_xml_file(filename, filepath)
             eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
             # We're done with the temp file
@@ -2434,6 +2435,7 @@ def import_xml():
                     # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
                     #  string representations.
                     return redirect(url_for(PAGE_IMPORT_XML_3,
+                                            nsmap_changed=nsmap_changed,
                                             unknown_nodes=encode_for_query_string(unknown_nodes),
                                             attr_errs=encode_for_query_string(attr_errs),
                                             child_errs=encode_for_query_string(child_errs),
@@ -2475,7 +2477,8 @@ def import_xml_2(package_name, filename, fetched=False):
         work_path = os.path.join(user_path, 'zip_temp')
         filepath = os.path.join(work_path, filename)
 
-        eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+        eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
+            parse_xml_file(filename, filepath)
         eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
         # We're done with the temp file
@@ -2494,6 +2497,7 @@ def import_xml_2(package_name, filename, fetched=False):
                 # The parameters are actually lists, but Flask drops parameters that are empty lists, so we pass the
                 #  string representations.
                 return redirect(url_for(PAGE_IMPORT_XML_3,
+                                        nsmap_changed=nsmap_changed,
                                         unknown_nodes=encode_for_query_string(unknown_nodes),
                                         attr_errs=encode_for_query_string(attr_errs),
                                         child_errs=encode_for_query_string(child_errs),
@@ -2565,8 +2569,6 @@ def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_err
     err_html, err_text = display_list(err_html, err_text, processed_child_errs,
         "The following EML elements occur in unexpected locations in the EML, so they have been omitted:")
 
-    # err_html, err_text = display_list(err_html, err_text, attr_errs, "The following errors involving node attributes have been detected:")
-
     pruned_nodes = sorted(list(set(pruned_nodes) - excluded_nodes))
     excluded_nodes = excluded_nodes | set(pruned_nodes)
 
@@ -2608,9 +2610,10 @@ def get_data_size(filename):
         return 0
 
 
-@home.route('/import_xml_3/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>/<fetched>', methods=['GET', 'POST'])
+@home.route('/import_xml_3/<nsmap_changed>/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>/<fetched>',
+            methods=['GET', 'POST'])
 @login_required
-def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
+def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_errs=None,
                  other_errs=None, pruned_nodes=None, filename=None, fetched=False):
 
     form = EDIForm()
@@ -2673,7 +2676,7 @@ def import_xml_3(unknown_nodes=None, attr_errs=None, child_errs=None,
     help = get_helps(['import_xml_3', 'complex_xml'])
     complex_xml = model_has_complex_texttypes(eml_node)
     return render_template('import_xml_3.html', err_html=err_html, err_text=err_text, err_heading=err_heading,
-                           mb=mb, complex_xml=complex_xml, form=form, help=help)
+                           mb=mb, complex_xml=complex_xml, nsmap_changed=nsmap_changed, form=form, help=help)
 
 
 @home.route('/import_xml_4/<filename>/<fetched>', methods=['GET', 'POST'])
@@ -2898,7 +2901,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
     work_path = os.path.join(user_data_dir, 'zip_temp')
     filepath = os.path.join(work_path, filename)
 
-    eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = parse_xml_file(filename, filepath)
+    eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
+        parse_xml_file(filename, filepath)
     eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
     # We're done with the temp file
@@ -2914,6 +2918,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
             # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
             #  string representations.
             return redirect(url_for(PAGE_IMPORT_XML_3,
+                                    nsmap_changed=nsmap_changed,
                                     unknown_nodes=encode_for_query_string(unknown_nodes),
                                     attr_errs=encode_for_query_string(attr_errs),
                                     child_errs=encode_for_query_string(child_errs),

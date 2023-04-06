@@ -62,8 +62,8 @@ def load_eml_file(eml_file_url:str):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node)
-    eml_node = metapype_client.fixup_eml_namespaces_on_import(eml_node)
-    return eml_node
+    eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
+    return eml_node, nsmap_changed
 
 
 def load_df(eml_node, csv_url, data_table_name):
@@ -465,7 +465,7 @@ def check_data_table(eml_file_url:str=None,
                      column_names:List[str]=None,
                      max_errs_per_column=100,
                      collapse_errs:bool=False):
-    eml_node = load_eml_file(eml_file_url)
+    eml_node, _ = load_eml_file(eml_file_url)
     df = load_df(eml_node, csv_file_url, data_table_name)
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
@@ -530,8 +530,8 @@ def load_xml(filename):
         xml = "".join(f.readlines())
     eml_node = metapype_io.from_xml(xml)
     assert isinstance(eml_node, Node)
-    eml_node = metapype_client.fixup_eml_namespaces_on_import(eml_node)
-    return eml_node
+    eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
+    return eml_node, nsmap_changed
 
 
 def get_data_table_name(data_table_node):

@@ -140,11 +140,7 @@ def parse_xml_file(filename, filepath):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node) # TODO: error-handling
-    eml_node = fixup_eml_namespaces_on_import(eml_node)
-    if eml_node.name != names.EML:
-        log_info(f"*******************************")
-        log_info(f"root node returned by metapype_io.from_xml has name {eml_node.name}")
-        log_info(f"*******************************")
+    eml_node, nsmap_changed = fixup_eml_namespaces_on_import(eml_node)
     pruned_nodes = set()
     errs = []
     unknown_nodes = None
@@ -189,6 +185,6 @@ def parse_xml_file(filename, filepath):
             print(f'validate.prune FAILED: {e}')
             log_info(f'validate.prune FAILED: {e}')
     fix_field_delimiters(eml_node)
-    return eml_node, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes
+    return eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes
 
 

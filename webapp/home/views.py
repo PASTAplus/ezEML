@@ -30,7 +30,7 @@ from shutil import copyfile
 from urllib.parse import urlparse, quote
 from zipfile import ZipFile
 from lxml import etree #pt7/16
-
+import re
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for, session, Markup
@@ -1732,31 +1732,41 @@ def import_package():
             with open(filepath, "r") as file:
                 data = file.read()
 
-            xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
-            converted_file = filepath.replace(".xml", ".json")
+            eml_validator_request = requests.post('https://knb.ecoinformatics.org/emlparser/parse', data = {"action": "textparse", "doctext": data})
+            pattern = r'<h4>(.*?)<\/h4>' # Grab h4 elements from html response
+            validator_results = re.findall(pattern, eml_validator_request.text)  #[h4 eml, h4 xml]
+            eml_valid = "Passed" in validator_results[0]
+            xml_valid = "Warning" in validator_results[1] or "Passed" in validator_results[1]
+            if eml_valid and xml_valid:
+                xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
+                converted_file = filepath.replace(".xml", ".json")
 
-            with open(converted_file, "w") as file:
-                file.write(xml_to_json)
-                file.close()
+                with open(converted_file, "w") as file:
+                    file.write(xml_to_json)
+                    file.close()
 
-            # Remove Image data if present
-            user_data.clear_temp_folder()
-            eml_node = load_eml(filename)
-            dataset_node = eml_node.find_child(names.DATASET)
-            if dataset_node:
-                for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
-                    clear_other_entity(entity_node)
-                title_node = dataset_node.find_child(names.TITLE)
-                if title_node:
-                    dataset_node.remove_child(title_node)
-            slideID_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER, mdb_names.SLIDE_ID])
-            if slideID_node:
-                slideID_node.parent.remove_child(slideID_node)
+                # Remove Image data if present
+                user_data.clear_temp_folder()
+                eml_node = load_eml(filename)
+                dataset_node = eml_node.find_child(names.DATASET)
+                if dataset_node:
+                    for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
+                        clear_other_entity(entity_node)
+                    title_node = dataset_node.find_child(names.TITLE)
+                    if title_node:
+                        dataset_node.remove_child(title_node)
+                slideID_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER, mdb_names.SLIDE_ID])
+                if slideID_node:
+                    slideID_node.parent.remove_child(slideID_node)
 
 
-            save_both_formats(filename=filename, eml_node=eml_node)
+                save_both_formats(filename=filename, eml_node=eml_node)
 
-            return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
+                return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
+            else:
+                flash(f'The selected file does not appear to be a valid ezEML data package file. '
+                      'Please select a different file or check with the package provider for a corrected file.',
+                      'error')
 
     # Process GET
     help = get_helps(['import_package'])

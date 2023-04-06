@@ -1440,7 +1440,7 @@ def send_to_other(filename=None, mailto=None):
                                title='Submit Metadata',
                                #set image and xml file names to display
                                image_name=user_data.get_temp_file_name(),
-                               xml_name=current_user.get_filename(),
+                               xml_name=get_image_name_node(),
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
 
@@ -1763,7 +1763,7 @@ def import_package():
                     message = full_string.split(',', 1)[0] + '.'
                 except:
                     message = type(e).__name__
-                flash("Invalid File Upload: " + message)
+                flash("Syntax Error: " + message)
 
             return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
 

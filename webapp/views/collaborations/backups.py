@@ -22,7 +22,7 @@ def save_backup(package_id):
         raise ValueError(f'File {filepath} not found')
 
     owner_login = package.owner.user_login
-    collaboration_backups_folder_name = os.path.join(Config.USER_DATA_DIR, 'collaboration_backups', owner_login)
+    collaboration_backups_folder_name = os.path.join(Config.USER_DATA_DIR, '__collaboration_backups', owner_login)
     Path(collaboration_backups_folder_name).mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().date().strftime('%Y_%m_%d') + '_' + datetime.now().time().strftime('%H_%M_%S')

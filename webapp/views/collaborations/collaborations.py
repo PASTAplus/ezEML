@@ -1158,7 +1158,7 @@ def fake_login_for_group(user_group_name):
 
 def init_groups():
     with db_session() as session:
-        groups = Config.COLLABORATAION_GROUPS
+        groups = Config.COLLABORATION_GROUPS
         for user_group_name in groups.keys():
             # We want a user representing each group so that we can add them as collaborators
             _ = add_user(user_login=fake_login_for_group(user_group_name), session=session)

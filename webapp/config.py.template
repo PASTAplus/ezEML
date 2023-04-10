@@ -73,7 +73,7 @@ class Config(object):
     DATA_CURATOR_LOGINS = []
     SERVER_LOGINS_WHITELIST = []
 
-    COLLABORATAION_GROUPS = {
+    COLLABORATION_GROUPS = {
         "EDI Curators": [
         "bmcafee-9722dcae0cf4708f5946995452883e27",
         "csmith-3baeec96846153563e16e334d058e7b8",

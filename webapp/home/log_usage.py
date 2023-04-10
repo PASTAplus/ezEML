@@ -85,6 +85,7 @@ actions = {
     'CLOSE_DOCUMENT': 'Close',
     'DELETE_DOCUMENT': 'Delete',
     'DOWNLOAD_EML_FILE': 'Download EML File',
+    'ENABLE_EDI_CURATION': 'Enable EDI Curation',
     'EXPORT_EZEML_DATA_PACKAGE': 'Export ezEML Data Package',
     'FETCH_FROM_EDI': 'Fetch from EDI',
     'FETCH_PROVENANCE_INFO': 'Fetch Provenance Info from EDI',

@@ -14,25 +14,33 @@
 
 import hashlib
 from flask_wtf import FlaskForm
+from webapp.home.forms import EDIForm
 
 from wtforms import (
-    StringField, SelectField, SelectMultipleField, HiddenField, RadioField, widgets
+    StringField
 )
+from wtforms.widgets import TextArea
 
 from wtforms.validators import (
     DataRequired, Email, Optional, ValidationError
 )
 
 
-class CollaborateForm(FlaskForm):
+class CollaborateForm(EDIForm):
     pass
 
 
-class AcceptInvitationForm(FlaskForm):
+class EnableEDICurationForm(EDIForm):
+    name = StringField('Your Name *', validators=[DataRequired()])
+    email_address = StringField('Your Email Address *', validators=[Email(), DataRequired()])
+    notes = StringField('Notes for EDI Data Curators (Optional)', widget=TextArea(), validators=[Optional()])
+
+
+class AcceptInvitationForm(EDIForm):
     invitation_code = StringField("Invitation Code *")
 
 
-class InviteCollaboratorForm(FlaskForm):
+class InviteCollaboratorForm(EDIForm):
     user_name = StringField("Your Name *", validators=[DataRequired()])
     user_email = StringField("Your Email Address *", validators=[DataRequired()])
     collaborator_name = StringField("Collaborator's Name *", validators=[DataRequired()])

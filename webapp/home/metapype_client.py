@@ -1075,6 +1075,7 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_me
         user_data.is_document_locked(filename)
     except Exception as e:
         logger.error(f"load_eml: is_document_locked: {e}")
+        raise
 
     eml_node = None
     if folder_name:

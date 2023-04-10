@@ -1071,7 +1071,10 @@ def save_package_id(eml_node):
 
 
 def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_metadata_check:bool=False):
-    user_data.is_document_locked(filename)
+    try:
+        user_data.is_document_locked(filename)
+    except Exception as e:
+        logger.error(f"load_eml: is_document_locked: {e}")
 
     eml_node = None
     if folder_name:

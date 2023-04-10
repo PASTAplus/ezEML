@@ -99,22 +99,22 @@
             upload_format = upload_file.slice(dot_pos + 1);
 
             document.getElementById("entity_name").value = upload_name;
-            document.getElementById("entity_name").setAttribute("disabled","disabled");
+            document.getElementById("entity_name").readOnly = true;
 
             document.getElementById("format_name").value = upload_format;
-            document.getElementById("format_name").setAttribute("disabled","disabled");
+            document.getElementById("format_name").readOnly = true;
         });
 
         function resetButtons(){
-            document.getElementById("entity_name").removeAttribute("disabled");
-            document.getElementById("format_name").removeAttribute("disabled");
+            document.getElementById("entity_name").readOnly = false;
+            document.getElementById("format_name").readOnly = false;
         }
 
         function disableFields(){
             var image_name = document.getElementById("iname").innerHTML;
             if (image_name != "None"){
-                document.getElementById("entity_name").setAttribute("disabled","disabled");
-                document.getElementById("format_name").setAttribute("disabled","disabled");
+                document.getElementById("entity_name").readOnly = true;
+                document.getElementById("format_name").readOnly = true;
             }
         }
 

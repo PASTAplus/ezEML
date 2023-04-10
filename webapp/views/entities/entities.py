@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder, clear_temp_folder, get_temp_file_name, get_active_document
+    get_temp_folder, clear_temp_folder, get_temp_file_name, get_temp_file_path
 )
 
 from metapype.eml import names
@@ -72,6 +72,8 @@ from webapp.pages import *
 from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
 from webapp.home import motherpype_names as mdb_names
+
+from PIL import Image
 
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
 
@@ -187,6 +189,9 @@ def other_entity(filename=None, node_id=None):
                 file_upload.save(os.path.join(temp_folder, file_name))
             else:
                 file_name = entity_name + '.' + format_name
+                # remove uploaded image if image name or format form data has been modified manually
+                if file_name != get_temp_file_name():
+                    clear_temp_folder()
 
             dt_node = dataset_node.find_child(names.OTHERENTITY)
             if not dt_node:

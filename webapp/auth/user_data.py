@@ -25,7 +25,7 @@ from flask import send_file, Flask, current_app
 from flask_login import current_user
 
 from webapp.config import Config
-from webapp.home.motherpype import get_image_name_node
+from webapp.home.motherpype import get_image_name_node, get_image_full_name_node
 import webapp.home.views as views
 
 logger = daiquiri.getLogger('user_data: ' + __name__)
@@ -368,13 +368,27 @@ def get_temp_folder() -> str:
 
 
 def get_temp_file_name() -> str:
-    # obtains the name of last image in temp folder
-    image_name = None
+    # obtains name of image file if it matches xml
+    image_name = get_image_full_name_node()
     temp_folder = get_temp_folder()
     images = glob.glob(os.path.join(temp_folder, '*'))
-    for f in images:
-        image_name = os.path.basename(f)
-    return image_name
+    for file in images:
+        file_name = os.path.basename(file)
+        if file_name == image_name:
+            return file_name
+    return None
+
+
+def get_temp_file_path() -> str:
+    # return image path if image indicated in nodes is uploaded
+    image_name = get_image_full_name_node()
+    temp_folder = get_temp_folder()
+    images = glob.glob(os.path.join(temp_folder, '*'))
+    for file in images:
+        file_name = os.path.basename(file)
+        if file_name == image_name:
+            return file
+    return None
 
 
 def clear_folder(folder: str):

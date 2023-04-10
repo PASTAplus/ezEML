@@ -24,7 +24,7 @@ from metapype.eml import names
 from webapp.exceptions import ezEMLXMLError
 from metapype.model import metapype_io
 from metapype.model.node import Node
-import webapp.home.metapype_client as metapype_client, fixup_eml_namespaces_on_import
+import webapp.home.metapype_client as metapype_client
 
 
 data_time_format_strings = None
@@ -62,8 +62,8 @@ def load_eml_file(eml_file_url:str):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node)
-    eml_node = fixup_eml_namespaces_on_import(eml_node)
-    return eml_node
+    eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
+    return eml_node, nsmap_changed
 
 
 def load_df(eml_node, csv_url, data_table_name):

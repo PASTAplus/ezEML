@@ -1418,12 +1418,15 @@ def fix_nonstring_content(node):
             fix_nonstring_content(child)
 
 
+NSMAP = {
+    "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
+}
+
+
 def create_full_xml(eml_node):
-    eml_node.nsmap = {
-        "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
-        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-        "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
-      }
+    eml_node.nsmap = NSMAP
     eml_node.prefix = 'eml'
     eml_node.extras = {
         "xsi:schemaLocation": "https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd"
@@ -1441,12 +1444,12 @@ def fixup_eml_namespaces_on_import(eml_node):
             fix_node(child, nsmap)
         return node
 
-    nsmap = {
-        "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
-        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-        "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
-      }
-    return fix_node(eml_node, nsmap)
+    initial_nsmap = eml_node.nsmap
+    eml_node = fix_node(eml_node, NSMAP)
+    final_nsmap = eml_node.nsmap
+    nsmap_changed = \
+        initial_nsmap.get('eml') != final_nsmap.get('eml') or initial_nsmap.get('stmml') != final_nsmap.get('stmml')
+    return eml_node, nsmap_changed
 
 
 def fixup_categorical_variables(eml_node):

@@ -63,6 +63,8 @@ class CollaborationRecord2:
             if self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR and\
                    is_group_entry:
                 self.status_str = f'Locked by {self.collaborator_name}'
+            elif self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
+                self.status_str = f'Locked by {self.collaborator_name}'
             else:
                 self.status_str = 'Available'
 
@@ -78,7 +80,8 @@ class CollaborationRecord2:
         # Actions
         for action in self.actions:
             if action == collaborations.CollaborationAction.OPEN:
-                if self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR:
+                if self.collaboration_case in [collaborations.CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR,
+                                               collaborations.CollaborationCase.LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR]:
                     link = url_for(PAGE_OPEN_BY_COLLABORATOR, collaborator_id=self.collaborator_id,
                                    package_id=self.package_id)
                     self.update_action_str(f'<a href="{link}">Open</a>')
@@ -105,7 +108,7 @@ class CollaborationRecord2:
                 self.update_action_str(f'<a href="{link}" onclick="{onclick}">End collaboration</a>')
 
             if action == collaborations.CollaborationAction.END_GROUP_COLLABORATION:
-                link = url_for(PAGE_REMOVE_COLLABORATION, collab_id=self.collab_id)
+                link = url_for(PAGE_REMOVE_COLLABORATION, collab_id=f'G{self.collab_id}')
                 onclick = f"return confirm('Are you sure? This will end the collaboration for all participants and " \
                                   f"cannot be undone.');"
                 self.update_action_str(f'<a href="{link}" onclick="{onclick}">End group collaboration</a>')

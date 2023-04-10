@@ -46,6 +46,7 @@ from webapp.views.collaborations.collaborations import (
     get_lock_output,
     release_acquired_lock
 )
+import webapp.views.collaborations.backups as collaboration_backups
 from webapp.views.collaborations.forms import (
     CollaborateForm,
     InviteCollaboratorForm,
@@ -128,6 +129,7 @@ def enable_edi_curation(filename=None):
                                           locked_by=group_collaboration.user_group_id)
 
         # Back up the current package
+        collaboration_backups.save_backup(group_collaboration.package_id)
 
         # Send an email to EDI Curators to let them know that a new package is available for curation
 
@@ -139,6 +141,9 @@ def enable_edi_curation(filename=None):
     except CollaboratingWithGroupAlready:
         flash('EDI curation is already enabled for this package.', 'error')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
+    except Exception as e:
+        flash('An error occurred while enabling EDI curation for this package.', 'error')
+        logger.error(e)
 
     return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))
 
@@ -306,6 +311,7 @@ def remove_collaboration(collab_id, filename=None):
     if not collab_id.startswith('G'):
         collaborations.remove_collaboration(collab_id)
     else:
+        collab_id = int(collab_id[1:])
         collaborations.remove_group_collaboration(collab_id)
     return redirect(url_for(PAGE_COLLABORATE, filename=filename))
 

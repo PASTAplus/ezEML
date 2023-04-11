@@ -441,18 +441,6 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
         for col in columns:
             dtype = data_frame[col][1:].infer_objects().dtype
 
-            # # Sometimes infer_objects is a bit overzealous and will convert a column to a float when it should be
-            # #  an object. For example, a column that is all blank strings except for one string entry will be called
-            # #  a float column. This causes problems when we try to force categorical codes and missing value codes,
-            # #  because the tests for nan will throw an exception on the string entry. So we check for this case...
-            # try:
-            #     _ = np.isnan(data_frame[col][1])
-            # except TypeError:
-            #     dtype = data_frame.dtypes[col]
-            #
-            # if col == 'COMMENTS':
-            #     ijk = 123
-
             var_type, codes = infer_col_type(data_frame, col)
             if Config.LOG_DEBUG:
                 log_info(f'col: {col}  var_type: {var_type}')

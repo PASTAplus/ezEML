@@ -264,7 +264,14 @@ def force_missing_value_code(missing_value_code, dtype, codes):
     #  code, we substitute it for nan.
     if dtype != np.float64:
         return codes
-    if not True in np.isnan(codes):
+
+    # Sometimes we cannot use math.isnan because the code is a string
+    try:
+        isnan = np.isnan(codes)
+    except TypeError as e:
+        return codes
+
+    if not True in isnan:
         return codes
 
     if missing_value_code:
@@ -284,7 +291,12 @@ def force_categorical_codes(attribute_node, dtype, codes):
         ok = True
         int_codes = []
         for code in codes:
-            if not math.isnan(code):
+            as_is = False
+            try:
+                as_is = math.isnan(code)
+            except TypeError as e:
+                as_is = True
+            if not as_is:
                 try:
                     if code == int(code):
                         int_codes.append(int(code))
@@ -428,7 +440,18 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
 
         for col in columns:
             dtype = data_frame[col][1:].infer_objects().dtype
-            # dtype = data_frame.dtypes[col]
+
+            # # Sometimes infer_objects is a bit overzealous and will convert a column to a float when it should be
+            # #  an object. For example, a column that is all blank strings except for one string entry will be called
+            # #  a float column. This causes problems when we try to force categorical codes and missing value codes,
+            # #  because the tests for nan will throw an exception on the string entry. So we check for this case...
+            # try:
+            #     _ = np.isnan(data_frame[col][1])
+            # except TypeError:
+            #     dtype = data_frame.dtypes[col]
+            #
+            # if col == 'COMMENTS':
+            #     ijk = 123
 
             var_type, codes = infer_col_type(data_frame, col)
             if Config.LOG_DEBUG:

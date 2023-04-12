@@ -1440,7 +1440,7 @@ def send_to_other(filename=None, mailto=None):
                                title='Submit Metadata',
                                #set image and xml file names to display
                                image_name=user_data.get_temp_file_name(),
-                               xml_name=current_user.get_filename(),
+                               xml_name=get_image_name_node(),
                                check_metadata_status=get_check_metadata_status(eml_node, current_document),
                                form=form, help=help)
 
@@ -1732,35 +1732,50 @@ def import_package():
             with open(filepath, "r") as file:
                 data = file.read()
 
-            eml_validator_request = requests.post('https://knb.ecoinformatics.org/emlparser/parse', data = {"action": "textparse", "doctext": data})
-            pattern = r'<h4>(.*?)<\/h4>' # Grab h4 elements from html response
-            validator_results = re.findall(pattern, eml_validator_request.text)  #[h4 eml, h4 xml]
-            eml_valid = "Passed" in validator_results[0]
-            xml_valid = "Warning" in validator_results[1] or "Passed" in validator_results[1]
-            if eml_valid and xml_valid:
+
+            try:
                 xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
-                converted_file = filepath.replace(".xml", ".json")
 
-                with open(converted_file, "w") as file:
-                    file.write(xml_to_json)
-                    file.close()
 
-                # Remove Image data if present
-                user_data.clear_temp_folder()
-                eml_node = load_eml(filename)
-                dataset_node = eml_node.find_child(names.DATASET)
-                if dataset_node:
-                    for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
-                        clear_other_entity(entity_node)
-                    title_node = dataset_node.find_child(names.TITLE)
-                    if title_node:
-                        dataset_node.remove_child(title_node)
-                slideID_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER, mdb_names.SLIDE_ID])
-                if slideID_node:
-                    slideID_node.parent.remove_child(slideID_node)
+                eml_validator_request = requests.post('https://knb.ecoinformatics.org/emlparser/parse', data = {"action": "textparse", "doctext": data})
+                pattern = r'<h4>(.*?)<\/h4>' # Grab h4 elements from html response
+                validator_results = re.findall(pattern, eml_validator_request.text)  #[h4 eml, h4 xml]
+                eml_valid = "Passed" in validator_results[0]
+                xml_valid = "Warning" in validator_results[1] or "Passed" in validator_results[1]
+                if eml_valid and xml_valid:
+                    xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
+
+                    converted_file = filepath.replace(".xml", ".json")
+
+                    with open(converted_file, "w") as file:
+                        file.write(xml_to_json)
+                        file.close()
+
+                    # Remove Image data if present
+                    user_data.clear_temp_folder()
+                    eml_node = load_eml(filename)
+                    dataset_node = eml_node.find_child(names.DATASET)
+                    if dataset_node:
+                        for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
+                            clear_other_entity(entity_node)
+                        title_node = dataset_node.find_child(names.TITLE)
+                        if title_node:
+                            dataset_node.remove_child(title_node)
+                    slideID_node = eml_node.find_single_node_by_path([names.ADDITIONALMETADATA, names.METADATA, mdb_names.MOTHER, mdb_names.SLIDE_ID])
+                    if slideID_node:
+                        slideID_node.parent.remove_child(slideID_node)
 
 
                 save_both_formats(filename=filename, eml_node=eml_node)
+
+            except Exception as e:
+                full_string = str(e)
+                try:
+                    message = full_string.split(',', 1)[0] + '.'
+                except:
+                    message = type(e).__name__
+                flash("Syntax Error: " + message)
+
 
                 return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
             else:

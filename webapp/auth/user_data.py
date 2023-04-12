@@ -282,12 +282,6 @@ def download_zip(filename: str = ''):
         filename_zip = f'{filename}.zip'
         pathname = f'{user_folder}/{filename_zip}'
         if os.path.exists(pathname):
-            package_id = get_active_packageid()
-            if package_id:
-                filename_zip = f'{package_id}.zip'
-            image_name = get_image_name_node()
-            if image_name:
-                filename_zip = f'{image_name}.zip'
             relative_pathname = '../' + pathname
             mimetype = 'application/zip'
             try:

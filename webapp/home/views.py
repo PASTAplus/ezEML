@@ -1732,19 +1732,14 @@ def import_package():
             with open(filepath, "r") as file:
                 data = file.read()
 
-
             try:
                 xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
-
-
-                eml_validator_request = requests.post('https://knb.ecoinformatics.org/emlparser/parse', data = {"action": "textparse", "doctext": data})
-                pattern = r'<h4>(.*?)<\/h4>' # Grab h4 elements from html response
-                validator_results = re.findall(pattern, eml_validator_request.text)  #[h4 eml, h4 xml]
+                eml_validator_request = requests.post('https://knb.ecoinformatics.org/emlparser/parse', data={"action": "textparse", "doctext": data})
+                pattern = r'<h4>(.*?)<\/h4>'  # Grab h4 elements from html response
+                validator_results = re.findall(pattern, eml_validator_request.text)  # [h4 eml, h4 xml]
                 eml_valid = "Passed" in validator_results[0]
                 xml_valid = "Warning" in validator_results[1] or "Passed" in validator_results[1]
                 if eml_valid and xml_valid:
-                    xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
-
                     converted_file = filepath.replace(".xml", ".json")
 
                     with open(converted_file, "w") as file:
@@ -1765,9 +1760,10 @@ def import_package():
                     if slideID_node:
                         slideID_node.parent.remove_child(slideID_node)
 
-
-                save_both_formats(filename=filename, eml_node=eml_node)
-
+                    save_both_formats(filename=filename, eml_node=eml_node)
+                    return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
+                else:
+                    flash(f'Invalid XML with respect to ezEML and Mother', 'error')
             except Exception as e:
                 full_string = str(e)
                 try:
@@ -1777,16 +1773,12 @@ def import_package():
                 flash("Syntax Error: " + message)
 
 
-                return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
-            else:
-                flash(f'The selected file does not appear to be a valid ezEML data package file. '
-                      'Please select a different file or check with the package provider for a corrected file.',
-                      'error')
 
     # Process GET
     help = get_helps(['import_package'])
     return render_template('import_package.html', title='Upload XML File',
                            packages=package_list, form=form, help=help)
+
 
 
 @home.route('/import_package_2/<package_name>', methods=['GET', 'POST'])

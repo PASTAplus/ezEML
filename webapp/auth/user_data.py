@@ -28,6 +28,8 @@ from webapp.config import Config
 from webapp.home.motherpype import get_image_name_node, get_image_full_name_node
 import webapp.home.views as views
 
+from PIL import Image
+
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
@@ -411,3 +413,23 @@ def get_eval_file_name():
     eval_file_name = f'{user_folder_name}/eval.csv'
 
     return eval_file_name
+
+thumb_size = (128,128)
+thumb_format = 'PNG'
+
+def create_thumb(path: str):
+    #create thumbnail of image in same folder
+    if path:
+        im = Image.open(path)
+        path_split = path.rsplit(".", 1)
+        thumb_path = path_split[0] + "_thumb." + path_split[1]
+        im.thumbnail(thumb_size)
+        im.save(thumb_path, thumb_format)
+
+def get_thumb_path() -> str:
+    path = get_temp_file_path()
+    if path:
+        path_split = path.rsplit(".", 1)
+        thumb_path = path_split[0] + "_thumb." + path_split[1]
+        return thumb_path
+    return None

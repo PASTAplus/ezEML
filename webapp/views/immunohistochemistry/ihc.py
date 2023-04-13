@@ -262,7 +262,8 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
         clonality_node = primaryAntibody_node.find_child(mdb_names.CLONALITY)
         if clonality_node:
             form.clonality.data = clonality_node.attributes.get("value", None)
-
+            if not form.clonality.data:
+                form.clonality.data = clonality_node.content
         targetSpecies_node = primaryAntibody_node.find_child(mdb_names.TARGET_SPECIES)
         if targetSpecies_node:
             form.targetSpecies.data = targetSpecies_node.content
@@ -344,5 +345,7 @@ def populate_ihc_form(form: immunohistochemistryForm, node: Node):
     detectionMethod_node = node.find_child(mdb_names.DETECTION_METHOD)
     if detectionMethod_node:
         form.detectionMethod.data = detectionMethod_node.attributes.get("value", None)
+        if not form.detectionMethod.data:
+            form.detectionMethod.data = detectionMethod_node.content
 
     form.md5.data = form_md5(form)

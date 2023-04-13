@@ -64,31 +64,31 @@ class CollaborationRecord2:
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_LOGGED_IN_USER:
             if not is_group_entry or \
                     self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
-                self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
+                self.status_str = 'In use by ' + collaborations.display_name(self.locked_by)
             else:
                 # The group lock is available
                 self.status_str = 'Available'
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_ANOTHER_USER:
-            self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
+            self.status_str = 'In use by ' + collaborations.display_name(self.locked_by)
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_ONLY:
             if self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR and\
                    is_group_entry:
-                self.status_str = f'Locked by {self.collaborator_name}'
+                self.status_str = f'In use by {self.collaborator_name}'
             elif self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
-                self.status_str = f'Locked by {self.collaborator_name}'
+                self.status_str = f'In use by {self.collaborator_name}'
             else:
                 self.status_str = 'Available'
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER:
             if not is_group_entry:
-                self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
+                self.status_str = 'In use by ' + collaborations.display_name(self.locked_by)
             else:
-                self.status_str = 'Locked by ' + collaborations.display_name(self.collaborator_login)
+                self.status_str = 'In use by ' + collaborations.display_name(self.collaborator_login)
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER:
-            self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
+            self.status_str = 'In use by ' + collaborations.display_name(self.locked_by)
 
         # Actions
         for action in self.actions:
@@ -102,7 +102,7 @@ class CollaborationRecord2:
             if action == collaborations.CollaborationAction.RELEASE_INDIVIDUAL_LOCK:
                 # if self.collaborator_id == current_user_id:
                 link = url_for(PAGE_RELEASE_LOCK, package_id=self.package_id)
-                self.update_action_str(f'<a href="{link}">Release lock</a>')
+                self.update_action_str(f'<a href="{link}">Release</a>')
 
             if action == collaborations.CollaborationAction.RELEASE_GROUP_LOCK:
                 link = url_for(PAGE_RELEASE_GROUP_LOCK, package_id=self.package_id)
@@ -209,7 +209,7 @@ class CollaborationRecord:
         else:
             # Locked. Might be a user or a group.
             self.locked_by = collaborations._get_user(self.locked_by_id).user_login
-            self.status = 'Locked by ' + collaborations.display_name(self.locked_by)
+            self.status = 'In use by ' + collaborations.display_name(self.locked_by)
             if self.locked_by.endswith('-group_collaboration'):
                 lock_status = 'LockStatus.LOCKED_BY_GROUP'
                 # There is a group lock. If the user is a member of the group, the user can release the lock.
@@ -221,7 +221,7 @@ class CollaborationRecord:
                 lock_status = 'LockStatus.LOCKED_BY_USER'
                 if self.locked_by_id == current_user_id: # blah self.collaborator_id:
                     link = url_for(PAGE_RELEASE_LOCK, package_id=self.package_id)
-                    self.action = f'<a href="{link}">Release lock</a>'
+                    self.action = f'<a href="{link}">Release</a>'
 
         # Handle links for ending a collaboration.
         if lock_status == 'LockStatus.LOCKED_BY_USER':

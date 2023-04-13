@@ -133,6 +133,7 @@ def enable_edi_curation(filename=None):
 
     form = EnableEDICurationForm()
 
+    enable_disabled = False
     if current_user.is_edi_curator():
         flash('You are logged in as an EDI Curator. You are not permitted to enable EDI curation from this login account.', 'error')
         enable_disabled = True

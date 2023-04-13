@@ -160,13 +160,16 @@ def url_of_interest():
 
 @home.before_app_request
 def post_debug_info_to_session():
-    user_login = current_user.get_user_login()
-    if user_login:
-        active_package = collaborations.get_active_package(user_login)
-        if active_package:
-            session["active_package_id"] = active_package.package_id
-        else:
-            session["active_package_id"] = None
+    try:
+        user_login = current_user.get_user_login()
+        if user_login:
+            active_package = collaborations.get_active_package(user_login)
+            if active_package:
+                session["active_package_id"] = active_package.package_id
+            else:
+                session["active_package_id"] = None
+    except Exception as e:
+        session["active_package_id"] = None
 
 
 @home.before_app_request

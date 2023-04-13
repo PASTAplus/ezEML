@@ -593,6 +593,7 @@ def index():
                 new_page = PAGE_TITLE
             else:
                 user_data.remove_active_file()
+                log_error('Error loading EML file: ' + current_document + ' in index()')
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=current_document))
         else:
@@ -615,7 +616,11 @@ def edit(page:str=None, dev=None):
             if page not in [PAGE_COLLABORATE, PAGE_INVITE_COLLABORATOR, PAGE_ACCEPT_INVITATION]:
                 # We skip metadata check here because we will do load_eml again on the target page
                 eml_node = load_eml(filename=current_filename, skip_metadata_check=True)
-                new_page = page if eml_node else PAGE_FILE_ERROR
+                if eml_node:
+                    new_page = page
+                else:
+                    log_error('Error loading EML file: ' + current_filename + ' in edit()')
+                    new_page = PAGE_FILE_ERROR
             else:
                 new_page = page
             return redirect(url_for(new_page, filename=current_filename))
@@ -1123,6 +1128,7 @@ def open_document(filename, owner=None):
         log_usage(actions['OPEN_DOCUMENT'])
         check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
     else:
+        log_error('Error loading EML file: ' + filename + ' in open_document()')
         new_page = PAGE_FILE_ERROR
     return redirect(url_for(new_page, filename=filename))
 
@@ -1172,6 +1178,7 @@ def open_package(package_name, owner=None):
         log_usage(actions['OPEN_DOCUMENT'])
         check_data_table_contents.set_check_data_tables_badge_status(package_name, eml_node)
     else:
+        log_error('Error loading EML file: ' + package_name + ' in open_package()')
         new_page = PAGE_FILE_ERROR
 
     return redirect(url_for(new_page, filename=package_name))

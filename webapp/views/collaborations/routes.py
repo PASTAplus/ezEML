@@ -145,6 +145,8 @@ def enable_edi_curation(filename=None):
             name = form.data['name']
             email_address = form.data['email_address']
             notes = form.data['notes']
+            if not notes:
+                notes = None
             return redirect(url_for(PAGE_ENABLE_EDI_CURATION_2,
                                     filename=filename,
                                     name=name,
@@ -169,6 +171,7 @@ def enable_edi_curation_mail_body(server=None, filename=None, name=None, email_a
     return msg
 
 
+@collab_bp.route('/enable_edi_curation_2/<filename>/<name>/<email_address>', methods=['GET', 'POST'])
 @collab_bp.route('/enable_edi_curation_2/<filename>/<name>/<email_address>/<notes>', methods=['GET', 'POST'])
 @login_required
 def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=None):

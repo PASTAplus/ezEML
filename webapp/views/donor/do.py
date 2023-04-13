@@ -339,6 +339,8 @@ def populate_donor_form(form: DonorForm, node: Node):
         if corpusLuteum_node:
             form.specimenLocation.data = corpusLuteum_node.name
             form.corpusLuteum.data = corpusLuteum_node.attributes.get("value", None)
+            if not form.corpusLuteum.data:
+                form.corpusLuteum.data = corpusLuteum_node.content
 
     specimenCycle_node = node.find_child(mdb_names.SPEC_CYCLE)
     if specimenCycle_node:
@@ -352,6 +354,8 @@ def populate_donor_form(form: DonorForm, node: Node):
             if follicular_node:
                 form.stageOfCycle.data = follicular_node.name
                 form.follicular.data = follicular_node.attributes.get("value", None)
+                if not form.follicular.data:
+                    form.follicular.data = follicular_node.content
             pre_ovulatory_node = stageOfCycle_node.find_child(mdb_names.PRE_OVULATORY)
             if pre_ovulatory_node:
                 form.stageOfCycle.data = pre_ovulatory_node.name
@@ -362,6 +366,8 @@ def populate_donor_form(form: DonorForm, node: Node):
             if luteal_node:
                 form.stageOfCycle.data = luteal_node.name
                 form.luteal.data = luteal_node.attributes.get("value", None)
+                if not form.luteal.data:
+                    form.luteal.data = luteal_node.content
             unspecified_node = stageOfCycle_node.find_child(mdb_names.EMPTY_UNSPECIFIED)
             if unspecified_node:
                 form.stageOfCycle.data = unspecified_node.name
@@ -459,6 +465,8 @@ def populate_donor_form(form: DonorForm, node: Node):
                 if sudan_node:
                     form.lightMicroscopyStainType.data = sudan_node.name
                     form.sudanStainType.data = sudan_node.attributes.get("value", None)
+                    if not form.sudanStainType.data:
+                        form.sudanStainType.data = sudan_node.content
                 acidFuschin_node = lightMicroscopyStain_node.find_child(mdb_names.ACID_FUSCHIN)
                 if acidFuschin_node:
                     form.lightMicroscopyStainType.data = acidFuschin_node.name

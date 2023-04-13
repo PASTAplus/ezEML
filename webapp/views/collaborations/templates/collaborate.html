@@ -95,6 +95,18 @@
 {#    </table>#}
 {#            <input class="btn btn-primary" style="width: 120px;margin-left: 200px;" name="Submit" type="submit" value="Refresh"/>&nbsp;&nbsp;#}
 
+        {% if is_edi_curator %}
+            <p></p><br>
+            <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Show Backups"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+            {% if not save_backup_disabled %}
+                <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Save a Backup"/>&nbsp;&nbsp;
+            {% else %}
+                <input class="btn btn-primary" style="width: 160px;" disabled
+                       title="You can only Save a Backup if you have a document open and it is under EDI Curation."
+                       name="Submit" type="submit" value="Save a Backup"/>&nbsp;&nbsp;
+            {% endif %}&nbsp;&nbsp;
+        {% endif %}
 
         {% if dev %}
         <p></p>

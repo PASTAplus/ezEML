@@ -9,6 +9,18 @@ import webapp.views.collaborations.collaborations as collaborations
 
 
 @dataclass()
+class Backup:
+    owner_login: str
+    owner_name: str
+    package_name: str
+    date: str
+    is_primary: str
+    preview: str
+    restore: str
+    delete: str
+
+
+@dataclass()
 class CollaborationRecord2:
     collaboration_case: Enum
     lock_status: Enum
@@ -50,7 +62,8 @@ class CollaborationRecord2:
             self.status_str = 'Available'
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_LOGGED_IN_USER:
-            if not is_group_entry:
+            if not is_group_entry or \
+                    self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
                 self.status_str = 'Locked by ' + collaborations.display_name(self.locked_by)
             else:
                 # The group lock is available

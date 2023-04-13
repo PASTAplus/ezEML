@@ -50,7 +50,7 @@ def send_mail(subject, msg, to, to_name=None):
         with smtplib.SMTP(Config.RELAY_HOST, Config.RELAY_TLS_PORT) as server:
             server.starttls()
             server.login(Config.RELAY_USER, Config.RELAY_PASSWORD)
-            # server.sendmail(Config.FROM, Config.TO, message.as_string())
+            # TODO - TEMP - Temporarily comment out to avoid sending emails
             server.sendmail(Config.FROM, to, message.as_string())
 
         log_msg = f"Sending email to: {to}"

@@ -1,5 +1,7 @@
 import daiquiri
-from urllib.parse import quote, urlparse
+import os
+import shutil
+from urllib.parse import quote, unquote, urlparse
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
@@ -36,6 +38,7 @@ from webapp.home.exceptions import (
     UserNotFound
 )
 
+import webapp.views.collaborations.backups as backups
 import webapp.views.collaborations.collaborations as collaborations
 from webapp.views.collaborations.collaborations import (
     get_package_by_id,
@@ -64,7 +67,7 @@ collab_bp = Blueprint('collab', __name__, template_folder='templates')
 @login_required
 def collaborate(filename=None, dev=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_COLLABORATE, PAGE_COLLABORATE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -81,6 +84,12 @@ def collaborate(filename=None, dev=None):
 
         if request.form.get(BTN_SUBMIT) == BTN_ACCEPT_INVITATION:
             return redirect(url_for(PAGE_ACCEPT_INVITATION, filename=filename, dev=dev))
+
+        if request.form.get(BTN_SUBMIT) == BTN_SHOW_BACKUPS:
+            return redirect(url_for(PAGE_SHOW_BACKUPS, filename=filename))
+
+        if request.form.get(BTN_SUBMIT) == BTN_SAVE_BACKUP:
+            return redirect(url_for(PAGE_SAVE_BACKUP))
 
         if request.form.get(BTN_SUBMIT) == BTN_REFRESH:
             return redirect(url_for(PAGE_COLLABORATE, filename=filename, dev=dev))
@@ -103,12 +112,15 @@ def collaborate(filename=None, dev=None):
     else:
         owned_by_other = False
     invitation_disabled = owned_by_other or not current_user.get_filename()
+    save_backup_disabled = collaborations.save_backup_is_disabled()
+    is_edi_curator = current_user.is_edi_curator()
     help = get_helps(['collaborate_general', 'collaborate_invite_accept'])
 
     return render_template('collaborate.html', collaborations=my_collaborations, invitations=my_invitations,
                            user=current_user.get_user_login(), invitation_disabled=invitation_disabled,
+                           save_backup_disabled=save_backup_disabled,
                            collaboration_list=collaboration_list, user_list=user_list, package_list=package_list,
-                           lock_list=lock_list, help=help, dev=dev)
+                           lock_list=lock_list, is_edi_curator=is_edi_curator, help=help, dev=dev)
 
 
 @collab_bp.route('/enable_edi_curation/<filename>', methods=['GET', 'POST'])
@@ -121,6 +133,11 @@ def enable_edi_curation(filename=None):
 
     form = EnableEDICurationForm()
 
+    if current_user.is_edi_curator():
+        flash('You are logged in as an EDI Curator. You are not permitted to enable EDI curation from this login account.', 'error')
+        enable_disabled = True
+
+    # Process POST
     if request.method == 'POST':
 
         if request.form.get(BTN_SUBMIT):
@@ -136,7 +153,7 @@ def enable_edi_curation(filename=None):
         if request.form.get(BTN_CANCEL):
             return redirect(get_back_url())
 
-    return render_template('enable_edi_curation.html', filename=filename, form=form)
+    return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled, form=form)
 
 
 def enable_edi_curation_mail_body(server=None, filename=None, name=None, email_address=None, notes=None):
@@ -171,8 +188,7 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
                                           locked_by=group_collaboration.user_group_id)
 
         # Back up the current package
-        collaboration_backups.save_backup(group_collaboration.package_id)
-
+        collaboration_backups.save_backup(group_collaboration.package_id, primary=True)
 
         # Send an email to EDI Curators to let them know that a new package is available for curation
         parsed_url = urlparse(request.base_url)
@@ -383,6 +399,12 @@ def open_by_collaborator(collaborator_id, package_id):
 
     # Get a lock on the package, if available
     lock = collaborations.open_package(user_login, filename, owner_login=owner_login)
+    # If there's a group collaboration and we're a group member, take the group lock as well
+    if collaborations.is_edi_curator(user_login) and collaborations.package_is_under_edi_curation(package_id):
+        user_id = collaborations.get_user(user_login, create_if_not_found=True).user_id
+        edi_curator_group = collaborations.get_user_group("EDI Curators")
+        collaborations.add_group_lock(package_id, edi_curator_group.user_group_id)
+
     # Open the document
     try:
         return open_document(filename, owner=collaborations.display_name(owner_login))
@@ -426,3 +448,91 @@ def cancel_invitation(invitation_id, filename=None):
     if not filename:
         filename = user_data.get_active_document()
     return redirect(url_for(PAGE_COLLABORATE, filename=filename))
+
+
+@collab_bp.route('/save_backup', methods=['GET', 'POST'])
+@login_required
+def save_backup():
+    # current_document = current_user.get_filename()
+    user_login = current_user.get_user_login()
+    # owner = user_data.get_active_document_owner()
+    active_package = collaborations.get_active_package(user_login)
+    if active_package:
+        package_id = active_package.package_id
+        backups.save_backup(package_id)
+    return redirect(url_for(PAGE_SHOW_BACKUPS))
+
+
+@collab_bp.route('/show_backups', methods=['GET', 'POST'])
+@collab_bp.route('/show_backups/<filename>', methods=['GET', 'POST'])
+@collab_bp.route('/show_backups/<filename>/<action>', methods=['GET', 'POST'])
+@login_required
+def show_backups(filename=None, action=None):
+    current_document = current_user.get_filename()
+
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_SHOW_BACKUPS, PAGE_SHOW_BACKUPS)
+        return redirect(url_for(new_page, filename=current_document))
+
+    # The action parameter is used to signal we want to
+    #  return to the previous page.
+    if action == '____back____':
+        return redirect(url_for(PAGE_COLLABORATE, filename=current_document))
+
+    backups = collaboration_backups.get_backups()
+    return render_template('show_backups.html', backups=backups)
+
+
+@collab_bp.route('/oreview_backup/<filename>', methods=['GET', 'POST'])
+@login_required
+def preview_backup(filename=None):
+    # Load the backup into the logged in user's session
+    #  and then open the document for review.
+
+    # Copy json file into the user's data directory
+    user_data_dir = user_data.get_user_folder_name(current_user_directory_only=True)
+    # Trim the filename
+    filename = unquote(filename)
+    # Remove the datetime and 'primary' flag from the filename. Append '_PREVIEW' so the user can keep it straight
+    #  that the original is in the owner's account, not theirs.
+    package_name = os.path.basename(filename.split('.json.')[0]) + '_PREVIEW'
+    dest_filename = f"{package_name}.json"
+    # Copy the file
+    shutil.copyfile(filename, os.path.join(user_data_dir, dest_filename))
+
+    # We need to set the active document to the backup but owned by the logged in user
+    #  because we're opening the document in the logged in user's account.
+    collaborations.change_active_package_account(package_name)
+
+    return redirect(url_for(PAGE_OPEN_PACKAGE, package_name=package_name))
+
+
+@collab_bp.route('/restore_backup/<filename>/<owner>', methods=['GET', 'POST'])
+@login_required
+def restore_backup(filename=None, owner=None):
+    # Load the backup into the collaboration owner's account
+    #  and then open the document for review.
+    # Load the backup into the logged in user's session
+    #  and then open the document for review.
+
+    # Copy json file into the owner's data directory
+    owner_data_dir = os.path.join(Config.USER_DATA_DIR, owner)
+    # Trim the filename
+    filename = unquote(filename)
+    trimmed_filename = os.path.basename(filename.split('.json.')[0] + '.json')
+    # Copy the file
+    shutil.copyfile(filename, os.path.join(owner_data_dir, trimmed_filename))
+    package_name = os.path.splitext(trimmed_filename)[0]
+
+    return redirect(url_for(PAGE_OPEN_PACKAGE, package_name=package_name, owner=collaborations.display_name(owner)))
+
+
+@collab_bp.route('/delete_backup/<filename>', methods=['GET', 'POST'])
+@login_required
+def delete_backup(filename=None):
+    # Remove the backup file from the server
+    filename = unquote(filename)
+    os.remove(filename)
+
+    return redirect(url_for(PAGE_COLLABORATE))
+

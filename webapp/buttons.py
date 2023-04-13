@@ -39,8 +39,10 @@ BTN_REUPLOAD = 'Re-upload'
 BTN_REUSE = "Reuse a Responsible Party"
 BTN_SAVE = 'Save'
 BTN_SAVE_AND_CONTINUE = 'Save and Continue'
+BTN_SAVE_BACKUP = 'Save a Backup'
 BTN_SEND_INVITATION = 'Send Invitation'
 BTN_SEND_TO_OTHER = 'Prepare Package for Colleague'
+BTN_SHOW_BACKUPS = 'Show Backups'
 BTN_SUBMIT = 'Submit'
 BTN_SUBMIT_TO_EDI = 'Send to EDI'
 

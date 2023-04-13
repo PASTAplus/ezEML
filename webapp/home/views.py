@@ -159,6 +159,17 @@ def url_of_interest():
 
 
 @home.before_app_request
+def post_debug_info_to_session():
+    user_login = current_user.get_user_login()
+    if user_login:
+        active_package = collaborations.get_active_package(user_login)
+        if active_package:
+            session["active_package_id"] = active_package.package_id
+        else:
+            session["active_package_id"] = None
+
+
+@home.before_app_request
 def check_metapype_store():
     if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
         return
@@ -1142,11 +1153,14 @@ def open_eml_document():
 
 
 @home.route('/open_package/<package_name>', methods=['GET', 'POST'])
+@home.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
 @login_required
-def open_package(package_name):
+def open_package(package_name, owner=None):
     eml_node = load_eml(package_name)
     if eml_node:
         current_user.set_filename(package_name)
+        if owner:
+            current_user.set_file_owner(owner)
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)

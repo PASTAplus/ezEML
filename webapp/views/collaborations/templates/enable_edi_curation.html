@@ -50,8 +50,11 @@
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </table>
             <br>
-
+            {% if not enable_disabled %}
                 <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" value="Enable EDI Curation"/>&nbsp;&nbsp;
+            {% else %}
+                <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" disabled value="Enable EDI Curation"/>&nbsp;&nbsp;
+            {% endif %}
                 <input class="btn btn-primary" style="width: 95px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons() }}
 

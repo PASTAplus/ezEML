@@ -24,6 +24,7 @@ from webapp.auth.user_data import (
     set_active_document_owner, get_active_document_owner
 )
 from webapp.config import Config
+import webapp.views.collaborations.collaborations as collaborations
 
 
 logger = daiquiri.getLogger('user.py: ' + __name__)
@@ -96,6 +97,9 @@ class User(UserMixin):
             return self.get_username() in Config.BETA_TESTER_LOGINS
         except AttributeError:
             return False
+
+    def is_edi_curator(self):
+        return collaborations.is_edi_curator(self.get_user_login())
 
     def is_data_curator(self):
         try:

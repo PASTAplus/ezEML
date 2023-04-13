@@ -434,7 +434,7 @@ def release_group_lock(package_id, session=None):
 def set_active_package_id(user_id, package_id, session=None):
     with db_session(session) as session:
         user = User.query.filter_by(user_id=user_id).first()
-        user.active_package = package_id
+        user.active_package_id = package_id
 
 
 def _get_active_package_id(user_id):
@@ -452,6 +452,26 @@ def get_active_package(user_login, session=None):
             return Package.query.filter_by(package_id=package_id).first()
         else:
             return None
+
+
+def change_active_package_account(package_name, session=None):
+    with db_session(session) as session:
+        user_login = current_user.get_user_login()
+        logged_in_user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
+        current_active_package = get_active_package(user_login, session=session)
+        if current_active_package:
+            if current_active_package.owner_id == logged_in_user_id:
+                return
+            # release_lock(user_login, current_active_package.package_id, session=session)
+
+        new_package = get_package(user_login,
+                                  package_name,
+                                  create_if_not_found=True,
+                                  session=session)
+
+        set_active_package_id(logged_in_user_id, new_package.package_id, session=session)
+        current_user.set_file_owner(display_name(user_login))
+        session.flush()
 
 
 def get_user(user_login, create_if_not_found=False, session=None):
@@ -719,7 +739,8 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
                 actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
 
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
-            pass
+            if lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER:
+                actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
 
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR:
             if lock_status == LockStatus.NOT_LOCKED:
@@ -1111,6 +1132,23 @@ def is_group_member(user_login, user_group_id, session=None):
         return False
 
 
+def is_edi_curator(user_login, session=None):
+    with db_session(session) as session:
+        curator_group = get_user_group("EDI Curators", create_if_not_found=False, session=session)
+        if curator_group:
+            return is_group_member(user_login, curator_group.user_group_id, session=session)
+        return False
+
+
+def package_is_under_edi_curation(package_id, session=None):
+    with db_session(session) as session:
+        curator_group = get_user_group("EDI Curators", create_if_not_found=False, session=session)
+        if curator_group:
+            group_collaboration = get_group_collaboration(curator_group.user_group_id, package_id)
+            return group_collaboration is not None
+        return False
+
+
 def get_member_login(member):
     return _get_user(member.user_id).user_login
 
@@ -1170,6 +1208,17 @@ def init_groups():
                                                                   user_id=user.user_id,
                                                                   create_if_not_found=True,
                                                                   session=session)
+
+
+def save_backup_is_disabled():
+    active_package_id = None
+    user_login = current_user.get_user_login()
+    if user_login:
+        active_package = get_active_package(user_login)
+        if active_package:
+            active_package_id = active_package.package_id
+    # See if the active package is in a group collaboration with EDI Curators
+    return not package_is_under_edi_curation(active_package_id)
 
 
 def test_stub():

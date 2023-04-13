@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2023.03.15' %}
+{% set release_number = '2023.04.12' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -266,6 +266,7 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
             <ul class="nav navbar-nav">
                 <li>
+{#                {{ session['active_package_id'] }}#}
                     Welcome Back <strong>{{ current_user.get_username() }}</strong>
                     {% if current_user.get_filename() %}
                         &nbsp;&nbsp;

@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2023.04.12' %}
+{% set release_number = '2023.04.14' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -294,7 +294,7 @@
     {% endif %}
     {% endwith %}
 
-    <div style="width: 18%; float: left;">
+    <div id="contents_div" style="width: 18%; float: left;">
         <br>
         {% if current_user.is_authenticated %}
                 <table border="0">
@@ -402,7 +402,7 @@
 
         {% endif %}
     </div>
-    <div style="margin-left: 18%;">
+    <div id="app_div" style="margin-left: 18%;">
         {# application content needs to be provided in the app_content block #}
         {% block app_content %}{% endblock %}
     </div>
@@ -429,8 +429,12 @@
         let hidden_open = $("#hidden_open");
         let hidden_close = $("#hidden_close");
         let nav_link = $('.nav_link');
+        let contents_div = $('#contents_div');
+        let app_div = $('#app_div');
         if (hidden_save.length === 0) {
-            nav_link.hide();
+            nav_link.hide(); // blah
+            contents_div.width('0px');
+            app_div.css({'margin-left':'0px'});
             nav_save.hide();
             nav_check.hide();
         }

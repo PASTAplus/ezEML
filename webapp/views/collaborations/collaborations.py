@@ -27,7 +27,6 @@ from webapp.views.collaborations.model import (
 
 from webapp.views.collaborations.data_classes import (
     CollaborationRecord,
-    CollaborationRecord2,
     InvitationRecord,
     CollaborationOutput,
     LockOutput,
@@ -550,7 +549,10 @@ def _add_collaboration(owner_id, collaborator_id, package_id, status=None, sessi
     with db_session(session) as session:
         collaboration = get_collaboration(collaborator_id, package_id)
         if not collaboration:
-            collaboration = Collaboration(owner_id=owner_id, collaborator_id=collaborator_id, package_id=package_id)
+            collaboration = Collaboration(owner_id=owner_id,
+                                          collaborator_id=collaborator_id,
+                                          package_id=package_id,
+                                          date_created=datetime.today().date())
             session.add(collaboration)
             session.flush()
         if status:
@@ -775,7 +777,7 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
         return actions
 
 
-def get_group_collaborations(logged_in_user_id, session=None):
+def get_group_collaborations(logged_in_user_id, logged_in_user_records_only=True, session=None):
     """
     Handling group collaborations:
     We build a list of collaboration records and a set of collaboration_ids to suppress because they are details
@@ -804,9 +806,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                     collaborations_to_suppress.add((group_collaboration.package_id, member.user_id))
             group_as_user = get_user(fake_login_for_group(group_collaboration.user_group.user_group_name),
                                      session=session)
-            # lock = _get_group_lock(group_collaboration.package_id)
-            # if not lock:
-            #     lock = _get_lock(group_collaboration.package_id)
+
             collaboration_case = CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP
             lock_status, locked_by_id = _calculate_lock_status(collaboration_case,
                                                                logged_in_user_id,
@@ -814,7 +814,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                                                                session=session)
             actions = _calculate_actions(logged_in_user_id, group_as_user.user_id, group_collaboration.user_group,
                                          collaboration_case, lock_status, locked_by_id, session=session)
-            collaboration_records.append(CollaborationRecord2(
+            collaboration_records.append(CollaborationRecord(
                 collaboration_case=collaboration_case,
                 lock_status=lock_status,
                 actions=actions,
@@ -827,6 +827,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                 collaborator_id=group_as_user.user_id,
                 collaborator_login=group_as_user.user_login,
                 collaborator_name='',
+                date_created=group_collaboration.date_created.strftime('%Y-%m-%d'),
                 locked_by_id=locked_by_id,
                 locked_by='',
                 status_str='',
@@ -847,7 +848,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                     actions = _calculate_actions(logged_in_user_id, f'G{group_as_user.user_id}',
                                                  group_collaboration.user_group,
                                                  collaboration_case, lock_status, locked_by_id, session=session)
-                    collaboration_records.append(CollaborationRecord2(
+                    collaboration_records.append(CollaborationRecord(
                         collaboration_case=collaboration_case,
                         lock_status=lock_status,
                         actions=actions,
@@ -860,6 +861,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                         collaborator_id=group_as_user.user_id,
                         collaborator_login=group_as_user.user_login,
                         collaborator_name='',
+                        date_created=group_collaboration.date_created.strftime('%Y-%m-%d'),
                         locked_by_id=locked_by_id,
                         locked_by='',
                         status_str='',
@@ -868,6 +870,8 @@ def get_group_collaborations(logged_in_user_id, session=None):
                     members = get_group_members(group_collaboration.user_group.user_group_id, session=session)
                     lock = _get_lock(group_collaboration.package_id)
                     for member in members:
+                        if logged_in_user_records_only and member.user_id != logged_in_user_id:
+                            continue
                         collaboration = get_collaboration(member.user_id, group_collaboration.package_id)
                         # We don't want the collaboration to show up twice when we handle individual collaborations
                         collaborations_to_suppress.add((group_collaboration.package_id, member.user_id))
@@ -880,7 +884,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                         actions = _calculate_actions(logged_in_user_id, member.user_id,
                                                      group_collaboration.user_group,
                                                      collaboration_case, lock_status, locked_by_id, session=session)
-                        collaboration_records.append(CollaborationRecord2(
+                        collaboration_records.append(CollaborationRecord(
                             collaboration_case=collaboration_case,
                             lock_status=lock_status,
                             actions=actions,
@@ -893,6 +897,7 @@ def get_group_collaborations(logged_in_user_id, session=None):
                             collaborator_id=member.user_id,
                             collaborator_login=get_member_login(member),
                             collaborator_name='',
+                            date_created=group_collaboration.date_created.strftime('%Y-%m-%d'),
                             locked_by_id=locked_by_id,
                             locked_by='',
                             status_str='',
@@ -925,11 +930,6 @@ def get_collaborations(user_login):
                 continue
             owner_id = collaboration.owner_id
 
-            # status = _get_collaboration_status(collaboration.collab_id)
-            # if status:
-            #     status = status.status
-            # else:
-            #     status = None
             locked_by = None
             lock = _get_lock(collaboration.package_id)
             # If the lock has timed out, remove it. We do this here because a collaborator cannot open a locked package
@@ -949,7 +949,7 @@ def get_collaborations(user_login):
                                          collaboration_case, lock_status, locked_by_id, session=session)
 
             try:
-                collaboration_records.append(CollaborationRecord2(
+                collaboration_records.append(CollaborationRecord(
                     collaboration_case=collaboration_case,
                     lock_status=lock_status,
                     actions=actions,
@@ -962,6 +962,7 @@ def get_collaborations(user_login):
                     collaborator_id=collaboration.collaborator_id,
                     collaborator_login=collaboration.collaborator.user_login,
                     collaborator_name='',
+                    date_created=collaboration.date_created.strftime('%Y-%m-%d'),
                     locked_by_id=locked_by,
                     locked_by='',
                     status_str='',
@@ -1171,7 +1172,9 @@ def add_group_collaboration(user_login, user_group_name, package_name, session=N
 
         group_collaboration = GroupCollaboration(owner_id=owner_id,
                                                  user_group_id=user_group.user_group_id,
-                                                 package_id=package.package_id)
+                                                 package_id=package.package_id,
+                                                 date_created=datetime.today().date())
+
         session.add(group_collaboration)
         session.flush()
         # Add all the members of the group as collaborators

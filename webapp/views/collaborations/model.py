@@ -73,6 +73,8 @@ class GroupCollaboration(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     user_group_id = db.Column(db.Integer, db.ForeignKey('user_group.user_group_id'), nullable=False)
     package_id = db.Column(db.Integer, db.ForeignKey('package.package_id'), nullable=False)
+    date_created = db.Column(db.DateTime, nullable=False)
+
     __table_args__ = (db.UniqueConstraint('user_group_id', 'package_id', name='_user_group_package_uc'),)
 
     owner = db.relationship('User', foreign_keys=[owner_id])
@@ -89,6 +91,8 @@ class Collaboration(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     collaborator_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     package_id = db.Column(db.Integer, db.ForeignKey('package.package_id'), nullable=False)
+    date_created = db.Column(db.DateTime, nullable=False)
+
     __table_args__ = (db.UniqueConstraint('collaborator_id', 'package_id', name='_collaborator_package_uc'),)
 
     owner = db.relationship('User', foreign_keys=[owner_id])

@@ -82,3 +82,4 @@ class Config(object):
         "jlemaire-33463893a66177fe46eb87acc9d20e71"
         ]}
 
+    DISABLE_ENABLE_EDI_CURATION_EMAILS = False

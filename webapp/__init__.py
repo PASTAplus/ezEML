@@ -60,7 +60,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///' + os.path.join(db_dir, 'co
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 db.metadata.clear()
-# migrate = Migrate(app, db)
+migrate = Migrate(app, db)
 
 
 # Importing these modules causes the routes and error handlers to be associated

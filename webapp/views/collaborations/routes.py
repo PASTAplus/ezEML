@@ -199,9 +199,12 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         server = parsed_url.netloc
         msg = enable_edi_curation_mail_body(server, filename, name, email_address, notes)
 
-        sent = mimemail.send_mail(subject='An ezEML user has enabled EDI curation',
-                                  msg=msg,
-                                  to=[Config.TO])
+        if not Config.DISABLE_ENABLE_EDI_CURATION_EMAILS:
+            sent = mimemail.send_mail(subject='An ezEML user has enabled EDI curation',
+                                      msg=msg,
+                                      to=[Config.TO])
+        else:
+            sent = True
         if sent is True:
             log_usage(actions['ENABLE_EDI_CURATION'], name, email_address)
         flash('EDI curation has been enabled for this package.', 'success')

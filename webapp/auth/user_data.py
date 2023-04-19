@@ -25,8 +25,10 @@ from flask import send_file, Flask, current_app
 from flask_login import current_user
 
 from webapp.config import Config
-from webapp.home.motherpype import get_image_name_node
+from webapp.home.motherpype import get_image_name_node, get_image_full_name_node
 import webapp.home.views as views
+
+from PIL import Image
 
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_DATA_DIR = 'user-data'
@@ -368,13 +370,27 @@ def get_temp_folder() -> str:
 
 
 def get_temp_file_name() -> str:
-    # obtains the name of last image in temp folder
-    image_name = None
+    # obtains name of image file if it matches xml
+    image_name = get_image_full_name_node()
     temp_folder = get_temp_folder()
     images = glob.glob(os.path.join(temp_folder, '*'))
-    for f in images:
-        image_name = os.path.basename(f)
-    return image_name
+    for file in images:
+        file_name = os.path.basename(file)
+        if file_name == image_name:
+            return file_name
+    return None
+
+
+def get_temp_file_path() -> str:
+    # return image path if image indicated in nodes is uploaded
+    image_name = get_image_full_name_node()
+    temp_folder = get_temp_folder()
+    images = glob.glob(os.path.join(temp_folder, '*'))
+    for file in images:
+        file_name = os.path.basename(file)
+        if file_name == image_name:
+            return file
+    return None
 
 
 def clear_folder(folder: str):
@@ -397,3 +413,23 @@ def get_eval_file_name():
     eval_file_name = f'{user_folder_name}/eval.csv'
 
     return eval_file_name
+
+thumb_size = (128,128)
+thumb_format = 'PNG'
+
+def create_thumb(path: str):
+    #create thumbnail of image in same folder
+    if path:
+        im = Image.open(path)
+        path_split = path.rsplit(".", 1)
+        thumb_path = path_split[0] + "_thumb." + path_split[1]
+        im.thumbnail(thumb_size)
+        im.save(thumb_path, thumb_format)
+
+def get_thumb_path() -> str:
+    path = get_temp_file_path()
+    if path:
+        path_split = path.rsplit(".", 1)
+        thumb_path = path_split[0] + "_thumb." + path_split[1]
+        return thumb_path
+    return None

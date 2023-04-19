@@ -104,6 +104,8 @@ def title(filename=None):
     # Process GET
     try:
         eml_node = load_eml(filename=filename)
+        if not eml_node:
+            logger.error(f'No EML node found for filename={filename}')
         dataset_node = eml_node.find_child(child_name=names.DATASET)
         title_node = dataset_node.find_child(names.TITLE)
         if title_node:

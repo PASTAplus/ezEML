@@ -1106,6 +1106,8 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_me
             check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
             # save_package_id(eml_node)
             user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
+    else:
+        logger.error(f"load_eml: Could not load {ext_filename}")
     return eml_node
 
 

@@ -8,7 +8,7 @@ from flask_login import (
 )
 
 from webapp.auth.user_data import (
-    is_first_usage, set_active_packageid, get_user_folder_name
+    is_first_usage, set_active_packageid, set_active_document, get_user_folder_name
 )
 
 from webapp.home.metapype_client import (
@@ -106,6 +106,8 @@ def title(filename=None):
         eml_node = load_eml(filename=filename)
         if not eml_node:
             logger.error(f'No EML node found for filename={filename}')
+            set_active_document(None)
+            return redirect(url_for(PAGE_INDEX))
         dataset_node = eml_node.find_child(child_name=names.DATASET)
         title_node = dataset_node.find_child(names.TITLE)
         if title_node:

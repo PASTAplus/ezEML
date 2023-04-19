@@ -381,6 +381,15 @@ def init_session_vars():
         session["beta_tester_logins"] = Config.BETA_TESTER_LOGINS
     if not session.get("data_curator_logins"):
         session["data_curator_logins"] = Config.DATA_CURATOR_LOGINS
+
+    session["enable_collaboration_features"] = Config.ENABLE_COLLABORATION_FEATURES
+    collaboration_enabled_for_user = Config.ENABLE_COLLABORATION_FEATURES
+    if current_user and hasattr(current_user, 'get_username'):
+        if Config.COLLABORATION_BETA_TESTERS_ONLY and \
+                current_user.get_username() not in Config.COLLABORATION_BETA_TESTERS:
+            collaboration_enabled_for_user = False
+        session["collaboration_enabled_for_user"] = collaboration_enabled_for_user
+
     init_standard_units()
 
 

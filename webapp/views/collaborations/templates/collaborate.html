@@ -83,12 +83,16 @@
         <p>&nbsp;</p>
         {% endif %}
 {#        <p>&nbsp;</p>#}
-        {% if not invitation_disabled %}
-            <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
-        {% else %}
+        {% if not session['collaboration_enabled_for_user'] %}
+            <input class="btn btn-primary" style="width: 160px;" disabled
+                   title="This feature is currently available to beta testers only. If you would like to participate in beta testing, please contact us at support@edirepository.org."
+                   name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
+        {% elif invitation_disabled %}
             <input class="btn btn-primary" style="width: 160px;" disabled
                    title="You can only invite collaborators if you have a document open and it is one that you own."
                    name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
+        {% else %}
+            <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
         {% endif %}&nbsp;&nbsp;
             <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Accept an Invitation"/>&nbsp;&nbsp;
 {#    <table>#}

@@ -243,6 +243,7 @@
                         <td>
                              <input id="nav_save" style="display: none;color: steelblue;font-weight: bold;" class="btn btn-link" name="Save" type="submit" value="Save"/>
                         </td>
+                        {% if session['enable_collaboration_features'] %}
                         <td>
                             <ul class="nav navbar-nav">
                             <li>
@@ -250,6 +251,7 @@
                             </li>
                             </ul>
                         </td>
+                        {% endif %}
                         <td>
                             <ul class="nav navbar-nav">
                             <li>
@@ -390,8 +392,9 @@
             <br>
         {% endif %}
             <br>
-{#        <a class="nav_link" style={{ collaborate_style }}; href="{{ url_for('home.edit', page='collab.collaborate', dev='dev') }}" title="Edit">Collaborate</a><br>#}
+        {% if session['collaboration_enabled_for_user'] %}
         <a class="nav_link" style={{ grant_access_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='collab.enable_edi_curation') }}" title="Edit">Enable EDI Curation</a><br>
+        {% endif %}
         <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>
         <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
 

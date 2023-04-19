@@ -57,7 +57,7 @@ class UserGroupMembership(db.Model):
 
 class Package(db.Model):
     package_id = db.Column(db.Integer, primary_key=True)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False, use_alter=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     package_name = db.Column(db.String(1024), unique=False, nullable=False)
     # package_name may be non-unique, but the (owner_id, package_name) pair must be unique
     __table_args__ = (db.UniqueConstraint('owner_id', 'package_name', name='_owner_package_uc'),)

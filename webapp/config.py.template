@@ -82,4 +82,10 @@ class Config(object):
         "jlemaire-33463893a66177fe46eb87acc9d20e71"
         ]}
 
+    # To allow disabling EDI Curation emails during development so as not to annoy curators
     DISABLE_ENABLE_EDI_CURATION_EMAILS = False
+
+    # To allow disabling collaboration features if something goes wrong with the database, for example
+    ENABLE_COLLABORATION_FEATURES = True
+    COLLABORATION_BETA_TESTERS_ONLY = False
+    COLLABORATION_BETA_TESTERS = []

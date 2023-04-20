@@ -17,14 +17,14 @@
     <br>
         Enter the invitation code you received in the email that invited you to collaborate.
         <p></p>
-        <b>Make sure you are logged into ezEML using the same account you will use in editing the data package.</b>
+        <b>Make sure you are currently logged into ezEML using the same account you will use in editing the data package.</b>
         <p></p>
         When you accept the invitation, your account will be added to the list of collaborators for the data package,
         and the owner of the data package will receive an email notifying them of your acceptance.
         <br>
         <br>
         <div style="width: 125px;">
-        {{ wtf.form_field(form.invitation_code, size=10) }}
+        {{ wtf.form_field(form.invitation_code, size=6) }}
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </div>
     <p>&nbsp;</p>

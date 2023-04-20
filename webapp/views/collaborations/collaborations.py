@@ -739,6 +739,7 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
                 actions.append(CollaborationAction.OPEN)
             if lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER and locked_by_id == logged_in_user_id:
                 actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
+                actions.append(CollaborationAction.END_COLLABORATION)
 
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
             if lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER:

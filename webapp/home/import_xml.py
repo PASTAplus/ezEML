@@ -140,7 +140,7 @@ def parse_xml_file(filename, filepath):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node) # TODO: error-handling
-    eml_node = fixup_eml_namespaces_on_import(eml_node)
+    eml_node, _ = fixup_eml_namespaces_on_import(eml_node)
 
     if eml_node.name != names.EML:
         log_info(f"*******************************")

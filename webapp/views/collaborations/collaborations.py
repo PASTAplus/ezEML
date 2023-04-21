@@ -762,8 +762,8 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
                         actions.append(CollaborationAction.APPLY_GROUP_LOCK)
                     else:
                         if is_a_group_lock_status(lock_status):
-                            actions.append(CollaborationAction.RELEASE_GROUP_LOCK)
                             if locked_by_id == logged_in_user_id:
+                                actions.append(CollaborationAction.RELEASE_GROUP_LOCK)
                                 actions.append(CollaborationAction.END_GROUP_COLLABORATION)
                         elif lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER:
                             actions.append(CollaborationAction.APPLY_GROUP_LOCK)

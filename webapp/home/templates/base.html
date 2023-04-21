@@ -204,7 +204,7 @@
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">EDI Info
+                       role="button">EDI Links
                         <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
@@ -435,12 +435,17 @@
         let contents_div = $('#contents_div');
         let app_div = $('#app_div');
         if (hidden_save.length === 0) {
-            nav_link.hide(); // blah
-            contents_div.width('0px');
-            app_div.css({'margin-left':'0px'});
+            nav_link.hide();
             nav_save.hide();
             nav_check.hide();
         }
+        {% if request.path.endswith('collaborate') or request.path.endswith('collaborate/') or
+                request.path.endswith('show_backups') or request.path.endswith('show_backups/') or
+                request.path.endswith('manage_packages') or request.path.endswith('manage_packages/') %}
+            contents_div.width('0px');
+            app_div.css({'margin-left':'0px'});
+            nav_link.hide();
+        {% endif %}
         if (hidden_download.length === 0) {
             nav_download.hide();
         }

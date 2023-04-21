@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 from pathlib import Path
 from shutil import copyfile
-from urllib.parse import quote_plus, urlencode
+from urllib.parse import quote, quote_plus, urlencode
 
 from flask import (url_for)
 
@@ -59,7 +59,7 @@ def get_backups():
             owner_name = collaborations.collaborations.display_name(owner_login)
 
             pathname = os.path.join(user_backups_folder, filename)
-            pathname = quote_plus(pathname)
+            pathname = quote_plus(pathname).replace('+', '%20')
 
             # Get the package name from the filename
             package_name = filename[:filename.find('.json.')]

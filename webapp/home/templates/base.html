@@ -439,9 +439,9 @@
             nav_save.hide();
             nav_check.hide();
         }
-        {% if request.path.endswith('collaborate') or request.path.endswith('collaborate/') or
-                request.path.endswith('show_backups') or request.path.endswith('show_backups/') or
-                request.path.endswith('manage_packages') or request.path.endswith('manage_packages/') %}
+        {% if request.path.endswith('/collaborate') or '/collaborate/' in request.path or
+                request.path.endswith('/show_backups') or '/show_backups/' in request.path or
+                request.path.endswith('/manage_packages') or '/manage_packages/' in request.path %}
             contents_div.width('0px');
             app_div.css({'margin-left':'0px'});
             nav_link.hide();

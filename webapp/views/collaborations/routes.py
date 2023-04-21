@@ -485,7 +485,7 @@ def show_backups(filename=None, action=None):
 
     # The action parameter is used to signal we want to
     #  return to the previous page.
-    if action == '____back____':
+    if action == '____back____' or filename == '____back____':
         return redirect(url_for(PAGE_COLLABORATE, filename=current_document))
 
     backups = collaboration_backups.get_backups()
@@ -543,5 +543,5 @@ def delete_backup(filename=None):
     filename = unquote(filename)
     os.remove(filename)
 
-    return redirect(url_for(PAGE_COLLABORATE))
+    return redirect(url_for(PAGE_SHOW_BACKUPS))
 

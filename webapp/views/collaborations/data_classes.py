@@ -71,12 +71,13 @@ class CollaborationRecord:
                 self.status_str = 'Available'
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_ANOTHER_USER:
+            self.status_str = 'In use by ' + collaborations.display_name(self.locked_by)
             # If the collaborator is not a group member, we want to show the status as locked by the group
-            if not collaborations.is_group_member(self.collaborator_login, self.collab_id):
-                group_name = collaborations._get_group_collaboration(self.collab_id).user_group.user_group_name
-                self.status_str = f'In use by {group_name}'
-            else:
-                self.status_str = 'In use by ' + collaborations.display_name(self.locked_by)
+            user_group = collaborations._get_group_collaboration(self.collab_id)
+            if user_group:
+                if not collaborations.is_group_member(self.collaborator_login, self.collab_id):
+                    group_name = user_group.user_group_name
+                    self.status_str = f'In use by {group_name}'
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_ONLY:
             if self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR and\
@@ -84,7 +85,9 @@ class CollaborationRecord:
                 self.status_str = f'In use by {self.collaborator_name}'
             elif self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
                 self.status_str = f'In use by {self.collaborator_name}'
-            elif self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL:
+            elif self.collaboration_case in [
+                collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL,
+                collaborations.CollaborationCase.LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR]:
                 # If the collaborator is not a group member, we want to show the status as locked by the group
                 if not collaborations.is_group_member(self.collaborator_login, self.collab_id):
                     group_name = collaborations._get_group_collaboration(self.collab_id).user_group.user_group_name

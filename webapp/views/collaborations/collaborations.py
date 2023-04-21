@@ -1206,6 +1206,9 @@ def init_groups():
             _ = add_user(user_login=fake_login_for_group(user_group_name), session=session)
         for user_group_name, members in groups.items():
             user_group = add_user_group(user_group_name=user_group_name, session=session)
+            # Remove group members. If a member has been removed, then we need to remove them from the database.
+            # We'll just remove all the members and re-add them below.
+            UserGroupMembership.query.filter_by(user_group_id=user_group.user_group_id).delete()
             for member in members:
                 user = get_user(member, create_if_not_found=True, session=session)
                 user_group_membership = get_user_group_membership(user_group_id=user_group.user_group_id,

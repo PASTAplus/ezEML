@@ -384,10 +384,12 @@ def invite_collaborator(filename=None):
 def remove_collaboration(collab_id, filename=None):
     if not collab_id.startswith('G'):
         collaborations.remove_collaboration(collab_id)
+        return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     else:
         collab_id = int(collab_id[1:])
         collaborations.remove_group_collaboration(collab_id)
-    return redirect(url_for(PAGE_COLLABORATE, filename=filename))
+        current_document = user_data.get_active_document()
+        return redirect(url_for(PAGE_CLOSE, filename=current_document))
 
 
 @collab_bp.route('/open_by_collaborator/<collaborator_id>/<package_id>', methods=['GET', 'POST'])

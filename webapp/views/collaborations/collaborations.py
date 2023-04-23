@@ -699,28 +699,23 @@ def get_lock_status(package_id, session=None):
 def _calculate_lock_status(collaboration_case, logged_in_user_id, package_id, session=None):
     with db_session(session) as session:
         group_locked_by_id, individual_locked_by_id = get_lock_status(package_id, session=session)
-        if not group_locked_by_id and not individual_locked_by_id:
-            return LockStatus.NOT_LOCKED, None
+        lock_status = LockStatus.NOT_LOCKED
         if individual_locked_by_id:
             if not group_locked_by_id:
                 if individual_locked_by_id == logged_in_user_id:
-                    return LockStatus.LOCKED_BY_LOGGED_IN_USER, individual_locked_by_id
+                    lock_status = LockStatus.LOCKED_BY_LOGGED_IN_USER
                 else:
-                    return LockStatus.LOCKED_BY_ANOTHER_USER, individual_locked_by_id
+                    lock_status = LockStatus.LOCKED_BY_ANOTHER_USER
             else:
-                # There is a group lock. There are two cases...
-                locked_by_id = individual_locked_by_id
-                if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
-                    locked_by_id = group_locked_by_id
                 if individual_locked_by_id == logged_in_user_id:
-                    return LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER, locked_by_id
+                    lock_status = LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER
                 else:
-                    return LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER, locked_by_id
-        else:
+                    lock_status = LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER
+        elif group_locked_by_id:
             # There is a group lock but no individual lock
-            return LockStatus.LOCKED_BY_GROUP_ONLY, group_locked_by_id
+            lock_status = LockStatus.LOCKED_BY_GROUP_ONLY
 
-        return None, None
+        return lock_status, group_locked_by_id, individual_locked_by_id
 
 
 def is_a_group_lock_status(lock_status):
@@ -729,7 +724,14 @@ def is_a_group_lock_status(lock_status):
                            LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER]
 
 
-def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collaboration_case, lock_status, locked_by_id, session=None):
+def _calculate_actions(logged_in_user_id,
+                       user_id,
+                       collaboration_group,
+                       collaboration_case,
+                       lock_status,
+                       locked_by_group_id,
+                       locked_by_individual_id,
+                       session=None):
     with db_session(session) as session:
         actions = []
         user_id = str(user_id)
@@ -737,7 +739,7 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL:
             if lock_status == LockStatus.NOT_LOCKED and user_id != logged_in_user_id:
                 actions.append(CollaborationAction.OPEN)
-            if lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER and locked_by_id == logged_in_user_id:
+            if lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER and locked_by_individual_id == logged_in_user_id:
                 actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
                 actions.append(CollaborationAction.END_COLLABORATION)
 
@@ -764,7 +766,7 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
                         actions.append(CollaborationAction.APPLY_GROUP_LOCK)
                     else:
                         if is_a_group_lock_status(lock_status):
-                            if locked_by_id == logged_in_user_id:
+                            if locked_by_individual_id == logged_in_user_id:
                                 actions.append(CollaborationAction.RELEASE_GROUP_LOCK)
                                 actions.append(CollaborationAction.END_GROUP_COLLABORATION)
                         elif lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER:
@@ -811,12 +813,14 @@ def get_group_collaborations(logged_in_user_id, logged_in_user_records_only=True
                                      session=session)
 
             collaboration_case = CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP
-            lock_status, locked_by_id = _calculate_lock_status(collaboration_case,
-                                                               logged_in_user_id,
-                                                               group_collaboration.package_id,
-                                                               session=session)
+            lock_status, locked_by_group_id, locked_by_individual_id = \
+                _calculate_lock_status(collaboration_case,
+                                       logged_in_user_id,
+                                       group_collaboration.package_id,
+                                       session=session)
             actions = _calculate_actions(logged_in_user_id, group_as_user.user_id, group_collaboration.user_group,
-                                         collaboration_case, lock_status, locked_by_id, session=session)
+                                         collaboration_case, lock_status, locked_by_group_id, locked_by_individual_id,
+                                         session=session)
             collaboration_records.append(CollaborationRecord(
                 collaboration_case=collaboration_case,
                 lock_status=lock_status,
@@ -831,8 +835,8 @@ def get_group_collaborations(logged_in_user_id, logged_in_user_records_only=True
                 collaborator_login=group_as_user.user_login,
                 collaborator_name='',
                 date_created=group_collaboration.date_created.strftime('%Y-%m-%d'),
-                locked_by_id=locked_by_id,
-                locked_by='',
+                locked_by_group_id=locked_by_group_id,
+                locked_by_individual_id=locked_by_individual_id,
                 status_str='',
                 action_str=''))
 
@@ -846,11 +850,13 @@ def get_group_collaborations(logged_in_user_id, logged_in_user_records_only=True
                                              session=session)
 
                     collaboration_case = CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR
-                    lock_status, locked_by_id = _calculate_lock_status(collaboration_case, logged_in_user_id,
-                                                                       group_collaboration.package_id, session=session)
+                    lock_status, locked_by_group_id, locked_by_individual_id = \
+                        _calculate_lock_status(collaboration_case, logged_in_user_id,
+                                               group_collaboration.package_id, session=session)
                     actions = _calculate_actions(logged_in_user_id, f'G{group_as_user.user_id}',
-                                                 group_collaboration.user_group,
-                                                 collaboration_case, lock_status, locked_by_id, session=session)
+                                                 group_collaboration.user_group, collaboration_case,
+                                                 lock_status, locked_by_group_id, locked_by_individual_id,
+                                                 session=session)
                     collaboration_records.append(CollaborationRecord(
                         collaboration_case=collaboration_case,
                         lock_status=lock_status,
@@ -865,8 +871,8 @@ def get_group_collaborations(logged_in_user_id, logged_in_user_records_only=True
                         collaborator_login=group_as_user.user_login,
                         collaborator_name='',
                         date_created=group_collaboration.date_created.strftime('%Y-%m-%d'),
-                        locked_by_id=locked_by_id,
-                        locked_by='',
+                        locked_by_group_id=locked_by_group_id,
+                        locked_by_individual_id=locked_by_individual_id,
                         status_str='',
                         action_str=''))
 
@@ -880,13 +886,15 @@ def get_group_collaborations(logged_in_user_id, logged_in_user_records_only=True
                         collaborations_to_suppress.add((group_collaboration.package_id, member.user_id))
 
                         collaboration_case = CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR
-                        lock_status, locked_by_id = _calculate_lock_status(collaboration_case,
-                                                                           logged_in_user_id,
-                                                                           group_collaboration.package_id,
-                                                                           session=session)
+                        lock_status, locked_by_group_id, locked_by_individual_id = \
+                            _calculate_lock_status(collaboration_case,
+                                                   logged_in_user_id,
+                                                   group_collaboration.package_id,
+                                                   session=session)
                         actions = _calculate_actions(logged_in_user_id, member.user_id,
-                                                     group_collaboration.user_group,
-                                                     collaboration_case, lock_status, locked_by_id, session=session)
+                                                     group_collaboration.user_group, collaboration_case,
+                                                     lock_status, locked_by_group_id, locked_by_individual_id,
+                                                     session=session)
                         collaboration_records.append(CollaborationRecord(
                             collaboration_case=collaboration_case,
                             lock_status=lock_status,
@@ -901,8 +909,8 @@ def get_group_collaborations(logged_in_user_id, logged_in_user_records_only=True
                             collaborator_login=get_member_login(member),
                             collaborator_name='',
                             date_created=group_collaboration.date_created.strftime('%Y-%m-%d'),
-                            locked_by_id=locked_by_id,
-                            locked_by='',
+                            locked_by_group_id=locked_by_group_id,
+                            locked_by_individual_id=locked_by_individual_id,
                             status_str='',
                             action_str=''))
 
@@ -943,13 +951,13 @@ def get_collaborations(user_login):
                 if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
                     # The lock has timed out, so remove it
                     session.delete(lock)
-                else:
-                    locked_by = lock.locked_by
 
-            lock_status, locked_by = _calculate_lock_status(collaboration_case, logged_in_user_id,
-                                                               collaboration.package_id, session=session)
-            actions = _calculate_actions(logged_in_user_id, collaboration.collaborator_id, None,
-                                         collaboration_case, lock_status, locked_by, session=session)
+            lock_status, locked_by_group_id, locked_by_individual_id = \
+                _calculate_lock_status(collaboration_case, logged_in_user_id,
+                                       collaboration.package_id, session=session)
+            actions = _calculate_actions(logged_in_user_id, collaboration.collaborator_id, None, collaboration_case,
+                                         lock_status, locked_by_group_id, locked_by_individual_id,
+                                         session=session)
 
             try:
                 collaboration_records.append(CollaborationRecord(
@@ -966,11 +974,12 @@ def get_collaborations(user_login):
                     collaborator_login=collaboration.collaborator.user_login,
                     collaborator_name='',
                     date_created=collaboration.date_created.strftime('%Y-%m-%d'),
-                    locked_by_id=locked_by,
-                    locked_by='',
+                    locked_by_group_id=locked_by_group_id,
+                    locked_by_individual_id=locked_by_individual_id,
                     status_str='',
                     action_str=''))
             except Exception as e:
+                logger.error(f'Exception in handling a Collaboration Record: {e}')
                 pass
         return sorted(collaboration_records)
 

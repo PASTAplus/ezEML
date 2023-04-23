@@ -99,8 +99,11 @@ def collaborate(filename=None, dev=None):
             flash('The database has been cleaned up.', 'success')
             return redirect(url_for(PAGE_COLLABORATE, filename=filename, dev=dev))
 
-    my_collaborations = get_collaborations(current_user.get_user_login())
-    my_invitations = get_invitations(current_user.get_user_login())
+    user_login = current_user.get_user_login()
+    log_usage(actions['COLLABORATE'], user_login)
+
+    my_collaborations = get_collaborations(user_login)
+    my_invitations = get_invitations(user_login)
 
     collaboration_list = get_collaboration_output()
     user_list = get_user_output()
@@ -117,7 +120,7 @@ def collaborate(filename=None, dev=None):
     help = get_helps(['collaborate_general', 'collaborate_invite_accept'])
 
     return render_template('collaborate.html', collaborations=my_collaborations, invitations=my_invitations,
-                           user=current_user.get_user_login(), invitation_disabled=invitation_disabled,
+                           user=user_login, invitation_disabled=invitation_disabled,
                            save_backup_disabled=save_backup_disabled,
                            collaboration_list=collaboration_list, user_list=user_list, package_list=package_list,
                            lock_list=lock_list, is_edi_curator=is_edi_curator, help=help, dev=dev)
@@ -384,11 +387,13 @@ def invite_collaborator(filename=None):
 def remove_collaboration(collab_id, filename=None):
     if not collab_id.startswith('G'):
         collaborations.remove_collaboration(collab_id)
+        log_usage(actions['END_COLLABORATION'], collab_id)
         return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     else:
         collab_id = int(collab_id[1:])
         collaborations.remove_group_collaboration(collab_id)
         current_document = user_data.get_active_document()
+        log_usage(actions['END_GROUP_COLLABORATION'], collab_id)
         return redirect(url_for(PAGE_CLOSE, filename=current_document))
 
 
@@ -405,6 +410,8 @@ def open_by_collaborator(collaborator_id, package_id):
         flash('This collaboration is no longer active. Please contact the owner of the document.', 'error')
         return render_template('index.html')
     filename = package.package_name
+
+    log_usage(actions['OPEN_BY_COLLABORATOR'], collaborator_id, package_id, filename)
 
     # Get a lock on the package, if available
     lock = collaborations.open_package(user_login, filename, owner_login=owner_login)

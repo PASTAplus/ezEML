@@ -753,6 +753,8 @@ def _calculate_actions(logged_in_user_id, user_id, collaboration_group, collabor
             if lock_status == LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER:
                 actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
                 actions.append(CollaborationAction.END_GROUP_COLLABORATION)
+            if lock_status == LockStatus.LOCKED_BY_GROUP_ONLY:
+                pass
 
         if collaboration_case == CollaborationCase.LOGGED_IN_USER_IS_GROUP_COLLABORATOR:
             if user_id.startswith('G'):
@@ -944,10 +946,10 @@ def get_collaborations(user_login):
                 else:
                     locked_by = lock.locked_by
 
-            lock_status, locked_by_id = _calculate_lock_status(collaboration_case, logged_in_user_id,
+            lock_status, locked_by = _calculate_lock_status(collaboration_case, logged_in_user_id,
                                                                collaboration.package_id, session=session)
             actions = _calculate_actions(logged_in_user_id, collaboration.collaborator_id, None,
-                                         collaboration_case, lock_status, locked_by_id, session=session)
+                                         collaboration_case, lock_status, locked_by, session=session)
 
             try:
                 collaboration_records.append(CollaborationRecord(

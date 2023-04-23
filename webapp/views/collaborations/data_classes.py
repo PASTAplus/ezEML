@@ -59,7 +59,9 @@ class CollaborationRecord:
             locked_by_individual = collaborations._get_user(self.locked_by_individual_id).user_login
         locked_by_group = None
         if self.locked_by_group_id is not None:
-            locked_by_group = collaborations._get_group_collaboration(self.locked_by_group_id).user_group.user_group_name
+            if collaborations._get_group_collaboration(self.locked_by_group_id):
+                if collaborations._get_group_collaboration(self.locked_by_group_id).user_group:
+                    locked_by_group = collaborations._get_group_collaboration(self.locked_by_group_id).user_group.user_group_name
 
         # Status
         if self.lock_status == collaborations.LockStatus.NOT_LOCKED:

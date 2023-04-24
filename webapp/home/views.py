@@ -1885,10 +1885,12 @@ def save_as_ezeml_package_export(archive_file):
         raise FileNotFoundError
 
     user_folder = user_data.get_user_download_folder_name()
+    log_info(f"save_as_ezeml_package_export: user_folder={user_folder}")
 
     # Create the exports folder
     timestamp = datetime.now().date().strftime('%Y_%m_%d') + '_' + datetime.now().time().strftime('%H_%M_%S')
     export_folder = os.path.join(user_folder, 'exports', current_document, timestamp)
+    log_info(f"save_as_ezeml_package_export: export_folder={export_folder}")
     os.makedirs(export_folder, exist_ok=True)
 
     _, archive_basename = os.path.split(archive_file)
@@ -1898,6 +1900,7 @@ def save_as_ezeml_package_export(archive_file):
 
     encoded_dest = encode_export_url(dest)
     parsed_url = urlparse(request.base_url)
+    log_info("save_as_ezeml_package_export: parsed_url.netloc=" + parsed_url.netloc)
     download_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{dest}"
     encoded_url = f"{parsed_url.scheme}://{parsed_url.netloc}/{encoded_dest}"
     return archive_basename, download_url, encoded_url

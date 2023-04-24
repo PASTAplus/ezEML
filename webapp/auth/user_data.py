@@ -51,7 +51,7 @@ def get_template_folder_name():
     return Config.TEMPLATE_DIR
 
 
-def get_user_folder_name(current_user_directory_only=False):
+def get_user_folder_name(current_user_directory_only=False, prefix=Config.USER_DATA_DIR):
     user_folder_name = f'{Config.USER_DATA_DIR}/anonymous-user'
     user_login = current_user.get_user_org()
 
@@ -61,14 +61,14 @@ def get_user_folder_name(current_user_directory_only=False):
         owner_login = None
 
     if owner_login:
-        user_folder_name = f'{Config.USER_DATA_DIR}/{owner_login}'
+        user_folder_name = f'{prefix}/{owner_login}'
     elif user_login:
-        user_folder_name = f'{Config.USER_DATA_DIR}/{user_login}'
+        user_folder_name = f'{prefix}/{user_login}'
     return user_folder_name
 
 
 def get_user_download_folder_name():
-    return get_user_folder_name()
+    return get_user_folder_name(prefix='user-data')
 
 
 def get_user_uploads_folder_name():

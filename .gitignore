@@ -113,3 +113,4 @@ venv.bak/
 config.py
 user-data
 _config.html
+templates/

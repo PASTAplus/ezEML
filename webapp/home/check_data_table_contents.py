@@ -465,7 +465,7 @@ def check_data_table(eml_file_url:str=None,
                      column_names:List[str]=None,
                      max_errs_per_column=100,
                      collapse_errs:bool=False):
-    eml_node = load_eml_file(eml_file_url)
+    eml_node, _ = load_eml_file(eml_file_url)
     df = load_df(eml_node, csv_file_url, data_table_name)
 
     data_table_node = find_data_table_node(eml_node, data_table_name)

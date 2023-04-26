@@ -1090,11 +1090,15 @@ def create():
                 flash(f'{filename} already exists. Please select another name.', 'error')
                 return render_template('create_eml.html', help=help,
                                 form=form)
-            create_eml(filename=filename)
-            current_user.set_filename(filename)
-            current_user.set_packageid(None)
+
             log_usage(actions['NEW_DOCUMENT'])
-            return redirect(url_for(PAGE_TITLE, filename=filename))
+            create_eml(filename=filename)
+
+            # Get a lock on the package
+            user_login = current_user.get_user_login()
+            lock = collaborations.open_package(user_login, filename)
+
+            return open_document(filename)
 
     # Process GET
     return render_template('create_eml.html', help=help, form=form)

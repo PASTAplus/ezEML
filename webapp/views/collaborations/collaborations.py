@@ -46,7 +46,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 logger = daiquiri.getLogger('collaborations: ' + __name__)
 
 
-logger = daiquiri.getLogger('views: ' + __name__)
+# logger = daiquiri.getLogger('views: ' + __name__)
 # col_bp = Blueprint('col', __name__, template_folder='templates')
 
 # session_factory = sessionmaker(bind=engine)
@@ -950,7 +950,7 @@ def get_collaborations(user_login):
                 t2 = lock.timestamp
                 if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
                     # The lock has timed out, so remove it
-                    logger.log_info(f'get_collaborations: lock has timed out for {collaboration.package_id}')
+                    logger.info(f'get_collaborations: lock has timed out for {collaboration.package_id}')
                     session.delete(lock)
 
             lock_status, locked_by_group_id, locked_by_individual_id = \

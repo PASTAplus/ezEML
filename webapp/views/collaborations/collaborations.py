@@ -175,8 +175,8 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
     Return the lock.
     """
 
-    logging.info('****************************************************************************************************')
-    logging.info(f'update_lock: user_login={user_login}, package_name={package_name}, owner_login={owner_login}, opening={opening}')
+    # logging.info('****************************************************************************************************')
+    # logging.info(f'update_lock: user_login={user_login}, package_name={package_name}, owner_login={owner_login}, opening={opening}')
 
     if opening:
         if not owner_login:
@@ -201,6 +201,7 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
         active_package = _get_active_package(user.user_id)
         if active_package and active_package.package_name != package_name:
             # It's not clear what to do here. Should this case never arise? When does it?
+            logger.info(f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')
             active_package = None
             # raise exceptions.CollaborationDatabaseError(
             #     f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')

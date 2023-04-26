@@ -70,7 +70,7 @@ class CollaborationRecord:
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_LOGGED_IN_USER:
             if not is_group_entry or \
                     self.collaboration_case == collaborations.CollaborationCase.LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP:
-                self.status_str = 'In use by ' + collaborations.display_name(locked_by_individual) # TODO
+                self.status_str = 'In use by ' + collaborations.display_name(locked_by_individual)
             else:
                 # The group lock is available
                 self.status_str = 'Available'
@@ -117,7 +117,7 @@ class CollaborationRecord:
                     group_name = group_collaboration.user_group.user_group_name
                     self.status_str = f'In use by {group_name}'
                 else:
-                    self.status_str = 'In use by ' + collaborations.display_name(self.locked_by_individual_id)
+                    self.status_str = 'In use by ' + collaborations.display_name(locked_by_individual)
 
         # Actions
         for action in self.actions:

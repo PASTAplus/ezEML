@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.04.21'
+RELEASE_NUMBER = '2023.04.26'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -2368,6 +2368,7 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
         intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
 
     intellectual_rights_node.content = intellectual_rights
+    intellectual_rights_node.children = []
     if intellectual_rights != INTELLECTUAL_RIGHTS_CC0 and intellectual_rights != INTELLECTUAL_RIGHTS_CC_BY:
         valid, msg = is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
         if valid:

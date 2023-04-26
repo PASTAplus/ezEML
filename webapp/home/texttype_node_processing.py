@@ -254,7 +254,7 @@ def try_it():
     def scan_files():
         i = 0
         for filename in get_existing_eml_files():
-            eml_node = load_xml(os.path.join(EML_FILES_PATH, filename))
+            eml_node, _ = load_xml(os.path.join(EML_FILES_PATH, filename))
             if model_has_complex_texttypes(eml_node):
                 print(f"{filename}")
                 i += 1

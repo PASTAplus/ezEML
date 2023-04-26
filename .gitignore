@@ -110,7 +110,9 @@ venv.bak/
 .vscode
 
 # Project files
-config.py
+.DS_Store
+webapp/config.py
+tests
 user-data
-_config.html
-templates/
+home/templates/_config.html
+ezeml/templates/

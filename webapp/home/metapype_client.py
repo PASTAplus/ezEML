@@ -1423,11 +1423,13 @@ def fix_nonstring_content(node):
         for child in node.children:
             fix_nonstring_content(child)
 
+
 NSMAP = {
     "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
     "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
 }
+
 
 def create_full_xml(eml_node):
     eml_node.nsmap = NSMAP

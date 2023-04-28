@@ -608,16 +608,23 @@ def create_immunohistochemistry(ihc_node: Node,
     except Exception as e:
         logger.error(e)
 
-def get_image_name_node() -> str:
-    eml_node = load_eml(filename=user_data.get_active_document())
+def get_image_name_node(filename: str = None, eml_node: Node = None) -> str:
+    if not filename:
+        filename = user_data.get_active_document()
+    if not eml_node:
+        eml_node = load_eml(filename)
     entity_name_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY, names.ENTITYNAME])
     if entity_name_node:
         return entity_name_node.content
     return None
 
-def get_image_full_name_node() -> str:
-    eml_node = load_eml(filename=user_data.get_active_document())
-    object_name_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY, names.PHYSICAL, names.OBJECTNAME])
-    if object_name_node:
-        return object_name_node.content
+def get_image_full_name_node(filename: str = None, eml_node: Node = None) -> str:
+    if not filename:
+        filename = user_data.get_active_document()
+    if not eml_node:
+        eml_node = load_eml(filename)
+    if eml_node:
+        object_name_node = eml_node.find_single_node_by_path([names.DATASET, names.OTHERENTITY, names.PHYSICAL, names.OBJECTNAME])
+        if object_name_node:
+            return object_name_node.content
     return None

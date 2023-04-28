@@ -1067,7 +1067,7 @@ def get_check_metadata_status(eml_node: Node = None, filename: str = None):
 def save_both_formats(filename: str = None, eml_node: Node = None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
-    get_check_metadata_status(eml_node, filename)  # To keep badge up-to-date in UI
+    # get_check_metadata_status(eml_node, filename)  # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
     #FIXME
     #add_eml_editor needs to be fixed as a footer for the xml file, since it will delete
@@ -1075,6 +1075,13 @@ def save_both_formats(filename: str = None, eml_node: Node = None):
     #add_eml_editor_metadata(eml_node)
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
+
+    # set thumbnail before next page load
+    set_session_vars(filename, eml_node)
+
+def set_session_vars(filename: str = None, eml_node: Node = None):
+    user_data.set_thumb(filename, eml_node)
+    get_check_metadata_status(eml_node, filename)
 
 def save_eml(filename: str = None, eml_node: Node = None, format: str = 'json'):
     if Config.LOG_DEBUG:

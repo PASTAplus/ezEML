@@ -2,7 +2,7 @@ import os
 import glob
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
+    Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app, send_from_directory
 )
 
 from werkzeug.utils import secure_filename
@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder, clear_temp_folder, get_temp_file_name, get_temp_file_path, create_thumb
+    get_temp_folder, clear_temp_folder, get_temp_file_name, create_thumb, get_thumb_serve_path
 )
 
 from metapype.eml import names
@@ -73,9 +73,13 @@ from webapp.home.views import select_post, non_breaking, get_help, get_helps
 
 from webapp.home import motherpype_names as mdb_names
 
+from pathlib import Path
+
 from PIL import Image
 
-ent_bp = Blueprint('ent', __name__, template_folder='templates')
+user_folder_path = os.path.join(Path(__file__).parents[3], 'user-data')
+
+ent_bp = Blueprint('ent', __name__, template_folder='templates', static_folder=user_folder_path)
 
 
 @ent_bp.route('/other_entity_select/<filename>', methods=['GET', 'POST'])
@@ -101,6 +105,11 @@ def other_entity_select(filename=None):
     help = [get_help('other_entities'), get_help('add_load_other_entities'), get_help('other_entity_reupload')]
     return render_template('other_entity_select.html', title=title,
                            oe_list=oe_list, form=form, help=help)
+
+
+# @ent_bp.route('/other_entity/thumbnail/<filename>', methods=['GET', 'POST'])
+# def thumbnail(filename=None):
+#     return redirect(url_for(get_temp_folder(), filename=filename), code=301)
 
 
 @ent_bp.route('/other_entity/<filename>/', methods=['GET', 'POST'])
@@ -217,7 +226,6 @@ def other_entity(filename=None, node_id=None):
                 online_url)
 
 
-
             save_both_formats(filename=filename, eml_node=eml_node)
 
         if (next_page == PAGE_ENTITY_ACCESS_SELECT or
@@ -258,6 +266,8 @@ def other_entity(filename=None, node_id=None):
 
     set_current_page('other_entity')
     help = get_helps(['other_entity', 'other_entity_info'])
+
+
     return render_template('other_entity.html', title='Image', form=form, help=help, image_name=get_temp_file_name())
 
 

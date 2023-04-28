@@ -72,7 +72,7 @@ from webapp.home.metapype_client import (
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_nodes, get_check_metadata_status, clear_other_entity
+    import_project_nodes, get_check_metadata_status, clear_other_entity, set_session_vars
 )
 
 from webapp.home.motherpype import clean_mother_node, get_image_name_node
@@ -218,6 +218,15 @@ def fixup_upload_management():
     # now we can delete the files we've copied
     for file in to_delete:
         os.remove(file)
+
+
+# code in here will run only once for every initial page load by checking for the home blueprint
+# does not occur after form submission since the same blueprint's data does not get reloaded
+@home.before_request
+def on_load_save():
+    if current_user.is_authenticated:
+        current_document, eml_node = reload_metadata()
+        set_session_vars(current_document, eml_node)
 
 
 @home.before_app_request

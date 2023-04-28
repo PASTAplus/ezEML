@@ -221,7 +221,7 @@ def fixup_upload_management():
 
 
 # code in here will run only once for every initial page load by checking for the home blueprint
-# does not occur after form submission since the same blueprint's data does not get reloaded
+# does not occur after form submission since the reused blueprint's data does not get reloaded
 @home.before_request
 def on_load_save():
     if current_user.is_authenticated:
@@ -1390,7 +1390,8 @@ def send_to_other(filename=None, mailto=None):
         images = glob.glob(os.path.join(temp_folder, '*'))
         for f in images:
             fname = os.path.basename(f)
-            shutil.copy(f, f'{upload_folder}/{fname}')
+            if fname == user_data.get_image_full_name_node():
+                shutil.copy(f, f'{upload_folder}/{fname}')
 
         # copy xml file to uploads folder
         eml_node = load_eml(filename=current_document)

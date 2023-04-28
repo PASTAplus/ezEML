@@ -456,4 +456,3 @@ def get_thumb_name() -> str:
 def set_thumb(filename: str = None, eml_node: Node = None):
     session["image_name"] = get_temp_file_name(filename, eml_node)
     session["thumb_path"] = get_thumb_serve_path(filename, eml_node)
-    print("thumb set")

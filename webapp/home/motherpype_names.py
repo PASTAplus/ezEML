@@ -94,11 +94,11 @@ LUTEAL = "luteal"                # child of STAGE_OF_CYCLE
 REGRESSING = "regressing"  # unique luteal value
 # UNSPECIFIED = "unspecified"  (this is defined already but here as a placeholder) # child of STAGE_OF_CYCLE
 # estrous types
-PROESTROUS = "proestrous"
-ESTROUS = "estrous"
-METESTROUS = "metestrous"
-DIESTROUS = "diestrous"
-ANESTROUS = "anestrous"
+PROESTRUS = "proestrus"
+ESTRUS = "estrus"
+METESTRUS = "metestrus"
+DIESTRUS = "diestrus"
+ANESTRUS = "anestrus"
 
 SLIDE_ID = "slideID"
 SEC_SEQ_NUM = "sectionSeqNum"
@@ -255,7 +255,6 @@ SET_VALUE_NODES = [
 XSI_TYPE = {
     DONOR_LIFE_STAGE: "mdb:mammalianLifeStageType",
     SPEC_LOCATION: "mdb:ovaryLocationType",
-    STAGE_OF_CYCLE: "mdb:menstrualStageType"
 }
 
 # Names for enumeration validators
@@ -268,11 +267,11 @@ MAMMAL_STAGE = {
 }
 
 ESTROUS_STAGE = {
-    PROESTROUS: "mdb:estrousStageType",
-    ESTROUS: "mdb:estrousStageType",
-    METESTROUS: "mdb:estrousStageType",
-    DIESTROUS: "mdb:estrousStageType",
-    ANESTROUS: "mdb:estrousStageType"
+    PROESTRUS: "mdb:estrousStageType",
+    ESTRUS: "mdb:estrousStageType",
+    METESTRUS: "mdb:estrousStageType",
+    DIESTRUS: "mdb:estrousStageType",
+    ANESTRUS: "mdb:estrousStageType"
 }
 
 CYCLE_STAGE = {**MAMMAL_STAGE, **ESTROUS_STAGE, EMPTY_UNSPECIFIED: ""}

@@ -21,6 +21,7 @@ import pickle
 import glob
 from shutil import copy
 
+import PIL.Image
 import daiquiri
 from flask import send_file, Flask, current_app, session
 from flask_login import current_user
@@ -420,15 +421,20 @@ def get_eval_file_name():
 thumb_size = (128,128)
 thumb_format = 'png'
 thumb_suffix = "_thumb." + thumb_format
+PIL.Image.MAX_IMAGE_PIXELS = None
+thumb_max_input = 8000000   # maximum filesize that the thumb method will accept in bytes
+
 
 def create_thumb(path: str):
     # create thumbnail of image in same folder
     if path:
+        im_size = os.path.getsize(path)
         im = Image.open(path)
-        path_split = path.rsplit(".", 1)
-        thumb_path = path_split[0] + thumb_suffix
-        im.thumbnail(thumb_size)
-        im.save(thumb_path, thumb_format)
+        if im_size <= thumb_max_input:
+            path_split = path.rsplit(".", 1)
+            thumb_path = path_split[0] + thumb_suffix
+            im.thumbnail(thumb_size)
+            im.save(thumb_path, thumb_format)
 
 
 def get_thumb_serve_path(filename: str = None, eml_node: Node = None) -> str:

@@ -23,7 +23,7 @@
                 {{ wtf.form_field(form.format_name) }}
                 <table>
                     <td width="50%">{{ wtf.form_field(form.file_upload) }}</td>
-                    <td width="50%" style="vertical-align:top; padding-left: 25px"><b>Uploaded Image</b><br><div id = iname>{{ session['image_name'] }}</div><img src = "{{ url_for('ent.static', filename=session['thumb_path']) }} " onerror=this.style.display='none'></td>
+                    <td width="50%" style="vertical-align:top; padding-left: 25px"><b>Uploaded Image</b><br><div id = iname>{{ session['image_name'] }}</div><img src = "{{ url_for('ent.send_thumb', filename=session['thumb_name']) }} " onerror=this.style.display='none'></td>
                 </table>
 
                 <table>

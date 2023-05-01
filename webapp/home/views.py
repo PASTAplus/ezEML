@@ -223,10 +223,11 @@ def fixup_upload_management():
 # code in here will run only once for every initial page load by checking for the home blueprint
 # does not occur after form submission since the reused blueprint's data does not get reloaded
 @home.before_request
-def on_load_save():
+def on_load_save(filename: str = None, eml_node: Node = None):
     if current_user.is_authenticated:
-        current_document, eml_node = reload_metadata()
-        set_session_vars(current_document, eml_node)
+        if not filename or not eml_node:
+            filename, eml_node = reload_metadata()
+        set_session_vars(filename, eml_node)
 
 
 @home.before_app_request

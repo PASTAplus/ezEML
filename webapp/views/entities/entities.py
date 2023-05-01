@@ -60,7 +60,7 @@ from webapp.home.metapype_client import (
 )
 
 from webapp.auth.user_data import(
-    get_temp_folder, clear_temp_folder, get_temp_file_name, create_thumb, get_thumb_serve_path
+    get_temp_folder, clear_temp_folder, get_temp_file_name, create_thumb
 )
 
 from metapype.eml import names
@@ -77,9 +77,16 @@ from pathlib import Path
 
 from PIL import Image
 
-user_folder_path = os.path.join(Path(__file__).parents[3], 'user-data')
+user_data_path = os.path.join(Path(__file__).parents[3], 'user-data')
+root_path = os.path.join(Path(__file__).parents[3])
 
-ent_bp = Blueprint('ent', __name__, template_folder='templates', static_folder=user_folder_path)
+ent_bp = Blueprint('ent', __name__, template_folder='templates', static_folder=user_data_path)
+
+
+@ent_bp.route('/user-data/<filename>')
+def send_thumb(filename=None):
+    path = os.path.join(root_path, get_temp_folder())
+    return send_from_directory(path, filename)
 
 
 @ent_bp.route('/other_entity_select/<filename>', methods=['GET', 'POST'])

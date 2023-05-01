@@ -2,9 +2,12 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% set help_enable_edi_curation_id, help_enable_edi_curation_title, help_enable_edi_curation_content = help[0] %}
+    {% set help_enable_edi_curation_btn = help_enable_edi_curation_id ~ '_btn' %}
+    {% set help_enable_edi_curation_dialog = help_enable_edi_curation_id ~ '_dialog' %}
     <table>
         <td><h2>Enable EDI Curation</h2></td>
-        <td valign="middle" style="padding-top: 18px;padding-left: 10px;"></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_enable_edi_curation_btn) }}</td>
     </table>
         <div class="col-md-10">
         <br>
@@ -60,8 +63,18 @@
 
         </form>
         </div>
+    {{ macros.help_dialog(help_enable_edi_curation_dialog, help_enable_edi_curation_title, help_enable_edi_curation_content) }}
 {% endblock %}
 
 {% block app_scripts %}
     {{ super() }}
+    {% set help_enable_edi_curation_id, help_enable_edi_curation_title, help_enable_edi_curation_content = help[0] %}
+    {% set help_enable_edi_curation_btn = help_enable_edi_curation_id ~ '_btn' %}
+    {% set help_enable_edi_curation_dialog = help_enable_edi_curation_id ~ '_dialog' %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_enable_edi_curation_dialog, help_enable_edi_curation_btn) }}
+    });
+    </script>
 {% endblock %}

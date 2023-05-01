@@ -518,7 +518,7 @@ When you click Enable EDI Curation, a backup of your metadata is automatically c
 
 For more information, see <a style="color: steelblue;" href="/static/user_guide/enabling_edi_curation.pdf" target="_user_guide_ezeml">Enabling EDI Curation</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
-Watch a video demo of the <b>Collaborate</b> here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Enable EDI Curation</b> here::&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
+Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Enable EDI Curation</b> here::&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
 fetch_data_source
 Fetch Data Source Info from EDI

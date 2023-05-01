@@ -159,7 +159,8 @@ def enable_edi_curation(filename=None):
         if request.form.get(BTN_CANCEL):
             return redirect(get_back_url())
 
-    return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled, form=form)
+    help = get_helps(['enable_edi_curation'])
+    return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled, help=help, form=form)
 
 
 def enable_edi_curation_mail_body(server=None, filename=None, name=None, email_address=None, notes=None):

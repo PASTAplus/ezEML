@@ -272,6 +272,25 @@ def cull_locks(session=None):
                 session.delete(lock)
 
 
+def cull_packages(session=None):
+    # Delete package records that aren't locked by a user or group or referenced
+    # by a collaboration record, invitation, or active package ID.
+    packages = Package.query.all()
+    active_package_ids = get_active_package_ids(session=session)
+    for package in packages:
+        if not _get_lock(package.package_id) \
+                and not _get_group_lock(package.package_id) \
+                and not Collaboration.query.filter_by(package_id=package.package_id).first() \
+                and not GroupCollaboration.query.filter_by(package_id=package.package_id).first() \
+                and not Invitation.query.filter_by(package_id=package.package_id).first() \
+                and package.package_id not in active_package_ids:
+            try:
+                logger.info(f'cull_packages: removing package... package_id={package.package_id}, owner_id={package.owner_id}, package_name={package.package_name}')
+                session.delete(package)
+            except Exception as exc:
+                pass
+
+
 def open_package(user_login, package_name, owner_login=None, session=None):
     """
     open_package() is called when a user wants to open a package. If the package is available to open, the user gets the
@@ -282,6 +301,7 @@ def open_package(user_login, package_name, owner_login=None, session=None):
         owner_login = user_login
 
     with db_session(session) as session:
+        cull_packages(session=session)
         return update_lock(user_login, package_name, opening=True, owner_login=owner_login, session=session)
 
 
@@ -298,18 +318,7 @@ def close_package(user_login, session=None):
             release_lock(user_login, active_package_id, session=session)
         set_active_package_id(user_id, sqlalchemy.null(), session=session)
         session.flush()
-        # Delete package records that aren't locked by another user or referenced
-        # by a collaboration record or invitation.
-        packages = Package.query.all()
-        for package in packages:
-            if not _get_lock(package.package_id) \
-                    and not Collaboration.query.filter_by(package_id=package.package_id).first() \
-                    and not GroupCollaboration.query.filter_by(package_id=package.package_id).first() \
-                    and not Invitation.query.filter_by(package_id=package.package_id).first():
-                try:
-                    session.delete(package)
-                except Exception as exc:
-                    pass
+        cull_packages(session=session)
 
 
 def _get_lock(package_id):
@@ -471,6 +480,11 @@ def get_active_package(user_login, session=None):
             return Package.query.filter_by(package_id=package_id).first()
         else:
             return None
+
+
+def get_active_package_ids(session=None):
+    with db_session(session) as session:
+        return [user.active_package_id for user in User.query.all() if user.active_package_id is not None]
 
 
 def change_active_package_account(package_name, session=None):

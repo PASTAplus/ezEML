@@ -203,8 +203,6 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
             # It's not clear what to do here. Should this case never arise? When does it?
             logger.info(f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')
             active_package = None
-            # raise exceptions.CollaborationDatabaseError(
-            #     f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')
         if not active_package:
             # If there is no active package ID, we assume the user is owner of the package. In the case of a
             #  collaborator, the active package will be set when the collaborator opens the package, since the
@@ -353,6 +351,18 @@ def remove_package(owner_login, package_name, session=None):
             lock = _get_lock(package.package_id)
             if lock:
                 session.delete(lock)
+            # Remove any group collaborations associated with the package.
+            group_collaborations = GroupCollaboration.query.filter_by(package_id=package.package_id).all()
+            for group_collaboration in group_collaborations:
+                session.delete(group_collaboration)
+            # Remove any invitations associated with the package.
+            invitations = Invitation.query.filter_by(package_id=package.package_id).all()
+            for invitation in invitations:
+                session.delete(invitation)
+            # Remove any group locks associated with the package.
+            group_lock = _get_group_lock(package.package_id)
+            if group_lock:
+                session.delete(group_lock)
             # Remove the package record.
             session.delete(package)
 

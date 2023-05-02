@@ -389,6 +389,8 @@ def init_session_vars():
                 current_user.get_username() not in Config.COLLABORATION_BETA_TESTERS:
             collaboration_enabled_for_user = False
         session["collaboration_enabled_for_user"] = collaboration_enabled_for_user
+        if collaboration_enabled_for_user:
+            collaborations.cull_locks()
 
     init_standard_units()
 

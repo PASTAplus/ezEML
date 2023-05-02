@@ -777,6 +777,7 @@ def manage_packages(to_delete=None, action=None):
         if to_delete == '____back____':
             action = '____back____'
         elif action != '____back____':
+            user_data.is_document_locked(filename=to_delete)
             user_data.delete_eml(filename=to_delete)
             flash(f'Deleted {to_delete}') # TO DO - handle error cases
 

@@ -256,6 +256,22 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
         return lock
 
 
+def cull_locks(session=None):
+    """
+    cull_locks() is called periodically to remove locks that have timed out.
+    Otherwise, locks can accumulate if a user opens a package and then closes the browser without closing the package.
+    """
+    with db_session(session) as session:
+        # t1 = datetime.now(timezone.utc)
+        t1 = datetime.now()
+        locks = session.query(Lock).all()
+        for lock in locks:
+            t2 = lock.timestamp
+            if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
+                logger.info(f'cull_locks: removing lock... lock_id={lock.lock_id}, package_id={lock.package_id}, locked_by={lock.locked_by}, timestamp={lock.timestamp}')
+                session.delete(lock)
+
+
 def open_package(user_login, package_name, owner_login=None, session=None):
     """
     open_package() is called when a user wants to open a package. If the package is available to open, the user gets the
@@ -283,13 +299,16 @@ def close_package(user_login, session=None):
         set_active_package_id(user_id, sqlalchemy.null(), session=session)
         session.flush()
         # Delete package records that aren't locked by another user or referenced
-        # by a collaboration record.
+        # by a collaboration record or invitation.
         packages = Package.query.all()
         for package in packages:
-            if not _get_lock(package.package_id) and not Collaboration.query.filter_by(package_id=package.package_id).first():
+            if not _get_lock(package.package_id) \
+                    and not Collaboration.query.filter_by(package_id=package.package_id).first() \
+                    and not GroupCollaboration.query.filter_by(package_id=package.package_id).first() \
+                    and not Invitation.query.filter_by(package_id=package.package_id).first():
                 try:
                     session.delete(package)
-                except:
+                except Exception as exc:
                     pass
 
 

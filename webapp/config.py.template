@@ -66,8 +66,6 @@ class Config(object):
     MEM_LOG_METAPYPE_STORE_ACTIONS = False
     MEM_FILTER_URLS_TO_CLEAR_METAPYPE_STORE = True
 
-    COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES = 30
-
     ADMIN_LOGINS = []
     BETA_TESTER_LOGINS = []
     DATA_CURATOR_LOGINS = []
@@ -81,6 +79,8 @@ class Config(object):
         "jide-7a03c1e6f4528a6f9c4b1ae3cec24b39",
         "jlemaire-33463893a66177fe46eb87acc9d20e71"
         ]}
+
+    COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES = 30
 
     # To allow disabling EDI Curation emails during development so as not to annoy curators
     DISABLE_ENABLE_EDI_CURATION_EMAILS = False

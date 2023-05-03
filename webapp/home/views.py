@@ -138,6 +138,7 @@ def reload_metadata():
 @home.before_app_first_request
 def init_session_vars():
     session["check_metadata_status"] = "green"
+    session['thumb_name'] = "unavailable"
 
 
 @home.before_app_first_request
@@ -224,9 +225,7 @@ def fixup_upload_management():
 # does not occur after form submission since the reused blueprint's data does not get reloaded
 @home.before_request
 def on_load_save(filename: str = None, eml_node: Node = None):
-    if current_user.is_authenticated:
-        if not filename or not eml_node:
-            filename, eml_node = reload_metadata()
+    if current_user.is_authenticated and filename and eml_node:
         set_session_vars(filename, eml_node)
 
 

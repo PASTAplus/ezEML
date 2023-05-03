@@ -545,7 +545,7 @@ def restore_backup(filename=None, owner=None):
     shutil.copyfile(filename, os.path.join(owner_data_dir, trimmed_filename))
     package_name = os.path.splitext(trimmed_filename)[0]
 
-    return redirect(url_for(PAGE_OPEN_PACKAGE, package_name=package_name, owner=collaborations.display_name(owner)))
+    return redirect(url_for(PAGE_OPEN_PACKAGE, package_name=package_name, owner=owner))
 
 
 @collab_bp.route('/delete_backup/<filename>', methods=['GET', 'POST'])

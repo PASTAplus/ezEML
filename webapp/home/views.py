@@ -1182,11 +1182,13 @@ def open_eml_document():
 @home.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
 @login_required
 def open_package(package_name, owner=None):
-    eml_node = load_eml(package_name)
+    owner_data_dir = os.path.join(Config.USER_DATA_DIR, owner)
+
+    eml_node = load_eml(package_name, folder_name=owner_data_dir)
     if eml_node:
         current_user.set_filename(package_name)
         if owner:
-            current_user.set_file_owner(owner)
+            current_user.set_file_owner(collaborations.display_name(owner))
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)

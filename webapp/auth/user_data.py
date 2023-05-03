@@ -19,14 +19,17 @@ from json import JSONDecodeError
 from pathlib import Path
 import pickle
 import glob
+from shutil import copy
 
+import PIL.Image
 import daiquiri
-from flask import send_file, Flask, current_app
+from flask import send_file, Flask, current_app, session
 from flask_login import current_user
 
 from webapp.config import Config
 from webapp.home.motherpype import get_image_name_node, get_image_full_name_node
 import webapp.home.views as views
+from metapype.model.node import Node
 
 from PIL import Image
 
@@ -347,6 +350,7 @@ def set_active_document(filename: str):
         write_active_dict(active_dict)
     else:
         remove_active_file()
+    set_thumb()
 
 
 def get_active_document() -> str:
@@ -369,9 +373,9 @@ def get_temp_folder() -> str:
     return temp_folder
 
 
-def get_temp_file_name() -> str:
+def get_temp_file_name(filename: str = None, eml_node: Node = None) -> str:
     # obtains name of image file if it matches xml
-    image_name = get_image_full_name_node()
+    image_name = get_image_full_name_node(filename, eml_node)
     temp_folder = get_temp_folder()
     images = glob.glob(os.path.join(temp_folder, '*'))
     for file in images:
@@ -381,9 +385,9 @@ def get_temp_file_name() -> str:
     return None
 
 
-def get_temp_file_path() -> str:
+def get_temp_file_path(filename: str = None, eml_node: Node = None) -> str:
     # return image path if image indicated in nodes is uploaded
-    image_name = get_image_full_name_node()
+    image_name = get_image_full_name_node(filename, eml_node)
     temp_folder = get_temp_folder()
     images = glob.glob(os.path.join(temp_folder, '*'))
     for file in images:
@@ -415,21 +419,46 @@ def get_eval_file_name():
     return eval_file_name
 
 thumb_size = (128,128)
-thumb_format = 'PNG'
+thumb_format = 'png'
+thumb_suffix = "_thumb." + thumb_format
+PIL.Image.MAX_IMAGE_PIXELS = None
+thumb_max_input = 8000000   # maximum filesize that the thumb method will accept in bytes
+
 
 def create_thumb(path: str):
-    #create thumbnail of image in same folder
+    # create thumbnail of image in same folder
     if path:
+        im_size = os.path.getsize(path)
         im = Image.open(path)
-        path_split = path.rsplit(".", 1)
-        thumb_path = path_split[0] + "_thumb." + path_split[1]
-        im.thumbnail(thumb_size)
-        im.save(thumb_path, thumb_format)
+        if im_size <= thumb_max_input:
+            path_split = path.rsplit(".", 1)
+            thumb_path = path_split[0] + thumb_suffix
+            im.thumbnail(thumb_size)
+            im.save(thumb_path, thumb_format)
 
-def get_thumb_path() -> str:
+
+def get_thumb_serve_path(filename: str = None, eml_node: Node = None) -> str:
     path = get_temp_file_path()
     if path:
+        # attach thumb suffix to regular file name
         path_split = path.rsplit(".", 1)
-        thumb_path = path_split[0] + "_thumb." + path_split[1]
+        thumb_path = path_split[0] + thumb_suffix
+        # remove "user_path" folder which is redundant because it is ent_bp's set static folder
+        path_split = thumb_path.split("/", 1)
+        thumb_path = path_split[1]
         return thumb_path
+    return str()
+
+def get_thumb_name() -> str:
+    temp_name = get_temp_file_name()
+    if temp_name:
+        name_split = temp_name.rsplit(".", 1)
+        thumb_name = name_split[0] + thumb_suffix
+        return thumb_name
     return None
+
+
+# sets image thumbnail path for session
+def set_thumb(filename: str = None, eml_node: Node = None):
+    session["image_name"] = get_temp_file_name(filename, eml_node)
+    session["thumb_path"] = get_thumb_serve_path(filename, eml_node)

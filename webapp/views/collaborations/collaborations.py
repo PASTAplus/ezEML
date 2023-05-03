@@ -200,7 +200,8 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
         user = get_user(user_login, create_if_not_found=True, session=session)
         active_package = _get_active_package(user.user_id)
         if active_package and active_package.package_name != package_name:
-            # It's not clear what to do here. Should this case never arise? When does it?
+            # This case arises, for example, when using Manage Data Packages to delete a package. It's different from
+            #  the usual case where the user has the package open before deleting it.
             logger.info(f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')
             active_package = None
         if not active_package:
@@ -238,7 +239,7 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
                 t2 = lock.timestamp
                 if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
                     # The lock has timed out, so remove it and lock the package for the current user.
-                    session.delete(lock)
+                    _remove_lock(active_package.package_id, session=session)
                     _add_lock(active_package.package_id, user.user_id, session=session)
                 else:
                     # The lock has not timed out, so raise an exception.
@@ -268,11 +269,7 @@ def cull_locks(session=None):
             if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
                 try:
                     logger.info(f'cull_locks: removing lock... lock_id={lock.lock_id}, package_id={lock.package_id}, locked_by={lock.locked_by}, timestamp={lock.timestamp}')
-                    # Clear the active_package_id for the user who held the lock if it's same as the lock's package_id
-                    lock_holder = _get_user(lock.locked_by)
-                    if lock_holder and lock_holder.active_package_id == lock.package_id:
-                        _set_active_package_id(lock.locked_by, None, session=session)
-                    session.delete(lock)
+                    _remove_lock(lock.package_id, session=session)
                 except Exception as exc:
                     logger.info(f'cull_locks: exception removing lock... lock_id={lock.lock_id}, exc={exc}')
 
@@ -355,9 +352,7 @@ def remove_package(owner_login, package_name, session=None):
             for collaboration in collaborations:
                 session.delete(collaboration)
             # Remove any locks associated with the package.
-            lock = _get_lock(package.package_id)
-            if lock:
-                session.delete(lock)
+            _remove_lock(package.package_id, session=session)
             # Remove any group collaborations associated with the package.
             group_collaborations = GroupCollaboration.query.filter_by(package_id=package.package_id).all()
             for group_collaboration in group_collaborations:
@@ -402,6 +397,10 @@ def _remove_lock(package_id, session=None):
     with db_session(session) as session:
         lock = _get_lock(package_id)
         if lock:
+            # Clear the active_package_id for the user who held the lock if it's same as the lock's package_id
+            lock_holder = _get_user(lock.locked_by)
+            if lock_holder and lock_holder.active_package_id == lock.package_id:
+                _set_active_package_id(lock.locked_by, None, session=session)
             session.delete(lock)
 
 
@@ -409,7 +408,7 @@ def _release_lock_for_user(user_id, session=None):
     with db_session(session) as session:
         locks = Lock.query.filter_by(locked_by=user_id).all()
         for lock in locks:
-            session.delete(lock)
+            _remove_lock(lock.package_id, session=session)
 
 
 def release_acquired_lock(lock, session=None):
@@ -1002,7 +1001,7 @@ def get_collaborations(user_login):
                 if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
                     # The lock has timed out, so remove it
                     logger.info(f'get_collaborations: lock has timed out for {collaboration.package_id}')
-                    session.delete(lock)
+                    _remove_lock(collaboration.package_id, session=session)
 
             lock_status, locked_by_group_id, locked_by_individual_id = \
                 _calculate_lock_status(collaboration_case, logged_in_user_id,
@@ -1325,10 +1324,7 @@ def cleanup_db(session=None):
             t2 = lock.timestamp
             if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
                 # The lock has timed out
-                # Clear the active_package_id for the user who held the lock
-                _set_active_package_id(lock.locked_by, None, session=session)
-                # Remove the lock
-                session.delete(lock)
+                _remove_lock(lock.package_id, session=session)
         # Remove packages that have no locks and no collaborations
         packages = Package.query.all()
         for package in packages:

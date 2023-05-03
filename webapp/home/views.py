@@ -1746,7 +1746,10 @@ def import_package():
                 xml_to_json = metapype_io.to_json(metapype_io.from_xml(data))
                 eml_validator_request = requests.post('https://knb.ecoinformatics.org/emlparser/parse', data={"action": "textparse", "doctext": data})
                 pattern = r'<h4>(.*?)<\/h4>'  # Grab h4 elements from html response
+                errors_pattern = r'<h4>(.*?)</h4>(?:\s*<p>(.*?)</p>)+' # Get h4 elements and the p elements after that store the error info
                 validator_results = re.findall(pattern, eml_validator_request.text)  # [h4 eml, h4 xml]
+                error_messages = re.findall(errors_pattern, eml_validator_request.text)
+
                 eml_valid = "Passed" in validator_results[0]
                 xml_valid = "Warning" in validator_results[1] or "Passed" in validator_results[1]
                 if eml_valid and xml_valid:
@@ -1773,7 +1776,11 @@ def import_package():
                     save_both_formats(filename=filename, eml_node=eml_node)
                     return redirect(url_for(PAGE_TITLE, filename=user_data.get_active_document()))
                 else:
-                    flash(f'Invalid XML with respect to ezEML and Mother', 'error')
+                    flash("Invalid XML with respect to ezEML and Mother", 'error')
+                    if not eml_valid:
+                        flash(f"{' '.join(error_messages[0])}")
+                    if not xml_valid:
+                        flash(f"{' '.join(error_messages[1])}")
             except Exception as e:
                 full_string = str(e)
                 try:

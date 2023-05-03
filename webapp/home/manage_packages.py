@@ -44,7 +44,7 @@ def get_package_size(package_name, current_user_directory_only=True):
     if not os.path.isfile(xml_file):
         # Load the JSON model to find the package ID
         json_file = os.path.join(user_dir, package_name + '.json')
-        eml_node = load_eml(package_name, folder_name=user_dir, skip_metadata_check=True)
+        eml_node = load_eml(package_name, folder_name=user_dir, skip_metadata_check=True, do_not_lock=True)
         package_id = eml_node.attribute_value('packageId')
         if package_id:
             xml_file = os.path.join(user_dir, package_id + '.xml')

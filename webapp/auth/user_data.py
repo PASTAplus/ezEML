@@ -143,7 +143,7 @@ def get_user_properties(folder_name=None):
         except JSONDecodeError:
             # something's wrong with the user properties file. make a new one and initialize it.
             save_user_properties(user_properties, folder_name)
-            views.fixup_upload_management()
+            # views.fixup_upload_management()
     return user_properties
 
 

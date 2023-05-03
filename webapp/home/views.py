@@ -626,7 +626,7 @@ def edit(page:str=None, dev=None):
         if current_filename:
             if page not in [PAGE_COLLABORATE, PAGE_INVITE_COLLABORATOR, PAGE_ACCEPT_INVITATION]:
                 # We skip metadata check here because we will do load_eml again on the target page
-                eml_node = load_eml(filename=current_filename, skip_metadata_check=True)
+                eml_node = load_eml(filename=current_filename, skip_metadata_check=True, do_not_lock=True)
                 if eml_node:
                     new_page = page
                 else:
@@ -779,6 +779,7 @@ def manage_packages(to_delete=None, action=None):
         elif action != '____back____':
             user_data.is_document_locked(filename=to_delete)
             user_data.delete_eml(filename=to_delete)
+            log_usage(actions['MANAGE_PACKAGES'], 'delete', to_delete)
             flash(f'Deleted {to_delete}') # TO DO - handle error cases
 
     if action == '____back____':
@@ -977,7 +978,7 @@ def check_metadata(filename:str):
     current_document = user_data.get_active_document()
     if not current_document:
         raise FileNotFoundError
-    eml_node = load_eml(filename=current_document, skip_metadata_check=True)
+    eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)
     content = check_eml(eml_node, filename)
     log_usage(actions['CHECK_METADATA'])
 

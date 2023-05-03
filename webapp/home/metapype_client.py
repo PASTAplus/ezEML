@@ -1070,12 +1070,21 @@ def save_package_id(eml_node):
             user_data.set_active_packageid(data_package_id)
 
 
-def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_metadata_check:bool=False):
-    try:
-        user_data.is_document_locked(filename)
-    except Exception as e:
-        logger.error(f"load_eml: is_document_locked: {e}")
-        raise
+def load_eml(filename:str=None,
+             folder_name=None,
+             use_pickle:bool=False,
+             skip_metadata_check:bool=False,
+             do_not_lock:bool=False):
+
+    # Usually when we load an EML file, we want to acquire a lock on it. However, there are times when we are just
+    #  looking at the file, not opening it for editing. For example, when checking metadata or when getting the package
+    #  size for manage packages page.
+    if not do_not_lock:
+        try:
+            user_data.is_document_locked(filename)
+        except Exception as e:
+            logger.error(f"load_eml: is_document_locked: {e}")
+            raise
 
     eml_node = None
     if folder_name:

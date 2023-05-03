@@ -1269,7 +1269,7 @@ def submit_package():
 
     if form.validate_on_submit():
         # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
-        #  programmatically generated Submit
+        # programmatically generated Submit
         if request.form.get(BTN_SUBMIT) == BTN_SUBMIT_TO_EDI:
             name = form.data['name']
             email_address = form.data['email_address']

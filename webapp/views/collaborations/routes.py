@@ -348,8 +348,12 @@ def invite_collaborator(filename=None):
             ezeml_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
 
             # Generate an Invitation record in the database
-            invitation_code = collaborations.create_invitation(filename, user_name, user_email,
-                                                               collaborator_name, email_address)
+            try:
+                invitation_code = collaborations.create_invitation(filename, user_name, user_email,
+                                                                   collaborator_name, email_address)
+            except Exception as e:
+                logger.error(f'create_invitation: {e}')
+                raise
 
             try:
                 mailto, mailto_html, mailto_raw = compose_invite_collaborator_email(collaborator_name,

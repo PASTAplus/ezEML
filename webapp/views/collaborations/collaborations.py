@@ -266,8 +266,11 @@ def cull_locks(session=None):
         for lock in locks:
             t2 = lock.timestamp
             if (t1 - t2).total_seconds() > Config.COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES * 60:
-                logger.info(f'cull_locks: removing lock... lock_id={lock.lock_id}, package_id={lock.package_id}, locked_by={lock.locked_by}, timestamp={lock.timestamp}')
-                session.delete(lock)
+                try:
+                    logger.info(f'cull_locks: removing lock... lock_id={lock.lock_id}, package_id={lock.package_id}, locked_by={lock.locked_by}, timestamp={lock.timestamp}')
+                    session.delete(lock)
+                except Exception as exc:
+                    logger.info(f'cull_locks: exception removing lock... lock_id={lock.lock_id}, exc={exc}')
 
 
 def cull_packages(session=None):
@@ -286,7 +289,7 @@ def cull_packages(session=None):
                 logger.info(f'cull_packages: removing package... package_id={package.package_id}, owner_id={package.owner_id}, package_name={package.package_name}')
                 session.delete(package)
             except Exception as exc:
-                pass
+                logger.info(f'cull_packages: exception removing package... package_id={package.package_id}, exc={exc}')
 
 
 def open_package(user_login, package_name, owner_login=None, session=None):

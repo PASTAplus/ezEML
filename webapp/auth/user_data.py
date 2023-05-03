@@ -461,4 +461,7 @@ def get_thumb_name() -> str:
 # sets image thumbnail path for session
 def set_thumb(filename: str = None, eml_node: Node = None):
     session["image_name"] = get_temp_file_name(filename, eml_node)
-    session["thumb_path"] = get_thumb_serve_path(filename, eml_node)
+    thumb_name = get_thumb_name()
+    if not thumb_name:
+        thumb_name = "unavailable"
+    session["thumb_name"] = thumb_name

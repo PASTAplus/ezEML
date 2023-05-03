@@ -513,7 +513,6 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 #     # now we can delete the files we've copied
 #     for file in to_delete:
 #         os.remove(file)
->>>>>>> collaborations
 
 
 @home.before_app_request

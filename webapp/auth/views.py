@@ -30,10 +30,18 @@ from webapp.home.log_usage import (
     log_usage,
 )
 from webapp.home.views import get_helps
+from webapp.views.collaborations.collaborations import close_package
 
 
 logger = daiquiri.getLogger('views: ' + __name__)
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
+
+
+def is_whitelisted_username(username):
+    if hasattr(Config, 'SERVER_LOGINS_WHITELIST') and Config.SERVER_LOGINS_WHITELIST:
+        return username in Config.SERVER_LOGINS_WHITELIST
+    else:
+        return True
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -47,6 +55,11 @@ def login():
     # Process POST
     form = LoginForm()
     if form.validate_on_submit():
+        username = form.username.data
+        if not is_whitelisted_username(username):
+            flash(f'Username {username} is not authorized to log in to this server. Please contact ' 
+                  'support@edirepository.org if you believe you need access to this server.', 'error')
+            return redirect(url_for(PAGE_LOGIN))
         # domain = form.domain.data # Never None
         domain = "edi"
         user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
@@ -103,7 +116,9 @@ def login():
 @auth_bp.route('/logout', methods=['GET'])
 def logout():
     log_usage(actions['LOGOUT'])
+    user_login = current_user.get_user_login()
     logout_user()
+    close_package(user_login)
     return redirect(url_for(PAGE_LOGIN))
 
 

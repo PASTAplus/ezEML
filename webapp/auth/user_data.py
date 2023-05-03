@@ -27,12 +27,17 @@ from flask_login import current_user
 
 from webapp.config import Config
 import webapp.home.views as views
+import webapp.views.collaborations.collaborations as collaborations
+import webapp.home.exceptions as exceptions
 
 logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
 
 def get_all_user_dirs():
+    """
+    Returns a list of all user directories in the user data directory. Used by Manage Data Usage page.
+    """
     user_dirs = []
     if os.path.exists(Config.USER_DATA_DIR):
         for f in os.listdir(Config.USER_DATA_DIR):
@@ -46,26 +51,28 @@ def get_template_folder_name():
     return Config.TEMPLATE_DIR
 
 
-def get_user_folder_name():
+def get_user_folder_name(current_user_directory_only=False, prefix=Config.USER_DATA_DIR):
     user_folder_name = f'{Config.USER_DATA_DIR}/anonymous-user'
-    user_org = current_user.get_user_org()
-    if user_org:
-        user_folder_name = f'{Config.USER_DATA_DIR}/{user_org}'
+    user_login = current_user.get_user_org()
 
+    if not current_user_directory_only:
+        owner_login = collaborations.get_active_package_owner_login(user_login)
+    else:
+        owner_login = None
+
+    if owner_login:
+        user_folder_name = f'{prefix}/{owner_login}'
+    elif user_login:
+        user_folder_name = f'{prefix}/{user_login}'
     return user_folder_name
 
 
 def get_user_download_folder_name():
-    user_folder_name = f'user-data/anonymous-user'
-    user_org = current_user.get_user_org()
-    if user_org:
-        user_folder_name = f'user-data/{user_org}'
-
-    return user_folder_name
+    return get_user_folder_name(prefix='user-data')
 
 
 def get_user_uploads_folder_name():
-    user_folder_name = get_user_folder_name()
+    user_folder_name = get_user_folder_name(current_user_directory_only=False)
     user_uploads_folder_name = f'{user_folder_name}/uploads'
 
     return user_uploads_folder_name
@@ -85,9 +92,9 @@ def get_document_uploads_folder_name(document_name=None, encoded_for_url=False):
         return None
 
 
-def get_user_document_list():
+def get_user_document_list(current_user_directory_only=True):
     packageids = []
-    user_folder = get_user_folder_name()
+    user_folder = get_user_folder_name(current_user_directory_only=current_user_directory_only)
     try:
         folder_contents = os.listdir(user_folder)
         onlyfiles = [f for f in folder_contents if os.path.isfile(os.path.join(user_folder, f))]
@@ -102,7 +109,7 @@ def get_user_document_list():
 
 
 def initialize_user_data(cname, uid, auth_token):
-    user_folder_name = get_user_folder_name()
+    user_folder_name = get_user_folder_name(current_user_directory_only=True)
     user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(Config.USER_DATA_DIR):
         os.mkdir(Config.USER_DATA_DIR)
@@ -136,7 +143,7 @@ def get_user_properties(folder_name=None):
         except JSONDecodeError:
             # something's wrong with the user properties file. make a new one and initialize it.
             save_user_properties(user_properties, folder_name)
-            views.fixup_upload_management()
+            # views.fixup_upload_management()
     return user_properties
 
 
@@ -152,10 +159,31 @@ def save_user_properties(user_properties, user_folder_name=None):
 
 def is_first_usage():
     user_properties = get_user_properties()
-    is_first_usage = user_properties.get('is_first_usage', True)
+    first_usage = user_properties.get('is_first_usage', True)
     user_properties['is_first_usage'] = False
     save_user_properties(user_properties)
-    return is_first_usage
+    return first_usage
+
+
+def is_document_locked(filename):
+    """
+    This function checks if the document is locked by the current user. Otherwise, it takes the lock and returns False.
+    This function is to be called when doing the Open command, i.e., when the user is known to be the owner of the
+    document, not a collaborator.
+    Note that this function has the side effect of updating the lock timestamp so that the lock doesn't expire.
+    If the lock is owned by another user, an exception is raised. We use an exception instead of returning True so
+    we can return additional information about the lock owner.
+    """
+    user_login = current_user.get_user_org()
+    collaborations.update_lock(user_login, filename)
+
+
+def release_document_lock(filename):
+    user_login = current_user.get_user_org()
+    user_id = collaborations.get_user_id(user_login)
+    # The user may be an owner or a collaborator, so we need to handle both.
+    active_package = collaborations.get_active_package(user_id)
+    collaborations.release_lock(user_login, active_package.package_name)
 
 
 def clear_data_table_upload_filenames(user_folder_name=None):
@@ -195,7 +223,7 @@ def discard_data_table_upload_filenames_for_package(package_filename):
 
 
 def get_uploaded_table_properties_dict():
-    user_folder = get_user_folder_name()
+    user_folder = get_user_folder_name(current_user_directory_only=False)
     table_props_filename = '__uploaded_table_properties__.pkl'
     properties_file = f'{user_folder}/{table_props_filename}'
     try:
@@ -241,9 +269,14 @@ def data_table_was_uploaded(filename):
     return [get_active_document(), filename.lower()] in uploaded_files
 
 
+def remove_file_from_collaborations(filename):
+    user_login = current_user.get_user_org()
+    collaborations.remove_package(user_login, filename)
+
+
 def delete_eml(filename:str=''):
     if filename:
-        user_folder = get_user_folder_name()
+        user_folder = get_user_folder_name(current_user_directory_only=True)
         discard_data_table_upload_filenames_for_package(filename)
         json_filename = f'{user_folder}/{filename}.json'
         xml_filename = f'{user_folder}/{filename}.xml'
@@ -251,6 +284,7 @@ def delete_eml(filename:str=''):
         # if we're deleting the current document, clear the active file
         if filename == get_active_document():
             remove_active_file()
+        remove_file_from_collaborations(filename)
         exception = None
         if os.path.exists(json_filename):
             try:
@@ -284,7 +318,7 @@ def delete_eml(filename:str=''):
 
 def download_eml(filename:str='', package_id:str=''):
     if filename:
-        user_folder = get_user_folder_name()
+        user_folder = get_user_folder_name(current_user_directory_only=False)
         filename_xml = f'{filename}.xml'
         pathname = f'{user_folder}/{filename_xml}'
         if os.path.exists(pathname):
@@ -314,7 +348,7 @@ def download_eml(filename:str='', package_id:str=''):
 
 
 def read_active_dict():
-    user_folder = get_user_folder_name()
+    user_folder = get_user_folder_name(current_user_directory_only=True)
     active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
     try:
         with open(active_file, 'rb') as f:
@@ -324,7 +358,7 @@ def read_active_dict():
 
 
 def write_active_dict(active_dict):
-    user_folder = get_user_folder_name()
+    user_folder = get_user_folder_name(current_user_directory_only=True)
     active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
     with open(active_file, 'wb') as f:
         pickle.dump(active_dict, f)
@@ -355,6 +389,9 @@ def set_active_document(filename: str):
         write_active_dict(active_dict)
     else:
         remove_active_file()
+    # It is almost always the case that the owner of the active document is the current user, so we default to
+    #  case. When a package is opened by a collaborator, the owner is set to the user who created the package.
+    set_active_document_owner(None)
 
 
 def get_active_document() -> str:
@@ -362,8 +399,23 @@ def get_active_document() -> str:
     return active_dict.get('filename', None)
 
 
+def set_active_document_owner(owner: str):
+    """
+    Set the owner of the active document, which is the user who created the document.
+    If owner is None, the owner is assumed to be the current user.
+    """
+    active_dict = read_active_dict()
+    active_dict['owner'] = owner
+    write_active_dict(active_dict)
+
+
+def get_active_document_owner() -> str:
+    active_dict = read_active_dict()
+    return active_dict.get('owner', None)
+
+
 def remove_active_file():
-    user_folder = get_user_folder_name()
+    user_folder = get_user_folder_name(current_user_directory_only=True)
     active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
     if os.path.exists(active_file):
         os.remove(active_file)

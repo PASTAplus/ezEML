@@ -1,0 +1,19 @@
+{% extends 'bootstrap/base.html' %}
+
+
+{% block content %}
+<div class="container" style="width: 50%;">
+    {% block app_content %}
+        <p></p>
+        <br>
+        <a href="{{ url_for('home.close') }}">Close</a>
+        <p></p>
+        <h4 style="text-align: left;padding-top: 30px;">"{{ package_name }}" is currently in use by {{ locked_by }}.
+        </h4>
+        <br>
+        The document will be accessible again when it is released by {{ locked_by }}.
+        <p></p>
+        You can check the status of the document on the <a href="{{ url_for('collab.collaborate') }}/{{ package_name }}">Collaborate</a> page.
+    {% endblock %}
+</div>
+{% endblock %}

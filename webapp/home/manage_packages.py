@@ -32,19 +32,19 @@ def get_dir_size(path='.'):
     return total
 
 
-def get_package_size(package_name):
+def get_package_size(package_name, current_user_directory_only=True):
     """Get the size of a package in bytes. We will only count the size of the XML file and the
     size of the data files. We will not count the size of the JSON files or PKL files since these
     are not seen by users."""
 
     # See if an XML file exists using the package name
-    user_dir = user_data.get_user_folder_name()
+    user_dir = user_data.get_user_folder_name(current_user_directory_only=current_user_directory_only)
     xml_file = os.path.join(user_dir, package_name + '.xml')
     xml_size = 0
     if not os.path.isfile(xml_file):
         # Load the JSON model to find the package ID
         json_file = os.path.join(user_dir, package_name + '.json')
-        eml_node = load_eml(package_name, folder_name=user_dir, skip_metadata_check=True)
+        eml_node = load_eml(package_name, folder_name=user_dir, skip_metadata_check=True, do_not_lock=True)
         package_id = eml_node.attribute_value('packageId')
         if package_id:
             xml_file = os.path.join(user_dir, package_id + '.xml')
@@ -91,9 +91,12 @@ def get_user_date_modified(user_dir, date_format='%Y-%m-%d %H:%M:%S'):
             return datetime.fromtimestamp(os.path.getctime(user_dir)).strftime(date_format)
 
 
-def get_data_packages(sort_by='date_modified', reverse=True, date_format='%Y-%m-%d %H:%M:%S'):
+def get_data_packages(sort_by='date_modified',
+                      reverse=True,
+                      date_format='%Y-%m-%d %H:%M:%S',
+                      current_user_directory_only=True):
     """Get a list of data packages from the user's data directory."""
-    user_dir = user_data.get_user_folder_name()
+    user_dir = user_data.get_user_folder_name(current_user_directory_only=current_user_directory_only)
     packages = []
     for filename in os.listdir(user_dir):
         package_name, file_ext = os.path.splitext(filename)

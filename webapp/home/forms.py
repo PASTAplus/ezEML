@@ -206,3 +206,18 @@ class SubmitToEDIForm(FlaskForm):
 class SendToColleagueForm(FlaskForm):
     colleague_name = StringField("Colleague's Name *", validators=[DataRequired()])
     email_address = StringField("Colleague's Email Address *", validators=[Email(), DataRequired()])
+
+
+class CollaborateForm(FlaskForm):
+    pass
+
+
+class AcceptInvitationForm(FlaskForm):
+    invitation_code = StringField("Invitation Code *", validators=[DataRequired()])
+
+
+class InviteCollaboratorForm(FlaskForm):
+    user_name = StringField("Your Name *", validators=[DataRequired()])
+    user_email = StringField("Your Email Address *", validators=[DataRequired()])
+    collaborator_name = StringField("Collaborator's Name *", validators=[DataRequired()])
+    email_address = StringField("Collaborator's Email Address *", validators=[Email(), DataRequired()])

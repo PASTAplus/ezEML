@@ -246,7 +246,7 @@ def try_it():
         return eml_node, nsmap_changed
 
     def json_from_xml(filename):
-        eml_node = load_xml(filename)
+        eml_node, _ = load_xml(filename)
         _json = metapype_io.to_json(eml_node)
         parsed = json.loads(_json)
         return json.dumps(parsed, indent=1, sort_keys=False)

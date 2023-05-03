@@ -2,7 +2,7 @@
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2023.04.05' %}
+{% set release_number = '2023.05.03' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -204,7 +204,7 @@
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">EDI Info
+                       role="button">EDI Links
                         <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
@@ -243,6 +243,15 @@
                         <td>
                              <input id="nav_save" style="display: none;color: steelblue;font-weight: bold;" class="btn btn-link" name="Save" type="submit" value="Save"/>
                         </td>
+                        {% if session['collaboration_enabled_for_user'] %}
+                        <td>
+                            <ul class="nav navbar-nav">
+                            <li>
+                                <a class="nav navbar-nav" href="{{ url_for('collab.collaborate') }}">Collaborate</a>
+                            </li>
+                            </ul>
+                        </td>
+                        {% endif %}
                         <td>
                             <ul class="nav navbar-nav">
                             <li>
@@ -259,10 +268,14 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
             <ul class="nav navbar-nav">
                 <li>
+{#                {{ session['active_package_id'] }}#}
                     Welcome Back <strong>{{ current_user.get_username() }}</strong>
                     {% if current_user.get_filename() %}
                         &nbsp;&nbsp;
                     &nbsp;&nbsp;Active EML Document: <strong>{{ current_user.get_filename() }}</strong>
+                        {% if current_user.get_file_owner() %}
+                            &nbsp;&nbsp;<i>[owned by <strong>{{ current_user.get_file_owner() }}</strong>]</i>
+                        {% endif %}
                     {% endif %}
                 </li>
             </ul>
@@ -283,7 +296,7 @@
     {% endif %}
     {% endwith %}
 
-    <div style="width: 18%; float: left;">
+    <div id="contents_div" style="width: 18%; float: left;">
         <br>
         {% if current_user.is_authenticated %}
                 <table border="0">
@@ -316,6 +329,7 @@
             {% set check_data_tables_style = '""'|safe %}
             {% set submit_package_style = '""'|safe %}
             {% set send_to_other_style = '""'|safe %}
+            {% set collaborate_style = '""'|safe %}
             {% set manage_data_usage_style = '""'|safe %}
 
             {% set page = session['current_page'] %}
@@ -344,6 +358,8 @@
             {% if page == 'check_data_tables' %}{% set check_data_tables_style = current %}{% endif %}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
+            {% if page == 'collaborate' %}{% set collaborate_style = current %}{% endif %}
+            {% if page == 'grant_access' %}{% set grant_access_style = current %}{% endif %}
             {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
 
         <a class="nav_link" style={{ title_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
@@ -375,6 +391,10 @@
             <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
             <br>
         {% endif %}
+            <br>
+        {% if session['collaboration_enabled_for_user'] %}
+        <a class="nav_link" style={{ grant_access_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='collab.enable_edi_curation') }}" title="Edit">Enable EDI Curation</a><br>
+        {% endif %}
         <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>
         <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
 
@@ -385,7 +405,7 @@
 
         {% endif %}
     </div>
-    <div style="margin-left: 18%;">
+    <div id="app_div" style="margin-left: 18%;">
         {# application content needs to be provided in the app_content block #}
         {% block app_content %}{% endblock %}
     </div>
@@ -412,11 +432,20 @@
         let hidden_open = $("#hidden_open");
         let hidden_close = $("#hidden_close");
         let nav_link = $('.nav_link');
+        let contents_div = $('#contents_div');
+        let app_div = $('#app_div');
         if (hidden_save.length === 0) {
             nav_link.hide();
             nav_save.hide();
             nav_check.hide();
         }
+        {% if request.path.endswith('/collaborate') or '/collaborate/' in request.path or
+                request.path.endswith('/show_backups') or '/show_backups/' in request.path or
+                request.path.endswith('/manage_packages') or '/manage_packages/' in request.path %}
+            contents_div.width('0px');
+            app_div.css({'margin-left':'0px'});
+            nav_link.hide();
+        {% endif %}
         if (hidden_download.length === 0) {
             nav_download.hide();
         }
@@ -471,7 +500,7 @@
         {#       e = null;#}
         {#   }#}
         {#})#}
-     });
+        });
     </script>
 
     <script>

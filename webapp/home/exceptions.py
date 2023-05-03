@@ -52,3 +52,48 @@ class UnicodeDecodeErrorInternal(ezEMLError):
 class UnknownDistributionUrl(ezEMLError):
     pass
 
+
+class CollaborationError(ezEMLError):
+    def __init__(self, message, user_name=None, package_name=None):
+        self.message = message
+        self.user_name = user_name
+        self.package_name = package_name
+    pass
+
+
+class CollaboratingWithGroupAlready(CollaborationError):
+    pass
+
+
+class InvitationNotFound(CollaborationError):
+    pass
+
+
+class InvitationBeingAcceptedByOwner(CollaborationError):
+    pass
+
+
+class LockHasTimedOut(CollaborationError):
+    pass
+
+
+class LockOwnedByAGroup(CollaborationError):
+    pass
+
+
+class LockOwnedByAnotherUser(CollaborationError):
+    pass
+
+
+class CollaborationDatabaseError(CollaborationError):
+    pass
+
+
+class UserIsNotTheOwner(CollaborationError):
+    pass
+
+
+class UserNotFound(CollaborationError):
+    pass
+
+

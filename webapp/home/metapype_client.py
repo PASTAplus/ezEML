@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.04.05'
+RELEASE_NUMBER = '2023.05.03'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -175,14 +175,15 @@ def sort_package_ids(packages):
     return sorted(packages, key=lambda x: parse_package_id(x))
 
 
-def list_data_packages(flag_current=False, include_current=True):
+def list_data_packages(flag_current=False, include_current=True, current_user_directory_only=True):
     """
     Returns a list of data packages in the current user's account, as tuples suitable for
     use in a select list.  If flag_current is True, the current package is indicated. If
     include_current is False, the current package is excluded from the list.
     """
     choices = []
-    user_documents = sorted(user_data.get_user_document_list(), key=str.casefold)
+    user_documents = sorted(user_data.get_user_document_list(current_user_directory_only=current_user_directory_only),
+                            key=str.casefold)
     current_annotation = ' (current data package)' if flag_current else ''
     for document in user_documents:
         pid_tuple = (document, document)
@@ -1069,9 +1070,21 @@ def save_package_id(eml_node):
             user_data.set_active_packageid(data_package_id)
 
 
-def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_metadata_check:bool=False):
-    # if user_data.is_document_locked(filename):
-    #     raise exceptions.LockOwnedByAnotherUser(f"Document {filename} is locked by another user.")
+def load_eml(filename:str=None,
+             folder_name=None,
+             use_pickle:bool=False,
+             skip_metadata_check:bool=False,
+             do_not_lock:bool=False):
+
+    # Usually when we load an EML file, we want to acquire a lock on it. However, there are times when we are just
+    #  looking at the file, not opening it for editing. For example, when checking metadata or when getting the package
+    #  size for manage packages page.
+    if not do_not_lock:
+        try:
+            user_data.is_document_locked(filename)
+        except Exception as e:
+            logger.error(f"load_eml: is_document_locked: {e}")
+            raise
 
     eml_node = None
     if folder_name:
@@ -1102,6 +1115,8 @@ def load_eml(filename:str=None, folder_name=None, use_pickle:bool=False, skip_me
             check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
             # save_package_id(eml_node)
             user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
+    else:
+        logger.error(f"load_eml: Could not load {ext_filename}")
     return eml_node
 
 
@@ -1420,9 +1435,10 @@ def fix_nonstring_content(node):
 
 NSMAP = {
     "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
-    "stmml": "http://www.xml-cml.org/schema/stmml-1.2",
-    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
 }
+
 
 def create_full_xml(eml_node):
     eml_node.nsmap = NSMAP

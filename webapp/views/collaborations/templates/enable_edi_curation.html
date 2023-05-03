@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_enable_edi_curation_id, help_enable_edi_curation_title, help_enable_edi_curation_content = help[0] %}
+    {% set help_enable_edi_curation_btn = help_enable_edi_curation_id ~ '_btn' %}
+    {% set help_enable_edi_curation_dialog = help_enable_edi_curation_id ~ '_dialog' %}
+    <table>
+        <td><h2>Enable EDI Curation</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_enable_edi_curation_btn) }}</td>
+    </table>
+        <div class="col-md-10">
+        <br>
+        <p>When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML,
+        you can submit your data package to EDI's data repository.
+
+        <p>Clicking <b>Enable EDI Curation</b> below will hand your ezEML data package off to EDI's data curation team, allowing
+            them to access it directly. They will review it and make any necessary changes or corrections before submitting
+            it to the repository.</p>
+
+        <p>After you click <b>Enable EDI Curation</b>, your package will be locked by the EDI data curation team while they work on it.
+            You will not be able to access it while the lock is in effect. Please be sure, therefore, that you're ready to hand the
+            package off to EDI before clicking. Or, you can click <b>Cancel</b> to return to the package
+            without enabling EDI curation.</p>
+
+    <p></p>If you have questions, please contact us at
+        <a href="mailto:support@edirepository.org">support@edirepository.org</a>.</p>
+
+            <br>
+
+
+        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+        {{ form.csrf_token }}
+
+    <table>
+        <tr><td>
+        <table>
+            <td>{{ wtf.form_field(form.name, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        </td>
+            <td width="5%">&nbsp;</td>
+        <td>
+        <table>
+            <td>{{ wtf.form_field(form.email_address, size=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+        </td></tr>
+    </table>
+
+        <table>
+            <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>
+{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+        </table>
+            <br>
+            {% if not enable_disabled %}
+                <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" value="Enable EDI Curation"/>&nbsp;&nbsp;
+            {% else %}
+                <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" disabled value="Enable EDI Curation"/>&nbsp;&nbsp;
+            {% endif %}
+                <input class="btn btn-primary" style="width: 95px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
+                {{ macros.hidden_buttons() }}
+
+        </form>
+        </div>
+    {{ macros.help_dialog(help_enable_edi_curation_dialog, help_enable_edi_curation_title, help_enable_edi_curation_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_enable_edi_curation_id, help_enable_edi_curation_title, help_enable_edi_curation_content = help[0] %}
+    {% set help_enable_edi_curation_btn = help_enable_edi_curation_id ~ '_btn' %}
+    {% set help_enable_edi_curation_dialog = help_enable_edi_curation_id ~ '_dialog' %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_enable_edi_curation_dialog, help_enable_edi_curation_btn) }}
+    });
+    </script>
+{% endblock %}

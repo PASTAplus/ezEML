@@ -66,6 +66,26 @@ class Config(object):
     MEM_LOG_METAPYPE_STORE_ACTIONS = False
     MEM_FILTER_URLS_TO_CLEAR_METAPYPE_STORE = True
 
+    COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES = 30
+
     ADMIN_LOGINS = []
     BETA_TESTER_LOGINS = []
     DATA_CURATOR_LOGINS = []
+    SERVER_LOGINS_WHITELIST = []
+
+    COLLABORATION_GROUPS = {
+        "EDI Curators": [
+        "bmcafee-9722dcae0cf4708f5946995452883e27",
+        "csmith-3baeec96846153563e16e334d058e7b8",
+        "Corinna_Gries-0cefc3d7c9858476b71dbb3ab442fca6",
+        "jide-7a03c1e6f4528a6f9c4b1ae3cec24b39",
+        "jlemaire-33463893a66177fe46eb87acc9d20e71"
+        ]}
+
+    # To allow disabling EDI Curation emails during development so as not to annoy curators
+    DISABLE_ENABLE_EDI_CURATION_EMAILS = False
+
+    # To allow disabling collaboration features if something goes wrong with the database, for example
+    ENABLE_COLLABORATION_FEATURES = True
+    COLLABORATION_BETA_TESTERS_ONLY = False
+    COLLABORATION_BETA_TESTERS = []

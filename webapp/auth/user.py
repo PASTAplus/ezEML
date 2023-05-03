@@ -20,9 +20,11 @@ from flask_login import UserMixin
 from webapp import login
 from webapp.auth.user_data import (
     set_active_packageid, get_active_packageid,
-    set_active_document, get_active_document
+    set_active_document, get_active_document,
+    set_active_document_owner, get_active_document_owner
 )
 from webapp.config import Config
+import webapp.views.collaborations.collaborations as collaborations
 
 
 logger = daiquiri.getLogger('user.py: ' + __name__)
@@ -59,7 +61,10 @@ class User(UserMixin):
         cname_clean = self._cname.replace(" ", "_")
         user_org = cname_clean + "-" + uid_hash
         return user_org
-    
+
+    def get_user_login(self):
+        return self.get_user_org()
+
     def get_packageid(self):
         return get_active_packageid()
 
@@ -71,6 +76,12 @@ class User(UserMixin):
 
     def set_filename(self, filename: str = None):
         set_active_document(filename)
+
+    def get_file_owner(self):
+        return get_active_document_owner()
+
+    def set_file_owner(self, owner: str = None):
+        set_active_document_owner(owner)
 
     def is_edi_user(self):
         return self._cname == "EDI" and self._uid == "uid=EDI,o=EDI,dc=edirepository,dc=org"
@@ -87,9 +98,21 @@ class User(UserMixin):
         except AttributeError:
             return False
 
+    def is_edi_curator(self):
+        return collaborations.is_edi_curator(self.get_user_login())
+
     def is_data_curator(self):
         try:
             return self.get_username() in Config.DATA_CURATOR_LOGINS
+        except AttributeError:
+            return False
+
+    def is_whitelisted_user(self):
+        try:
+            if Config.SERVER_LOGINS_WHITELIST:
+                return self.get_username() in Config.SERVER_LOGINS_WHITELIST
+            else:
+                return True
         except AttributeError:
             return False
 

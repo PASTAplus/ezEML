@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
+{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
+{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
+
+    <table>
+        <td><h2>Collaboration Backups</h2></td>
+{#        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_manage_data_usage_btn) }}</td>#}
+    </table>
+
+    <div class="col-md-12">
+        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+            <a href="show_backups/____back____">Back</a>
+            <p>&nbsp;</p>
+
+            <table id="data_table" class="display compact" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=30%>Owner</th>
+{#                <th width="3%"></th>#}
+                <th style="text-align:left;" width=36%>Package</th>
+                <th style="text-align:left;" width=16%>Date</th>
+{#                <th style="text-align:left;" width=4%></th>#}
+                <th style="text-align:right;" width=6%>Action</th>
+                <th style="text-align:right;" width=6%></th>
+                <th style="text-align:right;" width=6%></th>
+                </thead>
+                <tbody>
+                {% for backup in backups %}
+                <tr>
+                <td class="eval_table" valign="top">{{ backup.owner_name }}</td>
+                <td class="eval_table" valign="top">{{ backup.package_name }}</td>
+                <td class="eval_table" valign="top">{{ backup.date|safe }}&nbsp;{{ backup.is_primary|safe }}</td>
+{#                <td class="eval_table" valign="top" align="right">{{ backup.is_primary|safe }}</td>#}
+                <td class="eval_table" valign="top" align="right">{{ backup.preview|safe }}</td>
+                <td class="eval_table" valign="top" align="right">{{ backup.restore|safe }}</td>
+                <td class="eval_table" valign="top" align="right">{{ backup.delete|safe }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        <p></p>
+
+{#            {{ macros.hidden_buttons() }}#}
+        </form>
+    </div>
+{#    {{ macros.help_dialog(help_manage_data_usage_dialog, help_manage_data_usage_title, help_manage_data_usage_content) }}#}
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+{#    {% set help_manage_data_usage_id, help_manage_data_usage_title, help_manage_data_usage_content = help[0] %}#}
+{#    {% set help_manage_data_usage_btn = help_manage_data_usage_id ~ '_btn' %}#}
+{#    {% set help_manage_data_usage_dialog = help_manage_data_usage_id ~ '_dialog' %}#}
+
+    <script>
+    $(document).ready(function() {
+      $('#data_table').DataTable( {
+          paging: true,
+          lengthMenu: [
+            [20, 50, 100, -1],
+            [20, 50, 100, 'All'],
+          ],
+          ordering: true,
+          searching: false,
+          columnDefs: [
+              { orderable: false, targets: [3,4,5] },
+              { targets: [0], orderData: [0]},
+              { targets: [1], orderData: [1]},
+              { targets: [2], orderData: [2]}
+          ]
+      });
+      $('.dataTables_length').addClass('bs-select');
+      $(".eval_table tr:odd").css("background", "#f4f4f4");
+      $(".eval_table tr:even").css("background", "#fff");
+      $(".eval_table").css("padding", "1px");
+    });
+    {#$(function()#}
+    {#{#}
+    {#    {{ macros.help_script(help_manage_data_usage_dialog, help_manage_data_usage_btn) }}#}
+    {#});#}
+    </script>
+{% endblock %}

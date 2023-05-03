@@ -55,7 +55,6 @@ from webapp.home.exceptions import (
     ezEMLError,
     AuthTokenExpired,
     DataTableError,
-    MetapypeStoreIsNonEmpty,
     MissingFileError,
     NumberOfColumnsHasChanged,
     Unauthorized,
@@ -110,7 +109,12 @@ from webapp.home.check_data_table_contents import format_date_time_formats_list
 from webapp.home.check_metadata import check_eml
 from webapp.home.forms import form_md5
 from webapp.home.standard_units import init_standard_units
-
+from webapp.views.collaborations.collaborations import (
+    init_db,
+    close_package,
+    release_acquired_lock
+)
+import webapp.views.collaborations.collaborations as collaborations
 from webapp.buttons import *
 from webapp.pages import *
 
@@ -152,6 +156,20 @@ def url_of_interest():
         if url_prefix not in request.url:
             return False
     return True
+
+
+@home.before_app_request
+def post_debug_info_to_session():
+    try:
+        user_login = current_user.get_user_login()
+        if user_login:
+            active_package = collaborations.get_active_package(user_login)
+            if active_package:
+                session["active_package_id"] = active_package.package_id
+            else:
+                session["active_package_id"] = None
+    except Exception as e:
+        session["active_package_id"] = None
 
 
 @home.before_app_request
@@ -351,6 +369,8 @@ def data_table_errors(data_table_name:str=None):
 
 @home.before_app_request
 def init_session_vars():
+    init_db()
+
     if not session.get("check_metadata_status"):
         session["check_metadata_status"] = "green"
     if not session.get("check_data_tables_status"):
@@ -361,6 +381,17 @@ def init_session_vars():
         session["beta_tester_logins"] = Config.BETA_TESTER_LOGINS
     if not session.get("data_curator_logins"):
         session["data_curator_logins"] = Config.DATA_CURATOR_LOGINS
+
+    session["enable_collaboration_features"] = Config.ENABLE_COLLABORATION_FEATURES
+    collaboration_enabled_for_user = Config.ENABLE_COLLABORATION_FEATURES
+    if current_user and hasattr(current_user, 'get_username'):
+        if Config.COLLABORATION_BETA_TESTERS_ONLY and \
+                current_user.get_username() not in Config.COLLABORATION_BETA_TESTERS:
+            collaboration_enabled_for_user = False
+        session["collaboration_enabled_for_user"] = collaboration_enabled_for_user
+        if collaboration_enabled_for_user:
+            collaborations.cull_locks()
+
     init_standard_units()
 
 
@@ -404,84 +435,84 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 #             clean_zip_temp_files(days, user_dir, logger, logonly)
 
 
-@home.before_app_first_request
-def fixup_upload_management():
-    return
-    USER_DATA_DIR = 'user-data'
-    to_delete = set()
-    # loop on the various users' data directories
-    for user_folder_name in os.listdir(USER_DATA_DIR):
-        if user_folder_name == 'uploads' or user_folder_name == 'zip_temp':
-            continue
-        if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
-            user_data.clear_data_table_upload_filenames(user_folder_name)
-            full_path = os.path.join(USER_DATA_DIR, user_folder_name)
-            uploads_path = os.path.join(full_path, 'uploads')
-            # look at the EML model json files
-            for file in os.listdir(full_path):
-                full_file = os.path.join(full_path, file)
-                if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
-                    # some directories may have obsolete 'user_properties.json' files
-                    if file == 'user_properties.json':
-                        to_delete.add(os.path.join(full_path, 'user_properties.json'))
-                        continue
-                    # create a subdir of the user's uploads directory for this document's uploads
-                    document_name = file[:-5]
-                    subdir_name = os.path.join(uploads_path, document_name)
-                    try:
-                        os.mkdir(subdir_name)
-                    except OSError:
-                        pass
-                    # open the model file
-                    with open(full_file, "r") as json_file:
-                        json_obj = json.load(json_file)
-                        eml_node = mp_io.from_json(json_obj)
-                    # look at data tables
-                    data_table_nodes = []
-                    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-                    for data_table_node in data_table_nodes:
-                        object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-                        if object_name_node:
-                            object_name = object_name_node.content
-                            object_path = os.path.join(uploads_path, object_name)
-                            target_path = os.path.join(subdir_name, object_name)
-                            if os.path.isfile(object_path):
-                                to_delete.add(object_path)
-                                copyfile(object_path, target_path)
-                    # look at other entities
-                    other_entity_nodes = []
-                    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
-                    for other_entity_node in other_entity_nodes:
-                        object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
-                        if object_name_node:
-                            object_name = object_name_node.content
-                            object_path = os.path.join(uploads_path, object_name)
-                            if os.path.isfile(object_path):
-                                to_delete.add(object_path)
-                                copyfile(object_path, os.path.join(subdir_name, object_name))
-                    # clean up temp files
-                    for path in os.listdir(subdir_name):
-                        path = os.path.join(subdir_name, path)
-                        if os.path.isfile(path) and path.endswith('ezeml_tmp'):
-                            to_delete.add(path)
-
-            # now capture all uploaded file names in the user data
-            for file in os.listdir(uploads_path):
-                uploads_folder = os.path.join(uploads_path, file)
-                if os.path.isdir(uploads_folder):
-                    # add the uploaded files to the user data
-                    for uploaded_file in os.listdir(uploads_folder):
-                        user_data.add_data_table_upload_filename(uploaded_file, user_folder_name, file)
-
-            # clean up temp files
-            for path in os.listdir(full_path):
-                path = os.path.join(full_path, path)
-                if os.path.isfile(path) and path.endswith('ezeml_tmp'):
-                    to_delete.add(path)
-
-    # now we can delete the files we've copied
-    for file in to_delete:
-        os.remove(file)
+# @home.before_app_first_request
+# def fixup_upload_management():
+#     return
+#     USER_DATA_DIR = 'user-data'
+#     to_delete = set()
+#     # loop on the various users' data directories
+#     for user_folder_name in os.listdir(USER_DATA_DIR):
+#         if user_folder_name == 'uploads' or user_folder_name == 'zip_temp':
+#             continue
+#         if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
+#             user_data.clear_data_table_upload_filenames(user_folder_name)
+#             full_path = os.path.join(USER_DATA_DIR, user_folder_name)
+#             uploads_path = os.path.join(full_path, 'uploads')
+#             # look at the EML model json files
+#             for file in os.listdir(full_path):
+#                 full_file = os.path.join(full_path, file)
+#                 if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
+#                     # some directories may have obsolete 'user_properties.json' files
+#                     if file == 'user_properties.json':
+#                         to_delete.add(os.path.join(full_path, 'user_properties.json'))
+#                         continue
+#                     # create a subdir of the user's uploads directory for this document's uploads
+#                     document_name = file[:-5]
+#                     subdir_name = os.path.join(uploads_path, document_name)
+#                     try:
+#                         os.mkdir(subdir_name)
+#                     except OSError:
+#                         pass
+#                     # open the model file
+#                     with open(full_file, "r") as json_file:
+#                         json_obj = json.load(json_file)
+#                         eml_node = mp_io.from_json(json_obj)
+#                     # look at data tables
+#                     data_table_nodes = []
+#                     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+#                     for data_table_node in data_table_nodes:
+#                         object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+#                         if object_name_node:
+#                             object_name = object_name_node.content
+#                             object_path = os.path.join(uploads_path, object_name)
+#                             target_path = os.path.join(subdir_name, object_name)
+#                             if os.path.isfile(object_path):
+#                                 to_delete.add(object_path)
+#                                 copyfile(object_path, target_path)
+#                     # look at other entities
+#                     other_entity_nodes = []
+#                     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+#                     for other_entity_node in other_entity_nodes:
+#                         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+#                         if object_name_node:
+#                             object_name = object_name_node.content
+#                             object_path = os.path.join(uploads_path, object_name)
+#                             if os.path.isfile(object_path):
+#                                 to_delete.add(object_path)
+#                                 copyfile(object_path, os.path.join(subdir_name, object_name))
+#                     # clean up temp files
+#                     for path in os.listdir(subdir_name):
+#                         path = os.path.join(subdir_name, path)
+#                         if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+#                             to_delete.add(path)
+#
+#             # now capture all uploaded file names in the user data
+#             for file in os.listdir(uploads_path):
+#                 uploads_folder = os.path.join(uploads_path, file)
+#                 if os.path.isdir(uploads_folder):
+#                     # add the uploaded files to the user data
+#                     for uploaded_file in os.listdir(uploads_folder):
+#                         user_data.add_data_table_upload_filename(uploaded_file, user_folder_name, file)
+#
+#             # clean up temp files
+#             for path in os.listdir(full_path):
+#                 path = os.path.join(full_path, path)
+#                 if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+#                     to_delete.add(path)
+#
+#     # now we can delete the files we've copied
+#     for file in to_delete:
+#         os.remove(file)
 
 
 @home.before_app_request
@@ -573,6 +604,7 @@ def index():
                 new_page = PAGE_TITLE
             else:
                 user_data.remove_active_file()
+                log_error('Error loading EML file: ' + current_document + ' in index()')
                 new_page = PAGE_FILE_ERROR
             return redirect(url_for(new_page, filename=current_document))
         else:
@@ -582,7 +614,8 @@ def index():
 
 
 @home.route('/edit/<page>')
-def edit(page:str=None):
+@home.route('/edit/<page>/dev')
+def edit(page:str=None, dev=None):
     """
     The edit page allows for direct editing of a top-level element such as
     title, abstract, creators, etc. This function simply redirects to the
@@ -591,9 +624,16 @@ def edit(page:str=None):
     if current_user.is_authenticated and page:
         current_filename = user_data.get_active_document()
         if current_filename:
-            # We skip metadata check here because we will do load_eml again on the target page
-            eml_node = load_eml(filename=current_filename, skip_metadata_check=True)
-            new_page = page if eml_node else PAGE_FILE_ERROR
+            if page not in [PAGE_COLLABORATE, PAGE_INVITE_COLLABORATOR, PAGE_ACCEPT_INVITATION]:
+                # We skip metadata check here because we will do load_eml again on the target page
+                eml_node = load_eml(filename=current_filename, skip_metadata_check=True, do_not_lock=True)
+                if eml_node:
+                    new_page = page
+                else:
+                    log_error('Error loading EML file: ' + current_filename + ' in edit()')
+                    new_page = PAGE_FILE_ERROR
+            else:
+                new_page = page
             return redirect(url_for(new_page, filename=current_filename))
         else:
             return redirect(url_for(PAGE_INDEX))
@@ -690,6 +730,8 @@ def delete():
             if isinstance(return_value, str):
                 flash(return_value)
             else:
+                user_login = current_user.get_user_login()
+                close_package(user_login)
                 flash(f'Deleted {filename}')
             return redirect(url_for(PAGE_INDEX))
 
@@ -735,7 +777,9 @@ def manage_packages(to_delete=None, action=None):
         if to_delete == '____back____':
             action = '____back____'
         elif action != '____back____':
+            user_data.is_document_locked(filename=to_delete)
             user_data.delete_eml(filename=to_delete)
+            log_usage(actions['MANAGE_PACKAGES'], 'delete', to_delete)
             flash(f'Deleted {to_delete}') # TO DO - handle error cases
 
     if action == '____back____':
@@ -796,6 +840,7 @@ def manage_data_usage(action=None):
 
     log_usage(actions['MANAGE_DATA_USAGE'])
     help = get_helps(['manage_data_usage'])
+    set_current_page('manage_data_usage')
 
     if not Config.GC_BUTTON_ENABLED:
         disabled = 'disabled'
@@ -933,7 +978,7 @@ def check_metadata(filename:str):
     current_document = user_data.get_active_document()
     if not current_document:
         raise FileNotFoundError
-    eml_node = load_eml(filename=current_document, skip_metadata_check=True)
+    eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)
     content = check_eml(eml_node, filename)
     log_usage(actions['CHECK_METADATA'])
 
@@ -1049,14 +1094,60 @@ def create():
                 flash(f'{filename} already exists. Please select another name.', 'error')
                 return render_template('create_eml.html', help=help,
                                 form=form)
-            create_eml(filename=filename)
-            current_user.set_filename(filename)
-            current_user.set_packageid(None)
+
             log_usage(actions['NEW_DOCUMENT'])
-            return redirect(url_for(PAGE_TITLE, filename=filename))
+            create_eml(filename=filename)
+
+            # Get a lock on the package
+            user_login = current_user.get_user_login()
+            lock = collaborations.open_package(user_login, filename)
+
+            return open_document(filename)
 
     # Process GET
     return render_template('create_eml.html', help=help, form=form)
+
+
+@home.route('/display_tables', methods=['GET', 'POST'])
+@login_required
+def display_tables():
+    from webapp.views.collaborations.model import User, Package, Collaboration, CollaborationStatus, Lock
+    users = User.query.all()
+    packages = Package.query.all()
+    collaborations = Collaboration.query.all()
+    collaboration_statuses = CollaborationStatus.query.all()
+    locks = Lock.query.all()
+    return render_template('display_tables.html', users=users, packages=packages, collaborations=collaborations,
+                           collaboration_statuses=collaboration_statuses, locks=locks)
+
+
+def open_document(filename, owner=None):
+    """
+    This code is used both in opening a document via the Open... menu selection and via an Open link on the Collaborate
+    page. In the latter case, it is assumed that the caller has set the active_package_id before calling. This is
+    needed so that load_eml() looks in the correct folder for the EML file.
+    """
+    # Check if the document is locked by another user
+    if user_data.is_document_locked(filename):
+        flash(f'{filename} is currently locked by another user. Please select another document.', 'error')
+        return redirect(url_for(PAGE_TITLE, filename=filename))
+
+    eml_node = load_eml(filename)
+    if eml_node:
+        current_user.set_filename(filename)
+        if owner:
+            current_user.set_file_owner(owner)
+        packageid = eml_node.attributes.get('packageId', None)
+        if packageid:
+            current_user.set_packageid(packageid)
+        create_eml(filename=filename)
+        new_page = PAGE_TITLE
+        log_usage(actions['OPEN_DOCUMENT'])
+        check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+    else:
+        log_error('Error loading EML file: ' + filename + ' in open_document()')
+        new_page = PAGE_FILE_ERROR
+    return redirect(url_for(new_page, filename=filename))
 
 
 @home.route('/open_eml_document', methods=['GET', 'POST'])
@@ -1073,32 +1164,29 @@ def open_eml_document():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            eml_node = load_eml(filename)
-            if eml_node:
-                current_user.set_filename(filename)
-                packageid = eml_node.attributes.get('packageId', None)
-                if packageid:
-                    current_user.set_packageid(packageid)
-                create_eml(filename=filename)
-                new_page = PAGE_TITLE
-                log_usage(actions['OPEN_DOCUMENT'])
-                check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+            user_login = current_user.get_user_login()
+            # Get a lock on the package, if available
+            lock = collaborations.open_package(user_login, filename)
+            # Open the document
+            try:
+                return open_document(filename)
+            except:
+                release_acquired_lock(lock)
 
-            else:
-                new_page = PAGE_FILE_ERROR
-            return redirect(url_for(new_page, filename=filename))
-    
     # Process GET
     return render_template('open_eml_document.html', title='Open EML Document', 
                            form=form)
 
 
 @home.route('/open_package/<package_name>', methods=['GET', 'POST'])
+@home.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
 @login_required
-def open_package(package_name):
+def open_package(package_name, owner=None):
     eml_node = load_eml(package_name)
     if eml_node:
         current_user.set_filename(package_name)
+        if owner:
+            current_user.set_file_owner(owner)
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)
@@ -1107,6 +1195,7 @@ def open_package(package_name):
         log_usage(actions['OPEN_DOCUMENT'])
         check_data_table_contents.set_check_data_tables_badge_status(package_name, eml_node)
     else:
+        log_error('Error loading EML file: ' + package_name + ' in open_package()')
         new_page = PAGE_FILE_ERROR
 
     return redirect(url_for(new_page, filename=package_name))
@@ -1846,11 +1935,6 @@ def export_package():
                 return redirect(url_for('home.export_package_2', package_name=archive_basename,
                                         download_url=make_tiny(download_url), safe=''))
 
-        # archive_basename, download_url = save_as_ezeml_package_export(zipfile_path)
-        # if download_url:
-        #     return redirect(url_for('home.export_package_2', package_name=archive_basename,
-        #                             download_url=get_shortened_url(download_url), safe=''))
-
     # Process GET
     help = get_helps(['export_package'])
     return render_template('export_package.html', back_url=get_back_url(), title='Export Data Package', help=help)
@@ -1879,8 +1963,6 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, e
         '   Package name: ' + archive_name + '\n\n' + \
         '   Download URL: ' + encoded_url + '\n\n' + \
         '   Download URL without data files: ' + encoded_url_without_data + '\n\n'
-        # '   Download URL: ' + get_shortened_url(download_url) + '\n\n' + \
-        # '   Download URL without data files: ' + get_shortened_url(download_url_without_data) + '\n\n'
     if notes:
         msg += '   Sender\'s Notes: ' + notes
     return msg
@@ -2002,15 +2084,15 @@ def submit_package(filename=None, success=None):
                 msg += get_imported_from_xml_metadata(eml_node)
                 subject = 'ezEML-Generated Data Submission Request'
                 to_address = [Config.TO]
-                sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address, sender_name=name, sender_email=email_address)
-                if sent:
+                sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address)
+                if sent is True:
                     log_usage(actions['SEND_TO_EDI'], name, email_address)
                     flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
                     flash(f"If you don't hear back from us within 48 hours, please contact us at support@edirepository.org.")
                     success = True
                 else:
                     log_usage(actions['SEND_TO_EDI'], 'failed')
-                    flash(f'Email failed to send', 'error')
+                    flash(sent, 'error')
 
             return redirect(get_back_url(success=success))
 
@@ -2992,7 +3074,7 @@ def import_package():
                 return redirect(url_for('home.import_package_2', package_name=unversioned_package_name))
             else:
                 import_ezeml_package(unversioned_package_name)
-                fixup_upload_management()
+                # fixup_upload_management()
                 cull_uploads(unversioned_package_name)
                 current_user.set_filename(filename=unversioned_package_name)
                 log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])
@@ -3022,7 +3104,7 @@ def import_package_2(package_name):
             package_name = copy_ezeml_package(package_name)
 
         import_ezeml_package(package_name)
-        fixup_upload_management()
+        # fixup_upload_management()
         cull_uploads(package_name)
         current_user.set_filename(filename=package_name)
         log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])
@@ -3708,12 +3790,12 @@ def load_metadata():
 def close():
     current_document = current_user.get_filename()
     
+    log_usage(actions['CLOSE_DOCUMENT'])
+    current_user.set_filename(None)
+    user_login = current_user.get_user_login()
+    close_package(user_login)
     if current_document:
-        log_usage(actions['CLOSE_DOCUMENT'])
-        current_user.set_filename(None)
-        flash(f'Closed {current_document}')
-    else:
-        flash("There was no package open")
+        flash(f'Closed "{current_document}"')
 
     set_current_page('')
 

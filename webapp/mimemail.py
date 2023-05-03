@@ -27,12 +27,21 @@ from webapp.config import Config
 logger = daiquiri.getLogger(__name__)
 
 
-def send_mail(subject, msg, to, sender_name=None, sender_email=None) -> bool:
-
+def send_mail(subject, msg, to, to_name=None):
+    """
+    Returns True if email is sent successfully, otherwise a string containing the error message is returned.
+    So, the return value should be tested by the caller as follows:
+        if send_mail(subject, msg, to) is True:
+    to avoid a false positive when there is an error message, which will be truthy.
+    """
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
+    # The from identity needs to be known to the relay server
     message["From"] = formataddr((Config.FROM_NAME, Config.FROM))
-    message["To"] = formataddr((Config.TO_NAME, Config.TO))
+    if to and to_name:
+        message["To"] = formataddr((to_name, to))
+    else:
+        message["To"] = formataddr((Config.TO_NAME, Config.TO))
 
     part = MIMEText(msg, "plain")
     message.attach(part)
@@ -41,14 +50,19 @@ def send_mail(subject, msg, to, sender_name=None, sender_email=None) -> bool:
         with smtplib.SMTP(Config.RELAY_HOST, Config.RELAY_TLS_PORT) as server:
             server.starttls()
             server.login(Config.RELAY_USER, Config.RELAY_PASSWORD)
-            server.sendmail(Config.FROM, Config.TO, message.as_string())
+            # TODO - TEMP - Temporarily comment out to avoid sending emails
+            server.sendmail(Config.FROM, to, message.as_string())
 
         log_msg = f"Sending email to: {to}"
-        if sender_name and sender_email:
-            log_msg += f"  Sender: {sender_name} - {sender_email}"
         logger.info(log_msg)
         logger.info(f"Email message: {message.as_string()}")
         return True
+    except smtplib.SMTPException as e:
+        logger.error(e)
+        if e.smtp_error:
+            return e.smtp_error.decode()
+        else:
+            return 'Email failed to send'
     except Exception as e:
         logger.error(e)
-        return False
+        return 'Email failed to send'

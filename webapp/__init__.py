@@ -7,6 +7,7 @@
 :Author:
     servilla
     costa
+    ide
 
 :Created:
     2/15/18
@@ -17,13 +18,16 @@ import os
 import daiquiri
 import daiquiri.formatter
 
-from flask import Flask, session
+from flask import Flask, g
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 from webapp.config import Config
 
-cwd = os.path.dirname(os.path.realpath(__file__))
+
+cwd = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 logfile = cwd + '/metadata-eml.log'
 daiquiri.setup(level=logging.INFO,
                outputs=[
@@ -48,6 +52,17 @@ login.login_view = 'auth.login'
 
 app.config['MAX_COOKIE_SIZE'] = 65535
 
+# We'll use sqlite3 for managing collaborations in ezEML
+db_dir = os.path.join(Config.USER_DATA_DIR, '__db')
+if not os.path.exists(db_dir):
+    os.makedirs(db_dir)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///' + os.path.join(db_dir, 'collaborations.db.sqlite3')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+db.metadata.clear()
+migrate = Migrate(app, db)
+
+
 # Importing these modules causes the routes and error handlers to be associated
 # with the blueprint. It is important to note that the modules are imported at
 # the bottom of the webapp/__init__.py script to avoid errors due to circular 
@@ -64,6 +79,9 @@ app.register_blueprint(home, url_prefix='/eml')
 
 from webapp.views.access.access import acc_bp
 app.register_blueprint(acc_bp, url_prefix='/eml')
+
+from webapp.views.collaborations.routes import collab_bp
+app.register_blueprint(collab_bp, url_prefix='/eml')
 
 from webapp.views.coverage.coverage import cov_bp
 app.register_blueprint(cov_bp, url_prefix='/eml')

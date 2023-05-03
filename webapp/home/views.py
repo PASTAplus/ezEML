@@ -434,8 +434,8 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 #             logonly = Config.GC_LOG_ONLY
 #             clean_zip_temp_files(days, user_dir, logger, logonly)
 
-
-@home.before_app_first_request
+# TODO: Determine if this function should be removed since the decorator is no longer in use
+# @home.before_app_first_request
 def fixup_upload_management():
     return
     USER_DATA_DIR = 'user-data'

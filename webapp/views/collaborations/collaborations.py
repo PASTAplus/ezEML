@@ -100,6 +100,11 @@ def set_active_package(user_login, package_name, owner_login=None, session=None)
         if not owner_login:
             owner_login = user_login
         package = get_package(owner_login, package_name, create_if_not_found=True, session=session)
+        # If we are changing the active package for the user, we need to release the lock on the old active package.
+        if user.active_package_id != package.package_id:
+            lock = _get_lock(user.active_package_id)
+            if lock and lock.locked_by == user.user_id:
+                _remove_lock(user.active_package_id, session=session)
         user.active_package_id = package.package_id
     return package
 

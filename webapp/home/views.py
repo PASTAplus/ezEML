@@ -435,84 +435,84 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 #             clean_zip_temp_files(days, user_dir, logger, logonly)
 
 
-@home.before_app_first_request
-def fixup_upload_management():
-    return
-    USER_DATA_DIR = 'user-data'
-    to_delete = set()
-    # loop on the various users' data directories
-    for user_folder_name in os.listdir(USER_DATA_DIR):
-        if user_folder_name == 'uploads' or user_folder_name == 'zip_temp':
-            continue
-        if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
-            user_data.clear_data_table_upload_filenames(user_folder_name)
-            full_path = os.path.join(USER_DATA_DIR, user_folder_name)
-            uploads_path = os.path.join(full_path, 'uploads')
-            # look at the EML model json files
-            for file in os.listdir(full_path):
-                full_file = os.path.join(full_path, file)
-                if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
-                    # some directories may have obsolete 'user_properties.json' files
-                    if file == 'user_properties.json':
-                        to_delete.add(os.path.join(full_path, 'user_properties.json'))
-                        continue
-                    # create a subdir of the user's uploads directory for this document's uploads
-                    document_name = file[:-5]
-                    subdir_name = os.path.join(uploads_path, document_name)
-                    try:
-                        os.mkdir(subdir_name)
-                    except OSError:
-                        pass
-                    # open the model file
-                    with open(full_file, "r") as json_file:
-                        json_obj = json.load(json_file)
-                        eml_node = mp_io.from_json(json_obj)
-                    # look at data tables
-                    data_table_nodes = []
-                    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-                    for data_table_node in data_table_nodes:
-                        object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-                        if object_name_node:
-                            object_name = object_name_node.content
-                            object_path = os.path.join(uploads_path, object_name)
-                            target_path = os.path.join(subdir_name, object_name)
-                            if os.path.isfile(object_path):
-                                to_delete.add(object_path)
-                                copyfile(object_path, target_path)
-                    # look at other entities
-                    other_entity_nodes = []
-                    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
-                    for other_entity_node in other_entity_nodes:
-                        object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
-                        if object_name_node:
-                            object_name = object_name_node.content
-                            object_path = os.path.join(uploads_path, object_name)
-                            if os.path.isfile(object_path):
-                                to_delete.add(object_path)
-                                copyfile(object_path, os.path.join(subdir_name, object_name))
-                    # clean up temp files
-                    for path in os.listdir(subdir_name):
-                        path = os.path.join(subdir_name, path)
-                        if os.path.isfile(path) and path.endswith('ezeml_tmp'):
-                            to_delete.add(path)
-
-            # now capture all uploaded file names in the user data
-            for file in os.listdir(uploads_path):
-                uploads_folder = os.path.join(uploads_path, file)
-                if os.path.isdir(uploads_folder):
-                    # add the uploaded files to the user data
-                    for uploaded_file in os.listdir(uploads_folder):
-                        user_data.add_data_table_upload_filename(uploaded_file, user_folder_name, file)
-
-            # clean up temp files
-            for path in os.listdir(full_path):
-                path = os.path.join(full_path, path)
-                if os.path.isfile(path) and path.endswith('ezeml_tmp'):
-                    to_delete.add(path)
-
-    # now we can delete the files we've copied
-    for file in to_delete:
-        os.remove(file)
+# @home.before_app_first_request
+# def fixup_upload_management():
+#     return
+#     USER_DATA_DIR = 'user-data'
+#     to_delete = set()
+#     # loop on the various users' data directories
+#     for user_folder_name in os.listdir(USER_DATA_DIR):
+#         if user_folder_name == 'uploads' or user_folder_name == 'zip_temp':
+#             continue
+#         if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
+#             user_data.clear_data_table_upload_filenames(user_folder_name)
+#             full_path = os.path.join(USER_DATA_DIR, user_folder_name)
+#             uploads_path = os.path.join(full_path, 'uploads')
+#             # look at the EML model json files
+#             for file in os.listdir(full_path):
+#                 full_file = os.path.join(full_path, file)
+#                 if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
+#                     # some directories may have obsolete 'user_properties.json' files
+#                     if file == 'user_properties.json':
+#                         to_delete.add(os.path.join(full_path, 'user_properties.json'))
+#                         continue
+#                     # create a subdir of the user's uploads directory for this document's uploads
+#                     document_name = file[:-5]
+#                     subdir_name = os.path.join(uploads_path, document_name)
+#                     try:
+#                         os.mkdir(subdir_name)
+#                     except OSError:
+#                         pass
+#                     # open the model file
+#                     with open(full_file, "r") as json_file:
+#                         json_obj = json.load(json_file)
+#                         eml_node = mp_io.from_json(json_obj)
+#                     # look at data tables
+#                     data_table_nodes = []
+#                     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+#                     for data_table_node in data_table_nodes:
+#                         object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+#                         if object_name_node:
+#                             object_name = object_name_node.content
+#                             object_path = os.path.join(uploads_path, object_name)
+#                             target_path = os.path.join(subdir_name, object_name)
+#                             if os.path.isfile(object_path):
+#                                 to_delete.add(object_path)
+#                                 copyfile(object_path, target_path)
+#                     # look at other entities
+#                     other_entity_nodes = []
+#                     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+#                     for other_entity_node in other_entity_nodes:
+#                         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+#                         if object_name_node:
+#                             object_name = object_name_node.content
+#                             object_path = os.path.join(uploads_path, object_name)
+#                             if os.path.isfile(object_path):
+#                                 to_delete.add(object_path)
+#                                 copyfile(object_path, os.path.join(subdir_name, object_name))
+#                     # clean up temp files
+#                     for path in os.listdir(subdir_name):
+#                         path = os.path.join(subdir_name, path)
+#                         if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+#                             to_delete.add(path)
+#
+#             # now capture all uploaded file names in the user data
+#             for file in os.listdir(uploads_path):
+#                 uploads_folder = os.path.join(uploads_path, file)
+#                 if os.path.isdir(uploads_folder):
+#                     # add the uploaded files to the user data
+#                     for uploaded_file in os.listdir(uploads_folder):
+#                         user_data.add_data_table_upload_filename(uploaded_file, user_folder_name, file)
+#
+#             # clean up temp files
+#             for path in os.listdir(full_path):
+#                 path = os.path.join(full_path, path)
+#                 if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+#                     to_delete.add(path)
+#
+#     # now we can delete the files we've copied
+#     for file in to_delete:
+#         os.remove(file)
 
 
 @home.before_app_request
@@ -3074,7 +3074,7 @@ def import_package():
                 return redirect(url_for('home.import_package_2', package_name=unversioned_package_name))
             else:
                 import_ezeml_package(unversioned_package_name)
-                fixup_upload_management()
+                # fixup_upload_management()
                 cull_uploads(unversioned_package_name)
                 current_user.set_filename(filename=unversioned_package_name)
                 log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])
@@ -3104,7 +3104,7 @@ def import_package_2(package_name):
             package_name = copy_ezeml_package(package_name)
 
         import_ezeml_package(package_name)
-        fixup_upload_management()
+        # fixup_upload_management()
         cull_uploads(package_name)
         current_user.set_filename(filename=package_name)
         log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])

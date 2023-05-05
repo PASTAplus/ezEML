@@ -81,8 +81,8 @@ class GeographicCoverageForm(EDIForm):
         except TypeError:
             return True
 
-    def validate(self):
-        if not super().validate():
+    def validate(self, extra_validators=None):
+        if not super().validate(extra_validators):
             return False
         result = True
         if not self.is_float_or_None(self.amin.data):

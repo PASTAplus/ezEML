@@ -520,6 +520,14 @@ For more information, see <a style="color: steelblue;" href="/static/user_guide/
 
 Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Enable EDI Curation</b> here::&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
+export_package
+Export ezEML Data Package
+When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.
+
+<b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for downloading the archive, which you can share with collaborators, for example.
+
+To submit the data package to the EDI data repository, you can use <b><a href="edit/home.submit_package">Send to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission. Alternatively, you can use <b><a href="edit/collab.enable_edi_curation">Enable EDI Curation</a></b> to authorize the EDI data curation team to access your package directly without your needing to create an archive.
+--------------------
 fetch_data_source
 Fetch Data Source Info from EDI
 

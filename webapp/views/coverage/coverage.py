@@ -180,7 +180,7 @@ def load_geo_coverage_from_csv(csv_filename, filename):
     expected_types_error_msg = 'Geographic coverage file does not have expected variable types in columns. Note that ' \
         'numerical values must be written with a decimal point.'
     if not has_optional_columns:
-        if list(data_frame.dtypes) != [np.object, np.float64, np.float64, np.float64, np.float64]:
+        if list(data_frame.dtypes)[1:-1] != [np.float64, np.float64, np.float64, np.float64]:
             raise UnexpectedDataTypes(expected_types_error_msg)
     else:
         if list(data_frame.dtypes)[1:-1] != [np.float64, np.float64, np.float64, np.float64, np.float64, np.float64]:

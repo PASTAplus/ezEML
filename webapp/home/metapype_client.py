@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.05.07'
+RELEASE_NUMBER = '2023.05.11'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1506,12 +1506,21 @@ def fixup_categorical_variables(eml_node):
                     change_measurement_scale(attribute_node, None, VariableType.CATEGORICAL.name)
 
 
+def fixup_field_delimiters(eml_node):
+    field_delimiter_nodes = []
+    eml_node.find_all_descendants(names.FIELDDELIMITER, field_delimiter_nodes)
+    for field_delimiter_node in field_delimiter_nodes:
+        if field_delimiter_node.content and field_delimiter_node.content == '\t':
+            field_delimiter_node.content = '\\t'
+
+
 def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=False):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
     fixup_categorical_variables(eml_node)
+    fixup_field_delimiters(eml_node)
     add_eml_editor_metadata(eml_node)
     if use_pickle:
         pickle_eml(filename, eml_node)

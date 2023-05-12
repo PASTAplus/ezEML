@@ -215,7 +215,7 @@ class DataTableForm(EDIForm):
     attribute_orientation = SelectField('Attribute Orientation', choices=[("column", "column"), ("row", "row")])
     field_delimiter = SelectField('Field Delimiter', choices=[
         (',', 'comma'),
-        ('\t', 'tab'),
+        ('\\t', 'tab'),
         ('|', 'vertical bar, or pipe - |'),
         (';', 'semicolon'),
         (':', 'colon')

@@ -38,7 +38,7 @@ from webapp.home.intellectual_rights import (
     INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
 )
 
-from webapp.home.views import set_current_page, get_keywords
+from webapp.home.views import set_current_page, get_keywords, on_load_save
 
 res_bp = Blueprint('res', __name__, template_folder='templates')
 
@@ -90,6 +90,7 @@ def title(filename=None):
     set_current_page('title')
     help = get_helps(['title', 'nav', 'welcome'])
     first_usage = is_first_usage()
+    on_load_save(filename, eml_node)
     return render_template('title.html', title='Title', form=form, help=help, is_first_usage=first_usage)
 
 

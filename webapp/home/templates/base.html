@@ -335,7 +335,7 @@
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <h4 class="nav_link">Uploaded Image</h4>
         <div class="nav_link"><b>{{ session['image_name']|safe }}</b></div>
-        <img class="nav_link" src = "{{ url_for('ent.static', filename=session['thumb_path']) }} " onerror=this.style.display='none'>
+        <img class="nav_link" src = "{{ url_for('ent.send_thumb', filename=session['thumb_name']) }} " onerror=this.style.display='none'>
    {% endif %}
     </div>
     <div style="margin-left: 18%;">

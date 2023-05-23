@@ -138,6 +138,7 @@ def reload_metadata():
 @home.before_app_first_request
 def init_session_vars():
     session["check_metadata_status"] = "green"
+    session['thumb_name'] = "unavailable"
 
 
 @home.before_app_first_request
@@ -223,10 +224,9 @@ def fixup_upload_management():
 # code in here will run only once for every initial page load by checking for the home blueprint
 # does not occur after form submission since the reused blueprint's data does not get reloaded
 @home.before_request
-def on_load_save():
-    if current_user.is_authenticated:
-        current_document, eml_node = reload_metadata()
-        set_session_vars(current_document, eml_node)
+def on_load_save(filename: str = None, eml_node: Node = None):
+    if current_user.is_authenticated and filename and eml_node:
+        set_session_vars(filename, eml_node)
 
 
 @home.before_app_request
@@ -1269,7 +1269,7 @@ def submit_package():
 
     if form.validate_on_submit():
         # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
-        #  programmatically generated Submit
+        # programmatically generated Submit
         if request.form.get(BTN_SUBMIT) == BTN_SUBMIT_TO_EDI:
             name = form.data['name']
             email_address = form.data['email_address']

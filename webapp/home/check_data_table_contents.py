@@ -197,7 +197,7 @@ def create_error_json(data_table_name, column_name, row_index, error_type, expec
         column_name = ''
     if not row_index:
         row_index = ''
-    location = f'{{ "table": "{data_table_name}", "column": "{column_name}", "row": "{row_index}" }}'
+    location = f'{{ "table": "{urllib.parse.quote(data_table_name)}", "column": "{urllib.parse.quote(column_name)}", "row": "{row_index}" }}'
     return f'{{ "error_scope": "{error_scope}", "location": {location}, "error_type": "{error_type}", "expected": {json.dumps(expected)}, "found": {json.dumps(found)}}}'
 
 
@@ -638,9 +638,9 @@ def generate_error_info_for_webpage(data_table_node, errors):
     errors = []
     has_blanks = False
     for error in errs_obj['errors']:
-        if error['location']['table'] != data_table_name:
+        if error['location']['table'] != urllib.parse.quote(data_table_name):
             continue
-        if error['location']['column'] != column_name:
+        if error['location']['column'] != (urllib.parse.quote(column_name) if column_name else None):
             column_name = error['location']['column']
             try:
                 attribute_node = get_attribute_node(data_table_node, column_name)

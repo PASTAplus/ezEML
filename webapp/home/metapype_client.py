@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.05.11'
+RELEASE_NUMBER = '2023.05.31'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1074,7 +1074,8 @@ def load_eml(filename:str=None,
              folder_name=None,
              use_pickle:bool=False,
              skip_metadata_check:bool=False,
-             do_not_lock:bool=False):
+             do_not_lock:bool=False,
+             log_the_details:bool=False):
 
     # Usually when we load an EML file, we want to acquire a lock on it. However, there are times when we are just
     #  looking at the file, not opening it for editing. For example, when checking metadata or when getting the package
@@ -1092,13 +1093,15 @@ def load_eml(filename:str=None,
     else:
         user_folder = None
         try:
-            user_folder = user_data.get_user_folder_name()
+            user_folder = user_data.get_user_folder_name(log_the_details=log_the_details)
         except Exception as e:
             logger.error(f"load_eml: {e}")
     if not user_folder:
         user_folder = '.'
     ext = 'json' if not use_pickle else 'pkl'
     ext_filename = f"{user_folder}/{filename}.{ext}"
+    if log_the_details:
+        logger.info(f"load_eml: ext_filename: {ext_filename}")
     if os.path.isfile(ext_filename):
         if use_pickle:
             eml_node = pickle.load(open(ext_filename, 'rb'))

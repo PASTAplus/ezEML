@@ -783,7 +783,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
                 kb, mb, gb = convert_file_size(size)
                 mb = round(mb)
                 onclick = f'onclick="return confirm(\'This data table may take up to several minutes to check. Continue?\');"'
-            action = f'<a href="data_table_errors/{data_table_name}" {onclick}>Check data table</a>'
+            action = f'<a href="data_table_errors/{urllib.parse.quote(data_table_name)}" {onclick}>Check data table</a>'
         elif status == 'red':
             action = f'<a href="data_table_errors/{data_table_name}">Show errors</a>'
         elif status == 'green':

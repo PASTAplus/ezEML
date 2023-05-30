@@ -51,7 +51,7 @@ def get_template_folder_name():
     return Config.TEMPLATE_DIR
 
 
-def get_user_folder_name(current_user_directory_only=False, prefix=Config.USER_DATA_DIR):
+def get_user_folder_name(current_user_directory_only=False, prefix=Config.USER_DATA_DIR, log_the_details=False):
     user_folder_name = f'{Config.USER_DATA_DIR}/anonymous-user'
     user_login = current_user.get_user_org()
 
@@ -64,6 +64,12 @@ def get_user_folder_name(current_user_directory_only=False, prefix=Config.USER_D
         user_folder_name = f'{prefix}/{owner_login}'
     elif user_login:
         user_folder_name = f'{prefix}/{user_login}'
+
+    if log_the_details:
+        logger.info(f'current_user_directory_only: {current_user_directory_only}')
+        logger.info(f'user_login: {user_login}')
+        logger.info(f'owner_login: {owner_login}')
+        logger.info(f'user_folder_name: {user_folder_name}')
     return user_folder_name
 
 
@@ -347,9 +353,11 @@ def download_eml(filename:str='', package_id:str=''):
         return msg
 
 
-def read_active_dict():
-    user_folder = get_user_folder_name(current_user_directory_only=True)
+def read_active_dict(log_the_details=False):
+    user_folder = get_user_folder_name(current_user_directory_only=True, log_the_details=log_the_details)
     active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'
+    if log_the_details:
+        print(f'active_file: {active_file}')
     try:
         with open(active_file, 'rb') as f:
             return pickle.load(f)
@@ -394,8 +402,8 @@ def set_active_document(filename: str):
     set_active_document_owner(None)
 
 
-def get_active_document() -> str:
-    active_dict = read_active_dict()
+def get_active_document(log_the_details=False) -> str:
+    active_dict = read_active_dict(log_the_details=log_the_details)
     return active_dict.get('filename', None)
 
 

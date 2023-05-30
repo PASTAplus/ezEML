@@ -596,10 +596,11 @@ def get_helps(ids):
 @home.route('/')
 def index():
     if current_user.is_authenticated:
-        current_document = user_data.get_active_document()
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS if Config.LOG_FILE_HANDLING_DETAILS else False
+        current_document = user_data.get_active_document(log_the_details=log_the_details)
         new_page = PAGE_INDEX
         if current_document:
-            eml_node = load_eml(filename=current_document)
+            eml_node = load_eml(filename=current_document, log_the_details=log_the_details)
             if eml_node:
                 new_page = PAGE_TITLE
             else:
@@ -3388,7 +3389,7 @@ def load_data(filename=None):
 
         file = request.files['file']
         if file:
-            filename = file.filename
+            filename = unquote(file.filename)
 
         if filename:
             if filename is None or filename == '':

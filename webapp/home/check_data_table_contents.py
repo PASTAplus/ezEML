@@ -96,7 +96,7 @@ def load_df(eml_node, csv_url, data_table_name):
 
     return pd.read_csv(csv_url, encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
                        keep_default_na=False, skiprows=range(1, num_header_lines),
-                       skipfooter=num_footer_lines, low_memory=False)
+                       skipfooter=num_footer_lines, low_memory=False, infer_datetime_format=True)
 
 
 def find_data_table_node(eml_node, data_table_name):

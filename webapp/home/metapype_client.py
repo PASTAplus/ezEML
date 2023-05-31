@@ -2049,10 +2049,12 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
     eml_node.find_all_descendants(names.ADDITIONALMETADATA, additional_metadata_nodes)
     metadata_node = None
     unitlist_node = None
+    prefix = None
     for additional_metadata_node in additional_metadata_nodes:
         metadata_node = additional_metadata_node.find_child(names.METADATA)
         unitlist_node = metadata_node.find_child(names.UNITLIST)
         if unitlist_node:
+            prefix = unitlist_node.prefix
             break
     if not unitlist_node:
         unitlist_node = add_node(metadata_node, names.UNITLIST, None, Optionality.FORCE)
@@ -2066,7 +2068,7 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
             description_node = unit_node.find_child(names.DESCRIPTION)
             if description_node:
                 unit_node.remove_child(description_node)
-            add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
+            description_node = add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
             found = True
             break
     if not found:
@@ -2074,7 +2076,12 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:
         unitlist_node.add_child(unit_node)
         unit_node.add_attribute('id', custom_unit_name)
         unit_node.add_attribute('name', custom_unit_name)
-        add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
+        description_node = add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
+
+    if description_node:
+        # e.g., unit element may be "stmml:unit", in which case we want
+        # the description to be "stmml:description"
+        description_node.prefix = prefix
 
     # save custom unit names and descriptions in session so we can do some javascript magic
     custom_units = session.get("custom_units", {})

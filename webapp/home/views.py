@@ -342,7 +342,7 @@ def data_table_errors(data_table_name:str=None):
             # start = datetime.now()
             errors = check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name,
                                                                 max_errs_per_column=None)
-            log_info(f'check_data_table() returned {errors[:1000]}')
+            # log_info(f'check_data_table() returned {errors[:1000]}')
             # end = datetime.now()
             # elapsed = (end - start).total_seconds()
             # print(elapsed)
@@ -355,7 +355,7 @@ def data_table_errors(data_table_name:str=None):
             return render_template('data_table_errors.html', data_table_name=data_table_name, column_errs='', help=help, back_url=get_back_url())
 
     column_errs, has_blanks = check_data_table_contents.generate_error_info_for_webpage(data_table_node, errors)
-    log_info(f'column_errs: {column_errs[:1000]}')
+    # log_info(f'column_errs: {column_errs[:1000]}')
     column_errs = check_data_table_contents.collapse_error_info_for_webpage(column_errs)
 
     check_data_table_contents.save_data_file_eval(current_document, csv_filename, metadata_hash, errors)

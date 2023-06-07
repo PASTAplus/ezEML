@@ -1073,10 +1073,10 @@ When you've entered all required metadata and uploaded all associated data files
 Click <b>Submit Package to EDI</b> to start the submission process. You'll be taken to a page where you'll be asked to provide a few details.
 --------------------
 share_submit_package_colleague
-Collaborate With a Colleague
-Click <b>Collaborate With a Colleague</b> to be taken to the <b>Collaborate</b> page.
+Collaborate with Colleagues
+Click <b>Collaborate with Colleagues</b> to be taken to the <b>Collaborate</b> page.
 
-There, you can invite someone to collaborate with you in editing this data package, and you can access collaborations that you have already established.
+There, you can invite others to collaborate with you in editing this data package, and you can access collaborations that you have already established.
 --------------------
 submit_package
 Send to EDI

@@ -252,19 +252,19 @@ Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch
 --------------------
 collaborate_general
 Collaborate
-The <b>Collaborate</b> feature lets you invite one or more other ezEML users to collaborate with you in editing one of your data packages. The package will continue to reside in your own ezEML account, but your collaborators will be able to access and modify it via their ezEML accounts.
 
-The <b>Collaborate</b> page displays all of the collaborations to which you are a party. These include collaborations involving packages for which you are the <b>owner</b> – i.e., packages that reside in your ezEML account – and packages for which you are a <b>collaborator</b> – i.e., packages owned by someone else who has invited you to collaborate with them.
+The <b>Collaborate</b> feature lets multiple users access and edit the same data package. This has two kinds of uses:
+ <ul><li>an ezEML user shares their package with one or more colleagues, who can then review and edit the package as if it were one of their own, and</li><li>an ezEML user shares their package with the EDI data curation team when submitting a package to the EDI data repository.</ul> The latter use is described further on the <b>Submit Package to EDI</b> page.
 
-Whoever is currently accessing an ezEML document acquires a <b>lock</b> that prevents others from accessing it simultaneously. The lock is held until that user either releases the lock (by clicking <b>Make available</b> on the Collaborate page), closes the document, opens a different document, logs off, or remains inactive for a period of time. If you try to access a document that is currently locked by someone else, you will be prevented from doing so and told why. A locked package is shown as <b>in use</b> on the Collaborate page.
+To share your package with a colleague, you must first <b>invite</b> them to collaborate with you: click <b>Invite a Collaborator</b>.
 
-If you are a collaborator on a document owned by someone else, the way to open that document for editing is to go the Collaborate page, find the document in your list of collaborations, and click the <b>Open</b> link. If the document is currently locked by someone else, an Open link will not be displayed.
+The <b>Collaborate</b> page displays all of the collaborations to which you are a party. These include collaborations involving packages for which you are the <b>owner</b> – i.e., packages that reside in your ezEML account – and packages for which you are a <b>collaborator</b> – i.e., packages owned by someone else.
+
+Whoever is currently accessing an ezEML document is granted exclusive use that prevents others from accessing it simultaneously. The exclusivity continues until that user either releases it (by clicking <b>Make available</b> on the Collaborate page), closes the document, opens a different document, logs off, or remains inactive for a period of time. If you try to access a document that is currently in use by someone else, you will be prevented from doing so and told why. Such packages are shown as <b>in use</b> on the Collaborate page.
+
+If you are a collaborator on a document owned by someone else, the way to open that document for editing is to go the Collaborate page, find the document in your list of collaborations, and click the <b>Open</b> link. If the document is currently in use by someone else, the Open link will not be displayed.
 
 If you are the document's owner, you open it by the usual method, i.e., via the <b>Open...</b> option in the <b>EML Documents</b> menu.
-
-In addition to the invited collaborations you're part of, the <b>Collaborate</b> page displays packages that are currently under review by the EDI data curation team via the <b>Enable EDI Curation</b> feature. This feature is based on the invited collaborations feature. Think of it as a special kind of collaboration where you are collaborating with the EDI data curation team as a whole.
-
-The Collaborate page also displays all of the invitations that you have made that have not yet been accepted.
 
 For more information on collaboration, see <a style="color: steelblue;" href="/static/user_guide/collaborate.pdf" target="_user_guide_ezeml">Collaborating with Others in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
@@ -272,17 +272,15 @@ Watch a demo video here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" targe
 --------------------
 collaborate_invite_accept
 Invitations
-<b>Invite a Collaborator</b> lets you invite someone else to collaborate with you in editing the ezEML document that is currently open. You will be asked to provide your name and email address and the name and email address of your invitee. The invitee will receive an emailed invitation that contains a unique code identifying the particular invitation. As the invitation will explain, they will need to log into ezEML, go to the <b>Collaborate page</b>, click <b>Accept an Invitation</b>, and enter the invitation code.
+<b>Invite a Collaborator</b> lets you invite someone else to collaborate with you in editing the ezEML document that is currently open. You will be asked to provide your name and email address and the name and email address of your invitee. The invitee will receive an emailed invitation containing a unique code that identifies the particular invitation. As the invitation explains, they will need to log into ezEML, go to the <b>Collaborate page</b>, click <b>Accept an Invitation</b>, and enter the invitation code.
 
-To invite a collaborator, you must have a document open, and it must be a document you "own" – i.e., a document in your ezEML account. The invitation to collaborate will pertain to that particular document. For that reason, if you are not currently viewing a document or you are viewing a document owned by someone else, the <b>Invite a Collaborator</b> button is disabled.
+To invite a collaborator, you must have a document open, and it must be a document you "own" – i.e., a document in your ezEML account. The invitation to collaborate will pertain to that particular document. If you are not currently viewing a document or you are viewing a document owned by someone else, the <b>Invite a Collaborator</b> button is disabled.
 
 If you have received an invitation to collaborate on a document, you accept it by clicking <b>Accept an Invitation</b> and entering the code contained in the invitation. You will then be able to access and edit the document, opening it via the <b>Open</b> link for that document on the <b>Collaborate</b> page.
 
-To establish a collaboration with the EDI data curation team as a group, use the <b>Enable EDI Curation</b> feature found in the main <b>Contents</b> menu. It is based on the invited collaborations feature, but bypasses the need to issue individual invitations to each member of the EDI data curation team.
+For more information on collaboration, see <a style="color: steelblue;" href="/static/user_guide/collaborate.pdf" target="_user_guide_ezeml">Collaborating with Others in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>. For more information on Collaborate's role in submitting a package to the EDI data repository, see <a style="color: steelblue;" href="/static/user_guide/submitting_to_EDI.pdf" target="_user_guide_ezeml">Submitting a Package to EDI</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
-For more information on collaboration, see <a style="color: steelblue;" href="/static/user_guide/collaborate.pdf" target="_user_guide_ezeml">Collaborating with Others in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>. For more information on Enable EDI Curation, see <a style="color: steelblue;" href="/static/user_guide/enabling_edi_curation.pdf" target="_user_guide_ezeml">Enabling EDI Curation</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
-
-Watch a video demo of collaboration here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of enabling EDI curation here::&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
+Watch a video demo of collaboration here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of submitting a package to EDI here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
 contact
 Contact
@@ -503,22 +501,16 @@ Please remove this string and any text that follows it, up to and including the 
 Use <b>Add Data Source</b> and/or <b>Fetch Data Source Info from EDI</b> to add new data sources. We apologize for the inconvenience.
 --------------------
 enable_edi_curation
-Enable EDI Curation
-When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://edirepository.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
+Submit Package to EDI
+<b>Submit Package to EDI</b> authorizes the EDI data curation team to access your package and review it. If any changes or corrections are needed, they will contact you. When all necessary changes have been made, the curators will publish the package to the EDI data repository.
 
-The files comprising the data package reside in your ezEML account on the ezEML server. Ordinarily, other users cannot access those files. <b>Enable EDI Curation</b> authorizes the EDI data curation team to access your package directly, without your having to send files back and forth, so the curators can review your package and make any needed changes before submitting it to the data repository.
+While the data curation team is working on your package, you will not be able to make changes to it. If you go to the <b>Collaborate</b> page, you will see a table listing the data packages for which you have enabled EDI curation. While the data curation team is working on a package, its status is shown as <b>In use by EDI Curators</b>. If the curation team needs you to make changes to the package, they will make it available to you again.
 
-While the data curation team is working on your package, you will not be able to make changes to it. If you go to the <b>Collaborate</b> page, you will see a table listing the data packages for which you have enabled EDI curation. While the data curation team is working on a package, its status will be shown as <b>In use by EDI Curators</b>.
+<b>Submit Package to EDI</b> is based on the <b>Collaborate</b> feature, so you may want to review that page as well for additional information.
 
-In the event that the curation team needs you to make changes to the package, they will make it available to you and the package's status will change to <b>Available</b>. As you work on the package, its status will change to <b>In use by <i>&lt;your username&gt;</i></b>. When you are finished, you can click <b>Make available</b> to make it available to EDI's curators once more.
+For more details, see <a style="color: steelblue;" href="/static/user_guide/enabling_edi_curation.pdf" target="_user_guide_ezeml">Submitting Your Package to EDI</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
-When you click Enable EDI Curation, a backup of your metadata is automatically created and saved on the ezEML server, so it is always possible for the EDI curators to restore it to its original state if necessary.
-
-<b>Enable EDI Curation</b> is based on the <b>Collaborate</b> feature, so you may want to review that page as well, for additional information.
-
-For more information, see <a style="color: steelblue;" href="/static/user_guide/enabling_edi_curation.pdf" target="_user_guide_ezeml">Enabling EDI Curation</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
-
-Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Enable EDI Curation</b> here::&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
+Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Submit Package to EDI</b> here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
 export_package
 Export ezEML Data Package
@@ -1073,6 +1065,18 @@ Examples:
   java
   C
   Oracle 8i
+--------------------
+share_submit_package_to_edi
+Submit Package to EDI
+When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://edirepository.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
+
+Click <b>Submit Package to EDI</b> to start the submission process. You'll be taken to a page where you'll be asked to provide a few details.
+--------------------
+share_submit_package_colleague
+Share With a Colleague
+Click <b>Share With a Colleague</b> to be taken to the <b>Collaborate</b> page.
+
+There, you can invite someone to collaborate with you in editing this data package, and you can access collaborations that you have already established.
 --------------------
 submit_package
 Send to EDI

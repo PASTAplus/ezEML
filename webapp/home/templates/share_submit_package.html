@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_share_submit_package_to_edi_id, help_share_submit_package_to_edi_title, help_share_submit_package_to_edi_content = help[0] %}
+    {% set help_share_submit_package_to_edi_btn = help_share_submit_package_to_edi_id ~ '_btn' %}
+    {% set help_share_submit_package_to_edi_dialog = help_share_submit_package_to_edi_id ~ '_dialog' %}
+    {% set help_share_submit_package_colleague_id, help_share_submit_package_colleague_title, help_share_submit_package_colleague_content = help[1] %}
+    {% set help_share_submit_package_colleague_btn = help_share_submit_package_colleague_id ~ '_btn' %}
+    {% set help_share_submit_package_colleague_dialog = help_share_submit_package_colleague_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Submit/Share Your Data Package</h2></td>
+{#        <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_share_submit_package_btn) }}</td>#}
+    </table>
+
+    <form method="POST" action="" class="form" role="form" novalidate>
+        {{ form.csrf_token }}
+        <p>&nbsp;</p>
+
+                <table>
+                    <td><input class="btn btn-primary" style="width: 200px;" name="Submit" type="submit" value="Submit Package to EDI"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_share_submit_package_to_edi_btn) }}
+                    </td>
+                </table>
+        <p>&nbsp;</p>
+                <table>
+                    <td><input class="btn btn-primary" style="width: 200px;" name="Submit" type="submit" value="Share with a Colleague"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_share_submit_package_colleague_btn) }}
+                    </td>
+                </table>
+
+
+
+                <p></p>
+                <p></p>
+        <p>&nbsp;</p>
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
+                {{ macros.hidden_buttons() }}
+
+    </form>
+        </div>
+    {{ macros.help_dialog(help_share_submit_package_to_edi_dialog, help_share_submit_package_to_edi_title, help_share_submit_package_to_edi_content) }}
+    {{ macros.help_dialog(help_share_submit_package_colleague_dialog, help_share_submit_package_colleague_title, help_share_submit_package_colleague_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_share_submit_package_to_edi_id, help_share_submit_package_to_edi_title, help_share_submit_package_to_edi_content = help[0] %}
+    {% set help_share_submit_package_to_edi_btn = help_share_submit_package_to_edi_id ~ '_btn' %}
+    {% set help_share_submit_package_to_edi_dialog = help_share_submit_package_to_edi_id ~ '_dialog' %}
+    {% set help_share_submit_package_colleague_id, help_share_submit_package_colleague_title, help_share_submit_package_colleague_content = help[1] %}
+    {% set help_share_submit_package_colleague_btn = help_share_submit_package_colleague_id ~ '_btn' %}
+    {% set help_share_submit_package_colleague_dialog = help_share_submit_package_colleague_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_share_submit_package_to_edi_dialog, help_share_submit_package_to_edi_btn) }}
+        {{ macros.help_script(help_share_submit_package_colleague_dialog, help_share_submit_package_colleague_btn) }}
+    });
+    </script>
+{% endblock %}

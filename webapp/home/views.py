@@ -14,6 +14,11 @@
     7/23/18
 """
 import ast
+
+import contextlib
+from urllib.parse import urlencode
+from urllib.request import urlopen
+
 import urllib.parse
 
 import daiquiri
@@ -2050,6 +2055,36 @@ def insert_upload_urls(current_document, eml_node):
         insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.OTHERENTITY)
 
 
+@home.route('/share_submit_package', methods=['GET', 'POST'])
+@home.route('/share_submit_package/<filename>', methods=['GET', 'POST'])
+@home.route('/share_submit_package/<filename>/<success>', methods=['GET', 'POST'])
+@login_required
+def share_submit_package(filename=None, success=None):
+    form = SubmitToEDIForm()
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if request.method == 'POST':
+        # If the user has clicked Save in the EML Documents menu, for example, we need to ignore the
+        #  programmatically generated Submit
+
+        if request.form.get(BTN_SUBMIT) == BTN_SUBMIT_PACKAGE_TO_EDI:
+            return redirect(url_for(PAGE_ENABLE_EDI_CURATION, filename=filename))
+
+        if request.form.get(BTN_SUBMIT) == BTN_COLLABORATE_WITH_COLLEAGUE:
+            return redirect(url_for(PAGE_COLLABORATE, filename=filename))
+
+    set_current_page('share_submit_package')
+    help = get_helps(['share_submit_package_to_edi', 'share_submit_package_colleague'])
+    return render_template('share_submit_package.html',
+                           title='Share/Submit Your Data Package',
+                           check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                           form=form, help=help, success=success)
+
+
 @home.route('/submit_package', methods=['GET', 'POST'])
 @home.route('/submit_package/<filename>', methods=['GET', 'POST'])
 @home.route('/submit_package/<filename>/<success>', methods=['GET', 'POST'])
@@ -2109,11 +2144,6 @@ def submit_package(filename=None, success=None):
                            title='Send to EDI',
                            check_metadata_status=get_check_metadata_status(eml_node, current_document),
                            form=form, help=help, success=success)
-
-
-import contextlib
-from urllib.parse import urlencode
-from urllib.request import urlopen
 
 
 def make_tiny(url):

@@ -130,7 +130,7 @@ def collaborate(filename=None, dev=None):
 @login_required
 def enable_edi_curation(filename=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE, PAGE_SHARE_SUBMIT_PACKAGE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -143,6 +143,9 @@ def enable_edi_curation(filename=None):
 
     # Process POST
     if request.method == 'POST':
+
+        if request.form.get(BTN_CANCEL):
+            return redirect(url_for(PAGE_SHARE_SUBMIT_PACKAGE))
 
         if request.form.get(BTN_SUBMIT):
             name = form.data['name']
@@ -211,13 +214,13 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
             sent = True
         if sent is True:
             log_usage(actions['ENABLE_EDI_CURATION'], name, email_address)
-        flash('EDI curation has been enabled for this package.', 'success')
+        flash('The package has been submitted to the EDI data curation team for review.', 'success')
 
     except UserIsNotTheOwner:
-        flash('Only the owner of the package can enable EDI curation for it.', 'error')
+        flash('Only the owner of the package can submit it to EDI.', 'error')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except CollaboratingWithGroupAlready:
-        flash('EDI curation is already enabled for this package.', 'error')
+        flash('This package has already been submitted to EDI. Review is underway.', 'error')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except Exception as e:
         flash('An error occurred while enabling EDI curation for this package.', 'error')

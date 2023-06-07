@@ -327,6 +327,7 @@
             {% set data_package_id_style = '""'|safe %}
             {% set check_metadata_style = '""'|safe %}
             {% set check_data_tables_style = '""'|safe %}
+            {% set share_submit_package_style = '""'|safe %}
             {% set submit_package_style = '""'|safe %}
             {% set send_to_other_style = '""'|safe %}
             {% set collaborate_style = '""'|safe %}
@@ -334,7 +335,6 @@
 
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
-
             {% if page == 'title' %}{% set title_style = current %}{% endif %}
             {% if page == 'creator' %}{% set creator_style = current %}{% endif %}
             {% if page == 'metadata_provider' %}{% set metadata_provider_style = current %}{% endif %}
@@ -356,6 +356,7 @@
             {% if page == 'data_package_id' %}{% set data_package_id_style = current %}{% endif %}
             {% if page == 'check_metadata' %}{% set check_metadata_style = current %}{% endif %}
             {% if page == 'check_data_tables' %}{% set check_data_tables_style = current %}{% endif %}
+            {% if page == 'share_submit_package' %}{% set share_submit_package_style = current %}{% endif %}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
             {% if page == 'collaborate' %}{% set collaborate_style = current %}{% endif %}
@@ -391,12 +392,14 @@
             <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
             <br>
         {% endif %}
-            <br>
-        {% if session['collaboration_enabled_for_user'] %}
-        <a class="nav_link" style={{ grant_access_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='collab.enable_edi_curation') }}" title="Edit">Enable EDI Curation</a><br>
-        {% endif %}
-        <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI</a><br>
-        <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>
+{#            <br>#}
+{#        {% if session['collaboration_enabled_for_user'] %}#}
+{#        <a class="nav_link" style={{ grant_access_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='collab.enable_edi_curation') }}" title="Edit">Enable EDI Curation</a><br>#}
+{#        {% endif %}#}
+        <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
+        <a class="nav_link" style={{ share_submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.share_submit_package') }}" title="Edit">Submit/Share Package</a><br>
+{#        <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI<Your/a><br>#}
+{#        <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>#}
 
         {% if current_user and current_user.is_authenticated and (current_user.is_admin() or current_user.is_data_curator()) %}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">

@@ -145,7 +145,7 @@ def enable_edi_curation(filename=None):
     if request.method == 'POST':
 
         if request.form.get(BTN_CANCEL):
-            return redirect(url_for(PAGE_SHARE_SUBMIT_PACKAGE))
+            return redirect(url_for(PAGE_SHARE_SUBMIT_PACKAGE, filename=filename))
 
         if request.form.get(BTN_SUBMIT):
             name = form.data['name']

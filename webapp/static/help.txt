@@ -1,15 +1,11 @@
 abstract
 Abstract
-The <b>Abstract</b> will be used for full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
+The <b>Abstract</b> should be rich with descriptive text. Multiple paragraphs may be included.
+In particular, descriptions should include information that does not fit into structured metadata.
+The abstract will not be stored within the MOTHER database. However, MOTHER will share the XML metadata along with the image.
 
 
-In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the data package is ongoing or completed.
-
-
-Some general methods description is appropriate, and broad classes of measured parameters should also be included.  For a large number of parameters, use categories instead of listing all parameters (e.g. use the term “nutrients” instead of nitrate, phosphate, calcium, etc.), in combination with the parameters that seem most relevant for search.
-
-
-An abstract is not required, but it is highly recommended.
+An abstract is not required, but it is recommended if you have descriptive text to share about your image.
 --------------------
 add_load_data_tables
 Add/Load Data Tables
@@ -30,14 +26,14 @@ In the latter case, a number of the other entity's characteristics will be autom
 --------------------
 associatedParty
 Associated Party
-Associated parties are other people who were involved with the data in some way (field technicians, students, assistants, etc.).
+An associated party is someone who was involved with the image or data collection in some way (field technicians, students, assistants, etc.).
 
 
-Associated parties are not required.
+The EML specification requires that at least one of the following fields is required: Last Name, Organization, or Position Name. Note that including additional fields is useful. Note that the field <b>Role</b> is required to document the person’s role, e.g. <i>Scanned slide</i>.
 --------------------
 associated_parties
 Associated Parties
-Associated parties are other people who were involved with the data in some way (field technicians, students, assistants, etc.).
+Associated parties are other people who were involved with the image or data collection in some way (field technicians, students, assistants, etc.).
 
 
 Associated parties are not required.
@@ -134,7 +130,7 @@ Funding Award
 Information on a funding award associated with the project.
 
 
-Required fields are provided for the name of the funding agency and the title of the award.
+Required fields are provided for the name of the funding agency, the title of the award and award number.
 
 
 Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
@@ -155,10 +151,10 @@ Example:  Scientia Arctica: A Knowledge Archive for Discovery and Reproducible S
 --------------------
 award_url
 Award URL
-The URL associated with award.
+The URL associated with the award.
 
 
-Typically, the Award URL is use to find and locate the award, and it generally addresses the internet location to find out more information about the award.
+Typically, the Award URL is used to find and locate the award on the funding agency’s site, and it generally addresses the internet location to find out more information about the award.
 
 
 It should point to a funder site for the award, rather than a project site.
@@ -168,10 +164,10 @@ Funding Awards
 The funding awards for the project.
 
 
-Each funding award is described by the name of the funding agency and the title of the award.
+Each funding award is described by the name of the funding agency, the title of the award, and award number.
 
 
-Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award, the award number assigned, and the URL to the award page describing the award.
+Optional fields are provided as well for the Open Funder Registry identifiers for the agency and program that made the award and the funding agency’s URL to the award page describing the award.
 --------------------
 bounding_altitudes
 Bounding Altitudes
@@ -249,28 +245,21 @@ Contacts
 At least one <b>Contact</b> is required.
 
 
-Full contact information should be included for the position of data manager or other designated contact and should be kept current and independent of personnel changes. If multiple contacts are listed (e.g. both a data and site manager) all should be kept current. Technicians who performed the work belong under <b>Associated Party</b> rather than <b>Contact</b>.
+Full contact information should be included for the designated contact for the image. The information should be kept current and independent of personnel changes. Note that there are other types of people that can be added as you progress through the People content, e.g. Metadata Provider or Associated Party.
 --------------------
 contents
 Contents
-You can use ezEML as a "wizard" (i.e., by proceeding through the sections in sequence, filling out the metadata as you go), or you can click on any of the links under <b>Contents</b> to jump directly to that section of the metadata.
+You can use ezEML+MOTHER as a "wizard" (i.e., by proceeding through the sections in sequence, filling out the metadata as you go), or you can click on any of the links under <b>Contents</b> to jump directly to that section of the metadata.
 --------------------
 creator
 Creator
-A creator is considered to be an author of the data package, i.e. a person responsible for intellectual input into its creation. At least one creator is required.
+The creator is considered to be the owner of the image, i.e. the person(s) responsible for  its creation. At least one creator is required.
 
-
-For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
+The EML specification requires that at least one of the following fields is required: Last Name, Organization, or Position Name. Note that including additional fields to identify the creator is useful, e.g. ORCID.
 --------------------
 creators
 Creators
-The creator is considered to be the author of the data package, i.e. the person(s) responsible for intellectual input into its creation. At least one creator is required.
-
-
-For long-term data, e.g., from an LTER Site, we recommend that you include the organization or current principal investigator. It should be kept in mind that searchers frequently default to searches using the PI’s last name. Therefore it is a reasonable practice to include more creators rather than fewer, even if it blurs the credit for long-term data.
-
-
-Citations generally list creator names in the order given in the EML metadata.
+The creator is considered to be the owner of the image, i.e. the person(s) responsible for  its creation. At least one creator is required.
 --------------------
 data_package_id
 Data Package ID
@@ -388,10 +377,15 @@ If the data table is available online, its URL address.
 --------------------
 donor
 Donor
-Fill in the Donor information below. Fields with an  " <b>*</b> " next to the field name are a required field.
+Fill in the Donor information below. Fields with an  " <b>*</b> " next to the field name are required. Some fields are enabled/disabled based on certain selections, e.g. <b>Corpus Luteum Type</b> is only enabled if the <b>Specimen Location</b> is <i>corpus luteum</i>.
 
 
-Some fields will be automatically disabled based upon certain selections, e.g., If you select "Bouins" under the "Fixation" field, the "Other Fixation" field will be disabled.
+NOTE: <br/>
+<b>Donor ID</b>: This must be a unique designation of the donor animal for the ovary image across ALL donors in the MOTHER database. Thus, this is not a simple number but should be an encoding of a combination of information, such as lab-date-sequence or genus-species-animalID. For example, <i>BC_2020-09-14_106_F</i>.<br/>
+<b>Specimen Sequence Number</b>: This is typically 1, unless there are multiple ovaries collected for the same donor. <br/>
+<b>Cycle Type</b> and its corresponding <b>Stage of Cycle</b>: menstrual and estrous cycles are currently supported. If you have a donor animal with a different cycle type, please contact the MOTHER team.
+<b>Slide ID</b>: The slide ID must be unique for the donor and specimen sequence number. If you are sharing multiple sections of the same slide, then the ID must be a combination of the slide number and section number. <br/>
+<b>Section Sequence Number</b>: This field is optionally and should only be used if you are submitting a collection of images allowing for a 3D reconstruction.<br/>
 --------------------
 export_package
 Export ezEML Data Package
@@ -419,17 +413,13 @@ In general, this should match the official name of the funder as listed in an Au
 --------------------
 geographic_coverages
 Geographic Coverage
-<b>Geographic Coverage</b> describes locations of research sites and areas related to the data, and is intended for general placement of points on a map.
+<b>Geographic Coverage</b> describes locations of sites or areas related to the data, and is intended for general placement of points on a map. A <b>Geographic Coverage</b> element need not be included but should be if the donor was collected at a known geographic location.
 
-
-At least one <b>Geographic Coverage</b> element should be included, whose bounding coordinates describe the extent of the data. As a default, this could be the nominal boundaries of a sampling area. A more accurate extent (recommended) would be the maximum extent of the data, for each of north, south, east, and west.
-
-
-Additional <b>Geographic Coverage</b> elements should be included if there are significant distances between study sites and grouping them in one bounding box would be misleading or confusing. For example, a cross-site study should have bounding boxes for each site.
+The <b>Add Geographic Coverage</b> button provides a form to enter the specification of a geographic description and bounding coordinates, which are required, along with optional altitude information.
 --------------------
 geographic_coverages_csv_file
 Add / Load Geographic Coverage
-You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML by clicking <b>Add Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
+You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML+MOTHER by clicking <b>Add Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
 
 
 In the latter case, the CSV file is required to have the following format:
@@ -453,23 +443,11 @@ Lake Kegonsa,42.987536,42.958923,-89.223452,-89.283877<br>
 --------------------
 geographic_description
 Geographic Description
-<b>Geographic Description</b> is a short text description of a data package's geographic areal domain. A text description is especially important to provide a geographic setting when the extent of the data set cannot be well described by the "bounding coordinates", or in the case of data which are not specifically geospatial.
-
-
-In cases where the "bounding coordinates" do not adequately describe the extent of the data set, the discrepancy can be identified and described here.
-
-
-The coordinates may define a rectangle around a country, with this Geographic Description containing a disclaimer and/or further details concerning the border. E.g., a study of the diseases of salmon may not have a specific geographic extent associated with it, but the salmon were collected in the states of Washington and Oregon. The "bounding coordinates" might form a general rectangle around the states of Washington and Oregon, but the Geographic Description" might describe the fact that the study actually took place only along certain rivers within those states.
-
-
-Geographic Description can also contain information about the collection of bounding coordinates, e.g., an altitude value that is referenced to Mean Lower Low Water, or the projection system that the latitude and longitude coordinates were taken from.</para>
+<b>Geographic Description</b> is a short textual description related to the geographic coverage. For example, the sample was obtained from a field collection in a particular location describing the specified bounding coordinates.
 --------------------
 immunohistochemistry
 Immunohistochemistry
-The Immunohistochemistry form is not required.
-
-
-However, in the event that this form is used, all fields containing an " <b>*</b> " will be required in order to save data from this form.
+If the image has immunohistochemistry, choose <i>Yes</i> on the dropdown and fill out all required fields marked with an asterisk <b>*</b>. Otherwise, choose <i>No</i>.
 --------------------
 import_funding_awards
 Import Funding Awards
@@ -569,15 +547,14 @@ Intellectual Rights
 Intellectual rights are controlled at the source, however it is recommended that data be released with as few restrictions as possible.
 
 
-EDI's default policy is <b>CC0</b>. The LTER Network-wide default policy is <b>CC BY</b>. Please consult those organizations for more information and more details.
-This includes information about the frequency of update and whether there is ongoing data collection.
+The specification of intellectual rights is required.
 --------------------
 keywords
 Keywords
-It is recommended that meaningful sets of keywords be provided.
+It is recommended that meaningful sets of keywords be provided. MOTHER will provide a keyword search capability. In particular, each keyword added should provide information beyond the structured metadata. Is the histology image of an endangered species? Is this image part of a toxicology experiment?
 
 
-One set of keywords may identify the contributing organization(s), especially if data are co-funded or funding is leveraged.
+Keywords are optional but recommended to provide information that extends beyond the structured metadata.
 
 
 --------------------
@@ -601,17 +578,17 @@ Frequency with which changes and additions are made to the dataset after the ini
 --------------------
 metadataProvider
 Metadata Provider
-A metadata provider is a person(s) or organization(s) responsible for producing or providing the metadata content.
+A metadata provider is a person(s) or organization(s) responsible for providing or producing the metadata content. For example, a person who is designated to use the ezEML+MOTHER tool to generate the valid metadata for the image should be listed as a metadata provider.
 
 
-For primary data sets generated by LTER sites, the LTER site should typically be listed under Metadata Provider using the Organization Name field. For acquired data sets, where the Creator and Associated Party are not the same people who produced the metadata content, the actual metadata content provider should be listed instead.
+A metadata provider is not required but if given, the EML specification requires that at least one of the following fields is required: Last Name, Organization, or Position Name. Note that including additional fields is useful in identifying the person.
 --------------------
-metadata_providers
-Metadata Providers
-The metadata provider is the person(s) or organization(s) responsible for producing or providing the metadata content.
+metadata_provider
+Metadata Provider
+A metadata provider is a person(s) or organization(s) responsible for providing or producing the metadata content. For example, a person who is designated to use the ezEML+MOTHER tool to generate the valid metadata for the image should be listed as a metadata provider.
 
 
-For primary data sets generated by LTER sites, the LTER site should typically be listed under Metadata Provider using the Organization Name field. For acquired data sets, where the Creator and Associated Party are not the same people who produced the metadata content, the actual metadata content provider should be listed instead.
+A metadata provider is not required but if given, the EML specification requires that at least one of the following fields is required: Last Name, Organization, or Position Name. Note that including additional fields is useful in identifying the person.
 --------------------
 measurement_scale
 Variable Type
@@ -634,7 +611,7 @@ To change the type of a variable (e.g., from Categorical to Text) click <b>Chang
 --------------------
 metadata_providers
 Metadata Providers
-The metadata provider is the person(s) or organization(s) responsible for producing or providing the metadata content.
+The metadata provider is the person(s) or organization(s) responsible for providing or producing the metadata content.
 
 
 Metadata providers are not required.
@@ -644,14 +621,14 @@ Method Steps
 Method steps are descriptions of specific steps of the method employed when collecting data. They are intended to be descriptive, i.e., human-readable rather than machine-readable.
 
 
-The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, relevant literature, software, instrumentation, source data and any quality control measures taken.
+The method steps document a series of procedures followed. These may include text descriptions of the procedures for an experiment, relevant literature, software, instrumentation, source data and any quality control measures taken.
 --------------------
 method_step_description
 Method Step Description
-Description of the methods employed in collecting or generating a data set or other resource or in quality control and assurance.
+Description of the methods employed in collecting or generating the  resource or in quality control and assurance.
 
 
-Describe the methodology for a project, experiment, or particular data table or the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information my be provided by either referencing a protocol resource or entering the structured protocol information.
+Describe the methodology for a project, experiment, or particular data table or the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information may be provided by either referencing a protocol resource or entering the structured protocol information.
 --------------------
 method_step_instrumentation
 Method Step Instrumentation
@@ -659,53 +636,40 @@ Description of instruments used for measurement and recording data.
 
 
 This may include any instruments used in the data collection or quality control and quality assurance. The description should provide vendor, model number, optional equipment, etc.
-
-
-Example: LACHAT analyzer, model XYX.
 --------------------
 method_step_data_sources
 Method Step Data Sources
-If you used other datasets in this method step, please document them here.
+If you used other data sources in this method step, please document them here.
 
 
-For each dataset used, include, if possible:<br>
-&nbsp;&nbsp;- the datasets's title<br>
+For each data source used, include, if possible:<br>
+&nbsp;&nbsp;- the data source title<br>
 &nbsp;&nbsp;- a URL, DOI, or other globally unique identifier<br>
 &nbsp;&nbsp;- a creator's name and email<br>
 &nbsp;&nbsp;- a contact's name and email.
 
-
-If you will be submitting your data package to the EDI data repository, our data curators will use this information to fill out data provenance entries in the data package's metadata.
-
-
-Example:<br>
-Title: Data for Lake Mendota Phosphorus Cycling Model<br>
-DOI: doi:10.6073/pasta/36d0ee7bf67d9dabade404c92be73917<br>
-Creator: Paul C Hanson pchanson@wisc.edu<br>
-Contact: Paul C Hanson pchanson@wisc.edu
 --------------------
 name_org_position
 Last Name, Organization, Position Name
 place holder
 --------------------
 nav
-Navigating in ezEML
+Navigating in ezEML+MOTHER
 The <b>Save and Continue</b> button saves any changes you've made on the current page and moves you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
 
 
 The <b>Reset Changes</b> button clears the changes you've made on the current page and leaves you on that page.
 
 
-<i>You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a </i><b>Cancel</b><i> button, which lets you exit that page without saving.</i>
+<i>You can think of using ezEML+MOTHER as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a </i><b>Cancel</b><i> button, which lets you exit that page without saving.</i>
 
 
-The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
+The <b>ezEML+MOTHER</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
 
 
 It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
 
 
-See also <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_ezeml_user_guide">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 --------------------
 new_eml_document
 Document Name
@@ -723,11 +687,13 @@ Examples might include scripts in Python or R, zip files containing ancillary da
 --------------------
 other_entity
 Image
-An <b>Image</b> requires a name, its type and format. The digitized ovary slide image should be selected using the <b>Browse</b> button under the label <b>Upload Image</b>. Include any <b>Additional Information </b> about the image, if desired. The <b>Upload and Continue</b> will upload the image, associating the image with the document, and it automatically fills in the name and data format fields.
+An <b>Image</b> requires a name, its type and format. The current default image type is histology. The digitized ovary slide image should be selected using the <b>Choose File</b> button under the label <b>Upload Image</b>. Include any <b>Additional Information </b> about the image, if desired. See additional info ? for suggestions. The <b>Upload and Continue</b> button will upload the image, associating the image with the document, and automatically filling in the image name and data format fields.
 --------------------
 other_entity_info
 Additional Info
-Although not required, it is suggested to add key:value pairs for measurement data.
+Although additional info is not required, you may want to include any other metadata for the image that is not collected by MOTHER. For example, you can include the bibliographic information if the image is related to a publication. Do you have additional measurements that you collected for your donor? If so, using JSON-like key: value pairs separated by semi-colons is preferred over free text, allowing for parsing of the data from the XML metadata.
+
+Example: <i>Body Weight(g): 130.56; Gonad Weight(g): 3.45; Shell Length(cm): 14.7; Shell Width(cm): 9.8; Gonad Length(cm): 4.7</i>
 --------------------
 other_entity_reupload
 Re-upload Other Entity
@@ -740,15 +706,14 @@ personnel
 Project Personnel
 Contact and role information for a person/organization involved in the research project.
 
-
-Note that Role is a required field.
+The EML specification requires that at least one of the following fields is required: Last Name, Organization, or Position Name. Note that including additional fields is useful. Note that the field <b>Role</b> is required to document the person’s role, e.g. <i>Senior Personnel</i>.
 --------------------
 project
 Project
-This documents the research context of a data package or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
+This documents the research context of an image or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.
 
 
-To document <i>methods</i> specific to a data package, use <b>Methods</b>.
+To document <i>methods</i> specific to the histology image, use <b>Methods</b>.
 
 
 A project is required to have a Project Title.
@@ -758,7 +723,7 @@ Project Title
 A descriptive title for the research project.
 
 
-Example: Species diversity in Tennessee riparian habitats.
+Example: Multispecies Ovary Tissue Histology Electronic Repository (MOTHER)
 --------------------
 pubdate
 Publication Date
@@ -772,10 +737,7 @@ There is an argument for publication date referring to the original date of rele
 --------------------
 publisher
 Publisher
-The organization producing the EML metadata (e.g., an LTER site or field station).
-
-
-Publisher is not required by EML. If you submit your data to the EDI data repository, EDI will be entered automatically as the publisher in the published EML.
+The organization producing the EML metadata. Publisher is not required by EML.
 --------------------
 pubplace
 Publication Place
@@ -817,17 +779,10 @@ Provide a document name for the data package. This is the name by which the docu
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 --------------------
 send_to_colleague
-Send to Colleague
-When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you can send the entire package to a colleague (e.g., an LTER Information Manager) via <b>Send to Colleague</b>.
+Submit Metadata
+Before submission, please verify that there is no error in the XML by clicking on the <i>Check Metadata<\i> content. A red dot indicates that an error exists in the XML. An orange dot indicates warnings, and a green dot indicates that there are no errors or warnings.
 
-
-When you click <b>Prepare Package for Colleague</b>, an ezEML Data Package zip file is generated and staged on the ezEML server, ready to be downloaded by your colleague. The zip file contains the EML metadata and the data tables and other entities that make up the package.
-
-
-After the zip file has been created, a suggested email message is generated for you to send to your colleague. This email contains the link that your colleague will need to use to download the zip file. You will have the opportunity to edit the email message as you see fit before sending it.
-
-
-To send your package to the EDI Data Repository instead, use <b>Send to EDI</b>.
+After reviewing the metadata checking to verify that your metadata is complete for your uploaded image, you can submit the image and metadata to the MOTHER project. The <b>Submit Metadata<\b> uploads the image and xml file to the server. Once uploaded, ezEML+MOTHER will provide a <b>Download ZIP</b> button to download a zip file of the image and xml submitted. <i>Please download the zip file for your records.</i> Once you have submitted all of your histology images to share on MOTHER, please contact the MOTHER team for curation.
 --------------------
 send_to_colleague_2
 Send to Colleague
@@ -883,7 +838,7 @@ To send your package to someone other than EDI, use <b>Send to Colleague</b>.
 --------------------
 taxonomic_coverages
 Taxonomic Coverage
-<b>Taxonomic Coverage</b> should be used to document taxonomic information for all organisms relevant to the study.
+<b>Taxonomic Coverage</b> must be used to document taxonomic information for the donor of the histology slide.
 
 
 The lowest available level, preferably the species binomial and common name should always be included, but higher-level taxa should also be included to support broader taxonomic searches. ezEML can fill in the higher-level taxa for you by accessing a taxonomic authority online.
@@ -893,7 +848,7 @@ Fill Hierarchy
 <b>Fill Hierarchy</b> retrieves and lists the higher-level taxa associated with a given taxon.
 
 
-Enter the Taxon Scientific Name for the most specific relevant taxon (e.g., species or genus), select a taxonomic authority to access, and click <b>Fill Hierarchy</b>. ezEML will send requests to the selected taxonomic authority to retrieve the higher-level taxa, as well as any associated common names, and the taxon ID for each taxon. The taxon IDs let ezEML construct links to the corresponding pages on the taxonomic authority website. These data will be entered in the EML document as well.
+Enter the Taxon Scientific Name for the most specific relevant taxon (e.g., species or genus), select a taxonomic authority to access, and click <b>Fill Hierarchy</b>. ezEML+MOTHER will send requests to the selected taxonomic authority to retrieve the higher-level taxa, as well as any associated common names, and the taxon ID for each taxon. The taxon IDs let ezEML+MOTHER construct links to the corresponding pages on the taxonomic authority website. These data will be entered in the EML document as well.
 
 
 The Taxon Scientific Name you enter should be the scientific name for the taxon, not a common name. For a species, this is a binomial name.
@@ -910,22 +865,22 @@ Two formats are allowed, either a 4-digit year, or a date in ISO format: YYYY-MM
 --------------------
 title
 Title
-The <b>Title</b> field provides a description of the data package. It should be long enough to differentiate it from other similar resources.
+The <b>Title</b> field provides a description of the image. It should be long enough to differentiate it from other images. ezEML requires a unique title.
 
 
 It should be descriptive and should mention the data collected, geographic context, research site, and time frame (i.e., what, where, and when).
 
 
-Example: <i>Vernal pool amphibian density data, Isla Vista, 1990-1996.</i>
+Example: <i>Zelinski Lab: Rhesus macaque 19006 Unspecified Ovary 001a</i>
 --------------------
 welcome
-Welcome to ezEML
+Welcome to ezEML+MOTHER
 
 
-Welcome to ezEML! Here is some initial guidance on its use.
+Welcome to ezEML+MOTHER! Here is some initial guidance on its use.
 
 
-You can think of using ezEML as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a <b>Cancel</b> button, which lets you exit that page without saving.
+You can think of using ezEML+MOTHER as filling out one big form that's organized as a number of separate pages. As you move from page to page, your changes are automatically retained (as you'd expect when filling out a form), except in the cases where a page has a <b>Cancel</b> button, which lets you exit that page without saving.
 
 
 <b>Save and Continue</b> buttons save any changes you've made on the current page and move you ahead to the next section of the metadata. You can step through the sections sequentially using <b>Save and Continue</b>, or you can click any of the links under <b>Contents</b> in the left margin to save changes and jump directly to a particular section of the metadata.
@@ -934,7 +889,7 @@ You can think of using ezEML as filling out one big form that's organized as a n
 <b>Reset Changes</b> buttons clear the changes you've made on the current page and leave you on that page.
 
 
-The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
+The <b>ezEML+MOTHER</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
 
 
 It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
@@ -943,8 +898,8 @@ It's usually best to refrain from using your browser's forward and back buttons.
 Notice that there are lots of Help buttons in ezEML (see the circular question mark icons). You may find them helpful.
 
 
-We won't show you this welcome dialog again, but you can always review how to navigate in ezEML either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_ezeml_user_guide">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+We won't show you this welcome dialog again, but you can always review how to navigate in ezEML+MOTHER either by clicking the help button next to <b>Reset Changes</b> on this <b>Title</b> page or by going to the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 
-We hope you find ezEML useful, and we welcome your feedback at <a style="color: steelblue;" href="mailto:support.environmentaldatainitiative.org">support.environmentaldatainitiative.org</a>.
+We hope you find ezEML+MOTHER useful, and we welcome your feedback at <a style="color: steelblue;" href="mailto:motherdbproject@gmail.com">motherdbproject@gmail.com</a>.
 --------------------

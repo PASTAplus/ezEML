@@ -23,7 +23,7 @@
             <br>
 
 
-        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data novalidate>
         {{ form.csrf_token }}
 
     <table>
@@ -46,6 +46,14 @@
             <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </table>
+        {% if check_metadata_status == 'red' %}
+            <p><span style="color:red;">Your metadata contains one or more errors.</span><span style="color:black;"> To see what the errors
+                are, click <b><a href="edit/home.check_metadata">Check Metadata</a></b>.
+            We encourage you to correct the errors before submitting, but you may go ahead and submit your package as is,
+                if you choose, for example if there are errors you're not sure how to handle. In that case, please leave
+            an explanation in the Notes text area above so we can assist you better.</span></p>
+        {% endif %}
+
             <br>
             {% if not enable_disabled %}
                 <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" value="Submit Package to EDI"/>&nbsp;&nbsp;

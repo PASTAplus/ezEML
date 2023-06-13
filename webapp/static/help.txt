@@ -260,11 +260,11 @@ To share your package with a colleague, you must first <b>invite</b> them to col
 
 The <b>Collaborate</b> page displays all of the collaborations to which you are a party. These include collaborations involving packages for which you are the <b>owner</b> – i.e., packages that reside in your ezEML account – and packages for which you are a <b>collaborator</b> – i.e., packages owned by someone else.
 
-Whoever is currently accessing an ezEML document is granted exclusive use that prevents others from accessing it simultaneously. The exclusivity continues until that user either releases it (by clicking <b>Make available</b> on the Collaborate page), closes the document, opens a different document, logs off, or remains inactive for a period of time. If you try to access a document that is currently in use by someone else, you will be prevented from doing so and told why. Such packages are shown as <b>in use</b> on the Collaborate page.
+Whoever is currently accessing an ezEML data package is granted exclusive use that prevents others from accessing it simultaneously. The exclusivity continues until that user either releases it (by clicking <b>Make available</b> for that package on the Collaborate page), closes the package, opens a different package, logs off, or remains inactive for a period of time. If you try to access a package that is currently in use by someone else, you will be prevented from doing so and told why. Such packages are shown as <b>in use</b> on the Collaborate page.
 
-If you are a collaborator on a document owned by someone else, the way to open that document for editing is to go the Collaborate page, find the document in your list of collaborations, and click the <b>Open</b> link. If the document is currently in use by someone else, the Open link will not be displayed.
+If you are a collaborator on a package owned by someone else, the way to open that package for editing is to go the Collaborate page (see the link on the top right, next to Logout), find the package in your list of collaborations, and click the <b>Open</b> link. If the package is currently in use by someone else, the Open link will not be displayed.
 
-If you are the document's owner, you open it by the usual method, i.e., via the <b>Open...</b> option in the <b>EML Documents</b> menu.
+If you are the package's owner, you open it by the usual method, i.e., via the <b>Open...</b> option in the <b>EML Documents</b> menu.
 
 For more information on collaboration, see <a style="color: steelblue;" href="/static/user_guide/collaborate.pdf" target="_user_guide_ezeml">Collaborating with Others in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
@@ -508,7 +508,7 @@ While the data curation team is working on your package, you will not be able to
 
 <b>Submit Package to EDI</b> is based on the <b>Collaborate</b> feature, so you may want to review that page as well for additional information.
 
-For more details, see <a style="color: steelblue;" href="/static/user_guide/enabling_edi_curation.pdf" target="_user_guide_ezeml">Submitting Your Package to EDI</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+For more details, see <a style="color: steelblue;" href="/static/user_guide/submit_to_edi.pdf" target="_user_guide_ezeml">Submitting Your Package to EDI</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Submit Package to EDI</b> here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
@@ -1071,6 +1071,8 @@ Submit Package to EDI
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to submit your data package to the data repository hosted by the <a href="https://edirepository.org/" target="_blank"><b>Environmental Data Initiative (EDI)</b></a>.
 
 Click <b>Submit Package to EDI</b> to start the submission process. You'll be taken to a page where you'll be asked to provide a few details.
+
+To send your package to a different repository instead, you can use <b>Export ezEML Data Package...</b> in the <b>Import/Export</b> menu. This will create a zip file containing the EML metadata and the data tables and other entities that make up the package. You can then send this zip file to the repository of your choice.
 --------------------
 share_submit_package_colleague
 Collaborate with Colleagues

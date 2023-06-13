@@ -19,7 +19,8 @@ from webapp.config import Config
 from webapp.home.metapype_client import (
     load_eml,
     is_hidden_button,
-    handle_hidden_buttons
+    handle_hidden_buttons,
+    get_check_metadata_status
 )
 from webapp.buttons import *
 from webapp.pages import *
@@ -163,7 +164,10 @@ def enable_edi_curation(filename=None):
             return redirect(get_back_url())
 
     help = get_helps(['enable_edi_curation'])
-    return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled, help=help, form=form)
+    eml_node = load_eml(filename=filename)
+    return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled,
+                           check_metadata_status=get_check_metadata_status(eml_node, filename),
+                           help=help, form=form)
 
 
 def enable_edi_curation_mail_body(server=None, filename=None, name=None, email_address=None, notes=None):

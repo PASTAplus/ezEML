@@ -2065,6 +2065,10 @@ def share_submit_package(filename=None, success=None):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE, PAGE_SHARE_SUBMIT_PACKAGE)
+        return redirect(url_for(new_page, filename=filename))
+
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST':

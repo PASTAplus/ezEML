@@ -268,7 +268,7 @@ If you are the package's owner, you open it by the usual method, i.e., via the <
 
 For more information on collaboration, see <a style="color: steelblue;" href="/static/user_guide/collaborate.pdf" target="_user_guide_ezeml">Collaborating with Others in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
-Watch a demo video here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
+Watch a demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=497s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 collaborate_invite_accept
 Invitations
@@ -280,7 +280,7 @@ If you have received an invitation to collaborate on a document, you accept it b
 
 For more information on collaboration, see <a style="color: steelblue;" href="/static/user_guide/collaborate.pdf" target="_user_guide_ezeml">Collaborating with Others in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>. For more information on Collaborate's role in submitting a package to the EDI data repository, see <a style="color: steelblue;" href="/static/user_guide/submitting_to_EDI.pdf" target="_user_guide_ezeml">Submitting a Package to EDI</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
-Watch a video demo of collaboration here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of submitting a package to EDI here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
+Watch a video demo of collaboration here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=497s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of submitting a package to EDI here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=1855s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
 contact
 Contact
@@ -510,7 +510,7 @@ While the data curation team is working on your package, you will not be able to
 
 For more details, see <a style="color: steelblue;" href="/static/user_guide/submit_to_edi.pdf" target="_user_guide_ezeml">Submitting Your Package to EDI</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
-Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Submit Package to EDI</b> here:&nbsp;&nbsp;<a href="https://youtu.be/RgQ2LYLObj8?t=1089" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
+Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=497s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Submit Package to EDI</b> here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=1855s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
 export_package
 Export ezEML Data Package

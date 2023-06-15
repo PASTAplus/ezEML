@@ -20,7 +20,7 @@ class DonorForm(EDIForm):
                                          ("estrous", "Estrous")],
                                 render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
-    donorGender = StringField('Gender *', validators=[InputRequired(message='Gender is required')], default='female')
+    donorGender = StringField('Sex *', validators=[InputRequired(message='Sex is required')], default='female')
     donorYears = IntegerField('Years', validators=[NumberRange(min=0), Optional()])
     donorDays = IntegerField('Days', validators=[NumberRange(min=0), Optional()])
     donorLifeStage = SelectField('Life Stage *',

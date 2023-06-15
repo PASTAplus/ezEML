@@ -3950,6 +3950,13 @@ def select_post(filename=None, form=None, form_dict=None,
         elif new_page == PAGE_PROJECT_PERSONNEL:
             return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
         else:
+            if new_page is None:
+                # url_for is going to raise an exception... log debug info
+                vals = []
+                for key in form_dict:
+                    vals.append(form_dict[key][0])  # value is the first list element
+                logger.info(f'**** setting new_page to {this_page}')
+                logger.info(f'**** vals in form_dict: {vals}')
             return url_for(new_page, filename=filename, node_id=node_id)
 
 

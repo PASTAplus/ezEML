@@ -30,7 +30,7 @@ class AwardForm(EDIForm):
     funder_name = StringField('Funder Name *', validators=[validators.DataRequired()])
     award_title = StringField('Award Title *', validators=[validators.DataRequired()])
     funder_identifier = StringField('Funder Identifier(s) (Optional)', validators=[])
-    award_number = StringField('Award Number (Optional)', validators=[])
+    award_number = StringField('Award Number *', validators=[validators.DataRequired()])
     award_url = StringField('Award URL (Optional)', validators=[])
     md5 = HiddenField('')
     init_str = ""

@@ -240,7 +240,7 @@ def reload_metadata():
     current_document = current_user.get_filename()
     if not current_document:
         # if we've just deleted the current document, it won't exist
-        return redirect(url_for(PAGE_INDEX))
+        return None, None
     # Call load_eml here to get the check_metadata status set correctly
     eml_node = load_eml(filename=current_document)
     return current_document, eml_node
@@ -1930,6 +1930,8 @@ def export_package():
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+    if not current_document:
+        return redirect(url_for(PAGE_INDEX))
 
     if request.method == 'POST':
         insert_upload_urls(current_document, eml_node)
@@ -2070,6 +2072,8 @@ def share_submit_package(filename=None, success=None):
         return redirect(url_for(new_page, filename=filename))
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+    if not current_document:
+        return redirect(url_for(PAGE_INDEX))
 
     if request.method == 'POST':
         # If the user has clicked Save in the EML Documents menu, for example, we need to ignore the
@@ -2100,6 +2104,8 @@ def submit_package(filename=None, success=None):
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+    if not current_document:
+        return redirect(url_for(PAGE_INDEX))
 
     if form.validate_on_submit():
         # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
@@ -2198,6 +2204,8 @@ def send_to_other(filename=None, mailto=None):
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+    if not current_document:
+        return redirect(url_for(PAGE_INDEX))
 
     if form.validate_on_submit():
         # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the

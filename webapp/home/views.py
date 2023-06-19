@@ -3959,12 +3959,14 @@ def select_post(filename=None, form=None, form_dict=None,
             return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
         else:
             if new_page is None:
-                # url_for is going to raise an exception... log debug info
+                # url_for would raise an exception... log debug info
                 vals = []
                 for key in form_dict:
                     vals.append(form_dict[key][0])  # value is the first list element
-                logger.info(f'**** setting new_page to {this_page}')
+                logger.info(f'**** select_post: new_page is None')
+                logger.info(f'**** this_page: {this_page}')
                 logger.info(f'**** vals in form_dict: {vals}')
+                new_page = PAGE_INDEX  # so we don't raise a general error exception
             return url_for(new_page, filename=filename, node_id=node_id)
 
 

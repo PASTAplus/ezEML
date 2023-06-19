@@ -207,7 +207,7 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
         if active_package and active_package.package_name != package_name:
             # This case arises, for example, when using Manage Data Packages to delete a package. It's different from
             #  the usual case where the user has the package open before deleting it.
-            logger.info(f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')
+            # logger.info(f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')
             active_package = None
         if not active_package:
             # If there is no active package ID, we assume the user is owner of the package. In the case of a

@@ -17,6 +17,7 @@ class Config(object):
 
     # Flask app configuration
     SECRET_KEY = "SECRET KEY"
+    WTF_CSRF_TIME_LIMIT = None
     DEBUG = False
     FLASH_DEBUG = False
     LOG_DEBUG = False

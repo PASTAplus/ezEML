@@ -1198,7 +1198,10 @@ def open_package(package_name, owner=None):
     if eml_node:
         current_user.set_filename(package_name)
         if owner:
-            current_user.set_file_owner(collaborations.display_name(owner))
+            if owner != current_user.get_user_login():
+                current_user.set_file_owner(collaborations.display_name(owner))
+            else:
+                current_user.set_file_owner(None)
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)

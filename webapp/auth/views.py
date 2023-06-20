@@ -117,8 +117,8 @@ def login():
 def logout():
     log_usage(actions['LOGOUT'])
     user_login = current_user.get_user_login()
-    logout_user()
     close_package(user_login)
+    logout_user()
     return redirect(url_for(PAGE_LOGIN))
 
 

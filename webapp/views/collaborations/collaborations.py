@@ -320,6 +320,7 @@ def close_package(user_login, session=None):
     """
     with db_session(session) as session:
         user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
+        current_user.set_filename(None)
         active_package_id = _get_active_package_id(user_id)
         if active_package_id:
             release_lock(user_login, active_package_id, session=session)

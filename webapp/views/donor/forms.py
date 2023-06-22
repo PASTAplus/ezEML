@@ -17,7 +17,8 @@ class DonorForm(EDIForm):
     donorType = SelectField('Cycle Type',
                                 choices=[("",""),
                                          ("menstrual", "Menstrual"),
-                                         ("estrous", "Estrous")],
+                                         ("estrous", "Estrous"),
+                                         ("other", "Other")],
                                 render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
     donorGender = StringField('Sex *', validators=[InputRequired(message='Sex is required')], default='female')
@@ -25,6 +26,7 @@ class DonorForm(EDIForm):
     donorDays = IntegerField('Days', validators=[NumberRange(min=0), Optional()])
     donorLifeStage = SelectField('Life Stage *',
                                  choices=[("", ""),
+                                          ("unspecified", "Unspecified"),
                                           ("fetal", "Fetal"),
                                           ("neonatal", "Neonatal"),
                                           ("prepubertal", "Prepubertal"),

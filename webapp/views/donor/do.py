@@ -226,7 +226,7 @@ def new_donor(filename=None, node_id=None, method=None,
                     luteal)
                 cycleType_node = mother_node.find_child(mdb_names.SPEC_CYCLE)
                 stageOfCycle_node = cycleType_node.find_child(mdb_names.STAGE_OF_CYCLE)
-                print(donorType)
+
                 if donorType == "menstrual":
                     stageOfCycle_node.add_extras("xsi:type", "mdb:menstrualStageType")
                 elif donorType == "estrous":

@@ -1120,7 +1120,23 @@ def load_eml(filename:str=None,
             user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
     else:
         logger.error(f"load_eml: Could not load {ext_filename}")
+
+    from webapp.home.views import url_of_interest
+    if url_of_interest():
+        if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
+            store_len = len(Node.store)
+            log_info(f'*** load_eml ***: store_len={store_len}     {request.url}')
+            log_info(f'*** load_eml ***: node store checksum={calculate_node_store_checksum()}    {request.url}')
+
     return eml_node
+
+
+def calculate_node_store_checksum():
+    import hashlib
+    id_string = ''
+    for key, val in sorted(Node.store.items()):
+        id_string += val.id
+    return hashlib.md5(id_string.encode('utf-8')).hexdigest()
 
 
 def remove_child(node_id:str=None):
@@ -1545,6 +1561,11 @@ def pickle_eml(filename:str=None, eml_node:Node=None):
 def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
     if filename:
         if eml_node is not None:
+            from webapp.home.views import url_of_interest
+            if url_of_interest():
+                if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
+                    log_info(f'*** save_eml ***: node store checksum={calculate_node_store_checksum()}    {filename}')
+
             metadata_str = None
 
             if format == 'json':

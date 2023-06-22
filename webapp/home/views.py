@@ -1764,8 +1764,8 @@ def import_package():
                     eml_node = load_eml(filename)
                     dataset_node = eml_node.find_child(names.DATASET)
                     if dataset_node:
-                        # for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
-                        #     clear_other_entity(entity_node)
+                        for entity_node in dataset_node.find_all_children(names.OTHERENTITY):
+                            clear_other_entity(entity_node)
                         title_node = dataset_node.find_child(names.TITLE)
                         if title_node:
                             dataset_node.remove_child(title_node)

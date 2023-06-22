@@ -90,6 +90,7 @@
     {% set help_other_entity_info_dialog = help_other_entity_info_id ~ '_dialog' %}
 
     <script type = "text/javascript">
+        document.getElementById("entity_type").value = "histology";
         $("#file_upload").change(function(){
             var upload_path = document.getElementById("file_upload").value;
             let upload_file = upload_path.split(/[\\/]/).pop();

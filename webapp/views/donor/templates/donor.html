@@ -326,15 +326,18 @@
             }
         }
 
-        function speciesFunction(s1, s2){
+        function speciesFunction(s1, s2) {
             var s1 = document.getElementById(s1);
             var s2 = document.getElementById(s2);
-
             s2.innerHTML = "";
-            if(s1.value == "menstrual"){
-                var optionArray = ["|","unspecified|Unspecified","follicular|Follicular","pre-ovulatory|Pre-ovulatory","ovulation|Ovulation","luteal|Luteal"];
-            }else if(s1.value == "estrous"){
-                var optionArray = ["|","unspecified|Unspecified","proestrus|Proestrus","estrus|Estrus","metestrus|Metestrus","diestrus|Diestrus","anestrus|Anestrus"];
+            if (s1.value == "menstrual") {
+                s2.disabled = false;
+                var optionArray = ["|", "unspecified|Unspecified", "follicular|Follicular", "pre-ovulatory|Pre-ovulatory", "ovulation|Ovulation", "luteal|Luteal"];
+            } else if (s1.value == "estrous") {
+                s2.disabled = false;
+                var optionArray = ["|", "unspecified|Unspecified", "proestrus|Proestrus", "estrus|Estrus", "metestrus|Metestrus", "diestrus|Diestrus", "anestrus|Anestrus"];
+            }else if (s1.value == "other"){
+                s2.disabled = true;
             }else{
                 var optionArray = ["|"];
             }

@@ -39,7 +39,7 @@ from webapp.home.metapype_client import (
     create_categorical_or_text_attribute, force_missing_value_codes,
     UP_ARROW, DOWN_ARROW, code_definition_from_attribute,
     handle_hidden_buttons, check_val_for_hidden_buttons,
-    handle_custom_unit_additional_metadata
+    handle_custom_unit_additional_metadata, dump_node_store
 )
 from webapp.home.log_usage import (
     actions,
@@ -220,6 +220,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
                     dt_node_id = dt_node.id
                 else:
                     msg = f"No node found in the node store with node id {dt_node_id}"
+                    dump_node_store(eml_node, 'data_table')
                     raise Exception(msg)
             else:
                 add_child(dataset_node, dt_node)
@@ -864,6 +865,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
                     att_parent_node.replace_child(old_att_node, att_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'attribute_dateTime')
                     raise Exception(msg)
             else:
                 add_child(attribute_list_node, att_node)
@@ -1118,6 +1120,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
                     att_parent_node.replace_child(old_att_node, att_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'attribute_numerical')
                     raise Exception(msg)
             else:
                 add_child(attribute_list_node, att_node)
@@ -1424,6 +1427,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                     att_parent_node.replace_child(old_att_node, att_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'attribute_categorical')
                     raise Exception(msg)
             else:
                 add_child(attribute_list_node, att_node)
@@ -1815,7 +1819,8 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
                         code_definition_parent_node.replace_child(old_code_definition_node,
                                                                   code_definition_node)
                     else:
-                        msg = f"No codeDefinition node found in the node store with node id {node_id}"
+                        msg = f"No node found in the node store with node id {node_id}"
+                        dump_node_store(eml_node, 'code_definition')
                         raise Exception(msg)
                 else:
                     add_child(ed_node, code_definition_node)

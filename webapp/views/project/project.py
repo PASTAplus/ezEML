@@ -14,7 +14,8 @@ from webapp.home.metapype_client import (
     remove_child, UP_ARROW, DOWN_ARROW,
     get_upval, get_downval,
     post_process_texttype_node,
-    handle_hidden_buttons, check_val_for_hidden_buttons
+    handle_hidden_buttons, check_val_for_hidden_buttons,
+    dump_node_store
 )
 
 from webapp.home.texttype_node_processing import(
@@ -331,6 +332,7 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
                     award_parent_node.replace_child(old_award_node, award_node)
                 else:
                     msg = f"No funding award node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'funding_award')
                     raise Exception(msg)
             else:
                 add_child(project_node, award_node)

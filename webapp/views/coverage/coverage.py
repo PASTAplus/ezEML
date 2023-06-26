@@ -19,7 +19,8 @@ from webapp.home.metapype_client import (
     create_temporal_coverage, list_temporal_coverages,
     create_taxonomic_coverage, list_taxonomic_coverages,
     handle_hidden_buttons, check_val_for_hidden_buttons,
-    taxonomy_imported_from_xml, clear_taxonomy_imported_from_xml
+    taxonomy_imported_from_xml, clear_taxonomy_imported_from_xml,
+    dump_node_store
 )
 
 from webapp.views.coverage.taxonomy import (
@@ -281,6 +282,7 @@ def geographic_coverage(filename=None, node_id=None):
                     coverage_parent_node.replace_child(old_gc_node, gc_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'geographic_coverage')
                     raise Exception(msg)
             else:
                 add_child(coverage_node, gc_node)
@@ -458,6 +460,7 @@ def temporal_coverage(filename=None, node_id=None):
                     coverage_parent_node.replace_child(old_tc_node, tc_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'temporal_coverage')
                     raise Exception(msg)
             else:
                 add_child(coverage_node, tc_node)
@@ -872,6 +875,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                     coverage_parent_node.replace_child(old_txc_node, txc_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'taxonomic_coverage')
                     raise Exception(msg)
             else:
                 add_child(coverage_node, txc_node)

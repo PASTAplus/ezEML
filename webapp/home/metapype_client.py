@@ -161,6 +161,40 @@ def check_val_for_hidden_buttons(val, new_page, this_page):
     return new_page
 
 
+def dump_node(node: Node, indent=0):
+    indent_str = ' ' * indent
+    print(f'{indent_str}{node.name} {node.id} {node.content}')
+    for child in node.children:
+        dump_node(child, indent + 2)
+
+
+def node_tree_ids(node: Node, ids: list):
+    ids.append(node.id)
+    for child in node.children:
+        id_str = node_tree_ids(child, ids)
+    return ids
+
+
+def calculate_node_store_checksums(eml_node):
+    import hashlib
+    id_string = ''
+    for key, val in sorted(Node.store.items()):
+        id_string += val.id
+    node_store_hash = hashlib.md5(id_string.encode('utf-8')).hexdigest()
+    tree_ids = sorted(node_tree_ids(eml_node, []))
+    tree_hash = hashlib.md5(''.join(tree_ids).encode('utf-8')).hexdigest()
+    return node_store_hash, tree_hash
+
+
+def dump_node_store(eml_node, prefix=''):
+    dump_node(eml_node)
+    store_len = len(Node.store)
+    log_info(f'*** {prefix} store_len={store_len}     {request.url}')
+    node_store_hash, tree_hash = calculate_node_store_checksums(eml_node)
+    log_info(f'*** {prefix} node store checksum={node_store_hash}    {request.url}')
+    log_info(f'*** {prefix}  node tree checksum={tree_hash}    {request.url}')
+
+
 def parse_package_id(package_id: str):
     """
     Takes a package_id in the form 'scope.identifier.revision' and returns a

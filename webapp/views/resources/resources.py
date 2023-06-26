@@ -16,7 +16,8 @@ from webapp.home.metapype_client import (
     create_keyword, create_pubinfo, create_data_package_id,
     create_title, list_keywords, load_eml, remove_child,
     save_both_formats, DOWN_ARROW, UP_ARROW,
-    handle_hidden_buttons, check_val_for_hidden_buttons
+    handle_hidden_buttons, check_val_for_hidden_buttons,
+    dump_node_store
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
@@ -73,7 +74,6 @@ def log_info(msg):
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 @login_required
 def title(filename=None):
-
     user_name = current_user.get_username()
     current_packageid = current_user.get_filename()
     pid = os.getpid()
@@ -108,6 +108,7 @@ def title(filename=None):
             logger.error(f'No EML node found for filename={filename}')
             set_active_document(None)
             return redirect(url_for(PAGE_INDEX))
+
         dataset_node = eml_node.find_child(child_name=names.DATASET)
         title_node = dataset_node.find_child(names.TITLE)
         if title_node:
@@ -536,7 +537,8 @@ def keyword(filename=None, node_id=None):
                     if not old_keyword_set_node.children:
                         old_keyword_set_node.parent.remove_child(old_keyword_set_node)
                 else:
-                    msg = f"No keyword node found in the node store with node id {node_id}"
+                    msg = f"No node found in the node store with node id {node_id}"
+                    dump_node_store(eml_node, 'keyword')
                     raise Exception(msg)
 
             save_both_formats(filename=filename, eml_node=eml_node)

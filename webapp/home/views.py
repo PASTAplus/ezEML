@@ -160,6 +160,9 @@ def url_of_interest():
         url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
         if url_prefix not in request.url:
             return False
+        if parsed_url.path in ['/eml/', '/eml/auth/login']:
+            # We suppress logging for these two URLs because they are called every 5 minutes by uptime monitor
+            return False
     return True
 
 

@@ -1100,6 +1100,12 @@ def create():
 
         if form.validate_on_submit():
             filename = form.filename.data
+
+            if '/' in filename:
+                flash("Please choose a name that does not contain a slash '/' character.", 'error')
+                return render_template('create_eml.html', help=help,
+                                form=form)
+
             user_filenames = user_data.get_user_document_list()
             if user_filenames and filename and filename in user_filenames:
                 flash(f'{filename} already exists. Please select another name.', 'error')

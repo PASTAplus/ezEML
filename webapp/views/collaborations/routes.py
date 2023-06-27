@@ -158,7 +158,7 @@ def enable_edi_curation(filename=None):
                                     filename=filename,
                                     name=name,
                                     email_address=email_address,
-                                    notes=notes))
+                                    notes=quote(notes, safe='')))
 
         if request.form.get(BTN_CANCEL):
             return redirect(get_back_url())
@@ -178,7 +178,7 @@ def enable_edi_curation_mail_body(server=None, filename=None, name=None, email_a
         '   User\'s email: ' + email_address + '\n\n' + \
         '   Package name: ' + filename + '\n\n'
     if notes:
-        msg += '   User\'s Notes: ' + notes
+        msg += '   User\'s Notes: ' + unquote(notes)
     return msg
 
 

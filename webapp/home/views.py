@@ -60,6 +60,7 @@ from webapp.home.exceptions import (
     ezEMLError,
     AuthTokenExpired,
     DataTableError,
+    ExtraWhitespaceInColumnNames,
     MissingFileError,
     NumberOfColumnsHasChanged,
     Unauthorized,
@@ -3469,7 +3470,8 @@ def load_data(filename=None):
 
                 try:
                     dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = \
-                        load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char)
+                        load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char,
+                                        check_column_names=True)
 
                 except UnicodeDecodeError as err:
                     errors = display_decode_error_lines(filepath)
@@ -3480,6 +3482,19 @@ def load_data(filename=None):
                     return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
                 except DataTableError as err:
                     flash(f'Data table has an error: {err.message}', 'error')
+                    return redirect(request.url)
+                except ExtraWhitespaceInColumnNames as err:
+                    bad_names = ', '.join('"' + name + '"' for name in err.message)
+                    if len(err.message) == 1:
+                        msg = "The following column name has leading or trailing spaces: "
+                        msg2 = "that column name"
+                    else:
+                        msg = "The following column names have leading or trailing spaces: "
+                        msg2 = "those column names"
+                    msg = f"{msg} {bad_names}.<br>" + \
+                            "Such extra spaces are not permitted. Please edit the header row of your data table to remove leading or trailing spaces from " + \
+                            f"{msg2} and try again."
+                    flash(Markup(msg), 'error')
                     return redirect(request.url)
 
                 flash(f"Loaded {filename}")

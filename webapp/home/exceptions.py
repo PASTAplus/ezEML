@@ -13,6 +13,10 @@ class DataTableError(ezEMLError):
     pass
 
 
+class ExtraWhitespaceInColumnNames(ezEMLError):
+    pass
+
+
 class InvalidHeaderRow(ezEMLError):
     pass
 

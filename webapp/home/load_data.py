@@ -29,7 +29,7 @@ from metapype.model.node import Node
 
 import webapp.home.metapype_client as metapype_client
 
-from webapp.home.exceptions import DataTableError, UnicodeDecodeErrorInternal
+from webapp.home.exceptions import DataTableError, UnicodeDecodeErrorInternal, ExtraWhitespaceInColumnNames
 
 from flask import Flask, current_app, flash
 from flask_login import current_user
@@ -334,7 +334,7 @@ def get_num_rows(csv_filepath, delimiter: str = ',', quote_char: str = '"'):
 
 
 def load_data_table(uploads_path: str = None, data_file: str = '',
-                    num_header_rows: str = '1', delimiter: str = ',', quote_char: str = '"'):
+                    num_header_rows: str = '1', delimiter: str = ',', quote_char: str = '"', check_column_names: bool = False):
     if Config.LOG_DEBUG:
         log_info(f'Entering load_data_table: {data_file}')
 
@@ -437,6 +437,17 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
         # data_frame = data_frame.convert_dtypes()
 
         columns = data_frame.columns
+
+        if check_column_names:
+            # Check for leading/trailing whitespace in column names. We don't allow that if check_column_names is True.
+            # We limit cases where we check it because we didn't used to limit in this way, so we'll have issues with
+            #  Re-upload, for example, if we apply the limitation across the board.
+            bad_names = []
+            for col in columns:
+                if col != col.strip():
+                    bad_names.append(col)
+            if len(bad_names) > 0:
+                raise ExtraWhitespaceInColumnNames(bad_names)
 
         for col in columns:
             dtype = data_frame[col][1:].infer_objects().dtype

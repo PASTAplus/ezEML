@@ -503,7 +503,7 @@ def check_metadata(filename:str):
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document)
     content = check_eml(eml_node, filename)
-
+    help = [get_help('check_metadata')]
     # Process POST
     if request.method == 'POST':
         # return render_template(PAGE_CHECK, filename=filename)
@@ -511,7 +511,7 @@ def check_metadata(filename:str):
 
     else:
         set_current_page('check_metadata')
-        return render_template('check_metadata.html', content=content, title='Check Metadata')
+        return render_template('check_metadata.html', content=content, title='Check Metadata', help=help)
 
 
 @home.route('/download_current', methods=['GET', 'POST'])

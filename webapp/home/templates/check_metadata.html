@@ -2,7 +2,15 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h2>Check Metadata: Results</h2>
+    {% set help_check_metadata_id, help_check_metadata_title, help_check_metadata_content = help[0] %}
+    {% set help_check_metadata_btn = help_check_metadata_id ~ '_btn' %}
+    {% set help_check_metadata_dialog = help_check_metadata_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Check Metadata: Results</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_check_metadata_btn) }}</td>
+    </table>
+
 {#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
@@ -12,11 +20,15 @@
             </form>
         </div>
 {#    </div>#}
+    {{ macros.help_dialog(help_check_metadata_dialog, help_check_metadata_title, help_check_metadata_content) }}
 {% endblock %}
 
 
 {% block scripts %}
     {{ super() }}
+    {% set help_check_metadata_id, help_check_metadata_title, help_check_metadata_content = help[0] %}
+    {% set help_check_metadata_btn = help_check_metadata_id ~ '_btn' %}
+    {% set help_check_metadata_dialog = help_check_metadata_id ~ '_dialog' %}
     <script>
     $(document).ready(function()
     {
@@ -24,5 +36,11 @@
       $(".eval_table tr:even").css("background", "#fff");
       $(".eval_table").css("padding", "3px");
     });
+    </script>
+    <script>
+        $(function()
+        {
+            {{ macros.help_script(help_check_metadata_dialog, help_check_metadata_btn) }}
+        });
     </script>
 {% endblock %}

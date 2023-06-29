@@ -2032,6 +2032,8 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
     for upload_node in upload_nodes:
         try:
             physical_node = upload_node.find_descendant(names.PHYSICAL)
+            if not physical_node:
+                continue
             object_name_node = physical_node.find_child(names.OBJECTNAME)
             if not object_name_node:
                 continue

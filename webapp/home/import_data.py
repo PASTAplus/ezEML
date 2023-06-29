@@ -46,6 +46,8 @@ def extract_data_entities_from_eml(eml_node, entity_name):
         object_name_node = data_entity_node.find_descendant(names.OBJECTNAME)
         if object_name_node:
             object_name = object_name_node.content
+        else:
+            object_name = None
         url_node = data_entity_node.find_descendant(names.URL)
         if url_node:
             url = url_node.content

@@ -455,7 +455,7 @@ def release_group_lock(package_id):
     package_id = int(package_id)
     collaborations.release_group_lock(package_id)
     current_document = user_data.get_active_document()
-    return redirect(url_for(PAGE_CLOSE, filename=current_document))
+    return redirect(url_for(PAGE_CLOSE, filename=current_document, aux_msg='The package is now available to collaborators.'))
 
 
 @collab_bp.route('/release_lock/<package_id>', methods=['GET', 'POST'])
@@ -465,7 +465,7 @@ def release_lock(package_id):
     package_id = int(package_id)
     collaborations.release_lock(user_login, package_id)
     current_document = user_data.get_active_document()
-    return redirect(url_for(PAGE_CLOSE, filename=current_document))
+    return redirect(url_for(PAGE_CLOSE, filename=current_document, aux_msg='The package is now available to collaborators.'))
 
 
 @collab_bp.route('/cancel_invitation/<invitation_id>', methods=['GET', 'POST'])

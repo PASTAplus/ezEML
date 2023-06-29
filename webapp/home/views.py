@@ -3872,8 +3872,9 @@ def close():
     current_user.set_filename(None)
     user_login = current_user.get_user_login()
     close_package(user_login)
+    aux_msg = request.args.get('aux_msg', '')
     if current_document:
-        flash(f'Closed "{current_document}"')
+        flash(f'Closed "{current_document}". {aux_msg}')
 
     set_current_page('')
 

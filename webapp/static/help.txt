@@ -881,7 +881,7 @@ Other Entities
 Examples might include scripts in Python or R, zip files containing ancillary data, photographs and other imagery, etc.
 --------------------
 other_entity
-mImage
+Image
 An <b>Image</b> requires a name, its type and format. The current default image type is histology. The digitized ovary slide image should be selected using the <b>Choose File</b> button under the label <b>Upload Image</b>. Include any <b>Additional Information </b> about the image, if desired. See additional info ? for suggestions. The <b>Upload and Continue</b> button will upload the image, associating the image with the document, and automatically filling in the image name and data format fields.
 --------------------
 other_entity_info
@@ -1119,7 +1119,7 @@ Two formats are allowed, either a 4-digit year, or a date in ISO format: YYYY-MM
 --------------------
 title
 Title
-The <b>Title</b> field provides a description of the image. It should be long enough to differentiate it from other images. ezEML requires a unique title. 
+The <b>Title</b> field provides a description of the image. It should be long enough to differentiate it from other images. ezEML requires a unique title.
 
 
 
@@ -1178,4 +1178,8 @@ We won't show you this welcome dialog again, but you can always review how to na
 
 
 We hope you find ezEML+MOTHER useful, and we welcome your feedback at <a style="color: steelblue;" href="mailto:motherdbproject@gmail.com">motherdbproject@gmail.com</a>.
+--------------------
+check_metadata
+Check Metadata
+All ERROR items must be fixed before submission. Review all WARNING items. Click on the blue text Item to jump to that page.
 --------------------

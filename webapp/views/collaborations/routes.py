@@ -152,13 +152,17 @@ def enable_edi_curation(filename=None):
             name = form.data['name']
             email_address = form.data['email_address']
             notes = form.data['notes']
-            if not notes:
-                notes = None
-            return redirect(url_for(PAGE_ENABLE_EDI_CURATION_2,
-                                    filename=filename,
-                                    name=name,
-                                    email_address=email_address,
-                                    notes=quote(notes, safe='')))
+            if notes:
+                return redirect(url_for(PAGE_ENABLE_EDI_CURATION_2,
+                                        filename=filename,
+                                        name=name,
+                                        email_address=email_address,
+                                        notes=quote(notes, safe='')))
+            else:
+                return redirect(url_for(PAGE_ENABLE_EDI_CURATION_2,
+                                        filename=filename,
+                                        name=name,
+                                        email_address=email_address))
 
         if request.form.get(BTN_CANCEL):
             return redirect(get_back_url())

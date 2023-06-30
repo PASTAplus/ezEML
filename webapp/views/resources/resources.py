@@ -269,7 +269,7 @@ def abstract(filename=None):
         form.abstract.data = display_text_type_node(abstract_node)
     form.md5.data = form_md5(form)
     set_current_page('abstract')
-    help = [get_help('abstract'), get_help('nav')]
+    help = get_helps(['abstract', 'nav'])
     return render_template('abstract.html',
                            title='Abstract',
                            filename=filename, form=form, help=help)

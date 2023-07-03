@@ -21,7 +21,7 @@ class DonorForm(EDIForm):
                                          ("other", "Other")],
                                 render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
-    donorGender = StringField('Sex *', validators=[InputRequired(message='Sex is required')], default='female')
+    donorSex = StringField('Sex *', validators=[InputRequired(message='Sex is required')], default='female')
     donorYears = IntegerField('Years', validators=[NumberRange(min=0), Optional()])
     donorDays = IntegerField('Days', validators=[NumberRange(min=0), Optional()])
     donorLifeStage = SelectField('Life Stage *',
@@ -181,7 +181,7 @@ class DonorForm(EDIForm):
 
     def field_data(self) -> tuple:
         return (self.donorID.data,
-                self.donorGender.data,
+                self.donorSex.data,
                 self.donorYears.data,
                 self.donorDays.data,
                 self.donorLifeStage.data,

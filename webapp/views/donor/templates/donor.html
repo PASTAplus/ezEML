@@ -22,7 +22,7 @@
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="30%">{{ wtf.form_field(form.donorID) }}</td>
                             <td width="2%">&nbsp;</td>
-                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorGender) }}</td>
+                            <td style="padding: 5px 10px;" width="15%">{{ wtf.form_field(form.donorSex) }}</td>
                             <td width="2%">&nbsp;</td>
                             <td style="padding: 5px 10px;" width="10%">{{ wtf.form_field(form.donorYears) }}</td>
                             <td width="2%">&nbsp;</td>
@@ -185,7 +185,7 @@
     {% set help_donor_btn = help_donor_id ~ '_btn' %}
     {% set help_donor_dialog = help_donor_id ~ '_dialog' %}
      <script type = "text/javascript">
-<!--        document.getElementById("donorGender").setAttribute("readonly","readonly");-->
+<!--        document.getElementById("donorSex").setAttribute("readonly","readonly");-->
         document.getElementById("specimenTissue").setAttribute("readonly","readonly");
 
         function specimenLocationFunction(){

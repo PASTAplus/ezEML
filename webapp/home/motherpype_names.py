@@ -30,6 +30,7 @@ MOTHER = "mother"
 # Donor Elements
 DONOR = "donor"
 DONOR_ID = "donorID"
+DONOR_SEX = "donorSex"
 DONOR_GENDER = "donorGender"
 
 # has children

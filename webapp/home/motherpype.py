@@ -183,7 +183,7 @@ def clean_mother_json(node: Node, level: int = 0) -> str:
         node.add_namespace(node.prefix, "http://mother-db.org/mdb")
         node.add_namespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
         node.add_extras("xsi:schemaLocation",
-                        "http://mother-db.org/mdb https://resources.mother-db.org/xml/1.0/mdb.xsd")
+                        "http://mother-db.org/mdb https://resources.mother-db.org/xml/1.1/mdb.xsd")
     else:
         if node.name in mdb_names.SET_VALUE_NODES:
             if not "value" in node.attributes:    # if there is already a value= set, delete it and create a new one
@@ -328,7 +328,7 @@ def add_mother_metadata(eml_node: Node = None, filename=None):
 def create_donor(mother_node: Node,
                  filename: str = None,
                  donorId: str = None,
-                 donorGender: str = None,
+                 donorSex: str = None,
                  ageType: Node = None,
                  ageYears: int = None,
                  ageDays: int = None,
@@ -374,10 +374,10 @@ def create_donor(mother_node: Node,
         donorId_node = Node(mdb_names.DONOR_ID, parent=mother_node)
         mother_node.add_child(donorId_node)
         donorId_node.content = donorId
-        # if donorGender:
-        donorGender_node = Node(mdb_names.DONOR_GENDER, parent=mother_node)
-        mother_node.add_child(donorGender_node)
-        donorGender_node.content = donorGender
+        # if donorSex:
+        donorSex_node = Node(mdb_names.DONOR_SEX, parent=mother_node)
+        mother_node.add_child(donorSex_node)
+        donorSex_node.content = donorSex
         # if ageType:
         ageType_node = Node(mdb_names.DONOR_AGE, parent=mother_node)
         mother_node.add_child(ageType_node)

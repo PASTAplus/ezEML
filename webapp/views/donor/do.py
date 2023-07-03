@@ -130,7 +130,7 @@ def new_donor(filename=None, node_id=None, method=None,
     if form.validate_on_submit() and method == 'POST':
         if save:
             donorID = form.donorID.data
-            donorGender = form.donorGender.data
+            donorSex = form.donorSex.data
             donorAge = Node('donorAge', parent=None)
             donorYears = form.donorYears.data
             donorDays = form.donorDays.data
@@ -173,7 +173,7 @@ def new_donor(filename=None, node_id=None, method=None,
                 mother_node,
                 filename,
                 donorID,
-                donorGender,
+                donorSex,
                 donorAge,
                 donorYears,
                 donorDays,
@@ -289,9 +289,9 @@ def populate_donor_form(form: DonorForm, node: Node):
     if donorID_node:
         form.donorID.data = donorID_node.content
 
-    donorGender_node = node.find_child(mdb_names.DONOR_GENDER)
-    if donorGender_node.content:
-        form.donorGender.data = donorGender_node.content
+    donorSex_node = node.find_child(mdb_names.DONOR_SEX)
+    if donorSex_node.content:
+        form.donorSex.data = donorSex_node.content
 
     donorAge_Node = node.find_child(mdb_names.DONOR_AGE)
     if donorAge_Node:

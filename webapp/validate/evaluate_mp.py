@@ -284,7 +284,7 @@ def _donor_rule(node: Node) -> list:
     for child in node.children:
         if child.name == mdb_names.DONOR_ID and child.content:
             donornodes[0] = True
-        if child.name == mdb_names.DONOR_GENDER and child.content:
+        if child.name == mdb_names.DONOR_SEX and child.content:
             if child.content == "female":
                 donornodes[15] = True
             donornodes[1] = True
@@ -430,8 +430,8 @@ def _donor_rule(node: Node) -> list:
         ))
     if not donornodes[1]:
         evaluation.append((
-            EvaluationWarningMp.DONOR_GENDER_MISSING,
-            f'Donor Gender is required.',
+            EvaluationWarningMp.DONOR_SEX_MISSING,
+            f'Donor Sex is required.',
             node
         ))
     if not donornodes[2]:
@@ -514,8 +514,8 @@ def _donor_rule(node: Node) -> list:
     #     ))
     if not donornodes[15]:
         evaluation.append((
-            EvaluationWarningMp.DONOR_GENDER_FEMALE,
-            f'Donor Gender must be female.',
+            EvaluationWarningMp.DONOR_SEX_FEMALE,
+            f'Donor Sex must be female.',
             node
         ))
     if not donornodes[16]:

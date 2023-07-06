@@ -51,13 +51,17 @@ def get_template_folder_name():
     return Config.TEMPLATE_DIR
 
 
-def get_user_folder_name(current_user_directory_only=False, prefix=Config.USER_DATA_DIR, log_the_details=False):
+def get_user_folder_name(current_user_directory_only=False,
+                         prefix=Config.USER_DATA_DIR,
+                         owner_login=None,
+                         log_the_details=False):
+
     user_folder_name = f'{Config.USER_DATA_DIR}/anonymous-user'
     user_login = current_user.get_user_org()
 
-    if not current_user_directory_only:
+    if not current_user_directory_only and not owner_login:
         owner_login = collaborations.get_active_package_owner_login(user_login)
-    else:
+    elif current_user_directory_only:
         owner_login = None
 
     if owner_login:
@@ -171,7 +175,7 @@ def is_first_usage():
     return first_usage
 
 
-def is_document_locked(filename):
+def is_document_locked(filename, owner_login=None):
     """
     This function checks if the document is locked by the current user. Otherwise, it takes the lock and returns False.
     This function is to be called when doing the Open command, i.e., when the user is known to be the owner of the
@@ -179,9 +183,10 @@ def is_document_locked(filename):
     Note that this function has the side effect of updating the lock timestamp so that the lock doesn't expire.
     If the lock is owned by another user, an exception is raised. We use an exception instead of returning True so
     we can return additional information about the lock owner.
+    owner_login, if passed, is used to help identify the package.
     """
     user_login = current_user.get_user_org()
-    collaborations.update_lock(user_login, filename)
+    collaborations.update_lock(user_login, filename, owner_login=owner_login)
 
 
 def release_document_lock(filename):
@@ -407,19 +412,31 @@ def get_active_document(log_the_details=False) -> str:
     return active_dict.get('filename', None)
 
 
-def set_active_document_owner(owner: str):
+def set_active_document_owner(owner: str, owner_login: str = None):
     """
     Set the owner of the active document, which is the user who created the document.
     If owner is None, the owner is assumed to be the current user.
     """
     active_dict = read_active_dict()
     active_dict['owner'] = owner
+    active_dict['owner_login'] = owner_login
     write_active_dict(active_dict)
 
 
 def get_active_document_owner() -> str:
     active_dict = read_active_dict()
     return active_dict.get('owner', None)
+
+
+def get_active_document_owner_login() -> str:
+    active_dict = read_active_dict()
+    owner_login = active_dict.get('owner_login', None)
+    if not owner_login:
+        filename = active_dict.get('filename', None)
+        if filename:
+            # If the owner_login is not set, we assume the owner is the current user.
+            owner_login = current_user.get_user_org()
+    return owner_login
 
 
 def remove_active_file():

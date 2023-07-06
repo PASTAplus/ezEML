@@ -439,7 +439,7 @@ def open_by_collaborator(collaborator_id, package_id):
 
     # Open the document
     try:
-        return open_document(filename, owner=collaborations.display_name(owner_login))
+        return open_document(filename, owner=collaborations.display_name(owner_login), owner_login=owner_login)
     except Exception as e:
         release_acquired_lock(lock)
 

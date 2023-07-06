@@ -1896,7 +1896,7 @@ def clone_attributes(filename, dt_node_id):
     target_dt_id = dt_node_id
 
     form = ImportEMLForm()
-    form.filename.choices = list_data_packages(True, True)
+    form.filename.choices = list_data_packages(True, True, current_user_directory_only=False)
 
     # Process POST
     if request.method == 'POST':
@@ -1917,11 +1917,19 @@ def clone_attributes(filename, dt_node_id):
 def clone_attributes_2(target_filename, target_dt_id, source_filename):
     form = SelectDataTableForm()
 
-    eml_node = load_eml(filename=target_filename)
+    # When cloning, we know the source and target have the same owner. We get the login for that owner and
+    # pass it along to load_eml() to make sure we're pulling in the right package.
+    owner_login = None
+    try:
+        owner_login = user_data.get_active_document_owner_login()
+    except Exception as e:
+        log_error(f"load_eml: {e}")
+
+    eml_node = load_eml(filename=target_filename, owner_login=owner_login)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_object_name = target_dt_node.find_descendant(names.OBJECTNAME).content
 
-    source_eml_node = load_eml(source_filename)
+    source_eml_node = load_eml(source_filename, do_not_lock=True, owner_login=owner_login)
     source_data_tables = list_data_tables(source_eml_node, to_skip=target_dt_id) # we don't want to clone a DT onto itself
 
     choices = [[data_table[0], data_table[1]] for data_table in source_data_tables]
@@ -1947,19 +1955,19 @@ def clone_attributes_2(target_filename, target_dt_id, source_filename):
         return redirect(url_for('dt.clone_attributes_3', target_filename=target_filename, target_dt_id=target_dt_id,
                                 source_filename=source_filename, source_dt_id=source_dt_id,
                                 table_name_in=table_name_in, table_name_out=table_name_out,
-                                help=help, form=form))
+                                owner_login=owner_login, help=help, form=form))
 
     # Process GET
     help = views.get_helps(['clone_attributes_2'])
     return render_template('clone_attributes_2.html', target_filename=target_filename, target_dt_id=target_dt_id, source_filename=source_filename, help=help, form=form)
 
 
-@dt_bp.route('/clone_attributes_3/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>', methods=['GET', 'POST'])
+@dt_bp.route('/clone_attributes_3/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>/<owner_login>', methods=['GET', 'POST'])
 @login_required
-def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out):
+def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, owner_login):
     form = SelectDataTableColumnsForm()
 
-    source_eml_node = load_eml(source_filename)
+    source_eml_node = load_eml(source_filename, owner_login=owner_login)
     source_dt_node = Node.get_node_instance(source_dt_id)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -1978,7 +1986,7 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
             return redirect(url_for('dt.clone_attributes_4', target_filename=target_filename, target_dt_id=target_dt_id,
                                     source_filename=source_filename, source_dt_id=source_dt_id,
                                     table_name_in=table_name_in, table_name_out=table_name_out,
-                                    source_attr_ids=source_attr_ids,
+                                    source_attr_ids=source_attr_ids, owner_login=owner_login,
                                     help=help, form=form))
 
     # Process GET
@@ -1992,7 +2000,7 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
 
     return render_template('clone_attributes_3.html', target_filename=target_filename, target_dt_id=target_dt_id,
                            source_filename=source_filename, source_dt_id=source_dt_id,
-                           table_name_in=table_name_in, table_name_out=table_name_out,
+                           table_name_in=table_name_in, table_name_out=table_name_out, owner_login=owner_login,
                            help=help, form=form)
 
 
@@ -2138,13 +2146,13 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
             Node.delete_node_instance(target_attr_id, True)
 
 
-@dt_bp.route('/clone_attributes_4/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>/<source_attr_ids>',
+@dt_bp.route('/clone_attributes_4/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>/<source_attr_ids>/<owner_login>',
              methods=['GET', 'POST'])
 @login_required
-def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids):
+def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids, owner_login):
     form = SelectDataTableColumnsForm()
 
-    source_eml_node = load_eml(source_filename)
+    source_eml_node = load_eml(source_filename, do_not_lock=True, owner_login=owner_login)
     source_attr_ids_list = source_attr_ids.strip('][').split(', ')
     source_attrs = []
     for source_attr_id in source_attr_ids_list:
@@ -2154,7 +2162,7 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
         source_attr_node = source_attr_name_node.parent
         source_attrs.append((source_attr_name, source_attr_node.id))
 
-    target_eml_node = load_eml(target_filename)
+    target_eml_node = load_eml(target_filename, owner_login=owner_login)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_attrs = []
     target_dt_attr_nodes = []
@@ -2216,5 +2224,5 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
     return render_template('clone_attributes_4.html', target_filename=target_filename, target_dt_id=target_dt_id,
                            source_filename=source_filename, source_dt_id=source_dt_id,
                            table_name_in=table_name_in, table_name_out=table_name_out,
-                           source_attrs=source_attrs, target_attrs=target_attrs,
+                           source_attrs=source_attrs, target_attrs=target_attrs, owner_login=owner_login,
                            help=help, form=form)

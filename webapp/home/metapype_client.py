@@ -75,7 +75,7 @@ if Config.LOG_DEBUG:
 
 logger = daiquiri.getLogger('metapype_client: ' + __name__)
 
-RELEASE_NUMBER = '2023.06.26'
+RELEASE_NUMBER = '2023.07.06'
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x25B2;')
@@ -1109,6 +1109,7 @@ def load_eml(filename:str=None,
              use_pickle:bool=False,
              skip_metadata_check:bool=False,
              do_not_lock:bool=False,
+             owner_login:str=None,
              log_the_details:bool=False):
 
     # Usually when we load an EML file, we want to acquire a lock on it. However, there are times when we are just
@@ -1116,10 +1117,13 @@ def load_eml(filename:str=None,
     #  size for manage packages page.
     if not do_not_lock:
         try:
-            user_data.is_document_locked(filename)
+            user_data.is_document_locked(filename, owner_login=owner_login)
         except Exception as e:
             logger.error(f"load_eml: is_document_locked: {e}")
             raise
+
+    if owner_login:
+        folder_name = user_data.get_user_folder_name(owner_login=owner_login)
 
     eml_node = None
     if folder_name:

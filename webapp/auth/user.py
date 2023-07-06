@@ -80,8 +80,8 @@ class User(UserMixin):
     def get_file_owner(self):
         return get_active_document_owner()
 
-    def set_file_owner(self, owner: str = None):
-        set_active_document_owner(owner)
+    def set_file_owner(self, owner: str = None, owner_login: str = None):
+        set_active_document_owner(owner, owner_login=owner_login)
 
     def is_edi_user(self):
         return self._cname == "EDI" and self._uid == "uid=EDI,o=EDI,dc=edirepository,dc=org"

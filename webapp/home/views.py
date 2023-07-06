@@ -1139,7 +1139,7 @@ def display_tables():
                            collaboration_statuses=collaboration_statuses, locks=locks)
 
 
-def open_document(filename, owner=None):
+def open_document(filename, owner=None, owner_login=None):
     """
     This code is used both in opening a document via the Open... menu selection and via an Open link on the Collaborate
     page. In the latter case, it is assumed that the caller has set the active_package_id before calling. This is
@@ -1154,7 +1154,7 @@ def open_document(filename, owner=None):
     if eml_node:
         current_user.set_filename(filename)
         if owner:
-            current_user.set_file_owner(owner)
+            current_user.set_file_owner(owner, owner_login=owner_login)
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)

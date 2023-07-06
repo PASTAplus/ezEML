@@ -210,10 +210,13 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
             # logger.info(f'update_lock: package_name {package_name} does not match active package name {active_package.package_name}')
             active_package = None
         if not active_package:
-            # If there is no active package ID, we assume the user is owner of the package. In the case of a
-            #  collaborator, the active package will be set when the collaborator opens the package, since the
-            #  only entry point for a collaborator to open a package is through the collaboration page.
-            active_package = set_active_package(user_login, package_name, owner_login=user_login, session=session)
+            if not owner_login:
+                # If there is no active package ID, we assume the user is owner of the package. In the case of a
+                #  collaborator, the active package will be set when the collaborator opens the package, since the
+                #  only entry point for a collaborator to open a package is through the collaboration page.
+                active_package = set_active_package(user_login, package_name, owner_login=user_login, session=session)
+            else:
+                active_package = set_active_package(user_login, package_name, owner_login=owner_login, session=session)
 
         # See if a group lock exists for the package.
         group_lock = _get_group_lock(active_package.package_id)
@@ -525,7 +528,7 @@ def change_active_package_account(package_name, session=None):
                                   session=session)
 
         set_active_package_id(logged_in_user_id, new_package.package_id, session=session)
-        current_user.set_file_owner(display_name(user_login))
+        current_user.set_file_owner(display_name(user_login), owner_login=user_login)
         session.flush()
 
 

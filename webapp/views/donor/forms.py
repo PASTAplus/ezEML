@@ -17,8 +17,8 @@ class DonorForm(EDIForm):
     donorType = SelectField('Cycle Type',
                                 choices=[("",""),
                                          ("menstrual", "Menstrual"),
-                                         ("estrous", "Estrous"),
-                                         ("other", "Other")],
+                                         ("estrous", "Estrous")],
+                                         #("other", "Other")
                                 render_kw={'onchange': "speciesFunction(this.id, 'stageOfCycle')"})
     donorID = StringField('Donor ID *', validators=[InputRequired(message='Donor ID is required')])
     donorSex = StringField('Sex *', validators=[InputRequired(message='Sex is required')], default='female')
@@ -26,13 +26,13 @@ class DonorForm(EDIForm):
     donorDays = IntegerField('Days', validators=[NumberRange(min=0), Optional()])
     donorLifeStage = SelectField('Life Stage *',
                                  choices=[("", ""),
-                                          ("unspecified", "Unspecified"),
                                           ("fetal", "Fetal"),
                                           ("neonatal", "Neonatal"),
                                           ("prepubertal", "Prepubertal"),
                                           ("pubertal", "Pubertal"),
                                           ("adult", "Adult"),
-                                          ("aging", "Aging")],
+                                          ("aging", "Aging"),
+                                          ("unspecified", "Unspecified")],
                                  validators=[InputRequired(message='Life Stage is required')])
     specimenSeqNum = IntegerField('Specimen Sequence Number *', 
                                 validators=[NumberRange(min=0), InputRequired(message='Specimen Sequence Number is required')])

@@ -101,6 +101,9 @@ METESTRUS = "metestrus"
 DIESTRUS = "diestrus"
 ANESTRUS = "anestrus"
 
+#Test for other choice
+OTHER = "other"
+
 SLIDE_ID = "slideID"
 SEC_SEQ_NUM = "sectionSeqNum"
 
@@ -275,7 +278,11 @@ ESTROUS_STAGE = {
     ANESTRUS: "mdb:estrousStageType"
 }
 
-CYCLE_STAGE = {**MAMMAL_STAGE, **ESTROUS_STAGE, EMPTY_UNSPECIFIED: ""}
+OTHER_STAGE = {
+    OTHER: "mdb:otherStageType"
+}
+
+CYCLE_STAGE = {**MAMMAL_STAGE, **ESTROUS_STAGE, **OTHER_STAGE, EMPTY_UNSPECIFIED: ""}
 
 MAMMAL_STAGE_VALUES = {
     FETAL,

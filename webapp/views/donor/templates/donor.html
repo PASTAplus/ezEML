@@ -332,12 +332,13 @@
             s2.innerHTML = "";
             if (s1.value == "menstrual") {
                 s2.disabled = false;
-                var optionArray = ["|", "unspecified|Unspecified", "follicular|Follicular", "pre-ovulatory|Pre-ovulatory", "ovulation|Ovulation", "luteal|Luteal"];
+                var optionArray = ["|", "follicular|Follicular", "pre-ovulatory|Pre-ovulatory", "ovulation|Ovulation", "luteal|Luteal", "unspecified|Unspecified"];
             } else if (s1.value == "estrous") {
                 s2.disabled = false;
-                var optionArray = ["|", "unspecified|Unspecified", "proestrus|Proestrus", "estrus|Estrus", "metestrus|Metestrus", "diestrus|Diestrus", "anestrus|Anestrus"];
+                var optionArray = ["|", "proestrus|Proestrus", "estrus|Estrus", "metestrus|Metestrus", "diestrus|Diestrus", "anestrus|Anestrus", "unspecified|Unspecified"];
             }else if (s1.value == "other"){
-                s2.disabled = true;
+                s2.disabled = false;
+                var optionArray = ["unspecified|Unspecified"];
             }else{
                 var optionArray = ["|"];
             }

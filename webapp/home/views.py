@@ -1049,44 +1049,6 @@ def allowed_metadata_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-'''
-This function is deprecated. It was originally used as a first 
-step in a two-step process for data table upload, but that process 
-has been consolidated into a single step (see the load_data()
-function).
-
-@home.route('/upload_data_file', methods=['GET', 'POST'])
-@login_required
-def upload_data_file():
-    uploads_folder = get_user_uploads_folder_name()
-    form = UploadDataFileForm()
-
-    # Process POST
-    if request.method == 'POST' and form.validate_on_submit():
-        # Check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-
-        file = request.files['file']
-        if file:
-            filename = secure_filename(file.filename)
-            
-            if filename is None or filename == '':
-                flash('No selected file')           
-            elif allowed_data_file(filename):
-                file.save(os.path.join(uploads_folder, filename))
-                flash(f'{filename} uploaded')
-            else:
-                flash(f'{filename} is not a supported data file type')
-            
-        return redirect(request.url)
-
-    # Process GET
-    return render_template('upload_data_file.html', title='Upload Data File', 
-                           form=form)
-'''
-
 @home.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
@@ -3863,15 +3825,20 @@ def load_metadata():
                            form=form)
 
 
+def close_document():
+    current_user.set_filename(None)
+    user_login = current_user.get_user_login()
+    close_package(user_login)
+    set_current_page('')
+
+
 @home.route('/close', methods=['GET', 'POST'])
 @login_required
 def close():
     current_document = current_user.get_filename()
     
     log_usage(actions['CLOSE_DOCUMENT'])
-    current_user.set_filename(None)
-    user_login = current_user.get_user_login()
-    close_package(user_login)
+    close_document()
     aux_msg = request.args.get('aux_msg', '')
     if current_document:
         flash(f'Closed "{current_document}". {aux_msg}')

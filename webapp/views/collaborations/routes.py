@@ -30,7 +30,7 @@ from webapp.home.log_usage import (
     log_usage,
 )
 
-from webapp.home.views import get_helps, set_current_page, open_document, get_back_url
+from webapp.home.views import get_helps, set_current_page, open_document, close_document, get_back_url
 from webapp.home.exceptions import (
     CollaboratingWithGroupAlready,
     InvitationBeingAcceptedByOwner,
@@ -42,6 +42,8 @@ from webapp.home.exceptions import (
 import webapp.views.collaborations.backups as backups
 import webapp.views.collaborations.collaborations as collaborations
 from webapp.views.collaborations.collaborations import (
+    get_package,
+    package_is_under_edi_curation,
     get_package_by_id,
     get_collaborations,
     get_invitations,
@@ -100,6 +102,10 @@ def collaborate(filename=None, dev=None):
             flash('The database has been cleaned up.', 'success')
             return redirect(url_for(PAGE_COLLABORATE, filename=filename, dev=dev))
 
+    flash_msg = request.args.get('flash_msg', '')
+    if flash_msg:
+        flash(flash_msg)
+
     user_login = current_user.get_user_login()
     log_usage(actions['COLLABORATE'], user_login)
 
@@ -138,9 +144,20 @@ def enable_edi_curation(filename=None):
     form = EnableEDICurationForm()
 
     enable_disabled = False
-    if current_user.is_edi_curator():
-        flash('You are logged in as an EDI Curator. You are not permitted to enable EDI curation from this user account.', 'error')
-        enable_disabled = True
+    # if current_user.is_edi_curator():
+    #     flash('You are logged in as an EDI Curator. You are not permitted to enable EDI curation from this user account.', 'error')
+    #     enable_disabled = True
+
+    # See if package is already under EDI curation. If so, just display an informational message.
+    user_login = current_user.get_user_login()
+    package = get_package(user_login, filename, create_if_not_found=False)
+    if package:
+        package_id = package.package_id
+        if package_is_under_edi_curation(package_id):
+            flash(Markup('A collaboration with EDI Curators has already been established for this package.<p><p> ' \
+                  'To make the package available to EDI Curators again, click the <b>Make available</b> link for ' \
+                  'the package, below.'))
+            return redirect(url_for(PAGE_COLLABORATE, filename=filename))
 
     # Process POST
     if request.method == 'POST':
@@ -228,7 +245,9 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         flash('Only the owner of the package can submit it to EDI.', 'error')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except CollaboratingWithGroupAlready:
-        flash('This package has already been submitted to EDI. Review is underway.', 'error')
+        flash('A collaboration with EDI Curators has already been established for this package.\n\n ' \
+                'To make the package available to EDI Curators again, click the "Make available" link for the ' \
+                'package, below.')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except Exception as e:
         flash('An error occurred while enabling EDI curation for this package.', 'error')
@@ -457,9 +476,11 @@ def apply_group_lock(package_id, group_id):
 def release_group_lock(package_id):
     # user_login = current_user.get_user_login()
     package_id = int(package_id)
-    collaborations.release_group_lock(package_id)
     current_document = user_data.get_active_document()
-    return redirect(url_for(PAGE_CLOSE, filename=current_document, aux_msg='The package is now available to collaborators.'))
+    collaborations.release_group_lock(package_id)
+    close_document()
+    flash_message = f'Closed "{current_document}". The package is now available to collaborators.'
+    return redirect(url_for(PAGE_COLLABORATE, filename=current_document, flash_msg=flash_message))
 
 
 @collab_bp.route('/release_lock/<package_id>', methods=['GET', 'POST'])
@@ -467,9 +488,11 @@ def release_group_lock(package_id):
 def release_lock(package_id):
     user_login = current_user.get_user_login()
     package_id = int(package_id)
-    collaborations.release_lock(user_login, package_id)
     current_document = user_data.get_active_document()
-    return redirect(url_for(PAGE_CLOSE, filename=current_document, aux_msg='The package is now available to collaborators.'))
+    collaborations.release_lock(user_login, package_id)
+    close_document()
+    flash_message = f'Closed "{current_document}". The package is now available to collaborators.'
+    return redirect(url_for(PAGE_COLLABORATE, filename=current_document, flash_msg=flash_message))
 
 
 @collab_bp.route('/cancel_invitation/<invitation_id>', methods=['GET', 'POST'])

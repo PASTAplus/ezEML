@@ -1120,7 +1120,6 @@ def open_document(filename, owner=None, owner_login=None):
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)
-        create_eml(filename=filename)
         new_page = PAGE_TITLE
         log_usage(actions['OPEN_DOCUMENT'])
         check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
@@ -1177,7 +1176,6 @@ def open_package(package_name, owner=None):
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)
-        create_eml(filename=package_name)
         new_page = PAGE_TITLE
         log_usage(actions['OPEN_DOCUMENT'])
         check_data_table_contents.set_check_data_tables_badge_status(package_name, eml_node)
@@ -1957,7 +1955,7 @@ def submit_package_mail_body(name=None, email_address=None, archive_name=None, e
     return msg
 
 
-def keep_existing_url(distribution_node, uploads_folder):
+def keep_existing_url(distribution_node, uploads_folder, file_exists):
     # If a distribution node exists, check to see if there's a URL and, if so, whether it points to a different
     #  user's account or a different package. The case we want to guard against is one where we've imported a
     #  "without data" ezEML Data Package and all we're doing is modifying the EML (e.g., changing the data package ID)
@@ -1970,8 +1968,12 @@ def keep_existing_url(distribution_node, uploads_folder):
         url = url_node.content
         if url:
             if uploads_folder not in unquote(url):
-                # The URL points to a different location, not to the user's account, so we'll leave it alone.
-                return True
+                # The URL points to a different location, not to the user's account. If we don't have a file in the
+                #  user's account, we'll leave the distribution node alone.
+                # We may, however, have uploaded or imported a file and thereby have a file in the user's account.
+                #  In that case, we want to use the version in the user's account.
+                if not file_exists:
+                    return True
     return False
 
 
@@ -2000,14 +2002,15 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             if not object_name_node:
                 continue
             object_name = object_name_node.content
-            distribution_node = physical_node.find_child(names.DISTRIBUTION)
-            if distribution_node:
-                if keep_existing_url(distribution_node, uploads_folder):
-                    continue
-                physical_node.remove_child(distribution_node)
             # See if file exists before adding a distribution URL pointing to our copy.
             filepath = os.path.join(uploads_folder, object_name)
-            if not os.path.exists(filepath):
+            file_exists = os.path.exists(filepath)
+            distribution_node = physical_node.find_child(names.DISTRIBUTION)
+            if distribution_node:
+                if keep_existing_url(distribution_node, uploads_folder, file_exists):
+                    continue
+                physical_node.remove_child(distribution_node)
+            if not file_exists:
                 continue
             distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
             online_node = new_child_node(names.ONLINE, distribution_node)
@@ -2028,7 +2031,7 @@ def insert_upload_urls(current_document, eml_node):
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{quote(uploads_folder)}"
 
     if 'localhost:5000' not in uploads_url_prefix:
-        # When working locally, the generated URL will be flagged by Flask as invalid. This is a pain in the neck, since
+        # When developing locally, the generated URL will be flagged by Flask as invalid. This is a pain in the neck, since
         #  we can't leave the page without clearing the URL. So, we'll just skip the URL insertion when working locally.
         insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.DATATABLE)
         insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.OTHERENTITY)

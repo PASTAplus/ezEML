@@ -294,7 +294,11 @@ def delete_eml(filename:str=''):
         eval_filename = f'{user_folder}/{filename}_eval.pkl'
         # if we're deleting the current document, clear the active file
         if filename == get_active_document():
-            remove_active_file()
+            # Careful! Make sure we're not being fooled by a collaborator's file with same filename
+            active_document_owner_login = get_active_document_owner_login()
+            user_login = current_user.get_user_org()
+            if active_document_owner_login == user_login:
+                remove_active_file()
         remove_file_from_collaborations(filename)
         exception = None
         if os.path.exists(json_filename):

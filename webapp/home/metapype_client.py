@@ -1657,21 +1657,20 @@ def create_access(parent_node:Node=None):
 
 
 def create_eml(filename=None):
-    eml_node = load_eml(filename=filename)
+    user_data.set_active_document(None)
 
-    if not eml_node:
-        eml_node = Node(names.EML)
-        eml_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
+    eml_node = Node(names.EML)
+    eml_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
 
-        access_node = create_access(parent_node=eml_node)
-        initialize_access_rules(access_node)
+    access_node = create_access(parent_node=eml_node)
+    initialize_access_rules(access_node)
 
-        _ = new_child_node(names.DATASET, parent=eml_node)
+    _ = new_child_node(names.DATASET, parent=eml_node)
 
-        try:
-            save_both_formats(filename=filename, eml_node=eml_node)
-        except Exception as e:
-            logger.error(e)
+    try:
+        save_both_formats(filename=filename, eml_node=eml_node)
+    except Exception as e:
+        logger.error(e)
 
 
 def initialize_access_rules(access_node:Node):

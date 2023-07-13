@@ -70,7 +70,7 @@ class CollaborationRecord:
                     locked_by_group = collaborations._get_group_collaboration(self.locked_by_group_id).user_group.user_group_name
 
         if trace:
-            logger.info(f'owner: {self.owner_name}, collaborator: {self.collaborator_name}, lock_status: {self.lock_status}, locked_by_group: {locked_by_group}, locked_by_individual: {locked_by_individual}')
+            logger.info(f'owner: {self.owner_name}, collaborator: {self.collaborator_name}, lock_status: {self.lock_status}, locked_by_group_id: {self.locked_by_group_id}, locked_by_group: {locked_by_group}, locked_by_individual: {locked_by_individual}')
 
         # Status
         if self.lock_status == collaborations.LockStatus.NOT_LOCKED:

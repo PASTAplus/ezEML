@@ -403,6 +403,16 @@ def remove_group_collaboration(group_collab_id, session=None):
             session.delete(group_collaboration)
 
 
+def get_group_collaboration_for_lock(group_lock_id):
+    # Return the group collaboration associated with the group lock.
+    group_lock = _get_group_lock_by_id(group_lock_id)
+    if group_lock:
+        group_collaboration = GroupCollaboration.query.filter_by(package_id=group_lock.package_id,
+                                                                 user_group_id=group_lock.locked_by).first()
+        return group_collaboration
+    return None
+
+
 def _remove_lock(package_id, session=None):
     with db_session(session) as session:
         lock = _get_lock(package_id)

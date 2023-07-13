@@ -62,12 +62,14 @@ class CollaborationRecord:
             locked_by_individual = collaborations._get_user(self.locked_by_individual_id).user_login
 
         locked_by_group = None
+        group_collaboration = None
         if self.locked_by_group_id is not None:
             group_lock = collaborations._get_group_lock_by_id(self.locked_by_group_id)
             if group_lock is not None:
                 locked_by_id = group_lock.locked_by
                 if locked_by_id is not None:
                     user_group = collaborations._get_user_group(locked_by_id)
+                    group_collaboration = collaborations.get_group_collaboration_for_lock(locked_by_id)
                     if user_group is not None:
                         locked_by_group = user_group.user_group_name
             else:
@@ -93,9 +95,9 @@ class CollaborationRecord:
             self.status_str = 'In use by ' + collaborations.display_name(locked_by_individual)
             if self.locked_by_group_id is not None:
                 # If the collaborator is not a group member, we want to show the status as locked by the group
-                group_collaboration = collaborations._get_group_collaboration(self.collab_id)
+                group_collaboration = collaborations.get_group_collaboration_for_lock(self.locked_by_group_id)
                 if group_collaboration:
-                    if not collaborations.is_group_member(self.collaborator_login, self.collab_id):
+                    if not collaborations.is_group_member(self.collaborator_login, group_collaboration.group_collab_id):
                         group_name = group_collaboration.user_group.user_group_name
                         self.status_str = f'In use by {group_name}'
 
@@ -110,9 +112,9 @@ class CollaborationRecord:
                 collaborations.CollaborationCase.LOGGED_IN_USER_IS_INDIVIDUAL_COLLABORATOR]:
                 # If the collaborator is not a group member, we want to show the status as locked by the group
 
-                group_collaboration = collaborations._get_group_collaboration(self.locked_by_group_id)
+                group_collaboration = collaborations.get_group_collaboration_for_lock(self.locked_by_group_id)
                 if group_collaboration:
-                    if not collaborations.is_group_member(self.collaborator_login, self.locked_by_group_id):
+                    if not collaborations.is_group_member(self.collaborator_login, group_collaboration.group_collab_id):
                         group_name = group_collaboration.user_group.user_group_name
                         self.status_str = f'In use by {group_name}'
             else:
@@ -125,9 +127,9 @@ class CollaborationRecord:
                 self.status_str = 'In use by ' + collaborations.display_name(self.collaborator_login)
 
         if self.lock_status == collaborations.LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER:
-            group_collaboration = collaborations._get_group_collaboration(self.locked_by_group_id)
+            group_collaboration = collaborations.get_group_collaboration_for_lock(self.locked_by_group_id)
             if group_collaboration:
-                if not collaborations.is_group_member(self.collaborator_login, self.locked_by_group_id):
+                if not collaborations.is_group_member(self.collaborator_login, group_collaboration.group_collab_id):
                     group_name = group_collaboration.user_group.user_group_name
                     self.status_str = f'In use by {group_name}'
                 else:

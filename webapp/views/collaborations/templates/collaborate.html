@@ -198,6 +198,27 @@
                 </tbody>
             </table>
             <br>
+
+        <h4>Group Collaborations</h4>
+            <table class="collab_table" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=20%>group_collab_id</th>
+                <th style="text-align:left;" width=20%>owner_id</th>
+                <th style="text-align:left;" width="20%">user_group_id</th>
+                <th style="text-align:left;" width="20%">package_id</th>
+                </thead>
+                <tbody>
+                {% for group_collaboration in group_collaboration_list %}
+                <tr>
+                <td class="collab_table" valign="top">{{ group_collaboration.group_collab_id }}</td>
+                <td class="collab_table" valign="top">{{ group_collaboration.owner_id }}</td>
+                <td class="collab_table" valign="top">{{ group_collaboration.user_group_id }}</td>
+                <td class="collab_table" valign="top">{{ group_collaboration.package_id }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <br>
             <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Clean Up Database"/>&nbsp;&nbsp;
 
         {% endif %}

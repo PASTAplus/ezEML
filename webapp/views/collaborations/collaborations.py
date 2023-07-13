@@ -29,6 +29,7 @@ from webapp.views.collaborations.data_classes import (
     CollaborationRecord,
     InvitationRecord,
     CollaborationOutput,
+    GroupCollaborationOutput,
     LockOutput,
     PackageOutput,
     UserOutput
@@ -647,6 +648,20 @@ def get_collaboration_output():
                 collaborator_id=collaboration.collaborator_id,
                 package_id=collaboration.package_id))
         return collaboration_list
+
+
+# For development and debugging
+def get_group_collaboration_output():
+    with db_session() as session:
+        group_collaboration_list = []
+        group_collaborations = GroupCollaboration.query.filter_by().all()
+        for group_collaboration in group_collaborations:
+            group_collaboration_list.append(GroupCollaborationOutput(
+                group_collab_id=group_collaboration.group_collab_id,
+                owner_id=group_collaboration.owner_id,
+                user_group_id=group_collaboration.user_group_id,
+                package_id=group_collaboration.package_id))
+        return group_collaboration_list
 
 
 # For development and debugging

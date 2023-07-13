@@ -233,6 +233,14 @@ class CollaborationOutput:
 
 
 @dataclass()
+class GroupCollaborationOutput:
+    group_collab_id: int
+    owner_id: int
+    user_group_id: int
+    package_id: int
+
+
+@dataclass()
 class UserOutput:
     user_id: int
     user_login: str

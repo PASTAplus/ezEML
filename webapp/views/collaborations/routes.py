@@ -48,6 +48,7 @@ from webapp.views.collaborations.collaborations import (
     get_collaborations,
     get_invitations,
     get_collaboration_output,
+    get_group_collaboration_output,
     get_user_output,
     get_package_output,
     get_lock_output,
@@ -113,6 +114,7 @@ def collaborate(filename=None, dev=None):
     my_invitations = get_invitations(user_login)
 
     collaboration_list = get_collaboration_output()
+    group_collaboration_list = get_group_collaboration_output()
     user_list = get_user_output()
     package_list = get_package_output()
     lock_list = get_lock_output()
@@ -129,7 +131,8 @@ def collaborate(filename=None, dev=None):
     return render_template('collaborate.html', collaborations=my_collaborations, invitations=my_invitations,
                            user=user_login, invitation_disabled=invitation_disabled,
                            save_backup_disabled=save_backup_disabled,
-                           collaboration_list=collaboration_list, user_list=user_list, package_list=package_list,
+                           collaboration_list=collaboration_list, group_collaboration_list=group_collaboration_list,
+                           user_list=user_list, package_list=package_list,
                            lock_list=lock_list, is_edi_curator=is_edi_curator, help=help, dev=dev)
 
 

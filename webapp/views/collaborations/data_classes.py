@@ -66,7 +66,11 @@ class CollaborationRecord:
         locked_by_group = None
         if self.locked_by_group_id is not None:
             if collaborations._get_group_collaboration(self.locked_by_group_id):
+                if trace:
+                    logger.info(f'collaborations._get_group_collaboration(self.locked_by_group_id): {collaborations._get_group_collaboration(self.locked_by_group_id)}')
                 if collaborations._get_group_collaboration(self.locked_by_group_id).user_group:
+                    if trace:
+                        logger.info(f'collaborations._get_group_collaboration(self.locked_by_group_id).user_group: {collaborations._get_group_collaboration(self.locked_by_group_id).user_group}')
                     locked_by_group = collaborations._get_group_collaboration(self.locked_by_group_id).user_group.user_group_name
 
         if trace:

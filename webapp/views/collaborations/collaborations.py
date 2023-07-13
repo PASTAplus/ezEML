@@ -439,6 +439,14 @@ def release_lock(user_login, package_id, session=None):
             _remove_lock(package_id, session=session)
 
 
+def _get_group_lock_by_id(group_lock_id):
+    try:
+        group_lock = GroupLock.query.filter_by(group_lock_id=group_lock_id).first()
+    except Exception as exc:
+        group_lock = None
+    return group_lock
+
+
 def _get_group_lock(package_id):
     try:
         lock = GroupLock.query.filter_by(package_id=package_id).first()
@@ -1275,6 +1283,11 @@ def create_invitation(filename, inviter_name, inviter_email, invitee_name, invit
         session.add(invitation)
         session.flush()
         return invitation_code
+
+
+def _get_user_group(user_group_id):
+    user_group = UserGroup.query.filter_by(user_group_id=user_group_id).first()
+    return user_group
 
 
 def get_user_group(user_group_name, create_if_not_found=True, session=None):

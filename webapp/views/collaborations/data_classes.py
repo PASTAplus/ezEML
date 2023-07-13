@@ -57,24 +57,22 @@ class CollaborationRecord:
         trace = self.owner_name in ['EDI', 'jide']
 
         is_group_entry = self.collaborator_login.endswith('-group_collaboration')
-        # if self.locked_by_group_id is not None:
-        #     locked_by_group = collaborations._get_user(self.locked_by_id).user_login
         locked_by_individual = None
         if self.locked_by_individual_id is not None:
             locked_by_individual = collaborations._get_user(self.locked_by_individual_id).user_login
 
         locked_by_group = None
         if self.locked_by_group_id is not None:
-            if collaborations._get_group_collaboration(self.locked_by_group_id):
-                if trace:
-                    logger.info(f'collaborations._get_group_collaboration(self.locked_by_group_id): {collaborations._get_group_collaboration(self.locked_by_group_id)}')
-                if collaborations._get_group_collaboration(self.locked_by_group_id).user_group:
-                    if trace:
-                        logger.info(f'collaborations._get_group_collaboration(self.locked_by_group_id).user_group: {collaborations._get_group_collaboration(self.locked_by_group_id).user_group}')
-                    locked_by_group = collaborations._get_group_collaboration(self.locked_by_group_id).user_group.user_group_name
+            group_lock = collaborations._get_group_lock_by_id(self.locked_by_group_id)
+            if group_lock is not None:
+                locked_by_id = group_lock.locked_by
+                if locked_by_id is not None:
+                    user_group = collaborations._get_user_group(locked_by_id)
+                    if user_group is not None:
+                        locked_by_group = user_group.user_group_name
             else:
                 if trace:
-                    logger.info(f'collaborations._get_group_collaboration(self.locked_by_group_id): {collaborations._get_group_collaboration(self.locked_by_group_id)}')
+                    logger.info(f'collaborations._get_group_lock_by_id(self.locked_by_group_id) returns None')
 
         if trace:
             logger.info(f'owner: {self.owner_name}, collaborator: {self.collaborator_name}, lock_status: {self.lock_status}, locked_by_group_id: {self.locked_by_group_id}, locked_by_group: {locked_by_group}, locked_by_individual: {locked_by_individual}')

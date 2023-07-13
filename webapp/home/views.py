@@ -1116,11 +1116,12 @@ def open_document(filename, owner=None, owner_login=None):
     if eml_node:
         current_user.set_filename(filename)
         if owner:
-            user_login = current_user.get_user_login()
-            if owner_login != user_login:
-                current_user.set_file_owner(owner, owner_login)
-            else:
-                current_user.set_file_owner(None)
+            # user_login = current_user.get_user_login()
+            current_user.set_file_owner(owner, owner_login)
+            # if owner_login != user_login:
+            #     current_user.set_file_owner(owner, owner_login)
+            # else:
+            #     current_user.set_file_owner(None)
         packageid = eml_node.attributes.get('packageId', None)
         if packageid:
             current_user.set_packageid(packageid)

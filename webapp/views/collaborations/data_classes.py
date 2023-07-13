@@ -260,3 +260,10 @@ class LockOutput:
     package_name: str
     locked_by: str
     timestamp: datetime
+
+
+@dataclass()
+class GroupLockOutput:
+    group_lock_id: int
+    package_id: int
+    locked_by_id: int

@@ -31,6 +31,7 @@ from webapp.views.collaborations.data_classes import (
     CollaborationOutput,
     GroupCollaborationOutput,
     LockOutput,
+    GroupLockOutput,
     PackageOutput,
     UserOutput
 )
@@ -734,6 +735,22 @@ def get_lock_output():
                 locked_by=display_name(locked_by),
                 timestamp=lock.timestamp))
         return lock_list
+
+
+# For development and debugging
+def get_group_lock_output():
+    with db_session() as session:
+        group_lock_list = []
+        group_locks = GroupLock.query.filter_by().all()
+        for group_lock in group_locks:
+            group_lock_id = group_lock.group_lock_id
+            package_id = group_lock.package_id
+            locked_by_id = group_lock.locked_by
+            group_lock_list.append(GroupLockOutput(
+                group_lock_id=group_lock_id,
+                package_id=package_id,
+                locked_by_id=locked_by_id))
+        return group_lock_list
 
 
 def get_groups_for_user(user_id, session=None):

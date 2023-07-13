@@ -52,6 +52,7 @@ from webapp.views.collaborations.collaborations import (
     get_user_output,
     get_package_output,
     get_lock_output,
+    get_group_lock_output,
     release_acquired_lock
 )
 import webapp.views.collaborations.backups as collaboration_backups
@@ -118,6 +119,7 @@ def collaborate(filename=None, dev=None):
     user_list = get_user_output()
     package_list = get_package_output()
     lock_list = get_lock_output()
+    group_lock_list = get_group_lock_output()
     set_current_page('collaborate')
     if current_user.get_file_owner():
         owned_by_other = True
@@ -133,7 +135,8 @@ def collaborate(filename=None, dev=None):
                            save_backup_disabled=save_backup_disabled,
                            collaboration_list=collaboration_list, group_collaboration_list=group_collaboration_list,
                            user_list=user_list, package_list=package_list,
-                           lock_list=lock_list, is_edi_curator=is_edi_curator, help=help, dev=dev)
+                           lock_list=lock_list, group_lock_list=group_lock_list,
+                           is_edi_curator=is_edi_curator, help=help, dev=dev)
 
 
 @collab_bp.route('/enable_edi_curation/<filename>', methods=['GET', 'POST'])

@@ -178,6 +178,24 @@
                 </tbody>
             </table>
 
+        <h4>Group Locks</h4>
+            <table class="collab_table display compact" width=100% style="padding: 10px;">
+                <thead>
+                <tr><th style="text-align:left;" width=20%>group_lock_id</th>
+                <th style="text-align:left;" width=20%>package_id</th>
+                <th style="text-align:left;" width=20%>locked_by_id</th>
+                </thead>
+                <tbody>
+                {% for group_lock in group_lock_list %}
+                <tr>
+                <td class="collab_table" valign="top">{{ group_lock.group_lock_id }}</td>
+                <td class="collab_table" valign="top">{{ group_lock.package_id }}</td>
+                <td class="collab_table" valign="top">{{ group_lock.locked_by_id }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
         <h4>Collaborations</h4>
             <table class="collab_table" width=100% style="padding: 10px;">
                 <thead>

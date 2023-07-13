@@ -54,7 +54,7 @@ class CollaborationRecord:
         self.collaborator_name = collaborations.display_name(self.collaborator_login)
 
 
-        trace = self.owner_name == 'EDI'
+        trace = self.owner_name in ['EDI', 'jide']
 
         is_group_entry = self.collaborator_login.endswith('-group_collaboration')
         # if self.locked_by_group_id is not None:

@@ -7,6 +7,8 @@ from flask_login import current_user
 from webapp.pages import *
 import webapp.views.collaborations.collaborations as collaborations
 
+import daiquiri
+logger = daiquiri.getLogger('data_classes: ' + __name__)
 
 @dataclass()
 class Backup:
@@ -51,17 +53,24 @@ class CollaborationRecord:
         self.owner_name = collaborations.display_name(self.owner_login)
         self.collaborator_name = collaborations.display_name(self.collaborator_login)
 
+
+        trace = self.owner_name == 'EDI'
+
         is_group_entry = self.collaborator_login.endswith('-group_collaboration')
         # if self.locked_by_group_id is not None:
         #     locked_by_group = collaborations._get_user(self.locked_by_id).user_login
         locked_by_individual = None
         if self.locked_by_individual_id is not None:
             locked_by_individual = collaborations._get_user(self.locked_by_individual_id).user_login
+
         locked_by_group = None
         if self.locked_by_group_id is not None:
             if collaborations._get_group_collaboration(self.locked_by_group_id):
                 if collaborations._get_group_collaboration(self.locked_by_group_id).user_group:
                     locked_by_group = collaborations._get_group_collaboration(self.locked_by_group_id).user_group.user_group_name
+
+        if trace:
+            logger.info(f'owner: {self.owner_name}, collaborator: {self.collaborator_name}, lock_status: {self.lock_status}, locked_by_group: {locked_by_group}, locked_by_individual: {locked_by_individual}')
 
         # Status
         if self.lock_status == collaborations.LockStatus.NOT_LOCKED:

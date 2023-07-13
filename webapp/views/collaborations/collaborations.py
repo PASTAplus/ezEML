@@ -779,21 +779,21 @@ def get_lock_status(package_id, session=None):
     with db_session(session) as session:
         # Get group lock status based on the provided package ID
         group_lock = _get_group_lock(package_id)
-        # If a group lock exists, store the ID of the group who has the lock
+        # If a group lock exists, store the ID of the group lock
         if group_lock:
-            group_locked_by_id = group_lock.locked_by
+            group_locked_by_id = group_lock.group_lock_id
         # Get individual lock status based on the provided package ID
         individual_lock = _get_lock(package_id)
         # If an individual lock exists, store the ID of the user who has the lock
         if individual_lock:
             individual_locked_by_id = individual_lock.locked_by
-    # Return the IDs of the holders of group and individual locks, respectively
+    # Return the IDs of the group lock and of holders of individual locks, respectively
     return group_locked_by_id, individual_locked_by_id
 
 
 def _calculate_lock_status(collaboration_case, logged_in_user_id, package_id, session=None):
     with db_session(session) as session:
-        # Get the IDs of the holders of group and individual locks, respectively
+        # Get the IDs of the group locks and holders of individual locks, respectively
         group_locked_by_id, individual_locked_by_id = get_lock_status(package_id, session=session)
         # Initialize lock status as NOT_LOCKED
         lock_status = LockStatus.NOT_LOCKED

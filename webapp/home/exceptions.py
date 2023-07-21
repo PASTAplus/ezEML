@@ -17,6 +17,10 @@ class ExtraWhitespaceInColumnNames(ezEMLError):
     pass
 
 
+class FileOpenError(ezEMLError):
+    pass
+
+
 class InvalidHeaderRow(ezEMLError):
     pass
 

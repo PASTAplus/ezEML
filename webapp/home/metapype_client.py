@@ -53,6 +53,7 @@ from webapp.home.texttype_node_processing import (
     TEXTTYPE_NODES
 )
 
+import webapp.views.collaborations.collaborations as collaborations
 import webapp.auth.user_data as user_data
 import webapp.home.exceptions as exceptions
 import webapp.home.check_data_table_contents as check_data_table_contents
@@ -119,12 +120,30 @@ def log_info(msg):
         logger.info(msg)
 
 
+"""
+Hidden Buttons...
+
+When the user is working in a page where there are fields to fill in (e.g., the Title page or a Data Table page)
+and the user clicks on a menu option like "New" or "Open", we don't go directly to that New or Open page because
+we first need to save whatever changes the user has entered in the current page. Only the handler for the current
+page knows how to do that. I.e., the Open handler, for example, can't generically save the data since Open may have
+been clicked when the user was in any number of different pages.
+ 
+Instead, we post to the current page a "hidden" button that tells us which menu option was selected. Then, in the 
+current page, we save the data that the user has entered and then we go to the new page indicated by the "hidden" 
+button. E.g., if they clicked "Open" while on the Title page, we post to the Title page with Hidden_Open in the form 
+so the Title method can save the title data and then go to the Open page.
+"""
 def is_hidden_button():
     return any(button in request.form for button in HIDDEN_BUTTONS)
 
 
 def handle_hidden_buttons(new_page, this_page):
-    # If none of the hidden buttons is found, leave new_page as we found it
+    """
+    See if a "hidden" button has been clicked. If so, set new_page to the page that the button indicates.
+
+    If none of the hidden buttons is found, leave new_page as we found it
+    """
     if BTN_HIDDEN_CHECK in request.form:
         new_page = PAGE_CHECK
     elif BTN_HIDDEN_SAVE in request.form:
@@ -143,7 +162,14 @@ def handle_hidden_buttons(new_page, this_page):
 
 
 def check_val_for_hidden_buttons(val, new_page, this_page):
-    # If none of the hidden buttons is found, leave new_page as we found it
+    """
+    See if a "hidden" button has been clicked. If so, set new_page to the page that the button indicates.
+    The process here is different from handle_hidden_buttons() because we're a "select" page where the form
+    dictionary has node_id's as keys and the button is a value.
+
+    If none of the hidden buttons is found, leave new_page as we found it.
+    """
+
     if val == BTN_HIDDEN_CHECK:
         new_page = PAGE_CHECK
     elif val == BTN_HIDDEN_SAVE:
@@ -1106,7 +1132,6 @@ def save_package_id(eml_node):
 
 def load_eml(filename:str=None,
              folder_name=None,
-             use_pickle:bool=False,
              skip_metadata_check:bool=False,
              do_not_lock:bool=False,
              owner_login:str=None,
@@ -1115,56 +1140,61 @@ def load_eml(filename:str=None,
     # Usually when we load an EML file, we want to acquire a lock on it. However, there are times when we are just
     #  looking at the file, not opening it for editing. For example, when checking metadata or when getting the package
     #  size for manage packages page.
+    # We don't nest this in the larger try/except because the exception signals that the document is already locked by
+    #  someone else. That exception will be handled in webapp/errors/handler.py, which posts an informative message.
+    #  If it is already locked by us, no exception is raised but the lock's timestamp is updated.
+    lock = None
     if not do_not_lock:
         try:
-            user_data.is_document_locked(filename, owner_login=owner_login)
+            lock = user_data.is_document_locked(filename, owner_login=owner_login)
         except Exception as e:
             logger.error(f"load_eml: is_document_locked: {e}")
             raise
 
-    if owner_login:
-        folder_name = user_data.get_user_folder_name(owner_login=owner_login)
+    try:
+        if owner_login:
+            folder_name = user_data.get_user_folder_name(owner_login=owner_login)
 
-    eml_node = None
-    if folder_name:
-        user_folder = folder_name
-    else:
-        user_folder = None
-        try:
-            user_folder = user_data.get_user_folder_name(log_the_details=log_the_details)
-        except Exception as e:
-            logger.error(f"load_eml: {e}")
-    if not user_folder:
-        user_folder = '.'
-    ext = 'json' if not use_pickle else 'pkl'
-    ext_filename = f"{user_folder}/{filename}.{ext}"
-    if log_the_details:
-        logger.info(f"load_eml: ext_filename: {ext_filename}")
-    if os.path.isfile(ext_filename):
-        if use_pickle:
-            eml_node = pickle.load(open(ext_filename, 'rb'))
+        eml_node = None
+        if folder_name:
+            user_folder = folder_name
         else:
-            eml_node = from_json(ext_filename)
-    elif use_pickle:
-        ext_filename = filename.replace('.pkl', '.json')
+            user_folder = None
+            try:
+                user_folder = user_data.get_user_folder_name(log_the_details=log_the_details)
+            except Exception as e:
+                logger.error(f"load_eml: {e}")
+        if filename == 'edi.12.1':
+            raise FileNotFoundError('foobar')
+        if not user_folder:
+            user_folder = '.'
+        ext = 'json'
+        ext_filename = f"{user_folder}/{filename}.{ext}"
+        if log_the_details:
+            logger.info(f"load_eml: ext_filename: {ext_filename}")
         if os.path.isfile(ext_filename):
             eml_node = from_json(ext_filename)
 
-    if eml_node:
-        if not skip_metadata_check:
-            get_check_metadata_status(eml_node, filename)
-            check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
-            # save_package_id(eml_node)
-            user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
-    else:
-        logger.error(f"load_eml: Could not load {ext_filename}")
+        if eml_node:
+            if not skip_metadata_check:
+                get_check_metadata_status(eml_node, filename)
+                check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+                user_data.set_model_has_complex_texttypes(model_has_complex_texttypes(eml_node))
+        else:
+            logger.error(f"load_eml: Could not load {ext_filename}")
 
-    from webapp.home.views import url_of_interest
-    if url_of_interest():
-        if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
-            store_len = len(Node.store)
-            log_info(f'*** load_eml ***: store_len={store_len}     {request.url}')
-            log_info(f'*** load_eml ***: node store checksum={calculate_node_store_checksum()}    {request.url}')
+        from webapp.home.views import url_of_interest
+        if url_of_interest():
+            if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
+                store_len = len(Node.store)
+                log_info(f'*** load_eml ***: store_len={store_len}     {request.url}')
+                log_info(f'*** load_eml ***: node store checksum={calculate_node_store_checksum()}    {request.url}')
+
+    except Exception as e:
+        collaborations.release_acquired_lock(lock)
+        logger.error(f"load_eml: {e}")
+        eml_node = None
+        # raise exceptions.FileOpenError(e)
 
     return eml_node
 
@@ -1571,7 +1601,7 @@ def fixup_field_delimiters(eml_node):
             field_delimiter_node.content = '\\t'
 
 
-def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=False):
+def save_both_formats(filename:str=None, eml_node:Node=None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
@@ -1579,9 +1609,6 @@ def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=Fal
     fixup_categorical_variables(eml_node)
     fixup_field_delimiters(eml_node)
     add_eml_editor_metadata(eml_node)
-    if use_pickle:
-        pickle_eml(filename, eml_node)
-        return
     save_eml(filename=filename, eml_node=eml_node, format='json')
     save_eml(filename=filename, eml_node=eml_node, format='xml')
 
@@ -2074,6 +2101,13 @@ def fix_up_custom_units(eml_node:Node=None):
     # In addition, we check here whether we have custom units in the additionalMetadata that are no
     #  longer needed, because they no longer appear in a data table.
     # And if there are no custom units in the additionalMetadata, we remove the additionalMetadata node.
+
+    custom_unit_nodes = []
+    eml_node.find_all_descendants(names.CUSTOMUNIT, custom_unit_nodes)
+    custom_units = set()
+    for custom_unit_node in custom_unit_nodes:
+        custom_units.add(custom_unit_node.content)
+
     unitlist_node = eml_node.find_descendant(names.UNITLIST)
     if unitlist_node:
         metadata_node = unitlist_node.parent
@@ -2084,12 +2118,10 @@ def fix_up_custom_units(eml_node:Node=None):
         # Remove custom unit nodes that are no longer needed
         custom_unit_nodes = []
         eml_node.find_all_descendants(names.CUSTOMUNIT, custom_unit_nodes)
-        custom_units = []
-        for custom_unit_node in custom_unit_nodes:
-            custom_units.append(custom_unit_node.content)
         unit_nodes = unitlist_node.find_all_children(names.UNIT)
         for unit_node in unit_nodes:
             if unit_node.attribute_value('id') not in custom_units:
+                log_info(f'Removing from additionalMetadata custom unit list: {unit_node.attribute_value("id")}')
                 unitlist_node.remove_child(unit_node)
         # If there are no custom units, remove the unitlist, metadata, and additionalMetadata nodes if they're empty
         unit_nodes = unitlist_node.find_all_children(names.UNIT)
@@ -2100,6 +2132,15 @@ def fix_up_custom_units(eml_node:Node=None):
                 additional_metadata_node.remove_child(metadata_node)
                 if not additional_metadata_node.children:
                     eml_node.remove_child(additional_metadata_node)
+
+    # Make sure all custom units are represented in the additionalMetadata node
+    # This is a band-aid and shouldn't be necessary, but we saw an unexplained case where it was. Until that's figured
+    #  out, we'll do this. Note that if we create a new custom unit additionalMetadata node, we don't add a description.
+    custom_unit_additionalMetadata_nodes = eml_node.find_all_nodes_by_path([
+        names.ADDITIONALMETADATA, names.METADATA, names.UNITLIST, names.UNIT])
+    for custom_unit_additionalMetadata_node in custom_unit_additionalMetadata_nodes:
+        if custom_unit_additionalMetadata_node.id not in custom_units:
+            handle_custom_unit_additional_metadata(eml_node, custom_unit_additionalMetadata_node.id)
 
 
 def handle_custom_unit_additional_metadata(eml_node:Node=None, custom_unit_name:str=None, custom_unit_description:str=None):

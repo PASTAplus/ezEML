@@ -8,6 +8,7 @@
 :Author:
     servilla
     costa
+    ide
 
 :Created:
     7/20/18
@@ -28,9 +29,13 @@ from wtforms.widgets import TextArea
 
 
 class EDIForm(FlaskForm):
-    # @classmethod
-    # def init_md5(cls, init_str):
-    #     cls.md5 = HiddenField(hashlib.md5(init_str.encode('utf-8')).hexdigest())
+    """
+    Base class for EDI forms.
+
+    Contains MD5 hash of form data to detect whether form contents have changed.
+    Various methods are provided to support MD5 hash calculation, external to the class. See below.
+    """
+
     md5 = HiddenField('')
     init_str = ''
 
@@ -38,6 +43,7 @@ class EDIForm(FlaskForm):
         self.md5.data = hashlib.md5(self.init_str.encode('utf-8')).hexdigest()
 
     def field_data(self):
+        """Return a tuple of field data, excluding md5 and csrf_token."""
         fields = [
             val
             for key, val in self.data.items()
@@ -47,11 +53,16 @@ class EDIForm(FlaskForm):
 
 
 def concat_str(form):
+    """Return a concatenated string of field data, excluding md5 and csrf_token, interleaved with field index.
+    We interleave the field index so we can detect if a field's value is copy-pasted to another field, for example.
+    If the field index were not interleaved, then the MD5 hash would be the same for two forms with the same field
+    values in permuted order."""
+
     concat_str = ''
     if form:
         field_data = form.field_data()
         if field_data:
-            i = 0  # we interleave the field index so we can detect if a field's value is cut-and-pasted to another field
+            i = 0  # We interleave the field index so we can detect if a field's value is copy-pasted to another field
             for val in field_data:
                 # if val:
                 concat_str += str(i) + str(val)
@@ -60,16 +71,19 @@ def concat_str(form):
 
 
 def form_md5(form):
+    """Return the MD5 hash of the relevant field data, i.e., excluding md5 and csrf_token."""
     form_str = concat_str(form)
     md5 = hashlib.md5(form_str.encode('utf-8')).hexdigest()
     return md5
 
 
 def init_form_md5(form):
+    """Initialize the MD5 hash for a form."""
     form.md5.data = form_md5(form)
 
 
 def is_dirty_form(form):
+    """Return True if the form data has changed since the form was last checked."""
     is_dirty = False
     if form:
         md5 = form_md5(form)
@@ -79,6 +93,7 @@ def is_dirty_form(form):
 
 
 def validate_float(form, field):
+    """Validate that the field data is a float, but allow an empty field."""
     if len(field.data) == 0:
         return
     try:
@@ -88,6 +103,7 @@ def validate_float(form, field):
 
 
 def validate_integer(form, field):
+    """Validate that the field data is an integer, but allow an empty field."""
     if len(field.data) == 0:
         return
     try:
@@ -97,13 +113,14 @@ def validate_integer(form, field):
 
 
 class CheckboxField(SelectField):
+    """A select field that displays a list of checkboxes rather than radio buttons."""
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
 
 
 class MultiCheckboxField(SelectMultipleField):
     """
-    A multiple-select, except displays a list of checkboxes.
+    A multiple-select that displays a list of checkboxes.
 
     Iterating the field will produce subfields, allowing custom rendering of
     the enclosed checkbox fields.
@@ -111,6 +128,8 @@ class MultiCheckboxField(SelectMultipleField):
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
 
+
+# The forms below are used in the home blueprint.
 
 class ImportEMLForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])

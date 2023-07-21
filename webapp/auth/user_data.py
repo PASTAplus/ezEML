@@ -186,7 +186,7 @@ def is_document_locked(filename, owner_login=None):
     owner_login, if passed, is used to help identify the package.
     """
     user_login = current_user.get_user_org()
-    collaborations.update_lock(user_login, filename, owner_login=owner_login)
+    return collaborations.update_lock(user_login, filename, owner_login=owner_login)
 
 
 def release_document_lock(filename):

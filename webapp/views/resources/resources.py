@@ -1,14 +1,14 @@
 import os
 import daiquiri
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, session
+    Blueprint, flash, render_template, redirect, request, url_for
 )
 from flask_login import (
     current_user, login_required
 )
 
 from webapp.auth.user_data import (
-    is_first_usage, set_active_packageid, set_active_document, get_user_folder_name
+    is_first_usage, set_active_packageid, set_active_document
 )
 
 from webapp.home.metapype_client import (
@@ -74,9 +74,12 @@ def log_info(msg):
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
 @login_required
 def title(filename=None):
+    """Handle the page for the Title item in the Contents menu."""
+
+    # Log info that helps us see who's currently using ezEML. Title is a page that's frequently visited.
     user_name = current_user.get_username()
     current_packageid = current_user.get_filename()
-    pid = os.getpid()
+    pid = os.getpid() # OS process ID for logging/debugging. Not to be confused with PASTA package ID.
     metapype_store = ''
     if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
         metapype_store_size = len(Node.store)
@@ -87,14 +90,13 @@ def title(filename=None):
 
     # Process POST
     if request.method == 'POST' and form.validate_on_submit():
-        save = False
-        if is_dirty_form(form):
-            save = True
 
-        if save:
+        # If the form is dirty, then save the data.
+        if is_dirty_form(form):
             create_title(title=form.title.data, filename=filename)
             form.md5.data = form_md5(form)
 
+        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_DATA_TABLE_SELECT
         this_page = PAGE_TITLE
         new_page = handle_hidden_buttons(new_page, this_page)
@@ -105,6 +107,8 @@ def title(filename=None):
     try:
         eml_node = load_eml(filename=filename)
         if not eml_node:
+            # This can happen if the user enters a URL directly into the browser, and the URL is for a package that
+            #  doesn't exist or the URL is of the form https://ezeml.edirepository.org/title/ -- i.e., no filename given.
             logger.error(f'No EML node found for filename={filename}')
             set_active_document(None)
             return redirect(url_for(PAGE_INDEX))
@@ -123,29 +127,28 @@ def title(filename=None):
 
     set_current_page('title')
     help = get_helps(['title', 'nav', 'welcome'])
-    first_usage = is_first_usage()
+    first_usage = is_first_usage()  # If this is the first time the user has used ezEML, we'll show the welcome popup.
     return render_template('title.html', title='Title', form=form, help=help, is_first_usage=first_usage)
 
 
 @res_bp.route('/data_package_id/<filename>', methods=['GET', 'POST'])
 @login_required
 def data_package_id(filename=None):
+    """Handle the page for the Data Package ID item in the Contents menu."""
+
     form = DataPackageIDForm()
-    eml_node = load_eml(filename=filename)
 
     # Process POST
-    # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
-        save = False
-        if is_dirty_form(form):
-            save = True
 
-        if save:
+        # If the form is dirty, then save the data.
+        if is_dirty_form(form):
             data_package_id = form.data_package_id.data
             create_data_package_id(data_package_id, filename)
             set_active_packageid(data_package_id)
             form.md5.data = form_md5(form)
 
+        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_TITLE
         this_page = PAGE_DATA_PACKAGE_ID
         new_page = handle_hidden_buttons(new_page, this_page)
@@ -153,6 +156,8 @@ def data_package_id(filename=None):
         return redirect(url_for(new_page, filename=filename))
 
     # Process GET
+    eml_node = load_eml(filename=filename)
+    # Populate the form values
     data_package_id = eml_node.attribute_value('packageId')
     form.data_package_id.data = data_package_id if data_package_id else ''
     form.md5.data = form_md5(form)
@@ -165,21 +170,20 @@ def data_package_id(filename=None):
 @res_bp.route('/publication_info/<filename>', methods=['GET', 'POST'])
 @login_required
 def publication_info(filename=None):
+    """Handle the page for the Publication Info item in the Contents menu."""
+
     form = PublicationInfoForm()
 
     # Process POST
-    # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
 
+        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_METHOD_STEP_SELECT
         this_page = PAGE_PUBLICATION_INFO
         new_page = handle_hidden_buttons(new_page, this_page)
 
-        save = False
+        # If the form is dirty, then save the data.
         if is_dirty_form(form):
-            save = True
-
-        if save:
             pubplace = form.pubplace.data
             pubdate = form.pubdate.data
             create_pubinfo(pubplace=pubplace, pubdate=pubdate, filename=filename)
@@ -188,6 +192,7 @@ def publication_info(filename=None):
 
     # Process GET
     eml_node = load_eml(filename=filename)
+    # Populate the form values
     pubplace_node = eml_node.find_single_node_by_path([names.DATASET, names.PUBPLACE])
     if pubplace_node:
         form.pubplace.data = pubplace_node.content
@@ -195,6 +200,7 @@ def publication_info(filename=None):
     if pubdate_node:
         form.pubdate.data = pubdate_node.content
     form.md5.data = form_md5(form)
+
     set_current_page('publication_info')
     help = get_helps(['pubplace', 'pubdate'])
     return render_template('publication_info.html', help=help, form=form, title='Publication Info')
@@ -203,6 +209,8 @@ def publication_info(filename=None):
 @res_bp.route('/abstract/<filename>', methods=['GET', 'POST'])
 @login_required
 def abstract(filename=None):
+    """Handle the page for the Abstract item in the Contents menu."""
+
     form = AbstractForm(filename=filename)
 
     # Process POST
@@ -215,13 +223,16 @@ def abstract(filename=None):
                 # User has elected to reset to last valid saved state
                 return get_abstract(filename, form)
 
+        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_KEYWORD_SELECT
         this_page = PAGE_ABSTRACT
         new_page = handle_hidden_buttons(new_page, this_page)
 
         if form.validate_on_submit():
+            # If the form is dirty, then save the data.
             if is_dirty_form(form):
                 abstract = form.abstract.data
+                # Abstract can use complex text types, so we need to validate it as XML if it's expressed that way.
                 valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
                 if valid:
                     create_abstract(filename=filename, abstract=abstract)
@@ -239,6 +250,7 @@ def abstract(filename=None):
 def render_get_abstract_page(form, filename):
     eml_node=load_eml(filename)
     form.md5.data = form_md5(form)
+
     set_current_page('abstract')
     help = [get_help('abstract'), get_help('nav')]
     return render_template('abstract.html',
@@ -264,6 +276,8 @@ def get_abstract(filename, form):
 @res_bp.route('/intellectual_rights/<filename>', methods=['GET', 'POST'])
 @login_required
 def intellectual_rights(filename=None):
+    """Handle the page for the Intellectual Rights item in the Contents menu."""
+
     form = IntellectualRightsForm(filename=filename)
 
     # Process POST
@@ -276,11 +290,8 @@ def intellectual_rights(filename=None):
                 # User has elected to reset to last valid saved state
                 return get_intellectual_rights(filename, form)
 
-        submit_type = None
+        # If the form is dirty, then save the data.
         if is_dirty_form(form):
-            submit_type = 'Save Changes'
-
-        if submit_type == 'Save Changes':
             if form.intellectual_rights_radio.data == 'CC0':
                 intellectual_rights = INTELLECTUAL_RIGHTS_CC0
             elif form.intellectual_rights_radio.data == 'CCBY':
@@ -298,6 +309,7 @@ def intellectual_rights(filename=None):
                 font_family = ''
                 return render_get_intellectual_rights_page(form, filename, font_family)
 
+        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
         this_page = PAGE_INTELLECTUAL_RIGHTS
         new_page = handle_hidden_buttons(new_page, this_page)
@@ -311,6 +323,7 @@ def intellectual_rights(filename=None):
 def render_get_intellectual_rights_page(form, filename, font_family):
     eml_node=load_eml(filename)
     form.md5.data = form_md5(form)
+
     set_current_page('intellectual_rights')
     help = [get_help('intellectual_rights')]
 
@@ -365,12 +378,15 @@ def populate_keyword_form(form: KeywordForm, kw_node: Node, keyword_thesaurus_no
 @res_bp.route('/keyword_select/<filename>', methods=['GET', 'POST'])
 @login_required
 def keyword_select(filename=None):
+    """Handle the page for the Keywords item in the Contents menu. It allows selection of a keyword from the list."""
+
     form = KeywordSelectForm(filename=filename)
 
     # Process POST
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
+        # Decide which page to go to next depending on the button clicked.
         url = keyword_select_post(filename, form, form_dict,
                                   'POST', PAGE_KEYWORD_SELECT, PAGE_ABSTRACT,
                                   PAGE_INTELLECTUAL_RIGHTS, PAGE_KEYWORD)
@@ -381,11 +397,12 @@ def keyword_select(filename=None):
 
 
 def keyword_select_get(filename=None, form=None):
+    """Render the page with the list of keywords."""
     # Process GET
     kw_list = []
     title = 'Keywords'
-    eml_node = load_eml(filename=filename)
 
+    eml_node = load_eml(filename=filename)
     if eml_node:
         kw_list = list_keywords(eml_node)
 
@@ -400,6 +417,7 @@ def keyword_select_get(filename=None, form=None):
 def keyword_select_post(filename=None, form=None, form_dict=None,
                         method=None, this_page=None, back_page=None,
                         next_page=None, edit_page=None):
+    """Decide which page to go to next from the Keywords page depending on the button clicked."""
     node_id = ''
     new_page = None
     if form_dict:
@@ -426,10 +444,13 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
                 process_down_button(filename, node_id)
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
-                node_id = '1'
+                node_id = '1'  # node_id == '1`' means add a new keyword
             new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+            if new_page:
+                break
 
     if form.validate_on_submit():
+        # We have several cases here because different new_pages require different parameters.
         if new_page == edit_page:
             return url_for(new_page,
                            filename=filename,
@@ -457,10 +478,12 @@ def remove_keyword(filename, node_id):
 # node_id is the id of the keyword node being edited. If the value is
 # '1', it means we are adding a new keyword node, otherwise we are
 # editing an existing one.
-#
 @res_bp.route('/keyword/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def keyword(filename=None, node_id=None):
+    """Handle the page for adding/editing a particular Keyword. We come here when Edit is clicked for a keyword in the
+    list of keywords, or when Add Keyword is clicked to add a new keyword."""
+
     eml_node = load_eml(filename=filename)
     dataset_node = eml_node.find_child(names.DATASET)
 
@@ -473,10 +496,10 @@ def keyword(filename=None, node_id=None):
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-            url = url_for(PAGE_KEYWORD_SELECT, filename=filename)
-            return redirect(url)
+        # Cancel has been clicked so go back to the Keyword Select page
+        url = url_for(PAGE_KEYWORD_SELECT, filename=filename)
+        return redirect(url)
 
-    # if request.method == 'POST' and form.validate_on_submit():
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
@@ -484,14 +507,9 @@ def keyword(filename=None, node_id=None):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, new_page)
+                new_page = check_val_for_hidden_buttons(val, new_page, new_page) # blah
 
-        submit_type = None
         if is_dirty_form(form):
-            submit_type = 'Save Changes'
-        # flash(f'submit_type: {submit_type}')
-
-        if submit_type == 'Save Changes':
             keyword = form.keyword.data
             keyword_type = form.keyword_type.data
             keyword_thesaurus = form.keyword_thesaurus.data

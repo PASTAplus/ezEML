@@ -25,14 +25,12 @@ import daiquiri
 from datetime import date, datetime
 import glob
 import html
-import json
 import math
 import os
 import os.path
 import pandas as pd
 from pathlib import Path
 import pickle
-import requests
 from shutil import copyfile, move, rmtree
 import subprocess
 from urllib.parse import urlencode, urlparse, quote, unquote
@@ -68,8 +66,8 @@ from webapp.home.exceptions import (
 )
 
 from webapp.home.forms import ( 
-    CreateEMLForm, DownloadEMLForm, ImportPackageForm,
-    OpenEMLDocumentForm, DeleteEMLForm, SaveAsForm,
+    CreateEMLForm, ImportPackageForm,
+    OpenEMLDocumentForm, SaveAsForm,
     LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm,
     ImportItemsForm, ImportSingleItemForm,
@@ -95,17 +93,17 @@ from webapp.home.log_usage import (
 from webapp.home.manage_packages import get_data_packages, get_data_usage
 
 from webapp.home.metapype_client import ( 
-    load_eml, save_both_formats, new_child_node, remove_child, create_eml,
+    load_eml, save_both_formats, remove_child, create_eml,
     move_up, move_down, UP_ARROW, DOWN_ARROW, RELEASE_NUMBER,
     save_old_to_new, read_xml, new_child_node, truncate_middle,
     compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
     compose_funding_award_label, compose_project_label, list_data_packages,
     import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
     import_project_node, import_related_project_nodes, get_check_metadata_status,
-    handle_hidden_buttons, check_val_for_hidden_buttons,
+    check_val_for_hidden_buttons,
     add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
     add_imported_from_xml_metadata, get_imported_from_xml_metadata,
-    clear_taxonomy_imported_from_xml, taxonomy_imported_from_xml,
+    clear_taxonomy_imported_from_xml,
     is_hidden_button, handle_hidden_buttons, package_contains_elements_unhandled_by_ezeml,
     strip_elements_added_by_pasta
 )
@@ -125,7 +123,6 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from metapype.eml import names
-from metapype.model import mp_io
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
@@ -138,8 +135,6 @@ import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
 from webapp.home.texttype_node_processing import (
     check_xml_validity,
-    invalid_xml_error_message,
-    is_valid_xml_fragment,
     model_has_complex_texttypes
 )
 
@@ -161,9 +156,9 @@ def url_of_interest():
         url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
         if url_prefix not in request.url:
             return False
-        # if parsed_url.path in ['/eml/', '/eml/auth/login']:
-        #     # We suppress logging for these two URLs because they are called every 5 minutes by uptime monitor
-        #     return False
+        if parsed_url.path in ['/eml/', '/eml/auth/login']:
+            # We suppress logging for these two URLs because they are called every 5 minutes by uptime monitor
+            return False
     return True
 
 
@@ -192,7 +187,6 @@ def check_metapype_store():
             log_info(f'********************************************************')
             log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
             log_info(f'********************************************************')
-            # raise MetapypeStoreIsNonEmpty(f'Node.store is not empty: {store_len}')
 
 
 @home.after_app_request
@@ -241,6 +235,7 @@ def debug_None(x, msg):
 
 
 def reload_metadata():
+    """Call to reload the metadata to get the check_metadata badge status updated."""
     current_document = current_user.get_filename()
     if not current_document:
         # if we've just deleted the current document, it won't exist
@@ -287,8 +282,10 @@ def log_login_usage(login_type:str=None):
     return response
 
 
-# Endpoint for REST Service to get a list of a data table's columns and their variable types
-# Note that this returns the names as they are defined in the metadata, not the names as they are displayed in the table
+# Endpoint for REST Service to get a list of a data table's columns and their variable types.
+# Note that this returns the names as they are defined in the metadata, not as they are defined in the table.
+# This is a REST service rather than a direct function call because we want to support eventually making
+#  Check Data Table a separate, standalone service.
 @home.route('/get_data_table_columns/', methods=['GET','POST'])
 def get_data_table_columns():
     eml_file_url = request.headers.get('eml_file_url')
@@ -300,7 +297,9 @@ def get_data_table_columns():
     return response
 
 
-# Endpoint for REST Service to check a data table's CSV file
+# Endpoint for REST Service to check a data table's CSV file.
+# This is a REST service rather than a direct function call because we want to support eventually making
+#  Check Data Table a separate, standalone service.
 @home.route('/check_data_table/', methods=['POST'])
 def check_data_table():
     eml_file_url = request.headers.get('eml_file_url')
@@ -313,6 +312,8 @@ def check_data_table():
 @home.route('/data_table_errors/<data_table_name>', methods=['GET', 'POST'])
 @login_required
 def data_table_errors(data_table_name:str=None):
+    """Handle the Check data table link or Show errors link for a table on the Check Data Tables page."""
+
     current_document = user_data.get_active_document()
     if not current_document:
         raise FileNotFoundError
@@ -331,9 +332,8 @@ def data_table_errors(data_table_name:str=None):
             data_table_node = _data_table_node
             break
     if not data_table_node:
-        raise ValueError  # TODO: use custom exception
+        raise DataTableError
 
-    # TODO TEMP
     # Save the EML to a file to fixup the namespace declarations
     save_both_formats(current_document, eml_node)
 
@@ -361,7 +361,8 @@ def data_table_errors(data_table_name:str=None):
         except Exception as err:
             flash(err, 'error')
             help = get_helps(['data_table_errors'])
-            return render_template('data_table_errors.html', data_table_name=data_table_name, column_errs='', help=help, back_url=get_back_url())
+            return render_template('data_table_errors.html', data_table_name=data_table_name,
+                                   column_errs='', help=help, back_url=get_back_url())
 
     column_errs, has_blanks = check_data_table_contents.generate_error_info_for_webpage(data_table_node, errors)
     # log_info(f'column_errs: {column_errs[:1000]}')
@@ -528,6 +529,7 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
 
 @home.before_app_request
 def load_eval_entries():
+    """Load the Check Metadata errors and warnings from the CSV file."""
     if current_app.config.get('__eval__title_01'):
         return
     rows = []
@@ -554,6 +556,7 @@ def get_keywords(which):
 
 @home.before_app_request
 def init_help():
+    """Load the help text from the help.txt file and save in a dict for quick lookup."""
     if help_dict:
         if not session.get('__help__contents'):
             # special case for supporting base.html template
@@ -591,11 +594,18 @@ def init_help():
 
 
 def get_help(id):
+    """Return the help title and content for the given id."""
     title, content = help_dict.get(id)
     return f'__help__{id}', title, content
 
 
 def get_helps(ids):
+    """
+    Return a list of help (id, title, content) tuples for the given list of ids.
+
+    The returned list is ready for use in the templates. The ids are prefixed with '__help__' to make them
+    unique in the template.
+    """
     helps = []
     for id in ids:
         if id in help_dict:
@@ -606,10 +616,12 @@ def get_helps(ids):
 
 @home.route('/')
 def index():
+    """Handle the index (Home) page."""
+
     if current_user.is_authenticated:
         log_the_details = Config.LOG_FILE_HANDLING_DETAILS if Config.LOG_FILE_HANDLING_DETAILS else False
+
         current_document = user_data.get_active_document(log_the_details=log_the_details)
-        new_page = PAGE_INDEX
         if current_document:
             eml_node = load_eml(filename=current_document, log_the_details=log_the_details)
             if eml_node:
@@ -631,7 +643,11 @@ def edit(page:str=None, dev=None):
     """
     The edit page allows for direct editing of a top-level element such as
     title, abstract, creators, etc. This function simply redirects to the
-    specified page, passing the packageId as the only parameter.
+    specified page.
+
+    This construction makes it possible for the base.html template to call
+    the various top-level element pages by just calling the Edit page, and the
+    Edit page handles various checks before redirecting to the correct page.
     """
     if current_user.is_authenticated and page:
         current_filename = user_data.get_active_document()
@@ -654,6 +670,7 @@ def edit(page:str=None, dev=None):
 
 
 def get_back_url(success=False):
+    """Handle the back button/link on various pages."""
     url = url_for(PAGE_INDEX)
     if current_user.is_authenticated:
         new_page = get_redirect_target_page()
@@ -688,68 +705,43 @@ def slow_poke():
 
 @home.route('/about')
 def about():
+    """Handle the About page."""
     return render_template('about.html', back_url=get_back_url(), title='About')
 
 
 @home.route('/user_guide')
 def user_guide():
-    # Logging usage of User Guide is done via AJAX endpoint log_user_guide_usage
+    """
+    Handle the User Guide page that displays a list of links to User Guide chapters.
+
+    Logging usage of User Guide is done via AJAX endpoint log_user_guide_usage, which is invoked when
+    one of the chapter links is clicked.
+    """
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
 @home.route('/news')
 def news():
+    """Handle the News page."""
     return render_template('news.html', back_url=get_back_url(), title="What's New")
 
 
 @home.route('/restore_welcome_dialog')
 def restore_welcome_dialog():
+    """Handle the Welcome popup that's displayed for first-time users."""
     return render_template('restore_welcome_dialog.html', back_url=get_back_url())
 
 
 @home.route('/encoding_error/<filename>')
 def encoding_error(filename=None, errors=None):
+    """Handle the error page that displays errors when characters are encountered that are not UTF-8 encoded."""
     return render_template('encoding_error.html', filename=filename, errors=errors, title='Encoding Errors')
 
 
 @home.route('/file_error/<filename>')
 def file_error(filename=None):
+    """Handle the error page that displays a generic error when a file cannot be loaded."""
     return render_template('file_error.html', filename=filename, title='File Error')
-
-
-@home.route('/delete', methods=['GET', 'POST'])
-@login_required
-def delete():
-    form = DeleteEMLForm()
-    form.filename.choices = list_data_packages(True, True)
-
-    # Process POST
-    if request.method == 'POST':
-        if 'Cancel' in request.form:
-            return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
-
-        if form.validate_on_submit():
-            filename = form.filename.data
-            return_value = user_data.delete_eml(filename=filename)
-            log_usage(actions['DELETE_DOCUMENT'], filename)
-            if filename == user_data.get_active_document():
-                current_user.set_filename(None)
-            if isinstance(return_value, str):
-                flash(return_value)
-            else:
-                user_login = current_user.get_user_login()
-                close_package(user_login)
-                flash(f'Deleted {filename}')
-            return redirect(url_for(PAGE_INDEX))
-
-    # Process GET
-    return render_template('delete_eml.html', title='Delete EML',
-                           form=form)
 
 
 @home.route('/save', methods=['GET', 'POST'])
@@ -761,6 +753,7 @@ def save():
         flash('No document currently open')
         return render_template('index.html')
 
+    # If the user clicked a "hidden" button, we need to go there.
     if is_hidden_button():
         new_page = handle_hidden_buttons(PAGE_SAVE, PAGE_SAVE)
         return redirect(url_for(new_page, filename=current_document))
@@ -879,14 +872,6 @@ def copy_uploads(from_package, to_package):
 @home.route('/save_as', methods=['GET', 'POST'])
 @login_required
 def save_as():
-    # Determine POST type
-    if request.method == 'POST':
-        if BTN_SAVE in request.form:
-            submit_type = 'Save'
-        elif BTN_CANCEL in request.form:
-            submit_type = 'Cancel'
-        else:
-            submit_type = None
     form = SaveAsForm()
     current_document = current_user.get_filename()
 
@@ -929,12 +914,10 @@ def save_as():
             new_page = PAGE_TITLE   # Return the Response object
 
             return redirect(url_for(new_page, filename=new_document))
-        # else:
-        #     return redirect(url_for(PAGE_SAVE_AS, filename=current_filename))
 
     # Process GET
     if current_document:
-        # form.filename.data = current_filename
+        form.filename.data = current_document
         help = get_helps(['save_as_document'])
         return render_template('save_as.html',
                                filename=current_document,
@@ -946,23 +929,23 @@ def save_as():
         return render_template('index.html')
 
 
-@home.route('/download', methods=['GET', 'POST'])
-@login_required
-def download():
-    form = DownloadEMLForm()
-    form.filename.choices = list_data_packages(True, True)
-
-    # Process POST
-    if form.validate_on_submit():
-        filename = form.filename.data
-        return_value = user_data.download_eml(filename=filename)
-        if isinstance(return_value, str):
-            flash(return_value)
-        else:
-            return return_value
-    # Process GET
-    return render_template('download_eml.html', title='Download EML', 
-                           form=form)
+# @home.route('/download', methods=['GET', 'POST'])
+# @login_required
+# def download():
+#     form = DownloadEMLForm()
+#     form.filename.choices = list_data_packages(True, True)
+#
+#     # Process POST
+#     if form.validate_on_submit():
+#         filename = form.filename.data
+#         return_value = user_data.download_eml(filename=filename)
+#         if isinstance(return_value, str):
+#             flash(return_value)
+#         else:
+#             return return_value
+#     # Process GET
+#     return render_template('download_eml.html', title='Download EML',
+#                            form=form)
 
 
 @home.route('/check_data_tables', methods=['GET', 'POST'])
@@ -1019,6 +1002,12 @@ def datetime_formats():
 @home.route('/download_current', methods=['GET', 'POST'])
 @login_required
 def download_current():
+    """
+    Handle the Download EML File (XML) page.
+
+    This saves the current document and downloads its EML file. It returns the 200 Response object, assuming
+    the download was successful. By so doing, it stays on the current page.
+    """
     current_document = user_data.get_active_document()
     if current_document:
         # Force the document to be saved, so it gets cleaned, and incorporate the upload URLs for the data
@@ -1032,18 +1021,22 @@ def download_current():
         log_usage(actions['DOWNLOAD_EML_FILE'], package_id)
 
         if isinstance(return_value, str):
+            # If there was an error, display it as a Flash message.
             flash(return_value)
         else:
+            # No error, so just return the 200 status code response object.
             return return_value
 
 
 def allowed_data_file(filename):
+    """Only certain file types are allowed to be uploaded as data/csv files."""
     ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'txt', 'xml', 'ezeml_tmp'])
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def allowed_metadata_file(filename):
+    """Only certain file types are allowed to be uploaded as metadata files."""
     ALLOWED_EXTENSIONS = set(['xml'])    
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -1052,10 +1045,12 @@ def allowed_metadata_file(filename):
 @home.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
+    """Handle the New... page in EML Documents menu."""
+
     form = CreateEMLForm()
+    help = get_helps(['new_eml_document'])
 
     # Process POST
-    help = get_helps(['new_eml_document'])
     if request.method == 'POST':
 
         if BTN_CANCEL in request.form:
@@ -1066,22 +1061,17 @@ def create():
 
             if '/' in filename:
                 flash("Please choose a name that does not contain a slash '/' character.", 'error')
-                return render_template('create_eml.html', help=help,
-                                form=form)
+                return render_template('create_eml.html', help=help, form=form)
 
             user_filenames = user_data.get_user_document_list()
             if user_filenames and filename and filename in user_filenames:
                 flash(f'{filename} already exists. Please select another name.', 'error')
-                return render_template('create_eml.html', help=help,
-                                form=form)
+                return render_template('create_eml.html', help=help, form=form)
 
             log_usage(actions['NEW_DOCUMENT'])
             create_eml(filename=filename)
 
-            # Get a lock on the package
-            user_login = current_user.get_user_login()
-            lock = collaborations.open_package(user_login, filename)
-
+            # Open the document. Note that open_document() handles locking.
             return open_document(filename)
 
     # Process GET
@@ -1091,45 +1081,64 @@ def create():
 @home.route('/display_tables', methods=['GET', 'POST'])
 @login_required
 def display_tables():
-    from webapp.views.collaborations.model import User, Package, Collaboration, CollaborationStatus, Lock
+    """
+    For development purposes only. Display the contents of the database tables used for collaboration.
+    There is no link to this page in the ezEML user interface. It is only accessible via the URL.
+    """
+    from webapp.views.collaborations.model import (
+        User, Package, Collaboration, CollaborationStatus, Lock, GroupLock, GroupCollaboration
+    )
     users = User.query.all()
     packages = Package.query.all()
     collaborations = Collaboration.query.all()
+    group_collaborations = GroupCollaboration.query.all()
     collaboration_statuses = CollaborationStatus.query.all()
     locks = Lock.query.all()
+    group_locks = GroupLock.query.all()
+
     return render_template('display_tables.html', users=users, packages=packages, collaborations=collaborations,
-                           collaboration_statuses=collaboration_statuses, locks=locks)
+                           group_collaborations=group_collaborations,
+                           collaboration_statuses=collaboration_statuses, locks=locks, group_locks=group_locks)
 
 
 def open_document(filename, owner=None, owner_login=None):
     """
-    This code is used both in opening a document via the Open... menu selection and via an Open link on the Collaborate
+    This function is used both in opening a document via the Open... menu selection and via an Open link on the Collaborate
     page. In the latter case, it is assumed that the caller has set the active_package_id before calling. This is
     needed so that load_eml() looks in the correct folder for the EML file.
+
+    This function takes care of locking the document if it is not already locked. In case of a failure, it takes care
+    of releasing any acquired lock.
     """
-    # Check if the document is locked by another user
-    if user_data.is_document_locked(filename):
-        flash(f'{filename} is currently locked by another user. Please select another document.', 'error')
-        return redirect(url_for(PAGE_TITLE, filename=filename))
+
+    # Check if the document is locked by another user. If not, lock it.
+    # If it is locked, an exception will be thrown and handled in webapp/errors/handler.py, which posts an
+    #  informative message.
+    lock = user_data.is_document_locked(filename)
 
     eml_node = load_eml(filename)
+    loaded_ok = True
     if eml_node:
-        current_user.set_filename(filename)
-        if owner:
-            # user_login = current_user.get_user_login()
-            current_user.set_file_owner(owner, owner_login)
-            # if owner_login != user_login:
-            #     current_user.set_file_owner(owner, owner_login)
-            # else:
-            #     current_user.set_file_owner(None)
-        packageid = eml_node.attributes.get('packageId', None)
-        if packageid:
-            current_user.set_packageid(packageid)
-        new_page = PAGE_TITLE
-        log_usage(actions['OPEN_DOCUMENT'])
-        check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
-    else:
-        log_error('Error loading EML file: ' + filename + ' in open_document()')
+        try:
+            current_user.set_filename(filename)
+            # If we're doing Open via Collaborate page, the owner and owner_login will have been provided by the caller
+            if owner:
+                current_user.set_file_owner(owner, owner_login)
+            packageid = eml_node.attributes.get('packageId', None)
+            if packageid:
+                current_user.set_packageid(packageid)
+            new_page = PAGE_TITLE
+            log_usage(actions['OPEN_DOCUMENT'])
+            # Set the badge status for the Check Data Tables menu item. The Check Metadata badge status will have been
+            #  set by load_eml().
+            check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+        except Exception as e:
+            loaded_ok = False
+            log_error('Error loading EML file: ' + filename + ' in open_document(): {e}')
+    if not eml_node or not loaded_ok:
+        release_acquired_lock(lock)
+        if not eml_node:
+            log_error('Error loading EML file: ' + filename + ' in open_document()')
         new_page = PAGE_FILE_ERROR
     return redirect(url_for(new_page, filename=filename))
 
@@ -1137,6 +1146,8 @@ def open_document(filename, owner=None, owner_login=None):
 @home.route('/open_eml_document', methods=['GET', 'POST'])
 @login_required
 def open_eml_document():
+    """Handle the Open... page in EML Documents menu."""
+
     form = OpenEMLDocumentForm()
     form.filename.choices = list_data_packages(True, True)
 
@@ -1148,14 +1159,9 @@ def open_eml_document():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            user_login = current_user.get_user_login()
-            # Get a lock on the package, if available
-            lock = collaborations.open_package(user_login, filename)
-            # Open the document
-            try:
-                return open_document(filename)
-            except:
-                release_acquired_lock(lock)
+
+            # Open the document. Note that open_document takes care of handling locks.
+            return open_document(filename)
 
     # Process GET
     return render_template('open_eml_document.html', title='Open EML Document', 
@@ -1166,6 +1172,8 @@ def open_eml_document():
 @home.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
 @login_required
 def open_package(package_name, owner=None):
+    """Handle a link to open a document via the Manage Packages page."""
+
     if not owner:
         owner = current_user.get_user_login()
     owner_data_dir = os.path.join(Config.USER_DATA_DIR, owner)
@@ -1191,72 +1199,62 @@ def open_package(package_name, owner=None):
     return redirect(url_for(new_page, filename=package_name))
 
 
-def get_subdirs(dir):
-    # print(f"get_subdirs: {dir}")
-    subdirs = []
-    for fname in sorted(os.listdir(dir), key=str.lower):
-        if os.path.isdir(os.path.join(dir, fname)):
-            subdirs.append(os.path.join(dir, fname))
-    return subdirs
-
-
-def get_files(dir):
-    # print(f"get_files: {dir}")
-    files = []
-    for fname in sorted(os.listdir(dir), key=str.lower):
-        if os.path.isdir(os.path.join(dir, fname)) or fname.endswith('.json'):
-            files.append(os.path.join(dir, fname))
-    return files
-
-
-def add_file(fname, output):
-    dir = os.path.dirname(fname)
-    dir = dir.replace(f"{Config.TEMPLATE_DIR}/", '')
-    fname = os.path.splitext(os.path.basename(fname))[0]
-    output += f'<li onclick="setTarget(\'{fname}\', \'{dir}\');" style="color:steelblue;cursor:pointer;">{fname}</li>\n'
-
-    return output
-
-
-def form_template_tree(file, output):
-    # print(f"form_template_tree: file={file}, output={output}")
-
-    if file == Config.TEMPLATE_DIR:
-        subdirs = get_subdirs(file)
-        if not subdirs:
-            return "<i>No templates are available at this time.</i>"
-
-    have_ul = False
-    if os.path.isdir(file):
-        files = get_files(file)
-        if file != Config.TEMPLATE_DIR:
-            output += f'<li>{os.path.basename(os.path.normpath(file))}\n'
-            if files:
-                output += f'<ul style="display: none;">\n'
-                have_ul = True
-        for file in files:
-            output = form_template_tree(file, output)
-    else:
-        if file:
-            output = add_file(file, output)
-    if have_ul:
-        output += "</ul>\n"
-    output += "</li>\n"
-
-    # print(f"form_template_tree: returns output={output}")
-    return output
-
-
-def import_selected_template(template_filename, output_filename):
-    # Copy the template into the user's directory
-    user_folder = user_data.get_user_folder_name()
-    copyfile(f"{Config.TEMPLATE_DIR}/{template_filename}", f"{user_folder}/{output_filename}.json")
-    create_eml(filename=output_filename)
-
-
 @home.route('/import_template', methods=['GET', 'POST'])
 @login_required
 def import_template():
+    """
+    Handle the New from Template... item in EML Documents menu.
+
+    Note that the expansion of template folders, etc., is handled in JavaScript in the template.
+    """
+
+    def form_template_tree(file, output):
+        def get_subdirs(dir):
+            subdirs = []
+            for fname in sorted(os.listdir(dir), key=str.lower):
+                if os.path.isdir(os.path.join(dir, fname)):
+                    subdirs.append(os.path.join(dir, fname))
+            return subdirs
+
+        def get_files(dir):
+            files = []
+            for fname in sorted(os.listdir(dir), key=str.lower):
+                if os.path.isdir(os.path.join(dir, fname)) or fname.endswith('.json'):
+                    files.append(os.path.join(dir, fname))
+            return files
+
+        def add_file(fname, output):
+            dir = os.path.dirname(fname)
+            dir = dir.replace(f"{Config.TEMPLATE_DIR}/", '')
+            fname = os.path.splitext(os.path.basename(fname))[0]
+            output += f'<li onclick="setTarget(\'{fname}\', \'{dir}\');" style="color:steelblue;cursor:pointer;">{fname}</li>\n'
+
+            return output
+
+        if file == Config.TEMPLATE_DIR:
+            subdirs = get_subdirs(file)
+            if not subdirs:
+                return "<i>No templates are available at this time.</i>"
+
+        have_ul = False
+        if os.path.isdir(file):
+            files = get_files(file)
+            if file != Config.TEMPLATE_DIR:
+                output += f'<li>{os.path.basename(os.path.normpath(file))}\n'
+                if files:
+                    output += f'<ul style="display: none;">\n'
+                    have_ul = True
+            for file in files:
+                output = form_template_tree(file, output)
+        else:
+            if file:
+                output = add_file(file, output)
+        if have_ul:
+            output += "</ul>\n"
+        output += "</li>\n"
+
+        return output
+
     if request.method == 'POST':
         form = request.form
         if BTN_CANCEL in form:
@@ -1290,6 +1288,14 @@ def import_template():
 @home.route('/import_template_2/<template_filename>/', methods=['GET', 'POST'])
 @login_required
 def import_template_2(template_filename):
+    """Handle the New from Template... item in EML Documents menu after a template has been selected."""
+
+    def import_selected_template(template_filename, output_filename):
+        # Copy the template into the user's directory
+        user_folder = user_data.get_user_folder_name()
+        copyfile(f"{Config.TEMPLATE_DIR}/{template_filename}", f"{user_folder}/{output_filename}.json")
+        create_eml(filename=output_filename)
+
     form = CreateEMLForm()
 
     # Process POST
@@ -1324,6 +1330,8 @@ def import_template_2(template_filename):
 @home.route('/import_parties', methods=['GET', 'POST'])
 @login_required
 def import_parties():
+    """Handle the Import Responsible Parties item in EML Documents menu."""
+
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(True, True)
 
@@ -1341,7 +1349,370 @@ def import_parties():
     return render_template('import_parties.html', help=help, form=form)
 
 
+@home.route('/import_parties_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_parties_2(filename):
+    """Handle the Import Responsible Parties item in EML Documents menu after a source document has been selected."""
+
+    def get_responsible_parties_for_import(eml_node):
+        parties = []
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
+            label = compose_rp_label(node)
+            parties.append(('Creator', f'{label} (Creator)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
+            label = compose_rp_label(node)
+            parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
+            label = compose_rp_label(node)
+            parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
+            label = compose_rp_label(node)
+            parties.append(('Contact', f'{label} (Contact)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
+            label = compose_rp_label(node)
+            parties.append(('Publisher', f'{label} (Publisher)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
+            label = compose_rp_label(node)
+            parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
+        return parties
+
+    form = ImportEMLItemsForm()
+
+    eml_node = load_eml(filename)
+    parties = get_responsible_parties_for_import(eml_node)
+    choices = [[party[2], party[1]] for party in parties]
+    form.to_import.choices = choices
+    targets = [
+        ("Creators", "Creators"),
+        ("Metadata Providers", "Metadata Providers"),
+        ("Associated Parties", "Associated Parties"),
+        ("Contacts", "Contacts"),
+        ("Publisher", "Publisher"),
+        ("Project Personnel", "Project Personnel")]
+    form.target.choices = targets
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_class = form.data['target']
+        target_filename = current_user.get_filename()
+        import_responsible_parties(target_filename, node_ids_to_import, target_class)
+        log_usage(actions['IMPORT_RESPONSIBLE_PARTIES'], filename, target_class)
+        if target_class == 'Creators':
+            new_page = PAGE_CREATOR_SELECT
+        elif target_class == 'Metadata Providers':
+            new_page = PAGE_METADATA_PROVIDER_SELECT
+        elif target_class == 'Associated Parties':
+            new_page = PAGE_ASSOCIATED_PARTY_SELECT
+        elif target_class == 'Contacts':
+            new_page = PAGE_CONTACT_SELECT
+        elif target_class == 'Publisher':
+            new_page = PAGE_PUBLISHER
+        elif target_class == 'Project Personnel':
+            new_page = PAGE_PROJECT_PERSONNEL_SELECT
+        return redirect(url_for(new_page, filename=target_filename))
+
+    # Process GET
+    help = get_helps(['import_responsible_parties_2'])
+    return render_template('import_parties_2.html', target_filename=filename, help=help, form=form)
+
+
+@home.route('/import_geo_coverage', methods=['GET', 'POST'])
+@login_required
+def import_geo_coverage():
+    """Handle the Import Geographic Coverage item in EML Documents menu."""
+
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_geo_coverage_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_geographic_coverage'])
+    return render_template('import_geo_coverage.html', help=help, form=form)
+
+
+@home.route('/import_geo_coverage_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_geo_coverage_2(filename):
+    """Handle the Import Geographic Coverage item in EML Documents menu after a source document has been selected."""
+
+    def get_geo_coverages_for_import(eml_node):
+        coverages = []
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE]):
+            label = compose_full_gc_label(node)
+            coverages.append((f'{label}', node.id))
+        return coverages
+
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_geo_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_coverage_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_GEOGRAPHIC_COVERAGE'], filename)
+        return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_geographic_coverage_2'])
+    return render_template('import_geo_coverage_2.html', help=help, target_filename=filename, form=form)
+
+
+@home.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
+@login_required
+def import_taxonomic_coverage():
+    """Handle the Import Taxonomic Coverage item in EML Documents menu."""
+
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_taxonomic_coverage'])
+    return render_template('import_taxonomic_coverage.html', help=help, form=form)
+
+
+@home.route('/import_taxonomic_coverage_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_taxonomic_coverage_2(filename):
+    """Handle the Import Taxonomic Coverage item in EML Documents menu after a source document has been selected."""
+
+    def get_taxonomic_coverages_for_import(eml_node):
+        coverages = []
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TAXONOMICCOVERAGE]):
+            label = truncate_middle(compose_taxonomic_label(node), 100, ' ... ')
+            coverages.append((f'{label}', node.id))
+        return coverages
+
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_taxonomic_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        eml_node = import_coverage_nodes(target_package, node_ids_to_import)
+        clear_taxonomy_imported_from_xml(eml_node, target_package)
+        log_usage(actions['IMPORT_TAXONOMIC_COVERAGE'], filename)
+        return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_taxonomic_coverage_2'])
+    return render_template('import_taxonomic_coverage_2.html', help=help, target_filename=filename, form=form)
+
+
+@home.route('/import_funding_awards', methods=['GET', 'POST'])
+@login_required
+def import_funding_awards():
+    """Handle the Import Funding Awards item in EML Documents menu."""
+
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_funding_awards_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_funding_awards'])
+    return render_template('import_funding_awards.html', help=help, form=form)
+
+
+@home.route('/import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_funding_awards_2(filename):
+    """Handle the Import Funding Awards item in EML Documents menu after a source document has been selected."""
+
+    def get_funding_awards_for_import(eml_node):
+        awards = []
+        award_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.AWARD])
+        for award_node in award_nodes:
+            label = truncate_middle(compose_funding_award_label(award_node), 80, ' ... ')
+            awards.append((f'{label}', award_node.id))
+        return awards
+
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_funding_awards_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_funding_award_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_FUNDING_AWARDS'], filename)
+        return redirect(url_for(PAGE_FUNDING_AWARD_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_funding_awards_2'])
+    return render_template('import_funding_awards_2.html', help=help, target_filename=filename, form=form)
+
+
+@home.route('/import_project', methods=['GET', 'POST'])
+@login_required
+def import_project():
+    """Handle the Import Project item in EML Documents menu."""
+
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_project_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_project'])
+    return render_template('import_project.html', help=help, form=form)
+
+
+def get_projects_for_import(eml_node):
+    """A helper function to get a list of projects from an EML document for import. Used by both Import Project and
+    Import Related Projects."""
+
+    projects = []
+    project = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+    project_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
+    if project:
+        project_nodes.append(project)
+    for project_node in project_nodes:
+        label = truncate_middle(compose_project_label(project_node), 80, ' ... ')
+        projects.append((f'{label}', project_node.id))
+    return projects
+
+
+@home.route('/import_project_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_project_2(filename):
+    """Handle the Import Project item in EML Documents menu after a source document has been selected."""
+
+    form = ImportSingleItemForm()
+
+    eml_node = load_eml(filename)
+    projects = get_projects_for_import(eml_node)
+    choices = [[project[1], project[0]] for project in projects]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_id_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_project_node(target_package, node_id_to_import)
+        log_usage(actions['IMPORT_PROJECT'], filename)
+        return redirect(url_for(PAGE_PROJECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_project_2'])
+    return render_template('import_project_2.html', help=help, target_filename=filename, form=form)
+
+
+@home.route('/import_related_projects', methods=['GET', 'POST'])
+@login_required
+def import_related_projects():
+    """Handle the Import Related Projects item in EML Documents menu."""
+
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_related_projects_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_related_projects'])
+    return render_template('import_related_projects.html', help=help, form=form)
+
+
+@home.route('/import_related_projects_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_related_projects_2(filename):
+    """Handle the Import Related Projects item in EML Documents menu after a source document has been selected."""
+
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    projects = get_projects_for_import(eml_node)
+    choices = [[project[1], project[0]] for project in projects]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_related_project_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_RELATED_PROJECTS'], filename)
+        return redirect(url_for(PAGE_RELATED_PROJECT_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_related_projects_2'])
+    return render_template('import_related_projects_2.html', help=help, target_filename=filename, form=form)
+
+
+def display_decode_error_lines(filename):
+    """A helper function used in displaying lines with UTF-8 decode errors in a file."""
+    errors = []
+    with open(filename, 'r', errors='replace') as f:
+        lines = f.readlines()
+    for index, line in enumerate(lines, start=1):
+        if "�" in line:
+            errors.append((index, line))
+    return errors
+
+
 def get_redirect_target_page():
+    """
+    A helper function to get the page to redirect to based on the current page in the Contents main menu.
+    Used, for example, when Cancel is clicked on an out-of-sequence page like an Import page.
+    """
     current_page = get_current_page()
     if current_page == 'title':
         return PAGE_TITLE
@@ -1395,408 +1766,19 @@ def get_redirect_target_page():
         return PAGE_TITLE
 
 
-@home.route('/import_parties_2/<filename>/', methods=['GET', 'POST'])
-@login_required
-def import_parties_2(filename):
-    form = ImportEMLItemsForm()
-
-    eml_node = load_eml(filename)
-    parties = get_responsible_parties_for_import(eml_node)
-    choices = [[party[2], party[1]] for party in parties]
-    form.to_import.choices = choices
-    targets = [
-        ("Creators", "Creators"),
-        ("Metadata Providers", "Metadata Providers"),
-        ("Associated Parties", "Associated Parties"),
-        ("Contacts", "Contacts"),
-        ("Publisher", "Publisher"),
-        ("Project Personnel", "Project Personnel")]
-    form.target.choices = targets
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if form.validate_on_submit():
-        node_ids_to_import = form.data['to_import']
-        target_class = form.data['target']
-        target_filename = current_user.get_filename()
-        import_responsible_parties(target_filename, node_ids_to_import, target_class)
-        log_usage(actions['IMPORT_RESPONSIBLE_PARTIES'], filename, target_class)
-        if target_class == 'Creators':
-            new_page = PAGE_CREATOR_SELECT
-        elif target_class == 'Metadata Providers':
-            new_page = PAGE_METADATA_PROVIDER_SELECT
-        elif target_class == 'Associated Parties':
-            new_page = PAGE_ASSOCIATED_PARTY_SELECT
-        elif target_class == 'Contacts':
-            new_page = PAGE_CONTACT_SELECT
-        elif target_class == 'Publisher':
-            new_page = PAGE_PUBLISHER
-        elif target_class == 'Project Personnel':
-            new_page = PAGE_PROJECT_PERSONNEL_SELECT
-        return redirect(url_for(new_page, filename=target_filename))
-
-    # Process GET
-    help = get_helps(['import_responsible_parties_2'])
-    return render_template('import_parties_2.html', target_filename=filename, help=help, form=form)
-
-
-def get_responsible_parties_for_import(eml_node):
-    parties = []
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
-        label = compose_rp_label(node)
-        parties.append(('Creator', f'{label} (Creator)', node.id))
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
-        label = compose_rp_label(node)
-        parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
-        label = compose_rp_label(node)
-        parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
-        label = compose_rp_label(node)
-        parties.append(('Contact', f'{label} (Contact)', node.id))
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
-        label = compose_rp_label(node)
-        parties.append(('Publisher', f'{label} (Publisher)', node.id))
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
-        label = compose_rp_label(node)
-        parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
-    return parties
-
-
-@home.route('/import_geo_coverage', methods=['GET', 'POST'])
-@login_required
-def import_geo_coverage():
-    form = ImportEMLForm()
-    form.filename.choices = list_data_packages(False, False)
-
-    # Process POST
-    if request.method == 'POST':
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-        if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('home.import_geo_coverage_2', filename=filename))
-
-    # Process GET
-    help = get_helps(['import_geographic_coverage'])
-    return render_template('import_geo_coverage.html', help=help, form=form)
-
-
-@home.route('/import_geo_coverage_2/<filename>/', methods=['GET', 'POST'])
-@login_required
-def import_geo_coverage_2(filename):
-    form = ImportItemsForm()
-
-    eml_node = load_eml(filename)
-    coverages = get_geo_coverages_for_import(eml_node)
-    choices = [[coverage[1], coverage[0]] for coverage in coverages]
-    form.to_import.choices = choices
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if form.validate_on_submit():
-        node_ids_to_import = form.data['to_import']
-        target_package = current_user.get_filename()
-        import_coverage_nodes(target_package, node_ids_to_import)
-        log_usage(actions['IMPORT_GEOGRAPHIC_COVERAGE'], filename)
-        return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=target_package))
-
-    # Process GET
-    help = get_helps(['import_geographic_coverage_2'])
-    return render_template('import_geo_coverage_2.html', help=help, target_filename=filename, form=form)
-
-
-def get_geo_coverages_for_import(eml_node):
-    coverages = []
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE]):
-        label = compose_full_gc_label(node)
-        coverages.append((f'{label}', node.id))
-    return coverages
-
-
-@home.route('/import_temporal_coverage', methods=['GET', 'POST'])
-@login_required
-def import_temporal_coverage():
-    form = ImportEMLForm()
-    form.filename.choices = list_data_packages(False, False)
-
-    # Process POST
-    if request.method == 'POST':
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-            # new_page = get_redirect_target_page()
-            # url = url_for(new_page, filename=current_user.get_filename())
-            # return redirect(url)
-        if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('home.import_temporal_coverage_2', filename=filename))
-
-    # Process GET
-    return render_template('import_temporal_coverage.html', form=form)
-
-
-@home.route('/import_temporal_coverage_2/<filename>/', methods=['GET', 'POST'])
-@login_required
-def import_temporal_coverage_2(filename):
-    form = ImportItemsForm()
-
-    eml_node = load_eml(filename)
-    coverages = get_temporal_coverages_for_import(eml_node)
-    choices = [[coverage[1], coverage[0]] for coverage in coverages]
-    form.to_import.choices = choices
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if form.validate_on_submit():
-        node_ids_to_import = form.data['to_import']
-        target_package = current_user.get_filename()
-        import_coverage_nodes(target_package, node_ids_to_import)
-        return redirect(url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=target_package))
-
-    # Process GET
-    return render_template('import_temporal_coverage_2.html', target_filename=filename, title='Import Metadata',
-                           form=form)
-
-
-def get_temporal_coverages_for_import(eml_node):
-    coverages = []
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TEMPORALCOVERAGE]):
-        label = compose_full_gc_label(node) # FIXME
-        coverages.append((f'{label}', node.id))
-    return coverages
-
-
-@home.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
-@login_required
-def import_taxonomic_coverage():
-    form = ImportEMLForm()
-    form.filename.choices = list_data_packages(False, False)
-
-    # Process POST
-    if request.method == 'POST':
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-        if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename))
-
-    # Process GET
-    help = get_helps(['import_taxonomic_coverage'])
-    return render_template('import_taxonomic_coverage.html', help=help, form=form)
-
-
-@home.route('/import_taxonomic_coverage_2/<filename>/', methods=['GET', 'POST'])
-@login_required
-def import_taxonomic_coverage_2(filename):
-    form = ImportItemsForm()
-
-    eml_node = load_eml(filename)
-    coverages = get_taxonomic_coverages_for_import(eml_node)
-    choices = [[coverage[1], coverage[0]] for coverage in coverages]
-    form.to_import.choices = choices
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if form.validate_on_submit():
-        node_ids_to_import = form.data['to_import']
-        target_package = current_user.get_filename()
-        eml_node = import_coverage_nodes(target_package, node_ids_to_import)
-        clear_taxonomy_imported_from_xml(eml_node, target_package)
-        log_usage(actions['IMPORT_TAXONOMIC_COVERAGE'], filename)
-        return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=target_package))
-
-    # Process GET
-    help = get_helps(['import_taxonomic_coverage_2'])
-    return render_template('import_taxonomic_coverage_2.html', help=help, target_filename=filename, form=form)
-
-
-def get_taxonomic_coverages_for_import(eml_node):
-    coverages = []
-    for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TAXONOMICCOVERAGE]):
-        label = truncate_middle(compose_taxonomic_label(node), 100, ' ... ')
-        coverages.append((f'{label}', node.id))
-    return coverages
-
-
-@home.route('/import_funding_awards', methods=['GET', 'POST'])
-@login_required
-def import_funding_awards():
-    form = ImportEMLForm()
-    form.filename.choices = list_data_packages(False, False)
-
-    # Process POST
-    if request.method == 'POST':
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-        if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('home.import_funding_awards_2', filename=filename))
-
-    # Process GET
-    help = get_helps(['import_funding_awards'])
-    return render_template('import_funding_awards.html', help=help, form=form)
-
-
-@home.route('/import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
-@login_required
-def import_funding_awards_2(filename):
-    form = ImportItemsForm()
-
-    eml_node = load_eml(filename)
-    coverages = get_funding_awards_for_import(eml_node)
-    choices = [[coverage[1], coverage[0]] for coverage in coverages]
-    form.to_import.choices = choices
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if form.validate_on_submit():
-        node_ids_to_import = form.data['to_import']
-        target_package = current_user.get_filename()
-        import_funding_award_nodes(target_package, node_ids_to_import)
-        log_usage(actions['IMPORT_FUNDING_AWARDS'], filename)
-        return redirect(url_for(PAGE_FUNDING_AWARD_SELECT, filename=target_package))
-
-    # Process GET
-    help = get_helps(['import_funding_awards_2'])
-    return render_template('import_funding_awards_2.html', help=help, target_filename=filename, form=form)
-
-
-def get_funding_awards_for_import(eml_node):
-    awards = []
-    award_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.AWARD])
-    for award_node in award_nodes:
-        label = truncate_middle(compose_funding_award_label(award_node), 80, ' ... ')
-        awards.append((f'{label}', award_node.id))
-    return awards
-
-
-@home.route('/import_related_projects', methods=['GET', 'POST'])
-@login_required
-def import_related_projects():
-    form = ImportEMLForm()
-    form.filename.choices = list_data_packages(False, False)
-
-    # Process POST
-    if request.method == 'POST':
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-        if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('home.import_related_projects_2', filename=filename))
-
-    # Process GET
-    help = get_helps(['import_related_projects'])
-    return render_template('import_related_projects.html', help=help, form=form)
-
-
-@home.route('/import_related_projects_2/<filename>/', methods=['GET', 'POST'])
-@login_required
-def import_related_projects_2(filename):
-    form = ImportItemsForm()
-
-    eml_node = load_eml(filename)
-    projects = get_projects_for_import(eml_node)
-    choices = [[project[1], project[0]] for project in projects]
-    form.to_import.choices = choices
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if form.validate_on_submit():
-        node_ids_to_import = form.data['to_import']
-        target_package = current_user.get_filename()
-        import_related_project_nodes(target_package, node_ids_to_import)
-        log_usage(actions['IMPORT_RELATED_PROJECTS'], filename)
-        return redirect(url_for(PAGE_RELATED_PROJECT_SELECT, filename=target_package))
-
-    # Process GET
-    help = get_helps(['import_related_projects_2'])
-    return render_template('import_related_projects_2.html', help=help, target_filename=filename, form=form)
-
-
-@home.route('/import_project', methods=['GET', 'POST'])
-@login_required
-def import_project():
-    form = ImportEMLForm()
-    form.filename.choices = list_data_packages(False, False)
-
-    # Process POST
-    if request.method == 'POST':
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-        if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('home.import_project_2', filename=filename))
-
-    # Process GET
-    help = get_helps(['import_project'])
-    return render_template('import_project.html', help=help, form=form)
-
-
-@home.route('/import_project_2/<filename>/', methods=['GET', 'POST'])
-@login_required
-def import_project_2(filename):
-    form = ImportSingleItemForm()
-
-    eml_node = load_eml(filename)
-    projects = get_projects_for_import(eml_node)
-    choices = [[project[1], project[0]] for project in projects]
-    form.to_import.choices = choices
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if form.validate_on_submit():
-        node_id_to_import = form.data['to_import']
-        target_package = current_user.get_filename()
-        import_project_node(target_package, node_id_to_import)
-        log_usage(actions['IMPORT_PROJECT'], filename)
-        return redirect(url_for(PAGE_PROJECT, filename=target_package))
-
-    # Process GET
-    help = get_helps(['import_project_2'])
-    return render_template('import_project_2.html', help=help, target_filename=filename, form=form)
-
-
-def get_projects_for_import(eml_node):
-    projects = []
-    project = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
-    project_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
-    if project:
-        project_nodes.append(project)
-    for project_node in project_nodes:
-        label = truncate_middle(compose_project_label(project_node), 80, ' ... ')
-        projects.append((f'{label}', project_node.id))
-    return projects
-
-
-def display_decode_error_lines(filename):
-    errors = []
-    with open(filename, 'r', errors='replace') as f:
-        lines = f.readlines()
-    for index, line in enumerate(lines, start=1):
-        if "�" in line:
-            errors.append((index, line))
-    return errors
-
-
-def create_ezeml_package_manifest(user_folder, manifest_files):
-    with open(f'{user_folder}/ezEML_manifest.txt', 'w') as manifest_file:
-        manifest_file.write(f'ezEML Data Archive Manifest\n')
-        manifest_file.write(f'ezEML Release {RELEASE_NUMBER}\n')
-        manifest_file.write(f'--------------------\n')
-        for filetype, filename, filepath in manifest_files:
-            manifest_file.write(f'{filetype}\n')
-            manifest_file.write(f'{filename}\n')
-            manifest_file.write(f'{get_md5_hash(filepath)}\n')
-
-
 def zip_package(current_document=None, eml_node=None, include_data=True):
+    """Create an ezEML Data Package, for example to export it or send to another user."""
+
+    def create_ezeml_package_manifest(user_folder, manifest_files):
+        with open(f'{user_folder}/ezEML_manifest.txt', 'w') as manifest_file:
+            manifest_file.write(f'ezEML Data Archive Manifest\n')
+            manifest_file.write(f'ezEML Release {RELEASE_NUMBER}\n')
+            manifest_file.write(f'--------------------\n')
+            for filetype, filename, filepath in manifest_files:
+                manifest_file.write(f'{filetype}\n')
+                manifest_file.write(f'{filename}\n')
+                manifest_file.write(f'{get_md5_hash(filepath)}\n')
+
     if not current_document:
         current_document = current_user.get_filename()
     if not current_document:
@@ -1869,15 +1851,16 @@ def zip_package(current_document=None, eml_node=None, include_data=True):
     return zipfile_path
 
 
-def encode_export_url(dest):
-    subs = dest.split('/exports/')
-    if len(subs) > 1:
-        return f'{subs[0]}/exports/{urllib.parse.quote(subs[1])}'
-    else:
-        return dest
-
-
 def save_as_ezeml_package_export(archive_file):
+    """Save the ezEML Data Package to the user's export folder."""
+
+    def encode_export_url(dest):
+        subs = dest.split('/exports/')
+        if len(subs) > 1:
+            return f'{subs[0]}/exports/{urllib.parse.quote(subs[1])}'
+        else:
+            return dest
+
     current_document = current_user.get_filename()
     if not current_document:
         raise FileNotFoundError
@@ -1904,6 +1887,8 @@ def save_as_ezeml_package_export(archive_file):
 @home.route('/export_package', methods=['GET', 'POST'])
 @login_required
 def export_package():
+    """Handle the Export ezEML Data Package item in the Import/Export menu."""
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
@@ -1935,6 +1920,8 @@ def export_package():
 @home.route('/export_package_2/<package_name>/<path:download_url>', methods=['GET', 'POST'])
 @login_required
 def export_package_2(package_name, download_url):
+    """Handle the Export ezEML Data Package item in the Import/Export menu."""
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
@@ -1944,58 +1931,42 @@ def export_package_2(package_name, download_url):
                            package_name=package_name, download_url=download_url)
 
 
-def submit_package_mail_body(name=None, email_address=None, archive_name=None, encoded_url=None,
-                             encoded_url_without_data=None, notes=None):
-    # Note: get_shortened_url handles blanks
-    msg = 'Dear EDI Data Curator:' + '\n\n' + \
-        'This email was auto-generated by ezEML.\n\n\n' + \
-        'Please submit the following data package to the EDI data repository.\n\n' + \
-        '   Sender\'s name: ' + name + '\n\n' + \
-        '   Sender\'s email: ' + email_address + '\n\n' + \
-        '   Package name: ' + archive_name + '\n\n' + \
-        '   Download URL: ' + encoded_url + '\n\n' + \
-        '   Download URL without data files: ' + encoded_url_without_data + '\n\n'
-    if notes:
-        msg += '   Sender\'s Notes: ' + notes
-    return msg
+def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
+    """ TODO: comment needed """
 
-
-def keep_existing_url(distribution_node, uploads_folder, file_exists):
-    # If a distribution node exists, check to see if there's a URL and, if so, whether it points to a different
-    #  user's account or a different package. The case we want to guard against is one where we've imported a
-    #  "without data" ezEML Data Package and all we're doing is modifying the EML (e.g., changing the data package ID)
-    #  before uploading to PASTA. In such a case, we want to leave existing distribution nodes as we've found them, so
-    #  they will point to the original user's ezEML account and package.
-    url_node = distribution_node.find_descendant(names.URL)
-    # This encodes the URL correctly, undoing the incorrect encoding that was done in an earlier version of ezEML.
-    encode_distribution_url(url_node)
-    if url_node:
+    def encode_distribution_url(url_node):
+        """Helper function to encode a distribution URL for use in the EML."""
         url = url_node.content
         if url:
-            if uploads_folder not in unquote(url):
-                # The URL points to a different location, not to the user's account. If we don't have a file in the
-                #  user's account, we'll leave the distribution node alone.
-                # We may, however, have uploaded or imported a file and thereby have a file in the user's account.
-                #  In that case, we want to use the version in the user's account.
-                if not file_exists:
-                    return True
-    return False
+            subs = url.split('/uploads/')
+            if len(subs) > 1:
+                # The reason we do the convoluted replace, unquote, quote is that the URL may have been encoded
+                #  incorrectly by a previous version of ezEML. We want to make sure we encode it correctly.
+                url = subs[0] + '/uploads/' + quote(unquote(subs[1].replace('%20', ' ')))
+            url_node.content = url
+        return url
 
+    def keep_existing_url(distribution_node, uploads_folder, file_exists):
+        # If a distribution node exists, check to see if there's a URL and, if so, whether it points to a different
+        #  user's account or a different package. The case we want to guard against is one where we've imported a
+        #  "without data" ezEML Data Package and all we're doing is modifying the EML (e.g., changing the data package ID)
+        #  before uploading to PASTA. In such a case, we want to leave existing distribution nodes as we've found them, so
+        #  they will point to the original user's ezEML account and package.
+        url_node = distribution_node.find_descendant(names.URL)
+        # This encodes the URL correctly, undoing the incorrect encoding that was done in an earlier version of ezEML.
+        encode_distribution_url(url_node)
+        if url_node:
+            url = url_node.content
+            if url:
+                if uploads_folder not in unquote(url):
+                    # The URL points to a different location, not to the user's account. If we don't have a file in the
+                    #  user's account, we'll leave the distribution node alone.
+                    # We may, however, have uploaded or imported a file and thereby have a file in the user's account.
+                    #  In that case, we want to use the version in the user's account.
+                    if not file_exists:
+                        return True
+        return False
 
-def encode_distribution_url(url_node):
-    url = url_node.content
-    if url:
-        subs = url.split('/uploads/')
-        if len(subs) > 1:
-            # The reason we do the convoluted replace, unquote, quote is that the URL may have been encoded
-            #  incorrectly by a previous version of ezEML. We want to make sure we encode it correctly.
-            url = subs[0] + '/uploads/' + quote(unquote(subs[1].replace('%20', ' ')))
-        url_node.content = url
-    return url
-
-
-def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
-    # log_info(f"insert_urls... node_type={node_type}")
     upload_nodes = []
     eml_node.find_all_descendants(node_type, upload_nodes)
     for upload_node in upload_nodes:
@@ -2030,6 +2001,8 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
 
 
 def insert_upload_urls(current_document, eml_node):
+    """ TODO: comment needed """
+
     user_folder = user_data.get_user_download_folder_name()
     uploads_folder = f'{user_folder}/uploads/{current_document}'
     parsed_url = urlparse(request.base_url)
@@ -2047,6 +2020,8 @@ def insert_upload_urls(current_document, eml_node):
 @home.route('/share_submit_package/<filename>/<success>', methods=['GET', 'POST'])
 @login_required
 def share_submit_package(filename=None, success=None):
+    """Handle the Submit/Share Package page."""
+
     form = SubmitToEDIForm()
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -2078,282 +2053,45 @@ def share_submit_package(filename=None, success=None):
                            form=form, help=help, success=success)
 
 
-@home.route('/submit_package', methods=['GET', 'POST'])
-@home.route('/submit_package/<filename>', methods=['GET', 'POST'])
-@home.route('/submit_package/<filename>/<success>', methods=['GET', 'POST'])
-@login_required
-def submit_package(filename=None, success=None):
-    form = SubmitToEDIForm()
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
-    if not current_document:
-        return redirect(url_for(PAGE_INDEX))
-
-    if form.validate_on_submit():
-        # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
-        #  programmatically generated Submit
-        if request.form.get(BTN_SUBMIT) == BTN_SUBMIT_TO_EDI:
-            name = form.data['name']
-            email_address = form.data['email_address']
-            notes = form.data['notes']
-
-            # update the EML to include URLs to data table files and other entity files
-            insert_upload_urls(current_document, eml_node)
-            save_both_formats(filename=current_document, eml_node=eml_node)
-
-            try:
-                zipfile_path = zip_package(current_document, eml_node)
-                zipfile_path_without_data = zip_package(current_document, eml_node, include_data=False)
-            except ezEMLError as e:
-                flash(str(e), 'error')
-                return redirect(get_back_url(success=False))
-
-            if zipfile_path and zipfile_path_without_data:
-                _, _, encoded_url = save_as_ezeml_package_export(zipfile_path)
-                _, _, encoded_url_without_data = save_as_ezeml_package_export(zipfile_path_without_data)
-
-                msg = submit_package_mail_body(name, email_address, current_document, encoded_url,
-                                               encoded_url_without_data, notes)
-                msg += get_fetched_from_edi_metadata(eml_node)
-                msg += get_imported_from_xml_metadata(eml_node)
-                subject = 'ezEML-Generated Data Submission Request'
-                to_address = [Config.TO]
-                sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address)
-                if sent is True:
-                    log_usage(actions['SEND_TO_EDI'], name, email_address)
-                    flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
-                    flash(f"If you don't hear back from us within 48 hours, please contact us at support@edirepository.org.")
-                    success = True
-                else:
-                    log_usage(actions['SEND_TO_EDI'], 'failed')
-                    flash(sent, 'error')
-
-            return redirect(get_back_url(success=success))
-
-    set_current_page('submit_package')
-    help = get_helps(['submit_package', 'submit_package_success'])
-    return render_template('submit_package.html',
-                           title='Send to EDI',
-                           check_metadata_status=get_check_metadata_status(eml_node, current_document),
-                           form=form, help=help, success=success)
-
-
 def make_tiny(url):
+    """Helper function to generate a tiny URL."""
+
     request_url = ('http://tinyurl.com/api-create.php?' + urlencode({'url':url}))
     with contextlib.closing(urlopen(request_url)) as response:
         return response.read().decode('utf-8 ')
 
 
-def send_to_other_email(name, email_address, title, url):
-    name_quoted = quote(name)
-    email_address_quoted = quote(email_address)
-    title_quoted = quote(title)
-    url = make_tiny(url)  # Note: it is assumed the URL has not been encoded
-    msg_quoted = f'mailto:{email_address_quoted}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name_quoted}%3A%0D%0A%0D%0A' \
-          f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
-          f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title_quoted}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
-          f'available%20for%20download%20here%3A%20{url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
-          f'After%20you%20download%20the%20package%2C%20you%20can%20import%20it%20into%20ezEML%2C%20or%20you%20can%20' \
-          f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
-          f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
-          f'%0D%0A%0D%0AThanks!'
-    msg_html = Markup(f'Dear {name}:<p><br>'
-          f'I have created a data package containing EML metadata and associated data files '
-          f'for your inspection.<p>Title: "{title}"<p>The data package is '
-          f'available for download here: {url}.<p>The package was created using ezEML. '
-          f'After you download the package, you can import it into ezEML, or you can '
-          f'unzip it to extract the EML file and associated data files to work with them '
-          f'directly.<p>To learn more about ezEML, go to https://ezeml.edirepository.org.'
-          f'<p>Thanks!')
-    msg_raw = f'Dear {name}:\n\n' \
-          f'I have created a data package containing EML metadata and associated data files ' \
-          f'for your inspection.\n\nTitle: "{title}"\n\nThe data package is ' \
-          f'available for download here: {url}.\n\nThe package was created using ezEML. ' \
-          f'After you download the package, you can import it into ezEML, or you can ' \
-          f'unzip it to extract the EML file and associated data files to work with them ' \
-          f'directly.\n\nTo learn more about ezEML, go to https://ezeml.edirepository.org.' \
-          f'\n\nThanks!'
-    return msg_quoted, msg_html, msg_raw
-
-
-@home.route('/send_to_other/<filename>/', methods=['GET', 'POST'])
-@home.route('/send_to_other/<filename>/<mailto>/', methods=['GET', 'POST'])
-@login_required
-def send_to_other(filename=None, mailto=None):
-    form = SendToColleagueForm()
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
-    if not current_document:
-        return redirect(url_for(PAGE_INDEX))
-
-    if form.validate_on_submit():
-        # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
-        #  programmatically generated Submit
-        if request.form.get(BTN_SUBMIT) == BTN_SEND_TO_OTHER:
-
-            colleague_name = form.data['colleague_name']
-            email_address = form.data['email_address']
-
-            eml_node = load_eml(filename=filename)
-            insert_upload_urls(current_document, eml_node)
-            log_usage(actions['SEND_TO_COLLEAGUE'], colleague_name, email_address)
-
-            dataset_node = eml_node.find_child(child_name=names.DATASET)
-            title_node = dataset_node.find_child(names.TITLE)
-            title = ''
-            if title_node:
-                title = title_node.content
-            if not title:
-                # The GET path will display an error message saying the title is required
-                return redirect(get_back_url())
-
-            try:
-                zipfile_path = zip_package(current_document, eml_node)
-            except ezEMLError as e:
-                flash(str(e), 'error')
-                print(redirect(get_back_url()))
-                return redirect(get_back_url())
-
-            _, download_url, _ = save_as_ezeml_package_export(zipfile_path)
-
-            if not mailto:
-                mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
-            else:
-                mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
-                mailto_html = None
-                mailto_raw=None
-
-    eml_node = load_eml(filename=filename)
-    title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
-    if not title_node or not title_node.content:
-        flash('The data package must have a Title before it can be sent.', 'error')
-
-    set_current_page('send_to_other')
-    if mailto:
-        form.colleague_name.data = ''
-        form.email_address.data = ''
-        help = get_helps(['send_to_colleague_2'])
-        return render_template('send_to_other_2.html',
-                               title='Send to Other',
-                               mailto=mailto,
-                               mailto_html=mailto_html,
-                               mailto_raw=mailto_raw,
-                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
-                               form=form, help=help)
-    else:
-        help = get_helps(['send_to_colleague'])
-        return render_template('send_to_other.html',
-                               title='Send to Other',
-                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
-                               form=form, help=help)
-
-
-def get_column_properties(eml_node, document, dt_node, object_name):
-    data_file = object_name
-    column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(data_file)
-    if column_vartypes:
-        return column_vartypes
-
-    uploads_folder = user_data.get_document_uploads_folder_name()
-    num_header_rows = '1'
-    field_delimiter_node = dt_node.find_descendant(names.FIELDDELIMITER)
-    if field_delimiter_node:
-        delimiter = field_delimiter_node.content
-    else:
-        delimiter = ','
-    quote_char_node = dt_node.find_descendant(names.QUOTECHARACTER)
-    if quote_char_node:
-        quote_char = quote_char_node.content
-    else:
-        quote_char = '"'
-    try:
-        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
-            uploads_folder, data_file, num_header_rows, delimiter, quote_char)
-
-        user_data.add_uploaded_table_properties(data_file,
-                                      new_column_vartypes,
-                                      new_column_names,
-                                      new_column_categorical_codes)
-
-        clear_distribution_url(dt_node)
-        insert_upload_urls(document, eml_node)
-
-        return new_column_vartypes
-
-    except FileNotFoundError:
-        raise FileNotFoundError('The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
-
-    except Exception as err:
-        raise Exception('Internal error 103')
-
-    except UnicodeDecodeError as err:
-        fullpath = os.path.join(uploads_folder, data_file)
-        errors = display_decode_error_lines(fullpath)
-        return render_template('encoding_error.html', filename=data_file, errors=errors)
-
-
-def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
-    if not old_dt_node or not new_dt_node:
-        raise Exception('Internal error 100')
-    old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
-    new_attribute_list = new_dt_node.find_child(names.ATTRIBUTELIST)
-    if len(old_attribute_list.children) != len(new_attribute_list.children):
-        raise IndexError('The new table has a different number of columns from the original table.')
-    document = current_user.get_filename()
-    old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
-    if not old_object_name_node:
-        raise Exception('Internal error 101')
-    old_object_name = old_object_name_node.content
-    if not old_object_name:
-        raise Exception('Internal error 102')
-    old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
-    if not old_column_vartypes:
-        # column properties weren't saved. compute them anew.
-        eml_node = load_eml(filename=document)
-        old_column_vartypes = get_column_properties(eml_node, document, old_dt_node, old_object_name)
-    if old_column_vartypes != new_column_vartypes:
-        diffs = []
-        for col_name, old_type, new_type, attr_node in zip(new_column_names, old_column_vartypes, new_column_vartypes, old_attribute_list.children):
-            if old_type != new_type:
-                diffs.append((col_name, old_type, new_type, attr_node))
-        raise ValueError(diffs)
-
-
-def substitute_nans(codes):
-    substituted = []
-    if codes:
-        for code in codes:
-            if isinstance(code, list):
-                substituted.append(substitute_nans(code))
-            elif not isinstance(code, float) or not math.isnan(code):
-                substituted.append(code)
-            else:
-                substituted.append('NAN')
-    else:
-        substituted.append(None)
-    return substituted
-
-
 def compare_codes(old_codes, new_codes):
+    """ TODO: comment needed """
+
+    def substitute_nans(codes):
+        substituted = []
+        if codes:
+            for code in codes:
+                if isinstance(code, list):
+                    substituted.append(substitute_nans(code))
+                elif not isinstance(code, float) or not math.isnan(code):
+                    substituted.append(code)
+                else:
+                    substituted.append('NAN')
+        else:
+            substituted.append(None)
+        return substituted
+
     old_substituted = substitute_nans(old_codes)
     new_substituted = substitute_nans(new_codes)
     return old_substituted == new_substituted
 
 
-def add_node_if_missing(parent_node, child_name):
-    child = parent_node.find_descendant(child_name)
-    if not child:
-        child = new_child_node(child_name, parent=parent_node)
-    return child
-
-
 def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes, doing_xml_import=False):
+    """ TODO: comment needed """
+
+    def add_node_if_missing(parent_node, child_name):
+        child = parent_node.find_descendant(child_name)
+        if not child:
+            child = new_child_node(child_name, parent=parent_node)
+        return child
+
     debug_msg(f'Entering update_data_table')
 
     if not old_dt_node or not new_dt_node:
@@ -2464,6 +2202,9 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
 
 
 def backup_metadata(filename):
+    """ TODO: comment needed """
+    """ Figure out if this should be removed. """
+
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         flash('User folder not found', 'error')
@@ -2484,6 +2225,7 @@ def backup_metadata(filename):
 
 
 def encode_for_query_string(param):
+    """Helper function for passing lists in the query string. Flask does not handle lists well, so we need to encode."""
     # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
     #  string representations. In addition, the string may contain '/' characters, which will not be encoded by default,
     #  thereby breaking the routing, so we need them to be encoded. Setting safe to an empty string accomplishes that.
@@ -2491,13 +2233,15 @@ def encode_for_query_string(param):
 
 
 def decode_from_query_string(param):
-    # The inverse operation of encode_for_query_string(), turning the parameter back into a list.
+    """The inverse operation of encode_for_query_string(), turning the parameter back into a list."""
     return ast.literal_eval(unquote(param))
 
 
 @home.route('/import_xml', methods=['GET', 'POST'])
 @login_required
 def import_xml():
+    """Handle the Import EML File (XML)... item in the Import/Export menu."""
+
     form = ImportPackageForm()
 
     # Process POST
@@ -2575,6 +2319,8 @@ def import_xml():
 @home.route('/import_xml_2/<package_name>/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
 def import_xml_2(package_name, filename, fetched=False):
+    """Handle the Import EML File (XML)... item in the Import/Export menu after an XML file has been selected."""
+
     form = ImportPackageForm()
 
     # Process POST
@@ -2634,87 +2380,8 @@ def import_xml_2(package_name, filename, fetched=False):
                            package_name=package_name, form=form, help=help)
 
 
-def display_list(err_html, err_text, ll, explanation):
-    if ll:
-        err_html += f"{explanation}<ul>"
-        err_text += f"{explanation}\n"
-        for node in ll:
-            err_html += f"<li>{node}"
-            err_text += f"   • {node}\n"
-        err_html += "</ul><p>"
-        err_text += "\n"
-    return err_html, err_text
-
-
-def process_other_errors(filename, other_errs):
-    # eml_node = load_eml(filename=filename)
-    processed_errs = []
-    for err in other_errs:
-        if "Minimum occurrence" in err:
-            # We suppress this kind of error because it presumably results from nodes being pruned, and such
-            #  nodes will be covered by other errors reported to the user. This "Minimum occurrence" error
-            #  would be cryptic.
-            continue
-        processed_errs.append(err)
-    return processed_errs
-
-
-def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_errs=None, child_errs=None,
-                                     other_errs=None, pruned_nodes=None, unhandled_elements=None):
-    err_html = ''
-    err_text = ''
-
-    unknown_nodes = decode_from_query_string(unknown_nodes)
-    attr_errs = decode_from_query_string(attr_errs)
-    child_errs = decode_from_query_string(child_errs)
-    other_errs = decode_from_query_string(other_errs)
-    pruned_nodes = decode_from_query_string(pruned_nodes)
-
-    err_html, err_text = display_list(err_html, err_text, unknown_nodes,
-        "The following EML element types are unknown to ezEML, so they have been omitted:")
-
-    excluded_nodes = set(unknown_nodes)
-
-    processed_child_errs = []
-    for err in child_errs:
-        _, child_name, _, parent_name, *_ = err.split("'")
-        if child_name not in unknown_nodes:
-            excluded_nodes.add(child_name)
-            processed_child_errs.append(f"{child_name} within {parent_name}")
-
-    err_html, err_text = display_list(err_html, err_text, processed_child_errs,
-        "The following EML elements occur in unexpected locations in the EML, so they have been omitted:")
-
-    pruned_nodes = sorted(list(set(pruned_nodes) - excluded_nodes))
-    excluded_nodes = excluded_nodes | set(pruned_nodes)
-
-    err_html, err_text = display_list(err_html, err_text, pruned_nodes,
-        f"The following EML elements been omitted because of errors:")
-
-    insert1 = ' '
-    insert2 = ' errors have'
-    if len(excluded_nodes) > 1:
-        insert1 = 'additional'
-    other_errs = process_other_errors(filename, other_errs)
-    if len(other_errs) == 1:
-        insert2 = ' error has'
-    err_html, err_text = display_list(err_html, err_text, other_errs,
-        f"The following {insert1}{insert2} been detected:")
-
-    if len(unhandled_elements) > 0:
-        err_html, err_text = display_list(err_html, err_text, unhandled_elements,
-            "The following EML element types are preserved by ezEML but are not exposed by the user interface. "
-            "If you wish to edit any of these elements, you will need to use an XML editor:")
-
-    err_heading = ""
-    if len(excluded_nodes) > 0:
-        err_heading = "<br>ezEML does not cover the complete EML standard. It imports as much of the EML " \
-                      "as possible, but in this case it had to omit some EML elements.<p><br>"
-
-    return err_html, err_text, err_heading
-
-
 def get_data_size(filename):
+    """Return the combined size of the data entities in MB. Used by import_xml_3 and import_xml_4."""
     try:
         scope, identifier, revision = filename.split('.')
         _, total = get_data_entity_sizes(scope, identifier, revision)
@@ -2731,6 +2398,86 @@ def get_data_size(filename):
 @login_required
 def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_errs=None,
                  other_errs=None, pruned_nodes=None, filename=None, fetched=False):
+    """ TODO: comment needed """
+
+    def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_errs=None, child_errs=None,
+                                         other_errs=None, pruned_nodes=None, unhandled_elements=None):
+        """ TODO: comment needed """
+
+        def display_list(err_html, err_text, ll, explanation):
+            if ll:
+                err_html += f"{explanation}<ul>"
+                err_text += f"{explanation}\n"
+                for node in ll:
+                    err_html += f"<li>{node}"
+                    err_text += f"   • {node}\n"
+                err_html += "</ul><p>"
+                err_text += "\n"
+            return err_html, err_text
+
+        def process_other_errors(filename, other_errs):
+            # eml_node = load_eml(filename=filename)
+            processed_errs = []
+            for err in other_errs:
+                if "Minimum occurrence" in err:
+                    # We suppress this kind of error because it presumably results from nodes being pruned, and such
+                    #  nodes will be covered by other errors reported to the user. This "Minimum occurrence" error
+                    #  would be cryptic.
+                    continue
+                processed_errs.append(err)
+            return processed_errs
+
+        err_html = ''
+        err_text = ''
+
+        unknown_nodes = decode_from_query_string(unknown_nodes)
+        attr_errs = decode_from_query_string(attr_errs)
+        child_errs = decode_from_query_string(child_errs)
+        other_errs = decode_from_query_string(other_errs)
+        pruned_nodes = decode_from_query_string(pruned_nodes)
+
+        err_html, err_text = display_list(err_html, err_text, unknown_nodes,
+                                          "The following EML element types are unknown to ezEML, so they have been omitted:")
+
+        excluded_nodes = set(unknown_nodes)
+
+        processed_child_errs = []
+        for err in child_errs:
+            _, child_name, _, parent_name, *_ = err.split("'")
+            if child_name not in unknown_nodes:
+                excluded_nodes.add(child_name)
+                processed_child_errs.append(f"{child_name} within {parent_name}")
+
+        err_html, err_text = display_list(err_html, err_text, processed_child_errs,
+                                          "The following EML elements occur in unexpected locations in the EML, so they have been omitted:")
+
+        pruned_nodes = sorted(list(set(pruned_nodes) - excluded_nodes))
+        excluded_nodes = excluded_nodes | set(pruned_nodes)
+
+        err_html, err_text = display_list(err_html, err_text, pruned_nodes,
+                                          f"The following EML elements been omitted because of errors:")
+
+        insert1 = ' '
+        insert2 = ' errors have'
+        if len(excluded_nodes) > 1:
+            insert1 = 'additional'
+        other_errs = process_other_errors(filename, other_errs)
+        if len(other_errs) == 1:
+            insert2 = ' error has'
+        err_html, err_text = display_list(err_html, err_text, other_errs,
+                                          f"The following {insert1}{insert2} been detected:")
+
+        if len(unhandled_elements) > 0:
+            err_html, err_text = display_list(err_html, err_text, unhandled_elements,
+                                              "The following EML element types are preserved by ezEML but are not exposed by the user interface. "
+                                              "If you wish to edit any of these elements, you will need to use an XML editor:")
+
+        err_heading = ""
+        if len(excluded_nodes) > 0:
+            err_heading = "<br>ezEML does not cover the complete EML standard. It imports as much of the EML " \
+                          "as possible, but in this case it had to omit some EML elements.<p><br>"
+
+        return err_html, err_text, err_heading
 
     form = EDIForm()
     eml_node = load_eml(filename=filename)
@@ -2798,6 +2545,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
 @home.route('/import_xml_4/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
 def import_xml_4(filename=None, fetched=False):
+    """ TODO: comment needed """
 
     form = EDIForm()
     eml_node = load_eml(filename=filename)
@@ -2854,6 +2602,7 @@ def import_xml_4(filename=None, fetched=False):
 @home.route('/fetch_xml/', methods=['GET', 'POST'])
 @login_required
 def fetch_xml(scope=''):
+    """Handle the Fetch a Package from EDI... item in the Import/Export menu."""
 
     form = EDIForm()
 
@@ -2893,6 +2642,7 @@ def fetch_xml(scope=''):
 @home.route('/fetch_xml_2/<scope>', methods=['GET', 'POST'])
 @login_required
 def fetch_xml_2(scope=''):
+    """Handle the Fetch a Package from EDI... item in the Import/Export menu after a scope has been selected."""
 
     form = EDIForm()
 
@@ -2926,6 +2676,10 @@ def fetch_xml_2(scope=''):
 @home.route('/fetch_xml_2a/<scope_identifier>', methods=['GET', 'POST'])
 @login_required
 def fetch_xml_2a(scope_identifier=''):
+    """
+    Handle the Fetch a Package from EDI... item in the Import/Export menu after an identifier within scope
+    has been selected if there are multiple versions of the package.
+    """
 
     form = EDIForm()
 
@@ -2964,6 +2718,11 @@ def fetch_xml_2a(scope_identifier=''):
 @home.route('/fetch_xml_3/<scope_identifier>/<revision>', methods=['GET', 'POST'])
 @login_required
 def fetch_xml_3(scope_identifier='', revision=''):
+    """
+    Handle the Fetch a Package from EDI... item in the Import/Export menu after a package has been selected.
+
+    It is here that the package is actually fetched from EDI.
+    """
 
     form = EDIForm()
 
@@ -3055,6 +2814,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
 @home.route('/import_package', methods=['GET', 'POST'])
 @login_required
 def import_package():
+    """Handle the Import ezEML Data Package... item from the Import/Export menu."""
+
     form = ImportPackageForm()
 
     package_list = user_data.get_user_document_list()
@@ -3123,6 +2884,8 @@ def import_package():
 @home.route('/import_package_2/<package_name>', methods=['GET', 'POST'])
 @login_required
 def import_package_2(package_name):
+    """Handle the Import ezEML Data Package... item from the Import/Export menu after a file has been selected."""
+
     form = ImportPackageForm()
 
     # Process POST
@@ -3150,32 +2913,9 @@ def import_package_2(package_name):
                            package_name=package_name, form=form, help=help)
 
 
-def column_names_changed(filepath, delimiter, quote_char, dt_node):
-    # Assumes CSV file has been saved to the file system
-    # This function is called only in the reupload case.
-
-    data_frame = pd.read_csv(filepath, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=1)
-    columns = data_frame.columns
-    new_column_names = []
-    for col in columns:
-        new_column_names.append(col)
-
-    old_column_names = []
-    if dt_node:
-        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
-        if attribute_list_node:
-            for attribute_node in attribute_list_node.children:
-                attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
-                if attribute_name_node:
-                    old_column_names.append(attribute_name_node.content)
-
-    if len(old_column_names) != len(new_column_names):
-        raise NumberOfColumnsHasChanged(f'Number of columns has changed from {len(old_column_names)} to {len(new_column_names)}.')
-
-    return old_column_names != new_column_names
-
-
 def clear_distribution_url(entity_node):
+    """ TODO: comment needed """
+
     distribution_node = entity_node.find_descendant(names.DISTRIBUTION)
     if distribution_node:
         url_node = distribution_node.find_descendant(names.URL)
@@ -3212,16 +2952,18 @@ def get_data_file():
         return render_template('get_data_file.html', form=form)
 
 
-def download_data_file(filename: str = '', user: str=''):
-    if filename:
-        user_data_dir = Config.USER_DATA_DIR
-        filepath = f'{user_data_dir}/{user}/uploads/{filename}'
-        return send_file(filepath, as_attachment=True, download_name=os.path.basename(filename))
-
-
 @home.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
 @login_required
 def get_data_file_2(user):
+    """
+    This route is an admin tool for use by the EDI team to download an uploaded data file from any user's account.
+    """
+    def download_data_file(filename: str = '', user: str = ''):
+        if filename:
+            user_data_dir = Config.USER_DATA_DIR
+            filepath = f'{user_data_dir}/{user}/uploads/{filename}'
+            return send_file(filepath, as_attachment=True, download_name=os.path.basename(filename))
+
     if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
         flash('You are not authorized to use Download Data.', 'error')
         return render_template('index.html')
@@ -3284,39 +3026,38 @@ def get_eml_file():
         return render_template('get_eml_file.html', form=form)
 
 
-def download_eml_file(filename: str = '', user: str=''):
-    if filename:
-        # We will create and download a zip file with both the xml and json files
-        edi_user_folder = user_data.get_user_folder_name()
-        user_folder = os.path.join(Config.USER_DATA_DIR, user)
-        basename = os.path.splitext(os.path.basename(filename))[0]
-        xml_file_pathname = os.path.join(user_folder, basename) + '.xml'
-        json_file_pathname = os.path.join(user_folder, basename) + '.json'
-        zip_file_workpath = os.path.join(edi_user_folder, 'zip_temp')
-        try:
-            os.mkdir(zip_file_workpath)
-        except FileExistsError:
-            pass
-        zip_file_pathname = os.path.join(zip_file_workpath, basename) + '.zip'
-        zip_object = ZipFile(zip_file_pathname, 'w')
-        if os.path.exists(xml_file_pathname):
-            zip_object.write(xml_file_pathname, arcname=basename + '.xml')
-        else:
-            log_info(f'File not found: {xml_file_pathname}')
-        if os.path.exists(json_file_pathname):
-            zip_object.write(json_file_pathname, arcname=basename + '.json')
-        else:
-            log_info(f'File not found: {json_file_pathname}')
-        zip_object.close()
-        return send_file(zip_file_pathname, as_attachment=True, download_name=basename + '.zip')
-
-
 @home.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
 @login_required
 def get_eml_file_2(user):
     """
     This route is an admin tool for use by the EDI team to download an EML file from any user's account.
     """
+    def download_eml_file(filename: str = '', user: str = ''):
+        if filename:
+            # We will create and download a zip file with both the xml and json files
+            edi_user_folder = user_data.get_user_folder_name()
+            user_folder = os.path.join(Config.USER_DATA_DIR, user)
+            basename = os.path.splitext(os.path.basename(filename))[0]
+            xml_file_pathname = os.path.join(user_folder, basename) + '.xml'
+            json_file_pathname = os.path.join(user_folder, basename) + '.json'
+            zip_file_workpath = os.path.join(edi_user_folder, 'zip_temp')
+            try:
+                os.mkdir(zip_file_workpath)
+            except FileExistsError:
+                pass
+            zip_file_pathname = os.path.join(zip_file_workpath, basename) + '.zip'
+            zip_object = ZipFile(zip_file_pathname, 'w')
+            if os.path.exists(xml_file_pathname):
+                zip_object.write(xml_file_pathname, arcname=basename + '.xml')
+            else:
+                log_info(f'File not found: {xml_file_pathname}')
+            if os.path.exists(json_file_pathname):
+                zip_object.write(json_file_pathname, arcname=basename + '.json')
+            else:
+                log_info(f'File not found: {json_file_pathname}')
+            zip_object.close()
+            return send_file(zip_file_pathname, as_attachment=True, download_name=basename + '.zip')
+
     if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
         flash('You are not authorized to use Download EML (XML and JSON).', 'error')
         return render_template('index.html')
@@ -3339,26 +3080,6 @@ def get_eml_file_2(user):
         xml_files = sorted([os.path.basename(x) for x in xml_files], key=str.casefold)
         form.eml_file.choices = xml_files
         return render_template('get_eml_file_2.html', form=form)
-
-
-@home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
-@login_required
-def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
-
-    form = LoadDataForm()
-    document = current_user.get_filename()
-
-    if request.method == 'POST':
-
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-
-        if BTN_CONTINUE in request.form:
-            return redirect(url_for(PAGE_REUPLOAD, filename=document, dt_node_id=dt_node_id, saved_filename=saved_filename, name_chg_ok=True), code=307) # 307 keeps it a POST
-
-        help = get_helps(['data_table_reupload_full'])
-        return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
-                               form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
 
 
 def data_filename_is_unique(eml_node, data_filename):
@@ -3390,6 +3111,8 @@ def data_filename_is_unique(eml_node, data_filename):
 @home.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_data(filename=None):
+    """ TODO: comment needed """
+
     # log_info(f'Entering load_data: request.method={request.method}')
     # filename that's passed in is actually the document name, for historical reasons.
     # We'll clear it to avoid misunderstandings...
@@ -3504,6 +3227,107 @@ def load_data(filename=None):
 def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
                     eml_node=None, uploads_folder=None, name_chg_ok=False,
                     delimiter=None, quote_char=None):
+    """ TODO: comment needed """
+
+    def column_names_changed(filepath, delimiter, quote_char, dt_node):
+        """ TODO: comment needed """
+
+        # Assumes CSV file has been saved to the file system
+        # This function is called only in the reupload case.
+
+        data_frame = pd.read_csv(filepath, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=1)
+        columns = data_frame.columns
+        new_column_names = []
+        for col in columns:
+            new_column_names.append(col)
+
+        old_column_names = []
+        if dt_node:
+            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+            if attribute_list_node:
+                for attribute_node in attribute_list_node.children:
+                    attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+                    if attribute_name_node:
+                        old_column_names.append(attribute_name_node.content)
+
+        if len(old_column_names) != len(new_column_names):
+            raise NumberOfColumnsHasChanged(
+                f'Number of columns has changed from {len(old_column_names)} to {len(new_column_names)}.')
+
+        return old_column_names != new_column_names
+
+    def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
+        """ TODO: comment needed """
+
+        def get_column_properties(eml_node, document, dt_node, object_name):
+            data_file = object_name
+            column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(data_file)
+            if column_vartypes:
+                return column_vartypes
+
+            uploads_folder = user_data.get_document_uploads_folder_name()
+            num_header_rows = '1'
+            field_delimiter_node = dt_node.find_descendant(names.FIELDDELIMITER)
+            if field_delimiter_node:
+                delimiter = field_delimiter_node.content
+            else:
+                delimiter = ','
+            quote_char_node = dt_node.find_descendant(names.QUOTECHARACTER)
+            if quote_char_node:
+                quote_char = quote_char_node.content
+            else:
+                quote_char = '"'
+            try:
+                new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
+                    uploads_folder, data_file, num_header_rows, delimiter, quote_char)
+
+                user_data.add_uploaded_table_properties(data_file,
+                                                        new_column_vartypes,
+                                                        new_column_names,
+                                                        new_column_categorical_codes)
+
+                clear_distribution_url(dt_node)
+                insert_upload_urls(document, eml_node)
+
+                return new_column_vartypes
+
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    'The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
+
+            except Exception as err:
+                raise Exception('Internal error 103')
+
+            except UnicodeDecodeError as err:
+                fullpath = os.path.join(uploads_folder, data_file)
+                errors = display_decode_error_lines(fullpath)
+                return render_template('encoding_error.html', filename=data_file, errors=errors)
+
+        if not old_dt_node or not new_dt_node:
+            raise Exception('Internal error 100')
+        old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
+        new_attribute_list = new_dt_node.find_child(names.ATTRIBUTELIST)
+        if len(old_attribute_list.children) != len(new_attribute_list.children):
+            raise IndexError('The new table has a different number of columns from the original table.')
+        document = current_user.get_filename()
+        old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
+        if not old_object_name_node:
+            raise Exception('Internal error 101')
+        old_object_name = old_object_name_node.content
+        if not old_object_name:
+            raise Exception('Internal error 102')
+        old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
+        if not old_column_vartypes:
+            # column properties weren't saved. compute them anew.
+            eml_node = load_eml(filename=document)
+            old_column_vartypes = get_column_properties(eml_node, document, old_dt_node, old_object_name)
+        if old_column_vartypes != new_column_vartypes:
+            diffs = []
+            for col_name, old_type, new_type, attr_node in zip(new_column_names, old_column_vartypes,
+                                                               new_column_vartypes, old_attribute_list.children):
+                if old_type != new_type:
+                    diffs.append((col_name, old_type, new_type, attr_node))
+            raise ValueError(diffs)
 
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
@@ -3952,6 +3776,8 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = PAGE_IMPORT_PARTY
                 node_id = '1'
             new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+            if new_page:
+                break
 
     if form.validate_on_submit():
         if new_page in [PAGE_DATA_TABLE, PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
@@ -4026,8 +3852,277 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
 
 
 def set_current_page(page):
+    """Set the current page so it can be highlighted in the Contents menu."""
     session['current_page'] = page
 
 
 def get_current_page():
+    """Return the current page, for example to redirect back to it."""
     return session.get('current_page')
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Code below is no longer used. Keeping it around in case we change our minds...
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+@home.route('/import_temporal_coverage', methods=['GET', 'POST'])
+@login_required
+def import_temporal_coverage():
+    """Handle the Import Temporal Coverage item in EML Documents menu. Not currently used."""
+
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+            # new_page = get_redirect_target_page()
+            # url = url_for(new_page, filename=current_user.get_filename())
+            # return redirect(url)
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_temporal_coverage_2', filename=filename))
+
+    # Process GET
+    return render_template('import_temporal_coverage.html', form=form)
+
+
+@home.route('/import_temporal_coverage_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_temporal_coverage_2(filename):
+    """Handle the Import Temporal Coverage item in EML Documents menu after a source document has been selected.
+    Not currently used."""
+
+    def get_temporal_coverages_for_import(eml_node):
+        coverages = []
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.TEMPORALCOVERAGE]):
+            label = compose_full_gc_label(node)  # FIXME
+            coverages.append((f'{label}', node.id))
+        return coverages
+
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    coverages = get_temporal_coverages_for_import(eml_node)
+    choices = [[coverage[1], coverage[0]] for coverage in coverages]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_coverage_nodes(target_package, node_ids_to_import)
+        return redirect(url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=target_package))
+
+    # Process GET
+    return render_template('import_temporal_coverage_2.html', target_filename=filename, title='Import Metadata',
+                           form=form)
+
+
+@home.route('/submit_package', methods=['GET', 'POST'])
+@home.route('/submit_package/<filename>', methods=['GET', 'POST'])
+@home.route('/submit_package/<filename>/<success>', methods=['GET', 'POST'])
+@login_required
+def submit_package(filename=None, success=None):
+    """Handle the former version of Submit to EDI page. Not currently used."""
+
+    def submit_package_mail_body(name=None, email_address=None, archive_name=None, encoded_url=None,
+                                 encoded_url_without_data=None, notes=None):
+        # Note: get_shortened_url handles blanks
+        msg = 'Dear EDI Data Curator:' + '\n\n' + \
+              'This email was auto-generated by ezEML.\n\n\n' + \
+              'Please submit the following data package to the EDI data repository.\n\n' + \
+              '   Sender\'s name: ' + name + '\n\n' + \
+              '   Sender\'s email: ' + email_address + '\n\n' + \
+              '   Package name: ' + archive_name + '\n\n' + \
+              '   Download URL: ' + encoded_url + '\n\n' + \
+              '   Download URL without data files: ' + encoded_url_without_data + '\n\n'
+        if notes:
+            msg += '   Sender\'s Notes: ' + notes
+        return msg
+
+    form = SubmitToEDIForm()
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+    if not current_document:
+        return redirect(url_for(PAGE_INDEX))
+
+    if form.validate_on_submit():
+        # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
+        #  programmatically generated Submit
+        if request.form.get(BTN_SUBMIT) == BTN_SUBMIT_TO_EDI:
+            name = form.data['name']
+            email_address = form.data['email_address']
+            notes = form.data['notes']
+
+            # update the EML to include URLs to data table files and other entity files
+            insert_upload_urls(current_document, eml_node)
+            save_both_formats(filename=current_document, eml_node=eml_node)
+
+            try:
+                zipfile_path = zip_package(current_document, eml_node)
+                zipfile_path_without_data = zip_package(current_document, eml_node, include_data=False)
+            except ezEMLError as e:
+                flash(str(e), 'error')
+                return redirect(get_back_url(success=False))
+
+            if zipfile_path and zipfile_path_without_data:
+                _, _, encoded_url = save_as_ezeml_package_export(zipfile_path)
+                _, _, encoded_url_without_data = save_as_ezeml_package_export(zipfile_path_without_data)
+
+                msg = submit_package_mail_body(name, email_address, current_document, encoded_url,
+                                               encoded_url_without_data, notes)
+                msg += get_fetched_from_edi_metadata(eml_node)
+                msg += get_imported_from_xml_metadata(eml_node)
+                subject = 'ezEML-Generated Data Submission Request'
+                to_address = [Config.TO]
+                sent = mimemail.send_mail(subject=subject, msg=msg, to=to_address)
+                if sent is True:
+                    log_usage(actions['SEND_TO_EDI'], name, email_address)
+                    flash(f'Package "{current_document}" has been sent to EDI. We will notify you when it has been added to the repository.')
+                    flash(f"If you don't hear back from us within 48 hours, please contact us at support@edirepository.org.")
+                    success = True
+                else:
+                    log_usage(actions['SEND_TO_EDI'], 'failed')
+                    flash(sent, 'error')
+
+            return redirect(get_back_url(success=success))
+
+    set_current_page('submit_package')
+    help = get_helps(['submit_package', 'submit_package_success'])
+    return render_template('submit_package.html',
+                           title='Send to EDI',
+                           check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                           form=form, help=help, success=success)
+
+
+@home.route('/send_to_other/<filename>/', methods=['GET', 'POST'])
+@home.route('/send_to_other/<filename>/<mailto>/', methods=['GET', 'POST'])
+@login_required
+def send_to_other(filename=None, mailto=None):
+    def send_to_other_email(name, email_address, title, url):
+        name_quoted = quote(name)
+        email_address_quoted = quote(email_address)
+        title_quoted = quote(title)
+        url = make_tiny(url)  # Note: it is assumed the URL has not been encoded
+        msg_quoted = f'mailto:{email_address_quoted}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name_quoted}%3A%0D%0A%0D%0A' \
+                     f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
+                     f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title_quoted}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
+                     f'available%20for%20download%20here%3A%20{url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
+                     f'After%20you%20download%20the%20package%2C%20you%20can%20import%20it%20into%20ezEML%2C%20or%20you%20can%20' \
+                     f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
+                     f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
+                     f'%0D%0A%0D%0AThanks!'
+        msg_html = Markup(f'Dear {name}:<p><br>'
+                          f'I have created a data package containing EML metadata and associated data files '
+                          f'for your inspection.<p>Title: "{title}"<p>The data package is '
+                          f'available for download here: {url}.<p>The package was created using ezEML. '
+                          f'After you download the package, you can import it into ezEML, or you can '
+                          f'unzip it to extract the EML file and associated data files to work with them '
+                          f'directly.<p>To learn more about ezEML, go to https://ezeml.edirepository.org.'
+                          f'<p>Thanks!')
+        msg_raw = f'Dear {name}:\n\n' \
+                  f'I have created a data package containing EML metadata and associated data files ' \
+                  f'for your inspection.\n\nTitle: "{title}"\n\nThe data package is ' \
+                  f'available for download here: {url}.\n\nThe package was created using ezEML. ' \
+                  f'After you download the package, you can import it into ezEML, or you can ' \
+                  f'unzip it to extract the EML file and associated data files to work with them ' \
+                  f'directly.\n\nTo learn more about ezEML, go to https://ezeml.edirepository.org.' \
+                  f'\n\nThanks!'
+        return msg_quoted, msg_html, msg_raw
+
+    form = SendToColleagueForm()
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+    if not current_document:
+        return redirect(url_for(PAGE_INDEX))
+
+    if form.validate_on_submit():
+        # If the user has clicked Save in the EML Documents menu, for example, we want to ignore the
+        #  programmatically generated Submit
+        if request.form.get(BTN_SUBMIT) == BTN_SEND_TO_OTHER:
+
+            colleague_name = form.data['colleague_name']
+            email_address = form.data['email_address']
+
+            eml_node = load_eml(filename=filename)
+            insert_upload_urls(current_document, eml_node)
+            log_usage(actions['SEND_TO_COLLEAGUE'], colleague_name, email_address)
+
+            dataset_node = eml_node.find_child(child_name=names.DATASET)
+            title_node = dataset_node.find_child(names.TITLE)
+            title = ''
+            if title_node:
+                title = title_node.content
+            if not title:
+                # The GET path will display an error message saying the title is required
+                return redirect(get_back_url())
+
+            try:
+                zipfile_path = zip_package(current_document, eml_node)
+            except ezEMLError as e:
+                flash(str(e), 'error')
+                print(redirect(get_back_url()))
+                return redirect(get_back_url())
+
+            _, download_url, _ = save_as_ezeml_package_export(zipfile_path)
+
+            if not mailto:
+                mailto, mailto_html, mailto_raw = send_to_other_email(colleague_name, email_address, title, download_url)
+            else:
+                mailto = None  # so we don't pop up the email client when the page is returned to after sending the 1st time
+                mailto_html = None
+                mailto_raw=None
+
+    eml_node = load_eml(filename=filename)
+    title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
+    if not title_node or not title_node.content:
+        flash('The data package must have a Title before it can be sent.', 'error')
+
+    set_current_page('send_to_other')
+    if mailto:
+        form.colleague_name.data = ''
+        form.email_address.data = ''
+        help = get_helps(['send_to_colleague_2'])
+        return render_template('send_to_other_2.html',
+                               title='Send to Other',
+                               mailto=mailto,
+                               mailto_html=mailto_html,
+                               mailto_raw=mailto_raw,
+                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                               form=form, help=help)
+    else:
+        help = get_helps(['send_to_colleague'])
+        return render_template('send_to_other.html',
+                               title='Send to Other',
+                               check_metadata_status=get_check_metadata_status(eml_node, current_document),
+                               form=form, help=help)
+
+
+@home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
+@login_required
+def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
+
+    form = LoadDataForm()
+    document = current_user.get_filename()
+
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if BTN_CONTINUE in request.form:
+            return redirect(url_for(PAGE_REUPLOAD, filename=document, dt_node_id=dt_node_id, saved_filename=saved_filename, name_chg_ok=True), code=307) # 307 keeps it a POST
+
+        help = get_helps(['data_table_reupload_full'])
+        return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
+                               form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)

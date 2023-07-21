@@ -432,6 +432,8 @@ def _release_lock_for_user(user_id, session=None):
 
 
 def release_acquired_lock(lock, session=None):
+    if not lock:
+        return
     with db_session(session) as session:
         _remove_lock(lock.package_id, session=session)
 

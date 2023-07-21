@@ -1,0 +1,175 @@
+
+<body style="padding-left: 30px;">
+
+<p> </p>
+<a href="/eml">Home</a>
+<p> </p>
+<p>&nbsp;</p>
+<h3>Users</h3>
+<table>
+    <tr>
+        <th style="text-align: left">user_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">user_login</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">active_package_id</th>
+    </tr>
+    {%  for user in users %}
+    <tr>
+        <td>{{ user.user_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ user.user_login }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ user.active_package_id }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>&nbsp;</p>
+<h3>Packages</h3>
+<table>
+    <tr>
+        <th style="text-align: left">package_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">owner_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">package_name</th>
+    </tr>
+    {%  for package in packages %}
+    <tr>
+        <td>{{ package.package_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ package.owner_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ package.package_name }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>&nbsp;</p>
+<h3>Collaborations</h3>
+<table>
+    <tr>
+        <th style="text-align: left">collab_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">owner_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">collaborator_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">package_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">date_created</th>
+    </tr>
+    {%  for collaboration in collaborations %}
+    <tr>
+        <td>{{ collaboration.collab_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ collaboration.owner_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ collaboration.collaborator_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ collaboration.package_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ collaboration.date_created }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>&nbsp;</p>
+<h3>Group Collaborations</h3>
+<table>
+    <tr>
+        <th style="text-align: left">group_collab_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">owner_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">user_group_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">package_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">date_created</th>
+    </tr>
+    {%  for group_collaboration in group_collaborations %}
+    <tr>
+        <td>{{ group_collaboration.group_collab_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ group_collaboration.owner_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ group_collaboration.user_group_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ group_collaboration.package_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ group_collaboration.date_created }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>&nbsp;</p>
+<h3>Collaboration Statuses</h3>
+<table>
+    <tr>
+        <th style="text-align: left">collab_status_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">collab_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">status</th>
+    </tr>
+    {%  for collaboration_status in collaboration_statuses %}
+    <tr>
+        <td>{{ collaboration_status.collab_status_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ collaboration_status.collab_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ collaboration_status.status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>&nbsp;</p>
+<h3>Locks</h3>
+<table>
+    <tr>
+        <th style="text-align: left">lock_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">package_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">locked_by</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">timestamp (UTC)</th>
+    </tr>
+    {%  for lock in locks %}
+    <tr>
+        <td>{{ lock.lock_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ lock.package_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ lock.locked_by }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ lock.timestamp }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>&nbsp;</p>
+<h3>Group Locks</h3>
+<table>
+    <tr>
+        <th style="text-align: left">group_lock_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">package_id</th>
+        <td style="width: 5%"></td>
+        <th style="text-align: left">locked_by</th>
+    </tr>
+    {%  for group_lock in group_locks %}
+    <tr>
+        <td>{{ group_lock.group_lock_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ group_lock.package_id }}</td>
+        <td style="width: 5%"></td>
+        <td>{{ group_lock.locked_by }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+</body>

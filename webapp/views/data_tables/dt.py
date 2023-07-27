@@ -1,20 +1,27 @@
-import hashlib
 import math
 import numpy as np
+import os
 import pandas as pd
+from pathlib import Path
 
-import daiquiri
+from urllib.parse import unquote
+
 from flask import (
-    Blueprint, Flask, flash, render_template, redirect, request, session, url_for, app, current_app
+    Blueprint, Flask, flash, Markup, render_template, redirect, request, session, url_for, current_app
 )
 
 from flask_login import (
-    login_required
+    current_user, login_required
 )
 
+import webapp.views.data_tables.load_data
 from webapp.config import Config
 
-import webapp.home.views as views
+from webapp.home import views, exceptions, check_data_table_contents, standard_units
+
+from webapp.views.data_tables.load_data import (
+    cull_data_files
+)
 
 from webapp.views.data_tables.forms import (
     AttributeDateTimeForm, AttributeIntervalRatioForm,
@@ -26,11 +33,11 @@ from webapp.views.data_tables.forms import (
 
 from webapp.home.forms import (
     form_md5, is_dirty_form,
-    ImportEMLForm
+    LoadDataForm, ImportEMLForm
 )
 
 from webapp.home.metapype_client import (
-    load_eml, save_both_formats, new_child_node, add_child, remove_child,
+    load_eml, save_both_formats, add_child, remove_child,
     create_data_table, list_data_packages, list_data_tables, list_data_table_columns, list_attributes,
     entity_name_from_data_table, attribute_name_from_attribute,
     list_codes_and_definitions, enumerated_domain_from_attribute,
@@ -49,12 +56,11 @@ from webapp.home.log_usage import (
 from metapype.eml import names
 from metapype.model.node import Node
 from webapp.home.metapype_client import VariableType, new_child_node
-import webapp.home.standard_units as standard_units
 
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.load_data import load_data_table, sort_codes, infer_datetime_format
+from webapp.views.data_tables.load_data import load_data_table, sort_codes, infer_datetime_format
 
 import webapp.auth.user_data as user_data
 
@@ -379,6 +385,193 @@ def populate_data_table_form(form: DataTableForm, node: Node):
         form.number_of_records.data = number_of_records_node.content
 
     form.md5.data = form_md5(form)
+
+
+@dt_bp.route('/load_data/<filename>', methods=['GET', 'POST'])
+@login_required
+def load_data(filename=None):
+    """ TODO: comment needed """
+
+    # log_info(f'Entering load_data: request.method={request.method}')
+    # filename that's passed in is actually the document name, for historical reasons.
+    # We'll clear it to avoid misunderstandings...
+    filename = None
+
+    form = LoadDataForm()
+    document = current_user.get_filename()
+    uploads_folder = user_data.get_document_uploads_folder_name()
+
+    # Process POST
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(views.get_back_url())
+
+    if request.method == 'POST' and form.validate_on_submit():
+
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+
+        eml_node = load_eml(filename=document)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if not dataset_node:
+            dataset_node = new_child_node(names.DATASET, eml_node)
+
+        file = request.files['file']
+        if file:
+            filename = unquote(file.filename)
+
+        if filename:
+            if filename is None or filename == '':
+                flash('No selected file', 'error')
+            elif views.allowed_data_file(filename):
+                # Make sure we don't already have a data table or other entity with this name
+                if not webapp.views.data_tables.load_data.data_filename_is_unique(eml_node, filename):
+                    flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
+                    return redirect(request.url)
+
+                # Make sure the user's uploads directory exists
+                Path(uploads_folder).mkdir(parents=True, exist_ok=True)
+                filepath = os.path.join(uploads_folder, filename)
+                if file:
+                    # Upload the file to the uploads directory
+                    file.save(filepath)
+
+                num_header_rows = '1'
+                delimiter = form.delimiter.data
+                quote_char = form.quote.data
+
+                try:
+                    dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = \
+                        load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char,
+                                        check_column_names=True)
+
+                except UnicodeDecodeError as err:
+                    errors = views.display_decode_error_lines(filepath)
+                    return render_template('encoding_error.html', filename=filename, errors=errors)
+                except exceptions.UnicodeDecodeErrorInternal as err:
+                    filepath = err.message
+                    errors = views.display_decode_error_lines(filepath)
+                    return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
+                except exceptions.DataTableError as err:
+                    flash(f'Data table has an error: {err.message}', 'error')
+                    return redirect(request.url)
+                except exceptions.ExtraWhitespaceInColumnNames as err:
+                    bad_names = ', '.join('"' + name + '"' for name in err.message)
+                    if len(err.message) == 1:
+                        msg = "The following column name has leading or trailing spaces: "
+                        msg2 = "that column name"
+                    else:
+                        msg = "The following column names have leading or trailing spaces: "
+                        msg2 = "those column names"
+                    msg = f"{msg} {bad_names}.<br>" + \
+                            "Such extra spaces are not permitted. Please edit the header row of your data table to remove leading or trailing spaces from " + \
+                            f"{msg2} and try again."
+                    flash(Markup(msg), 'error')
+                    return redirect(request.url)
+
+                flash(f"Loaded {filename}")
+
+                dt_node.parent = dataset_node
+                dataset_node.add_child(dt_node)
+
+                user_data.add_data_table_upload_filename(filename)
+                if new_column_vartypes:
+                    user_data.add_uploaded_table_properties(filename,
+                                                  new_column_vartypes,
+                                                  new_column_names,
+                                                  new_column_categorical_codes)
+
+                cull_data_files(uploads_folder)
+
+                views.clear_distribution_url(dt_node)
+                views.insert_upload_urls(document, eml_node)
+                log_usage(actions['LOAD_DATA_TABLE'], filename)
+
+                check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
+                save_both_formats(filename=document, eml_node=eml_node)
+
+                return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
+
+            else:
+                flash(f'{filename} is not a supported data file type')
+                return redirect(request.url)
+
+    # Process GET
+    return render_template('load_data.html', title='Load Data',
+                           form=form)
+
+
+@dt_bp.route('/reupload_data/<filename>/<dt_node_id>', methods=['GET', 'POST'])
+@dt_bp.route('/reupload_data/<filename>/<dt_node_id>/<saved_filename>/<name_chg_ok>', methods=['GET', 'POST'])
+@login_required
+def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_ok=False):
+    """ TODO: comment needed """
+
+    # filename that's passed in is actually the document name, for historical reasons.
+    # We'll clear it to avoid misunderstandings...
+    filename = None
+
+    form = LoadDataForm()
+    document = current_user.get_filename()
+    uploads_folder = user_data.get_document_uploads_folder_name()
+    eml_node = load_eml(filename=document)
+
+    data_table_name = ''
+    dt_node = Node.get_node_instance(dt_node_id)
+    if dt_node:
+        entity_name_node = dt_node.find_child(names.ENTITYNAME)
+        if entity_name_node:
+            data_table_name = entity_name_node.content
+            if not data_table_name:
+                flash(f'Data table name not found in the metadata.', 'error')
+                return redirect(request.url)
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
+        return redirect(url)
+
+    if request.method == 'POST':
+        if dt_node:
+            if saved_filename:
+                filename = saved_filename
+                unmodified_filename = filename
+            else:
+                file = request.files['file']
+                if file:
+                    filename = f"{file.filename}"
+                    unmodified_filename = filename
+                    if views.allowed_data_file(filename):
+                        # We upload the new version of the CSV file under a temp name so we have both files to inspect.
+                        filename = f"{filename}.ezeml_tmp"
+                        filepath = os.path.join(uploads_folder, filename)
+                        file.save(filepath)
+                    else:
+                        flash(f'{filename} is not a supported data file type', 'error')
+                        return redirect(request.url)
+
+            delimiter = form.delimiter.data
+            quote_char = form.quote.data
+
+            try:
+                goto = webapp.views.data_tables.load_data.handle_reupload(dt_node_id=dt_node_id, saved_filename=filename, document=document,
+                                                                          eml_node=eml_node, uploads_folder=uploads_folder, name_chg_ok=name_chg_ok,
+                                                                          delimiter=delimiter, quote_char=quote_char)
+                log_usage(actions['RE_UPLOAD_DATA_TABLE'], unmodified_filename)
+                return goto
+
+            except exceptions.MissingFileError as err:
+                flash(err.message, 'error')
+                return redirect(request.url)
+
+            except Exception as err:
+                return redirect(request.url)
+
+    # Process GET
+    help = views.get_helps(['data_table_reupload_full'])
+    return render_template('reupload_data.html', title='Re-upload Data Table',
+                           form=form, name=data_table_name, help=help)
 
 
 # <dt_node_id> identifies the dataTable node that this attribute

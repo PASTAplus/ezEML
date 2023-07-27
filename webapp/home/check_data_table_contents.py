@@ -1,3 +1,35 @@
+"""
+Helper functions for Check Data Tables.
+
+This code is set up to allow Check Data Tables to be called as a web service by another application.
+So, for example, its functions load_eml_file() and load_df() take arguments in the form of URLs rather than file paths.
+Likewise, the errors are returned as a JSON object rather than a Python dictionary, say.
+
+
+We want to memoize the results of checking a data table so we can merely link to the results and not have to recompute
+them. 
+
+However, we need to allow for the fact that the data table's metadata may have changed since the check was done, and we
+need an easy way to detect that that has happened.
+
+We do the following:
+    Let's say we have a data table file foobar.csv and we run check data table on it.
+    
+    We compute a hash of the data table metadata using the function hash_data_table_metadata_settings().
+    Let's say the hash is 1234567890. We save the JSON results of the check in a file named foobar.csv_eval_1234567890.
+    Then whenever we generate the Check Data Tables page, we can check to see if the metadata hash differs from the 
+    current metadata hash.
+
+    If it does, we know we need to recompute the check, so on the Check Data Tables page, instead of displaying a
+    "Show errors" link for the table, we display a "Check data table" link so the check will be performed anew.
+
+    If check data table returns no errors, we create a file foobar.csv_eval_1234567890_ok, where the "ok"
+    lets us know the table has no errors without our having to open the file and see that the errors list is empty.
+
+One motivation for all this is that we frequently need to set the badge color for the Check Data Tables menu item,
+so we want to know as quickly as possible what the error check status is for each of the tables.
+"""
+
 import os
 
 from collections import OrderedDict
@@ -18,7 +50,7 @@ from webapp.utils import path_exists, path_isdir, path_join
 
 import webapp.auth.user_data as user_data
 from webapp.config import Config
-from webapp.home.import_data import convert_file_size
+from webapp.home.fetch_data import convert_file_size
 
 from metapype.eml import names
 from webapp.exceptions import ezEMLXMLError
@@ -47,6 +79,11 @@ def log_info(msg):
 
 
 def load_eml_file(eml_file_url:str):
+    """
+    Retrieve an EML file from a URL and return the root node of the EML document.
+
+    Analogous to load_eml() that is used everywhere else in ezEML.
+    """
     s = requests.Session()
     s.mount('file://', FileAdapter())
 
@@ -67,6 +104,10 @@ def load_eml_file(eml_file_url:str):
 
 
 def load_df(eml_node, csv_url, data_table_name):
+    """
+    Retrieve a data table CSV file from a URL and return a Pandas data frame for it.
+    """
+
     data_table_node = find_data_table_node(eml_node, data_table_name)
 
     field_delimiter_node = data_table_node.find_descendant(names.FIELDDELIMITER)
@@ -81,14 +122,14 @@ def load_df(eml_node, csv_url, data_table_name):
         quote_char = '"'
 
     num_header_lines_node = data_table_node.find_descendant(names.NUMHEADERLINES)
-    num_header_lines = 1
+    num_header_lines = 1  # Default, if unspecified in the EML.
     try:
         num_header_lines = int(num_header_lines_node.content)
     except:
         pass
 
     num_footer_lines_node = data_table_node.find_descendant(names.NUMFOOTERLINES)
-    num_footer_lines = 0
+    num_footer_lines = 0  # Default, if unspecified in the EML.
     try:
         num_footer_lines = int(num_footer_lines_node.content)
     except:
@@ -106,16 +147,28 @@ def load_df(eml_node, csv_url, data_table_name):
 
 
 def find_data_table_node(eml_node, data_table_name):
-    # FIX ME - what if dataset has multiple tables with the same name?
+    """
+    Find the data table node in an EML document, based on its name. If there are multiple data tables with the same
+    name, raise ValueError. Likewise, if the named table is not found in the EML, raise ValueError.
+    """
     data_table_nodes = []
+    names_found = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     for data_table_node in data_table_nodes:
-        if get_data_table_name(data_table_node) == data_table_name:
+        name_found = get_data_table_name(data_table_node)
+        if name_found in names_found:
+            raise ValueError(f'Duplicate data table "{name_found}" found in EML')
+        if name_found == data_table_name:
             return data_table_node
     raise ValueError(f'Data table "{data_table_name}" not found in EML')
 
 
 def get_attribute_name(attribute_node):
+    """
+    Get the name of an attribute (column) from an attribute node. If attribute_node doesn't have an
+     attributeName child, raise ValueError.
+     """
+
     attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         return attribute_name_node.content
@@ -123,26 +176,34 @@ def get_attribute_name(attribute_node):
 
 
 def normalize_column_name(name):
-    # Strip whitespace and convert to lowercase
+    """ Normalize a name: strip whitespace and convert to lowercase. """
     return name.strip().lower()
 
 
 def names_match(column_name, attribute_name):
+    """ Test whether normalized names are equal. """
     return normalize_column_name(column_name) == normalize_column_name(attribute_name)
 
 
 def get_attribute_node(data_table_node, attribute_name):
+    """
+    Find an attribute node in a data table node, based on its name. If the named attribute is not found in the data
+    table, raise ValueError.
+    """
     attribute_nodes = []
     data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
     for attribute_node in attribute_nodes:
         attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
         if attribute_name_node and names_match(attribute_name_node.content, attribute_name):
             return attribute_node
-    raise ValueError  # use custom exception
     raise ValueError(f'Column "{attribute_name}" not found in EML')
 
 
 def get_variable_type(attribute_node):
+    """
+    Get the variable type of an attribute (column) from an attribute node. Variable type here means metapype_client.VariableType.
+     If the variable type is not found in the
+    """
     measurement_scale_node = attribute_node.find_child(names.MEASUREMENTSCALE)
     if measurement_scale_node:
 
@@ -164,10 +225,14 @@ def get_variable_type(attribute_node):
         datetime_node = measurement_scale_node.find_child(names.DATETIME)
         if datetime_node:
             return metapype_client.VariableType.DATETIME.name
-    raise ValueError  # use custom exception
+
+    raise ValueError(f'Variable type for {get_attribute_name(attribute_node)} could not be inferred from the EML')
 
 
 def get_data_table_columns(data_table_node):
+    """
+    Return a list of columns in a data table, where each column is represented as a dict with keys 'name' and 'type'.
+    """
     columns = []
     attribute_nodes = []
     data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
@@ -179,6 +244,9 @@ def get_data_table_columns(data_table_node):
 
 
 def create_result_json(eml_url, csv_url, columns_checked, errors, max_errs_per_column):
+    """
+    Return JSON representing the results of a check.
+    """
     if not max_errs_per_column:
         max_errs_per_column = '""'
     result_1 = f'"eml_file_url": "{eml_url}", "csv_file_url": "{csv_url}", "columns_checked": {json.dumps(columns_checked)}, "max_errs_per_column": {max_errs_per_column}, '
@@ -188,6 +256,9 @@ def create_result_json(eml_url, csv_url, columns_checked, errors, max_errs_per_c
 
 
 def create_error_json(data_table_name, column_name, row_index, error_type, expected, found):
+    """
+    Return JSON representing an error.
+    """
     if data_table_name and column_name and row_index:
         error_scope = 'element'
     elif data_table_name and column_name:
@@ -208,26 +279,24 @@ def create_error_json(data_table_name, column_name, row_index, error_type, expec
 
 
 def get_date_time_format_specification(data_table_node, attribute_name):
+    """
+    Return the datetime format string, if any, found in the EML for a given attribute (column) name.
+
+    If an attribute with the given name is not found in the EML, raise ValueError.
+    """
     attribute_node = get_attribute_node(data_table_node, attribute_name)
     if attribute_node:
         format_string_node = attribute_node.find_single_node_by_path(
             [names.MEASUREMENTSCALE, names.DATETIME, names.FORMATSTRING])
         if format_string_node:
             return format_string_node.content
-    raise ValueError  # use custom exception
-
-
-def get_date_time_format_regex(data_table_node, attribute_name):
-    date_time_format = get_date_time_format_specification(data_table_node, attribute_name)
-    return get_regex_for_format(date_time_format)
-
-
-def get_regex_for_format(format):
-    load_date_time_format_files()
-    return date_time_format_regex.get(format, None)
+    raise ValueError
 
 
 def get_missing_value_codes(data_table_node, column_name):
+    """
+    Return a list of missing value codes for a given attribute (column) name.
+    """
     attribute_node = get_attribute_node(data_table_node, column_name)
     missing_value_codes = []
     if attribute_node:
@@ -239,6 +308,9 @@ def get_missing_value_codes(data_table_node, column_name):
 
 
 def get_categorical_codes(attribute_node):
+    """
+    Return a list of categorical codes for a given attribute (column) name.
+    """
     codes = []
     code_nodes = []
     attribute_node.find_all_descendants(names.CODE, code_nodes)
@@ -249,6 +321,11 @@ def get_categorical_codes(attribute_node):
 
 
 def get_number_type(attribute_node):
+    """
+    Return the numberType for a given numerical attribute (column) name.
+    Number type is one of 'natural', 'whole', 'integer', or 'real'.
+    If the numberType is not found, raise ValueError.
+    """
     number_type_node = attribute_node.find_descendant(names.NUMBERTYPE)
     if not number_type_node:
         attribute_name = get_attribute_name(attribute_node)
@@ -260,13 +337,10 @@ def get_number_type(attribute_node):
     return number_type
 
 
-def display_nonprintable(s):
-    if s.isprintable():
-        return s
-    return ''.join([c if c.isprintable() else "�" for c in s])
-
-
 def match_with_regex(col_values, regex, empty_is_ok=True):
+    """
+    Return a boolean Series indicating whether each value in a column matches a given regex.
+    """
     if empty_is_ok:
         regex = f'^({regex})?$'
     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
@@ -275,18 +349,30 @@ def match_with_regex(col_values, regex, empty_is_ok=True):
 
 
 def check_columns_existence_against_metadata(data_table_node, df):
+    """
+    Check that the columns in a data table match what's expected based on the metadata.
+    """
+    def display_nonprintable(s):
+        if s.isprintable():
+            return s
+        return ''.join([c if c.isprintable() else "�" for c in s])
+
     errors = []
     # Get the column names from the metadata
     attribute_name_nodes = []
     metadata_column_names = []
     data_table_node.find_all_descendants(names.ATTRIBUTENAME, attribute_name_nodes)
+    # Create a list of column names from the metadata
     for attribute_name_node in attribute_name_nodes:
         metadata_column_names.append(attribute_name_node.content)
+    # Get the column names from the data table
     data_table_column_names = list(df.columns)
+    # If the number of columns differs, that's an error.
     if len(metadata_column_names) != len(data_table_column_names):
         errors.append(create_error_json(get_data_table_name(data_table_node), None, None,
                                         'Metadata defines a different number of columns than the data table',
                                         len(metadata_column_names), len(data_table_column_names)))
+    # Otherwise, check that the column names match.
     else:
         maxlen = max(len(metadata_column_names), len(data_table_column_names))
         for i in range(maxlen):
@@ -300,6 +386,9 @@ def check_columns_existence_against_metadata(data_table_node, df):
 
 
 def get_num_header_lines(data_table_node):
+    """
+    Return the number of header lines in a data table based on the metadata.
+    """
     num_header_lines_node = data_table_node.find_descendant(names.NUMHEADERLINES)
     try:
         return int(num_header_lines_node.content)
@@ -308,13 +397,16 @@ def get_num_header_lines(data_table_node):
 
 
 def check_numerical_column(df, data_table_node, column_name, max_errs_per_column):
-    # from datetime import datetime
-    # start = datetime.now()
+    """
+    Check the contents of a numerical column. I.e., check that the values are numbers and that they match the
+    numberType specified in the metadata.
+    """
 
     attribute_node = get_attribute_node(data_table_node, column_name)
     number_type = get_number_type(attribute_node)
     col_values = df[column_name].astype(str)
 
+    # Construct a regex based on the number type
     if number_type == 'integer':
         regex = '^[-+]?[0-9]+$'
     elif number_type == 'whole' or number_type == 'natural':
@@ -326,6 +418,7 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     try:
         matches = match_with_regex(col_values, regex)
     except KeyError:
+        # This indicates the column name was not found in the data table.
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in data table', column_name, 'Not found')]
     mvc = get_missing_value_codes(data_table_node, column_name)
@@ -333,13 +426,14 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
         mvc_regex = '^' + '|'.join(mvc) + '$'
         warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
         mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with matches == False and mvc_matches == False
+        # Errors are rows with both matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
     else:
         result = ~matches
     error_indices = result[result].index.values
 
     data_table_name = get_data_table_name(data_table_node)
+    # Set up the expected value error message based on the number type
     expected = number_type
     if number_type == 'real':
         expected = 'A real number (e.g., 123.4)'
@@ -360,16 +454,14 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
         if max_errs_per_column and len(errors) > max_errs_per_column:
             break
 
-    # end = datetime.now()
-    # elapsed = (end - start).total_seconds()
-    # print(column_name, elapsed, len(errors))
-
     return errors
 
 
 def check_categorical_column(df, data_table_node, column_name, max_errs_per_column):
-    # from datetime import datetime
-    # start = datetime.now()
+    """
+    Check the contents of a categorical column. I.e., check that the values are in the list of codes
+    and missing value codes.
+    """
 
     errors = []
     attribute_node = get_attribute_node(data_table_node, column_name)
@@ -387,14 +479,14 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     try:
         matches = match_with_regex(col_values, codes_regex)
     except KeyError:
-        return errors   # This indicates the column is missing, but that type of error is reported via
-                        # check_columns_existence_against_metadata()
+        return []   # This indicates the column is missing, but that type of error is reported via
+                    # check_columns_existence_against_metadata()
     mvc = get_missing_value_codes(data_table_node, column_name)
     if len(mvc) > 0:
         mvc_regex = '^' + '|'.join(mvc) + '$'
         warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
         mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with matches == False and mvc_matches == False
+        # Errors are rows with both matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
     else:
         result = ~matches
@@ -403,7 +495,7 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     expected = 'A defined code'
     num_header_lines = get_num_header_lines(data_table_node)
     for index in error_indices:
-        # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
+        # Make the index 1-based and take into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, column_name,
                                         index + num_header_lines + 1,
                                         'Categorical element is not a defined code',
@@ -411,16 +503,23 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
         if max_errs_per_column and len(errors) > max_errs_per_column:
             break
 
-    # end = datetime.now()
-    # elapsed = (end - start).total_seconds()
-    # print(column_name, elapsed, len(errors))
-
     return errors
 
 
 def check_date_time_column(df, data_table_node, column_name, max_errs_per_column):
-    # from datetime import datetime
-    # start = datetime.now()
+    """
+    Check the contents of a datetime column. I.e., check that the values are in the expected format based on the
+    metadata or are one of the missing value codes.
+    """
+
+    def get_date_time_format_regex(data_table_node, attribute_name):
+        """ Get the regex for the date time format specified in the metadata."""
+        def get_regex_for_format(format):
+            load_date_time_format_files()
+            return date_time_format_regex.get(format, None)
+
+        date_time_format = get_date_time_format_specification(data_table_node, attribute_name)
+        return get_regex_for_format(date_time_format)
 
     col_values = df[column_name].astype(str)
     regex = get_date_time_format_regex(data_table_node, column_name)
@@ -440,7 +539,7 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
         mvc_regex = '^' + '|'.join(mvc) + '$'
         warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
         mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with matches == False and mvc_matches == False
+        # Errors are rows with both matches == False and mvc_matches == False
         result = ~(matches | mvc_matches)
     else:
         result = ~matches
@@ -458,10 +557,6 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
         if max_errs_per_column and len(errors) > max_errs_per_column:
             break
 
-    # end = datetime.now()
-    # elapsed = (end - start).total_seconds()
-    # print(column_name, elapsed, len(errors))
-
     return errors
 
 
@@ -471,6 +566,14 @@ def check_data_table(eml_file_url:str=None,
                      column_names:List[str]=None,
                      max_errs_per_column=100,
                      collapse_errs:bool=False):
+    """
+    Check a data table and return JSON with information about what was checked and a list of any errors found.
+
+    The caller can specify a list of column names to check. If not specified, all columns will be checked.
+
+    eml_file and csv_file are provided as URLs. Check the column names match the metadata, and for each column check
+    its contents based on the metadata specification for the column.
+    """
     eml_node, _ = load_eml_file(eml_file_url)
     df = load_df(eml_node, csv_file_url, data_table_name)
 
@@ -507,6 +610,9 @@ def check_data_table(eml_file_url:str=None,
 
 def load_date_time_format_files(strings_filename=DATE_TIME_FORMAT_STRINGS_FILENAME,
                                 regex_filename=DATE_TIME_FORMAT_REGEX_FILENAME):
+    """
+    Load the date time format strings and corresponding regexes from the CSV files and save in global variables.
+    """
     global data_time_format_strings, date_time_format_regex
     if not data_time_format_strings:
         data_time_format_strings = OrderedDict()
@@ -526,18 +632,18 @@ def load_date_time_format_files(strings_filename=DATE_TIME_FORMAT_STRINGS_FILENA
                 date_time_format_regex[format] = regex
 
 
-def get_regex_for_format(format):
-    load_date_time_format_files()
-    return date_time_format_regex.get(format, None)
+# def get_regex_for_format(format):
+#     load_date_time_format_files()
+#     return date_time_format_regex.get(format, None)
 
 
-def load_xml(filename):
-    with open(f"{filename}", "r") as f:
-        xml = "".join(f.readlines())
-    eml_node = metapype_io.from_xml(xml)
-    assert isinstance(eml_node, Node)
-    eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
-    return eml_node, nsmap_changed
+# def load_xml(filename):
+#     with open(f"{filename}", "r") as f:
+#         xml = "".join(f.readlines())
+#     eml_node = metapype_io.from_xml(xml)
+#     assert isinstance(eml_node, Node)
+#     eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
+#     return eml_node, nsmap_changed
 
 
 def get_data_table_name(data_table_node):
@@ -547,6 +653,9 @@ def get_data_table_name(data_table_node):
 
 
 def get_data_table_filename(data_table_node, encoded_for_url=False):
+    """
+    Get the filename of the data table. If encoded_for_url is True, then the filename will be encoded for use in a URL.
+    """
     data_table_object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
     if data_table_object_name_node:
         if not encoded_for_url:
@@ -556,17 +665,25 @@ def get_data_table_filename(data_table_node, encoded_for_url=False):
 
 
 def get_data_table_size(data_table_node):
+    """ Return the size of the data table according to the metadata. """
     data_table_size_node = data_table_node.find_descendant(names.SIZE)
     if data_table_size_node:
         return data_table_size_node.content
 
 
-def check_date_time_format_specification(specification):
-    load_date_time_format_files()
-    return specification in data_time_format_strings.keys()
-
-
 def check_date_time_attribute(attribute_node):
+    """
+    Check a datetime attribute to see if it has a format string that is not in the list of known format strings. If so,
+    return None. Otherwise, return the format string.
+
+    This function is used by Check Metadata. It's here because it uses load_date_time_format_files() and that function
+    is used by other functions in this module.
+    """
+
+    def check_date_time_format_specification(specification):
+        load_date_time_format_files()
+        return specification in data_time_format_strings.keys()
+
     format_string_node = attribute_node.find_single_node_by_path(
         [names.MEASUREMENTSCALE, names.DATETIME, names.FORMATSTRING])
     if format_string_node:
@@ -576,6 +693,13 @@ def check_date_time_attribute(attribute_node):
 
 
 def format_date_time_formats_list():
+    """
+    Format the list of supported date time formats for display in HTML.
+
+    This function is used by Check Metadata. It's here because it uses load_date_time_format_files() and that function
+    is used by other functions in this module.
+    """
+
     load_date_time_format_files()
 
     output = '<span style="font-family: Helvetica,Arial,sans-serif;">'
@@ -595,6 +719,7 @@ def format_date_time_formats_list():
 
 EML_FILES_PATH = '/Users/jide/git/umbra/eml_files'
 def get_existing_eml_files():
+    # For use while developing and debugging
     import glob
     import os
     filelist = glob.glob(f'{EML_FILES_PATH}/*.xml')
@@ -619,24 +744,29 @@ def clear_eval_files():
             os.remove(filepath)
 
 
-def make_blanks_visible(s:str):
-    if not s:
-        return s, ''
-    s = str(s)
-    blank = '<span style="color:red;font-size:100%;font-weight:bold;">\u274f</span>'
-    # Also considered \u2420 and \u25a1
-    if s.isspace():
-        s = s.replace(' ', blank)
-    else:
-        # make leading and trailing spaces visible
-        leading = len(s) - len(s.lstrip())
-        trailing = len(s) - len(s.rstrip())
-        s = s[:leading].replace(' ', blank) + s[leading:len(s)-trailing] + s[len(s)-trailing:].replace(' ', blank)
-    has_blank = blank in s
-    return s, has_blank
-
-
 def generate_error_info_for_webpage(data_table_node, errors):
+    """
+    Given the JSON errors output, generate the HTML for the data table errors page.
+    """
+
+    def make_blanks_visible(s: str):
+        """ If the string contains blanks, make those blanks highly noticeable in the HTML. """
+        if not s:
+            return s, ''
+        s = str(s)
+        blank = '<span style="color:red;font-size:100%;font-weight:bold;">\u274f</span>'
+        # Also considered \u2420 and \u25a1
+        if s.isspace():
+            s = s.replace(' ', blank)
+        else:
+            # make leading and trailing spaces visible
+            leading = len(s) - len(s.lstrip())
+            trailing = len(s) - len(s.rstrip())
+            s = s[:leading].replace(' ', blank) + s[leading:len(s) - trailing] + s[len(s) - trailing:].replace(' ',
+                                                                                                               blank)
+        has_blank = blank in s
+        return s, has_blank
+
     errs_obj = json.loads(errors)
     data_table_name = get_data_table_name(data_table_node)
     column_name = None
@@ -668,6 +798,7 @@ def generate_error_info_for_webpage(data_table_node, errors):
 
 
 def get_eml_file_url(document_name, eml_node):
+    """ Return the EML file location as a URL for use in the check data tables code. """
     filepath = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), document_name)}.xml'
     encoded_for_url = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), urllib.parse.quote(document_name))}.xml'
     if path_exists(filepath):
@@ -681,11 +812,13 @@ def get_eml_file_url(document_name, eml_node):
 
 
 def get_csv_file_url(document_name, data_table_node):
+    """ Return the CSV file location as a URL for use in the check data tables code. """
     csv_file_name = get_data_table_filename(data_table_node)
     return f'file://{os.path.join(Config.BASE_DIR, user_data.get_document_uploads_folder_name(encoded_for_url=True), urllib.parse.quote(csv_file_name))}'
 
 
 def get_csv_filepath(document_name, csv_file_name):
+    """ Return the CSV file location as a filepath for use in the check data tables code. """
     try:
         return os.path.join(user_data.get_document_uploads_folder_name(document_name), csv_file_name)
     except:
@@ -694,14 +827,18 @@ def get_csv_filepath(document_name, csv_file_name):
 
 
 def get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash):
+    """ Return the file paths associated with the  CSV file. """
+
     archive_filepath = f"{get_csv_filepath(document_name, csv_file_name)}_eval_{metadata_hash}"
     ok_filepath = f"{get_csv_filepath(document_name, csv_file_name)}_eval_{metadata_hash}_ok"
+    # Allow for the metadata hash forming part of the eval file's filename.
     wildcard_filepath = f"{get_csv_filepath(document_name, csv_file_name)}_eval_??????????"
     ok_wildcard_filepath = f"{get_csv_filepath(document_name, csv_file_name)}_eval_??????????_ok"
     return archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath
 
 
 def set_check_data_tables_badge_status(document_name, eml_node):
+    """ Determine the color of the Check Data Tables badge in the main Contents menu. """
     status = 'green'
     data_table_nodes = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
@@ -709,7 +846,7 @@ def set_check_data_tables_badge_status(document_name, eml_node):
         csv_file_name = get_data_table_filename(data_table_node)
         data_table_name = get_data_table_name(data_table_node)
         metadata_hash = hash_data_table_metadata_settings(eml_node, data_table_name)
-        this_status = get_data_file_eval_status(data_table_node, document_name, csv_file_name, metadata_hash)
+        this_status = get_data_file_eval_status(document_name, csv_file_name, metadata_hash)
         if this_status == 'red' or this_status == 'black':
             status = 'red'
             break
@@ -720,8 +857,13 @@ def set_check_data_tables_badge_status(document_name, eml_node):
     return status
 
 
-def get_data_file_eval_status(data_table_node, document_name, csv_file_name, metadata_hash):
-    # csv_file_name = get_data_table_filename(data_table_node)
+def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
+    """ Determine the color of the badge for an individual data table in the Check Data Tables page."""
+
+    def csv_file_exists(document_name, csv_file_name):
+        csv_filepath = get_csv_filepath(document_name, csv_file_name)
+        return path_exists(csv_filepath)
+
     if not csv_file_exists(document_name, csv_file_name):
         return 'black'
     # Returns green, yellow, red, or black.
@@ -734,6 +876,8 @@ def get_data_file_eval_status(data_table_node, document_name, csv_file_name, met
 
 
 def reset_data_file_eval_status(document_name, csv_file_name):
+    """ Reset the data table to unevaluated state, for example because a Reupload has been done. """
+
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, '')
 
     filelist = glob.glob(wildcard_filepath)
@@ -746,6 +890,8 @@ def reset_data_file_eval_status(document_name, csv_file_name):
 
 
 def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
+    """ Save the results of the data table evaluation. """
+
     reset_data_file_eval_status(document_name, csv_file_name)
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     errs_obj = json.loads(errors)
@@ -756,6 +902,8 @@ def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
 
 
 def get_data_file_eval(document_name, csv_file_name, metadata_hash):
+    """ Return the data table evaluation results as saved in an eval file, or None if no eval file exists. """
+
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     if not path_exists(archive_filepath):
         archive_filepath = ok_filepath
@@ -769,19 +917,19 @@ def get_data_file_eval(document_name, csv_file_name, metadata_hash):
         return eval_file.read()
 
 
-def csv_file_exists(document_name, csv_file_name):
-    csv_filepath = get_csv_filepath(document_name, csv_file_name)
-    return path_exists(csv_filepath)
-
-
 def create_check_data_tables_status_page_content(document_name, eml_node):
+    """
+    Create the HTML content for the Check Data Tables page. This lists the tables and their badges and has links to
+    check the table or show errors for the table, or if no errors, simple say "No errors found".
+    """
+
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
     output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th></th><th>Data Table Name</th><th></th></tr>'
     for data_table_node in data_table_nodes:
         data_table_name = get_data_table_name(data_table_node)
         csv_file_name = get_data_table_filename(data_table_node)
         metadata_hash = hash_data_table_metadata_settings(eml_node, data_table_name)
-        status = get_data_file_eval_status(data_table_node, document_name, csv_file_name, metadata_hash)
+        status = get_data_file_eval_status(document_name, csv_file_name, metadata_hash)
         if status == 'yellow':
             onclick = ''
             size = get_data_table_size(data_table_node)
@@ -804,13 +952,8 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
     return output
 
 
-def collapse_error_info_for_webpage(errors):
-    for column_errors in errors:
-        collapse_error_info_for_column(column_errors)
-    return errors
-
-
 def error_as_dict(error_info):
+    """ Convert an error_info tuple to a dict. """
     row, error_type, expected, found = error_info
     return {
         'row': str(row),
@@ -821,81 +964,91 @@ def error_as_dict(error_info):
 
 
 def hash_data_table_metadata_settings(eml_node, data_table_name):
-    # Various metadata settings affect the checking of data tables, so if they are changed the data table needs to be
-    #  treated as not having been checked yet. We capture the settings as text, generate a hash for them, and return
-    #  the hash. This will be saved as part of the filename for the eval file so we can compare it with the current
-    #  value without having to open the eval file.
-    # The relevant settings are these:
-    #    Attribute (column) names and variable types
-    #    For Categorical attributes: codes, the "enforced" flag, missing value codes
-    #    For DateTime attributes: format string, missing value codes
-    #    For Numerical attributes: number type, missing value codes
-    # For now, though, we'll just capture the entire metadata tree under the data table node
+    """
+    Generate a hash of data table metadata settings. This is used to determine if the metadata has changed, in which
+    case memoized error results are obsolete.
+
+    Various metadata settings affect the checking of data tables, so if they are changed the data table needs to be
+     treated as not having been checked yet. We capture the settings as text, generate a hash for them, and return
+     the hash. This will be saved as part of the filename for the eval file so we can compare it with the current
+     value without having to open the eval file.
+    The relevant settings are these:
+       Attribute (column) names and variable types
+       For Categorical attributes: codes, the "enforced" flag, missing value codes
+       For DateTime attributes: format string, missing value codes
+       For Numerical attributes: number type, missing value codes
+    For now, though, we'll just capture the entire metadata tree under the data table node
+    """
     data_table_node = find_data_table_node(eml_node, data_table_name)
     _json = metapype_io.to_json(data_table_node)
     hash = hashlib.shake_256(_json.encode()).hexdigest(5)
     return hash
 
 
-def collapse_error_info_for_column(column_errors):
-    # When essentially the same error is repeated on a sequence of consecutive rows, we want to collapse the sequence
-    collapsed_errors = []
-    prev_row_number = None
-    prev_info = None
-    skipped = []
-    first_row = True
 
-    for error in column_errors.get('errors'):
-        row_number = error.get('row')
-        if row_number:
-            row_number = int(row_number)
-            info = (row_number, error.get('error_type'), error.get('expected'), error.get('found'))
-            if first_row:
-                # prime the pump
-                prev_row_number = row_number
+def collapse_error_info_for_webpage(errors):
+    """
+    When essentially the same error is repeated on a sequence of consecutive rows, we want to collapse the sequence.
+    """
+
+    def collapse_error_info_for_column(column_errors):
+        collapsed_errors = []
+        prev_row_number = None
+        prev_info = None
+        skipped = []
+        first_row = True
+
+        for error in column_errors.get('errors'):
+            row_number = error.get('row')
+            if row_number:
+                row_number = int(row_number)
+                info = (row_number, error.get('error_type'), error.get('expected'), error.get('found'))
+                if first_row:
+                    # prime the pump
+                    prev_row_number = row_number
+                    prev_info = info
+                    collapsed_errors.append(error_as_dict(info))
+                    first_row = False
+                    continue
+                if row_number == prev_row_number + 1 and info[1:3] == prev_info[1:3]:
+                    # This error is part of a consecutive repetitive sequence
+                    skipped.append(info)
+                    prev_info = info
+                    prev_row_number = row_number
+                    continue
+
                 prev_info = info
+                prev_row_number = row_number
+
+                # Have we completed a sequence?
+                if len(skipped) <= 2:
+                    for skipped_item in skipped:
+                        collapsed_errors.append(error_as_dict(skipped_item))
+                    skipped = []
+                    collapsed_errors.append(error_as_dict(info))
+                    continue
+                collapsed_errors.append(error_as_dict(('', '...', '', '')))
+                collapsed_errors.append(error_as_dict(skipped[-1]))
                 collapsed_errors.append(error_as_dict(info))
-                first_row = False
-                continue
-            if row_number == prev_row_number + 1 and info[1:3] == prev_info[1:3]:
-                # This error is part of a consecutive repetitive sequence
-                skipped.append(info)
-                prev_info = info
-                prev_row_number = row_number
-                continue
-
-            prev_info = info
-            prev_row_number = row_number
-
-            # Have we completed a sequence?
-            if len(skipped) <= 2:
-                for skipped_item in skipped:
-                    collapsed_errors.append(error_as_dict(skipped_item))
                 skipped = []
+            else:
+                info = (row_number, error.get('error_type'), error.get('expected'), error.get('found'))
                 collapsed_errors.append(error_as_dict(info))
-                continue
-            collapsed_errors.append(error_as_dict(('', '...', '', '')))
-            collapsed_errors.append(error_as_dict(skipped[-1]))
-            collapsed_errors.append(error_as_dict(info))
-            skipped = []
+                prev_row_number = None
+                prev_info = None
+                skipped = []
+                first_row = True
+
+        # Handle last entries...
+        if len(skipped) <= 2:
+            for skipped_item in skipped:
+                collapsed_errors.append(error_as_dict(skipped_item))
         else:
-            info = (row_number, error.get('error_type'), error.get('expected'), error.get('found'))
+            collapsed_errors.append(error_as_dict(('', '...', '', '')))
             collapsed_errors.append(error_as_dict(info))
-            prev_row_number = None
-            prev_info = None
-            skipped = []
-            first_row = True
+        column_errors['errors'] = collapsed_errors
+        return column_errors
 
-    # Handle last entries...
-    if len(skipped) <= 2:
-        for skipped_item in skipped:
-            collapsed_errors.append(error_as_dict(skipped_item))
-    else:
-        collapsed_errors.append(error_as_dict(('', '...', '', '')))
-        collapsed_errors.append(error_as_dict(info))
-    column_errors['errors'] = collapsed_errors
-    return column_errors
-
-
-if __name__ == "__main__":
-    pass
+    for column_errors in errors:
+        collapse_error_info_for_column(column_errors)
+    return errors

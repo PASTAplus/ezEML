@@ -16,7 +16,7 @@
 from datetime import date, datetime
 from flask_login import current_user
 
-from webapp.home.import_data import convert_file_size
+from webapp.home.fetch_data import convert_file_size
 
 
 USAGE_LOG_FILE = 'usage.log'

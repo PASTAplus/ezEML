@@ -12,6 +12,7 @@
 :Created:
     7/27/18
 """
+
 import collections
 import daiquiri
 from datetime import date
@@ -20,6 +21,7 @@ import html
 import json
 import math
 import pickle
+import typing as ty
 
 import logging
 from logging import Formatter
@@ -88,7 +90,6 @@ class Optionality(Enum):
     OPTIONAL = 2
     FORCE = 3
 
-
 class VariableType(Enum):
     CATEGORICAL = 1
     DATETIME = 2
@@ -134,6 +135,7 @@ current page, we save the data that the user has entered and then we go to the n
 button. E.g., if they clicked "Open" while on the Title page, we post to the Title page with Hidden_Open in the form 
 so the Title method can save the title data and then go to the Open page.
 """
+
 def is_hidden_button():
     return any(button in request.form for button in HIDDEN_BUTTONS)
 
@@ -142,7 +144,7 @@ def handle_hidden_buttons(new_page, this_page):
     """
     See if a "hidden" button has been clicked. If so, set new_page to the page that the button indicates.
 
-    If none of the hidden buttons is found, leave new_page as we found it
+    If none of the hidden buttons was clicked, leave new_page as we found it
     """
     if BTN_HIDDEN_CHECK in request.form:
         new_page = PAGE_CHECK
@@ -164,10 +166,11 @@ def handle_hidden_buttons(new_page, this_page):
 def check_val_for_hidden_buttons(val, new_page, this_page):
     """
     See if a "hidden" button has been clicked. If so, set new_page to the page that the button indicates.
-    The process here is different from handle_hidden_buttons() because we're a "select" page where the form
+
+    The process here is different from handle_hidden_buttons() because we're in a "select" page where the form
     dictionary has node_id's as keys and the button is a value.
 
-    If none of the hidden buttons is found, leave new_page as we found it.
+    If none of the hidden buttons was clicked, leave new_page as we found it.
     """
 
     if val == BTN_HIDDEN_CHECK:
@@ -187,21 +190,16 @@ def check_val_for_hidden_buttons(val, new_page, this_page):
     return new_page
 
 
-def dump_node(node: Node, indent=0):
-    indent_str = ' ' * indent
-    print(f'{indent_str}{node.name} {node.id} {node.content}')
-    for child in node.children:
-        dump_node(child, indent + 2)
-
-
 def node_tree_ids(node: Node, ids: list):
+    """ Return a list of node IDs for all nodes in the subtree rooted at node. """
     ids.append(node.id)
     for child in node.children:
-        id_str = node_tree_ids(child, ids)
+        node_tree_ids(child, ids)
     return ids
 
 
 def calculate_node_store_checksums(eml_node):
+    """ Calculate checksums for node IDs in the node store and the node tree. Trouble-shooting aid. """
     import hashlib
     id_string = ''
     for key, val in sorted(Node.store.items()):
@@ -213,6 +211,14 @@ def calculate_node_store_checksums(eml_node):
 
 
 def dump_node_store(eml_node, prefix=''):
+    """ For use in debugging. """
+
+    def dump_node(node: Node, indent=0):
+        indent_str = ' ' * indent
+        print(f'{indent_str}{node.name} {node.id} {node.content}')
+        for child in node.children:
+            dump_node(child, indent + 2)
+
     dump_node(eml_node)
     store_len = len(Node.store)
     log_info(f'*** {prefix} store_len={store_len}     {request.url}')
@@ -221,25 +227,29 @@ def dump_node_store(eml_node, prefix=''):
     log_info(f'*** {prefix}  node tree checksum={tree_hash}    {request.url}')
 
 
-def parse_package_id(package_id: str):
-    """
-    Takes a package_id in the form 'scope.identifier.revision' and returns a
-    triple (scope, identifier, revision) where the identifier and revision are
-    ints, suitable for sorting.
-    """
-    *_, scope, identifier, revision = package_id.split('.')
-    return scope, int(identifier), int(revision)
-
-
 def sort_package_ids(packages):
+    """ Sort a list of package IDs in the form 'scope.identifier.revision' by scope, identifier, and revision. """
+
+    def parse_package_id(package_id: str):
+        """
+        Takes a package_id in the form 'scope.identifier.revision' and returns a
+        triple (scope, identifier, revision) where the identifier and revision are
+        ints, suitable for sorting.
+        """
+        *_, scope, identifier, revision = package_id.split('.')
+        return scope, int(identifier), int(revision)
+
     return sorted(packages, key=lambda x: parse_package_id(x))
 
 
 def list_data_packages(flag_current=False, include_current=True, current_user_directory_only=True):
     """
-    Returns a list of data packages in the current user's account, as tuples suitable for
-    use in a select list.  If flag_current is True, the current package is indicated. If
-    include_current is False, the current package is excluded from the list.
+    Returns a list of all data packages in the current user's account, as tuples suitable for
+    use in a select options list, e.g., by Open... document selection.  If flag_current is True, the current
+    package is indicated. If include_current is False, the current package is excluded from the list.
+
+    current_user_directory_only=True means search the current user's directory and ignore collaboration
+    redirection.
     """
     choices = []
     user_documents = sorted(user_data.get_user_document_list(current_user_directory_only=current_user_directory_only),
@@ -256,6 +266,8 @@ def list_data_packages(flag_current=False, include_current=True, current_user_di
 
 
 def list_files_in_dir(dirpath):
+    """ Return a list of files (regular files, not directories) in the directory at dirpath. """
+
     return [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
 
 
@@ -307,8 +319,12 @@ def remove_paragraph_tags(s):
         return s
 
 
-def new_child_node(child_name:str, parent:Node):
+def new_child_node(child_name:str, parent:Node, content:str=None, attribute:ty.Tuple[str,str]=None):
     child_node = Node(child_name, parent=parent)
+    if content is not None:
+        child_node.content = content
+    if attribute is not None:
+        child_node.add_attribute(attribute[0], attribute[1])
     add_child(parent, child_node)
     return child_node
 
@@ -1308,6 +1324,12 @@ def package_contains_elements_unhandled_by_ezeml(filename:str=None, eml_node:Nod
 
 
 def enforce_dataset_sequence(eml_node:Node=None):
+    """
+    The EML standard expects various nodes to be in a particular sequence. This function enforces that sequence.
+
+    When nodes are added as the user fills out the wizard, they are added in the correct sequence. However, if the
+    user jumps around between sections, the sequence can be violated. This function fixes that.
+    """
     def collect_children(parent_node: Node, child_name: str, children: list):
         children.extend(parent_node.find_all_children(child_name))
 

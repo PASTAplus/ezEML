@@ -13,11 +13,19 @@ class DataTableError(ezEMLError):
     pass
 
 
+class DeprecatedCodeError(ezEMLError):
+    pass
+
+
 class ExtraWhitespaceInColumnNames(ezEMLError):
     pass
 
 
 class FileOpenError(ezEMLError):
+    pass
+
+
+class InternalError(ezEMLError):
     pass
 
 
@@ -38,6 +46,14 @@ class MissingFileError(ezEMLError):
 
 
 class NumberOfColumnsHasChanged(ezEMLError):
+    pass
+
+
+class ReuploadTableNumColumnsError(ezEMLError):
+    pass
+
+
+class ReuploadTableColumnTypesError(ezEMLError):
     pass
 
 

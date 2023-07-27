@@ -1,6 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+fetch_data.py
+
+Functions for fetching data entities from PASTA, and functions for fetching PASTA scopes, identifiers, etc.
+"""
+
 import base64
 import os
-import shutil
 import time
 
 import daiquiri
@@ -15,11 +23,9 @@ import webapp.auth.user_data as user_data
 from webapp.config import Config
 import webapp.home.exceptions as exceptions
 
-# from webapp.home.metapype_client import save_both_formats
 import webapp.home.metapype_client as metapype_client
-import webapp.home.views as views
 
-import webapp.home.load_data as load_data
+import webapp.views.data_tables.load_data as load_data
 
 logger = daiquiri.getLogger('import_data: ' + __name__)
 
@@ -38,10 +44,16 @@ def log_info(msg):
         logger.info(msg)
 
 
-def extract_data_entities_from_eml(eml_node, entity_name):
+def extract_data_entities_from_eml(eml_node, entity_type):
+    """
+    Return a list of tuples of data entities, where each tuple contains the data entity node, the entity type,
+    the object name, and the URL.
+
+    The entity_type argument is either 'dataTable' or 'otherEntity'.
+    """
     data_entities = []
     data_entity_nodes = []
-    eml_node.find_all_descendants(entity_name, data_entity_nodes)
+    eml_node.find_all_descendants(entity_type, data_entity_nodes)
     for data_entity_node in data_entity_nodes:
         object_name_node = data_entity_node.find_descendant(names.OBJECTNAME)
         if object_name_node:
@@ -52,13 +64,14 @@ def extract_data_entities_from_eml(eml_node, entity_name):
         if url_node:
             url = url_node.content
         if object_name and url_node and url:
-            data_entities.append((data_entity_node, entity_name, object_name, url))
-        # else:
-        #     raise ValueError # TODO - use a custom exception
+            data_entities.append((data_entity_node, entity_type, object_name, url))
     return data_entities
 
 
 def send_authorized_pasta_request(url):
+    """
+    Send a request to PASTA, using the auth token if needed.
+    """
     response = requests.get(url)
     if response.status_code == 401:
         # PASTA needs an auth token for this request. try again with the auth_token.
@@ -80,6 +93,9 @@ def send_authorized_pasta_request(url):
 
 
 def get_data_entity_size(url):
+    """
+    For PASTA data entities, return the size of the data entity in bytes. For non-PASTA data entities, return 0.
+    """
     if Config.PASTA_URL in url:
         get_data_entity_size_url = url.replace('data/eml', 'data/size/eml')
         response = send_authorized_pasta_request(get_data_entity_size_url)
@@ -91,6 +107,9 @@ def get_data_entity_size(url):
 
 
 def get_data_entity(upload_dir, object_name, url):
+    """
+    Get a data entity via a PASTA URL and save it to the upload_dir.
+    """
     if Config.PASTA_URL in url:
         response = send_authorized_pasta_request(url)
         response.raise_for_status()
@@ -103,6 +122,10 @@ def get_data_entity(upload_dir, object_name, url):
 
 
 def convert_file_size(size):
+    """
+    Convert the file size from bytes to a human-readable format. Return a tuple of (size in kilobytes, size in
+    megabytes, size in gigabytes).
+    """
     # number of bytes in a kilobyte
     KBFACTOR = float(1 << 10)
     # number of bytes in a megabyte
@@ -114,6 +137,10 @@ def convert_file_size(size):
 
 
 def get_data_entity_sizes(scope, identifier, revision):
+    """
+    Get the sizes of the PASTA data entities in the specified scope, identifier, and revision. Return a tuple of
+    (list of sizes, total size).
+    """
     get_sizes_url = f"{Config.PASTA_URL}/data/size/eml/{scope}/{identifier}/{revision}"
     response = send_authorized_pasta_request(get_sizes_url)
     response.raise_for_status()
@@ -129,19 +156,17 @@ def get_data_entity_sizes(scope, identifier, revision):
     return sizes, total
 
 
-def move_metadata_files(metadata_file_name, upload_dir):
-    src_dir = upload_dir
-    dest_dir = user_data.get_user_folder_name()
-    src_file = os.path.join(src_dir, metadata_file_name)
-    dest_file = os.path.join(dest_dir, metadata_file_name)
-    shutil.move(src_file, dest_file)
-    json_file_name = metadata_file_name[:-4] + ".json"
-    src_file = os.path.join(src_dir, json_file_name)
-    dest_file = os.path.join(dest_dir, json_file_name)
-    shutil.move(src_file, dest_file)
-
-
 def ingest_data_table(data_entity_node, upload_dir, object_name):
+    """
+    Ingest a data table.
+
+    Get the delimiter, quote character, and number of header lines from the data entity node.
+    Load the data table into the user's upload directory. Update the existing data entity node with the new
+    objectName, size, rows, MD5, etc. Also, update column names and categorical codes, as needed.
+
+    Logically, this function could be nested within the ingest_data_entities function, but it's a separate function
+    to make the code more readable.
+    """
     # Get the number of header rows, delimiter, and quote char
     num_header_lines_node = data_entity_node.find_descendant(names.NUMHEADERLINES)
     if num_header_lines_node:
@@ -165,20 +190,31 @@ def ingest_data_table(data_entity_node, upload_dir, object_name):
     except FileNotFoundError as e:
         return None
 
-    # use the existing dt_node, but update objectName, size, rows, MD5, etc.
-    # also, update column names and categorical codes, as needed
-    views.update_data_table(data_entity_node, new_data_entity_node, new_column_names, new_column_categorical_codes,
-                            doing_xml_import=True)
+    # Use the existing dt_node, but update objectName, size, rows, MD5, etc.
+    # Also, update column names and categorical codes, as needed
+    load_data.update_data_table(data_entity_node, new_data_entity_node, new_column_names, new_column_categorical_codes,
+                                                         doing_xml_import=True)
 
     user_data.add_data_table_upload_filename(object_name)
     return data_entity_node
 
 
 def ingest_other_entity(dataset_node, upload_dir, object_name, node_id):
+    """
+    Ingest an other entity.
+
+    Logically, this function could be nested within the ingest_data_entities function, but it's a separate function
+    to make the code more readable.
+    """
     return load_data.load_other_entity(dataset_node, upload_dir, object_name, node_id)
 
 
 def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
+    """
+    Ingest all of the data entities in the EML document.
+
+    First we retrieve, then we ingest. See retrieve_data_entities(), below.
+    """
     # Go thru and do the "uploads"
     dataset_node = eml_node.find_descendant(names.DATASET)
     for data_entity_node, data_entity_type, object_name, *_ in entities_with_sizes:
@@ -196,6 +232,9 @@ def ingest_data_entities(eml_node, upload_dir, entities_with_sizes):
 
 
 def retrieve_data_entity(upload_dir, object_name, url):
+    """
+    Retrieve the data entity from PASTA and save it in the upload directory.
+    """
     file_path = os.path.join(upload_dir, object_name)
     if Config.PASTA_URL in url:
         response = send_authorized_pasta_request(url)
@@ -210,11 +249,23 @@ def retrieve_data_entity(upload_dir, object_name, url):
 
 
 def retrieve_data_entities(upload_dir, entities_wth_sizes):
+    """
+    Retrieve the data entities from PASTA and save them in the upload directory.
+
+    First we retrieve, then we ingest.
+    """
     for _, _, object_name, url, _ in entities_wth_sizes:
         retrieve_data_entity(upload_dir, object_name, url)
 
 
 def list_data_entities_and_sizes(eml_node):
+    """
+    Construct a list of data entities and their sizes.
+    Data entities include both data tables and other entities.
+
+    Returns a list of tuples of the form (data_entity_node, entity_type, object_name, url, size) and the total size.
+    entity_type is either 'dataTable' or 'otherEntity'.
+    """
     data_tables = extract_data_entities_from_eml(eml_node, names.DATATABLE)
     other_entities = extract_data_entities_from_eml(eml_node, names.OTHERENTITY)
     data_entities = data_tables
@@ -229,6 +280,11 @@ def list_data_entities_and_sizes(eml_node):
 
 
 def import_data(filename, eml_node):
+    """
+    Fetch all of the data entities for a package and ingest their metadata into the EML document.
+
+    Data entities include both data tables and other entities.
+    """
     entities_with_sizes, total_size = list_data_entities_and_sizes(eml_node)
     upload_dir = user_data.get_document_uploads_folder_name()
     retrieve_data_entities(upload_dir, entities_with_sizes)
@@ -238,6 +294,9 @@ def import_data(filename, eml_node):
 
 
 def get_metadata_revision_from_pasta(scope, identifier, revision=None):
+    """
+    Get the metadata for a revision from PASTA. If no revision is specified, get the newest revision.
+    """
     if not revision:
         get_pasta_newest_revision_url = f"{Config.PASTA_URL}/eml/{scope}/{identifier}?filter=newest"
         response = requests.get(get_pasta_newest_revision_url)
@@ -252,6 +311,9 @@ def get_metadata_revision_from_pasta(scope, identifier, revision=None):
 
 
 def get_pasta_identifiers(scope=''):
+    """
+    Return a list of all identifiers for a given PASTA scope, or if no scope is specified, return a list of scopes.
+    """
     get_pasta_identifiers_url = f"{Config.PASTA_URL}/eml/{scope}"
     response = requests.get(get_pasta_identifiers_url)
     response.raise_for_status()
@@ -263,15 +325,13 @@ def get_pasta_identifiers(scope=''):
 
 
 def get_revisions_list(scope, identifier):
+    """
+    Return a list of all revisions for a given PASTA scope and identifier.
+    """
     url = f"{Config.PASTA_URL}/eml/{scope}/{identifier}"
 
     response = requests.get(url)
     response.raise_for_status()
     revisions = response.text.split('\n')
     return revisions
-
-
-# if __name__ == '__main__':
-#     retrieve_package_from_edi('edi', '1007')
-#     pass
 

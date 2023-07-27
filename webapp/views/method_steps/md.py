@@ -39,7 +39,7 @@ from webapp.home.texttype_node_processing import (
     invalid_xml_error_message,
     is_valid_xml_fragment
 )
-from webapp.home.import_data import get_pasta_identifiers, get_revisions_list
+from webapp.home.fetch_data import get_pasta_identifiers, get_revisions_list
 from webapp.views.method_steps.forms import (
     MethodStepForm, MethodStepSelectForm, DataSourceForm
 )
@@ -56,7 +56,7 @@ from webapp.home.metapype_client import (
     list_method_steps
 )
 import webapp.auth.user_data as user_data
-from webapp.home.import_data import get_metadata_revision_from_pasta
+from webapp.home.fetch_data import get_metadata_revision_from_pasta
 from webapp.home.import_xml import parse_xml_file
 from webapp.home.log_usage import log_usage, actions
 from webapp.config import Config

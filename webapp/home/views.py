@@ -28,7 +28,6 @@ import html
 import math
 import os
 import os.path
-import pandas as pd
 from pathlib import Path
 import pickle
 from shutil import copyfile, move, rmtree
@@ -58,9 +57,8 @@ from webapp.home.exceptions import (
     ezEMLError,
     AuthTokenExpired,
     DataTableError,
-    ExtraWhitespaceInColumnNames,
+    DeprecatedCodeError,
     MissingFileError,
-    NumberOfColumnsHasChanged,
     Unauthorized,
     UnicodeDecodeErrorInternal
 )
@@ -68,7 +66,7 @@ from webapp.home.exceptions import (
 from webapp.home.forms import ( 
     CreateEMLForm, ImportPackageForm,
     OpenEMLDocumentForm, SaveAsForm,
-    LoadDataForm, LoadMetadataForm, LoadOtherEntityForm,
+    LoadMetadataForm, LoadDataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm,
     ImportItemsForm, ImportSingleItemForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
@@ -77,14 +75,14 @@ from webapp.home.forms import (
 
 import webapp.utils as utils
 
-from webapp.home.load_data import (
-    load_data_table, load_other_entity, delete_data_files, get_md5_hash
+from webapp.views.data_tables.load_data import (
+    load_other_entity, get_md5_hash
 )
 from webapp.home.import_package import (
     copy_ezeml_package, upload_ezeml_package, import_ezeml_package, cull_uploads
 )
 from webapp.home.import_xml import (
-    save_xml_file, parse_xml_file, determine_package_name
+    save_xml_file_in_temp_folder, parse_xml_file, determine_package_name_for_copy
 )
 from webapp.home.log_usage import (
     actions,
@@ -126,12 +124,11 @@ from metapype.eml import names
 from metapype.model.node import Node
 from werkzeug.utils import secure_filename
 
-from webapp.home.import_data import (
+from webapp.home.fetch_data import (
     import_data, get_pasta_identifiers, get_revisions_list, get_metadata_revision_from_pasta,
     get_data_entity_sizes, convert_file_size
 )
 
-import webapp.views.data_tables.dt as dt
 import webapp.auth.user_data as user_data
 from webapp.home.texttype_node_processing import (
     check_xml_validity,
@@ -428,105 +425,6 @@ def clean_zip_temp_files(days, user_dir, logger, logonly):
                     pass
 
 
-# @home.before_app_first_request
-# def cleanup_zip_temp_folders():
-#     if not Config.GC_CLEAN_ZIP_TEMPS_ON_STARTUP:
-#         return
-#     # get the user directories
-#     base = Config.USER_DATA_DIR
-#     for dir in os.listdir(base):
-#         if os.path.isdir(os.path.join(base, dir)):
-#             if dir.startswith('.'):
-#                 continue
-#
-#             # got a user directory
-#             user_dir = os.path.join(base, dir)
-#
-#             days = Config.GC_ZIP_TEMPS_DAYS_TO_LIVE
-#             logonly = Config.GC_LOG_ONLY
-#             clean_zip_temp_files(days, user_dir, logger, logonly)
-
-
-# @home.before_app_first_request
-# def fixup_upload_management():
-#     return
-#     USER_DATA_DIR = 'user-data'
-#     to_delete = set()
-#     # loop on the various users' data directories
-#     for user_folder_name in os.listdir(USER_DATA_DIR):
-#         if user_folder_name == 'uploads' or user_folder_name == 'zip_temp':
-#             continue
-#         if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
-#             user_data.clear_data_table_upload_filenames(user_folder_name)
-#             full_path = os.path.join(USER_DATA_DIR, user_folder_name)
-#             uploads_path = os.path.join(full_path, 'uploads')
-#             # look at the EML model json files
-#             for file in os.listdir(full_path):
-#                 full_file = os.path.join(full_path, file)
-#                 if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
-#                     # some directories may have obsolete 'user_properties.json' files
-#                     if file == 'user_properties.json':
-#                         to_delete.add(os.path.join(full_path, 'user_properties.json'))
-#                         continue
-#                     # create a subdir of the user's uploads directory for this document's uploads
-#                     document_name = file[:-5]
-#                     subdir_name = os.path.join(uploads_path, document_name)
-#                     try:
-#                         os.mkdir(subdir_name)
-#                     except OSError:
-#                         pass
-#                     # open the model file
-#                     with open(full_file, "r") as json_file:
-#                         json_obj = json.load(json_file)
-#                         eml_node = mp_io.from_json(json_obj)
-#                     # look at data tables
-#                     data_table_nodes = []
-#                     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-#                     for data_table_node in data_table_nodes:
-#                         object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-#                         if object_name_node:
-#                             object_name = object_name_node.content
-#                             object_path = os.path.join(uploads_path, object_name)
-#                             target_path = os.path.join(subdir_name, object_name)
-#                             if os.path.isfile(object_path):
-#                                 to_delete.add(object_path)
-#                                 copyfile(object_path, target_path)
-#                     # look at other entities
-#                     other_entity_nodes = []
-#                     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
-#                     for other_entity_node in other_entity_nodes:
-#                         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
-#                         if object_name_node:
-#                             object_name = object_name_node.content
-#                             object_path = os.path.join(uploads_path, object_name)
-#                             if os.path.isfile(object_path):
-#                                 to_delete.add(object_path)
-#                                 copyfile(object_path, os.path.join(subdir_name, object_name))
-#                     # clean up temp files
-#                     for path in os.listdir(subdir_name):
-#                         path = os.path.join(subdir_name, path)
-#                         if os.path.isfile(path) and path.endswith('ezeml_tmp'):
-#                             to_delete.add(path)
-#
-#             # now capture all uploaded file names in the user data
-#             for file in os.listdir(uploads_path):
-#                 uploads_folder = os.path.join(uploads_path, file)
-#                 if os.path.isdir(uploads_folder):
-#                     # add the uploaded files to the user data
-#                     for uploaded_file in os.listdir(uploads_folder):
-#                         user_data.add_data_table_upload_filename(uploaded_file, user_folder_name, file)
-#
-#             # clean up temp files
-#             for path in os.listdir(full_path):
-#                 path = os.path.join(full_path, path)
-#                 if os.path.isfile(path) and path.endswith('ezeml_tmp'):
-#                     to_delete.add(path)
-#
-#     # now we can delete the files we've copied
-#     for file in to_delete:
-#         os.remove(file)
-
-
 @home.before_app_request
 def load_eval_entries():
     """Load the Check Metadata errors and warnings from the CSV file."""
@@ -747,6 +645,16 @@ def file_error(filename=None):
 @home.route('/save', methods=['GET', 'POST'])
 @login_required
 def save():
+    """
+    Handle the save route. Note, however, that when the Save item is selected in the EML Documents menu, what
+    actually happens is that a "hidden save" is generated. This gives the currently open page the opportunity
+    to save any user-entered values before the save actually occurs.
+
+    So, for example, if the user is on the Title page and enters a title, then clicks Save in the EML Documents
+    menu, a post to the Title page will be performed and will save the title, saving the document in the process.
+    The hidden save tells the Title page to redirect to itself after the save is done. See handle_hidden_buttons()
+    and check_val_for_hidden_buttons() is metapype_client.py.
+    """
     current_document = current_user.get_filename()
     
     if not current_document:
@@ -775,7 +683,7 @@ def save():
 @home.route('/manage_packages/<to_delete>/<action>', methods=['GET', 'POST'])
 @login_required
 def manage_packages(to_delete=None, action=None):
-
+    """Handle the delete links in the Manage Packages page."""
     # When a link is clicked to delete a package, we need to pass the package name to the server.
     # That's what the to_delete parameter is for.
     if to_delete is not None:
@@ -783,6 +691,7 @@ def manage_packages(to_delete=None, action=None):
             action = '____back____'
         elif action != '____back____':
             user_data.is_document_locked(filename=to_delete)
+            # This is where the delete is done.
             user_data.delete_eml(filename=to_delete)
             log_usage(actions['MANAGE_PACKAGES'], 'delete', to_delete)
             flash(f'Deleted {to_delete}') # TO DO - handle error cases
@@ -810,7 +719,12 @@ def manage_packages(to_delete=None, action=None):
 @home.route('/manage_data_usage/<action>', methods=['GET', 'POST'])
 @login_required
 def manage_data_usage(action=None):
-    # This page is available only to admins and data_curators
+    """
+    Handle the Manage Data Usage page.
+
+    This page is available only to admins and data_curators. It allows them to see how much disk space each user
+    is using, and it allows them to download EML and data files from any user's account.
+    """
     if not current_user.is_admin() and not current_user.is_data_curator():
         flash('You are not authorized to access the Manage Data Usage page', 'error')
         return redirect(url_for(PAGE_INDEX))
@@ -872,6 +786,9 @@ def copy_uploads(from_package, to_package):
 @home.route('/save_as', methods=['GET', 'POST'])
 @login_required
 def save_as():
+    """
+    Handle the Save As item in the EML Documents menu.
+    """
     form = SaveAsForm()
     current_document = current_user.get_filename()
 
@@ -904,9 +821,11 @@ def save_as():
                             new_filename=new_document,
                             eml_node=eml_node)
             if isinstance(return_value, str):
+                # An error has occurred. The return_value is the error message.
                 flash(return_value)
                 new_filename = current_document  # Revert back to the old filename
             else:
+                # Uploads are stored under the document name, so we need to copy them.
                 copy_uploads(current_document, new_document)
                 log_usage(actions['SAVE_AS_DOCUMENT'], new_document)
                 current_user.set_filename(filename=new_document)
@@ -929,36 +848,21 @@ def save_as():
         return render_template('index.html')
 
 
-# @home.route('/download', methods=['GET', 'POST'])
-# @login_required
-# def download():
-#     form = DownloadEMLForm()
-#     form.filename.choices = list_data_packages(True, True)
-#
-#     # Process POST
-#     if form.validate_on_submit():
-#         filename = form.filename.data
-#         return_value = user_data.download_eml(filename=filename)
-#         if isinstance(return_value, str):
-#             flash(return_value)
-#         else:
-#             return return_value
-#     # Process GET
-#     return render_template('download_eml.html', title='Download EML',
-#                            form=form)
-
-
 @home.route('/check_data_tables', methods=['GET', 'POST'])
 @login_required
 def check_data_tables():
+    """Handle the Check Data Tables item in the main Contents menu."""
     current_document = user_data.get_active_document()
     if not current_document:
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document)
     log_usage(actions['CHECK_DATA_TABLES'])
     set_current_page('check_data_tables')
+
     content = check_data_table_contents.create_check_data_tables_status_page_content(current_document, eml_node)
+
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
+
     if is_hidden_button():
         new_page = handle_hidden_buttons(PAGE_CHECK_DATA_TABLES, PAGE_CHECK_DATA_TABLES)
         return redirect(url_for(new_page, filename=current_document))
@@ -970,11 +874,14 @@ def check_data_tables():
 @home.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 def check_metadata(filename:str):
+    """Handle the Check Metadata item in the main Contents menu."""
     current_document = user_data.get_active_document()
     if not current_document:
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)
+
     content = check_eml(eml_node, filename)
+
     log_usage(actions['CHECK_METADATA'])
 
     # Process POST
@@ -989,6 +896,7 @@ def check_metadata(filename:str):
 @home.route('/datetime_formats', methods=['GET', 'POST'])
 @login_required
 def datetime_formats():
+    """Display the list of acceptable datetime formats."""
     content = format_date_time_formats_list()
 
     # Process POST
@@ -1005,8 +913,8 @@ def download_current():
     """
     Handle the Download EML File (XML) page.
 
-    This saves the current document and downloads its EML file. It returns the 200 Response object, assuming
-    the download was successful. By so doing, it stays on the current page.
+    This saves the current document and downloads its EML file. It returns the 200 Response object if
+    the download was successful. In so doing, it stays on the current page.
     """
     current_document = user_data.get_active_document()
     if current_document:
@@ -1207,7 +1115,6 @@ def import_template():
 
     Note that the expansion of template folders, etc., is handled in JavaScript in the template.
     """
-
     def form_template_tree(file, output):
         def get_subdirs(dir):
             subdirs = []
@@ -1931,9 +1838,24 @@ def export_package_2(package_name, download_url):
                            package_name=package_name, download_url=download_url)
 
 
-def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
-    """ TODO: comment needed """
+def clear_distribution_url(entity_node):
+    """ Clear the distribution URL for the specified entity node (either names.DATATABLE or names.OTHERENTITY). """
 
+    distribution_node = entity_node.find_descendant(names.DISTRIBUTION)
+    if distribution_node:
+        url_node = distribution_node.find_descendant(names.URL)
+        if url_node:
+            url_node.content = None
+
+
+def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
+    """
+    Helper function to insert distribution URLs into the EML for the specified node type (either names.DATATABLE
+    or names.OTHERENTITY.
+
+    Logically, this function should be nested within insert_upload_urls, but it's a separate function so
+    insert_upload_urls is more readable.
+    """
     def encode_distribution_url(url_node):
         """Helper function to encode a distribution URL for use in the EML."""
         url = url_node.content
@@ -2000,8 +1922,8 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             continue
 
 
-def insert_upload_urls(current_document, eml_node):
-    """ TODO: comment needed """
+def insert_upload_urls(current_document, eml_node, clear_existing_urls=False):
+    """Insert distribution URLs into the EML for uploaded files for both data tables and other entities."""
 
     user_folder = user_data.get_user_download_folder_name()
     uploads_folder = f'{user_folder}/uploads/{current_document}'
@@ -2009,8 +1931,9 @@ def insert_upload_urls(current_document, eml_node):
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{quote(uploads_folder)}"
 
     if 'localhost:5000' not in uploads_url_prefix:
-        # When developing locally, the generated URL will be flagged by Flask as invalid. This is a pain in the neck, since
-        #  we can't leave the page without clearing the URL. So, we'll just skip the URL insertion when working locally.
+        # When developing locally, the generated URL will point to localhost:5000 and be flagged by Flask as invalid.
+        # This is a pain in the neck, since we can't leave the page without clearing the URL. So, we'll just skip the
+        # URL insertion when working locally. Hence, the check above.
         insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.DATATABLE)
         insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.OTHERENTITY)
 
@@ -2055,156 +1978,16 @@ def share_submit_package(filename=None, success=None):
 
 def make_tiny(url):
     """Helper function to generate a tiny URL."""
-
     request_url = ('http://tinyurl.com/api-create.php?' + urlencode({'url':url}))
     with contextlib.closing(urlopen(request_url)) as response:
         return response.read().decode('utf-8 ')
 
 
-def compare_codes(old_codes, new_codes):
-    """ TODO: comment needed """
-
-    def substitute_nans(codes):
-        substituted = []
-        if codes:
-            for code in codes:
-                if isinstance(code, list):
-                    substituted.append(substitute_nans(code))
-                elif not isinstance(code, float) or not math.isnan(code):
-                    substituted.append(code)
-                else:
-                    substituted.append('NAN')
-        else:
-            substituted.append(None)
-        return substituted
-
-    old_substituted = substitute_nans(old_codes)
-    new_substituted = substitute_nans(new_codes)
-    return old_substituted == new_substituted
-
-
-def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes, doing_xml_import=False):
-    """ TODO: comment needed """
-
-    def add_node_if_missing(parent_node, child_name):
-        child = parent_node.find_descendant(child_name)
-        if not child:
-            child = new_child_node(child_name, parent=parent_node)
-        return child
-
-    debug_msg(f'Entering update_data_table')
-
-    if not old_dt_node or not new_dt_node:
-        return
-
-    old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
-    old_physical_node = add_node_if_missing(old_dt_node, names.PHYSICAL)
-    old_data_format_node = add_node_if_missing(old_physical_node, names.DATAFORMAT)
-    old_text_format_node = add_node_if_missing(old_data_format_node, names.TEXTFORMAT)
-    old_simple_delimited_node = add_node_if_missing(old_text_format_node, names.SIMPLEDELIMITED)
-
-    old_size_node = add_node_if_missing(old_physical_node, names.SIZE)
-    old_records_node = add_node_if_missing(old_dt_node, names.NUMBEROFRECORDS)
-    old_md5_node = add_node_if_missing(old_physical_node, names.AUTHENTICATION)
-    old_field_delimiter_node = add_node_if_missing(old_simple_delimited_node, names.FIELDDELIMITER)
-    old_record_delimiter_node = add_node_if_missing(old_text_format_node, names.RECORDDELIMITER)
-    old_quote_char_node = add_node_if_missing(old_simple_delimited_node, names.QUOTECHARACTER)
-
-    new_object_name_node = new_dt_node.find_descendant(names.OBJECTNAME)
-    new_size_node = new_dt_node.find_descendant(names.SIZE)
-    new_records_node = new_dt_node.find_descendant(names.NUMBEROFRECORDS)
-    new_md5_node = new_dt_node.find_descendant(names.AUTHENTICATION)
-    new_field_delimiter_node = new_dt_node.find_descendant(names.FIELDDELIMITER)
-    new_record_delimiter_node = new_dt_node.find_descendant(names.RECORDDELIMITER)
-    new_quote_char_node = new_dt_node.find_descendant(names.QUOTECHARACTER)
-
-    old_object_name = old_object_name_node.content
-    old_object_name_node.content = new_object_name_node.content.replace('.ezeml_tmp', '')
-
-    old_size_node.content = new_size_node.content
-    old_records_node.content = new_records_node.content
-    old_md5_node.content = new_md5_node.content
-    old_field_delimiter_node.content = new_field_delimiter_node.content
-
-    # record delimiter node is not required, so may be missing
-    if new_record_delimiter_node:
-        old_record_delimiter_node.content = new_record_delimiter_node.content
-    else:
-        old_record_delimiter_node.parent.remove_child(old_record_delimiter_node)
-
-    # quote char node is not required, so may be missing
-    if new_quote_char_node:
-        old_quote_char_node.content = new_quote_char_node.content
-    else:
-        old_quote_char_node.parent.remove_child(old_quote_char_node)
-
-    if not doing_xml_import:
-        _, old_column_names, old_column_categorical_codes = user_data.get_uploaded_table_column_properties(old_object_name)
-        if old_column_names and old_column_names != new_column_names:
-            # substitute the new column names
-            old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
-            old_attribute_names_nodes = []
-            old_attribute_list_node.find_all_descendants(names.ATTRIBUTENAME, old_attribute_names_nodes)
-            for old_attribute_names_node, old_name, new_name in zip(old_attribute_names_nodes, old_column_names, new_column_names):
-                if old_name != new_name:
-                    debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
-                    old_attribute_names_node.content = new_name
-        if not compare_codes(old_column_categorical_codes, new_column_categorical_codes):
-            # need to fix up the categorical codes
-            old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
-            old_aattribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)
-            new_attribute_list_node = new_dt_node.find_child(names.ATTRIBUTELIST)
-            new_attribute_nodes = new_attribute_list_node.find_all_children(names.ATTRIBUTE)
-            for old_attribute_node, old_codes, new_attribute_node, new_codes in zip(old_aattribute_nodes,
-                                                                                    old_column_categorical_codes,
-                                                                                    new_attribute_nodes,
-                                                                                    new_column_categorical_codes):
-                if not compare_codes(old_codes, new_codes):
-                    # use the new_codes, preserving any relevant code definitions
-                    # first, get the old codes and their definitions
-                    old_code_definition_nodes = []
-                    old_attribute_node.find_all_descendants(names.CODEDEFINITION, old_code_definition_nodes)
-                    code_definitions = {}
-                    parent_node = None
-                    for old_code_definition_node in old_code_definition_nodes:
-                        code_node = old_code_definition_node.find_child(names.CODE)
-                        code = None
-                        if code_node:
-                            code = str(code_node.content)
-                        definition_node = old_code_definition_node.find_child(names.DEFINITION)
-                        definition = None
-                        if definition_node:
-                            definition = definition_node.content
-                        if code and definition:
-                            code_definitions[code] = definition
-                        # remove the old code definition node
-                        parent_node = old_code_definition_node.parent
-                        parent_node.remove_child(old_code_definition_node)
-                    # add clones of new definition nodes and set their definitions, if known
-                    if not parent_node:
-                        continue
-                    new_code_definition_nodes = []
-                    new_attribute_node.find_all_descendants(names.CODEDEFINITION, new_code_definition_nodes)
-                    for new_code_definition_node in new_code_definition_nodes:
-                        clone = new_code_definition_node.copy()
-                        parent_node.add_child(clone)
-                        clone.parent = parent_node
-                        code_node = clone.find_child(names.CODE)
-                        if code_node:
-                            code = str(code_node.content)
-                        else:
-                            code = None
-                        definition_node = clone.find_child(names.DEFINITION)
-                        definition = code_definitions.get(code)
-                        if definition:
-                            definition_node.content = definition
-    debug_msg(f'Leaving update_data_table')
-
-
 def backup_metadata(filename):
-    """ TODO: comment needed """
-    """ Figure out if this should be removed. """
-
+    """
+    When doing Clone Column Properties or Reupload, we backup the metadata. This is done purely in case our code
+    messes up the metadata. I.e., it's a safety net, one that can be removed once we're confident in the code.
+    """
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         flash('User folder not found', 'error')
@@ -2261,9 +2044,6 @@ def import_xml():
 
         file = request.files['file']
         if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
             filename = unquote(file.filename)
 
             if not os.path.splitext(filename)[1] == '.xml':
@@ -2273,11 +2053,12 @@ def import_xml():
             package_base_filename = os.path.basename(filename)
             package_name = os.path.splitext(package_base_filename)[0]
 
-            filepath = save_xml_file(file)
+            filepath = save_xml_file_in_temp_folder(file)
             # See if package with that name already exists
             if package_name in user_data.get_user_document_list():
                 return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
 
+            # Parse the XML file and return errors, if any.
             eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
                 parse_xml_file(filename, filepath)
             eml_node = strip_elements_added_by_pasta(package_name, eml_node)
@@ -2291,6 +2072,7 @@ def import_xml():
                 log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
                 save_both_formats(filename=package_name, eml_node=eml_node)
                 current_user.set_filename(filename=package_name)
+                # If we have errors...
                 if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
                     # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
                     #  string representations.
@@ -2333,12 +2115,13 @@ def import_xml_2(package_name, filename, fetched=False):
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
         if form['replace_copy'] == 'copy':
-            package_name = determine_package_name(package_name)
+            package_name = determine_package_name_for_copy(package_name)
 
         user_path = user_data.get_user_folder_name()
         work_path = os.path.join(user_path, 'zip_temp')
         filepath = os.path.join(work_path, filename)
 
+        # Parse the XML file and return errors, if any.
         eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
             parse_xml_file(filename, filepath)
         eml_node = strip_elements_added_by_pasta(package_name, eml_node)
@@ -2398,11 +2181,12 @@ def get_data_size(filename):
 @login_required
 def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_errs=None,
                  other_errs=None, pruned_nodes=None, filename=None, fetched=False):
-    """ TODO: comment needed """
+    """ Handle reporting XML parsing errors after an XML file has been imported. """
 
     def construct_xml_error_descriptions(filename=None, unknown_nodes=None, attr_errs=None, child_errs=None,
                                          other_errs=None, pruned_nodes=None, unhandled_elements=None):
-        """ TODO: comment needed """
+        """ Construct the HTML and text descriptions of the XML errors. HTML is displayed, text is available to
+        be copied to the clipboard. """
 
         def display_list(err_html, err_text, ll, explanation):
             if ll:
@@ -2498,6 +2282,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
         except (AuthTokenExpired, Unauthorized) as e:
             flash(AUTH_TOKEN_FLASH_MSG, 'error')
             help = get_helps(['import_xml_3'])
+            # This code is used both for Fetch and Import, so we need to redirect to the right page in case of error.
             if not eval(fetched):
                 return redirect(url_for('home.import_xml', form=form, help=help))
             else:
@@ -2531,6 +2316,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
     except (AuthTokenExpired, Unauthorized) as e:
         flash(AUTH_TOKEN_FLASH_MSG, 'error')
         help = get_helps(['import_xml_3'])
+        # This code is used both for Fetch and Import, so we need to redirect to the right page in case of error.
         if not eval(fetched):
             return redirect(url_for('home.import_xml', form=form, help=help))
         else:
@@ -2545,7 +2331,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
 @home.route('/import_xml_4/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
 def import_xml_4(filename=None, fetched=False):
-    """ TODO: comment needed """
+    """ Handle XML import/fetch in case with no XML parsing errors. """
 
     form = EDIForm()
     eml_node = load_eml(filename=filename)
@@ -2564,6 +2350,7 @@ def import_xml_4(filename=None, fetched=False):
         except (AuthTokenExpired, Unauthorized) as e:
             flash(AUTH_TOKEN_FLASH_MSG, 'error')
             help = get_helps(['import_xml_3'])
+            # This code is used both for Fetch and Import, so we need to redirect to the right page in case of error.
             if not eval(fetched):
                 return redirect(url_for('home.import_xml', form=form, help=help))
             else:
@@ -2601,7 +2388,7 @@ def import_xml_4(filename=None, fetched=False):
 
 @home.route('/fetch_xml/', methods=['GET', 'POST'])
 @login_required
-def fetch_xml(scope=''):
+def fetch_xml():
     """Handle the Fetch a Package from EDI... item in the Import/Export menu."""
 
     form = EDIForm()
@@ -2621,12 +2408,14 @@ def fetch_xml(scope=''):
     form.md5.data = form_md5(form)
 
     try:
-        ids = get_pasta_identifiers(scope)
+        # Get a list of PASTA scopes
+        ids = get_pasta_identifiers('')
     except (AuthTokenExpired, Unauthorized) as e:
         flash(AUTH_TOKEN_FLASH_MSG, 'error')
         help = get_helps(['fetch_from_edi'])
-        return redirect(url_for('home.fetch_xml', scope=scope, form=form, help=help))
+        return redirect(url_for('home.fetch_xml', form=form, help=help))
 
+    # Create a list of links to fetch the identifiers for each scope
     package_links = ''
     parsed_url = urlparse(request.base_url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
@@ -2660,7 +2449,10 @@ def fetch_xml_2(scope=''):
     # Process GET
     form.md5.data = form_md5(form)
 
+    # Get a list of PASTA identifiers for the selected scope
     ids = get_pasta_identifiers(scope)
+
+    # Create a list of links to fetch the revisions for each identifier, or the package if there is only one revision.
     package_links = ''
     parsed_url = urlparse(request.base_url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
@@ -2678,7 +2470,8 @@ def fetch_xml_2(scope=''):
 def fetch_xml_2a(scope_identifier=''):
     """
     Handle the Fetch a Package from EDI... item in the Import/Export menu after an identifier within scope
-    has been selected if there are multiple versions of the package.
+    has been selected. Determines if there are multiple revisions for the (scope, identifier) pair, and if so,
+    displays a list of revisions to choose from. Otherwise, goes directly to the fetch_xml_3 page.
     """
 
     form = EDIForm()
@@ -2703,6 +2496,8 @@ def fetch_xml_2a(scope_identifier=''):
     if len(revisions) == 1:
         return redirect(url_for('home.fetch_xml_3', scope_identifier=scope_identifier, revision=revisions[0]))
     else:
+        # There are multiple revisions. Display a list of revisions to choose from, each of which is a link to the
+        #  page to fetch the package.
         package_links = ''
         parsed_url = urlparse(request.base_url)
         base_url = f"{parsed_url.scheme}://{parsed_url.netloc}/eml"
@@ -2743,6 +2538,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
     scope, identifier = scope_identifier.split('.')
 
     try:
+        # Do the fetch.
         revision, metadata = get_metadata_revision_from_pasta(scope, identifier, revision)
         log_usage(actions['FETCH_FROM_EDI'], f"{scope}.{identifier}.{revision}")
     except (AuthTokenExpired, Unauthorized) as e:
@@ -2754,6 +2550,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
         help = get_helps(['import_xml_3'])
         return redirect(url_for('home.fetch_xml', form=form, help=help))
 
+    # Save the metadata to a file in the user's zip_temp folder.
     filename = f"{scope}.{identifier}.{revision}.xml"
     user_data_dir = user_data.get_user_folder_name()
     work_path = os.path.join(user_data_dir, 'zip_temp')
@@ -2768,10 +2565,12 @@ def fetch_xml_3(scope_identifier='', revision=''):
     package_base_filename = os.path.basename(filename)
     package_name = os.path.splitext(package_base_filename)[0]
 
-    # See if package with that name already exists
+    # See if package with that name already exists. If so, go to import_xml_2 page to allow user to choose
+    #  whether to replace or make a copy.
     if package_name in user_data.get_user_document_list():
         return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename, fetched=True))
 
+    # Parse the metadata file.
     user_data_dir = user_data.get_user_folder_name()
     work_path = os.path.join(user_data_dir, 'zip_temp')
     filepath = os.path.join(work_path, filename)
@@ -2836,9 +2635,6 @@ def import_package():
 
         file = request.files['file']
         if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
             filename = file.filename
 
             if not os.path.splitext(filename)[1] == '.zip':
@@ -2866,10 +2662,14 @@ def import_package():
                 return redirect(request.url)
 
             if unversioned_package_name in user_data.get_user_document_list():
+                # Package with that name already exists. Go to import_package_2 page to allow user to choose
+                #  whether to replace or make a copy.
                 return redirect(url_for('home.import_package_2', package_name=unversioned_package_name))
             else:
+                # Package with that name does not exist. Import it.
                 import_ezeml_package(unversioned_package_name)
                 # fixup_upload_management()
+                # Get rid of uploads not represented in the metadata.
                 cull_uploads(unversioned_package_name)
                 current_user.set_filename(filename=unversioned_package_name)
                 log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])
@@ -2884,7 +2684,9 @@ def import_package():
 @home.route('/import_package_2/<package_name>', methods=['GET', 'POST'])
 @login_required
 def import_package_2(package_name):
-    """Handle the Import ezEML Data Package... item from the Import/Export menu after a file has been selected."""
+    """Handle the Import ezEML Data Package... item from the Import/Export menu after a file has been selected
+    and a file with that filename already exists. Let the user choose whether to replace the existing file or
+    make a copy of the new file."""
 
     form = ImportPackageForm()
 
@@ -2897,11 +2699,15 @@ def import_package_2(package_name):
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
+        # If the user wants to copy the package, add a version number to the package name and copy the package
+        # to the new name.
         if form['replace_copy'] == 'copy':
             package_name = copy_ezeml_package(package_name)
 
+        # Perform the import.
         import_ezeml_package(package_name)
         # fixup_upload_management()
+        # Get rid of uploads not represented in the metadata.
         cull_uploads(package_name)
         current_user.set_filename(filename=package_name)
         log_usage(actions['IMPORT_EZEML_DATA_PACKAGE'])
@@ -2911,16 +2717,6 @@ def import_package_2(package_name):
     help = get_helps(['import_package_2'])
     return render_template('import_package_2.html', title='Import an ezEML Data Package',
                            package_name=package_name, form=form, help=help)
-
-
-def clear_distribution_url(entity_node):
-    """ TODO: comment needed """
-
-    distribution_node = entity_node.find_descendant(names.DISTRIBUTION)
-    if distribution_node:
-        url_node = distribution_node.find_descendant(names.URL)
-        if url_node:
-            url_node.content = None
 
 
 @home.route('/get_data_file/', methods=['GET', 'POST'])
@@ -3082,444 +2878,11 @@ def get_eml_file_2(user):
         return render_template('get_eml_file_2.html', form=form)
 
 
-def data_filename_is_unique(eml_node, data_filename):
-    """
-    Check if the data filename is unique across both data tables and other entities.
-    """
-    data_entity_name, _ = os.path.splitext(os.path.basename(data_filename))
-    data_table_nodes = []
-    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-    for data_table_node in data_table_nodes:
-        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
-        if entity_name_node and entity_name_node.content == data_entity_name:
-            return False
-        object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-        if object_name_node and object_name_node.content == data_filename:
-            return False
-    other_entity_nodes = []
-    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
-    for other_entity_node in other_entity_nodes:
-        entity_name_node = other_entity_node.find_child(names.ENTITYNAME)
-        if entity_name_node and entity_name_node.content == data_entity_name:
-            return False
-        object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
-        if object_name_node and object_name_node.content == data_filename:
-            return False
-    return True
-
-
-@home.route('/load_data/<filename>', methods=['GET', 'POST'])
-@login_required
-def load_data(filename=None):
-    """ TODO: comment needed """
-
-    # log_info(f'Entering load_data: request.method={request.method}')
-    # filename that's passed in is actually the document name, for historical reasons.
-    # We'll clear it to avoid misunderstandings...
-    filename = None
-
-    form = LoadDataForm()
-    document = current_user.get_filename()
-    uploads_folder = user_data.get_document_uploads_folder_name()
-
-    # Process POST
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if request.method == 'POST' and form.validate_on_submit():
-
-        # Check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part', 'error')
-            return redirect(request.url)
-
-        eml_node = load_eml(filename=document)
-        dataset_node = eml_node.find_child(names.DATASET)
-        if not dataset_node:
-            dataset_node = new_child_node(names.DATASET, eml_node)
-
-        file = request.files['file']
-        if file:
-            filename = unquote(file.filename)
-
-        if filename:
-            if filename is None or filename == '':
-                flash('No selected file', 'error')
-            elif allowed_data_file(filename):
-                # Make sure we don't already have a data table or other entity with this name
-                if not data_filename_is_unique(eml_node, filename):
-                    flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
-                    return redirect(request.url)
-
-                # Make sure the user's uploads directory exists
-                Path(uploads_folder).mkdir(parents=True, exist_ok=True)
-                filepath = os.path.join(uploads_folder, filename)
-                if file:
-                    # Upload the file to the uploads directory
-                    file.save(filepath)
-
-                num_header_rows = '1'
-                delimiter = form.delimiter.data
-                quote_char = form.quote.data
-
-                try:
-                    dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = \
-                        load_data_table(uploads_folder, filename, num_header_rows, delimiter, quote_char,
-                                        check_column_names=True)
-
-                except UnicodeDecodeError as err:
-                    errors = display_decode_error_lines(filepath)
-                    return render_template('encoding_error.html', filename=filename, errors=errors)
-                except UnicodeDecodeErrorInternal as err:
-                    filepath = err.message
-                    errors = display_decode_error_lines(filepath)
-                    return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
-                except DataTableError as err:
-                    flash(f'Data table has an error: {err.message}', 'error')
-                    return redirect(request.url)
-                except ExtraWhitespaceInColumnNames as err:
-                    bad_names = ', '.join('"' + name + '"' for name in err.message)
-                    if len(err.message) == 1:
-                        msg = "The following column name has leading or trailing spaces: "
-                        msg2 = "that column name"
-                    else:
-                        msg = "The following column names have leading or trailing spaces: "
-                        msg2 = "those column names"
-                    msg = f"{msg} {bad_names}.<br>" + \
-                            "Such extra spaces are not permitted. Please edit the header row of your data table to remove leading or trailing spaces from " + \
-                            f"{msg2} and try again."
-                    flash(Markup(msg), 'error')
-                    return redirect(request.url)
-
-                flash(f"Loaded {filename}")
-
-                dt_node.parent = dataset_node
-                dataset_node.add_child(dt_node)
-
-                user_data.add_data_table_upload_filename(filename)
-                if new_column_vartypes:
-                    user_data.add_uploaded_table_properties(filename,
-                                                  new_column_vartypes,
-                                                  new_column_names,
-                                                  new_column_categorical_codes)
-
-                delete_data_files(uploads_folder)
-
-                clear_distribution_url(dt_node)
-                insert_upload_urls(document, eml_node)
-                log_usage(actions['LOAD_DATA_TABLE'], filename)
-
-                check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
-                save_both_formats(filename=document, eml_node=eml_node)
-
-                return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter, quote_char=quote_char))
-
-            else:
-                flash(f'{filename} is not a supported data file type')
-                return redirect(request.url)
-
-    # Process GET
-    return render_template('load_data.html', title='Load Data',
-                           form=form)
-
-
-def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
-                    eml_node=None, uploads_folder=None, name_chg_ok=False,
-                    delimiter=None, quote_char=None):
-    """ TODO: comment needed """
-
-    def column_names_changed(filepath, delimiter, quote_char, dt_node):
-        """ TODO: comment needed """
-
-        # Assumes CSV file has been saved to the file system
-        # This function is called only in the reupload case.
-
-        data_frame = pd.read_csv(filepath, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=1)
-        columns = data_frame.columns
-        new_column_names = []
-        for col in columns:
-            new_column_names.append(col)
-
-        old_column_names = []
-        if dt_node:
-            attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
-            if attribute_list_node:
-                for attribute_node in attribute_list_node.children:
-                    attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
-                    if attribute_name_node:
-                        old_column_names.append(attribute_name_node.content)
-
-        if len(old_column_names) != len(new_column_names):
-            raise NumberOfColumnsHasChanged(
-                f'Number of columns has changed from {len(old_column_names)} to {len(new_column_names)}.')
-
-        return old_column_names != new_column_names
-
-    def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
-        """ TODO: comment needed """
-
-        def get_column_properties(eml_node, document, dt_node, object_name):
-            data_file = object_name
-            column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(data_file)
-            if column_vartypes:
-                return column_vartypes
-
-            uploads_folder = user_data.get_document_uploads_folder_name()
-            num_header_rows = '1'
-            field_delimiter_node = dt_node.find_descendant(names.FIELDDELIMITER)
-            if field_delimiter_node:
-                delimiter = field_delimiter_node.content
-            else:
-                delimiter = ','
-            quote_char_node = dt_node.find_descendant(names.QUOTECHARACTER)
-            if quote_char_node:
-                quote_char = quote_char_node.content
-            else:
-                quote_char = '"'
-            try:
-                new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
-                    uploads_folder, data_file, num_header_rows, delimiter, quote_char)
-
-                user_data.add_uploaded_table_properties(data_file,
-                                                        new_column_vartypes,
-                                                        new_column_names,
-                                                        new_column_categorical_codes)
-
-                clear_distribution_url(dt_node)
-                insert_upload_urls(document, eml_node)
-
-                return new_column_vartypes
-
-            except FileNotFoundError:
-                raise FileNotFoundError(
-                    'The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
-
-            except Exception as err:
-                raise Exception('Internal error 103')
-
-            except UnicodeDecodeError as err:
-                fullpath = os.path.join(uploads_folder, data_file)
-                errors = display_decode_error_lines(fullpath)
-                return render_template('encoding_error.html', filename=data_file, errors=errors)
-
-        if not old_dt_node or not new_dt_node:
-            raise Exception('Internal error 100')
-        old_attribute_list = old_dt_node.find_child(names.ATTRIBUTELIST)
-        new_attribute_list = new_dt_node.find_child(names.ATTRIBUTELIST)
-        if len(old_attribute_list.children) != len(new_attribute_list.children):
-            raise IndexError('The new table has a different number of columns from the original table.')
-        document = current_user.get_filename()
-        old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
-        if not old_object_name_node:
-            raise Exception('Internal error 101')
-        old_object_name = old_object_name_node.content
-        if not old_object_name:
-            raise Exception('Internal error 102')
-        old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
-        if not old_column_vartypes:
-            # column properties weren't saved. compute them anew.
-            eml_node = load_eml(filename=document)
-            old_column_vartypes = get_column_properties(eml_node, document, old_dt_node, old_object_name)
-        if old_column_vartypes != new_column_vartypes:
-            diffs = []
-            for col_name, old_type, new_type, attr_node in zip(new_column_names, old_column_vartypes,
-                                                               new_column_vartypes, old_attribute_list.children):
-                if old_type != new_type:
-                    diffs.append((col_name, old_type, new_type, attr_node))
-            raise ValueError(diffs)
-
-    dataset_node = eml_node.find_child(names.DATASET)
-    if not dataset_node:
-        dataset_node = new_child_node(names.DATASET, eml_node)
-
-    if not saved_filename:
-        raise MissingFileError('Unexpected error: file not found')
-
-    dt_node = Node.get_node_instance(dt_node_id)
-
-    num_header_rows = '1'
-    filepath = os.path.join(uploads_folder, saved_filename)
-
-    if not name_chg_ok:
-        try:
-            if column_names_changed(filepath, delimiter, quote_char, dt_node):
-                # Go get confirmation
-                return redirect(url_for(PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED,
-                                        saved_filename=saved_filename,
-                                        dt_node_id=dt_node_id),
-                                code=307)
-        except NumberOfColumnsHasChanged as err:
-            flash('The number of columns in the uploaded file is different from the number of columns in the table '
-                  'it is replacing. Instead of using Re-upload, you will need to upload the table as a new '
-                  'table. You can then use "Clone Column Properties from Another Data Table" to copy the column '
-                  'properties that the tables have in common, after which you can delete the old version.', 'error')
-            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
-        except UnicodeDecodeError as err:
-            errors = display_decode_error_lines(filepath)
-            filename = os.path.basename(filepath)
-            return render_template('encoding_error.html', filename=filename, errors=errors)
-    try:
-        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
-            uploads_folder, saved_filename, num_header_rows, delimiter, quote_char)
-
-        types_changed = None
-        try:
-            check_data_table_similarity(dt_node,
-                                        new_dt_node,
-                                        new_column_vartypes,
-                                        new_column_names,
-                                        new_column_categorical_codes)
-        except ValueError as err:
-            types_changed = err.args[0]
-
-        except FileNotFoundError as err:
-            error = err.args[0]
-            flash(error, 'error')
-            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
-
-        except IndexError as err:
-            error = err.args[0]
-            flash(f'Re-upload not done. {error}', 'error')
-            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
-
-        try:
-            # use the existing dt_node, but update objectName, size, rows, MD5, etc.
-            # also, update column names and categorical codes, as needed
-            update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
-            # rename the temp file
-            os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
-
-            if types_changed:
-                err_string = 'Please note: One or more columns in the new table have a different data type than they '\
-                             'had in the old table.<ul>'
-                for col_name, old_type, new_type, attr_node in types_changed:
-                    dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
-                    err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
-                err_string += '</ul>'
-                flash(Markup(err_string))
-
-        except Exception as err:
-            # display error
-            error = err.args[0]
-            flash(f"Data table could not be re-uploaded. {error}", 'error')
-            return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=document))
-
-    except UnicodeDecodeError as err:
-        errors = display_decode_error_lines(filepath)
-        return render_template('encoding_error.html', filename=document, errors=errors)
-
-    except UnicodeDecodeErrorInternal as err:
-            filepath = err.message
-            errors = display_decode_error_lines(filepath)
-            return render_template('encoding_error.html', filename=os.path.basename(filepath), errors=errors)
-
-    except DataTableError as err:
-        flash(f'Data table has an error: {err.message}', 'error')
-        return redirect(request.url)
-
-    data_file = saved_filename.replace('.ezeml_tmp', '')
-    flash(f"Loaded {data_file}")
-
-    dt_node.parent = dataset_node
-    object_name_node = dt_node.find_descendant(names.OBJECTNAME)
-    if object_name_node:
-        object_name_node.content = data_file
-
-    user_data.add_data_table_upload_filename(data_file)
-    if new_column_vartypes:
-        user_data.add_uploaded_table_properties(data_file,
-                                                new_column_vartypes,
-                                                new_column_names,
-                                                new_column_categorical_codes)
-
-    delete_data_files(uploads_folder)
-
-    clear_distribution_url(dt_node)
-    insert_upload_urls(document, eml_node)
-
-    backup_metadata(filename=document)  # FIXME - what is this doing? is it obsolete?
-
-    check_data_table_contents.reset_data_file_eval_status(document, data_file)
-    check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
-
-    save_both_formats(filename=document, eml_node=eml_node)
-    return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter,
-                            quote_char=quote_char))
-
-
-@home.route('/reupload_data/<filename>/<dt_node_id>', methods=['GET', 'POST'])
-@home.route('/reupload_data/<filename>/<dt_node_id>/<saved_filename>/<name_chg_ok>', methods=['GET', 'POST'])
-@login_required
-def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_ok=False):
-    # filename that's passed in is actually the document name, for historical reasons.
-    # We'll clear it to avoid misunderstandings...
-    filename = None
-
-    form = LoadDataForm()
-    document = current_user.get_filename()
-    uploads_folder = user_data.get_document_uploads_folder_name()
-    eml_node = load_eml(filename=document)
-
-    data_table_name = ''
-    dt_node = Node.get_node_instance(dt_node_id)
-    if dt_node:
-        entity_name_node = dt_node.find_child(names.ENTITYNAME)
-        if entity_name_node:
-            data_table_name = entity_name_node.content
-            if not data_table_name:
-                flash(f'Data table name not found in the metadata.', 'error')
-                return redirect(request.url)
-
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
-        return redirect(url)
-
-    if request.method == 'POST':
-        if dt_node:
-            if saved_filename:
-                filename = saved_filename
-                unmodified_filename = filename
-            else:
-                file = request.files['file']
-                if file:
-                    filename = f"{file.filename}"
-                    unmodified_filename = filename
-                    if allowed_data_file(filename):
-                        # We upload the new version of the CSV file under a temp name so we have both files to inspect.
-                        filename = f"{filename}.ezeml_tmp"
-                        filepath = os.path.join(uploads_folder, filename)
-                        file.save(filepath)
-                    else:
-                        flash(f'{filename} is not a supported data file type', 'error')
-                        return redirect(request.url)
-
-            delimiter = form.delimiter.data
-            quote_char = form.quote.data
-
-            try:
-                goto = handle_reupload(dt_node_id=dt_node_id, saved_filename=filename, document=document,
-                                       eml_node=eml_node, uploads_folder=uploads_folder, name_chg_ok=name_chg_ok,
-                                       delimiter=delimiter, quote_char=quote_char)
-                log_usage(actions['RE_UPLOAD_DATA_TABLE'], unmodified_filename)
-                return goto
-
-            except MissingFileError as err:
-                flash(err.message, 'error')
-                return redirect(request.url)
-
-            except Exception as err:
-                return redirect(request.url)
-
-    # Process GET
-    help = get_helps(['data_table_reupload_full'])
-    return render_template('reupload_data.html', title='Re-upload Data Table',
-                           form=form, name=data_table_name, help=help)
-
-
 @home.route('/reupload_other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_other_entity(filename, node_id):
+    """ TODO: comment needed blah """
+
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
@@ -3549,6 +2912,8 @@ def reupload_other_entity(filename, node_id):
 @home.route('/load_other_entity/<node_id>', methods=['GET', 'POST'])
 @login_required
 def load_entity(node_id=None):
+    """ TODO: comment needed """
+
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
@@ -3601,59 +2966,6 @@ def load_entity(node_id=None):
 
     # Process GET
     return render_template('load_other_entity.html', title='Load Other Entity',
-                           form=form)
-
-
-@home.route('/load_metadata', methods=['GET', 'POST'])
-@login_required
-def load_metadata():
-    form = LoadMetadataForm()
-    document = current_user.get_filename()
-    uploads_folder = user_data.get_document_uploads_folder_name()
-
-    # Process POST
-    if  request.method == 'POST' and form.validate_on_submit():
-        # Check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part', 'error')
-            return redirect(request.url)
-
-        file = request.files['file']
-        if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
-            # filename = file.filename
-            filename = secure_filename(file.filename)
-            
-            if filename is None or filename == '':
-                flash('No selected file', 'error')
-            elif allowed_metadata_file(filename):
-                Path(uploads_folder).mkdir(parents=True, exist_ok=True)
-                file.save(os.path.join(uploads_folder, filename))
-                metadata_file = filename
-                metadata_file_path = f'{uploads_folder}/{metadata_file}'
-                with open(metadata_file_path, 'r') as file:
-                    metadata_str = file.read()
-                    try:
-                        eml_node = read_xml(metadata_str)
-                    except Exception as e:
-                        flash(e, 'error')
-                    if eml_node:
-                        packageid = eml_node.attribute_value('packageId')
-                        if packageid:
-                            current_user.set_packageid(packageid)
-                            save_both_formats(filename=filename, eml_node=eml_node)
-                            return redirect(url_for(PAGE_TITLE, filename=filename))
-                        else:
-                            flash(f'Unable to determine packageid from file {filename}', 'error')
-                    else:
-                        flash(f'Unable to load metadata from file {filename}', 'error')
-            else:
-                flash(f'{filename} is not a supported data file type', 'error')
-                return redirect(request.url)
-    # Process GET
-    return render_template('load_metadata.html', title='Load Metadata', 
                            form=form)
 
 
@@ -3870,6 +3182,8 @@ Code below is no longer used. Keeping it around in case we change our minds...
 def import_temporal_coverage():
     """Handle the Import Temporal Coverage item in EML Documents menu. Not currently used."""
 
+    raise DeprecatedCodeError('import_temporal_coverage()')
+
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
 
@@ -3893,6 +3207,8 @@ def import_temporal_coverage():
 def import_temporal_coverage_2(filename):
     """Handle the Import Temporal Coverage item in EML Documents menu after a source document has been selected.
     Not currently used."""
+
+    raise DeprecatedCodeError('import_temporal_coverage_2()')
 
     def get_temporal_coverages_for_import(eml_node):
         coverages = []
@@ -3928,6 +3244,8 @@ def import_temporal_coverage_2(filename):
 @login_required
 def submit_package(filename=None, success=None):
     """Handle the former version of Submit to EDI page. Not currently used."""
+
+    raise DeprecatedCodeError('sbmit_package()')
 
     def submit_package_mail_body(name=None, email_address=None, archive_name=None, encoded_url=None,
                                  encoded_url_without_data=None, notes=None):
@@ -4006,6 +3324,9 @@ def submit_package(filename=None, success=None):
 @home.route('/send_to_other/<filename>/<mailto>/', methods=['GET', 'POST'])
 @login_required
 def send_to_other(filename=None, mailto=None):
+
+    raise DeprecatedCodeError('send_to_other()')
+
     def send_to_other_email(name, email_address, title, url):
         name_quoted = quote(name)
         email_address_quoted = quote(email_address)
@@ -4111,6 +3432,7 @@ def send_to_other(filename=None, mailto=None):
 @home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
+    raise DeprecatedCodeError('reupload_data_with_col_names_changed()')
 
     form = LoadDataForm()
     document = current_user.get_filename()
@@ -4126,3 +3448,178 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
         help = get_helps(['data_table_reupload_full'])
         return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
                                form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
+
+
+@home.route('/load_metadata', methods=['GET', 'POST'])
+@login_required
+def load_metadata():
+    raise DeprecatedCodeError('load_metadata()')
+
+    form = LoadMetadataForm()
+    document = current_user.get_filename()
+    uploads_folder = user_data.get_document_uploads_folder_name()
+
+    # Process POST
+    if request.method == 'POST' and form.validate_on_submit():
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
+            #  separately keeping track of the original filename and the possibly modified filename.
+            # filename = secure_filename(file.filename)
+            # filename = file.filename
+            filename = secure_filename(file.filename)
+
+            if filename is None or filename == '':
+                flash('No selected file', 'error')
+            elif allowed_metadata_file(filename):
+                Path(uploads_folder).mkdir(parents=True, exist_ok=True)
+                file.save(os.path.join(uploads_folder, filename))
+                metadata_file = filename
+                metadata_file_path = f'{uploads_folder}/{metadata_file}'
+                with open(metadata_file_path, 'r') as file:
+                    metadata_str = file.read()
+                    try:
+                        eml_node = read_xml(metadata_str)
+                    except Exception as e:
+                        flash(e, 'error')
+                    if eml_node:
+                        packageid = eml_node.attribute_value('packageId')
+                        if packageid:
+                            current_user.set_packageid(packageid)
+                            save_both_formats(filename=filename, eml_node=eml_node)
+                            return redirect(url_for(PAGE_TITLE, filename=filename))
+                        else:
+                            flash(f'Unable to determine packageid from file {filename}', 'error')
+                    else:
+                        flash(f'Unable to load metadata from file {filename}', 'error')
+            else:
+                flash(f'{filename} is not a supported data file type', 'error')
+                return redirect(request.url)
+    # Process GET
+    return render_template('load_metadata.html', title='Load Metadata',
+                           form=form)
+
+
+
+
+# @home.before_app_first_request
+# def cleanup_zip_temp_folders():
+#     if not Config.GC_CLEAN_ZIP_TEMPS_ON_STARTUP:
+#         return
+#     # get the user directories
+#     base = Config.USER_DATA_DIR
+#     for dir in os.listdir(base):
+#         if os.path.isdir(os.path.join(base, dir)):
+#             if dir.startswith('.'):
+#                 continue
+#
+#             # got a user directory
+#             user_dir = os.path.join(base, dir)
+#
+#             days = Config.GC_ZIP_TEMPS_DAYS_TO_LIVE
+#             logonly = Config.GC_LOG_ONLY
+#             clean_zip_temp_files(days, user_dir, logger, logonly)
+
+
+# @home.before_app_first_request
+# def fixup_upload_management():
+#     return
+#     USER_DATA_DIR = 'user-data'
+#     to_delete = set()
+#     # loop on the various users' data directories
+#     for user_folder_name in os.listdir(USER_DATA_DIR):
+#         if user_folder_name == 'uploads' or user_folder_name == 'zip_temp':
+#             continue
+#         if os.path.isdir(os.path.join(USER_DATA_DIR, user_folder_name)):
+#             user_data.clear_data_table_upload_filenames(user_folder_name)
+#             full_path = os.path.join(USER_DATA_DIR, user_folder_name)
+#             uploads_path = os.path.join(full_path, 'uploads')
+#             # look at the EML model json files
+#             for file in os.listdir(full_path):
+#                 full_file = os.path.join(full_path, file)
+#                 if os.path.isfile(full_file) and full_file.lower().endswith('.json') and file != '__user_properties__.json':
+#                     # some directories may have obsolete 'user_properties.json' files
+#                     if file == 'user_properties.json':
+#                         to_delete.add(os.path.join(full_path, 'user_properties.json'))
+#                         continue
+#                     # create a subdir of the user's uploads directory for this document's uploads
+#                     document_name = file[:-5]
+#                     subdir_name = os.path.join(uploads_path, document_name)
+#                     try:
+#                         os.mkdir(subdir_name)
+#                     except OSError:
+#                         pass
+#                     # open the model file
+#                     with open(full_file, "r") as json_file:
+#                         json_obj = json.load(json_file)
+#                         eml_node = mp_io.from_json(json_obj)
+#                     # look at data tables
+#                     data_table_nodes = []
+#                     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+#                     for data_table_node in data_table_nodes:
+#                         object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+#                         if object_name_node:
+#                             object_name = object_name_node.content
+#                             object_path = os.path.join(uploads_path, object_name)
+#                             target_path = os.path.join(subdir_name, object_name)
+#                             if os.path.isfile(object_path):
+#                                 to_delete.add(object_path)
+#                                 copyfile(object_path, target_path)
+#                     # look at other entities
+#                     other_entity_nodes = []
+#                     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+#                     for other_entity_node in other_entity_nodes:
+#                         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+#                         if object_name_node:
+#                             object_name = object_name_node.content
+#                             object_path = os.path.join(uploads_path, object_name)
+#                             if os.path.isfile(object_path):
+#                                 to_delete.add(object_path)
+#                                 copyfile(object_path, os.path.join(subdir_name, object_name))
+#                     # clean up temp files
+#                     for path in os.listdir(subdir_name):
+#                         path = os.path.join(subdir_name, path)
+#                         if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+#                             to_delete.add(path)
+#
+#             # now capture all uploaded file names in the user data
+#             for file in os.listdir(uploads_path):
+#                 uploads_folder = os.path.join(uploads_path, file)
+#                 if os.path.isdir(uploads_folder):
+#                     # add the uploaded files to the user data
+#                     for uploaded_file in os.listdir(uploads_folder):
+#                         user_data.add_data_table_upload_filename(uploaded_file, user_folder_name, file)
+#
+#             # clean up temp files
+#             for path in os.listdir(full_path):
+#                 path = os.path.join(full_path, path)
+#                 if os.path.isfile(path) and path.endswith('ezeml_tmp'):
+#                     to_delete.add(path)
+#
+#     # now we can delete the files we've copied
+#     for file in to_delete:
+#         os.remove(file)
+
+
+# @home.route('/download', methods=['GET', 'POST'])
+# @login_required
+# def download():
+#     form = DownloadEMLForm()
+#     form.filename.choices = list_data_packages(True, True)
+#
+#     # Process POST
+#     if form.validate_on_submit():
+#         filename = form.filename.data
+#         return_value = user_data.download_eml(filename=filename)
+#         if isinstance(return_value, str):
+#             flash(return_value)
+#         else:
+#             return return_value
+#     # Process GET
+#     return render_template('download_eml.html', title='Download EML',
+#                            form=form)

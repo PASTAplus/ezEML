@@ -184,7 +184,7 @@ class DownloadEMLForm(FlaskForm):
     filename = StringField('Document Name', validators=[DataRequired()])
 
 
-class LoadDataForm(FlaskForm):
+class LoadDataForm(EDIForm):
     delimiter = SelectField('Field Delimiter', choices=[
         (',', 'comma'),
         ('\t', 'tab'),

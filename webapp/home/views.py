@@ -1249,9 +1249,9 @@ def form_template_tree(file, output):
 
 def import_selected_template(template_filename, output_filename):
     # Copy the template into the user's directory
-    user_folder = user_data.get_user_folder_name()
+    user_folder = user_data.get_user_folder_name(current_user_directory_only=True)
     copyfile(f"{Config.TEMPLATE_DIR}/{template_filename}", f"{user_folder}/{output_filename}.json")
-    create_eml(filename=output_filename)
+    open_document(filename=output_filename)
 
 
 @home.route('/import_template', methods=['GET', 'POST'])

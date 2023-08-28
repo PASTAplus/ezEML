@@ -157,9 +157,9 @@ def infer_datetime_format(dt):
     return ''
 
 
-def infer_col_type(data_frame, col):
+def infer_col_type(data_frame, data_frame_raw, col):
     sorted_codes = None
-    codes = data_frame[col].unique().tolist()
+    codes = data_frame_raw[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
@@ -259,9 +259,24 @@ def guess_missing_value_code(filepath, delimiter, quotechar, colname):
 
 
 def force_missing_value_code(missing_value_code, dtype, codes):
-    # If we're doing a categorical column where the codes are numerical, pandas will
-    #  have replaced missing value codes with nan. If we've detected a missing value
-    #  code, we substitute it for nan.
+    """
+    If we're doing a categorical column where the codes are numerical, pandas will
+     have replaced missing value codes with nan. If we've detected a missing value
+     code, we substitute it for nan.
+    Also, if we've picked up the missing value code as a categorical code, we remove it.
+     E.g., if 'NA" is the missing value code, we don't want it to be a category.
+    """
+    """
+    If we're doing a categorical column where the codes are numerical, pandas will
+     have replaced missing value codes with nan. If we've detected a missing value
+     code, we substitute it for nan.
+    Also, if we've picked up the missing value code as a categorical code, we remove it.
+     E.g., if 'NA" is the missing value code, we don't want it to be a category.
+    """
+
+    if missing_value_code and missing_value_code in codes:
+            codes.remove(missing_value_code)
+
     if dtype != np.float64:
         return codes
 
@@ -283,9 +298,13 @@ def force_missing_value_code(missing_value_code, dtype, codes):
 
 
 def force_categorical_codes(attribute_node, dtype, codes):
-    # If we're doing a categorical column where the codes are numerical, pandas will
-    #  treat them as floats. Codes 1, 2, 3, for example, will be interpreted as 1.0, 2.0, 3.0.
-    #  If the codes are
+    """
+    If we're doing a categorical column where the codes are numerical, pandas will
+     treat them as floats. Codes 1, 2, 3, for example, will be interpreted as 1.0, 2.0, 3.0.
+    Also, if we have picked up an empty string as a code, we remove it. I.e., we interpret
+     empty strings as missing values, but we don't require that the user use an actual missing
+     value code, since that would be overly fussy.
+    """
     if dtype == np.float64:
         # See if the codes can be treated as ints
         ok = True
@@ -310,6 +329,9 @@ def force_categorical_codes(attribute_node, dtype, codes):
                 int_codes.append(code)
         if ok:
             codes = int_codes
+
+    if '' in codes:
+        codes.remove('')
 
     return sort_codes(codes)
 
@@ -415,9 +437,12 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
         #  first million rows.
         if num_rows > 10**6:
             flash(f'The number of rows in {os.path.basename(full_path)} is greater than 1 million. ezEML uses the '
-                  f'first million rows to determine the data types of the columns. If the first million rows are not '
-                  f'representative of the entire file, you may need to manually correct the data types.')
+                  f'first million rows to determine the data types of the columns and the codes for categorical '
+                  f'columns. If the first million rows are not representative of the entire file, you may need to '
+                  f'manually correct the data type and categorical codes.')
         data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=min(num_rows, 10**6))
+        # Load the CSV file without conversions. Used when getting the categorical codes and missing value codes.
+        data_frame_raw = pd.read_csv(full_path, keep_default_na=False, na_values=[], dtype=str)
     except pd.errors.ParserError as e:
         raise DataTableError(e.args[0])
 
@@ -452,7 +477,7 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
         for col in columns:
             dtype = data_frame[col][1:].infer_objects().dtype
 
-            var_type, codes = infer_col_type(data_frame, col)
+            var_type, codes = infer_col_type(data_frame, data_frame_raw, col)
             if Config.LOG_DEBUG:
                 log_info(f'col: {col}  var_type: {var_type}')
 

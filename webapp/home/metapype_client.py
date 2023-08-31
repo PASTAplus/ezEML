@@ -873,7 +873,8 @@ def reconcile_roles(node, target_class):
 
 
 def import_responsible_parties(target_package, node_ids_to_import, target_class):
-    target_eml_node = load_eml(target_package)
+    owner_login = user_data.get_active_document_owner_login()
+    target_eml_node = load_eml(target_package, owner_login=owner_login)
     dataset_node = target_eml_node.find_child(names.DATASET)
     if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts', 'Publisher']:
         parent_node = dataset_node
@@ -905,7 +906,8 @@ def import_responsible_parties(target_package, node_ids_to_import, target_class)
 
 
 def import_coverage_nodes(target_package, node_ids_to_import):
-    target_eml_node = load_eml(target_package)
+    owner_login = user_data.get_active_document_owner_login()
+    target_eml_node = load_eml(target_package, owner_login=owner_login)
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE])
     if not parent_node:
         dataset_node = target_eml_node.find_child(names.DATASET)
@@ -921,7 +923,8 @@ def import_coverage_nodes(target_package, node_ids_to_import):
 
 
 def import_funding_award_nodes(target_package, node_ids_to_import):
-    target_eml_node = load_eml(target_package)
+    owner_login = user_data.get_active_document_owner_login()
+    target_eml_node = load_eml(target_package, owner_login=owner_login)
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if not parent_node:
         dataset_node = target_eml_node.find_child(names.DATASET)
@@ -965,7 +968,8 @@ def import_project_node(target_package, node_id_to_import):
     imported_node = Node.get_node_instance(node_id_to_import)
     if not imported_node:
         return
-    target_eml_node = load_eml(target_package)
+    owner_login = user_data.get_active_document_owner_login()
+    target_eml_node = load_eml(target_package, owner_login=owner_login)
     project_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     dataset_node = target_eml_node.find_child(names.DATASET)
     if project_node:
@@ -980,7 +984,8 @@ def import_project_node(target_package, node_id_to_import):
 
 
 def import_related_project_nodes(target_package, node_ids_to_import):
-    target_eml_node = load_eml(target_package)
+    owner_login = user_data.get_active_document_owner_login()
+    target_eml_node = load_eml(target_package, owner_login=owner_login)
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if not parent_node:
         dataset_node = target_eml_node.find_child(names.DATASET)
@@ -1197,7 +1202,8 @@ def save_old_to_new(old_filename:str=None, new_filename:str=None, eml_node:Node=
     """
     msg = None
     if new_filename and eml_node and new_filename != old_filename:
-        save_both_formats(filename=new_filename, eml_node=eml_node.copy())
+        # We save in the current user's folder, even if we're collaborating.
+        save_both_formats(filename=new_filename, eml_node=eml_node.copy(), owner_login=current_user.get_user_login())
     elif new_filename == old_filename:
         msg = 'New package id and old package id are the same'
     else:
@@ -1571,7 +1577,7 @@ def fixup_field_delimiters(eml_node):
             field_delimiter_node.content = '\\t'
 
 
-def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=False):
+def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=False, owner_login:str=None):
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
@@ -1582,8 +1588,8 @@ def save_both_formats(filename:str=None, eml_node:Node=None, use_pickle:bool=Fal
     if use_pickle:
         pickle_eml(filename, eml_node)
         return
-    save_eml(filename=filename, eml_node=eml_node, format='json')
-    save_eml(filename=filename, eml_node=eml_node, format='xml')
+    save_eml(filename=filename, eml_node=eml_node, format='json', owner_login=owner_login)
+    save_eml(filename=filename, eml_node=eml_node, format='xml', owner_login=owner_login)
 
 
 def pickle_eml(filename:str=None, eml_node:Node=None):
@@ -1596,7 +1602,7 @@ def pickle_eml(filename:str=None, eml_node:Node=None):
         pickle.dump(eml_node, f)
 
 
-def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
+def save_eml(filename:str=None, eml_node:Node=None, format:str='json', owner_login:str=None):
     if filename:
         if eml_node is not None:
             from webapp.home.views import url_of_interest
@@ -1614,7 +1620,7 @@ def save_eml(filename:str=None, eml_node:Node=None, format:str='json'):
                 metadata_str = xml_declaration + xml_str
 
             if metadata_str:
-                user_folder = user_data.get_user_folder_name()
+                user_folder = user_data.get_user_folder_name(owner_login=owner_login)
                 if not user_folder:
                     user_folder = '.'
                 filename = f'{user_folder}/{filename}.{format}'

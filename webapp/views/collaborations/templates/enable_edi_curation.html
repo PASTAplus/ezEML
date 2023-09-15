@@ -13,14 +13,12 @@
         <br>
         <p>Clicking <b>Submit Package to EDI</b> below will hand your ezEML data package off to EDI's data curation team, allowing
             them to access it directly. They will review it, and if any changes or corrections are needed, they will contact you
-            before changing anything. When all needed changes have been made, they will submit the package to the EDI data
+            before changing anything. When all needed changes have been made, they will add the package to the EDI data
             repository. Note that this process may take several days.
-        </p>
-
-    <p></p>If you have questions, please contact us at
+If you have questions, please contact us at
         <a href="mailto:support@edirepository.org">support@edirepository.org</a>.</p>
 
-            <br>
+{#            <br>#}
 
 
         <form method="POST" action="" class="form" role="form" enctype=multipart/form-data novalidate>
@@ -46,15 +44,53 @@
             <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>
 {#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
         </table>
+
+    <script type="text/javascript">
+        function togglePackageStringField(which) {
+            if (which == "new") {
+                $("#update_package").css('display', 'none')
+                $("#blank_line").css('display', 'none')
+            } else {
+                $("#update_package").css('display', 'block')
+                $("#blank_line").css('display', 'block')
+                $("#update_package").val('')
+            }
+        }
+    </script>
+
+        <table>
+            <tr><h5>Is this submission an update/revision to an existing data package?</h5></tr>
+            <tr>
+            <ul id="is_update" style="list-style:none;">
+                <li><input checked id="is_update-0" name="is_update" type="radio"
+                           onclick="togglePackageStringField('new');"
+                           value="new"> <label for="is_update-0">It is a new data package</label></li>
+                <li><input id="is_update-1" name="is_update" type="radio"
+                           onclick="togglePackageStringField('existing');"
+                           value="existing"> <label for="is_update-1">It is an update/revision to an existing data package</label></li></ul>
+            </tr>
+            <tr>
+                <td width="40px"></td>
+                <td>
+                    <input class="form-control" id="update_package" name="update_package"
+                           placeholder="Enter the existing data package&#39;s URL, DOI, or data package identifier (e.g., edi.100.4)"
+                           style="display:none;width:580px;" type="text" value="">
+                </td>
+            </tr>
+            <tr id="blank_line" style="display:none;">
+                <td >&nbsp;</td>
+            </tr>
+        </table>
+
         {% if check_metadata_status == 'red' %}
-            <p><span style="color:red;">Your metadata contains one or more errors.</span><span style="color:black;"> To see what the errors
+            <span style="color:red;">Your metadata contains one or more errors.</span><span style="color:black;"> To see what the errors
                 are, click <b><a href="edit/home.check_metadata">Check Metadata</a></b>.
             We encourage you to correct the errors before submitting, but you may go ahead and submit your package as is,
                 if you choose, for example if there are errors you're not sure how to handle. In that case, please leave
-            an explanation in the Notes text area above so we can assist you better.</span></p>
+            an explanation in the Notes text area above so we can assist you better.</span>
+            <p>&nbsp;</p>
         {% endif %}
 
-            <br>
             {% if not enable_disabled %}
                 <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" value="Submit Package to EDI"/>&nbsp;&nbsp;
             {% else %}

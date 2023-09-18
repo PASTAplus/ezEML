@@ -56,6 +56,13 @@ If you have questions, please contact us at
                 $("#update_package").val('')
             }
         }
+        function check_revision_completed() {
+            if ($('input[name="is_update"]:checked').val() == "existing" && $("#update_package").val() == "") {
+                alert("Please enter the existing data package's URL, DOI, or data package identifier (e.g., edi.100.4)")
+                return false
+            }
+            return true
+        }
     </script>
 
         <table>
@@ -92,7 +99,7 @@ If you have questions, please contact us at
         {% endif %}
 
             {% if not enable_disabled %}
-                <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" value="Submit Package to EDI"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" onclick="return check_revision_completed()" value="Submit Package to EDI"/>&nbsp;&nbsp;
             {% else %}
                 <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" disabled value="Submit Package to EDI"/>&nbsp;&nbsp;
             {% endif %}

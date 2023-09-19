@@ -442,7 +442,7 @@ def load_data_table(uploads_path: str = None, data_file: str = '',
                   f'manually correct the data type and categorical codes.')
         data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=min(num_rows, 10**6))
         # Load the CSV file without conversions. Used when getting the categorical codes and missing value codes.
-        data_frame_raw = pd.read_csv(full_path, keep_default_na=False, na_values=[], dtype=str)
+        data_frame_raw = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, keep_default_na=False, na_values=[], dtype=str)
     except pd.errors.ParserError as e:
         raise DataTableError(e.args[0])
 

@@ -267,7 +267,9 @@
             [20, 50, 100, 'All'],
           ],
           ordering: true,
+        {% if is_edi_curator %}
           order: [[3, 'desc']],
+        {% endif %}
           searching: false,
           columnDefs: [
               { orderable: false, targets: [5] },

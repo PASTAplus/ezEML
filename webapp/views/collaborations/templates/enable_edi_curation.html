@@ -48,20 +48,33 @@ If you have questions, please contact us at
     <script type="text/javascript">
         function togglePackageStringField(which) {
             if (which == "new") {
-                $("#update_package").css('display', 'none')
-                $("#blank_line").css('display', 'none')
+                $("#update_package").css('display', 'none');
+                $("#blank_line").css('display', 'none');
             } else {
-                $("#update_package").css('display', 'block')
-                $("#blank_line").css('display', 'block')
-                $("#update_package").val('')
+                $("#update_package").css('display', 'block');
+                $("#blank_line").css('display', 'block');
+                $("#update_package").val('');
             }
+            return true;
         }
-        function check_revision_completed() {
-            if ($('input[name="is_update"]:checked').val() == "existing" && $("#update_package").val() == "") {
-                alert("Please enter the existing data package's URL, DOI, or data package identifier (e.g., edi.100.4)")
-                return false
+        function check_form_completed() {
+            if(!$("input[name='name']").val()) {
+                alert("Your Name is required");
+                return false;
             }
-            return true
+            if(!$("input[name='email_address']").val()) {
+                alert("Your Email Address is required");
+                return false;
+            }
+            if(!$("input[name='is_update']:checked").val()) {
+                alert("Please select whether this is a new data package or an update/revision to an existing data package");
+                return false;
+            }
+            if ($('input[name="is_update"]:checked').val() == "existing" && $("#update_package").val() == "") {
+                alert("Please enter the existing data package's URL, DOI, or data package identifier (e.g., edi.100.4)");
+                return false;
+            }
+            return true;
         }
     </script>
 
@@ -69,7 +82,8 @@ If you have questions, please contact us at
             <tr><h5>Is this submission an update/revision to an existing data package?</h5></tr>
             <tr>
             <ul id="is_update" style="list-style:none;">
-                <li><input checked id="is_update-0" name="is_update" type="radio"
+{#                Note: we don't set a default choice because we want to make sure the user sees this question.#}
+                <li><input id="is_update-0" name="is_update" type="radio"
                            onclick="togglePackageStringField('new');"
                            value="new"> <label for="is_update-0">It is a new data package</label></li>
                 <li><input id="is_update-1" name="is_update" type="radio"
@@ -99,7 +113,7 @@ If you have questions, please contact us at
         {% endif %}
 
             {% if not enable_disabled %}
-                <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" onclick="return check_revision_completed()" value="Submit Package to EDI"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" onclick="return check_form_completed()" value="Submit Package to EDI"/>&nbsp;&nbsp;
             {% else %}
                 <input class="btn btn-primary" style="width: 170px;" name="Submit" type="submit" disabled value="Submit Package to EDI"/>&nbsp;&nbsp;
             {% endif %}

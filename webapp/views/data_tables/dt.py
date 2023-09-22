@@ -535,7 +535,10 @@ def force_datetime_type(attribute_node):
     data_frame = load_df(attribute_node, usecols=[column_name])
     if data_frame is None:
         return None
-    return infer_datetime_format(data_frame[column_name][1])
+    if data_frame[column_name].size > 0:
+        return infer_datetime_format(data_frame[column_name][1])
+    else:
+        return ''
 
 
 def force_categorical_codes(attribute_node):

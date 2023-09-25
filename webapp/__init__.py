@@ -74,8 +74,8 @@ app.register_blueprint(auth_bp, url_prefix='/eml/auth')
 from webapp.errors.handler import errors
 app.register_blueprint(errors, url_prefix='/eml/error')
 
-from webapp.home.views import home
-app.register_blueprint(home, url_prefix='/eml')
+from webapp.home.views import home_bp
+app.register_blueprint(home_bp, url_prefix='/eml')
 
 from webapp.views.access.access import acc_bp
 app.register_blueprint(acc_bp, url_prefix='/eml')

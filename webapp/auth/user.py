@@ -14,7 +14,6 @@
 import base64
 import hashlib
 
-import daiquiri
 from flask_login import UserMixin
 
 from webapp import login
@@ -25,9 +24,7 @@ from webapp.auth.user_data import (
 )
 from webapp.config import Config
 import webapp.views.collaborations.collaborations as collaborations
-
-
-logger = daiquiri.getLogger('user.py: ' + __name__)
+from webapp.home.home_utils import log_error, log_info
 
 
 class User(UserMixin):
@@ -37,7 +34,7 @@ class User(UserMixin):
         try:
             self._cname, self._uid = self._session_id.split("*")
         except ValueError as ex:
-            logger.error(ex)
+            log_error(ex)
             token64 = self._session_id.split('-')[0]
             token = base64.b64decode(token64).decode('utf-8')
             self._uid = token.split('*')[0]

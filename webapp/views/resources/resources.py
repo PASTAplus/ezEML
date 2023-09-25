@@ -7,18 +7,18 @@ from flask_login import (
     current_user, login_required
 )
 
+import webapp.home.utils.node_utils
 from webapp.auth.user_data import (
     is_first_usage, set_active_packageid, set_active_document
 )
 
-from webapp.home.metapype_client import (
-    add_child, create_abstract, create_intellectual_rights,
-    create_keyword, create_pubinfo, create_data_package_id,
-    create_title, list_keywords, load_eml, remove_child,
-    save_both_formats, DOWN_ARROW, UP_ARROW,
-    handle_hidden_buttons, check_val_for_hidden_buttons,
-    dump_node_store
-)
+from webapp.home.utils.node_utils import remove_child, add_child
+from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.node_store import dump_node_store
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.lists import UP_ARROW, DOWN_ARROW, list_keywords
+from webapp.home.utils.create_nodes import create_title, create_data_package_id, create_pubinfo, create_abstract, \
+    create_intellectual_rights, create_keyword
 
 from webapp.home.forms import is_dirty_form, form_md5
 from webapp.views.resources.forms import (
@@ -52,23 +52,9 @@ from webapp.home.intellectual_rights import (
 )
 
 from webapp.home.views import set_current_page, get_keywords
+from webapp.home.home_utils import log_error, log_info
 
-logger = daiquiri.getLogger('views: ' + __name__)
 res_bp = Blueprint('res', __name__, template_folder='templates')
-
-
-def log_error(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.error(msg, USER=current_user.get_username())
-    else:
-        logger.error(msg)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
 
 
 @res_bp.route('/title/<filename>', methods=['GET', 'POST'])
@@ -471,7 +457,7 @@ def remove_keyword(filename, node_id):
         # if we've just removed the last keyword under the keywordSet, remove the keywordSet
         if not keyword_set_node.find_all_children(names.KEYWORD):
             parent_node = keyword_set_node.parent
-            parent_node.remove_child(keyword_set_node)
+            webapp.home.utils.node_utils.remove_child(keyword_set_node)
         save_both_formats(filename=filename, eml_node=eml_node)
 
 
@@ -550,10 +536,10 @@ def keyword(filename=None, node_id=None):
 
                 if old_keyword_node:
                     old_keyword_set_node = old_keyword_node.parent
-                    old_keyword_set_node.remove_child(old_keyword_node)
+                    webapp.home.utils.node_utils.remove_child(old_keyword_node)
                     # If we just removed the last keyword from a keyword set, remove the keyword set
                     if not old_keyword_set_node.children:
-                        old_keyword_set_node.parent.remove_child(old_keyword_set_node)
+                        webapp.home.utils.node_utils.remove_child(old_keyword_set_node)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'keyword')

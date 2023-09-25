@@ -1,11 +1,16 @@
+"""
+Not currently used. Routes for setting access rules for a dataset,  but we don't expose that functionality to users,
+currently.
+"""
+
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 
-from webapp.home.metapype_client import (
-    load_eml, save_both_formats, add_child, remove_child, UP_ARROW, DOWN_ARROW,
-    list_access_rules, create_access_rule
-)
+from webapp.home.utils.node_utils import remove_child, add_child
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.lists import UP_ARROW, DOWN_ARROW, list_access_rules
+from webapp.home.utils.create_nodes import create_access_rule
 from webapp.home.forms import is_dirty_form, form_md5
 from webapp.views.access.forms import AccessForm, AccessSelectForm
 

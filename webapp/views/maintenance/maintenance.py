@@ -1,15 +1,17 @@
+"""
+Routes for handling the Maintenance page.
+"""
+
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 
-from webapp.home.metapype_client import (
-    add_child, create_maintenance,
-    load_eml, save_both_formats,
-    handle_hidden_buttons,
-    post_process_texttype_node
-)
+from webapp.home.utils.hidden_buttons import handle_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.create_nodes import create_maintenance
+from webapp.home.utils.node_utils import add_child
 
-from webapp.home.texttype_node_processing import display_texttype_node
+from webapp.home.texttype_node_processing import display_texttype_node, post_process_texttype_node
 
 from webapp.home.forms import is_dirty_form, form_md5
 from webapp.home.views import non_breaking, process_up_button, process_down_button
@@ -36,6 +38,37 @@ maint_bp = Blueprint('maint', __name__, template_folder='templates')
 
 @maint_bp.route('/maintenance/<filename>', methods=['GET', 'POST'])
 def maintenance(filename=None):
+    """
+    Display the Maintenance page and process edits to the description and updateFrequency.
+    """
+
+    def render_get_maintenance_page(eml_node, form, filename):
+        set_current_page('maintenance')
+        help = [get_help('maintenance'), get_help('maintenance_description'), get_help('maintenance_freq')]
+        return render_template('maintenance.html',
+                               title='Maintenance',
+                               filename=filename,
+                               model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
+                               form=form,
+                               help=help)
+
+    def populate_maintenance_form(form: MaintenanceForm, maintenance_node: Node):
+        description = ''
+        update_frequency = ''
+
+        if maintenance_node:
+            description_node = maintenance_node.find_child(names.DESCRIPTION)
+            if description_node:
+                description = display_texttype_node(description_node)
+
+            update_frequency_node = maintenance_node.find_child(names.MAINTENANCEUPDATEFREQUENCY)
+            if update_frequency_node:
+                update_frequency = update_frequency_node.content
+
+            form.description.data = description
+            form.update_frequency.data = update_frequency
+        form.md5.data = form_md5(form)
+
     form = MaintenanceForm(filename=filename)
     eml_node = load_eml(filename=filename)
     if eml_node:
@@ -87,33 +120,4 @@ def maintenance(filename=None):
             populate_maintenance_form(form, maintenance_node)
 
     return render_get_maintenance_page(eml_node, form, filename)
-
-
-def render_get_maintenance_page(eml_node, form, filename):
-    set_current_page('maintenance')
-    help = [get_help('maintenance'), get_help('maintenance_description'), get_help('maintenance_freq')]
-    return render_template('maintenance.html',
-                           title='Maintenance',
-                           filename=filename,
-                           model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
-                           form=form,
-                           help=help)
-
-
-def populate_maintenance_form(form: MaintenanceForm, maintenance_node: Node):
-    description = ''
-    update_frequency = ''
-
-    if maintenance_node:
-        description_node = maintenance_node.find_child(names.DESCRIPTION)
-        if description_node:
-            description = display_texttype_node(description_node)
-
-        update_frequency_node = maintenance_node.find_child(names.MAINTENANCEUPDATEFREQUENCY)
-        if update_frequency_node:
-            update_frequency = update_frequency_node.content
-
-        form.description.data = description
-        form.update_frequency.data = update_frequency
-    form.md5.data = form_md5(form)
 

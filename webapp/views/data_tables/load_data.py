@@ -16,16 +16,19 @@ import numpy as np
 import pandas as pd
 import time
 
-from flask import Flask, current_app, flash, render_template, redirect, url_for, request, Markup
+from flask import flash, render_template, redirect, url_for, request, Markup
 from flask_login import current_user
 
 import daiquiri
 
+import webapp.home.home_utils
+import webapp.home.utils.create_nodes
+import webapp.home.utils.load_and_save
+import webapp.home.utils.node_utils
 from metapype.eml import names
 from metapype.model.node import Node
-from webapp.auth import user_data as user_data
 
-from webapp.home import exceptions, views, metapype_client, check_data_table_contents
+from webapp.home import exceptions, check_data_table_contents
 
 from webapp.home.exceptions import DataTableError, UnicodeDecodeErrorInternal, ExtraWhitespaceInColumnNames
 
@@ -37,36 +40,13 @@ import webapp.auth.user_data as user_data
 
 from flask import Blueprint
 
-from webapp.home.metapype_client import new_child_node
+from webapp.home.utils.node_utils import new_child_node, add_child, remove_child
 import webapp.home.views as views
+from webapp.home.home_utils import log_error, log_info
 
 from webapp.pages import PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED, PAGE_DATA_TABLE_SELECT, PAGE_DATA_TABLE
 
-home = Blueprint('home', __name__, template_folder='templates')
-
 MAX_ROWS_TO_CHECK = 10 ** 5
-
-logger = daiquiri.getLogger('load_data_table: ' + __name__)
-
-
-def log_error(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.error(msg, USER=current_user.get_username())
-    else:
-        logger.error(msg)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
-
-
-# def log_info(msg):
-#     app = Flask(__name__)
-#     with app.app_context():
-#         current_app.logger.info(msg)
 
 
 def get_file_size(full_path: str = ''):
@@ -173,16 +153,16 @@ def infer_datetime_format(dt_col):
     return ''
 
 
-def infer_col_type(data_frame, col):
+def infer_col_type(data_frame, data_frame_raw, col):
     """
-    Apply heuristics to infer the column type, expressed as a metapype_client.VariableType.
+    Apply heuristics to infer the column type, expressed as a home_utils.VariableType.
 
     If the variable type is categorical, return a tuple (type, codes), where codes is a list of the categorical codes.
     If the variable type is datetime, return a tuple (type, format), where format is a string representing the datetime format.
     If the variable type is numerical or text, just return the variable type.
     """
     sorted_codes = None
-    codes = data_frame[col].unique().tolist()
+    codes = data_frame_raw[col].unique().tolist()
     num_codes = len(codes)
     col_size = len(data_frame[col])
     # heuristic to distinguish categorical from text and numeric
@@ -199,22 +179,22 @@ def infer_col_type(data_frame, col):
     else:
         is_categorical = (fraction < 0.1 and num_codes < 15) or (fraction < 0.25 and num_codes < 10) or num_codes <= 5
     if is_categorical:
-        col_type = metapype_client.VariableType.CATEGORICAL
+        col_type = webapp.home.home_utils.VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)
     else:
         if dtype == object:
             if is_datetime(data_frame, col):
-                return metapype_client.VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
+                return webapp.home.home_utils.VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
             else:
-                col_type = metapype_client.VariableType.TEXT
+                col_type = webapp.home.home_utils.VariableType.TEXT
         else:
-            col_type = metapype_client.VariableType.NUMERICAL
+            col_type = webapp.home.home_utils.VariableType.NUMERICAL
 
     # does it look like a date?
     lc_col = col.lower()
     if (
             ('year' in lc_col or 'date' in lc_col)
-            and col_type == metapype_client.VariableType.CATEGORICAL
+            and col_type == webapp.home.home_utils.VariableType.CATEGORICAL
             and is_datetime(data_frame, col)
     ):
         # make sure we don't just have numerical codes that are incorrectly being treated as years
@@ -230,7 +210,7 @@ def infer_col_type(data_frame, col):
                 pass
 
         if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 distinct missing value codes
-            return metapype_client.VariableType.DATETIME, 'YYYY'
+            return webapp.home.home_utils.VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
 
@@ -291,7 +271,13 @@ def force_missing_value_code(missing_value_code, dtype, codes):
     If we're doing a categorical column where the codes are numerical, pandas will
      have replaced missing value codes with nan. If we've detected a missing value
      code, we substitute it for nan.
+    Also, if we've picked up the missing value code as a categorical code, we remove it.
+     E.g., if 'NA" is the missing value code, we don't want it to be a category.
     """
+
+    if missing_value_code and missing_value_code in codes:
+            codes.remove(missing_value_code)
+
     if dtype != np.float64:
         return codes
 
@@ -316,6 +302,9 @@ def force_categorical_codes(attribute_node, dtype, codes):
     """
     If we're doing a categorical column where the codes are numerical, pandas will
      treat them as floats. Codes 1, 2, 3, for example, will be interpreted as 1.0, 2.0, 3.0.
+    Also, if we have picked up an empty string as a code, we remove it. I.e., we interpret
+     empty strings as missing values, but we don't require that the user use an actual missing
+     value code, since that would be overly fussy.
     """
     if dtype == np.float64:
         # See if the codes can be treated as ints
@@ -341,6 +330,9 @@ def force_categorical_codes(attribute_node, dtype, codes):
                 int_codes.append(code)
         if ok:
             codes = int_codes
+
+    if '' in codes:
+        codes.remove('')
 
     return sort_codes(codes)
 
@@ -379,7 +371,8 @@ def load_data_table(uploads_path: str = None,
         datatable_node - the Metapype node for the data table,
         column_vartypes - a list of the variable types of the columns,
         column_names - a list of the column's names,
-        column_categorical_codes - a list of lists of categorical codes per column,
+        column_codes - a list of codes per column. For a categorical column, the entry is a list of the categorical codes
+          in the column. For a datetime column, it's the format string. For other columns, it's None.
         data_frame - the pandas data_frame for the table,
         missing_value_code - a list of missing value codes per column.
     """
@@ -388,45 +381,45 @@ def load_data_table(uploads_path: str = None,
 
     full_path = f'{uploads_path}/{data_file}'
 
-    datatable_node = metapype_client.new_child_node(names.DATATABLE, parent=None)
+    datatable_node = new_child_node(names.DATATABLE, parent=None)
 
-    physical_node = metapype_client.new_child_node(names.PHYSICAL, parent=datatable_node, attribute=('system', 'EDI'))
+    physical_node = new_child_node(names.PHYSICAL, parent=datatable_node, attribute=('system', 'EDI'))
 
-    entity_name_node = metapype_client.new_child_node(names.ENTITYNAME, parent=datatable_node,
-                                                      content=entity_name_from_data_file(data_file))
+    entity_name_node = new_child_node(names.ENTITYNAME, parent=datatable_node,
+                                      content=entity_name_from_data_file(data_file))
 
-    object_name_node = metapype_client.new_child_node(names.OBJECTNAME, parent=physical_node, content=data_file)
+    object_name_node = new_child_node(names.OBJECTNAME, parent=physical_node, content=data_file)
 
     file_size = get_file_size(full_path)
     if file_size is not None:
-        size_node = metapype_client.new_child_node(names.SIZE, physical_node, content=str(file_size), attribute=('unit', 'byte'))
+        size_node = new_child_node(names.SIZE, physical_node, content=str(file_size), attribute=('unit', 'byte'))
 
     md5_hash = get_md5_hash(full_path)
     if md5_hash is not None:
-        hash_node = metapype_client.new_child_node(names.AUTHENTICATION,
-                                                   parent=physical_node,
-                                                   content=str(md5_hash),
-                                                   attribute=('method', 'MD5'))
+        hash_node = new_child_node(names.AUTHENTICATION,
+                                   parent=physical_node,
+                                   content=str(md5_hash),
+                                   attribute=('method', 'MD5'))
 
-    data_format_node = metapype_client.new_child_node(names.DATAFORMAT, parent=physical_node)
+    data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
 
-    text_format_node = metapype_client.new_child_node(names.TEXTFORMAT, parent=data_format_node)
+    text_format_node = new_child_node(names.TEXTFORMAT, parent=data_format_node)
 
-    num_header_lines_node = metapype_client.new_child_node(names.NUMHEADERLINES,
-                                                           parent=text_format_node,
-                                                           content=num_header_rows)
+    num_header_lines_node = new_child_node(names.NUMHEADERLINES,
+                                           parent=text_format_node,
+                                           content=num_header_rows)
 
-    num_footer_lines_node =  metapype_client.new_child_node(names.NUMFOOTERLINES, parent=text_format_node, content='0')
+    num_footer_lines_node =  new_child_node(names.NUMFOOTERLINES, parent=text_format_node, content='0')
 
-    simple_delimited_node = metapype_client.new_child_node(names.SIMPLEDELIMITED, parent=text_format_node)
+    simple_delimited_node = new_child_node(names.SIMPLEDELIMITED, parent=text_format_node)
 
-    field_delimiter_node = metapype_client.new_child_node(names.FIELDDELIMITER,
-                                                          parent=simple_delimited_node,
-                                                          content=delimiter)
+    field_delimiter_node = new_child_node(names.FIELDDELIMITER,
+                                          parent=simple_delimited_node,
+                                          content=delimiter)
 
-    quote_character_node = metapype_client.new_child_node(names.QUOTECHARACTER,
-                                                          parent=simple_delimited_node,
-                                                          content=quote_char)
+    quote_character_node = new_child_node(names.QUOTECHARACTER,
+                                          parent=simple_delimited_node,
+                                          content=quote_char)
 
     if file_size == 0:
         raise DataTableError("The CSV file is empty.")
@@ -435,16 +428,15 @@ def load_data_table(uploads_path: str = None,
 
     with open(full_path) as file:
         next(file)
-        # TODO TEMP
         # If the file has mixed line terminators, we get a tuple of line terminators, but PASTA doesn't
         #  support that. So we just use the first one.
         newlines = file.newlines
         if newlines is not None and isinstance(newlines, tuple):
             newlines = newlines[0]
         line_terminator = repr(newlines).replace("'", "")
-    record_delimiter_node = metapype_client.new_child_node(names.RECORDDELIMITER,
-                                                           parent=text_format_node,
-                                                           content=line_terminator)
+    record_delimiter_node = new_child_node(names.RECORDDELIMITER,
+                                           parent=text_format_node,
+                                           content=line_terminator)
 
     # log_info('pd.read_csv')
     try:
@@ -453,23 +445,27 @@ def load_data_table(uploads_path: str = None,
         #  first million rows.
         if num_rows > 10**6:
             flash(f'The number of rows in {os.path.basename(full_path)} is greater than 1 million. ezEML uses the '
-                  f'first million rows to determine the data types of the columns. If the first million rows are not '
-                  f'representative of the entire file, you may need to manually correct the data types.')
+                  f'first million rows to determine the data types of the columns and the codes used in categorical '
+                  f'columns. If the first million rows are not representative of the entire file, you may need to '
+                  f'manually correct the data types and categorical codes.')
         data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=min(num_rows, 10**6))
+        # Load the CSV file without conversions. Used when getting the categorical codes and missing value codes.
+        data_frame_raw = pd.read_csv(full_path, keep_default_na=False, na_values=[], dtype=str)
+
     except pd.errors.ParserError as e:
         raise DataTableError(e.args[0])
 
     column_vartypes = []
     column_names = []
-    column_categorical_codes = []
+    column_codes = []
 
     if data_frame is not None:
 
-        number_of_records = metapype_client.new_child_node(names.NUMBEROFRECORDS,
-                                                           parent=datatable_node,
-                                                           content=f'{num_rows}')
+        number_of_records = new_child_node(names.NUMBEROFRECORDS,
+                                           parent=datatable_node,
+                                           content=f'{num_rows}')
 
-        attribute_list_node = metapype_client.new_child_node(names.ATTRIBUTELIST, parent=datatable_node)
+        attribute_list_node = new_child_node(names.ATTRIBUTELIST, parent=datatable_node)
 
         # data_frame = data_frame.convert_dtypes()
 
@@ -489,73 +485,73 @@ def load_data_table(uploads_path: str = None,
         for col in columns:
             dtype = data_frame[col][1:].infer_objects().dtype
 
-            var_type, codes = infer_col_type(data_frame, col)
+            var_type, codes = infer_col_type(data_frame, data_frame_raw, col)
             if Config.LOG_DEBUG:
                 log_info(f'col: {col}  var_type: {var_type}')
 
             column_vartypes.append(var_type)
             column_names.append(col)
-            column_categorical_codes.append(codes)
+            column_codes.append(codes)
 
-            attribute_node = metapype_client.new_child_node(names.ATTRIBUTE, parent=attribute_list_node)
-            attribute_name_node = metapype_client.new_child_node(names.ATTRIBUTENAME, parent=attribute_node, content=col)
+            attribute_node = new_child_node(names.ATTRIBUTE, parent=attribute_list_node)
+            attribute_name_node = new_child_node(names.ATTRIBUTENAME, parent=attribute_node, content=col)
 
-            att_label_node = metapype_client.new_child_node(names.ATTRIBUTELABEL, parent=attribute_node, content=col)
+            att_label_node = new_child_node(names.ATTRIBUTELABEL, parent=attribute_node, content=col)
 
-            att_def_node = metapype_client.new_child_node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
+            att_def_node = new_child_node(names.ATTRIBUTEDEFINITION, parent=attribute_node)
 
-            ms_node = metapype_client.new_child_node(names.MEASUREMENTSCALE, parent=attribute_node)
+            ms_node = new_child_node(names.MEASUREMENTSCALE, parent=attribute_node)
 
             missing_value_code = guess_missing_value_code(full_path, delimiter, quote_char, col)
 
             if missing_value_code:
-                mv_node = metapype_client.new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
-                code_node = metapype_client.new_child_node(names.CODE, parent=mv_node, content=missing_value_code)
+                mv_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
+                code_node = new_child_node(names.CODE, parent=mv_node, content=missing_value_code)
 
-            if var_type == metapype_client.VariableType.CATEGORICAL:
+            if var_type == webapp.home.home_utils.VariableType.CATEGORICAL:
                 codes = force_categorical_codes(attribute_node, dtype, codes)
                 codes = force_missing_value_code(missing_value_code, dtype, codes)
 
                 # nominal / nonNumericDomain / enumeratedDomain / ...codes...
-                nominal_node = metapype_client.new_child_node(names.NOMINAL, ms_node)
-                non_numeric_domain_node = metapype_client.new_child_node(names.NONNUMERICDOMAIN, nominal_node)
-                enumerated_domain_node = metapype_client.new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
+                nominal_node = new_child_node(names.NOMINAL, ms_node)
+                non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
+                enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
 
                 for code in codes:
-                    code_definition_node = metapype_client.new_child_node(names.CODEDEFINITION, enumerated_domain_node)
-                    code_node = metapype_client.new_child_node(names.CODE, code_definition_node, content=str(code))
-                    definition_node = metapype_client.new_child_node(names.DEFINITION, code_definition_node)
+                    code_definition_node = new_child_node(names.CODEDEFINITION, enumerated_domain_node)
+                    code_node = new_child_node(names.CODE, code_definition_node, content=str(code))
+                    definition_node = new_child_node(names.DEFINITION, code_definition_node)
 
-            elif var_type == metapype_client.VariableType.NUMERICAL:
+            elif var_type == webapp.home.home_utils.VariableType.NUMERICAL:
                 # ratio / numericDomain
-                ratio_node = metapype_client.new_child_node(names.RATIO, ms_node)
-                numeric_domain_node = metapype_client.new_child_node(names.NUMERICDOMAIN, ratio_node)
+                ratio_node = new_child_node(names.RATIO, ms_node)
+                numeric_domain_node = new_child_node(names.NUMERICDOMAIN, ratio_node)
                 number_type = 'real'
                 if str(dtype).startswith('int'):  # FIXME - we can do better than this
                     number_type = 'integer'
-                number_type_node = metapype_client.new_child_node(names.NUMBERTYPE, numeric_domain_node, content=number_type)
-                numeric_domain_node = metapype_client.new_child_node(names.UNIT, ratio_node)
+                number_type_node = new_child_node(names.NUMBERTYPE, numeric_domain_node, content=number_type)
+                numeric_domain_node = new_child_node(names.UNIT, ratio_node)
 
-            elif var_type == metapype_client.VariableType.TEXT:
+            elif var_type == webapp.home.home_utils.VariableType.TEXT:
                 # nominal / nonNumericDomain / textDomain
-                nominal_node = metapype_client.new_child_node(names.NOMINAL, ms_node)
-                non_numeric_domain_node = metapype_client.new_child_node(names.NONNUMERICDOMAIN, nominal_node)
-                text_domain_node = metapype_client.new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
-                definition_node = metapype_client.new_child_node(names.DEFINITION, text_domain_node)
+                nominal_node = new_child_node(names.NOMINAL, ms_node)
+                non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
+                text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
+                definition_node = new_child_node(names.DEFINITION, text_domain_node)
 
-            elif var_type == metapype_client.VariableType.DATETIME:
+            elif var_type == webapp.home.home_utils.VariableType.DATETIME:
                 # dateTime / formatString
                 datetime_node = Node(names.DATETIME, parent=ms_node)
-                metapype_client.add_child(ms_node, datetime_node)
+                add_child(ms_node, datetime_node)
 
                 format_string_node = Node(names.FORMATSTRING, parent=datetime_node)
-                metapype_client.add_child(datetime_node, format_string_node)
+                add_child(datetime_node, format_string_node)
                 format_string_node.content = codes
 
     if Config.LOG_DEBUG:
         log_info(f'Leaving load_data_table')
 
-    return datatable_node, column_vartypes, column_names, column_categorical_codes, data_frame, missing_value_code
+    return datatable_node, column_vartypes, column_names, column_codes, data_frame, missing_value_code
 
 
 def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_file: str = '', node_id: str = None):
@@ -572,19 +568,19 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
         other_entity_node = Node.get_node_instance(node_id)
         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
     else:
-        other_entity_node = metapype_client.new_child_node(names.OTHERENTITY, parent=dataset_node)
+        other_entity_node = new_child_node(names.OTHERENTITY, parent=dataset_node)
 
-        physical_node = metapype_client.new_child_node(names.PHYSICAL,
-                                                       parent=other_entity_node,
-                                                       attribute=('system', 'EDI'))
+        physical_node = new_child_node(names.PHYSICAL,
+                                                                    parent=other_entity_node,
+                                                                    attribute=('system', 'EDI'))
 
-        entity_name_node = metapype_client.new_child_node(names.ENTITYNAME,
-                                                          parent=other_entity_node,
-                                                          content=entity_name_from_data_file(data_file))
+        entity_name_node = new_child_node(names.ENTITYNAME,
+                                                                       parent=other_entity_node,
+                                                                       content=entity_name_from_data_file(data_file))
 
-        object_name_node = metapype_client.new_child_node(names.OBJECTNAME,
-                                                          parent=physical_node,
-                                                          content=data_file)
+        object_name_node = new_child_node(names.OBJECTNAME,
+                                                                       parent=physical_node,
+                                                                       content=data_file)
 
     physical_node = other_entity_node.find_descendant(names.PHYSICAL)
 
@@ -592,36 +588,36 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     if file_size is not None:
         size_node = other_entity_node.find_descendant(names.SIZE)
         if size_node is None:
-            size_node = metapype_client.new_child_node(names.SIZE,
-                                                       parent=physical_node,
-                                                       content=str(file_size),
-                                                       attribute=('unit', 'byte'))
+            size_node = new_child_node(names.SIZE,
+                                                                    parent=physical_node,
+                                                                    content=str(file_size),
+                                                                    attribute=('unit', 'byte'))
 
     md5_hash = get_md5_hash(full_path)
     if md5_hash is not None:
         hash_node = physical_node.find_descendant(names.AUTHENTICATION)
         if hash_node is None:
-            hash_node = metapype_client.new_child_node(names.AUTHENTICATION,
-                                                       parent=physical_node,
-                                                       content=str(md5_hash),
-                                                       attribute=('method', 'MD5'))
+            hash_node = new_child_node(names.AUTHENTICATION,
+                                                                    parent=physical_node,
+                                                                    content=str(md5_hash),
+                                                                    attribute=('method', 'MD5'))
 
     data_format_node = physical_node.find_descendant(names.DATAFORMAT)
     if data_format_node is None:
-        data_format_node = metapype_client.new_child_node(names.DATAFORMAT, parent=physical_node)
+        data_format_node = new_child_node(names.DATAFORMAT, parent=physical_node)
 
     # If the package was created in ezEML, the dataFormat will be externallyDefinedFormat.
     # We force that to be the case here, so that's what ezEML knows how to handle.
     data_format_node.children = []
 
-    externally_defined_format_node = metapype_client.new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
+    externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
 
-    format_name_node = metapype_client.new_child_node(names.FORMATNAME,
-                                                      parent=externally_defined_format_node,
-                                                      content=format_name_from_data_file(data_file))
+    format_name_node = new_child_node(names.FORMATNAME,
+                                                                   parent=externally_defined_format_node,
+                                                                   content=format_name_from_data_file(data_file))
 
     if not doing_reupload:
-        entity_type_node = metapype_client.new_child_node(names.ENTITYTYPE, parent=other_entity_node)
+        entity_type_node = new_child_node(names.ENTITYTYPE, parent=other_entity_node)
     else:
         entity_type_node = other_entity_node.find_descendant(names.ENTITYTYPE)
     entity_type_node.content = format_name_from_data_file(data_file)
@@ -710,6 +706,7 @@ def column_names_changed(filepath, delimiter, quote_char, dt_node):
 
 def get_column_properties(eml_node, document, dt_node, object_name):
     """
+    Load the data table and return its column properties -- e.g., variable types, column names, codes, etc.
 
     Logically, this function belongs as a nested function within handle_reupload(), but such nesting makes
     handle_reupload() too hard to read.
@@ -734,14 +731,14 @@ def get_column_properties(eml_node, document, dt_node, object_name):
         quote_char = '"'
     try:
         # Load the data table from the file system and get the column properties.
-        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
+        new_dt_node, new_column_vartypes, new_column_names, new_column_codes, *_ = load_data_table(
             uploads_folder, data_file, num_header_rows, delimiter, quote_char)
 
         # Save the column properties to the user data.
         user_data.add_uploaded_table_properties(data_file,
                                                 new_column_vartypes,
                                                 new_column_names,
-                                                new_column_categorical_codes)
+                                                new_column_codes)
 
         # Update the distribution urls.
         views.clear_distribution_url(dt_node)
@@ -791,7 +788,7 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
     if not old_column_vartypes:
         # column properties weren't saved. compute them anew.
-        eml_node = metapype_client.load_eml(filename=document)
+        eml_node = webapp.home.utils.load_and_save.load_eml(filename=document)
         old_column_vartypes = get_column_properties(eml_node, document, old_dt_node, old_object_name)
     if old_column_vartypes != new_column_vartypes:
         diffs = []
@@ -807,13 +804,15 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
                     delimiter=None, quote_char=None):
     """
     When a data table is re-uploaded, we need to perform various checks in addition to doing load_data_table().
-    In addition, we need to re-use existing nodes where possible so that we don't lose any user edits for attribute
+    Also, we need to re-use existing nodes where possible so that we don't lose any user edits for attribute
     descriptions and the like.
     """
     dataset_node = eml_node.find_child(names.DATASET)
     if not dataset_node:
-        dataset_node = metapype_client.new_child_node(names.DATASET, eml_node)
+        dataset_node = new_child_node(names.DATASET, eml_node)
 
+    # saved_filename is the name of the file on the server. It is not the same as the original filename because
+    #  we've saved the file as a temp file so we have both files and can compare them.
     if not saved_filename:
         raise exceptions.MissingFileError('Unexpected error: file not found')
 
@@ -843,7 +842,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
             filename = os.path.basename(filepath)
             return render_template('encoding_error.html', filename=filename, errors=errors)
     try:
-        new_dt_node, new_column_vartypes, new_column_names, new_column_categorical_codes, *_ = load_data_table(
+        new_dt_node, new_column_vartypes, new_column_names, new_column_codes, *_ = load_data_table(
             uploads_folder, saved_filename, num_header_rows, delimiter, quote_char)
 
         types_changed = None
@@ -852,7 +851,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
                                         new_dt_node,
                                         new_column_vartypes,
                                         new_column_names,
-                                        new_column_categorical_codes)
+                                        new_column_codes)
 
         except exceptions.ReuploadTableColumnTypesError as err:
             # One or more column types have changed. Capture the list of changes from the exception and proceed.
@@ -872,7 +871,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         try:
             # use the existing dt_node, but update objectName, size, rows, MD5, etc.
             # also, update column names and categorical codes, as needed
-            update_data_table(dt_node, new_dt_node, new_column_names, new_column_categorical_codes)
+            update_data_table(dt_node, new_dt_node, new_column_names, new_column_codes)
             # rename the temp file
             os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
 
@@ -917,7 +916,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         user_data.add_uploaded_table_properties(data_file,
                                                 new_column_vartypes,
                                                 new_column_names,
-                                                new_column_categorical_codes)
+                                                new_column_codes)
 
     cull_data_files(uploads_folder)
 
@@ -929,26 +928,41 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
     check_data_table_contents.reset_data_file_eval_status(document, data_file)
     check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
 
-    metapype_client.save_both_formats(filename=document, eml_node=eml_node)
+    webapp.home.utils.load_and_save.save_both_formats(filename=document, eml_node=eml_node)
     return redirect(url_for(PAGE_DATA_TABLE, filename=document, dt_node_id=dt_node.id, delimiter=delimiter,
                             quote_char=quote_char))
 
 
-def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_categorical_codes, doing_xml_import=False):
-    """ TODO: comment needed """
+def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_codes, doing_xml_import=False):
+    """
+    Update the metadata for a data table that is being fetched or reuploaded. In such cases, metadata for the table
+    already exists (e.g., in fetch, we fetch the package's metadata first and then do the data tables), but we need to
+    update it with new information -- e.g., number of rows, column names, categorical codes, etc., may have changed.
+    """
 
     def compare_codes(old_codes, new_codes):
-        """ TODO: comment needed """
+        """
+        Determine if the old and new column codes are the same.
+        For a categorical column, the list entry is a list of categorical codes. For a datetime column, it's the format
+            string. For a numeric column, it's None.
+        """
 
         def substitute_nans(codes):
+            """ Replace NaNs with 'NAN' so that codes can be compared without differently expressed NaNs causing
+            false positives. """
             substituted = []
             if codes:
                 for code in codes:
                     if isinstance(code, list):
+                        # A list, so we're dealing with a categorical column. Recursively call this function to
+                        #   substitute NaNs in the list of categorical codes.
                         substituted.append(substitute_nans(code))
                     elif not isinstance(code, float) or not math.isnan(code):
+                        # Not a NaN, so just append it.
                         substituted.append(code)
                     else:
+                        # A NaN, so append 'NAN'. That way, we can compare the old and new codes and not be fooled
+                        #   by NaNs expressed differently.
                         substituted.append('NAN')
             else:
                 substituted.append(None)
@@ -959,6 +973,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
         return old_substituted == new_substituted
 
     def add_node_if_missing(parent_node, child_name):
+        """ Add a child node to a parent node if the child doesn't already exist. """
         child = parent_node.find_descendant(child_name)
         if not child:
             child = new_child_node(child_name, parent=parent_node)
@@ -968,6 +983,8 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
 
     if not old_dt_node or not new_dt_node:
         return
+
+    # Get the old and new table attributes.
 
     old_object_name_node = old_dt_node.find_descendant(names.OBJECTNAME)
     old_physical_node = add_node_if_missing(old_dt_node, names.PHYSICAL)
@@ -1002,16 +1019,19 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
     if new_record_delimiter_node:
         old_record_delimiter_node.content = new_record_delimiter_node.content
     else:
-        old_record_delimiter_node.parent.remove_child(old_record_delimiter_node)
+        remove_child(old_record_delimiter_node)
 
     # quote char node is not required, so may be missing
     if new_quote_char_node:
         old_quote_char_node.content = new_quote_char_node.content
     else:
-        old_quote_char_node.parent.remove_child(old_quote_char_node)
+        remove_child(old_quote_char_node)
+
+    # If we're fetching the package, we take the metadata as given. But if we're doing re-upload, we need to update
+    #   the metadata as needed. We don't want to lost things like column definitions that have been entered by the user.
 
     if not doing_xml_import:
-        _, old_column_names, old_column_categorical_codes = user_data.get_uploaded_table_column_properties(old_object_name)
+        _, old_column_names, old_column_codes = user_data.get_uploaded_table_column_properties(old_object_name)
         if old_column_names and old_column_names != new_column_names:
             # substitute the new column names
             old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
@@ -1021,16 +1041,16 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                 if old_name != new_name:
                     views.debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
                     old_attribute_names_node.content = new_name
-        if not compare_codes(old_column_categorical_codes, new_column_categorical_codes):
+        if not compare_codes(old_column_codes, new_column_codes):
             # need to fix up the categorical codes
             old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
-            old_aattribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)
+            old_attribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)
             new_attribute_list_node = new_dt_node.find_child(names.ATTRIBUTELIST)
             new_attribute_nodes = new_attribute_list_node.find_all_children(names.ATTRIBUTE)
-            for old_attribute_node, old_codes, new_attribute_node, new_codes in zip(old_aattribute_nodes,
-                                                                                    old_column_categorical_codes,
+            for old_attribute_node, old_codes, new_attribute_node, new_codes in zip(old_attribute_nodes,
+                                                                                    old_column_codes,
                                                                                     new_attribute_nodes,
-                                                                                    new_column_categorical_codes):
+                                                                                    new_column_codes):
                 if not compare_codes(old_codes, new_codes):
                     # use the new_codes, preserving any relevant code definitions
                     # first, get the old codes and their definitions
@@ -1051,7 +1071,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cat
                             code_definitions[code] = definition
                         # remove the old code definition node
                         parent_node = old_code_definition_node.parent
-                        parent_node.remove_child(old_code_definition_node)
+                        remove_child(old_code_definition_node)
                     # add clones of new definition nodes and set their definitions, if known
                     if not parent_node:
                         continue

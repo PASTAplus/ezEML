@@ -10,7 +10,8 @@ import webapp.auth.user_data as user_data
 
 from webapp.views.data_tables.load_data import get_md5_hash
 
-from webapp.home.metapype_client import list_files_in_dir, load_eml
+from webapp.home.utils.load_and_save import load_eml
+from webapp.home.utils.lists import list_files_in_dir
 
 from metapype.eml import names
 

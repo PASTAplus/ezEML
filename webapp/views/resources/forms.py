@@ -23,7 +23,6 @@ from webapp.home.views import get_keywords
 class AbstractForm(EDIForm):
     abstract = StringField('Abstract (Recommended)', widget=TextArea(),
                            validators=[Optional()])
-    # md5 = HiddenField('')
 
 
 class IntellectualRightsForm(EDIForm):

@@ -1,38 +1,31 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""":Mod: evaluate.py
-
-:Synopsis:
+"""
 Evaluate the metadata document and return a list of errors and warnings.
 
 This uses the contents of 'webapp/static/evaluate.csv', which has already been loaded into current_app.config.
 See load_eval_entries() in webapp.home.views.py. The loaded items in current_app.config are named via
 current_app.config[f'__eval__{id}'] where id is the id of the entry in the csv file.
 
-:Author:
-    ide
-
-:Created:
-    6/20/20
+Memoizing: When the evaluation is complete, the list of errors and warnings is pickled and saved in a file. If we're
+evaluating foo.JSON, the evaluation is saved in foo._eval.pkl. The pickle file also contains the MD5 hash of the JSON
+file, so we can tell if the metadata has changed since the last evaluation. If not, we can just load the pickle file and
+return the list of errors and warnings.
 """
+
 
 from datetime import datetime
 from enum import Enum
 import hashlib
 import os
 import pickle
-import time
 
 from dataclasses import dataclass
 
-import daiquiri
 from flask import (
     Blueprint, Flask, url_for, session, current_app
 )
-from flask_login import (
-    current_user
-)
+
+import webapp.home.utils.load_and_save
+from webapp.home.home_utils import log_error, log_info
 
 from metapype.eml import names
 import metapype.eml.validate as validate
@@ -40,7 +33,6 @@ from metapype.eml.validation_errors import ValidationError
 import metapype.eml.evaluate as evaluate
 from metapype.eml.evaluation_warnings import EvaluationWarning
 from metapype.model.node import Node
-import webapp.home.metapype_client as metapype_client
 from webapp.pages import *
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
@@ -48,21 +40,6 @@ from webapp.home.check_data_table_contents import check_date_time_attribute
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
-logger = daiquiri.getLogger('check_metadata: ' + __name__)
-
-
-def log_error(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.error(msg, USER=current_user.get_username())
-    else:
-        logger.error(msg)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
 
 
 class EvalSeverity(Enum):
@@ -520,7 +497,7 @@ def check_coverage(eml_node, doc_name, evaluation_warnings=None):
     #     add_to_evaluation('coverage_01', link)
 
     # Check taxonomic coverage nodes for empty taxon rank names or values
-    if not metapype_client.was_imported_from_xml(eml_node):
+    if not webapp.home.utils.load_and_save.was_imported_from_xml(eml_node):
         taxonomic_classification_nodes = []
         dataset_node.find_all_descendants(names.TAXONOMICCOVERAGE, taxonomic_classification_nodes)
         for taxonomic_classification_node in taxonomic_classification_nodes:
@@ -572,7 +549,7 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
     """
 
     def get_attribute_type(attrib_node: Node):
-        """ Return the attribute type (i.e., metapype_client.VariableType) of the given attribute node. """
+        """ Return the attribute type (i.e., home_utils.VariableType) of the given attribute node. """
         mscale_node = attrib_node.find_child(names.MEASUREMENTSCALE)
         # Formerly, Categorical variables were nominal. But now that we're importing externally created XML
         #  files, they may be ordinal.
@@ -585,11 +562,11 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             enumerated_domain_node = nominal_or_ordinal_node.find_single_node_by_path(
                 [names.NONNUMERICDOMAIN, names.ENUMERATEDDOMAIN])
             if enumerated_domain_node:
-                return metapype_client.VariableType.CATEGORICAL
+                return webapp.home.home_utils.VariableType.CATEGORICAL
             text_domain_node = nominal_or_ordinal_node.find_single_node_by_path(
                 [names.NONNUMERICDOMAIN, names.TEXTDOMAIN])
             if text_domain_node:
-                return metapype_client.VariableType.TEXT
+                return webapp.home.home_utils.VariableType.TEXT
 
         # Formerly, Numerical variables were ratio. But now that we're importing externally created XML
         #  files, they may be interval.
@@ -597,18 +574,18 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
         if not ratio_or_interval_node:
             ratio_or_interval_node = mscale_node.find_child(names.INTERVAL)
         if ratio_or_interval_node:
-            return metapype_client.VariableType.NUMERICAL
+            return webapp.home.home_utils.VariableType.NUMERICAL
 
         datetime_node = mscale_node.find_child(names.DATETIME)
         if datetime_node:
-            return metapype_client.VariableType.DATETIME
+            return webapp.home.home_utils.VariableType.DATETIME
         return None
 
     def generate_code_definition_errs(eml_node, doc_name, err_code, errs_found):
         """ Generate errors for code definition errors. This requires walking up the tree to get the
             various node ids needed for the code definition page that will be linked to from the
             evaluation page. I.e., the issue here is generating the link to the code definition page."""
-        mscale = metapype_client.VariableType.CATEGORICAL
+        mscale = webapp.home.home_utils.VariableType.CATEGORICAL
         for err in errs_found:
             err_node = err[2]
             code_definition_node = err_node.parent
@@ -633,9 +610,9 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     page = None
-    if attr_type == metapype_client.VariableType.CATEGORICAL:
+    if attr_type == webapp.home.home_utils.VariableType.CATEGORICAL:
         page = PAGE_ATTRIBUTE_CATEGORICAL
-        mscale = metapype_client.VariableType.CATEGORICAL.name
+        mscale = webapp.home.home_utils.VariableType.CATEGORICAL.name
         data_table_name = None
         if data_table_node:
             entity_name_node = data_table_node.find_child(names.ENTITYNAME)
@@ -647,15 +624,15 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             if attrib_name_node:
                 attrib_name = attrib_name_node.content
         # log_info(f"CATEGORICAL... filename={filename}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
-    elif attr_type == metapype_client.VariableType.NUMERICAL:
+    elif attr_type == webapp.home.home_utils.VariableType.NUMERICAL:
         page = PAGE_ATTRIBUTE_NUMERICAL
-        mscale = metapype_client.VariableType.NUMERICAL.name
-    elif attr_type == metapype_client.VariableType.TEXT:
+        mscale = webapp.home.home_utils.VariableType.NUMERICAL.name
+    elif attr_type == webapp.home.home_utils.VariableType.TEXT:
         page = PAGE_ATTRIBUTE_TEXT
-        mscale = metapype_client.VariableType.TEXT.name
-    elif attr_type == metapype_client.VariableType.DATETIME:
+        mscale = webapp.home.home_utils.VariableType.TEXT.name
+    elif attr_type == webapp.home.home_utils.VariableType.DATETIME:
         page = PAGE_ATTRIBUTE_DATETIME
-        mscale = metapype_client.VariableType.DATETIME.name
+        mscale = webapp.home.home_utils.VariableType.DATETIME.name
     # This section is temporary code to track down a bug
     if not page:
         data_table_name = None
@@ -679,7 +656,7 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
         add_to_evaluation('attributes_07', link, data_table_name=data_table_name)
 
     # Categorical
-    if attr_type == metapype_client.VariableType.CATEGORICAL:
+    if attr_type == webapp.home.home_utils.VariableType.CATEGORICAL:
         if find_min_unmet_for_choice(validation_errs, names.ENUMERATEDDOMAIN):
             add_to_evaluation('attributes_04', link, data_table_name=data_table_name)
         found = find_content_empty(validation_errs, names.CODE)
@@ -690,14 +667,14 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             generate_code_definition_errs(eml_node, doc_name, 'attributes_06', found)
 
     # Numerical
-    if attr_type == metapype_client.VariableType.NUMERICAL:
+    if attr_type == webapp.home.home_utils.VariableType.NUMERICAL:
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
         if find_min_unmet_for_choice(validation_errs, names.UNIT):
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
 
     # DateTime
-    if attr_type == metapype_client.VariableType.DATETIME:
+    if attr_type == webapp.home.home_utils.VariableType.DATETIME:
         if find_content_empty(validation_errs, names.FORMATSTRING):
             add_to_evaluation('attributes_03', link, data_table_name=data_table_name)
         elif check_date_time_attribute(attrib_node):

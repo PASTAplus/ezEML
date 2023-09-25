@@ -8,6 +8,8 @@ from flask_login import (
 import os
 from urllib.parse import urlencode, urlparse, quote, unquote
 
+import webapp.home.utils.create_nodes
+import webapp.home.utils.node_utils
 from webapp.home.forms import (
     form_md5, is_dirty_form, EDIForm
 )
@@ -16,14 +18,11 @@ from webapp.home.views import (
     process_up_button, process_down_button,
     AUTH_TOKEN_FLASH_MSG
 )
-from webapp.home.metapype_client import (
-    load_eml, save_both_formats,
-    add_child, remove_child,
-    UP_ARROW, DOWN_ARROW,
-    get_upval, get_downval,
-    check_val_for_hidden_buttons,
-    new_child_node, compose_rp_label
-)
+from webapp.home.utils.node_utils import remove_child, new_child_node, add_child
+from webapp.home.utils.hidden_buttons import check_val_for_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.import_nodes import compose_rp_label
+from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_method_steps
 
 from webapp.home.exceptions import (
     ezEMLError,
@@ -51,10 +50,7 @@ from webapp.pages import *
 
 from metapype.eml import names
 from metapype.model.node import Node
-from webapp.home.metapype_client import (
-    create_method_step, create_data_source,
-    list_method_steps
-)
+from webapp.home.utils.create_nodes import create_method_step, create_data_source
 import webapp.auth.user_data as user_data
 from webapp.home.fetch_data import get_metadata_revision_from_pasta
 from webapp.home.import_xml import parse_xml_file
@@ -189,7 +185,7 @@ def method_step(filename=None, node_id=None):
                     ms_node_id, data_source_node_id = key.split('|')
                     method_step_node = Node.get_node_instance(id=ms_node_id)
                     data_source_node = Node.get_node_instance(id=data_source_node_id)
-                    method_step_node.remove_child(data_source_node)
+                    webapp.home.utils.node_utils.remove_child(data_source_node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                     new_page = PAGE_METHOD_STEP
                     break
@@ -476,7 +472,7 @@ def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=
 
 
 def add_child(parent_node, child_node):
-    parent_node.add_child(child_node)
+    webapp.home.utils.node_utils.add_child(child_node)
     child_node.parent = parent_node
 
 

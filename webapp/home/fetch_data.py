@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 fetch_data.py
@@ -11,38 +9,19 @@ import base64
 import os
 import time
 
-import daiquiri
 from flask import flash
-from flask_login import current_user
 import requests
 from urllib.request import urlretrieve
 
+import webapp.home.utils.load_and_save
 from metapype.eml import names
 
 import webapp.auth.user_data as user_data
 from webapp.config import Config
 import webapp.home.exceptions as exceptions
 
-import webapp.home.metapype_client as metapype_client
-
 import webapp.views.data_tables.load_data as load_data
-
-logger = daiquiri.getLogger('import_data: ' + __name__)
-
-
-def log_error(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.error(msg, USER=current_user.get_username())
-    else:
-        logger.error(msg)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
-
+from webapp.home.home_utils import log_error, log_info
 
 def extract_data_entities_from_eml(eml_node, entity_type):
     """
@@ -289,7 +268,7 @@ def import_data(filename, eml_node):
     upload_dir = user_data.get_document_uploads_folder_name()
     retrieve_data_entities(upload_dir, entities_with_sizes)
     ingest_data_entities(eml_node, upload_dir, entities_with_sizes)
-    metapype_client.save_both_formats(filename, eml_node)
+    webapp.home.utils.load_and_save.save_both_formats(filename, eml_node)
     return total_size
 
 

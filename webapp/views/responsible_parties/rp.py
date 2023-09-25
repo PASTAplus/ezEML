@@ -13,11 +13,11 @@ from webapp.home.forms import (
     form_md5, is_dirty_form
 )
 
-from webapp.home.metapype_client import (
-    load_eml, list_responsible_parties, save_both_formats,
-    add_child, create_responsible_party,
-    handle_hidden_buttons, check_val_for_hidden_buttons
-)
+from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.lists import list_responsible_parties
+from webapp.home.utils.create_nodes import create_responsible_party
+from webapp.home.utils.node_utils import add_child
 
 from metapype.eml import names
 from metapype.model.node import Node

@@ -1,18 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""":Mod: views.py
-
-:Synopsis:
-
-:Author:
-    costa
-    servilla
-    ide
-
-:Created:
-    7/23/18
 """
+Routes for the home blueprint, and functions for initializing a session or a request, etc.
+"""
+
 import ast
 
 import contextlib
@@ -21,7 +10,6 @@ from urllib.request import urlopen
 
 import urllib.parse
 
-import daiquiri
 from datetime import date, datetime
 import glob
 import html
@@ -47,9 +35,11 @@ from flask_login import (
 
 from flask import Flask, current_app
 
+import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
+from webapp.home.home_utils import log_error, log_info
 
 import csv
 
@@ -76,7 +66,7 @@ from webapp.home.forms import (
 import webapp.utils as utils
 
 from webapp.views.data_tables.load_data import (
-    load_other_entity, get_md5_hash
+    load_other_entity, get_md5_hash, data_filename_is_unique
 )
 from webapp.home.import_package import (
     copy_ezeml_package, upload_ezeml_package, import_ezeml_package, cull_uploads
@@ -90,21 +80,18 @@ from webapp.home.log_usage import (
 )
 from webapp.home.manage_packages import get_data_packages, get_data_usage
 
-from webapp.home.metapype_client import ( 
-    load_eml, save_both_formats, remove_child, create_eml,
-    move_up, move_down, UP_ARROW, DOWN_ARROW, RELEASE_NUMBER,
-    save_old_to_new, read_xml, new_child_node, truncate_middle,
-    compose_rp_label, compose_full_gc_label, compose_taxonomic_label,
-    compose_funding_award_label, compose_project_label, list_data_packages,
-    import_responsible_parties, import_coverage_nodes, import_funding_award_nodes,
-    import_project_node, import_related_project_nodes, get_check_metadata_status,
-    check_val_for_hidden_buttons,
-    add_fetched_from_edi_metadata, get_fetched_from_edi_metadata,
-    add_imported_from_xml_metadata, get_imported_from_xml_metadata,
-    clear_taxonomy_imported_from_xml,
-    is_hidden_button, handle_hidden_buttons, package_contains_elements_unhandled_by_ezeml,
-    strip_elements_added_by_pasta
-)
+from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status
+from webapp.home.utils.node_utils import remove_child, new_child_node
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml, save_old_to_new, strip_elements_added_by_pasta, \
+    package_contains_elements_unhandled_by_ezeml, save_both_formats, create_eml, add_imported_from_xml_metadata, \
+    get_imported_from_xml_metadata, clear_taxonomy_imported_from_xml_flag
+from webapp.home.utils.import_nodes import import_responsible_parties, import_coverage_nodes, \
+    import_funding_award_nodes, compose_funding_award_label, compose_project_label, import_project_node, \
+    import_related_project_nodes, compose_rp_label
+from webapp.home.utils.lists import list_data_packages, compose_full_gc_label, truncate_middle, compose_taxonomic_label, \
+    UP_ARROW, DOWN_ARROW
+from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fetched_from_edi_metadata
 
 import webapp.home.check_data_table_contents as check_data_table_contents
 from webapp.home.check_data_table_contents import format_date_time_formats_list
@@ -121,7 +108,7 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from metapype.eml import names
-from metapype.model.node import Node
+from metapype.model.node import Node, Shift
 from werkzeug.utils import secure_filename
 
 from webapp.home.fetch_data import (
@@ -135,12 +122,12 @@ from webapp.home.texttype_node_processing import (
     model_has_complex_texttypes
 )
 
-
 app = Flask(__name__)
 
+import daiquiri
+logger = daiquiri.getLogger(f'home: {__name__}')
 
-logger = daiquiri.getLogger('views: ' + __name__)
-home = Blueprint('home', __name__, template_folder='templates')
+home_bp = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
 keywords = {}
 
@@ -148,10 +135,16 @@ AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be cau
 
 
 def url_of_interest():
+    """
+    We want to log Metapype store info only when processing the URLs that are of interest to us.
+    For example, if the user is retrieving the EDI logo, we don't want to log Metapype store info.
+    This function returns True iff the current URL is of interest.
+    """
     if Config.MEM_FILTER_URLS_TO_CLEAR_METAPYPE_STORE:
         parsed_url = urlparse(request.base_url)
         url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/eml/"
         if url_prefix not in request.url:
+            # This filters out logging for urls that do things like retrieving the EDI logo
             return False
         if parsed_url.path in ['/eml/', '/eml/auth/login']:
             # We suppress logging for these two URLs because they are called every 5 minutes by uptime monitor
@@ -159,8 +152,12 @@ def url_of_interest():
     return True
 
 
-@home.before_app_request
+@home_bp.before_app_request
 def post_debug_info_to_session():
+    """
+    This function is called before every request. It stores some debug info in the session so it can be accessed
+    by templates. This is useful for debugging.
+    """
     try:
         user_login = current_user.get_user_login()
         if user_login:
@@ -173,8 +170,12 @@ def post_debug_info_to_session():
         session["active_package_id"] = None
 
 
-@home.before_app_request
+@home_bp.before_app_request
 def check_metapype_store():
+    """
+    This function is called before every request. It checks the size of the Metapype store and logs it if it is
+    greater than zero, then clears it. This is useful for debugging.
+    """
     if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
         return
     if url_of_interest():
@@ -186,8 +187,13 @@ def check_metapype_store():
             log_info(f'********************************************************')
 
 
-@home.after_app_request
+@home_bp.after_app_request
 def clear_metapype_store(response):
+    """
+    This function is called after every request. It clears the Metapype store. We ensure that the store doesn't
+    accumulate nodes from previous requests. It is populated anew for each request when the EML model is loaded
+    via load_eml().
+    """
     if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
         return response
     if url_of_interest():
@@ -198,21 +204,8 @@ def clear_metapype_store(response):
     return response
 
 
-def log_error(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.error(msg, USER=current_user.get_username())
-    else:
-        logger.error(msg)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
-
-
 def non_breaking(_str):
+    """ Replace spaces with non-breaking spaces. """
     return _str.replace(' ', html.unescape('&nbsp;'))
 
 
@@ -232,7 +225,7 @@ def debug_None(x, msg):
 
 
 def reload_metadata():
-    """Call to reload the metadata to get the check_metadata badge status updated."""
+    """ Reload the metadata to get the check_metadata badge status updated. """
     current_document = current_user.get_filename()
     if not current_document:
         # if we've just deleted the current document, it won't exist
@@ -243,8 +236,9 @@ def reload_metadata():
 
 
 # Endpoint for AJAX calls to validate XML
-@home.route('/check_xml/<xml>/<parent_name>', methods=['GET'])
+@home_bp.route('/check_xml/<xml>/<parent_name>', methods=['GET'])
 def check_xml(xml:str=None, parent_name:str=None):
+    """ Check the validity of the XML and return the result. This is called by AJAX. """
     response = check_xml_validity(xml, parent_name)
     log_usage(actions['CHECK_XML'], parent_name, response)
     response = jsonify({"response": response})
@@ -253,8 +247,11 @@ def check_xml(xml:str=None, parent_name:str=None):
 
 
 # Endpoint for AJAX calls to log help usage
-@home.route('/log_help_usage/<help_id>', methods=['GET'])
+@home_bp.route('/log_help_usage/<help_id>', methods=['GET'])
 def log_help_usage(help_id:str=None):
+    """
+    Log the usage of a help page. This is called by AJAX. The macro help_script calls macro log_help_usage,
+     which passes the ID of the help page to this endpoint. This lets us know which help pages are being used. """
     log_usage(actions['HELP'], help_id)
     response = jsonify({"response": 'OK'})
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -262,8 +259,12 @@ def log_help_usage(help_id:str=None):
 
 
 # Endpoint for AJAX calls to log User Guide usage
-@home.route('/log_user_guide_usage/<title>', methods=['GET'])
+@home_bp.route('/log_user_guide_usage/<title>', methods=['GET'])
 def log_user_guide_usage(title:str=None):
+    """
+    Log the usage of the User Guide. The user guide page has links to the various chapters. Those links include
+    AJAX calls to the this endpoint, which logs the usage of those links so we know which chapters are being used.
+    """
     log_usage(actions['USER_GUIDE'], title)
     response = jsonify({"response": 'OK'})
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -271,20 +272,29 @@ def log_user_guide_usage(title:str=None):
 
 
 # Endpoint for AJAX calls to log login usage
-@home.route('/log_login_usage/<login_type>', methods=['GET'])
+@home_bp.route('/log_login_usage/<login_type>', methods=['GET'])
 def log_login_usage(login_type:str=None):
+    """
+    Log the usage of the login. The login page has links to the various login options (Google, ORCID, etc.).
+    Those links include AJAX calls to the this endpoint, which logs the usage of those links so we know which login
+    options are being used.
+    """
     log_usage(actions['LOGIN'], login_type)
     response = jsonify({"response": 'OK'})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 
-# Endpoint for REST Service to get a list of a data table's columns and their variable types.
-# Note that this returns the names as they are defined in the metadata, not as they are defined in the table.
-# This is a REST service rather than a direct function call because we want to support eventually making
-#  Check Data Table a separate, standalone service.
-@home.route('/get_data_table_columns/', methods=['GET','POST'])
+# Endpoint for a REST Service to get a list of a data table's columns and their variable types.
+@home_bp.route('/get_data_table_columns/', methods=['GET','POST'])
 def get_data_table_columns():
+    """
+    Endpoint for a REST Service to get a list of a data table's columns and their variable types.
+
+    Note that this returns the names as they are defined in the metadata, not as they are defined in the table.
+    This is a REST service rather than a direct function call because we want to support eventually making
+     Check Data Table a separate, standalone service.
+    """
     eml_file_url = request.headers.get('eml_file_url')
     data_table_name = request.headers.get('data_table_name')
     data_table_node = check_data_table_contents.find_data_table_node(eml_file_url, data_table_name)
@@ -295,10 +305,14 @@ def get_data_table_columns():
 
 
 # Endpoint for REST Service to check a data table's CSV file.
-# This is a REST service rather than a direct function call because we want to support eventually making
-#  Check Data Table a separate, standalone service.
-@home.route('/check_data_table/', methods=['POST'])
+@home_bp.route('/check_data_table/', methods=['POST'])
 def check_data_table():
+    """
+    Endpoint for REST Service to check a data table's CSV file.
+
+    This is a REST service rather than a direct function call because we want to support eventually making
+     Check Data Table a separate, standalone service.
+    """
     eml_file_url = request.headers.get('eml_file_url')
     csv_file_url = request.headers.get('csv_file_url')
     data_table_name = request.headers.get('data_table_name')
@@ -306,7 +320,7 @@ def check_data_table():
     return check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names)
 
 
-@home.route('/data_table_errors/<data_table_name>', methods=['GET', 'POST'])
+@home_bp.route('/data_table_errors/<data_table_name>', methods=['GET', 'POST'])
 @login_required
 def data_table_errors(data_table_name:str=None):
     """Handle the Check data table link or Show errors link for a table on the Check Data Tables page."""
@@ -362,7 +376,6 @@ def data_table_errors(data_table_name:str=None):
                                    column_errs='', help=help, back_url=get_back_url())
 
     column_errs, has_blanks = check_data_table_contents.generate_error_info_for_webpage(data_table_node, errors)
-    # log_info(f'column_errs: {column_errs[:1000]}')
     column_errs = check_data_table_contents.collapse_error_info_for_webpage(column_errs)
 
     check_data_table_contents.save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
@@ -376,8 +389,9 @@ def data_table_errors(data_table_name:str=None):
                            back_url=get_back_url())
 
 
-@home.before_app_request
+@home_bp.before_app_request
 def init_session_vars():
+    """ Initialize session variables. """
     init_db()
 
     if not session.get("check_metadata_status"):
@@ -404,30 +418,12 @@ def init_session_vars():
     init_standard_units()
 
 
-def clean_zip_temp_files(days, user_dir, logger, logonly):
-    # Remove zip_temp files that are more than 'days' days old
-    today = datetime.today()
-    zip_temp_dir = os.path.join(user_dir, 'zip_temp')
-    if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):
-        for file in os.listdir(zip_temp_dir):
-            filepath = os.path.join(zip_temp_dir, file)
-            t = os.stat(filepath).st_mtime
-            filetime = today - datetime.fromtimestamp(t)
-            if filetime.days >= days:
-                try:
-                    logger.info(f'Removing file {filepath}')
-                    if not logonly:
-                        if not os.path.isdir(filepath):
-                            os.remove(filepath)
-                        else:
-                            rmtree(filepath, ignore_errors=True)
-                except FileNotFoundError:
-                    pass
-
-
-@home.before_app_request
+@home_bp.before_app_request
 def load_eval_entries():
-    """Load the Check Metadata errors and warnings from the CSV file."""
+    """
+    Load the Check Metadata errors and warnings from the CSV file. This provides the text that is displayed
+    in the Check Metadata page.
+    """
     if current_app.config.get('__eval__title_01'):
         return
     rows = []
@@ -440,8 +436,12 @@ def load_eval_entries():
         current_app.config[f'__eval__{id}'] = vals
 
 
-@home.before_app_request
+@home_bp.before_app_request
 def init_keywords():
+    """
+    Load the keywords from the pickle file if we haven't already done so and save in a dict for quick lookup.
+    Currently, the only keywords list is for LTER.
+    """
     if keywords:
         return
     lter_keywords = pickle.load(open('webapp/static/lter_keywords.pkl', 'rb'))
@@ -449,13 +449,18 @@ def init_keywords():
 
 
 def get_keywords(which):
+    """ Return the keywords list for the specified which. Currently, the only keywords list is for LTER. """
     return keywords.get(which, [])
 
 
-@home.before_app_request
+@home_bp.before_app_request
 def init_help():
-    """Load the help text from the help.txt file and save in a dict for quick lookup."""
+    """
+    Load the help text from the help.txt file if we haven't already done so and save in a dict for quick lookup.
+    Save the help for Contents menu in the session so that it can be used in the base.html template.
+    """
     if help_dict:
+        # Help has already been loaded, but we need to save the help for Contents menu in the session on each request.
         if not session.get('__help__contents'):
             # special case for supporting base.html template
             session['__help__contents'] = help_dict.get('contents')
@@ -466,6 +471,7 @@ def init_help():
     index = 0
 
     def get_help_item(lines, index):
+        """ Get the specified help item and format it for HTML display and return the id, title, content, and index. """
         id = lines[index].rstrip()
         title = lines[index+1].rstrip()
         content = '<p>'
@@ -484,15 +490,21 @@ def init_help():
         return (id, title, content), index
 
     while index < len(lines):
+        # Create a dict of help items with the id as the key and the title and content as the value.
         (id, title, content), index = get_help_item(lines, index)
         help_dict[id] = (title, content)
         if id == 'contents':
-            # special case for supporting base.html template
+            # Special case for supporting help for Contents menu in base.html template
             session[f'__help__{id}'] = (title, content)
 
 
 def get_help(id):
-    """Return the help title and content for the given id."""
+    """
+    Return the help title and content for the given id.
+
+    The returned data is ready for use in the templates. The ids are prefixed with '__help__' to make them unique in
+    the template.
+    """
     title, content = help_dict.get(id)
     return f'__help__{id}', title, content
 
@@ -512,12 +524,12 @@ def get_helps(ids):
     return helps
 
 
-@home.route('/')
+@home_bp.route('/')
 def index():
     """Handle the index (Home) page."""
 
     if current_user.is_authenticated:
-        log_the_details = Config.LOG_FILE_HANDLING_DETAILS if Config.LOG_FILE_HANDLING_DETAILS else False
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS or False
 
         current_document = user_data.get_active_document(log_the_details=log_the_details)
         if current_document:
@@ -535,8 +547,8 @@ def index():
         return redirect(url_for(PAGE_LOGIN))
 
 
-@home.route('/edit/<page>')
-@home.route('/edit/<page>/dev')
+@home_bp.route('/edit/<page>')
+@home_bp.route('/edit/<page>/dev')
 def edit(page:str=None, dev=None):
     """
     The edit page allows for direct editing of a top-level element such as
@@ -568,7 +580,65 @@ def edit(page:str=None, dev=None):
 
 
 def get_back_url(success=False):
-    """Handle the back button/link on various pages."""
+    """ Handle the back button/link on various pages. """
+
+    def get_redirect_target_page():
+        """
+        A helper function to get the page to redirect to based on the current page in the Contents main menu.
+        Used, for example, when Cancel is clicked on an out-of-sequence page like an Import page.
+        """
+        current_page = get_current_page()
+        if current_page == 'title':
+            return PAGE_TITLE
+        elif current_page == 'creator':
+            return PAGE_CREATOR_SELECT
+        elif current_page == 'metadata_provider':
+            return PAGE_METADATA_PROVIDER_SELECT
+        elif current_page == 'associated_party':
+            return PAGE_ASSOCIATED_PARTY_SELECT
+        elif current_page == 'abstract':
+            return PAGE_ABSTRACT
+        elif current_page == 'keyword':
+            return PAGE_KEYWORD_SELECT
+        elif current_page == 'intellectual_rights':
+            return PAGE_INTELLECTUAL_RIGHTS
+        elif current_page == 'geographic_coverage':
+            return PAGE_GEOGRAPHIC_COVERAGE_SELECT
+        elif current_page == 'temporal_coverage':
+            return PAGE_TEMPORAL_COVERAGE_SELECT
+        elif current_page == 'taxonomic_coverage':
+            return PAGE_TAXONOMIC_COVERAGE_SELECT
+        elif current_page == 'maintenance':
+            return PAGE_MAINTENANCE
+        elif current_page == 'contact':
+            return PAGE_CONTACT_SELECT
+        elif current_page == 'publisher':
+            return PAGE_PUBLISHER
+        elif current_page == 'publication_info':
+            return PAGE_PUBLICATION_INFO
+        elif current_page == 'method_step':
+            return PAGE_METHOD_STEP_SELECT
+        elif current_page == 'project':
+            return PAGE_PROJECT
+        elif current_page == 'data_table':
+            return PAGE_DATA_TABLE_SELECT
+        elif current_page == 'other_entity':
+            return PAGE_OTHER_ENTITY_SELECT
+        elif current_page == 'check_metadata':
+            return PAGE_CHECK
+        elif current_page == 'export_package':
+            return PAGE_EXPORT_DATA_PACKAGE
+        elif current_page == 'data_package_id':
+            return PAGE_DATA_PACKAGE_ID
+        elif current_page == 'submit_package':
+            return PAGE_SUBMIT_TO_EDI
+        elif current_page == 'send_to_other':
+            return PAGE_SEND_TO_OTHER
+        elif current_page == 'manage_data_usage':
+            return PAGE_MANAGE_DATA_USAGE
+        else:
+            return PAGE_TITLE
+
     url = url_for(PAGE_INDEX)
     if current_user.is_authenticated:
         new_page = get_redirect_target_page()
@@ -580,34 +650,13 @@ def get_back_url(success=False):
     return url
 
 
-@home.route('/slow_poke')
-def slow_poke():
-    """
-    This is a dummy page that was used to test multi-threading. It is no longer used.
-    """
-    import time
-    from datetime import datetime
-    entry = datetime.now()
-    entry_time = entry.strftime("%H:%M:%S")
-    time.sleep(60)
-    user_name = current_user.get_username()
-    current_packageid = current_user.get_filename()
-    pid = os.getpid()
-    metapype_store_size = len(Node.store)
-    leaving = datetime.now()
-    leaving_time = leaving.strftime("%H:%M:%S")
-
-    return render_template('slow_poke.html', user=user_name, package=current_packageid, pid=pid,
-                           store_size=metapype_store_size, entry=entry_time, leaving=leaving_time)
-
-
-@home.route('/about')
+@home_bp.route('/about')
 def about():
     """Handle the About page."""
     return render_template('about.html', back_url=get_back_url(), title='About')
 
 
-@home.route('/user_guide')
+@home_bp.route('/user_guide')
 def user_guide():
     """
     Handle the User Guide page that displays a list of links to User Guide chapters.
@@ -618,31 +667,31 @@ def user_guide():
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
-@home.route('/news')
+@home_bp.route('/news')
 def news():
     """Handle the News page."""
     return render_template('news.html', back_url=get_back_url(), title="What's New")
 
 
-@home.route('/restore_welcome_dialog')
+@home_bp.route('/restore_welcome_dialog')
 def restore_welcome_dialog():
     """Handle the Welcome popup that's displayed for first-time users."""
     return render_template('restore_welcome_dialog.html', back_url=get_back_url())
 
 
-@home.route('/encoding_error/<filename>')
+@home_bp.route('/encoding_error/<filename>')
 def encoding_error(filename=None, errors=None):
     """Handle the error page that displays errors when characters are encountered that are not UTF-8 encoded."""
     return render_template('encoding_error.html', filename=filename, errors=errors, title='Encoding Errors')
 
 
-@home.route('/file_error/<filename>')
+@home_bp.route('/file_error/<filename>')
 def file_error(filename=None):
     """Handle the error page that displays a generic error when a file cannot be loaded."""
     return render_template('file_error.html', filename=filename, title='File Error')
 
 
-@home.route('/save', methods=['GET', 'POST'])
+@home_bp.route('/save', methods=['GET', 'POST'])
 @login_required
 def save():
     """
@@ -651,9 +700,9 @@ def save():
     to save any user-entered values before the save actually occurs.
 
     So, for example, if the user is on the Title page and enters a title, then clicks Save in the EML Documents
-    menu, a post to the Title page will be performed and will save the title, saving the document in the process.
-    The hidden save tells the Title page to redirect to itself after the save is done. See handle_hidden_buttons()
-    and check_val_for_hidden_buttons() is metapype_client.py.
+    menu, a post of hidden save to the Title page will be performed and will save the title, saving the document in
+    the process. The hidden save tells the Title page to redirect to itself after the save is done. See
+    handle_hidden_buttons() and check_val_for_hidden_buttons() is home/utils/hidden_buttons.py.
     """
     current_document = current_user.get_filename()
     
@@ -678,17 +727,21 @@ def save():
     return redirect(url_for(PAGE_TITLE, filename=current_document))
 
 
-@home.route('/manage_packages', methods=['GET', 'POST'])
-@home.route('/manage_packages/<to_delete>', methods=['GET', 'POST'])
-@home.route('/manage_packages/<to_delete>/<action>', methods=['GET', 'POST'])
+@home_bp.route('/manage_packages', methods=['GET', 'POST'])
+@home_bp.route('/manage_packages/<to_delete>', methods=['GET', 'POST'])
+@home_bp.route('/manage_packages/<to_delete>/<action>', methods=['GET', 'POST'])
 @login_required
 def manage_packages(to_delete=None, action=None):
-    """Handle the delete links in the Manage Packages page."""
-    # When a link is clicked to delete a package, we need to pass the package name to the server.
+    """Handle the Manage Packages page."""
+
+    # When a link is clicked to delete a package,the package name is passed to the server.
     # That's what the to_delete parameter is for.
     if to_delete is not None:
+        # The Manage Packages page has a Back button, which makes use of the to_delete parameter, passing
+        #  the special value '____back____' to indicate that the Back button was clicked.
         if to_delete == '____back____':
             action = '____back____'
+        # Otherwise, the user actually clicked a link to delete a package.
         elif action != '____back____':
             user_data.is_document_locked(filename=to_delete)
             # This is where the delete is done.
@@ -704,19 +757,22 @@ def manage_packages(to_delete=None, action=None):
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
+    # Set the default sort order. Other sort orders can be selected by clicking the column headers and are handled
+    # in the template.
     sort_by = 'package_name'
     reverse = False
 
+    # Get the list of packages in a form usable by the template.
     data_packages = get_data_packages(sort_by=sort_by, reverse=reverse)
-    help = get_helps(['manage_packages'])
 
+    help = get_helps(['manage_packages'])
     log_usage(actions['MANAGE_PACKAGES'])
 
     return render_template('manage_packages.html', data_packages=data_packages, help=help)
 
 
-@home.route('/manage_data_usage', methods=['GET', 'POST'])
-@home.route('/manage_data_usage/<action>', methods=['GET', 'POST'])
+@home_bp.route('/manage_data_usage', methods=['GET', 'POST'])
+@home_bp.route('/manage_data_usage/<action>', methods=['GET', 'POST'])
 @login_required
 def manage_data_usage(action=None):
     """
@@ -731,12 +787,12 @@ def manage_data_usage(action=None):
 
     days = Config.GC_DAYS_TO_LIVE  # default number of days to filter on
 
-    # The action parameter is used to signal we want to
-    #  return to the previous page.
+    # The action parameter is used to signal we want to return to the previous page.
     if action == '____back____':
         return redirect(get_back_url())
 
     if request.method == 'POST':
+        # If the user clicked the Garbage Collect button, do the garbage collection.
         if 'gc' in request.form and 'days' in request.form:
             days = request.form['days']
             subprocess.run(['webapp/gc.py', f'--days={days}',
@@ -750,6 +806,8 @@ def manage_data_usage(action=None):
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
+    # Set the default sort order. Other sort orders can be selected by clicking the column headers and are handled
+    # in the template.
     sort_by = 'user_name'
     reverse = False
 
@@ -770,25 +828,27 @@ def manage_data_usage(action=None):
                            disabled=disabled, is_admin=current_user.is_admin(), help=help)
 
 
-def copy_uploads(from_package, to_package):
-    """
-    Copy the uploads from one package to another as part of the 'Save As' operation.
-    """
-    from_folder = user_data.get_document_uploads_folder_name(from_package)
-    to_folder = user_data.get_document_uploads_folder_name(to_package)
-    for filename in os.listdir(from_folder):
-        from_path = os.path.join(from_folder, filename)
-        to_path = os.path.join(to_folder, filename)
-        copyfile(from_path, to_path)
-        user_data.add_data_table_upload_filename(filename, document_name=to_package)
-
-
-@home.route('/save_as', methods=['GET', 'POST'])
+@home_bp.route('/save_as', methods=['GET', 'POST'])
 @login_required
 def save_as():
     """
     Handle the Save As item in the EML Documents menu.
     """
+
+    def copy_uploads(from_package, to_package):
+        """
+        Copy the uploads from one package to another as part of the 'Save As' operation.
+        Note that 'Save As' doesn't replace the original package. It creates a new package with a new name, so the
+        uploads are copied, not moved.
+        """
+        from_folder = user_data.get_document_uploads_folder_name(from_package)
+        to_folder = user_data.get_document_uploads_folder_name(to_package)
+        for filename in os.listdir(from_folder):
+            from_path = os.path.join(from_folder, filename)
+            to_path = os.path.join(to_folder, filename)
+            copyfile(from_path, to_path)
+            user_data.add_data_table_upload_filename(filename, document_name=to_package)
+
     form = SaveAsForm()
     current_document = current_user.get_filename()
 
@@ -848,7 +908,7 @@ def save_as():
         return render_template('index.html')
 
 
-@home.route('/check_data_tables', methods=['GET', 'POST'])
+@home_bp.route('/check_data_tables', methods=['GET', 'POST'])
 @login_required
 def check_data_tables():
     """Handle the Check Data Tables item in the main Contents menu."""
@@ -871,7 +931,7 @@ def check_data_tables():
     return render_template('check_data_tables.html', help=help, content=content)
 
 
-@home.route('/check_metadata/<filename>', methods=['GET', 'POST'])
+@home_bp.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 def check_metadata(filename:str):
     """Handle the Check Metadata item in the main Contents menu."""
@@ -893,7 +953,7 @@ def check_metadata(filename:str):
         return render_template('check_metadata.html', content=content, title='Check Metadata')
 
 
-@home.route('/datetime_formats', methods=['GET', 'POST'])
+@home_bp.route('/datetime_formats', methods=['GET', 'POST'])
 @login_required
 def datetime_formats():
     """Display the list of acceptable datetime formats."""
@@ -907,13 +967,13 @@ def datetime_formats():
         return render_template('datetime_formats.html', content=content)
 
 
-@home.route('/download_current', methods=['GET', 'POST'])
+@home_bp.route('/download_current', methods=['GET', 'POST'])
 @login_required
 def download_current():
     """
     Handle the Download EML File (XML) page.
 
-    This saves the current document and downloads its EML file. It returns the 200 Response object if
+    This saves the current document and downloads its EML file to the client. It returns the 200 Response object if
     the download was successful. In so doing, it stays on the current page.
     """
     current_document = user_data.get_active_document()
@@ -943,14 +1003,7 @@ def allowed_data_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def allowed_metadata_file(filename):
-    """Only certain file types are allowed to be uploaded as metadata files."""
-    ALLOWED_EXTENSIONS = set(['xml'])    
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-@home.route('/create', methods=['GET', 'POST'])
+@home_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
     """Handle the New... page in EML Documents menu."""
@@ -986,7 +1039,7 @@ def create():
     return render_template('create_eml.html', help=help, form=form)
 
 
-@home.route('/display_tables', methods=['GET', 'POST'])
+@home_bp.route('/display_tables', methods=['GET', 'POST'])
 @login_required
 def display_tables():
     """
@@ -1051,7 +1104,7 @@ def open_document(filename, owner=None, owner_login=None):
     return redirect(url_for(new_page, filename=filename))
 
 
-@home.route('/open_eml_document', methods=['GET', 'POST'])
+@home_bp.route('/open_eml_document', methods=['GET', 'POST'])
 @login_required
 def open_eml_document():
     """Handle the Open... page in EML Documents menu."""
@@ -1076,8 +1129,8 @@ def open_eml_document():
                            form=form)
 
 
-@home.route('/open_package/<package_name>', methods=['GET', 'POST'])
-@home.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
+@home_bp.route('/open_package/<package_name>', methods=['GET', 'POST'])
+@home_bp.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
 @login_required
 def open_package(package_name, owner=None):
     """Handle a link to open a document via the Manage Packages page."""
@@ -1107,7 +1160,7 @@ def open_package(package_name, owner=None):
     return redirect(url_for(new_page, filename=package_name))
 
 
-@home.route('/import_template', methods=['GET', 'POST'])
+@home_bp.route('/import_template', methods=['GET', 'POST'])
 @login_required
 def import_template():
     """
@@ -1192,16 +1245,16 @@ def import_template():
     return render_template('import_template.html', directory_list=output, help=help)
 
 
-@home.route('/import_template_2/<template_filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_template_2/<template_filename>/', methods=['GET', 'POST'])
 @login_required
 def import_template_2(template_filename):
     """Handle the New from Template... item in EML Documents menu after a template has been selected."""
 
     def import_selected_template(template_filename, output_filename):
         # Copy the template into the user's directory
-        user_folder = user_data.get_user_folder_name()
+        user_folder = user_data.get_user_folder_name(current_user_directory_only=True)
         copyfile(f"{Config.TEMPLATE_DIR}/{template_filename}", f"{user_folder}/{output_filename}.json")
-        create_eml(filename=output_filename)
+        open_document(filename=output_filename)
 
     form = CreateEMLForm()
 
@@ -1234,7 +1287,7 @@ def import_template_2(template_filename):
     return render_template('import_template_2.html', help=help, form=form)
 
 
-@home.route('/import_parties', methods=['GET', 'POST'])
+@home_bp.route('/import_parties', methods=['GET', 'POST'])
 @login_required
 def import_parties():
     """Handle the Import Responsible Parties item in EML Documents menu."""
@@ -1256,7 +1309,7 @@ def import_parties():
     return render_template('import_parties.html', help=help, form=form)
 
 
-@home.route('/import_parties_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_parties_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_parties_2(filename):
     """Handle the Import Responsible Parties item in EML Documents menu after a source document has been selected."""
@@ -1326,7 +1379,7 @@ def import_parties_2(filename):
     return render_template('import_parties_2.html', target_filename=filename, help=help, form=form)
 
 
-@home.route('/import_geo_coverage', methods=['GET', 'POST'])
+@home_bp.route('/import_geo_coverage', methods=['GET', 'POST'])
 @login_required
 def import_geo_coverage():
     """Handle the Import Geographic Coverage item in EML Documents menu."""
@@ -1347,7 +1400,7 @@ def import_geo_coverage():
     return render_template('import_geo_coverage.html', help=help, form=form)
 
 
-@home.route('/import_geo_coverage_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_geo_coverage_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_geo_coverage_2(filename):
     """Handle the Import Geographic Coverage item in EML Documents menu after a source document has been selected."""
@@ -1381,7 +1434,7 @@ def import_geo_coverage_2(filename):
     return render_template('import_geo_coverage_2.html', help=help, target_filename=filename, form=form)
 
 
-@home.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
+@home_bp.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
 @login_required
 def import_taxonomic_coverage():
     """Handle the Import Taxonomic Coverage item in EML Documents menu."""
@@ -1402,7 +1455,7 @@ def import_taxonomic_coverage():
     return render_template('import_taxonomic_coverage.html', help=help, form=form)
 
 
-@home.route('/import_taxonomic_coverage_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_taxonomic_coverage_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_taxonomic_coverage_2(filename):
     """Handle the Import Taxonomic Coverage item in EML Documents menu after a source document has been selected."""
@@ -1428,7 +1481,7 @@ def import_taxonomic_coverage_2(filename):
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
         eml_node = import_coverage_nodes(target_package, node_ids_to_import)
-        clear_taxonomy_imported_from_xml(eml_node, target_package)
+        clear_taxonomy_imported_from_xml_flag(eml_node, target_package)
         log_usage(actions['IMPORT_TAXONOMIC_COVERAGE'], filename)
         return redirect(url_for(PAGE_TAXONOMIC_COVERAGE_SELECT, filename=target_package))
 
@@ -1437,7 +1490,7 @@ def import_taxonomic_coverage_2(filename):
     return render_template('import_taxonomic_coverage_2.html', help=help, target_filename=filename, form=form)
 
 
-@home.route('/import_funding_awards', methods=['GET', 'POST'])
+@home_bp.route('/import_funding_awards', methods=['GET', 'POST'])
 @login_required
 def import_funding_awards():
     """Handle the Import Funding Awards item in EML Documents menu."""
@@ -1458,7 +1511,7 @@ def import_funding_awards():
     return render_template('import_funding_awards.html', help=help, form=form)
 
 
-@home.route('/import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_funding_awards_2(filename):
     """Handle the Import Funding Awards item in EML Documents menu after a source document has been selected."""
@@ -1493,7 +1546,7 @@ def import_funding_awards_2(filename):
     return render_template('import_funding_awards_2.html', help=help, target_filename=filename, form=form)
 
 
-@home.route('/import_project', methods=['GET', 'POST'])
+@home_bp.route('/import_project', methods=['GET', 'POST'])
 @login_required
 def import_project():
     """Handle the Import Project item in EML Documents menu."""
@@ -1529,7 +1582,7 @@ def get_projects_for_import(eml_node):
     return projects
 
 
-@home.route('/import_project_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_project_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_project_2(filename):
     """Handle the Import Project item in EML Documents menu after a source document has been selected."""
@@ -1556,7 +1609,7 @@ def import_project_2(filename):
     return render_template('import_project_2.html', help=help, target_filename=filename, form=form)
 
 
-@home.route('/import_related_projects', methods=['GET', 'POST'])
+@home_bp.route('/import_related_projects', methods=['GET', 'POST'])
 @login_required
 def import_related_projects():
     """Handle the Import Related Projects item in EML Documents menu."""
@@ -1577,7 +1630,7 @@ def import_related_projects():
     return render_template('import_related_projects.html', help=help, form=form)
 
 
-@home.route('/import_related_projects_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_related_projects_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_related_projects_2(filename):
     """Handle the Import Related Projects item in EML Documents menu after a source document has been selected."""
@@ -1613,64 +1666,6 @@ def display_decode_error_lines(filename):
         if "�" in line:
             errors.append((index, line))
     return errors
-
-
-def get_redirect_target_page():
-    """
-    A helper function to get the page to redirect to based on the current page in the Contents main menu.
-    Used, for example, when Cancel is clicked on an out-of-sequence page like an Import page.
-    """
-    current_page = get_current_page()
-    if current_page == 'title':
-        return PAGE_TITLE
-    elif current_page == 'creator':
-        return PAGE_CREATOR_SELECT
-    elif current_page == 'metadata_provider':
-        return PAGE_METADATA_PROVIDER_SELECT
-    elif current_page == 'associated_party':
-        return PAGE_ASSOCIATED_PARTY_SELECT
-    elif current_page == 'abstract':
-        return PAGE_ABSTRACT
-    elif current_page == 'keyword':
-        return PAGE_KEYWORD_SELECT
-    elif current_page == 'intellectual_rights':
-        return PAGE_INTELLECTUAL_RIGHTS
-    elif current_page == 'geographic_coverage':
-        return PAGE_GEOGRAPHIC_COVERAGE_SELECT
-    elif current_page == 'temporal_coverage':
-        return PAGE_TEMPORAL_COVERAGE_SELECT
-    elif current_page == 'taxonomic_coverage':
-        return PAGE_TAXONOMIC_COVERAGE_SELECT
-    elif current_page == 'maintenance':
-        return PAGE_MAINTENANCE
-    elif current_page == 'contact':
-        return PAGE_CONTACT_SELECT
-    elif current_page == 'publisher':
-        return PAGE_PUBLISHER
-    elif current_page == 'publication_info':
-        return PAGE_PUBLICATION_INFO
-    elif current_page == 'method_step':
-        return PAGE_METHOD_STEP_SELECT
-    elif current_page == 'project':
-        return PAGE_PROJECT
-    elif current_page == 'data_table':
-        return PAGE_DATA_TABLE_SELECT
-    elif current_page == 'other_entity':
-        return PAGE_OTHER_ENTITY_SELECT
-    elif current_page == 'check_metadata':
-        return PAGE_CHECK
-    elif current_page == 'export_package':
-        return PAGE_EXPORT_DATA_PACKAGE
-    elif current_page == 'data_package_id':
-        return PAGE_DATA_PACKAGE_ID
-    elif current_page == 'submit_package':
-        return PAGE_SUBMIT_TO_EDI
-    elif current_page == 'send_to_other':
-        return PAGE_SEND_TO_OTHER
-    elif current_page == 'manage_data_usage':
-        return PAGE_MANAGE_DATA_USAGE
-    else:
-        return PAGE_TITLE
 
 
 def zip_package(current_document=None, eml_node=None, include_data=True):
@@ -1791,7 +1786,7 @@ def save_as_ezeml_package_export(archive_file):
     return archive_basename, download_url, encoded_url
 
 
-@home.route('/export_package', methods=['GET', 'POST'])
+@home_bp.route('/export_package', methods=['GET', 'POST'])
 @login_required
 def export_package():
     """Handle the Export ezEML Data Package item in the Import/Export menu."""
@@ -1824,7 +1819,7 @@ def export_package():
     return render_template('export_package.html', back_url=get_back_url(), title='Export Data Package', help=help)
 
 
-@home.route('/export_package_2/<package_name>/<path:download_url>', methods=['GET', 'POST'])
+@home_bp.route('/export_package_2/<package_name>/<path:download_url>', methods=['GET', 'POST'])
 @login_required
 def export_package_2(package_name, download_url):
     """Handle the Export ezEML Data Package item in the Import/Export menu."""
@@ -1907,7 +1902,7 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             if distribution_node:
                 if keep_existing_url(distribution_node, uploads_folder, file_exists):
                     continue
-                physical_node.remove_child(distribution_node)
+                webapp.home.utils.node_utils.remove_child(distribution_node)
             if not file_exists:
                 continue
             distribution_node = new_child_node(names.DISTRIBUTION, physical_node)
@@ -1938,9 +1933,9 @@ def insert_upload_urls(current_document, eml_node, clear_existing_urls=False):
         insert_urls(uploads_url_prefix, uploads_folder, eml_node, names.OTHERENTITY)
 
 
-@home.route('/share_submit_package', methods=['GET', 'POST'])
-@home.route('/share_submit_package/<filename>', methods=['GET', 'POST'])
-@home.route('/share_submit_package/<filename>/<success>', methods=['GET', 'POST'])
+@home_bp.route('/share_submit_package', methods=['GET', 'POST'])
+@home_bp.route('/share_submit_package/<filename>', methods=['GET', 'POST'])
+@home_bp.route('/share_submit_package/<filename>/<success>', methods=['GET', 'POST'])
 @login_required
 def share_submit_package(filename=None, success=None):
     """Handle the Submit/Share Package page."""
@@ -2020,7 +2015,7 @@ def decode_from_query_string(param):
     return ast.literal_eval(unquote(param))
 
 
-@home.route('/import_xml', methods=['GET', 'POST'])
+@home_bp.route('/import_xml', methods=['GET', 'POST'])
 @login_required
 def import_xml():
     """Handle the Import EML File (XML)... item in the Import/Export menu."""
@@ -2097,8 +2092,8 @@ def import_xml():
                            form=form, help=help)
 
 
-@home.route('/import_xml_2/<package_name>/<filename>', methods=['GET', 'POST'])
-@home.route('/import_xml_2/<package_name>/<filename>/<fetched>', methods=['GET', 'POST'])
+@home_bp.route('/import_xml_2/<package_name>/<filename>', methods=['GET', 'POST'])
+@home_bp.route('/import_xml_2/<package_name>/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
 def import_xml_2(package_name, filename, fetched=False):
     """Handle the Import EML File (XML)... item in the Import/Export menu after an XML file has been selected."""
@@ -2176,7 +2171,7 @@ def get_data_size(filename):
         return 0
 
 
-@home.route('/import_xml_3/<nsmap_changed>/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>/<fetched>',
+@home_bp.route('/import_xml_3/<nsmap_changed>/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>/<fetched>',
             methods=['GET', 'POST'])
 @login_required
 def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_errs=None,
@@ -2328,7 +2323,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
                            mb=mb, complex_xml=complex_xml, nsmap_changed=nsmap_changed, form=form, help=help)
 
 
-@home.route('/import_xml_4/<filename>/<fetched>', methods=['GET', 'POST'])
+@home_bp.route('/import_xml_4/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
 def import_xml_4(filename=None, fetched=False):
     """ Handle XML import/fetch in case with no XML parsing errors. """
@@ -2386,7 +2381,7 @@ def import_xml_4(filename=None, fetched=False):
     return render_template('import_xml_4.html', mb=mb, complex_xml=complex_xml, form=form, help=help)
 
 
-@home.route('/fetch_xml/', methods=['GET', 'POST'])
+@home_bp.route('/fetch_xml/', methods=['GET', 'POST'])
 @login_required
 def fetch_xml():
     """Handle the Fetch a Package from EDI... item in the Import/Export menu."""
@@ -2428,7 +2423,7 @@ def fetch_xml():
     return render_template('fetch_xml.html', package_links=package_links, form=form, help=help)
 
 
-@home.route('/fetch_xml_2/<scope>', methods=['GET', 'POST'])
+@home_bp.route('/fetch_xml_2/<scope>', methods=['GET', 'POST'])
 @login_required
 def fetch_xml_2(scope=''):
     """Handle the Fetch a Package from EDI... item in the Import/Export menu after a scope has been selected."""
@@ -2465,7 +2460,7 @@ def fetch_xml_2(scope=''):
     return render_template('fetch_xml_2.html', package_links=package_links, form=form, help=help)
 
 
-@home.route('/fetch_xml_2a/<scope_identifier>', methods=['GET', 'POST'])
+@home_bp.route('/fetch_xml_2a/<scope_identifier>', methods=['GET', 'POST'])
 @login_required
 def fetch_xml_2a(scope_identifier=''):
     """
@@ -2510,7 +2505,7 @@ def fetch_xml_2a(scope_identifier=''):
         return render_template('fetch_xml_2a.html', scope_identifier=scope_identifier, package_links=package_links, form=form, help=help)
 
 
-@home.route('/fetch_xml_3/<scope_identifier>/<revision>', methods=['GET', 'POST'])
+@home_bp.route('/fetch_xml_3/<scope_identifier>/<revision>', methods=['GET', 'POST'])
 @login_required
 def fetch_xml_3(scope_identifier='', revision=''):
     """
@@ -2610,7 +2605,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
     return render_template('fetch_xml_3.html', package_links=package_links, form=form, help=help)
 
 
-@home.route('/import_package', methods=['GET', 'POST'])
+@home_bp.route('/import_package', methods=['GET', 'POST'])
 @login_required
 def import_package():
     """Handle the Import ezEML Data Package... item from the Import/Export menu."""
@@ -2681,7 +2676,7 @@ def import_package():
                            packages=package_list, form=form, help=help)
 
 
-@home.route('/import_package_2/<package_name>', methods=['GET', 'POST'])
+@home_bp.route('/import_package_2/<package_name>', methods=['GET', 'POST'])
 @login_required
 def import_package_2(package_name):
     """Handle the Import ezEML Data Package... item from the Import/Export menu after a file has been selected
@@ -2719,7 +2714,7 @@ def import_package_2(package_name):
                            package_name=package_name, form=form, help=help)
 
 
-@home.route('/get_data_file/', methods=['GET', 'POST'])
+@home_bp.route('/get_data_file/', methods=['GET', 'POST'])
 @login_required
 def get_data_file():
     """
@@ -2748,7 +2743,7 @@ def get_data_file():
         return render_template('get_data_file.html', form=form)
 
 
-@home.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
+@home_bp.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
 @login_required
 def get_data_file_2(user):
     """
@@ -2793,7 +2788,7 @@ def get_data_file_2(user):
         return render_template('get_data_file_2.html', form=form)
 
 
-@home.route('/get_eml_file/', methods=['GET', 'POST'])
+@home_bp.route('/get_eml_file/', methods=['GET', 'POST'])
 @login_required
 def get_eml_file():
     """
@@ -2822,7 +2817,7 @@ def get_eml_file():
         return render_template('get_eml_file.html', form=form)
 
 
-@home.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
+@home_bp.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
 @login_required
 def get_eml_file_2(user):
     """
@@ -2878,10 +2873,31 @@ def get_eml_file_2(user):
         return render_template('get_eml_file_2.html', form=form)
 
 
-@home.route('/reupload_other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
+@home_bp.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
+@login_required
+def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
+    """ TODO: comment needed """
+
+    form = LoadDataForm()
+    document = current_user.get_filename()
+
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if BTN_CONTINUE in request.form:
+            return redirect(url_for(PAGE_REUPLOAD, filename=document, dt_node_id=dt_node_id, saved_filename=saved_filename, name_chg_ok=True), code=307) # 307 keeps it a POST
+
+        help = get_helps(['data_table_reupload_full'])
+        return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
+                               form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
+
+
+@home_bp.route('/reupload_other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_other_entity(filename, node_id):
-    """ TODO: comment needed blah """
+    """ TODO: comment needed """
 
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
@@ -2909,7 +2925,7 @@ def reupload_other_entity(filename, node_id):
                            form=form, name=other_entity_name, help=help)
 
 
-@home.route('/load_other_entity/<node_id>', methods=['GET', 'POST'])
+@home_bp.route('/load_other_entity/<node_id>', methods=['GET', 'POST'])
 @login_required
 def load_entity(node_id=None):
     """ TODO: comment needed """
@@ -2976,7 +2992,7 @@ def close_document():
     set_current_page('')
 
 
-@home.route('/close', methods=['GET', 'POST'])
+@home_bp.route('/close', methods=['GET', 'POST'])
 @login_required
 def close():
     current_document = current_user.get_filename()
@@ -2999,7 +3015,7 @@ def remove_from_uploads(filename):
 
     filelist = glob.glob(f'{uploaded_file}*')  # We want to get the eval file, if any, as well
     for f in filelist:
-        logger.info(f'Removing file {f}')
+        log_info(f'Removing file {f}')
         utils.remove(f)
 
 
@@ -3106,18 +3122,26 @@ def select_post(filename=None, form=None, form_dict=None,
                 vals = []
                 for key in form_dict:
                     vals.append(form_dict[key][0])  # value is the first list element
-                logger.info(f'**** select_post: new_page is None')
-                logger.info(f'**** this_page: {this_page}')
-                logger.info(f'**** vals in form_dict: {vals}')
+                log_info(f'**** select_post: new_page is None')
+                log_info(f'**** this_page: {this_page}')
+                log_info(f'**** vals in form_dict: {vals}')
                 new_page = PAGE_INDEX  # so we don't raise a general error exception
             return url_for(new_page, filename=filename, node_id=node_id)
 
 
 def process_up_button(filename:str=None, node_id:str=None):
+    def move_up(parent_node: Node, child_node: Node):
+        if parent_node and child_node:
+            parent_node.shift(child_node, Shift.LEFT)
+
     process_updown_button(filename, node_id, move_up)
 
 
 def process_down_button(filename:str=None, node_id:str=None):
+    def move_down(parent_node: Node, child_node: Node):
+        if parent_node and child_node:
+            parent_node.shift(child_node, Shift.RIGHT)
+
     process_updown_button(filename, node_id, move_down)
 
 
@@ -3177,7 +3201,28 @@ def get_current_page():
 Code below is no longer used. Keeping it around in case we change our minds...
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-@home.route('/import_temporal_coverage', methods=['GET', 'POST'])
+@home_bp.route('/slow_poke')
+def slow_poke():
+    """
+    This is a dummy page that was used to test multi-threading. It is no longer used.
+    """
+    import time
+    from datetime import datetime
+    entry = datetime.now()
+    entry_time = entry.strftime("%H:%M:%S")
+    time.sleep(60)
+    user_name = current_user.get_username()
+    current_packageid = current_user.get_filename()
+    pid = os.getpid()
+    metapype_store_size = len(Node.store)
+    leaving = datetime.now()
+    leaving_time = leaving.strftime("%H:%M:%S")
+
+    return render_template('slow_poke.html', user=user_name, package=current_packageid, pid=pid,
+                           store_size=metapype_store_size, entry=entry_time, leaving=leaving_time)
+
+
+@home_bp.route('/import_temporal_coverage', methods=['GET', 'POST'])
 @login_required
 def import_temporal_coverage():
     """Handle the Import Temporal Coverage item in EML Documents menu. Not currently used."""
@@ -3202,7 +3247,7 @@ def import_temporal_coverage():
     return render_template('import_temporal_coverage.html', form=form)
 
 
-@home.route('/import_temporal_coverage_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_temporal_coverage_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_temporal_coverage_2(filename):
     """Handle the Import Temporal Coverage item in EML Documents menu after a source document has been selected.
@@ -3238,9 +3283,9 @@ def import_temporal_coverage_2(filename):
                            form=form)
 
 
-@home.route('/submit_package', methods=['GET', 'POST'])
-@home.route('/submit_package/<filename>', methods=['GET', 'POST'])
-@home.route('/submit_package/<filename>/<success>', methods=['GET', 'POST'])
+@home_bp.route('/submit_package', methods=['GET', 'POST'])
+@home_bp.route('/submit_package/<filename>', methods=['GET', 'POST'])
+@home_bp.route('/submit_package/<filename>/<success>', methods=['GET', 'POST'])
 @login_required
 def submit_package(filename=None, success=None):
     """Handle the former version of Submit to EDI page. Not currently used."""
@@ -3320,8 +3365,8 @@ def submit_package(filename=None, success=None):
                            form=form, help=help, success=success)
 
 
-@home.route('/send_to_other/<filename>/', methods=['GET', 'POST'])
-@home.route('/send_to_other/<filename>/<mailto>/', methods=['GET', 'POST'])
+@home_bp.route('/send_to_other/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/send_to_other/<filename>/<mailto>/', methods=['GET', 'POST'])
 @login_required
 def send_to_other(filename=None, mailto=None):
 
@@ -3429,31 +3474,29 @@ def send_to_other(filename=None, mailto=None):
                                form=form, help=help)
 
 
-@home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
-@login_required
-def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
-    raise DeprecatedCodeError('reupload_data_with_col_names_changed()')
-
-    form = LoadDataForm()
-    document = current_user.get_filename()
-
-    if request.method == 'POST':
-
-        if BTN_CANCEL in request.form:
-            return redirect(get_back_url())
-
-        if BTN_CONTINUE in request.form:
-            return redirect(url_for(PAGE_REUPLOAD, filename=document, dt_node_id=dt_node_id, saved_filename=saved_filename, name_chg_ok=True), code=307) # 307 keeps it a POST
-
-        help = get_helps(['data_table_reupload_full'])
-        return render_template('reupload_data_with_col_names_changed.html', title='Re-upload Data Table',
-                               form=form, saved_filename=saved_filename, dt_node_id=dt_node_id, help=help)
-
-
-@home.route('/load_metadata', methods=['GET', 'POST'])
+@home_bp.route('/load_metadata', methods=['GET', 'POST'])
 @login_required
 def load_metadata():
     raise DeprecatedCodeError('load_metadata()')
+
+    def allowed_metadata_file(filename):
+        """Only certain file types are allowed to be uploaded as metadata files."""
+        ALLOWED_EXTENSIONS = set(['xml'])
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    def read_xml(xml: str = None):
+        eml_node = None
+        if xml:
+            try:
+                eml_node = mp_io.from_xml(xml)
+            except Exception as e:
+                logger.error(e)
+                raise Exception(f"Error parsing XML: {e}")
+        else:
+            raise Exception("No XML string provided")
+
+        return eml_node
 
     form = LoadMetadataForm()
     document = current_user.get_filename()
@@ -3505,9 +3548,28 @@ def load_metadata():
                            form=form)
 
 
+# def clean_zip_temp_files(days, user_dir, logger, logonly):
+#     # Remove zip_temp files that are more than 'days' days old
+#     today = datetime.today()
+#     zip_temp_dir = os.path.join(user_dir, 'zip_temp')
+#     if os.path.exists(zip_temp_dir) and os.path.isdir(zip_temp_dir):
+#         for file in os.listdir(zip_temp_dir):
+#             filepath = os.path.join(zip_temp_dir, file)
+#             t = os.stat(filepath).st_mtime
+#             filetime = today - datetime.fromtimestamp(t)
+#             if filetime.days >= days:
+#                 try:
+#                     logger.info(f'Removing file {filepath}')
+#                     if not logonly:
+#                         if not os.path.isdir(filepath):
+#                             os.remove(filepath)
+#                         else:
+#                             rmtree(filepath, ignore_errors=True)
+#                 except FileNotFoundError:
+#                     pass
 
 
-# @home.before_app_first_request
+# @home_bp.before_app_first_request
 # def cleanup_zip_temp_folders():
 #     if not Config.GC_CLEAN_ZIP_TEMPS_ON_STARTUP:
 #         return
@@ -3526,7 +3588,7 @@ def load_metadata():
 #             clean_zip_temp_files(days, user_dir, logger, logonly)
 
 
-# @home.before_app_first_request
+# @home_bp.before_app_first_request
 # def fixup_upload_management():
 #     return
 #     USER_DATA_DIR = 'user-data'
@@ -3606,7 +3668,7 @@ def load_metadata():
 #         os.remove(file)
 
 
-# @home.route('/download', methods=['GET', 'POST'])
+# @home_bp.route('/download', methods=['GET', 'POST'])
 # @login_required
 # def download():
 #     form = DownloadEMLForm()

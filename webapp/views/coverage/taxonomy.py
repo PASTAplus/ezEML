@@ -1,3 +1,9 @@
+"""
+Helper functions for accessing taxonomic authorities.
+
+There is a class for each supported taxonomic authority, implementing the TaxonomySource interface.
+"""
+
 import csv
 import json
 from lxml import etree
@@ -19,6 +25,7 @@ class TaxonomySource:
 
     def __init__(self, source):
         self.source = source
+        self._timeout = 5
 
     @property
     def name(self):
@@ -54,12 +61,16 @@ class TaxonomySource:
 
 
 class ITISTaxonomy(TaxonomySource):
+    """
+    The ITIS taxonomy authority's implementation of the TaxonomySource interface.
+    """
 
     def __init__(self):
         super().__init__(TaxonomySourceEnum.ITIS)
 
     def search_by_sciname(self, name):
-        r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/searchByScientificName?srchKey={name}')
+        r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/searchByScientificName?srchKey={name}',
+                         timeout=self._timeout)
         return json.loads(r.text)
 
     def search_by_combined_name(self, name):
@@ -70,7 +81,8 @@ class ITISTaxonomy(TaxonomySource):
         return None
 
     def get_hierarchy_up_from_tsn(self, tsn):
-        r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/getHierarchyUpFromTSN?tsn={tsn}')
+        r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/getHierarchyUpFromTSN?tsn={tsn}',
+                         timeout=self._timeout)
         return json.loads(r.text)
 
     def fill_hierarchy(self, name, levels=None):
@@ -95,7 +107,8 @@ class ITISTaxonomy(TaxonomySource):
         return self.prune_hierarchy(hierarchy)
 
     def get_common_name_by_id(self, tsn):
-        r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/getCommonNamesFromTSN?tsn={tsn}')
+        r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/getCommonNamesFromTSN?tsn={tsn}',
+                         timeout=self._timeout)
         d = json.loads(r.text)
         for rec in d['commonNames']:
             if rec and rec.get('language') == 'English':
@@ -104,12 +117,16 @@ class ITISTaxonomy(TaxonomySource):
 
 
 class WORMSTaxonomy(TaxonomySource):
+    """
+    The WORMS taxonomy authority's implementation of the TaxonomySource interface.
+    """
 
     def __init__(self):
         super().__init__(TaxonomySourceEnum.WORMS)
 
     def get_aphia_id_by_name(self, name):
-        r = requests.get(f'http://marinespecies.org/rest/AphiaIDByName/{name}?marine_only=false')
+        r = requests.get(f'http://marinespecies.org/rest/AphiaIDByName/{name}?marine_only=false',
+                         timeout=self._timeout)
         if r and r.text:
             return json.loads(r.text)
         else:
@@ -131,14 +148,16 @@ class WORMSTaxonomy(TaxonomySource):
     #     print(f'id={id}')
         if not id:
             return None
-        r = requests.get(f'http://marinespecies.org/rest/AphiaClassificationByAphiaID/{id}')
+        r = requests.get(f'http://marinespecies.org/rest/AphiaClassificationByAphiaID/{id}',
+                         timeout=self._timeout)
         if r:
             d = json.loads(r.text)
             self.parse(d, hierarchy)
         return self.prune_hierarchy(hierarchy)
 
     def get_common_name_by_id(self, id):
-        r = requests.get(f'http://marinespecies.org/rest/AphiaVernacularsByAphiaID/{id}')
+        r = requests.get(f'http://marinespecies.org/rest/AphiaVernacularsByAphiaID/{id}',
+                         timeout=self._timeout)
         if r and r.text:
             d = json.loads(r.text)
             for rec in d:
@@ -148,6 +167,9 @@ class WORMSTaxonomy(TaxonomySource):
 
 
 class NCBITaxonomy(TaxonomySource):
+    """
+    The NCBI taxonomy authority's implementation of the TaxonomySource interface.
+    """
 
     # FIXME - get api_key from config file
     def __init__(self, api_key='c75b4a9d0b39da79a3f180e82d18b8246f08'):
@@ -156,7 +178,8 @@ class NCBITaxonomy(TaxonomySource):
 
     def search_by_sciname(self, name):
         r = requests.get(
-            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&api_key={self.api_key}&term={name}')
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&api_key={self.api_key}&term={name}',
+                         timeout=self._timeout)
         return r.text
 
     def get_taxon_id(self, name):
@@ -171,12 +194,14 @@ class NCBITaxonomy(TaxonomySource):
 
     def fetch_by_taxon_id(self, id):
         r = requests.get(
-            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}')
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}',
+                         timeout=self._timeout)
         return r.text
 
     def get_summary_by_taxon_id(self, id):
         r = requests.get(
-            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}')
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}',
+                         timeout=self._timeout)
         return r.text
 
     def fill_hierarchy(self, name, levels=None):
@@ -207,7 +232,8 @@ class NCBITaxonomy(TaxonomySource):
 
     def get_common_name_by_id(self, id):
         r = requests.get(
-            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}')
+            f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}',
+                         timeout=self._timeout)
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         tree = fromstring(r.text.encode('utf-8'), parser=parser)
         common_name = tree.xpath("//DocSum/Item[@Name='CommonName']")[0].text
@@ -218,6 +244,9 @@ class NCBITaxonomy(TaxonomySource):
 
 
 def load_taxonomic_coverage_csv_file(csv_file, delimiter, quotechar):
+    """
+    Load a taxonomic coverage CSV file into a list of tuples: (taxon_scientific_name, general_taxonomic_coverage, taxon_rank)
+    """
     taxa = []
     with open(csv_file, 'r', encoding='utf-8-sig') as f:
         reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
@@ -232,6 +261,12 @@ def load_taxonomic_coverage_csv_file(csv_file, delimiter, quotechar):
 
 
 def process_taxonomic_coverage_file(taxa, authority):
+    """
+    Process a list of tuples: (taxon_scientific_name, general_taxonomic_coverage, taxon_rank) to fill in the taxonomic
+    hierarchy for each taxon.  If a taxon rank is provided, the taxonomic authority is not queried for that taxon.
+
+    Returns a list of hierarchies, a list of errors, and a list of general coverages.
+    """
     row = 0
     hierarchies = []
     errors = []
@@ -260,7 +295,7 @@ def process_taxonomic_coverage_file(taxa, authority):
             hierarchy = coverage.fill_taxonomic_coverage(taxon, source_type, '', row, True)
             hierarchies.append(hierarchy)
         except TaxonNotFound as e:
-            hierarchies.append(None) # We need a placeholder for the hierarchy so subsequent hiearchies and general_coverages are in sync.
+            hierarchies.append(None) # We need a placeholder for the hierarchy so subsequent hierarchies and general_coverages are in sync.
             errors.append(e.message)
     return hierarchies, general_coverages, errors
 

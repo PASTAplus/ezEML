@@ -11,7 +11,7 @@ from flask import (
     url_for
 )
 
-from webapp.home.metapype_client import load_eml
+from webapp.home.utils.load_and_save import load_eml
 import webapp.auth.user_data as user_data
 from webapp.config import Config
 from webapp.pages import *

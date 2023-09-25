@@ -1,17 +1,5 @@
-  #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""":Mod: forms.py
-
-:Synopsis:
-
-:Author:
-    servilla
-    costa
-    ide
-
-:Created:
-    7/20/18
+"""
+Forms used in the home blueprint.
 """
 
 import hashlib

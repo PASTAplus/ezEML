@@ -13,7 +13,6 @@
 :Created:
     3/6/18
 """
-import daiquiri
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 import requests
@@ -25,6 +24,7 @@ from webapp.auth.pasta_token import PastaToken
 from webapp.auth.user import User
 from webapp.auth.user_data import get_active_document, initialize_user_data
 from webapp.config import Config
+from webapp.home.home_utils import log_error, log_info
 from webapp.home.log_usage import (
     actions,
     log_usage,
@@ -33,7 +33,6 @@ from webapp.home.views import get_helps
 from webapp.views.collaborations.collaborations import close_package
 
 
-logger = daiquiri.getLogger('views: ' + __name__)
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
 
 

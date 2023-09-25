@@ -11,7 +11,6 @@ This module contains functions for importing/parsing EML XML when executing "Imp
 import os
 import shutil
 
-import daiquiri
 from flask_login import current_user
 from urllib.parse import unquote
 
@@ -22,23 +21,9 @@ from metapype.eml.validation_errors import ValidationError
 
 import webapp.auth.user_data as user_data
 
-from webapp.home.metapype_client import list_files_in_dir, fixup_eml_namespaces_on_import
-
-logger = daiquiri.getLogger('import_xml: ' + __name__)
-
-
-def log_error(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.error(msg, USER=current_user.get_username())
-    else:
-        logger.error(msg)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
+from webapp.home.utils.load_and_save import fixup_eml_namespaces_on_import
+from webapp.home.utils.lists import list_files_in_dir
+from webapp.home.home_utils import log_error, log_info
 
 
 def extract_eml_errors(errs):

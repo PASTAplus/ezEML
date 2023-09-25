@@ -1,3 +1,7 @@
+"""
+Custom exceptions for ezEML.
+"""
+
 class ezEMLError(Exception):
     """Base class for exceptions in this module."""
 

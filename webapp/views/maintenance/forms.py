@@ -1,3 +1,7 @@
+"""
+WTForms for the Maintenance view.
+"""
+
 from wtforms import (
     StringField, SelectField, HiddenField, validators
 )

@@ -46,6 +46,8 @@ from typing import List
 import urllib.parse
 import warnings
 
+from webapp.home.home_utils import log_error, log_info
+import webapp.home.utils.load_and_save
 from webapp.utils import path_exists, path_isdir, path_join
 
 import webapp.auth.user_data as user_data
@@ -56,26 +58,12 @@ from metapype.eml import names
 from webapp.exceptions import ezEMLXMLError
 from metapype.model import metapype_io
 from metapype.model.node import Node
-import webapp.home.metapype_client as metapype_client
 
 
 data_time_format_strings = None
 date_time_format_regex = None
 DATE_TIME_FORMAT_STRINGS_FILENAME = 'webapp/static/dateTimeFormatString_list.csv'
 DATE_TIME_FORMAT_REGEX_FILENAME = 'webapp/static/dateTimeFormatString_regex.csv'
-
-from flask_login import (
-    current_user
-)
-import daiquiri
-logger = daiquiri.getLogger('check_data_table_contents: ' + __name__)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
 
 
 def load_eml_file(eml_file_url:str):
@@ -99,7 +87,7 @@ def load_eml_file(eml_file_url:str):
                                     collapse=True,
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node)
-    eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
+    eml_node, nsmap_changed = webapp.home.utils.load_and_save.fixup_eml_namespaces_on_import(eml_node)
     return eml_node, nsmap_changed
 
 
@@ -168,7 +156,6 @@ def get_attribute_name(attribute_node):
     Get the name of an attribute (column) from an attribute node. If attribute_node doesn't have an
      attributeName child, raise ValueError.
      """
-
     attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:
         return attribute_name_node.content
@@ -176,7 +163,7 @@ def get_attribute_name(attribute_node):
 
 
 def normalize_column_name(name):
-    """ Normalize a name: strip whitespace and convert to lowercase. """
+    """ Normalize a name: i.e., strip whitespace and convert to lowercase. """
     return name.strip().lower()
 
 
@@ -201,37 +188,45 @@ def get_attribute_node(data_table_node, attribute_name):
 
 def get_variable_type(attribute_node):
     """
-    Get the variable type of an attribute (column) from an attribute node. Variable type here means metapype_client.VariableType.
-     If the variable type is not found in the
+    Get the variable type of an attribute (column) from an attribute node. Variable type here means
+        home_utils.VariableType.
+    The attribute node is assumed to have the required descendants.
+        E.g., it assumed to have a measurementScale child, which in turn is assumed to have a nominal, ordinal, ratio, or
+        interval child. Nominal and ordinal are assumed to have a nonNumericDomain child, etc.
+    If the attribute node has the required descendants, the VariableType can be inferred. Otherwise, raise ValueError.
     """
     measurement_scale_node = attribute_node.find_child(names.MEASUREMENTSCALE)
     if measurement_scale_node:
 
+        # See if it's nominal or ordinal, and if so, whether it's categorical or text.
         nominal_or_ordinal_node = measurement_scale_node.find_child(names.NOMINAL)
         if not nominal_or_ordinal_node:
             nominal_or_ordinal_node = measurement_scale_node.find_child(names.ORDINAL)
         if nominal_or_ordinal_node:
             if nominal_or_ordinal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.ENUMERATEDDOMAIN]):
-                return metapype_client.VariableType.CATEGORICAL.name
+                return webapp.home.home_utils.VariableType.CATEGORICAL.name
             if nominal_or_ordinal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.TEXTDOMAIN]):
-                return metapype_client.VariableType.TEXT.name
+                return webapp.home.home_utils.VariableType.TEXT.name
 
+        # See if it's ratio or interval, and if so, it's numerical.
         ratio_or_interval_node = measurement_scale_node.find_child(names.RATIO)
         if not ratio_or_interval_node:
             ratio_or_interval_node = measurement_scale_node.find_child(names.INTERVAL)
         if ratio_or_interval_node:
-            return metapype_client.VariableType.NUMERICAL.name
+            return webapp.home.home_utils.VariableType.NUMERICAL.name
 
+        # See if it's datetime.
         datetime_node = measurement_scale_node.find_child(names.DATETIME)
         if datetime_node:
-            return metapype_client.VariableType.DATETIME.name
+            return webapp.home.home_utils.VariableType.DATETIME.name
 
     raise ValueError(f'Variable type for {get_attribute_name(attribute_node)} could not be inferred from the EML')
 
 
 def get_data_table_columns(data_table_node):
     """
-    Return a list of columns in a data table, where each column is represented as a dict with keys 'name' and 'type'.
+    Return a list of columns in a data table, where each column is represented as a dict with keys 'name' and 'type' to
+    facilitate JSON serialization.
     """
     columns = []
     attribute_nodes = []
@@ -245,7 +240,7 @@ def get_data_table_columns(data_table_node):
 
 def create_result_json(eml_url, csv_url, columns_checked, errors, max_errs_per_column):
     """
-    Return JSON representing the results of a check.
+    Return JSON representing the results of a check. errors is a list of error JSONs (see create_error_json).
     """
     if not max_errs_per_column:
         max_errs_per_column = '""'
@@ -280,7 +275,8 @@ def create_error_json(data_table_name, column_name, row_index, error_type, expec
 
 def get_date_time_format_specification(data_table_node, attribute_name):
     """
-    Return the datetime format string, if any, found in the EML for a given attribute (column) name.
+    Return the datetime format string, if any, found in the EML for a given attribute (column) name. If no format
+    string is found, return None.
 
     If an attribute with the given name is not found in the EML, raise ValueError.
     """
@@ -295,7 +291,8 @@ def get_date_time_format_specification(data_table_node, attribute_name):
 
 def get_missing_value_codes(data_table_node, column_name):
     """
-    Return a list of missing value codes for a given attribute (column) name.
+    Return a list of missing value codes for a given attribute (column) name. If no missing value codes are found,
+    return an empty list.
     """
     attribute_node = get_attribute_node(data_table_node, column_name)
     missing_value_codes = []
@@ -309,7 +306,8 @@ def get_missing_value_codes(data_table_node, column_name):
 
 def get_categorical_codes(attribute_node):
     """
-    Return a list of categorical codes for a given attribute (column) name.
+    Return a list of categorical codes for a given attribute (column) name. If no categorical codes are found, return
+    an empty list.
     """
     codes = []
     code_nodes = []
@@ -632,21 +630,8 @@ def load_date_time_format_files(strings_filename=DATE_TIME_FORMAT_STRINGS_FILENA
                 date_time_format_regex[format] = regex
 
 
-# def get_regex_for_format(format):
-#     load_date_time_format_files()
-#     return date_time_format_regex.get(format, None)
-
-
-# def load_xml(filename):
-#     with open(f"{filename}", "r") as f:
-#         xml = "".join(f.readlines())
-#     eml_node = metapype_io.from_xml(xml)
-#     assert isinstance(eml_node, Node)
-#     eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
-#     return eml_node, nsmap_changed
-
-
 def get_data_table_name(data_table_node):
+    """ Return the name of the data table according to the metadata. """
     data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
     if data_table_name_node:
         return data_table_name_node.content.strip()
@@ -654,7 +639,8 @@ def get_data_table_name(data_table_node):
 
 def get_data_table_filename(data_table_node, encoded_for_url=False):
     """
-    Get the filename of the data table. If encoded_for_url is True, then the filename will be encoded for use in a URL.
+    Get the filename of the data table. If encoded_for_url is True, then the returned filename will be encoded for use
+    in a URL.
     """
     data_table_object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
     if data_table_object_name_node:
@@ -681,6 +667,7 @@ def check_date_time_attribute(attribute_node):
     """
 
     def check_date_time_format_specification(specification):
+        """ Check if a datetime specification has a valid format according to our list of supported formats. """
         load_date_time_format_files()
         return specification in data_time_format_strings.keys()
 
@@ -715,33 +702,6 @@ def format_date_time_formats_list():
     output += '</table>'
     output += '</span>'
     return output
-
-
-EML_FILES_PATH = '/Users/jide/git/umbra/eml_files'
-def get_existing_eml_files():
-    # For use while developing and debugging
-    import glob
-    import os
-    filelist = glob.glob(f'{EML_FILES_PATH}/*.xml')
-    return sorted([os.path.basename(x) for x in filelist])
-
-
-def clear_eval_files():
-    # For use while developing and debugging
-    uploads_folder = f'/Users/jide/git/ezEML/user-data/EDI-1a438b985e1824a5aa709daa1b6e12d2/uploads'
-    subdirs = []
-    for file in os.listdir(uploads_folder):
-        filepath = path_join(uploads_folder, file)
-        if path_isdir(filepath):
-            subdirs.append(filepath)
-    for subdir in subdirs:
-        filelist = glob.glob(f'{subdir}/*_eval_*')
-        for filepath in filelist:
-            os.remove(filepath)
-    for subdir in subdirs:
-        filelist = glob.glob(f'{subdir}/*_eval')
-        for filepath in filelist:
-            os.remove(filepath)
 
 
 def generate_error_info_for_webpage(data_table_node, errors):
@@ -850,9 +810,8 @@ def set_check_data_tables_badge_status(document_name, eml_node):
         if this_status == 'red' or this_status == 'black':
             status = 'red'
             break
-        if this_status == 'yellow':
-            if status == 'green':
-                status = 'yellow'
+        if this_status == 'yellow' and status == 'green':
+            status = 'yellow'
     session['check_data_tables_status'] = status
     return status
 
@@ -867,7 +826,8 @@ def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
     if not csv_file_exists(document_name, csv_file_name):
         return 'black'
     # Returns green, yellow, red, or black.
-    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
+    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
+        get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     if path_exists(archive_filepath):
         return "red"
     if path_exists(ok_filepath):
@@ -878,7 +838,8 @@ def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
 def reset_data_file_eval_status(document_name, csv_file_name):
     """ Reset the data table to unevaluated state, for example because a Reupload has been done. """
 
-    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, '')
+    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
+        get_csv_errors_archive_filepath(document_name, csv_file_name, '')
 
     filelist = glob.glob(wildcard_filepath)
     for filepath in filelist:
@@ -893,7 +854,8 @@ def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
     """ Save the results of the data table evaluation. """
 
     reset_data_file_eval_status(document_name, csv_file_name)
-    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
+    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
+        get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     errs_obj = json.loads(errors)
     if not errs_obj['errors']:
         archive_filepath = ok_filepath
@@ -904,7 +866,8 @@ def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
 def get_data_file_eval(document_name, csv_file_name, metadata_hash):
     """ Return the data table evaluation results as saved in an eval file, or None if no eval file exists. """
 
-    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
+    archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
+        get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     if not path_exists(archive_filepath):
         archive_filepath = ok_filepath
         if not path_exists(archive_filepath):
@@ -1052,3 +1015,30 @@ def collapse_error_info_for_webpage(errors):
     for column_errors in errors:
         collapse_error_info_for_column(column_errors)
     return errors
+
+
+EML_FILES_PATH = '/Users/jide/git/umbra/eml_files'
+def get_existing_eml_files():
+    # For use while developing and debugging
+    import glob
+    import os
+    filelist = glob.glob(f'{EML_FILES_PATH}/*.xml')
+    return sorted([os.path.basename(x) for x in filelist])
+
+
+def clear_eval_files():
+    # For use while developing and debugging
+    uploads_folder = f'/Users/jide/git/ezEML/user-data/EDI-1a438b985e1824a5aa709daa1b6e12d2/uploads'
+    subdirs = []
+    for file in os.listdir(uploads_folder):
+        filepath = path_join(uploads_folder, file)
+        if path_isdir(filepath):
+            subdirs.append(filepath)
+    for subdir in subdirs:
+        filelist = glob.glob(f'{subdir}/*_eval_*')
+        for filepath in filelist:
+            os.remove(filepath)
+    for subdir in subdirs:
+        filelist = glob.glob(f'{subdir}/*_eval')
+        for filepath in filelist:
+            os.remove(filepath)

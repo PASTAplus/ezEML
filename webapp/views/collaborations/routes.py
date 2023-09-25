@@ -1,4 +1,3 @@
-import daiquiri
 import os
 import shutil
 from urllib.parse import quote, unquote, urlparse
@@ -16,12 +15,9 @@ import webapp.auth.user_data as user_data
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.metapype_client import (
-    load_eml,
-    is_hidden_button,
-    handle_hidden_buttons,
-    get_check_metadata_status
-)
+from webapp.home.home_utils import log_error, log_info, get_check_metadata_status
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml
 from webapp.buttons import *
 from webapp.pages import *
 from metapype.eml import names
@@ -62,7 +58,6 @@ from webapp.views.collaborations.forms import (
     InviteCollaboratorForm,
     AcceptInvitationForm)
 
-logger = daiquiri.getLogger('collab: ' + __name__)
 collab_bp = Blueprint('collab', __name__, template_folder='templates')
 
 
@@ -257,7 +252,7 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except Exception as e:
         flash('An error occurred while enabling EDI curation for this package.', 'error')
-        logger.error(e)
+        log_error(e)
 
     return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))
 
@@ -388,7 +383,7 @@ def invite_collaborator(filename=None):
                 invitation_code = collaborations.create_invitation(filename, user_name, user_email,
                                                                    collaborator_name, email_address)
             except Exception as e:
-                logger.error(f'create_invitation: {e}')
+                log_error(f'create_invitation: {e}')
                 raise
 
             try:

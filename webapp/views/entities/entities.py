@@ -5,6 +5,7 @@ from flask_login import (
     login_required
 )
 
+import webapp.home.utils.node_utils
 from webapp.home.views import (
     process_up_button, process_down_button, set_current_page,
     compare_begin_end_dates
@@ -45,17 +46,14 @@ from webapp.home.forms import (
     form_md5, is_dirty_form
 )
 
-from webapp.home.metapype_client import (
-    load_eml, save_both_formats, add_child, remove_child,
-    create_method_step, list_method_steps,
-    list_geographic_coverages, create_geographic_coverage,
-    create_temporal_coverage, list_temporal_coverages,
-    create_taxonomic_coverage, list_taxonomic_coverages,
-    entity_name_from_data_table, UP_ARROW, DOWN_ARROW,
-    list_access_rules, create_access_rule,
-    list_other_entities, create_other_entity,
-    create_access, handle_hidden_buttons, check_val_for_hidden_buttons
-)
+from webapp.views.data_tables.dt import entity_name_from_data_table
+from webapp.home.utils.node_utils import remove_child, add_child
+from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.lists import list_other_entities, list_geographic_coverages, list_temporal_coverages, \
+    list_taxonomic_coverages, UP_ARROW, DOWN_ARROW, list_method_steps, list_access_rules
+from webapp.home.utils.create_nodes import create_access, create_other_entity, create_geographic_coverage, \
+    create_temporal_coverage, create_taxonomic_coverage, create_method_step, create_access_rule
 
 from metapype.eml import names
 from metapype.model.node import Node
@@ -181,17 +179,17 @@ def other_entity(filename=None, node_id=None):
                                 if physical_node:
                                     distribution_node = dt_node.find_child(names.DISTRIBUTION)
                                     if distribution_node:
-                                        old_distribution_node.remove_child(access_node)
+                                        webapp.home.utils.node_utils.remove_child(access_node)
                                         add_child(distribution_node, access_node)
 
                     methods_node = old_dt_node.find_child(names.METHODS)
                     if methods_node:
-                        old_dt_node.remove_child(methods_node)
+                        webapp.home.utils.node_utils.remove_child(methods_node)
                         add_child(dt_node, methods_node)
 
                     coverage_node = old_dt_node.find_child(names.COVERAGE)
                     if coverage_node:
-                        old_dt_node.remove_child(coverage_node)
+                        webapp.home.utils.node_utils.remove_child(coverage_node)
                         add_child(dt_node, coverage_node)
 
                     dataset_parent_node = old_dt_node.parent

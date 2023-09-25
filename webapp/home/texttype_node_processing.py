@@ -1,13 +1,22 @@
+"""
+Helper functions to handle TextType nodes, including checking them for valid xml, etc.
+
+When a model contains complex text elements (e.g., ones containing sections or itemizedlists), we need to check them
+for valid XML, and when we display them we need to display the tags, but in escaped form. E.g. <para>Some text</para>
+should be displayed as <&lt;>para&gt;Some text&lt;/para&gt;. This module contains functions to handle that.
+"""
+
 import json
 import glob
 import os
 import re
 from urllib.parse import unquote
+from xml.sax.saxutils import unescape
 
-import webapp.auth.user_data as user_data
+import webapp.home.utils.load_and_save
+from webapp.auth import user_data as user_data
 
 from webapp.home.exceptions import InvalidXMLError
-import webapp.home.metapype_client as metapype_client
 
 from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
@@ -52,6 +61,9 @@ INVALID_XML_MESSAGE_4 = 'The XML is invalid.\nError details: '
 
 
 def invalid_xml_error_message(msg, reset_changes_available=True, node_name=None, is_ajax_request=False):
+    """
+    Return a message to display to the user when the XML is invalid.
+    """
     paren = msg.rfind('(')
     if paren > 0:
         msg = msg[:msg.rfind('(')].rstrip()
@@ -66,12 +78,18 @@ def invalid_xml_error_message(msg, reset_changes_available=True, node_name=None,
 
 
 def find_all_descendant_names(node, descendant_names):
+    """
+    Recursively find all descendant names of a node, filling in the descendant_names set.
+    """
     for child_node in node.children:
         descendant_names.add(child_node.name)
         find_all_descendant_names(child_node, descendant_names)
 
 
 def node_has_complex_children(texttype_node):
+    """
+    Determine if a node has any TextType children other than para.
+    """
     if not texttype_node:
         return False
     descendant_names = set()
@@ -81,6 +99,12 @@ def node_has_complex_children(texttype_node):
 
 
 def model_has_complex_texttypes(eml_node):
+    """
+    Determine if a model has any TextType nodes with complex children.
+
+    For each TextType node, check if it has any children other than para. So, for example, if Project Abstract contains
+    a section, then it is complex, so the model has complex texttypes.
+    """
     if not eml_node:
         raise ValueError
     for texttype_node_name in TEXTTYPE_NODES:
@@ -93,6 +117,10 @@ def model_has_complex_texttypes(eml_node):
 
 
 def node_has_literal_children(texttype_node):
+    """
+    Determine if the node has any literal children (i.e., literalLayout or markdown). These need to be displayed with
+    a monospace font.
+    """
     if not texttype_node:
         return False
     literals = set([names.LITERALLAYOUT, names.MARKDOWN])
@@ -101,33 +129,14 @@ def node_has_literal_children(texttype_node):
     return len(literals & descendant_names)
 
 
-def add_escapes(txt):
-    for name in TEXTTYPE_NODES + TEXTTYPE_CHILDREN:
-        open_tag = f'<{name}>'
-        if open_tag in txt:
-            esc_open_tag = f'\\<{name}\\>'
-            txt = txt.replace(open_tag, esc_open_tag)
-        close_tag = f'</{name}>'
-        if close_tag in txt:
-            esc_close_tag = f'\\</{name}\\>'
-            txt = txt.replace(close_tag, esc_close_tag)
-        content_less_tag = f'<{name}/>'
-        if content_less_tag in txt:
-            esc_content_less_tag = f'\\<{name}/\\>'
-            txt = txt.replace(content_less_tag, esc_content_less_tag)
-    return txt
-
-
-def remove_escapes(s):
-    lt_regex = r'(?<!\\)\<'
-    gt_regex = r'(?<!\\)\>'
-    s = re.sub(lt_regex, '&lt;', s)
-    s = re.sub(gt_regex, '&gt;', s)
-    s = s.replace(r'\<', '<').replace(r'\>', '>').replace('\r\n', '\n')
-    return s
-
-
 def display_simple_texttype_node(text_node: Node = None) -> str:
+    """
+    Return a string representation of a simple TextType node's content. The caller has already determined that the
+    node is simple. For this purpose, simple means that the node has no children other than para. Para nodes are
+    replaced using newlines. Escaped lt and gt chars are unescaped. This latter step is necessary because the content
+    of the node may include lt and gt chars but we want to display them as < and > so they make sense to the user.
+    They will be escaped again when the content is saved to XML.
+    """
     # Currently, this handles simple cases with paras only (paras may be contained in sections)
     if not text_node:
         return ''
@@ -143,12 +152,37 @@ def display_simple_texttype_node(text_node: Node = None) -> str:
 
 
 def display_texttype_node(texttype_node):
+    """
+    Return a string representation of a TextType node's content. If we're displaying a simple texttype node, then
+    return the content of the node. Otherwise, build up the text from the content of the node's children, adding
+    escaped tags as necessary.
+    """
+    def add_escapes(txt):
+        """
+        Take a string that includes tags and escape the tags so that they are not interpreted as HTML.
+        """
+        for name in TEXTTYPE_NODES + TEXTTYPE_CHILDREN:
+            open_tag = f'<{name}>'
+            if open_tag in txt:
+                esc_open_tag = f'\\<{name}\\>'
+                txt = txt.replace(open_tag, esc_open_tag)
+            close_tag = f'</{name}>'
+            if close_tag in txt:
+                esc_close_tag = f'\\</{name}\\>'
+                txt = txt.replace(close_tag, esc_close_tag)
+            content_less_tag = f'<{name}/>'
+            if content_less_tag in txt:
+                esc_content_less_tag = f'\\<{name}/\\>'
+                txt = txt.replace(content_less_tag, esc_content_less_tag)
+        return txt
+
     if not texttype_node:
         return ''
     if texttype_node.name not in TEXTTYPE_NODES:
         return texttype_node.content
     use_complex_representation = user_data.get_model_has_complex_texttypes()
     if use_complex_representation:
+        # Get the XML representation of the node and its subtree
         output = metapype_io.to_xml(texttype_node)
         # Suppress the xmlns from the opening tag. It won't make sense to users.
         lines = output.split('\n')
@@ -160,14 +194,16 @@ def display_texttype_node(texttype_node):
         if texttype_node.content:
             output = open_tag + texttype_node.content + close_tag
         else:
+            # We replace line 0 with the open_tag. This gets rid of the xmlns.
             output = open_tag + '\n' + '\n'.join(lines[1:-1])
         return add_escapes(output).replace('&lt;', '<').replace('&gt;', '>')
     else:
         return display_simple_texttype_node(texttype_node)
 
 
-def sample_text(texttype_node):
-    # For use, for example, in displaying a snippet of description for method step select page
+def excerpt_text(texttype_node):
+    # For use, for example, in displaying a snippet of description for method step select page, where we display just
+    #  an excerpt of the text, not the entire text.
     title = ''
     text = ''
     if not texttype_node:
@@ -188,6 +224,9 @@ def sample_text(texttype_node):
 
 
 def is_valid_xml_fragment(text, parent_name=None, is_ajax_request=False):
+    """
+    Return True if the text is a valid XML fragment. If not, return False and an error message.
+    """
     if is_ajax_request or user_data.get_model_has_complex_texttypes():
         if not text:
             return True, None
@@ -200,6 +239,19 @@ def is_valid_xml_fragment(text, parent_name=None, is_ajax_request=False):
 
 
 def construct_texttype_node(text, parent_name=None):
+    """
+    Given the text displayed for a TextType node, construct the corresponding XML fragment so we can check it for
+    validity. If the parent node is not a TextType node, then return the text as is. Check the validity of the XML
+    and raise InvalidXMLError if invalid, with an error message.
+    """
+    def remove_escapes(s):
+        lt_regex = r'(?<!\\)\<'
+        gt_regex = r'(?<!\\)\>'
+        s = re.sub(lt_regex, '&lt;', s)
+        s = re.sub(gt_regex, '&gt;', s)
+        s = s.replace(r'\<', '<').replace(r'\>', '>').replace('\r\n', '\n')
+        return s
+
     if parent_name and parent_name not in TEXTTYPE_NODES:
         return text
     try:
@@ -222,6 +274,10 @@ def construct_texttype_node(text, parent_name=None):
 
 
 def check_xml_validity(xml:str=None, parent_name:str=None):
+    """
+    Check the validity of the XML fragment. Return a response that can be displayed to the user.
+    This is called from the AJAX request handler when the user clicks the checkmark button.
+    """
     IS_AJAX_REQUEST = True
     xml = unquote(xml)
     valid, msg = is_valid_xml_fragment(xml, parent_name, IS_AJAX_REQUEST)
@@ -232,60 +288,57 @@ def check_xml_validity(xml:str=None, parent_name:str=None):
     return response
 
 
-def try_it():
-    def get_existing_eml_files():
-        filelist = glob.glob(f'{EML_FILES_PATH}/*.xml')
-        return sorted([os.path.basename(x) for x in filelist])
+def post_process_texttype_node(text_node:Node=None):
+    """
+    After a text node has been edited or created, we need to post-process it to make sure it's in the correct form.
 
-    def load_xml(filename):
-        with open(f"{filename}", "r") as f:
-            xml = "".join(f.readlines())
-        eml_node = metapype_io.from_xml(xml, clean=True, literals=['literalLayout', 'markdown'])
-        assert isinstance(eml_node, Node)
-        eml_node, nsmap_changed = metapype_client.fixup_eml_namespaces_on_import(eml_node)
-        return eml_node, nsmap_changed
+    If our model has complex TextTypes and the node is TextType node, if the user has edited it the edited text will
+    be in the content of the node. We need to convert appropriately to represent the XML structure in descendants of
+    the node.
+    """
+    from webapp.home.texttype_node_processing import TEXTTYPE_NODES, construct_texttype_node
 
-    def json_from_xml(filename):
-        eml_node, _ = load_xml(filename)
-        _json = metapype_io.to_json(eml_node)
-        parsed = json.loads(_json)
-        return json.dumps(parsed, indent=1, sort_keys=False)
+    def save_content_in_para_nodes(text_node):
+        s = text_node.content
+        if s:
+            paras = s.split('\n')
+            for para in paras:
+                para_node = Node(names.PARA, parent=text_node)
+                para_node.content = para
+                text_node.add_child(para_node)
+            text_node.content = ''
 
-    def scan_files():
-        i = 0
-        for filename in get_existing_eml_files():
-            eml_node, _ = load_xml(os.path.join(EML_FILES_PATH, filename))
-            if model_has_complex_texttypes(eml_node):
-                print(f"{filename}")
-                i += 1
-            if i > 100:
-                break
+    def remove_paragraph_tags(s):
+        if s:
+            return unescape(s).strip().replace('</para>\n<para>', '\n').replace('<para>', '').replace('</para>',
+                                                                                                      '').replace('\r','')
+        else:
+            return s
 
-    test_file = '/Users/jide/git/ezEML/tests/eml.xml'
-    eml_node = load_xml(test_file)
-    use_complex_representation = model_has_complex_texttypes(eml_node)
-    # user_data.set_model_has_complex_texttypes(use_complex_representation)
-    abstract_node = eml_node.find_descendant(names.ABSTRACT)
-    output = display_texttype_node(abstract_node)
-    print(output)
-    print('------')
-    print(remove_escapes(output))
-    subtree = construct_texttype_node(output, names.ABSTRACT)
-
-    title_node = eml_node.find_descendant(names.TITLE)
-    output = display_texttype_node(title_node)
-    print(output)
-    print('------')
-    print(remove_escapes(output))
-    subtree = construct_texttype_node(output, names.TITLE)
-
-    sampling_description_node = eml_node.find_descendant(names.SAMPLINGDESCRIPTION)
-    output = display_texttype_node(sampling_description_node)
-    print(output)
-    print('------')
-    print(remove_escapes(output))
-    subtree = construct_texttype_node(output, names.SAMPLINGDESCRIPTION)
-
-
-if __name__ == "__main__":
-    try_it()
+    if not text_node:
+        return
+    use_complex_representation = user_data.get_model_has_complex_texttypes()
+    if text_node.content:
+        # If we have content, we're saving a node that's been modified. We remake the children.
+        if use_complex_representation and text_node.name in TEXTTYPE_NODES:
+            new_node = construct_texttype_node(text_node.content, text_node.name)
+            text_node.content = new_node.content
+            text_node.tail = new_node.tail
+            text_node.children = new_node.children
+        else:
+            content = remove_paragraph_tags(text_node.content)
+            # If we have para children, we're handling text that has been modified but that originally used
+            #  para tags (e.g., a package imported from XML). Presumably, the user wants paras, so let's
+            #  do that. We need to check for this before we remove the children.
+            all_paras = False
+            children = text_node.children
+            if children:
+                all_paras = True
+                for child in children:
+                    if child.name != names.PARA:
+                        all_paras = False
+                        break
+            text_node.remove_children()
+            text_node.content = content
+            if all_paras or not children:  # If we have no children, we're handling simple text. Add paras there, too.
+                save_content_in_para_nodes(text_node)

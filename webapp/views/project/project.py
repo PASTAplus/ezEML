@@ -1,33 +1,36 @@
+"""
+Routes for project and related project pages.
+"""
+
 import collections
 
+import daiquiri
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 from flask_login import (
-    login_required
+    current_user, login_required
 )
 
-from webapp.home.metapype_client import (
-    add_child, create_project, create_related_project,
-    remove_related_project, load_eml, save_both_formats,
-    list_funding_awards, create_funding_award,
-    remove_child, UP_ARROW, DOWN_ARROW,
-    get_upval, get_downval,
-    post_process_texttype_node,
-    handle_hidden_buttons, check_val_for_hidden_buttons,
-    dump_node_store
-)
+from webapp.home.home_utils import log_error, log_info
+from webapp.home.utils.node_utils import remove_child, add_child
+from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.node_store import dump_node_store
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_funding_awards
+from webapp.home.utils.create_nodes import create_project, create_related_project, create_funding_award
 
-from webapp.home.texttype_node_processing import(
+from webapp.home.texttype_node_processing import (
     display_texttype_node,
     model_has_complex_texttypes,
     is_valid_xml_fragment,
-    invalid_xml_error_message
+    invalid_xml_error_message, post_process_texttype_node
 )
 
 from webapp.home.forms import is_dirty_form, form_md5
-from webapp.home.views import non_breaking, process_up_button, process_down_button
-
+from webapp.home.views import (
+    non_breaking, process_up_button, process_down_button, select_post, set_current_page, get_help
+)
 from webapp.views.project.forms import (
     ProjectForm, AwardSelectForm, AwardForm, RelatedProjectSelectForm
 )
@@ -37,7 +40,6 @@ from webapp.views.responsible_parties.forms import ResponsiblePartySelectForm
 
 from webapp.buttons import *
 from webapp.pages import *
-from webapp.home.views import select_post, set_current_page, get_help
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -447,6 +449,21 @@ def related_project_select_get(filename=None, form=None):
                            filename=filename,
                            project_list=project_list,
                            form=form, help=help)
+
+
+def remove_related_project(filename:str=None, node_id:str=None):
+    eml_node = load_eml(filename=filename)
+    related_project_node = Node.get_node_instance(node_id)
+    if related_project_node:
+        parent_node = related_project_node.parent
+        if parent_node:
+            parent_node.remove_child(related_project_node)
+            try:
+                if eml_node:
+                    save_both_formats(filename=filename, eml_node=eml_node)
+            except Exception as e:
+                logger.error(e)
+
 
 
 def related_project_select_post(filename=None, form=None, form_dict=None,

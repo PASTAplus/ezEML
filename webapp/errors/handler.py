@@ -1,17 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""":Mod: handler
-
-:Synopsis:
-
-:Author:
-    servilla
-    ide
-
-:Created:
-    5/30/18
 """
+Handlers for the various errors that can occur in the webapp. Logs the error and returns a template.
+"""
+
 import daiquiri
 from flask import Blueprint, render_template, request
 from flask_login import current_user

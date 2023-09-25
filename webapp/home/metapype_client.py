@@ -1443,6 +1443,13 @@ def clean_model(eml_node):
         if definition_node:
             definition_node.content = 'text'
 
+    # If a project node no longer has any children, remove it.
+    project_nodes = []
+    eml_node.find_all_descendants(names.PROJECT, project_nodes)
+    for project_node in project_nodes:
+        if not project_node.children:
+            project_node.parent.remove_child(project_node)
+
     # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []
     # to_remove = []
@@ -2502,7 +2509,11 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         title_node = project_node.find_child(names.TITLE)
         if not title_node:
             title_node = new_child_node(names.TITLE, parent=project_node)
-        title_node.content = title
+        if title:
+            title_node.content = title
+        else:
+            # Don't keep the title node if it's empty. The user may be trying to clear out the project altogether.
+            project_node.remove_child(title_node)
 
         abstract_node = project_node.find_child(names.ABSTRACT)
         if not abstract_node:
@@ -2521,6 +2532,10 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
             post_process_texttype_node(funding_node)
         else:
             project_node.remove_child(funding_node)
+
+        # If project node is now empty, remove it.
+        if not project_node.children:
+            dataset_node.remove_child(project_node)
 
     except Exception as e:
         logger.error(e)

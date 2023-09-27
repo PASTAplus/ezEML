@@ -185,14 +185,14 @@ def enable_edi_curation(filename=None):
                                         email_address=email_address,
                                         notes=quote(notes, safe=''),
                                         is_update=is_update,
-                                        update_package=update_package))
+                                        update_package=quote(update_package, safe='')))
             else:
                 return redirect(url_for(PAGE_ENABLE_EDI_CURATION_2,
                                         filename=filename,
                                         name=name,
                                         email_address=email_address,
                                         is_update=is_update,
-                                        update_package=update_package))
+                                        update_package=quote(update_package, safe='')))
 
         if request.form.get(BTN_CANCEL):
             return redirect(get_back_url())
@@ -213,7 +213,7 @@ def enable_edi_curation_mail_body(server=None, filename=None, name=None, email_a
         '   User\'s email: ' + email_address + '\n\n' + \
         '   Package name: ' + filename + '\n\n'
     if is_update:
-        msg += '   This package is an update to package ' + update_package + '.\n\n'
+        msg += '   This package is an update to package ' + unquote(update_package) + '.\n\n'
     else:
         msg += '   This package is a new package.\n\n'
     if notes:

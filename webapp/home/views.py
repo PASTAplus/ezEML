@@ -3390,6 +3390,9 @@ def data_filename_is_unique(eml_node, data_filename):
 @home.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_data(filename=None):
+    """
+    Route to handle Load Data File from CSV File.
+    """
     # log_info(f'Entering load_data: request.method={request.method}')
     # filename that's passed in is actually the document name, for historical reasons.
     # We'll clear it to avoid misunderstandings...
@@ -4004,11 +4007,6 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
 
     if len(end_date_str) == 4:
         end_date_str += '-01-01'
-
-    # date.fromisoformat() is a Python 3.7 feature
-    #if begin_date_str and end_date_str:
-        #begin_date = date.fromisoformat(begin_date_str)
-        #end_date = date.fromisoformat(end_date_str)
 
     if begin_date and end_date and begin_date > end_date:
         flash_msg = 'Begin date should be less than or equal to end date'

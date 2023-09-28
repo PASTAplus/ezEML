@@ -3341,6 +3341,20 @@ def get_eml_file_2(user):
         return render_template('get_eml_file_2.html', form=form)
 
 
+@home.route('/get_collaboration_database/', methods=['GET', 'POST'])
+@login_required
+def get_collaboration_database():
+    """
+    This route is an admin tool for use by the EDI team to download the database used to track collaboration status.
+    """
+    if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
+        flash('You are not authorized to download the collaboration database.', 'error')
+        return render_template('index.html')
+
+    db_pathname = os.path.join(Config.USER_DATA_DIR, '__db', 'collaborations.db.sqlite3')
+    return send_file(db_pathname, as_attachment=True, download_name='collaborations.db.sqlite3')
+
+
 @home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_data_with_col_names_changed(saved_filename, dt_node_id):

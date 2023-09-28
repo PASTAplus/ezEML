@@ -110,7 +110,7 @@ def method_step_select(filename=None):
                     new_page = this_page
                     node_id = key
                 else:
-                    new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                    new_page = check_val_for_hidden_buttons(val, new_page)
 
         if form.validate_on_submit():
             if new_page in [edit_page, this_page]:
@@ -197,7 +197,7 @@ def method_step(filename=None, node_id=None):
                                       PAGE_PROJECT, PAGE_DATA_SOURCE)
                     return redirect(url)
 
-                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_METHOD_STEP)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         submit_type = None
         if is_dirty_form(form):

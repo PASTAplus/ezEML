@@ -121,7 +121,7 @@ def other_entity(filename=None, node_id=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
             auto_save = True
-        next_page = handle_hidden_buttons(next_page, PAGE_OTHER_ENTITY)
+        next_page = handle_hidden_buttons(next_page)
 
         eml_node = load_eml(filename=filename)
 
@@ -885,7 +885,7 @@ def entity_select_post(filename=None, form=None, form_dict=None,
             elif val == '[  ]':
                 new_page = this_page
                 node_id = key
-            new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+            new_page = check_val_for_hidden_buttons(val, new_page)
             if val == BTN_HIDDEN_SAVE:
                 node_id = key
 

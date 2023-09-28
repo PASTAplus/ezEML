@@ -83,9 +83,7 @@ def title(filename=None):
             form.md5.data = form_md5(form)
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = PAGE_DATA_TABLE_SELECT
-        this_page = PAGE_TITLE
-        new_page = handle_hidden_buttons(new_page, this_page)
+        new_page = handle_hidden_buttons(PAGE_DATA_TABLE_SELECT)
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -95,7 +93,7 @@ def title(filename=None):
         if not eml_node:
             # This can happen if the user enters a URL directly into the browser, and the URL is for a package that
             #  doesn't exist or the URL is of the form https://ezeml.edirepository.org/title/ -- i.e., no filename given.
-            logger.error(f'No EML node found for filename={filename}')
+            log_error(f'No EML node found for filename={filename}')
             set_active_document(None)
             return redirect(url_for(PAGE_INDEX))
 
@@ -135,9 +133,7 @@ def data_package_id(filename=None):
             form.md5.data = form_md5(form)
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = PAGE_TITLE
-        this_page = PAGE_DATA_PACKAGE_ID
-        new_page = handle_hidden_buttons(new_page, this_page)
+        new_page = handle_hidden_buttons(PAGE_CHECK_METADATA)
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -164,9 +160,7 @@ def publication_info(filename=None):
     if request.method == 'POST':
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = PAGE_METHOD_STEP_SELECT
-        this_page = PAGE_PUBLICATION_INFO
-        new_page = handle_hidden_buttons(new_page, this_page)
+        new_page = handle_hidden_buttons(PAGE_METHOD_STEP_SELECT)
 
         # If the form is dirty, then save the data.
         if is_dirty_form(form):
@@ -211,8 +205,7 @@ def abstract(filename=None):
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_KEYWORD_SELECT
-        this_page = PAGE_ABSTRACT
-        new_page = handle_hidden_buttons(new_page, this_page)
+        new_page = handle_hidden_buttons(new_page)
 
         if form.validate_on_submit():
             # If the form is dirty, then save the data.
@@ -296,9 +289,7 @@ def intellectual_rights(filename=None):
                 return render_get_intellectual_rights_page(form, filename, font_family)
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = PAGE_GEOGRAPHIC_COVERAGE_SELECT
-        this_page = PAGE_INTELLECTUAL_RIGHTS
-        new_page = handle_hidden_buttons(new_page, this_page)
+        new_page = handle_hidden_buttons(PAGE_GEOGRAPHIC_COVERAGE_SELECT)
 
         return redirect(url_for(new_page, filename=filename))
 
@@ -431,7 +422,7 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'  # node_id == '1`' means add a new keyword
-            new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+            new_page = check_val_for_hidden_buttons(val, new_page)
             if new_page:
                 break
 
@@ -493,7 +484,7 @@ def keyword(filename=None, node_id=None):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, new_page) # blah
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         if is_dirty_form(form):
             keyword = form.keyword.data

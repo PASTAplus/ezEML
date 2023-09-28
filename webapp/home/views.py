@@ -330,7 +330,7 @@ def data_table_errors(data_table_name:str=None):
         raise FileNotFoundError
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DATA_TABLE_ERRORS, PAGE_DATA_TABLE_ERRORS)
+        new_page = handle_hidden_buttons(PAGE_DATA_TABLE_ERRORS)
         if new_page != PAGE_DATA_TABLE_ERRORS:
             return redirect(url_for(new_page, filename=current_document))
 
@@ -540,9 +540,13 @@ def index():
                 user_data.remove_active_file()
                 log_error('Error loading EML file: ' + current_document + ' in index()')
                 new_page = PAGE_FILE_ERROR
+
+            new_page = handle_hidden_buttons(new_page)
             return redirect(url_for(new_page, filename=current_document))
         else:
-            return render_template('index.html')
+            new_page = 'index.html'
+            new_page = handle_hidden_buttons(new_page)
+            return render_template(new_page)
     else:
         return redirect(url_for(PAGE_LOGIN))
 
@@ -625,9 +629,9 @@ def get_back_url(success=False):
         elif current_page == 'other_entity':
             return PAGE_OTHER_ENTITY_SELECT
         elif current_page == 'check_metadata':
-            return PAGE_CHECK
+            return PAGE_CHECK_METADATA
         elif current_page == 'export_package':
-            return PAGE_EXPORT_DATA_PACKAGE
+            return PAGE_EXPORT_EZEML_DATA_PACKAGE
         elif current_page == 'data_package_id':
             return PAGE_DATA_PACKAGE_ID
         elif current_page == 'submit_package':
@@ -712,7 +716,7 @@ def save():
 
     # If the user clicked a "hidden" button, we need to go there.
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SAVE, PAGE_SAVE)
+        new_page = handle_hidden_buttons(PAGE_SAVE)
         return redirect(url_for(new_page, filename=current_document))
 
     eml_node = load_eml(filename=current_document)
@@ -753,7 +757,7 @@ def manage_packages(to_delete=None, action=None):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_MANAGE_PACKAGES, PAGE_MANAGE_PACKAGES)
+        new_page = handle_hidden_buttons(PAGE_MANAGE_PACKAGES)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -802,7 +806,7 @@ def manage_data_usage(action=None):
             flash(f'Garbage collection completed. Days={days}.')
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_MANAGE_DATA_USAGE, PAGE_MANAGE_DATA_USAGE)
+        new_page = handle_hidden_buttons(PAGE_MANAGE_DATA_USAGE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -862,7 +866,7 @@ def save_as():
                 return render_template('index.html')
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_SAVE_AS, PAGE_SAVE_AS)
+            new_page = handle_hidden_buttons(PAGE_SAVE_AS)
             return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
@@ -924,7 +928,7 @@ def check_data_tables():
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_CHECK_DATA_TABLES, PAGE_CHECK_DATA_TABLES)
+        new_page = handle_hidden_buttons(PAGE_CHECK_DATA_TABLES)
         return redirect(url_for(new_page, filename=current_document))
 
     help = get_helps(['check_data_tables'])
@@ -946,7 +950,7 @@ def check_metadata(filename:str):
 
     # Process POST
     if request.method == 'POST':
-        return redirect(url_for(PAGE_CHECK, filename=current_document))
+        return redirect(url_for(PAGE_CHECK_METADATA, filename=current_document))
 
     else:
         set_current_page('check_metadata')
@@ -1231,9 +1235,7 @@ def import_template():
             template_path = template_path.replace('/', '\\')
             return redirect(url_for(PAGE_IMPORT_TEMPLATE_2, template_filename=template_path))
         else:
-            new_page = PAGE_IMPORT_TEMPLATE_2
-            this_page = PAGE_IMPORT_TEMPLATE
-            new_page = handle_hidden_buttons(new_page, this_page)
+            new_page = handle_hidden_buttons(PAGE_IMPORT_TEMPLATE_2)
             return redirect(url_for(new_page))
 
     # Process GET
@@ -1946,7 +1948,7 @@ def share_submit_package(filename=None, success=None):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE, PAGE_SHARE_SUBMIT_PACKAGE)
+        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE)
         return redirect(url_for(new_page, filename=filename))
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
@@ -3103,7 +3105,7 @@ def select_post(filename=None, form=None, form_dict=None,
             elif val == BTN_REUSE:
                 new_page = PAGE_IMPORT_PARTY
                 node_id = '1'
-            new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+            new_page = check_val_for_hidden_buttons(val, new_page)
             if new_page:
                 break
 

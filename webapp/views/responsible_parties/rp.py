@@ -106,7 +106,7 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
                 new_page = next_page
                 break
             else:
-                new_page = check_val_for_hidden_buttons(val, new_page, back_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
     return new_page
 

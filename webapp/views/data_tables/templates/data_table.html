@@ -167,7 +167,7 @@
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>&nbsp;
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
 
-                {{ macros.hidden_new_open_close_buttons() }}
+                {{ macros.hidden_buttons_with_no_contents_menu() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
             </form>

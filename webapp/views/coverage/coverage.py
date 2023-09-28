@@ -209,7 +209,7 @@ def load_geo_coverage(filename):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_LOAD_GEO_COVERAGE)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         if new_page:
             url = url_for(new_page, filename=filename)
@@ -273,7 +273,7 @@ def geographic_coverage(filename=None, node_id=None):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         url = url_for(new_page, filename=filename)
 
@@ -466,11 +466,10 @@ def temporal_coverage(filename=None, node_id=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         new_page = PAGE_TEMPORAL_COVERAGE_SELECT
-        this_page = PAGE_TEMPORAL_COVERAGE
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         url = url_for(new_page, filename=filename)
 
@@ -711,7 +710,7 @@ def load_taxonomic_coverage(filename):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_LOAD_TAXONOMIC_COVERAGE)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         if new_page:
             url = url_for(new_page, filename=filename)
@@ -869,11 +868,10 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
 
         form_dict = form_value.to_dict(flat=False)
         new_page = PAGE_TAXONOMIC_COVERAGE_SELECT
-        this_page = PAGE_TAXONOMIC_COVERAGE
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         if save:
             if not form.taxon_value.data and not form.taxon_rank.data:

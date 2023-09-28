@@ -67,7 +67,7 @@ collab_bp = Blueprint('collab', __name__, template_folder='templates')
 @login_required
 def collaborate(filename=None, dev=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_COLLABORATE, PAGE_COLLABORATE)
+        new_page = handle_hidden_buttons(PAGE_COLLABORATE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -138,7 +138,7 @@ def collaborate(filename=None, dev=None):
 @login_required
 def enable_edi_curation(filename=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE, PAGE_SHARE_SUBMIT_PACKAGE)
+        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -209,7 +209,7 @@ def enable_edi_curation_mail_body(server=None, filename=None, name=None, email_a
 @login_required
 def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_DELETE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -263,7 +263,7 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
 @login_required
 def accept_invitation(filename=None, invitation_code=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_DELETE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -352,7 +352,7 @@ def compose_invite_collaborator_email(name, sender_name, sender_email, title, in
 @login_required
 def invite_collaborator(filename=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_DELETE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -527,7 +527,7 @@ def show_backups(filename=None, action=None):
     current_document = current_user.get_filename()
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHOW_BACKUPS, PAGE_SHOW_BACKUPS)
+        new_page = handle_hidden_buttons(PAGE_SHOW_BACKUPS)
         return redirect(url_for(new_page, filename=current_document))
 
     # The action parameter is used to signal we want to

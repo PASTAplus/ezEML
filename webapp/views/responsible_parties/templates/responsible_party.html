@@ -146,7 +146,7 @@
                 {% if node_name == 'publisher' %}
                     {{ macros.hidden_buttons() }}
                 {% else %}
-                    {{ macros.hidden_new_open_close_buttons() }}
+                    {{ macros.hidden_buttons_with_no_contents_menu() }}
                 {% endif %}
 
                 {{ form.csrf_token }}

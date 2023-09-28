@@ -94,7 +94,7 @@ def project(filename=None, project_node_id=None):
             new_page = PAGE_RELATED_PROJECT_SELECT
             # doing_related_project = True
         else:
-            new_page = handle_hidden_buttons(new_page, this_page)
+            new_page = handle_hidden_buttons(new_page)
 
         if save:
             abstract = form.abstract.data
@@ -246,7 +246,7 @@ def funding_award_select(filename=None, project_node_id=None):
                     new_page = PAGE_FUNDING_AWARD
                     node_id = '1'
                 else:
-                    new_page = check_val_for_hidden_buttons(val, new_page, PAGE_FUNDING_AWARD_SELECT)
+                    new_page = check_val_for_hidden_buttons(val, new_page)
 
         if form.validate_on_submit():
             if node_id and project_node_id:
@@ -500,7 +500,7 @@ def related_project_select_post(filename=None, form=None, form_dict=None,
                 new_page = edit_page
                 project_node_id = None
             else:
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
     if form.validate_on_submit():
         if new_page == edit_page:

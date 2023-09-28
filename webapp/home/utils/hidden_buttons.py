@@ -15,71 +15,67 @@ so the Title method can save the title data and then go to the Open page.
 
 from flask import request
 
-from webapp.buttons import BTN_HIDDEN_CHECK, BTN_HIDDEN_SAVE, BTN_HIDDEN_DOWNLOAD, BTN_HIDDEN_NEW, \
-    BTN_HIDDEN_NEW_FROM_TEMPLATE, BTN_HIDDEN_OPEN, BTN_HIDDEN_CLOSE
-from webapp.pages import PAGE_CHECK, PAGE_DOWNLOAD, PAGE_CREATE, PAGE_IMPORT_TEMPLATE, PAGE_OPEN, PAGE_CLOSE
+from webapp.buttons import *
+from webapp.pages import *
+
+HIDDEN_TARGETS = {
+    BTN_HIDDEN_ABOUT: PAGE_ABOUT,
+    BTN_HIDDEN_CHECK_DATA_TABLES: PAGE_CHECK_DATA_TABLES,
+    BTN_HIDDEN_CHECK_METADATA: PAGE_CHECK_METADATA,
+    BTN_HIDDEN_CLOSE: PAGE_CLOSE,
+    BTN_HIDDEN_COLLABORATE: PAGE_COLLABORATE,
+    BTN_HIDDEN_DOWNLOAD: PAGE_DOWNLOAD,
+    BTN_HIDDEN_EXPORT_EZEML_DATA_PACKAGE: PAGE_EXPORT_EZEML_DATA_PACKAGE,
+    BTN_HIDDEN_FETCH_FROM_EDI: PAGE_FETCH_FROM_EDI,
+    BTN_HIDDEN_IMPORT_XML: PAGE_IMPORT_XML,
+    BTN_HIDDEN_IMPORT_EZEML_DATA_PACKAGE: PAGE_IMPORT_EZEML_DATA_PACKAGE,
+    BTN_HIDDEN_IMPORT_FUNDING_AWARDS: PAGE_IMPORT_FUNDING_AWARDS,
+    BTN_HIDDEN_IMPORT_GEO_COVERAGE: PAGE_IMPORT_GEO_COVERAGE,
+    BTN_HIDDEN_IMPORT_PARTIES: PAGE_IMPORT_PARTIES,
+    BTN_HIDDEN_IMPORT_PROJECT: PAGE_IMPORT_PROJECT,
+    BTN_HIDDEN_IMPORT_RELATED_PROJECTS: PAGE_IMPORT_RELATED_PROJECTS,
+    BTN_HIDDEN_IMPORT_TAXONOMIC_COVERAGE: PAGE_IMPORT_TAXONOMIC_COVERAGE,
+    BTN_HIDDEN_LOGOUT: PAGE_LOGOUT,
+    BTN_HIDDEN_MANAGE: PAGE_MANAGE_PACKAGES,
+    BTN_HIDDEN_NEW: PAGE_CREATE,
+    BTN_HIDDEN_NEWS: PAGE_NEWS,
+    BTN_HIDDEN_NEW_FROM_TEMPLATE: PAGE_IMPORT_TEMPLATE,
+    BTN_HIDDEN_OPEN: PAGE_OPEN,
+    BTN_HIDDEN_SAVE: PAGE_SAVE,
+    BTN_HIDDEN_SAVE_AS: PAGE_SAVE_AS,
+    BTN_HIDDEN_USER_GUIDE: PAGE_USER_GUIDE
+}
 
 
 def is_hidden_button():
-    return any(button in request.form for button in HIDDEN_BUTTONS)
+    return any(button in request.form for button in HIDDEN_TARGETS)
 
 
-def handle_hidden_buttons(new_page, this_page):
+def handle_hidden_buttons(target_page):
     """
-    See if a "hidden" button has been clicked. If so, set new_page to the page that the button indicates.
+    See if a "hidden" button has been clicked. If so, return the page that the button indicates.
 
-    If none of the hidden buttons was clicked, leave new_page as we found it
+    If none of the hidden buttons was clicked, leave target_page as we found it. I.e., target_page is the page
+    that the user was trying to get to when they clicked on the menu option, so we'll go there in the absence of
+    a hidden button. If a hidden button was clicked, we'll go to the page that the hidden button indicates, after
+    saving the data that the user entered in the page that they were in when they clicked on the menu option.
     """
-    if BTN_HIDDEN_CHECK in request.form:
-        new_page = PAGE_CHECK
-    elif BTN_HIDDEN_SAVE in request.form:
-        new_page = this_page
-    elif BTN_HIDDEN_DOWNLOAD in request.form:
-        new_page = PAGE_DOWNLOAD
-    elif BTN_HIDDEN_NEW in request.form:
-        new_page = PAGE_CREATE
-    elif BTN_HIDDEN_NEW_FROM_TEMPLATE in request.form:
-        new_page = PAGE_IMPORT_TEMPLATE
-    elif BTN_HIDDEN_OPEN in request.form:
-        new_page = PAGE_OPEN
-    elif BTN_HIDDEN_CLOSE in request.form:
-        new_page = PAGE_CLOSE
-    return new_page
+    for button in HIDDEN_TARGETS:
+        if button in request.form:
+            return HIDDEN_TARGETS[button]
+    return target_page
 
 
-def check_val_for_hidden_buttons(val, new_page, this_page):
+def check_val_for_hidden_buttons(val, target_page):
     """
-    See if a "hidden" button has been clicked. If so, set new_page to the page that the button indicates.
+    See if a "hidden" button has been clicked. If so, return the page that the button indicates.
 
-    The process here is different from handle_hidden_buttons() because we're in a "select" page where the form
-    dictionary has node_id's as keys and the button is a value.
+    The idea here is the same as in handle_hidden_buttons(), but the process is different because we're in a "select"
+    page where the form dictionary has node_id's as keys and the button is a value.
 
-    If none of the hidden buttons was clicked, leave new_page as we found it.
+    If none of the hidden buttons was clicked, leave target_page as we found it.
     """
-
-    if val == BTN_HIDDEN_CHECK:
-        new_page = PAGE_CHECK
-    elif val == BTN_HIDDEN_SAVE:
-        new_page = this_page
-    elif val == BTN_HIDDEN_DOWNLOAD:
-        new_page = PAGE_DOWNLOAD
-    elif val == BTN_HIDDEN_NEW:
-        new_page = PAGE_CREATE
-    elif val == BTN_HIDDEN_NEW_FROM_TEMPLATE:
-        new_page = PAGE_IMPORT_TEMPLATE
-    elif val == BTN_HIDDEN_OPEN:
-        new_page = PAGE_OPEN
-    elif val == BTN_HIDDEN_CLOSE:
-        new_page = PAGE_CLOSE
-    return new_page
-
-
-HIDDEN_BUTTONS = [
-    BTN_HIDDEN_CHECK,
-    BTN_HIDDEN_SAVE,
-    BTN_HIDDEN_DOWNLOAD,
-    BTN_HIDDEN_NEW,
-    BTN_HIDDEN_NEW_FROM_TEMPLATE,
-    BTN_HIDDEN_OPEN,
-    BTN_HIDDEN_CLOSE
-]
+    for button in HIDDEN_TARGETS:
+        if val == button:
+            return HIDDEN_TARGETS[button]
+    return target_page

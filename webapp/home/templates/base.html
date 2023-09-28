@@ -24,12 +24,6 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/directory-list.css', version=release_number) }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
-
-{#    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">#}
-{#    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js">#}
-{#    </script>#}
-{#    <script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js">#}
-{#</script>#}
 {% endblock %}
 
 {% block title %}
@@ -41,7 +35,8 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
    be different depending on whether or not we are on such a page. If we are, the "New" menu
    item, for example, can go directly to the home.create page. Otherwise, it needs first to
    go to the handler for the page so it can save the content, after which the hidden button is
-   handled in that other page's handler. See, for example, the EML Documents dropdown menu, below. #}
+   handled in that other page's handler. See, for example, the EML Documents dropdown menu, below,
+   and the macro toolbar_menu_item(). #}
 {% set non_saving_endswith = ['/eml/', '/create', '/open_eml_document', '/close',
         '/load_data', 'load_other_entity', 'check_metadata', 'delete',
         '/import_parties', '/import_geo_coverage',
@@ -104,45 +99,15 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                             is helpful if debugging something related to is_non_saving. See the
                             explanation in the vicinity of line 20, above. #}
 {#                        <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.create') }}" title="New">New...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_new').click();">New...</a>
-                            {% endif %}
-                        </li>
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.import_template') }}" title="New from Template">New from Template...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_new_from_template').click();">New from Template...</a>
-                            {% endif %}
-                        </li>
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_open').click();">Open...</a>
-                            {% endif %}
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.create'), 'hidden_new', 'New...', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_template'), 'hidden_new_from_template', 'New from Template...', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.open_eml_document'), 'hidden_open', 'Open...', ns.is_non_saving) }}
                     {% if current_user.get_filename() %}
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_close').click();">Close</a>
-                            {% endif %}
-                        </li>
-                        <li>
-                            <a onclick="nav_save.click();" href="#" title="Save">Save</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.close'), 'hidden_close', 'Close', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.save'), 'hidden_save', 'Save', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.save_as'), 'hidden_save_as', 'Save As...', ns.is_non_saving) }}
                     {% endif %}
-                        <li>
-                            <a href="{{ url_for('home.manage_packages') }}" title="Manage">Manage...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.manage_packages'), 'hidden_manage', 'Manage...', ns.is_non_saving) }}
                     </ul>
                 </li>
             {% endif %}
@@ -154,56 +119,32 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                     </a>
                     <ul class="dropdown-menu">
                         {% if current_user.get_filename() %}
-                        <li>
-                            <a href="{{ url_for('home.import_parties') }}" title="Import Responsible Parties">Import Responsible Parties (Creators, Contacts, etc.)</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_geo_coverage') }}" title="Import Geographic Coverage">Import Geographic Coverage</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_taxonomic_coverage') }}" title="Import Taxonomic Coverage">Import Taxonomic Coverage</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_funding_awards') }}" title="Import Funding Awards">Import Funding Awards</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_project') }}" title="Import Project">Import Project</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_related_projects') }}" title="Import Related Projects">Import Related Projects</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.import_parties'), 'hidden_import_parties', 'Import Responsible Parties (Creators, Contacts, etc.)', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_geo_coverage'), 'hidden_import_geo_coverage', 'Import Geographic Coverage', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_taxonomic_coverage'), 'hidden_import_taxonomic_coverage', 'Import Taxonomic Coverage', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_funding_awards'), 'hidden_import_funding_awards', 'Import Funding Awards', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_project'), 'hidden_import_project', 'Import Project', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_related_projects'), 'hidden_import_related_projects', 'Import Related Projects', ns.is_non_saving) }}
                         <li>
                             <hr style="border-top: 1px solid #B0B0B0;">
                         </li>
                 {% endif %}
                 {% if current_user.is_authenticated %}
-                        <li>
-                            <a href="{{ url_for('home.fetch_xml') }}" title="Fetch a Package from EDI">Fetch a Package from EDI...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.fetch_xml'), 'hidden_fetch_from_EDI', 'Fetch a Package from EDI...', ns.is_non_saving) }}
                         <li>
                             <hr style="border-top: 1px solid #B0B0B0;">
                         </li>
                 {% endif %}
                 {% if current_user.get_filename() %}
-                        <li>
-                            <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File (XML)</a>
-                        </li>
-
+                        {{ macros.toolbar_menu_item(url_for('home.download_current'), 'hidden_download', 'Download EML File (XML)', ns.is_non_saving) }}
                 {% endif %}
                 {% if current_user.is_authenticated %}
-                        <li>
-                            <a href="{{ url_for('home.import_xml') }}" title="Import EML File (XML)">Import EML File (XML)...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.import_xml'), 'hidden_import_xml', 'Import EML File (XML)...', ns.is_non_saving) }}
                 {% endif %}
                 {% if current_user.is_authenticated %}
-                        <li>
-                            <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.export_package'), 'hidden_export_ezEML_data_package', 'Export ezEML Data Package...', ns.is_non_saving) }}
                 {% endif %}
-
-                        <li>
-                            <a href="{{ url_for('home.import_package') }}" title="Import ezEML Data Package">Import ezEML Data Package...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.import_package'), 'hidden_import_ezEML_data_package', 'Import ezEML Data Package...', ns.is_non_saving) }}
                     </ul>
                 </li>
             {% endif %}
@@ -228,15 +169,9 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                         </li>
                     </ul>
                 </li>
-                <li>
-                    <a href="{{ url_for('home.user_guide') }}" title="User Guide">User Guide</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('home.about') }}" title="About">About</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('home.news') }}" title="News">News</a>
-                </li>
+                        {{ macros.toolbar_menu_item(url_for('home.user_guide'), 'hidden_user_guide', 'User Guide', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.about'), 'hidden_about', 'About', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.news'), 'hidden_news', 'News', ns.is_non_saving) }}
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
@@ -252,17 +187,13 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                         {% if session['collaboration_enabled_for_user'] %}
                         <td>
                             <ul class="nav navbar-nav">
-                            <li>
-                                <a class="nav navbar-nav" href="{{ url_for('collab.collaborate') }}">Collaborate</a>
-                            </li>
+                            {{ macros.toolbar_menu_item(url_for('collab.collaborate'), 'hidden_collaborate', 'Collaborate', ns.is_non_saving) }}
                             </ul>
                         </td>
                         {% endif %}
                         <td>
                             <ul class="nav navbar-nav">
-                            <li>
-                                <a class="nav navbar-nav" href="{{ url_for('auth.logout') }}">Logout</a>
-                            </li>
+                            {{ macros.toolbar_menu_item(url_for('auth.logout'), 'hidden_logout', 'Logout', ns.is_non_saving) }}
                             </ul>
                         </td>
                     </table>
@@ -436,12 +367,11 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         let nav_link = $('.nav_link');
         let contents_div = $('#contents_div');
         let app_div = $('#app_div');
-        if (hidden_save.length === 0) {
-            {#alert('hiding');#}
+        let hide_contents_menu = $('#hide_contents_menu');
+        if (hide_contents_menu.length > 0) {
             nav_link.hide(); // this hides the Contents menu
-            nav_save.hide();
-            nav_check.hide();
         }
+        // Certain pages want to be displayed full width.
         {% if request.path.endswith('/collaborate') or '/collaborate/' in request.path or
                 request.path.endswith('/show_backups') or '/show_backups/' in request.path or
                 request.path.endswith('/manage_packages') or '/manage_packages/' in request.path %}

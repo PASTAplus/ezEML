@@ -161,8 +161,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
 
-        this_page = PAGE_DATA_TABLE
-        next_page = handle_hidden_buttons(next_page, this_page)
+        next_page = handle_hidden_buttons(next_page)
 
     if form.validate_on_submit():
         eml_node = load_eml(filename=filename)
@@ -706,7 +705,7 @@ def attribute_select(filename=None, dt_node_id=None):
                         new_page = PAGE_ATTRIBUTE_CATEGORICAL
                     node_id = '1'
                 else:
-                    new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                    new_page = check_val_for_hidden_buttons(val, new_page)
 
         if form.validate_on_submit():
             if new_page == back_page:
@@ -1087,15 +1086,10 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
-            # flash(f"is_dirty_form: True")
         else:
             submit_type = 'Back'
-            # flash(f"is_dirty_form: False")
 
-        # Go back to data table or go to the appropriate measurement scale page
-        next_page = PAGE_ATTRIBUTE_SELECT
-        this_page = PAGE_ATTRIBUTE_DATETIME
-        next_page = handle_hidden_buttons(next_page, this_page)
+        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1315,10 +1309,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
             submit_type = 'Back'
             # flash(f"is_dirty_form: False")
 
-        # Go back to data table or go to the appropriate measurement scale page
-        next_page = PAGE_ATTRIBUTE_SELECT
-        this_page = PAGE_ATTRIBUTE_NUMERICAL
-        next_page = handle_hidden_buttons(next_page, this_page)
+        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1618,7 +1609,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
         elif 'Codes' in request.form:
             next_page = PAGE_CODE_DEFINITION_SELECT
         this_page = PAGE_ATTRIBUTE_CATEGORICAL
-        next_page = handle_hidden_buttons(next_page, this_page)
+        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_CATEGORICAL)
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1900,7 +1891,7 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
                     new_page = this_page
                     node_id = key
                 else:
-                    new_page = handle_hidden_buttons(new_page, this_page)
+                    new_page = handle_hidden_buttons(new_page)
 
         if form.validate_on_submit():
             if new_page == back_page:  # attribute_nominal_ordinal
@@ -2032,9 +2023,7 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
-        next_page = PAGE_CODE_DEFINITION_SELECT  # Save or Back sends us back to the list of attributes
-        this_page = PAGE_CODE_DEFINITION
-        next_page = handle_hidden_buttons(next_page, this_page)
+        next_page = handle_hidden_buttons(PAGE_CODE_DEFINITION_SELECT)
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'

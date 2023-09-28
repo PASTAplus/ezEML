@@ -79,7 +79,7 @@ def maintenance(filename=None):
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
-        url = url_for(PAGE_MAINTENANCE, filename=filename)
+        url = url_for(PAGE_PUBLISHER, filename=filename)
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
@@ -108,7 +108,7 @@ def maintenance(filename=None):
                 if val == BTN_SAVE_AND_CONTINUE:
                     new_page = PAGE_PUBLISHER
                 else:
-                    new_page = handle_hidden_buttons(new_page, PAGE_MAINTENANCE)
+                    new_page = handle_hidden_buttons(new_page)
 
         return redirect(url_for(new_page, filename=filename))
 

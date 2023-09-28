@@ -6,20 +6,45 @@
     {% endif %}
 {% endmacro %}
 {% macro hidden_buttons() %}
+                <input id="hidden_about" style="display: none;" name="Hidden_About" type="submit" value="Hidden_About"/>
+                <input id="hidden_check_data_tables" style="display: none;" name="Hidden_Check_Data_Tables" type="submit" value="Hidden_Check_Data_Tables"/>
+                <input id="hidden_check_metadata" style="display: none;" name="Hidden_Check_Metadata" type="submit" value="Hidden_Check_Metadata"/>
+                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
+                <input id="hidden_collaborate" style="display: none;" name="Hidden_Collaborate" type="submit" value="Hidden_Collaborate"/>
+                <input id="hidden_download" style="display: none;" name="Hidden_Download" type="submit" value="Hidden_Download"/>
+                <input id="hidden_export_ezEML_data_package" style="display: none;" name="Hidden_Export_ezEML_Data_Package" type="submit" value="Hidden_Export_ezEML_Data_Package"/>
+                <input id="hidden_fetch_from_EDI" style="display: none;" name="Hidden_Fetch_From_EDI" type="submit" value="Hidden_Fetch_From_EDI"/>
+                <input id="hidden_import_ezEML_data_package" style="display: none;" name="Hidden_Import_ezEML_Data_Package" type="submit" value="Hidden_Import_ezEML_Data_Package"/>
+                <input id="hidden_import_funding_awards" style="display: none;" name="Hidden_Import_Funding_Awards" type="submit" value="Hidden_Import_Funding_Awards"/>
+                <input id="hidden_import_geo_coverage" style="display: none;" name="Hidden_Import_Geo_Coverage" type="submit" value="Hidden_Import_Geo_Coverage"/>
+                <input id="hidden_import_parties" style="display: none;" name="Hidden_Import_Parties" type="submit" value="Hidden_Import_Parties"/>
+                <input id="hidden_import_project" style="display: none;" name="Hidden_Import_Project" type="submit" value="Hidden_Import_Project"/>
+                <input id="hidden_import_related_projects" style="display: none;" name="Hidden_Import_Related_Projects" type="submit" value="Hidden_Import_Related_Projects"/>
+                <input id="hidden_import_taxonomic_coverage" style="display: none;" name="Hidden_Import_Taxonomic_Coverage" type="submit" value="Hidden_Import_Taxonomic_Coverage"/>
+                <input id="hidden_import_xml" style="display: none;" name="Hidden_Import_XML" type="submit" value="Hidden_Import_XML"/>
+                <input id="hidden_logout" style="display: none;" name="Hidden_Logout" type="submit" value="Hidden_Logout"/>
+                <input id="hidden_manage" style="display: none;" name="Hidden_Manage" type="submit" value="Hidden_Manage"/>
                 <input id="hidden_new" style="display: none;" name="Hidden_New" type="submit" value="Hidden_New"/>
                 <input id="hidden_new_from_template" style="display: none;" name="Hidden_New_From_Template" type="submit" value="Hidden_New_From_Template"/>
+                <input id="hidden_news" style="display: none;" name="Hidden_News" type="submit" value="Hidden_News"/>
                 <input id="hidden_open" style="display: none;" name="Hidden_Open" type="submit" value="Hidden_Open"/>
-                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
-                <input id="hidden_check" style="display: none;" name="Hidden_Check" type="submit" value="Hidden_Check"/>
                 <input id="hidden_save" style="display: none;" name="Hidden_Save" type="submit" value="Hidden_Save"/>
-                <input id="hidden_download" style="display: none;" name="Hidden_Download" type="submit" value="Hidden_Download"/>
+                <input id="hidden_save_as" style="display: none;" name="Hidden_Save_As" type="submit" value="Hidden_Save_As"/>
+                <input id="hidden_user_guide" style="display: none;" name="Hidden_User_Guide" type="submit" value="Hidden_User_Guide"/>
     {% set show_nav_buttons = 'visible' %}
 {% endmacro %}
-{% macro hidden_new_open_close_buttons() %}
-                <input id="hidden_new" style="display: none;" name="Hidden_New" type="submit" value="Hidden_New"/>
-                <input id="hidden_new_from_template" style="display: none;" name="Hidden_New_From_Template" type="submit" value="Hidden_New_From_Template"/>
-                <input id="hidden_open" style="display: none;" name="Hidden_Open" type="submit" value="Hidden_Open"/>
-                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
+{% macro hidden_buttons_with_no_contents_menu() %}
+    {{ hidden_buttons() }}
+                <input id="hide_contents_menu" style="display: none;" name="Hide Contents Menu" type="submit" value="Hide Contents Menu"/>
+{% endmacro %}
+{% macro toolbar_menu_item(url, name, display_name, is_non_saving) %}
+                        <li>
+                            {% if is_non_saving %}
+                            <a href="{{ url }}" title="{{ display_name }}">{{ display_name }}</a>
+                            {% else %}
+                            <a href="#" onclick="$('#{{ name }}').click();">{{ display_name }}</a>
+                            {% endif %}
+                        </li>
 {% endmacro %}
 {% macro help_button(id, class) %}
     <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;" title="Help">
@@ -147,4 +172,9 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 $.get(url, function(response, status) {});
             }
         });
+{% endmacro %}
+{% macro taxon_link(link) %}
+    {% if link %}
+        <a href="{{ link }}" target="_taxon_link">External Link</a>
+    {% endif %}
 {% endmacro %}

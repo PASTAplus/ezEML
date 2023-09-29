@@ -968,7 +968,11 @@ def download():
 @home.route('/check_data_tables', methods=['GET', 'POST'])
 @login_required
 def check_data_tables():
-    current_document = user_data.get_active_document()
+    if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS
+    else:
+        log_the_details = False
+    current_document = user_data.get_active_document(log_the_details)
     if not current_document:
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document)
@@ -987,7 +991,11 @@ def check_data_tables():
 @home.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 def check_metadata(filename:str):
-    current_document = user_data.get_active_document()
+    if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS
+    else:
+        log_the_details = False
+    current_document = user_data.get_active_document(log_the_details)
     if not current_document:
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)

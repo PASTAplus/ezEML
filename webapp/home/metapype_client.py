@@ -1117,6 +1117,9 @@ def load_eml(filename:str=None,
              owner_login:str=None,
              log_the_details:bool=False):
 
+    if not log_the_details and hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS
+
     # Usually when we load an EML file, we want to acquire a lock on it. However, there are times when we are just
     #  looking at the file, not opening it for editing. For example, when checking metadata or when getting the package
     #  size for manage packages page.

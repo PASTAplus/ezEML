@@ -34,7 +34,6 @@ class IntellectualRightsForm(EDIForm):
                                            # default="CC0",
                                            validators=[InputRequired()])
     intellectual_rights = StringField('', widget=TextArea(), validators=[])
-    # md5 = HiddenField('')
 
 
 class KeywordSelectForm(EDIForm):
@@ -52,7 +51,6 @@ class KeywordForm(EDIForm):
                                         ("taxonomic", "taxonomic"),
                                         ("temporal", "temporal"),
                                         ("theme", "theme")])
-    # md5 = HiddenField('')
 
     def init_keywords(self):
         lter_keywords = get_keywords('LTER')
@@ -65,13 +63,11 @@ class KeywordForm(EDIForm):
 class PubDateForm(EDIForm):
     pubdate = StringField('Publication Date',
                           validators=[Optional(), Regexp(r'^(\d\d\d\d)-(01|02|03|04|05|06|07|08|09|10|11|12)-(0[1-9]|[1-2]\d|30|31)|(\d\d\d\d)$', message='Invalid date format')])
-    # md5 = HiddenField('')
 
 
 class PublicationInfoForm(EDIForm):
     pubplace = StringField('Publication Place (Optional)', validators=[])
     pubdate = StringField('Publication Date (Optional)', validators=[])
-    # md5 = HiddenField('')
 
 
 class TitleForm(EDIForm):

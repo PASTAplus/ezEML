@@ -22,6 +22,7 @@
                 <input id="hidden_import_related_projects" style="display: none;" name="Hidden_Import_Related_Projects" type="submit" value="Hidden_Import_Related_Projects"/>
                 <input id="hidden_import_taxonomic_coverage" style="display: none;" name="Hidden_Import_Taxonomic_Coverage" type="submit" value="Hidden_Import_Taxonomic_Coverage"/>
                 <input id="hidden_import_xml" style="display: none;" name="Hidden_Import_XML" type="submit" value="Hidden_Import_XML"/>
+                <input id="hidden_index" style="display: none;" name="Hidden_Index" type="submit" value="Hidden_Index"/>
                 <input id="hidden_logout" style="display: none;" name="Hidden_Logout" type="submit" value="Hidden_Logout"/>
                 <input id="hidden_manage" style="display: none;" name="Hidden_Manage" type="submit" value="Hidden_Manage"/>
                 <input id="hidden_new" style="display: none;" name="Hidden_New" type="submit" value="Hidden_New"/>
@@ -37,13 +38,16 @@
     {{ hidden_buttons() }}
                 <input id="hide_contents_menu" style="display: none;" name="Hide Contents Menu" type="submit" value="Hide Contents Menu"/>
 {% endmacro %}
-{% macro toolbar_menu_item(url, name, display_name, is_non_saving) %}
-                        <li>
+{% macro button_link(url, name, display_name, is_non_saving) %}
                             {% if is_non_saving %}
                             <a href="{{ url }}" title="{{ display_name }}">{{ display_name }}</a>
                             {% else %}
                             <a href="#" onclick="$('#{{ name }}').click();">{{ display_name }}</a>
                             {% endif %}
+{% endmacro %}
+{% macro toolbar_menu_item(url, name, display_name, is_non_saving) %}
+                        <li>
+                            {{ button_link(url, name, display_name, is_non_saving) }}
                         </li>
 {% endmacro %}
 {% macro help_button(id, class) %}

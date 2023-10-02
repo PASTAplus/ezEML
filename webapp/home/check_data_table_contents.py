@@ -948,7 +948,6 @@ def hash_data_table_metadata_settings(eml_node, data_table_name):
     return hash
 
 
-
 def collapse_error_info_for_webpage(errors):
     """
     When essentially the same error is repeated on a sequence of consecutive rows, we want to collapse the sequence.

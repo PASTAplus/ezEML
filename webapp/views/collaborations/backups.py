@@ -21,12 +21,12 @@ def save_backup(package_id, primary=False):
     package_name = package.package_name
     filename = f'{package_name}.json'
 
-    user_folder = get_user_folder_name()
-    filepath = os.path.join(user_folder, filename)
+    owner_login = package.owner.user_login
+    owner_folder = get_user_folder_name(owner_login=owner_login)
+    filepath = os.path.join(owner_folder, filename)
     if not os.path.exists(filepath):
         raise ValueError(f'File {filepath} not found')
 
-    owner_login = package.owner.user_login
     collaboration_backups_folder_name = os.path.join(Config.USER_DATA_DIR, '__collaboration_backups', owner_login)
     Path(collaboration_backups_folder_name).mkdir(parents=True, exist_ok=True)
 

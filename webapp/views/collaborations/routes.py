@@ -155,8 +155,8 @@ def enable_edi_curation(filename=None):
     #     enable_disabled = True
 
     # See if package is already under EDI curation. If so, just display an informational message.
-    user_login = current_user.get_user_login()
-    package = get_package(user_login, filename, create_if_not_found=False)
+    owner_login = user_data.get_active_document_owner_login()
+    package = get_package(owner_login, filename, create_if_not_found=False)
     if package:
         package_id = package.package_id
         if package_is_under_edi_curation(package_id):
@@ -231,10 +231,10 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         return redirect(url_for(new_page, filename=current_document))
 
     try:
-        user_login = current_user.get_user_login()
+        owner_login = user_data.get_active_document_owner_login()
 
         # Create a group collaboration with EDI Curators
-        group_collaboration = collaborations.add_group_collaboration(user_login, 'EDI Curators', filename)
+        group_collaboration = collaborations.add_group_collaboration(owner_login, 'EDI Curators', filename)
 
         # Activate group lock
         if group_collaboration:
@@ -583,8 +583,7 @@ def preview_backup(filename=None):
 @collab_bp.route('/restore_backup/<filename>/<owner>', methods=['GET', 'POST'])
 @login_required
 def restore_backup(filename=None, owner=None):
-    # Load the backup into the collaboration owner's account
-    #  and then open the document for review.
+    # Copy the backup into the collaboration owner's account
     # Load the backup into the logged in user's session
     #  and then open the document for review.
 

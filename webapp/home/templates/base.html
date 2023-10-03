@@ -62,7 +62,6 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         {% set ns.is_non_saving = true %}
     {% endif %}
 {% endfor %}
-
 {% block navbar %}
 
 <nav class="navbar navbar-default">
@@ -310,25 +309,25 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
 
         {# Handle clicks on the main Contents menu.#}
-        {{ macros.button_link(url_for('home.edit', page='res.title'), 'hidden_title', 'Title', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='dt.data_table_select'), 'hidden_data_tables', 'Data Tables', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='rp.creator_select'), 'hidden_creators', 'Creators', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='rp.contact_select'), 'hidden_contacts', 'Contacts', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='rp.associated_party_select'), 'hidden_associated_parties', 'Associated Parties', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='rp.metadata_provider_select'), 'hidden_metadata_providers', 'Metadata Providers', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='res.abstract'), 'hidden_abstract', 'Abstract', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='res.keyword_select'), 'hidden_keywords', 'Keywords', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='res.intellectual_rights'), 'hidden_intellectual_rights', 'Intellectual Rights', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='cov.geographic_coverage_select'), 'hidden_geographic_coverage', 'Geographic Coverage', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='cov.temporal_coverage_select'), 'hidden_temporal_coverage', 'Temporal Coverage', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='cov.taxonomic_coverage_select'), 'hidden_taxonomic_coverage', 'Taxonomic Coverage', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='maint.maintenance'), 'hidden_maintenance', 'Maintenance', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='rp.publisher'), 'hidden_publisher', 'Publisher', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='res.publication_info'), 'hidden_publication_info', 'Publication Info', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='md.method_step_select'), 'hidden_methods', 'Methods', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='proj.project'), 'hidden_project', 'Project', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='ent.other_entity_select'), 'hidden_other_entities', 'Other Entities', is_non_saving) }}<br>
-        {{ macros.button_link(url_for('home.edit', page='res.data_package_id'), 'hidden_data_package_id', 'Data Package ID', is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.title'), title_style, 'hidden_title', 'Title', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='dt.data_table_select'), data_table_style, 'hidden_data_tables', 'Data Tables', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.creator_select'), creator_style, 'hidden_creators', 'Creators', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.contact_select'), contact_style, 'hidden_contacts', 'Contacts', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.associated_party_select'), associated_party_style, 'hidden_associated_parties', 'Associated Parties', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.metadata_provider_select'), metadata_provider_style, 'hidden_metadata_providers', 'Metadata Providers', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.abstract'), abstract_style, 'hidden_abstract', 'Abstract', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.keyword_select'), keyword_style, 'hidden_keywords', 'Keywords', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.intellectual_rights'), intellectual_rights_style, 'hidden_intellectual_rights', 'Intellectual Rights', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='cov.geographic_coverage_select'), geographic_coverage_style, 'hidden_geographic_coverage', 'Geographic Coverage', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='cov.temporal_coverage_select'), temporal_coverage_style, 'hidden_temporal_coverage', 'Temporal Coverage', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='cov.taxonomic_coverage_select'), taxonomic_coverage_style, 'hidden_taxonomic_coverage', 'Taxonomic Coverage', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='maint.maintenance'), maintenance_style, 'hidden_maintenance', 'Maintenance', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.publisher'), publisher_style, 'hidden_publisher', 'Publisher', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.publication_info'), publication_info_style, 'hidden_publication_info', 'Publication Info', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='md.method_step_select'), method_step_style, 'hidden_methods', 'Methods', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='proj.project'), project_style, 'hidden_project', 'Project', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='ent.other_entity_select'), other_entity_style, 'hidden_other_entities', 'Other Entities', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.data_package_id'), data_package_id_style, 'hidden_data_package_id', 'Data Package ID', ns.is_non_saving) }}<br>
             <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ check_metadata_style }}; href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>

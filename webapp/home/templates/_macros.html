@@ -7,8 +7,6 @@
 {% endmacro %}
 {% macro hidden_buttons() %}
                 <input id="hidden_about" style="display: none;" name="Hidden_About" type="submit" value="Hidden_About"/>
-                <input id="hidden_check_data_tables" style="display: none;" name="Hidden_Check_Data_Tables" type="submit" value="Hidden_Check_Data_Tables"/>
-                <input id="hidden_check_metadata" style="display: none;" name="Hidden_Check_Metadata" type="submit" value="Hidden_Check_Metadata"/>
                 <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
                 <input id="hidden_collaborate" style="display: none;" name="Hidden_Collaborate" type="submit" value="Hidden_Collaborate"/>
                 <input id="hidden_download" style="display: none;" name="Hidden_Download" type="submit" value="Hidden_Download"/>
@@ -32,6 +30,30 @@
                 <input id="hidden_save" style="display: none;" name="Hidden_Save" type="submit" value="Hidden_Save"/>
                 <input id="hidden_save_as" style="display: none;" name="Hidden_Save_As" type="submit" value="Hidden_Save_As"/>
                 <input id="hidden_user_guide" style="display: none;" name="Hidden_User_Guide" type="submit" value="Hidden_User_Guide"/>
+                {# Buttons for Contents Menu #}
+                <input id="hidden_title" style="display: none;" name="Hidden_Title" type="submit" value="Hidden_Title"/>
+                <input id="hidden_data_tables" style="display: none;" name="Hidden_Data_Tables" type="submit" value="Hidden_Data_Tables"/>
+                <input id="hidden_creators" style="display: none;" name="Hidden_Creators" type="submit" value="Hidden_Creators"/>
+                <input id="hidden_contacts" style="display: none;" name="Hidden_Contacts" type="submit" value="Hidden_Contacts"/>
+                <input id="hidden_associated_parties" style="display: none;" name="Hidden_Associated_Parties" type="submit" value="Hidden_Associated_Parties"/>
+                <input id="hidden_metadata_providers" style="display: none;" name="Hidden_Metadata_Providers" type="submit" value="Hidden_Metadata_Providers"/>
+                <input id="hidden_abstract" style="display: none;" name="Hidden_Abstract" type="submit" value="Hidden_Abstract"/>
+                <input id="hidden_keywords" style="display: none;" name="Hidden_Keywords" type="submit" value="Hidden_Keywords"/>
+                <input id="hidden_intellectual_rights" style="display: none;" name="Hidden_Intellectual_Rights" type="submit" value="Hidden_Intellectual_Rights"/>
+                <input id="hidden_geographic_coverage" style="display: none;" name="Hidden_Geographic_Coverage" type="submit" value="Hidden_Geographic_Coverage"/>
+                <input id="hidden_temporal_coverage" style="display: none;" name="Hidden_Temporal_Coverage" type="submit" value="Hidden_Temporal_Coverage"/>
+                <input id="hidden_taxonomic_coverage" style="display: none;" name="Hidden_Taxonomic_Coverage" type="submit" value="Hidden_Taxonomic_Coverage"/>
+                <input id="hidden_maintenance" style="display: none;" name="Hidden_Maintenance" type="submit" value="Hidden_Maintenance"/>
+                <input id="hidden_publisher" style="display: none;" name="Hidden_Publisher" type="submit" value="Hidden_Publisher"/>
+                <input id="hidden_publication_info" style="display: none;" name="Hidden_Publication_Info" type="submit" value="Hidden_Publication_Info"/>
+                <input id="hidden_methods" style="display: none;" name="Hidden_Methods" type="submit" value="Hidden_Methods"/>
+                <input id="hidden_project" style="display: none;" name="Hidden_Project" type="submit" value="Hidden_Project"/>
+                <input id="hidden_other_entities" style="display: none;" name="Hidden_Other_Entities" type="submit" value="Hidden_Other_Entities"/>
+                <input id="hidden_data_package_id" style="display: none;" name="Hidden_Data_Package_ID" type="submit" value="Hidden_Data_Package_ID"/>
+                <input id="hidden_check_metadata" style="display: none;" name="Hidden_Check_Metadata" type="submit" value="Hidden_Check_Metadata"/>
+                <input id="hidden_check_data_tables" style="display: none;" name="Hidden_Check_Data_Tables" type="submit" value="Hidden_Check_Data_Tables"/>
+                <input id="hidden_submit_share_package" style="display: none;" name="Hidden_Submit_Share_Package" type="submit" value="Hidden_Submit_Share_Package"/>
+                <input id="hidden_manage_data_usage" style="display: none;" name="Hidden_Manage_Data_Usage" type="submit" value="Hidden_Manage_Data_Usage"/>
     {% set show_nav_buttons = 'visible' %}
 {% endmacro %}
 {% macro hidden_buttons_with_no_contents_menu() %}

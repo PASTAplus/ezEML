@@ -310,26 +310,26 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
 
         {# Handle clicks on the main Contents menu.#}
-        <a class="nav_link" style={{ title_style }}; href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
-        <a class="nav_link" style={{ data_table_style }}; href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
-        <a class="nav_link" style={{ creator_style }}; href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>
-        <a class="nav_link" style={{ contact_style }}; href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
-        <a class="nav_link" style={{ associated_party_style }}; href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>
-        <a class="nav_link" style={{ metadata_provider_style }}; href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
-        <a class="nav_link" style={{ abstract_style }}; href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>
-        <a class="nav_link" style={{ keyword_style }}; href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>
-        <a class="nav_link" style={{ intellectual_rights_style }}; href="{{ url_for('home.edit', page='res.intellectual_rights') }}" title="Edit">Intellectual Rights</a><br>
-        <a class="nav_link" style={{ geographic_coverage_style }}; href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a><br>
-        <a class="nav_link" style={{ temporal_coverage_style }}; href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
-        <a class="nav_link" style={{ taxonomic_coverage_style }}; href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
-        <a class="nav_link" style={{ maintenance_style }}; href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>
-        <a class="nav_link" style={{ publisher_style }}; href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>
-        <a class="nav_link" style={{ publication_info_style }}; href="{{ url_for('home.edit', page='res.publication_info') }}" title="Edit">Publication Info</a><br>
-        <a class="nav_link" style={{ method_step_style }}; href="{{ url_for('home.edit', page='md.method_step_select') }}" title="Edit">Methods</a><br>
-        <a class="nav_link" style={{ project_style }}; href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
-        <a class="nav_link" style={{ other_entity_style }}; href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
-        <a class="nav_link" style={{ data_package_id_style }}; href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>
-        <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
+        {{ macros.button_link(url_for('home.edit', page='res.title'), 'hidden_title', 'Title', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='dt.data_table_select'), 'hidden_data_tables', 'Data Tables', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='rp.creator_select'), 'hidden_creators', 'Creators', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='rp.contact_select'), 'hidden_contacts', 'Contacts', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='rp.associated_party_select'), 'hidden_associated_parties', 'Associated Parties', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='rp.metadata_provider_select'), 'hidden_metadata_providers', 'Metadata Providers', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='res.abstract'), 'hidden_abstract', 'Abstract', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='res.keyword_select'), 'hidden_keywords', 'Keywords', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='res.intellectual_rights'), 'hidden_intellectual_rights', 'Intellectual Rights', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='cov.geographic_coverage_select'), 'hidden_geographic_coverage', 'Geographic Coverage', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='cov.temporal_coverage_select'), 'hidden_temporal_coverage', 'Temporal Coverage', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='cov.taxonomic_coverage_select'), 'hidden_taxonomic_coverage', 'Taxonomic Coverage', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='maint.maintenance'), 'hidden_maintenance', 'Maintenance', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='rp.publisher'), 'hidden_publisher', 'Publisher', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='res.publication_info'), 'hidden_publication_info', 'Publication Info', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='md.method_step_select'), 'hidden_methods', 'Methods', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='proj.project'), 'hidden_project', 'Project', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='ent.other_entity_select'), 'hidden_other_entities', 'Other Entities', is_non_saving) }}<br>
+        {{ macros.button_link(url_for('home.edit', page='res.data_package_id'), 'hidden_data_package_id', 'Data Package ID', is_non_saving) }}<br>
+            <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ check_metadata_style }}; href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>
             <br>

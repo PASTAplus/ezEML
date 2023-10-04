@@ -1,3 +1,9 @@
+"""
+backups.py
+
+This module contains helper functions for the backups created when a user submits a package to EDI curation.
+"""
+
 from datetime import datetime
 import os
 from pathlib import Path
@@ -36,12 +42,11 @@ def save_backup(package_id, primary=False):
     copyfile(filepath, backup_filename)
 
 
-def format_datetime(str_date):
-    substrs = str_date.split('_')
-    return f'{substrs[0]}-{substrs[1]}-{substrs[2]}&nbsp;{substrs[3]}:{substrs[4]}'
-
-
 def get_backups():
+    def format_datetime(str_date):
+        substrs = str_date.split('_')
+        return f'{substrs[0]}-{substrs[1]}-{substrs[2]}&nbsp;{substrs[3]}:{substrs[4]}'
+
     collaboration_backups_folder_name = os.path.join(Config.USER_DATA_DIR, '__collaboration_backups')
     backups = []
 

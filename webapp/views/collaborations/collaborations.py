@@ -1,3 +1,6 @@
+"""
+This module contains helper functions for accessing and manipulating the collaborations database.
+"""
 import random
 import string
 
@@ -48,13 +51,6 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 logger = daiquiri.getLogger('collaborations: ' + __name__)
 
 
-# logger = daiquiri.getLogger('views: ' + __name__)
-# col_bp = Blueprint('col', __name__, template_folder='templates')
-
-# session_factory = sessionmaker(bind=engine)
-# Session = scoped_session(sessionmaker(bind=engine))
-
-
 class CollaborationCase(Enum):
     LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_INDIVIDUAL = auto()
     LOGGED_IN_USER_IS_OWNER_COLLABORATOR_IS_GROUP = auto()
@@ -81,6 +77,9 @@ class CollaborationAction(Enum):
 
 
 def display_name(user_login: str) -> str:
+    """
+    Given a user login, return the display name for the user. If the user is not found, return an empty string.
+    """
     try:
         if user_login:
             return user_login[:user_login.rfind('-')]
@@ -111,13 +110,20 @@ def set_active_package(user_login, package_name, owner_login=None, session=None)
 
 
 def _set_active_package_id(user_id, package_id, session=None):
+    """
+    Set the active package ID for the user.
+    This should only be called by the lock handling code. The user is assumed to exist.
+    """
     with db_session(session) as session:
-        # This should only be called by the lock handling code. The user is assumed to exist.
         user = _get_user(user_id)
         user.active_package_id = package_id
 
 
 def _get_active_package(user_id):
+    """
+    Get the active package ID for the user, if any. If the user has no active package, return None.
+    This should only be called by the lock handling code. The user is assumed to exist.
+    """
     user = _get_user(user_id)
     active_package_id = user.active_package_id
     if active_package_id:
@@ -127,6 +133,10 @@ def _get_active_package(user_id):
 
 
 def get_active_package(user_login, session=None):
+    """
+    Get the active package for the user, if any. If the user has no active package, return None.
+    If the user is not found, create the user.
+    """
     with db_session(session) as session:
         user = get_user(user_login, create_if_not_found=True, session=session)
         active_package_id = user.active_package_id
@@ -137,6 +147,11 @@ def get_active_package(user_login, session=None):
 
 
 def get_active_package_owner_login(user_login, session=None):
+    """
+    Get the active package for the user, if any. If the user has an active package, get the owner login for the
+    package. If the user has no active package, return None.
+    If the user is not found, create the user.
+    """
     with db_session(session) as session:
         package = get_active_package(user_login, session=session)
         if package:
@@ -266,7 +281,7 @@ def update_lock(user_login, package_name, owner_login=None, opening=False, sessi
 
 def cull_locks(session=None):
     """
-    cull_locks() is called periodically to remove locks that have timed out.
+    cull_locks() is called periodically (by init_session_vars) to remove locks that have timed out.
     Otherwise, locks can accumulate if a user opens a package and then closes the browser without closing the package.
     """
     with db_session(session) as session:
@@ -284,8 +299,11 @@ def cull_locks(session=None):
 
 
 def cull_packages(session=None):
-    # Delete package records that aren't locked by a user or group or referenced
-    # by a collaboration record, invitation, or active package ID.
+    """
+    Delete package records that aren't locked by a user or group or referenced by a collaboration record, invitation,
+    or active package ID. This prevents the list of packages from growing indefinitely. If we're not using a package,
+    we don't need to keep it around in the database.
+    """
     packages = Package.query.all()
     active_package_ids = get_active_package_ids(session=session)
     for package in packages:
@@ -334,6 +352,9 @@ def close_package(user_login, session=None):
 
 
 def _get_lock(package_id):
+    """
+    Returns the lock record for the specified package, or None if the package is not locked.
+    """
     try:
         lock = Lock.query.filter_by(package_id=package_id).first()
     except Exception as exc:
@@ -342,6 +363,10 @@ def _get_lock(package_id):
 
 
 def _add_lock(package_id, locked_by, session=None):
+    """
+    Adds a lock record for the specified package, unless the package is already locked.
+    In either case, returns the lock record.
+    """
     with db_session(session) as session:
         lock = _get_lock(package_id)
         if not lock:
@@ -353,7 +378,9 @@ def _add_lock(package_id, locked_by, session=None):
 
 
 def remove_package(owner_login, package_name, session=None):
-    # To be called when an ezEML document is deleted. Remove all records associated with the package.
+    """
+    To be called when a package is deleted. Removes all records associated with the package.
+    """
     with db_session(session) as session:
         package = get_package(owner_login, package_name, session)
         if package:
@@ -380,6 +407,9 @@ def remove_package(owner_login, package_name, session=None):
 
 
 def remove_collaboration(collab_id, session=None):
+    """
+    To be called when a collaboration is terminated. Removes the collaboration record.
+    """
     with db_session(session) as session:
         collaboration = Collaboration.query.filter_by(collab_id=collab_id).first()
         if collaboration:
@@ -387,6 +417,11 @@ def remove_collaboration(collab_id, session=None):
 
 
 def remove_group_collaboration(group_collab_id, session=None):
+    """
+    To be called when a grouop collaboration is terminated. Removes the individual collaboration records
+    for the group participants and the group collaboration record. Also removes any locks associated with
+    the package.
+    """
     with db_session(session) as session:
         group_collaboration = _get_group_collaboration(group_collab_id)
         if group_collaboration:
@@ -404,7 +439,10 @@ def remove_group_collaboration(group_collab_id, session=None):
 
 
 def get_group_collaboration_for_lock(group_lock_id):
-    # Return the group collaboration associated with the group lock.
+    """
+    Returns the group collaboration associated with the specified group lock, or None if no such group lock exists or
+    if the group lock is not associated with a group collaboration.
+    """
     group_lock = _get_group_lock_by_id(group_lock_id)
     if group_lock:
         group_collaboration = GroupCollaboration.query.filter_by(package_id=group_lock.package_id,
@@ -414,6 +452,10 @@ def get_group_collaboration_for_lock(group_lock_id):
 
 
 def _remove_lock(package_id, session=None):
+    """
+    Removes the lock record for the specified package, if any. If the user who held the lock has an active_package_id
+    that matches the package_id, then the user's active_package_id is set to None.
+    """
     with db_session(session) as session:
         lock = _get_lock(package_id)
         if lock:
@@ -425,6 +467,9 @@ def _remove_lock(package_id, session=None):
 
 
 def _release_lock_for_user(user_id, session=None):
+    """
+    Removes all locks held by the specified user.
+    """
     with db_session(session) as session:
         locks = Lock.query.filter_by(locked_by=user_id).all()
         for lock in locks:
@@ -432,6 +477,10 @@ def _release_lock_for_user(user_id, session=None):
 
 
 def release_acquired_lock(lock, session=None):
+    """
+    Remove the specified lock. This is called, for example, when a user has acquired a lock on a package, but then
+    loading the package fails for some reason.
+    """
     if not lock:
         return
     with db_session(session) as session:
@@ -452,6 +501,9 @@ def release_lock(user_login, package_id, session=None):
 
 
 def _get_group_lock_by_id(group_lock_id):
+    """
+    Returns the group lock record with the specified group_lock_id, or None if no such group lock exists.
+    """
     try:
         group_lock = GroupLock.query.filter_by(group_lock_id=group_lock_id).first()
     except Exception as exc:
@@ -460,6 +512,9 @@ def _get_group_lock_by_id(group_lock_id):
 
 
 def _get_group_lock(package_id):
+    """
+    Returns the group lock record for the specified package, or None if no such group lock exists.
+    """
     try:
         lock = GroupLock.query.filter_by(package_id=package_id).first()
     except Exception as exc:
@@ -468,6 +523,11 @@ def _get_group_lock(package_id):
 
 
 def add_group_lock(package_id, locked_by, session=None):
+    """
+    Adds a group lock record for the specified package. If a group lock already exists for the package, then the
+    existing group lock is returned. If an individual lock exists for the package and the user who holds the lock
+    is not a member of the group, then the individual lock is removed.
+    """
     with db_session(session) as session:
         group_lock = _get_group_lock(package_id)
         if not group_lock:
@@ -489,6 +549,9 @@ def add_group_lock(package_id, locked_by, session=None):
 
 
 def _remove_group_lock(package_id, session=None):
+    """
+    Removes the group lock record for the specified package, if any.
+    """
     with db_session(session) as session:
         lock = _get_group_lock(package_id)
         if lock:
@@ -496,6 +559,11 @@ def _remove_group_lock(package_id, session=None):
 
 
 def release_group_lock(package_id, session=None):
+    """
+    Removes the group lock record for the specified package, if any. Also removes any individual locks held by
+    members of the group.
+    Called when a group collaboration is terminated.
+    """
     with db_session(session) as session:
         group = GroupCollaboration.query.filter_by(package_id=package_id).first()
         if group:
@@ -506,12 +574,19 @@ def release_group_lock(package_id, session=None):
 
 
 def set_active_package_id(user_id, package_id, session=None):
+    """
+    Sets the active_package_id for the specified user to the specified package_id. The user is assumed to exist.
+    """
     with db_session(session) as session:
         user = User.query.filter_by(user_id=user_id).first()
         user.active_package_id = package_id
 
 
 def _get_active_package_id(user_id):
+    """
+    Returns the active_package_id for the specified user, or None if no active package exists for the user.
+    Raises an exception if no user with the specified ID exists.
+    """
     user = User.query.filter_by(user_id=user_id).first()
     if not user:
         raise exceptions.CollaborationDatabaseError('_get_active_package_id: User does not exist')
@@ -519,6 +594,10 @@ def _get_active_package_id(user_id):
 
 
 def get_active_package(user_login, session=None):
+    """
+    Returns the active package for the specified user, or None if no active package exists for the user.
+    If no user exists with the specified login, an exception is raised.
+    """
     with db_session(session) as session:
         user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
         package_id = _get_active_package_id(user_id)
@@ -529,20 +608,35 @@ def get_active_package(user_login, session=None):
 
 
 def get_active_package_ids(session=None):
+    """
+    Returns a list of the IDs of all active packages. Used in culling inactive packages.
+    """
     with db_session(session) as session:
         return [user.active_package_id for user in User.query.all() if user.active_package_id is not None]
 
 
 def change_active_package_account(package_name, session=None):
+    """
+    Changes the active package for the currently logged in user to the specified package, creating a package record
+    if necessary.
+
+    This is called when we're opening a backup for review in the logged in user's account. We need to set the active
+    package to the backup but owned by the logged in user because we're opening the document in the logged in user's
+    account.
+    """
     with db_session(session) as session:
+        # Get a user object for the logged in user.
         user_login = current_user.get_user_login()
         logged_in_user_id = get_user(user_login, create_if_not_found=True, session=session).user_id
+        # Get the current active package for the logged in user.
         current_active_package = get_active_package(user_login, session=session)
         if current_active_package:
+            # If the current active package is already owned by the logged in user, then we don't need to do anything.
             if current_active_package.owner_id == logged_in_user_id:
                 return
-            # release_lock(user_login, current_active_package.package_id, session=session)
 
+        # Otherwise, we need to set the active package to the specified package, owned by the logged in user, creating
+        #  a package record if necessary.
         new_package = get_package(user_login,
                                   package_name,
                                   create_if_not_found=True,
@@ -554,6 +648,10 @@ def change_active_package_account(package_name, session=None):
 
 
 def get_user(user_login, create_if_not_found=False, session=None):
+    """
+    Returns the user object for the specified user login. If create_if_not_found is True, then the user is created if
+    it doesn't already exist. If create_if_not_found is False, then None is returned if the user doesn't exist.
+    """
     with db_session(session) as session:
         user = User.query.filter_by(user_login=user_login).first()
         if not user and create_if_not_found:
@@ -562,11 +660,18 @@ def get_user(user_login, create_if_not_found=False, session=None):
 
 
 def _get_user(user_id):
+    """
+    Returns the user object for the specified user ID. Returns None if no user with the specified ID exists.
+    """
     user = User.query.filter_by(user_id=user_id).first()
     return user
 
 
 def add_user(user_login, session=None):
+    """
+    Adds a user with the specified login to the database and returns the user object. If the user already exists, the
+    existing user object is returned.
+    """
     with db_session(session) as session:
         user = get_user(user_login, session=session)
         if not user:
@@ -577,20 +682,34 @@ def add_user(user_login, session=None):
 
 
 def get_package_by_id(package_id):
-    # This function uses the database id, but is intended to be called from outside the collaboration module, hence
-    # no preceding underscore in the name. This function is used in handling a request to open a package by a
-    # collaborator.
+    """
+    Returns the package object with the specified package ID. Returns None if no package with the specified ID exists.
+
+    This function uses the database id, but is intended to be called from outside the collaboration module, hence
+    no preceding underscore in the name. This function is used in handling a request to open a package by a
+    collaborator (i.e., when clicing an "Open" link on the collaboration page). The package's database id is passed in
+    the URL in that request.
+    """
     package = Package.query.filter_by(package_id=package_id).first()
     return package
 
 
 def get_package_owner(package_id):
+    """
+    Returns the user object for the owner of the specified package. Returns None if no package with the specified ID
+    exists.
+    """
     package = get_package_by_id(package_id)
     if package:
         return _get_user(package.owner_id)
 
 
 def _get_package(owner_id, package_name, create_if_not_found=False, session=None):
+    """
+    Returns the package object for the specified owner and package name. If create_if_not_found is True, then a package
+    record is created if one doesn't already exist. If create_if_not_found is False, then None is returned if no
+    package with the specified owner and package name exists.
+    """
     with db_session(session) as session:
         package = Package.query.filter_by(owner_id=owner_id, package_name=package_name).first()
         if not package and create_if_not_found:
@@ -599,12 +718,22 @@ def _get_package(owner_id, package_name, create_if_not_found=False, session=None
 
 
 def get_package(owner_login, package_name, create_if_not_found=False, session=None):
+    """
+    Returns the package object for the specified owner and package name. If create_if_not_found is True, then a package
+    record is created if one doesn't already exist. If create_if_not_found is False, then None is returned if no
+    package with the specified owner and package name exists.
+    Also, if no user with the specified owner_login exists, then a user record is created for that user.
+    """
     with db_session(session) as session:
         owner_id = get_user(owner_login, create_if_not_found=True, session=session).user_id
         return _get_package(owner_id, package_name, create_if_not_found, session=session)
 
 
 def _add_package(owner_id, package_name, session=None):
+    """
+    Adds a package with the specified owner and package name to the database and returns the package object. If such a
+    package already exists, the existing package object is returned.
+    """
     with db_session(session) as session:
         package = _get_package(owner_id, package_name, session=session)
         if not package:
@@ -615,17 +744,29 @@ def _add_package(owner_id, package_name, session=None):
 
 
 def get_collaboration(collaborator_id, package_id):
+    """
+    Returns the collaboration object for the specified collaborator and package. Returns None if no collaboration
+    exists for the specified collaborator and package.
+    """
     collaboration = Collaboration.query.filter_by(collaborator_id=collaborator_id, package_id=package_id).first()
     return collaboration
 
 
 def get_owner_login(package_id):
+    """
+    Returns the login for the owner of the specified package. Returns None if no package with the specified ID exists.
+    """
     package = get_package_by_id(package_id)
     if package:
         return _get_user(package.owner_id).user_login
 
 
 def _add_collaboration(owner_id, collaborator_id, package_id, status=None, session=None):
+    """
+    Adds a collaboration with the specified owner, collaborator, and package to the database and returns the
+    collaboration object. If such a collaboration already exists, the existing collaboration object is returned.
+    Also, optionally sets the status of the collaboration, although this functionality is not currently used.
+    """
     with db_session(session) as session:
         collaboration = get_collaboration(collaborator_id, package_id)
         if not collaboration:
@@ -641,11 +782,17 @@ def _add_collaboration(owner_id, collaborator_id, package_id, status=None, sessi
 
 
 def _get_collaboration_status(collab_id):
+    """
+    Not currently used.
+    """
     collaboration_status = CollaborationStatus.query.filter_by(collab_id=collab_id).first()
     return collaboration_status
 
 
 def _set_collaboration_status(collab_id, status, session=None):
+    """
+    Not currently used.
+    """
     with db_session(session) as session:
         collaboration_status = db.session.query(CollaborationStatus).filter_by(collab_id=collab_id).first()
         if not collaboration_status:
@@ -657,8 +804,13 @@ def _set_collaboration_status(collab_id, status, session=None):
         return collaboration_status
 
 
-# For development and debugging
 def get_collaboration_output():
+    """
+    Returns a list of all collaborations in the database.
+    For development and debugging. Displayed when the collaborate page is displayed with a request of the form:
+        collaborate/package_name/dev
+    It's the "dev" that signals that the collaboration list should be displayed.
+    """
     with db_session() as session:
         collaboration_list = []
         collaborations = Collaboration.query.filter_by().all()
@@ -671,8 +823,13 @@ def get_collaboration_output():
         return collaboration_list
 
 
-# For development and debugging
 def get_group_collaboration_output():
+    """
+    Returns a list of all group collaborations in the database.
+    For development and debugging. Displayed when the collaborate page is displayed with a request of the form:
+        collaborate/package_name/dev
+    It's the "dev" that signals that the collaboration list should be displayed.
+    """
     with db_session() as session:
         group_collaboration_list = []
         group_collaborations = GroupCollaboration.query.filter_by().all()
@@ -685,8 +842,13 @@ def get_group_collaboration_output():
         return group_collaboration_list
 
 
-# For development and debugging
 def get_user_output():
+    """
+    Returns a list of all users in the database.
+    For development and debugging. Displayed when the collaborate page is displayed with a request of the form:
+        collaborate/package_name/dev
+    It's the "dev" that signals that the collaboration list should be displayed.
+    """
     with db_session() as session:
         user_list = []
         users = User.query.filter_by().all()
@@ -698,24 +860,13 @@ def get_user_output():
         return user_list
 
 
-# For development and debugging
 def get_package_output():
-    with db_session() as session:
-        package_list = []
-        packages = Package.query.filter_by().all()
-        for package in packages:
-            owner = User.query.filter_by(user_id=package.owner_id).first()
-            if owner:
-                owner = owner.user_login
-            package_list.append(PackageOutput(
-                package_id=package.package_id,
-                owner=owner,
-                package_name=package.package_name))
-        return package_list
-
-
-# For debugging
-def get_package_output():
+    """
+    Returns a list of all packages in the database.
+    For development and debugging. Displayed when the collaborate page is displayed with a request of the form:
+        collaborate/package_name/dev
+    It's the "dev" that signals that the collaboration list should be displayed.
+    """
     with db_session() as session:
         package_list = []
         packages = Package.query.filter_by().all()
@@ -723,8 +874,6 @@ def get_package_output():
             owner = User.query.filter_by(user_id=package.owner_id).first()
             if owner:
                 owner_login = owner.user_login
-            else:
-                owner_login = None
             package_list.append(PackageOutput(
                 package_id=package.package_id,
                 owner_login=owner_login,
@@ -732,8 +881,13 @@ def get_package_output():
         return package_list
 
 
-# For development and debugging
 def get_lock_output():
+    """
+    Returns a list of all locks in the database.
+    For development and debugging. Displayed when the collaborate page is displayed with a request of the form:
+        collaborate/package_name/dev
+    It's the "dev" that signals that the collaboration list should be displayed.
+    """
     with db_session() as session:
         lock_list = []
         locks = Lock.query.filter_by().all()
@@ -757,8 +911,13 @@ def get_lock_output():
         return lock_list
 
 
-# For development and debugging
 def get_group_lock_output():
+    """
+    Returns a list of all group locks in the database.
+    For development and debugging. Displayed when the collaborate page is displayed with a request of the form:
+        collaborate/package_name/dev
+    It's the "dev" that signals that the collaboration list should be displayed.
+    """
     with db_session() as session:
         group_lock_list = []
         group_locks = GroupLock.query.filter_by().all()
@@ -774,6 +933,9 @@ def get_group_lock_output():
 
 
 def get_groups_for_user(user_id, session=None):
+    """
+    Returns a list of all groups that have the given user as a member.
+    """
     groups = []
     with db_session(session) as session:
         group_memberships = UserGroupMembership.query.filter_by(user_id=user_id).all()
@@ -785,6 +947,9 @@ def get_groups_for_user(user_id, session=None):
 
 
 def get_locked_by_id(package_id, session=None):
+    """
+    Returns the ID of the user who has the lock on the given package. If no lock exists, returns None.
+    """
     with db_session(session) as session:
         lock = _get_group_lock(package_id)
         if not lock:
@@ -794,17 +959,22 @@ def get_locked_by_id(package_id, session=None):
 
 
 def get_lock_status(package_id, session=None):
+    """
+    Returns a tuple consisting of:
+         - the group lock ID of the group lock on the given package, or None if no group lock exists
+         - the ID of the user who has the individual lock on the given package, or None if no individual lock exists
+    """
     group_locked_by_id = None
     individual_locked_by_id = None
     with db_session(session) as session:
         # Get group lock status based on the provided package ID
         group_lock = _get_group_lock(package_id)
-        # If a group lock exists, store the ID of the group lock
+        # If a group lock exists, get the ID of the group lock
         if group_lock:
             group_locked_by_id = group_lock.group_lock_id
         # Get individual lock status based on the provided package ID
         individual_lock = _get_lock(package_id)
-        # If an individual lock exists, store the ID of the user who has the lock
+        # If an individual lock exists, get the ID of the user who has the lock
         if individual_lock:
             individual_locked_by_id = individual_lock.locked_by
     # Return the IDs of the group lock and of holders of individual locks, respectively
@@ -812,6 +982,26 @@ def get_lock_status(package_id, session=None):
 
 
 def _calculate_lock_status(collaboration_case, logged_in_user_id, package_id, session=None):
+    """
+    Calculates the lock status for the given package.
+
+    Lock status is calculated as follows:
+        - If there is an individual lock, and no group lock, and the logged-in user is the one who has the individual
+            lock, then the status is LOCKED_BY_LOGGED_IN_USER
+        - Elsif there is an individual lock, and no group lock, and the logged-in user is not the one who has the
+            individual lock, then the status is LOCKED_BY_OTHER_USER
+        - Elsif there is an individual lock and a group lock, and the logged-in user is the holder of the individual
+            lock, then the status is LOCKED_BY_GROUP_AND_LOGGED_IN_USER
+        - Elsif there is an individual lock and a group lock, and the logged-in user is bot the holder of the
+            individual lock, then the status is LOCKED_BY_GROUP_AND_ANOTHER_USER
+        - Elsif there is a group lock but no individual lock, then the status is LOCKED_BY_GROUP_ONLY
+        - Elsif there is no individual lock, and no group lock, then the status is NOT_LOCKED
+
+    Returns a tuple consisting of:
+            - the lock status
+            - the ID of the group lock, or None if no group lock exists
+            - the ID of the user who has the individual lock, or None if no individual lock exists
+    """
     with db_session(session) as session:
         # Get the IDs of the group locks and holders of individual locks, respectively
         group_locked_by_id, individual_locked_by_id = get_lock_status(package_id, session=session)
@@ -845,13 +1035,6 @@ def _calculate_lock_status(collaboration_case, logged_in_user_id, package_id, se
         return lock_status, group_locked_by_id, individual_locked_by_id
 
 
-def is_a_group_lock_status(lock_status):
-    return lock_status in [LockStatus.LOCKED_BY_GROUP_ONLY,
-                           LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER,
-                           LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER]
-
-
-# This function calculates what actions are available for a given entry in the Collaborate page
 def _calculate_actions(logged_in_user_id,
                        user_id,
                        collaboration_group,
@@ -861,8 +1044,20 @@ def _calculate_actions(logged_in_user_id,
                        locked_by_individual_id,
                        package_id=None, # not used but here so we can see it in the debugger
                        session=None):
+    """
+    This function calculates what actions are available for a given entry in the Collaborate page.
+    Possible actions are defined by CollaborationAction enum.
+    collaboration_case is a CollaborationCase enum value that indicates the type of collaboration.
 
-    # user_id identifies the user or group whose Collaborate page entry is being viewed
+    user_id identifies the user or group whose Collaborate page entry is being viewed.
+
+    Returns a list of actions that are available for the given entry.
+    """
+    def is_a_group_lock_status(lock_status):
+        return lock_status in [LockStatus.LOCKED_BY_GROUP_ONLY,
+                               LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER,
+                               LockStatus.LOCKED_BY_GROUP_AND_ANOTHER_USER]
+
 
     with db_session(session) as session:
         # Initialize an empty list to store the possible actions
@@ -949,6 +1144,7 @@ def _calculate_actions(logged_in_user_id,
                     if user_id == str(logged_in_user_id):
                         # The logged-in user can release the individual lock
                         actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
+
         # Return the list of possible actions
         return actions
 
@@ -965,8 +1161,13 @@ def get_group_collaborations(logged_in_user_id, session=None):
             - if the user is a member of the group, we want to suppress the ordinary collaborations with other members of the group
     - Find group collaborations where the user is a member
         First, find groups where the user is a member
-        For each such group, find the group collaborations where the user is not the owner
+        For each such group, find the group collaborations where the user is not the owner (the case where the user is
+        the owner is handled above)
     """
+
+    def get_member_login(member):
+        return _get_user(member.user_id).user_login
+
     collaboration_records = []
     collaborations_to_suppress = set()
     with db_session(session) as session:
@@ -1109,8 +1310,10 @@ def get_group_collaborations(logged_in_user_id, session=None):
     return collaboration_records, collaborations_to_suppress
 
 
-# Returns the list of collaborations for a given user, to be displayed on the Collaboration page
 def get_collaborations(user_login):
+    """
+    Returns the list of collaborations for a given user, to be displayed on the Collaboration page
+    """
     if not user_login:
         return []
 
@@ -1189,8 +1392,10 @@ def get_collaborations(user_login):
         return sorted(collaboration_records)
 
 
-# Returns the list of invitations made by a given user, to be displayed on the Collaboration page
 def get_invitations(user_login):
+    """
+    Returns the list of invitations made by a given user, to be displayed on the Collaboration page.
+    """
     if not user_login:
         return []
     invitation_records = []
@@ -1215,7 +1420,10 @@ def get_invitations(user_login):
 
 
 def get_invitation_by_code(invitation_code):
-    # with db_session() as session:
+    """
+    Returns the invitation with the given code, or raises an exception if not found. Used to look up an invitation
+    when a user accepts an invitation.
+    """
     invitation = Invitation.query.filter_by(invitation_code=invitation_code).first()
     if not invitation:
         raise exceptions.InvitationNotFound(f'Invitation with code {invitation_code} not found')
@@ -1223,11 +1431,14 @@ def get_invitation_by_code(invitation_code):
 
 
 def generate_invitation_code():
+    """
+    Generates a unique invitation code.
+    """
     ok = False
     while not ok:
         # Make a random 4-letter code, but limit to consonants to avoid offensive words
         code = ''.join(random.choices("BCDFGHJKLMNPQRSTVWXYZ", k=4))
-        # Check to make sure the invitation code is unique
+        # Check to make sure the invitation code is unique, i.e., not already in the database for another invitation
         invitation = Invitation.query.filter_by(invitation_code=code).first()
         if not invitation:
             ok = True
@@ -1235,6 +1446,9 @@ def generate_invitation_code():
 
 
 def accept_invitation(user_login, invitation_code, session=None):
+    """
+    Accepts an invitation. Returns the collaboration that is created.
+    """
     with db_session(session) as session:
         # Find the invitation
         invitation = Invitation.query.filter_by(invitation_code=invitation_code).first()
@@ -1244,7 +1458,9 @@ def accept_invitation(user_login, invitation_code, session=None):
         # Find the user
         user = get_user(user_login, create_if_not_found=True)
         if invitation.inviter_id == user.user_id:
-            raise exceptions.InvitationBeingAcceptedByOwner(f'Invitation with code {invitation_code} cannot be accepted by the inviter')
+            raise exceptions.InvitationBeingAcceptedByOwner(
+                f'Invitation with code {invitation_code} cannot be accepted by the user who created it')
+
         # Create the collaboration
         owner_id = invitation.inviter_id
         collaborator_id = user.user_id
@@ -1256,6 +1472,9 @@ def accept_invitation(user_login, invitation_code, session=None):
 
 
 def remove_invitation(invitation_code):
+    """
+    Removes an invitation with the given code. Returns True if the invitation was found and removed, False otherwise.
+    """
     invitation = Invitation.query.filter_by(invitation_code=invitation_code).first()
     if invitation:
         with db_session() as session:
@@ -1265,6 +1484,9 @@ def remove_invitation(invitation_code):
 
 
 def cancel_invitation(invitation_id):
+    """
+    Cancels an invitation with the given ID. Returns True if the invitation was found and removed, False otherwise.
+    """
     invitation = Invitation.query.filter_by(invitation_id=invitation_id).first()
     if invitation:
         with db_session() as session:
@@ -1274,10 +1496,13 @@ def cancel_invitation(invitation_id):
 
 
 def create_invitation(filename, inviter_name, inviter_email, invitee_name, invitee_email, session=None):
+    """
+    Creates an invitation in the database. Returns the invitation code.
+    """
     with db_session(session) as session:
         inviter_login = current_user.get_user_login()
         active_package = get_active_package(inviter_login, session=session)
-        if not active_package:  # TODO - Error handling
+        if not active_package:
             active_package = set_active_package(inviter_login, filename, session=session)
         package_id = active_package.package_id
 
@@ -1298,11 +1523,18 @@ def create_invitation(filename, inviter_name, inviter_email, invitee_name, invit
 
 
 def _get_user_group(user_group_id):
+    """
+    Returns the user group object with the given ID, or None if not found.
+    """
     user_group = UserGroup.query.filter_by(user_group_id=user_group_id).first()
     return user_group
 
 
 def get_user_group(user_group_name, create_if_not_found=True, session=None):
+    """
+    Returns the user group object with the given name, or None if not found. If create_if_not_found is True, creates
+    the user group if not found.
+    """
     with db_session(session) as session:
         user_group = UserGroup.query.filter_by(user_group_name=user_group_name).first()
         if not user_group and create_if_not_found:
@@ -1311,6 +1543,10 @@ def get_user_group(user_group_name, create_if_not_found=True, session=None):
 
 
 def add_user_group(user_group_name, session=None):
+    """
+    Adds a user group with the given name. Returns the user group object. If the user group already exists, returns
+    the existing user group.
+    """
     with db_session(session) as session:
         user_group = get_user_group(user_group_name, create_if_not_found=False, session=session)
         if not user_group:
@@ -1321,6 +1557,10 @@ def add_user_group(user_group_name, session=None):
 
 
 def get_user_group_membership(user_group_id, user_id, create_if_not_found=False, session=None):
+    """
+    Returns the user group membership object with the given user group ID and user ID, or None if not found. If
+    create_if_not_found is True, creates the user group membership if not found.
+    """
     with db_session(session) as session:
         user_group_membership = UserGroupMembership.query.filter_by(user_group_id=user_group_id, user_id=user_id).first()
         if not user_group_membership and create_if_not_found:
@@ -1330,22 +1570,34 @@ def get_user_group_membership(user_group_id, user_id, create_if_not_found=False,
 
 
 def _get_group_collaboration(group_collab_id):
+    """
+    Returns the group collaboration object with the given ID, or None if not found.
+    """
     group_collaboration = GroupCollaboration.query.filter_by(group_collab_id=group_collab_id).first()
     return group_collaboration
 
 
 def get_group_collaboration(user_group_id, package_id):
+    """
+    Returns the group collaboration object with the given user group ID and package ID, or None if not found.
+    """
     group_collaboration = GroupCollaboration.query.filter_by(user_group_id=user_group_id, package_id=package_id).first()
     return group_collaboration
 
 
 def get_group_members(user_group_id, session=None):
+    """
+    Returns a list of user group membership objects for the given user group ID.
+    """
     with db_session(session) as session:
         user_group_memberships = UserGroupMembership.query.filter_by(user_group_id=user_group_id).all()
         return user_group_memberships
 
 
 def is_group_member(user_login, user_group_id, session=None):
+    """
+    Returns True if the user with the given login is a member of the user group with the given ID, False otherwise.
+    """
     with db_session(session) as session:
         user = get_user(user_login, session=session)
         if user:
@@ -1356,6 +1608,9 @@ def is_group_member(user_login, user_group_id, session=None):
 
 
 def is_edi_curator(user_login, session=None):
+    """
+    Returns True if the user with the given login is an EDI curator, False otherwise.
+    """
     with db_session(session) as session:
         curator_group = get_user_group("EDI Curators", create_if_not_found=False, session=session)
         if curator_group:
@@ -1364,6 +1619,9 @@ def is_edi_curator(user_login, session=None):
 
 
 def package_is_under_edi_curation(package_id, session=None):
+    """
+    Returns True if the package with the given ID is under EDI curation, False otherwise.
+    """
     with db_session(session) as session:
         curator_group = get_user_group("EDI Curators", create_if_not_found=False, session=session)
         if curator_group:
@@ -1372,11 +1630,15 @@ def package_is_under_edi_curation(package_id, session=None):
         return False
 
 
-def get_member_login(member):
-    return _get_user(member.user_id).user_login
-
-
 def add_group_collaboration(user_login, user_group_name, package_name, session=None):
+    """
+    Adds a group collaboration with the given user as owner, collaborating with the given group on the given package.
+    If the user doesn't exist or is not the owner of the package, raises UserNotFound or UserIsNotTheOwner, respectively.
+    If the group collaboration already exists with the specified parameters, raises CollaboratingWithGroupAlready.
+
+    Adds the group collaboration to the database and adds individual collaborations for the group members.
+    Returns the group collaboration object.
+    """
     with db_session(session) as session:
         user = get_user(user_login, session=session)
         if not user:
@@ -1408,37 +1670,54 @@ def add_group_collaboration(user_login, user_group_name, package_name, session=N
 
 
 def init_db():
+    """
+    Initialize the database, if necessary, and populate it with the initial data.
+    """
     db.create_all()
     init_groups()
     # test_stub()
 
 
-def fake_login_for_group(user_group_name):
-    # We prepend a null character to the group name to ensure that it is not a valid login and to put it ahead
-    # of group members in the sort order for display purposes
-    return "\0" + user_group_name + "-group_collaboration"
-
-
 def init_groups():
+    """
+    Initialize the database with the initial groups, defined in the configuration file.
+    Currently, the only group is the EDI Curators group.
+    """
     with db_session() as session:
         groups = Config.COLLABORATION_GROUPS
         for user_group_name in groups.keys():
-            # We want a user representing each group so that we can add them as collaborators
+            # We want a "user" representing each group so that we can add them as collaborators
             _ = add_user(user_login=fake_login_for_group(user_group_name), session=session)
         for user_group_name, members in groups.items():
             user_group = add_user_group(user_group_name=user_group_name, session=session)
             # Remove group members. If a member has been removed, then we need to remove them from the database.
-            # We'll just remove all the members and re-add them below.
+            # We'll just remove all the members and re-add them below. The point here is that the group membership
+            #  as defined in the config file may have changed since the last time we ran this function. Users who
+            #  are no longer members of the group need to be removed from the database.
             UserGroupMembership.query.filter_by(user_group_id=user_group.user_group_id).delete()
             for member in members:
                 user = get_user(member, create_if_not_found=True, session=session)
-                user_group_membership = get_user_group_membership(user_group_id=user_group.user_group_id,
-                                                                  user_id=user.user_id,
-                                                                  create_if_not_found=True,
-                                                                  session=session)
+                # Add the members back in
+                _ = get_user_group_membership(user_group_id=user_group.user_group_id,
+                                              user_id=user.user_id,
+                                              create_if_not_found=True, # This is what causes them to be added
+                                              session=session)
+
+
+def fake_login_for_group(user_group_name):
+    """
+    We prepend a null character to the group name to ensure that it is not a valid login (thereby conflicting with a
+     user login) and to put it ahead of group members in the sort order for display purposes.
+    """
+    return "\0" + user_group_name + "-group_collaboration"
 
 
 def save_backup_is_disabled():
+    """
+    Returns True if the save backup feature is disabled, False otherwise.
+    I.e., returns True if the active package is not under EDI curation, False otherwise. Only packages under EDI
+        curation can be backed up. Apologies for the double negative, but it makes sense for the caller.
+    """
     active_package_id = None
     user_login = current_user.get_user_login()
     if user_login:
@@ -1450,6 +1729,9 @@ def save_backup_is_disabled():
 
 
 def test_stub():
+    """
+    Used in development.
+    """
     with db_session() as session:
         # Add user EDI
         edi_user = add_user("EDI-1a438b985e1824a5aa709daa1b6e12d2", session=session)
@@ -1473,6 +1755,14 @@ def test_stub():
 
 
 def cleanup_db(session=None):
+    """
+    Remove locks that have timed out and remove packages that have no locks and no collaborations.
+
+    When the collaborate page is loaded with the "dev" parameter, a Clean Up Database button is displayed that will
+    cause this function to be called. This is useful for development, but it should not be necessary in production.
+
+    cull_locks() and cull_packages() make this function unnecessary, but it still may be useful for development.
+    """
     with db_session(session) as session:
         # Remove locks that have timed out. This shouldn't be necessary, but it will help guard against gradual
         # accumulation of zombie locks. For the removed locks, clear the active_package_id for the user who held the

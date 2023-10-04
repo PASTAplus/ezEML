@@ -1,3 +1,6 @@
+"""
+The various routes for the collaborate page. E.g., display the page, enable EDI curation, invite a collaborator, etc.
+"""
 import os
 import shutil
 from urllib.parse import quote, unquote, urlparse
@@ -66,6 +69,9 @@ collab_bp = Blueprint('collab', __name__, template_folder='templates')
 @collab_bp.route('/collaborate/<filename>/<dev>', methods=['GET', 'POST'])
 @login_required
 def collaborate(filename=None, dev=None):
+    """
+    Handle display of the collaborate page.
+    """
     if is_hidden_button():
         new_page = handle_hidden_buttons(PAGE_COLLABORATE)
         current_document = current_user.get_filename()

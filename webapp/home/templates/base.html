@@ -66,9 +66,11 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 
 <nav class="navbar navbar-default">
     <div class="container-fluid">
+        {# Top-of-page navbar #}
         <div class="navbar-header">
             <table>
                 <td width="5%"></td>
+                {# EDI logo home button #}
                 <td style="vertical-align: middle">
                     {% if ns.is_non_saving %}
                     <a href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a>
@@ -77,6 +79,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                     {% endif %}
                 </td>
                 <td width="5%"></td>
+                {# ezEML home button #}
                 <td>
                     <button aria-controls="navbar" aria-expanded="false"
                             class="navbar-toggle collapsed" data-target="#top-navbar"
@@ -95,6 +98,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             </table>
         </div>
         <div class="navbar-collapse collapse" id="top-navbar">
+            {# EML Documents menu #}
             <ul class="nav navbar-nav">
             {% if current_user.is_authenticated %}
                 <li class="dropdown">

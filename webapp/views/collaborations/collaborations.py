@@ -417,10 +417,8 @@ def _remove_lock(package_id, session=None):
     with db_session(session) as session:
         lock = _get_lock(package_id)
         if lock:
-            # Clear the active_package_id for the user who held the lock if it's same as the lock's package_id
-            lock_holder = _get_user(lock.locked_by)
-            if lock_holder and lock_holder.active_package_id == lock.package_id:
-                _set_active_package_id(lock.locked_by, None, session=session)
+            # We don't clear the active_package_id for the user who held the lock because otherwise when they resume
+            #  work they will look for the package in their own account, not the owner's.
             session.delete(lock)
 
 

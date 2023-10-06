@@ -623,19 +623,19 @@ def patch_db(package_id=None, owner_id=None, new_package_id=None):
     collabs = collaborations.Collaboration.query.filter_by(package_id=package_id, owner_id=owner_id).all()
     for collaboration in collabs:
         logger.info(f"collaboration: {collaboration}")
-        # collaboration.package_id = new_package_id
-        # db.session.commit()
+        collaboration.package_id = new_package_id
+        db.session.commit()
     # In group_collaborations where package_id == package_id and owner_id == owner_id, change package_id to new_package_id
     group_collabs = collaborations.GroupCollaboration.query.filter_by(package_id=package_id, owner_id=owner_id).all()
     for group_collab in group_collabs:
         logger.info(f"group_collaboration: {group_collab}")
-        # group_collab.package_id = new_package_id
-        # db.session.commit()
+        group_collab.package_id = new_package_id
+        db.session.commit()
     # In group_locks where package_id == package_id, change package_id to new_package_id
     group_locks = collaborations.GroupLock.query.filter_by(package_id=package_id).all()
     for group_lock in group_locks:
         logger.info(f"group_lock: {group_lock}")
-        # group_lock.package_id = new_package_id
-        # db.session.commit()
+        group_lock.package_id = new_package_id
+        db.session.commit()
     return redirect(url_for(PAGE_COLLABORATE))
 

@@ -916,7 +916,11 @@ def save_as():
 @login_required
 def check_data_tables():
     """Handle the Check Data Tables item in the main Contents menu."""
-    current_document = user_data.get_active_document()
+    if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS
+    else:
+        log_the_details = False
+    current_document = user_data.get_active_document(log_the_details)
     if not current_document:
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document)
@@ -939,7 +943,11 @@ def check_data_tables():
 @login_required
 def check_metadata(filename:str):
     """Handle the Check Metadata item in the main Contents menu."""
-    current_document = user_data.get_active_document()
+    if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS
+    else:
+        log_the_details = False
+    current_document = user_data.get_active_document(log_the_details)
     if not current_document:
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)
@@ -2875,7 +2883,21 @@ def get_eml_file_2(user):
         return render_template('get_eml_file_2.html', form=form)
 
 
-@home_bp.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
+@home.route('/get_collaboration_database/', methods=['GET', 'POST'])
+@login_required
+def get_collaboration_database():
+    """
+    This route is an admin tool for use by the EDI team to download the database used to track collaboration status.
+    """
+    if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
+        flash('You are not authorized to download the collaboration database.', 'error')
+        return render_template('index.html')
+
+    db_pathname = os.path.join(Config.USER_DATA_DIR, '__db', 'collaborations.db.sqlite3')
+    return send_file(db_pathname, as_attachment=True, download_name='collaborations.db.sqlite3')
+
+
+@home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
     """ TODO: comment needed """
@@ -3168,11 +3190,6 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
 
     if len(end_date_str) == 4:
         end_date_str += '-01-01'
-
-    # date.fromisoformat() is a Python 3.7 feature
-    #if begin_date_str and end_date_str:
-        #begin_date = date.fromisoformat(begin_date_str)
-        #end_date = date.fromisoformat(end_date_str)
 
     if begin_date and end_date and begin_date > end_date:
         flash_msg = 'Begin date should be less than or equal to end date'

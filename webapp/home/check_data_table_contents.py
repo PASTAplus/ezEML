@@ -128,7 +128,10 @@ def load_df(eml_node, csv_url, data_table_name):
             delimiter = '\t'
         return pd.read_csv(csv_url, encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
                            keep_default_na=False, skiprows=range(1, num_header_lines),
-                           skipfooter=num_footer_lines, low_memory=False, infer_datetime_format=True)
+                           skipfooter=num_footer_lines, low_memory=False, infer_datetime_format=True,
+                           dtype=str)   # Set dtype to str to prevent pandas from converting empty strings to NaN,
+                                        # whole numbers to floats, etc.
+
     except Exception as err:
         log_info(f'Error loading CSV file: {err}')
         raise

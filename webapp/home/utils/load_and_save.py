@@ -123,6 +123,8 @@ def load_eml(filename:str=None,
     :param log_the_details: If True, log the details of the document that was loaded. For debugging purposes.
     :return: The root node of the Metapype model.
     """
+    if not log_the_details and hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
+        log_the_details = Config.LOG_FILE_HANDLING_DETAILS
 
     # First, deal with locking (for collaboration).
     # Usually when we load an EML file, we want to acquire a lock on it. However, there are times when we are just
@@ -449,6 +451,13 @@ def clean_model(eml_node):
         definition_node = text_domain_node.find_child(names.DEFINITION)
         if definition_node:
             definition_node.content = 'text'
+
+    # If a project node no longer has any children, remove it.
+    project_nodes = []
+    eml_node.find_all_descendants(names.PROJECT, project_nodes)
+    for project_node in project_nodes:
+        if not project_node.children:
+            project_node.parent.remove_child(project_node)
 
     # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []

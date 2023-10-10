@@ -703,6 +703,10 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         else:
             project_node.remove_child(funding_node)
 
+        # If project node is now empty, remove it.
+        if not project_node.children:
+            dataset_node.remove_child(project_node)
+
     except Exception as e:
         log_error(e)
 

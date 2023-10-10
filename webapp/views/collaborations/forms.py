@@ -17,7 +17,7 @@ from flask_wtf import FlaskForm
 from webapp.home.forms import EDIForm
 
 from wtforms import (
-    StringField
+    StringField, RadioField
 )
 from wtforms.widgets import TextArea
 
@@ -34,6 +34,11 @@ class EnableEDICurationForm(EDIForm):
     name = StringField('Your Name *', validators=[DataRequired()])
     email_address = StringField('Your Email Address *', validators=[Email(), DataRequired()])
     notes = StringField('Notes for EDI Data Curators (Optional)', widget=TextArea(), validators=[Optional()])
+    is_update = RadioField('Is this submission an update/revision to an existing data package?',
+                           choices=['It is a new data package', 'It is an update/revision to an existing data package'],
+                           default='It is a new data package',
+                           validators=[])
+    update_package = StringField('', validators=[Optional()])
 
 
 class AcceptInvitationForm(EDIForm):

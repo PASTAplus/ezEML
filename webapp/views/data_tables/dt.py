@@ -853,114 +853,119 @@ def attribute_measurement_scale(filename=None, dt_node_id=None, node_id=None, ms
     return attribute_measurement_scale_get(filename, form, att_node_id)
 
 
+def load_df(attribute_node, usecols=None):
+    """
+    Helper function to load the data table into a Pandas DataFrame.
+
+    usecols is either a "list" of one column name, in which case that column is loaded, or it is None, in which
+     case all columns are loaded. Currently, only the former case is used.
+    """
+    attribute_list_node = attribute_node.parent
+    data_table_node = attribute_list_node.parent
+    object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
+    if not object_name_node:
+        return None
+    data_file = data_table_node.find_descendant(names.OBJECTNAME).content
+
+    uploads_folder = user_data.get_document_uploads_folder_name()
+    full_path = f'{uploads_folder}/{data_file}'
+
+    field_delimiter_node = data_table_node.find_descendant(names.FIELDDELIMITER)
+    if field_delimiter_node:
+        delimiter = field_delimiter_node.content
+    else:
+        delimiter = ','
+    quote_char_node = data_table_node.find_descendant(names.QUOTECHARACTER)
+    if quote_char_node:
+        quote_char = quote_char_node.content
+    else:
+        quote_char = '"'
+
+    try:
+        if len(usecols) == 1 and usecols[0] is not None:
+            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char,
+                               usecols=usecols)
+        else:
+            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+    except FileNotFoundError as e:
+        return None
+
+
+def force_datetime_type(attribute_node):
+    # If we are changing a column to datetime type, go to the data table file and pick up the datetime format
+    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    data_frame = load_df(attribute_node, usecols=[column_name])
+    if data_frame is None:
+        return None
+    if data_frame[column_name].size > 0:
+        return infer_datetime_format(data_frame[column_name][1])
+    else:
+        return ''
+
+def force_categorical_codes(attribute_node):
+    # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
+
+    def force_missing_value_codes(attribute_node, codes):
+        """
+        Replace nan values with the missing value code, if any. This will apply the first missing value code.
+        """
+        missing_value_code_node = attribute_node.find_descendant(names.CODE)
+        if missing_value_code_node:
+            missing_value = missing_value_code_node.content
+            for index, item in enumerate(codes):
+                try:
+                    # isnan requires item to be a number. It may not be.
+                    if math.isnan(item):
+                        codes[index] = missing_value
+                except TypeError as e:
+                    pass
+
+    column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+    data_frame = load_df(attribute_node, usecols=[column_name])
+    if data_frame is None:
+        return None
+
+    codes = data_frame[column_name].unique().tolist()
+    if data_frame.dtypes[column_name] == np.float64:
+        # See if the codes can be treated as ints
+        ok = True
+        int_codes = []
+        for code in codes:
+            if not math.isnan(code):
+                try:
+                    int_code = int(code)
+                    if int_code != code:
+                        ok = False
+                        break
+                    int_codes.append(int(code))
+                except:
+                    ok = False
+                    break
+            else:
+                int_codes.append(code)
+        if ok:
+            codes = int_codes
+
+    # Apply the missing value code, if any. This will apply the first missing value code.
+    force_missing_value_codes(attribute_node, codes)
+
+    return sort_codes(codes)
+
+def set_storage_type(attribute_node, storage_type):
+    # Set the storage type of the attribute node if storage type is present in the model.
+    # In the case of attributes created in ezEML, we usually don't have a storage type node. But a storage type node
+    #  may be present if the user edited the storage type or if the EML file was created outside of ezEML and imported.
+    # In such cases, when we change the attribute measurement scale, we need to change the storage type as well.
+    storage_type_node = attribute_node.find_descendant(names.STORAGETYPE)
+    if storage_type_node:
+        storage_type_node.content = storage_type
+        storage_type_node.add_attribute('typeSystem', 'XML Schema Datatypes')
+
+
 def change_measurement_scale(attribute_node, old_mscale, new_mscale):
     """
     Change the measurement scale (variable type) of an attribute (column).
     """
-    def load_df(attribute_node, usecols=None):
-        """
-        Helper function to load the data table into a Pandas DataFrame.
-
-        usecols is either a "list" of one column name, in which case that column is loaded, or it is None, in which
-         case all columns are loaded. Currently, only the former case is used.
-        """
-        attribute_list_node = attribute_node.parent
-        data_table_node = attribute_list_node.parent
-        object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
-        if not object_name_node:
-            return None
-        data_file = data_table_node.find_descendant(names.OBJECTNAME).content
-
-        uploads_folder = user_data.get_document_uploads_folder_name()
-        full_path = f'{uploads_folder}/{data_file}'
-
-        field_delimiter_node = data_table_node.find_descendant(names.FIELDDELIMITER)
-        if field_delimiter_node:
-            delimiter = field_delimiter_node.content
-        else:
-            delimiter = ','
-        quote_char_node = data_table_node.find_descendant(names.QUOTECHARACTER)
-        if quote_char_node:
-            quote_char = quote_char_node.content
-        else:
-            quote_char = '"'
-
-        try:
-            if len(usecols) == 1 and usecols[0] is not None:
-                return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char,
-                                   usecols=usecols)
-            else:
-                return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
-        except FileNotFoundError as e:
-            return None
-
-    def force_datetime_type(attribute_node):
-        # If we are changing a column to datetime type, go to the data table file and pick up the datetime format
-        column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
-        data_frame = load_df(attribute_node, usecols=[column_name])
-        if data_frame is None:
-            return None
-        return infer_datetime_format(data_frame[column_name][1])
-
-    def force_categorical_codes(attribute_node):
-        # If we are changing a column to categorical type, go to the data table file and pick up the categorical codes
-
-        def force_missing_value_codes(attribute_node, codes):
-            """
-            Replace nan values with the missing value code, if any. This will apply the first missing value code.
-            """
-            missing_value_code_node = attribute_node.find_descendant(names.CODE)
-            if missing_value_code_node:
-                missing_value = missing_value_code_node.content
-                for index, item in enumerate(codes):
-                    try:
-                        # isnan requires item to be a number. It may not be.
-                        if math.isnan(item):
-                            codes[index] = missing_value
-                    except TypeError as e:
-                        pass
-
-        column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
-        data_frame = load_df(attribute_node, usecols=[column_name])
-        if data_frame is None:
-            return None
-
-        codes = data_frame[column_name].unique().tolist()
-        if data_frame.dtypes[column_name] == np.float64:
-            # See if the codes can be treated as ints
-            ok = True
-            int_codes = []
-            for code in codes:
-                if not math.isnan(code):
-                    try:
-                        int_code = int(code)
-                        if int_code != code:
-                            ok = False
-                            break
-                        int_codes.append(int(code))
-                    except:
-                        ok = False
-                        break
-                else:
-                    int_codes.append(code)
-            if ok:
-                codes = int_codes
-
-        # Apply the missing value code, if any. This will apply the first missing value code.
-        force_missing_value_codes(attribute_node, codes)
-
-        return sort_codes(codes)
-
-    def set_storage_type(attribute_node, storage_type):
-        # Set the storage type of the attribute node if storage type is present in the model.
-        # In the case of attributes created in ezEML, we usually don't have a storage type node. But a storage type node
-        #  may be present if the user edited the storage type or if the EML file was created outside of ezEML and imported.
-        # In such cases, when we change the attribute measurement scale, we need to change the storage type as well.
-        storage_type_node = attribute_node.find_descendant(names.STORAGETYPE)
-        if storage_type_node:
-            storage_type_node.content = storage_type
-            storage_type_node.add_attribute('typeSystem', 'XML Schema Datatypes')
-
     if not attribute_node:
         return
     mscale_node = attribute_node.find_child(names.MEASUREMENTSCALE)

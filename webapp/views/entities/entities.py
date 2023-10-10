@@ -127,9 +127,9 @@ def other_entity(filename=None, node_id=None):
 
         submit_type = None
 
-        app = Flask(__name__)
-        with app.app_context():
-            current_app.logger.info(f'other_entity is_dirty_form={is_dirty_form(form)} auto_save={auto_save}')
+        # app = Flask(__name__)
+        # with app.app_context():
+        #     current_app.logger.info(f'other_entity is_dirty_form={is_dirty_form(form)} auto_save={auto_save}')
 
         if is_dirty_form(form) or auto_save:
             submit_type = 'Save Changes'

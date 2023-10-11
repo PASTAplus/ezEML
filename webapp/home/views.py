@@ -2883,7 +2883,7 @@ def get_eml_file_2(user):
         return render_template('get_eml_file_2.html', form=form)
 
 
-@home.route('/get_collaboration_database/', methods=['GET', 'POST'])
+@home_bp.route('/get_collaboration_database/', methods=['GET', 'POST'])
 @login_required
 def get_collaboration_database():
     """
@@ -2897,10 +2897,13 @@ def get_collaboration_database():
     return send_file(db_pathname, as_attachment=True, download_name='collaborations.db.sqlite3')
 
 
-@home.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
+@home_bp.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
-    """ TODO: comment needed """
+    """
+    When a user uploads a data table with column names that are different from the original data table, we need to
+     get confirmation from the user that they are aware of this and want to proceed.
+    """
 
     form = LoadDataForm()
     document = current_user.get_filename()
@@ -2921,7 +2924,9 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
 @home_bp.route('/reupload_other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def reupload_other_entity(filename, node_id):
-    """ TODO: comment needed """
+    """
+    Route to handle reupload of an other data entity.
+    """
 
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
@@ -2952,7 +2957,9 @@ def reupload_other_entity(filename, node_id):
 @home_bp.route('/load_other_entity/<node_id>', methods=['GET', 'POST'])
 @login_required
 def load_entity(node_id=None):
-    """ TODO: comment needed """
+    """
+    Route to handle uploading of an other data entity.
+    """
 
     form = LoadOtherEntityForm()
     document = current_user.get_filename()

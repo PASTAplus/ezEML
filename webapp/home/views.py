@@ -2609,8 +2609,7 @@ def import_xml_2(package_name, filename, fetched=False):
         utils.remove_zip_temp_folder()
 
         if eml_node:
-            # save fact that EML was fetched from EDI in additional metadata
-            add_fetched_from_edi_metadata(eml_node, package_name)
+            # save fact that EML was imported from XML in additional metadata
             add_imported_from_xml_metadata(eml_node, filename, package_name)
             has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
             log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))

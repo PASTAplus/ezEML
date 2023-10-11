@@ -21,6 +21,7 @@ from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info, get_check_metadata_status
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
 from webapp.home.utils.load_and_save import load_eml
+from webapp.home.utils.lists import list_data_packages
 from webapp.buttons import *
 from webapp.pages import *
 from metapype.eml import names
@@ -303,6 +304,17 @@ def accept_invitation(filename=None, invitation_code=None):
 
                     collaboration = collaborations.accept_invitation(user_login, invitation_code)
                     flash('You have successfully accepted the invitation.', 'success')
+
+                    # Check if user owns a package of the same name. If so, warn them. They're probably confused.
+                    duplicate_name = False
+                    for user_package in list_data_packages(True, True):
+                        if package_name == user_package[0]:
+                            duplicate_name = True
+                            break
+                    if duplicate_name:
+                        flash("You own a package with the same name as the one you're being invited to collaborate on. "
+                              "This often indicates some confusion about how collaboration is meant to be used. "
+                              "You may want to contact support@edirepository.org for assistance.", 'error')
 
                     msg = compose_inform_inviter_of_acceptance_email(inviter_name, invitee_name,
                                                                      invitee_email, package_name)

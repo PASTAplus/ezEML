@@ -1628,6 +1628,25 @@ def package_is_under_edi_curation(package_id, session=None):
         return False
 
 
+def another_package_with_same_name_is_under_edi_curation(package_id, session=None):
+    """
+    Returns True if another package with the same name as the package with the given ID, but different owner, is under
+    EDI curation, False otherwise.
+    """
+    with db_session(session) as session:
+        package = get_package_by_id(package_id)
+        if not package:
+            return False
+        package_name = package.package_name
+        curator_group = get_user_group("EDI Curators", create_if_not_found=False, session=session)
+        if curator_group:
+            group_collaborations = GroupCollaboration.query.all()
+            for group_collaboration in group_collaborations:
+                if group_collaboration.package_id != package_id and group_collaboration.package.package_name == package_name:
+                    return True
+        return False
+
+
 def add_group_collaboration(user_login, user_group_name, package_name, session=None):
     """
     Adds a group collaboration with the given user as owner, collaborating with the given group on the given package.

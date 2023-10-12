@@ -1368,6 +1368,21 @@ def package_is_under_edi_curation(package_id, session=None):
         return False
 
 
+def another_package_with_same_name_is_under_edi_curation(package_id, session=None):
+    with db_session(session) as session:
+        package = get_package_by_id(package_id)
+        if not package:
+            return False
+        package_name = package.package_name
+        curator_group = get_user_group("EDI Curators", create_if_not_found=False, session=session)
+        if curator_group:
+            group_collaborations = GroupCollaboration.query.all()
+            for group_collaboration in group_collaborations:
+                if group_collaboration.package_id != package_id and group_collaboration.package.package_name == package_name:
+                    return True
+        return False
+
+
 def get_member_login(member):
     return _get_user(member.user_id).user_login
 

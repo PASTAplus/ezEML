@@ -193,7 +193,7 @@ def display_texttype_node(texttype_node):
         close_tag = open_tag.replace('<', '</')
         if texttype_node.content:
             output = open_tag + texttype_node.content + close_tag
-        else:
+        elif 'xmlns:' in lines[0]:
             # We replace line 0 with the open_tag. This gets rid of the xmlns.
             output = open_tag + '\n' + '\n'.join(lines[1:-1])
         return add_escapes(output).replace('&lt;', '<').replace('&gt;', '>')

@@ -1647,6 +1647,10 @@ def another_package_with_same_name_is_under_edi_curation(package_id, session=Non
         return False
 
 
+def get_member_login(member):
+    return _get_user(member.user_id).user_login
+
+
 def add_group_collaboration(user_login, user_group_name, package_name, session=None):
     """
     Adds a group collaboration with the given user as owner, collaborating with the given group on the given package.

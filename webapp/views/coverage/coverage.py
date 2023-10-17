@@ -610,7 +610,7 @@ def clear_taxonomic_coverage(package_name):
     if coverage_node:
         taxonomic_coverage_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
         for taxonomic_coverage_node in taxonomic_coverage_nodes:
-            webapp.home.utils.node_utils.remove_child(taxonomic_coverage_node)
+            webapp.home.utils.node_utils.remove_child(taxonomic_coverage_node.id)
             Node.delete_node_instance(taxonomic_coverage_node.id)
         clear_taxonomy_imported_from_xml_flag(eml_node, package_name)
         save_both_formats(filename=package_name, eml_node=eml_node)

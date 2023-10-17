@@ -22,6 +22,8 @@
                     <li style="padding: 5px 0px;">{{ error }}</li>
                 {% endfor %}
             </ul>
+            <p>&nbsp;</p>
+            <a class="btn btn-primary" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Continue">Continue</a>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>

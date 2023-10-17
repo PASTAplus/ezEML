@@ -799,7 +799,7 @@ def fix_up_custom_units(eml_node:Node=None):
             unit_nodes = unitList_node.find_all_children(names.UNIT)
             for unit_node in unit_nodes:
                 if unit_node.attribute_value('id') == custom_unit_name:
-                    node_utils.remove_child(unit_node.id)
+                    node_utils.remove_child(unit_node)
                     break
 
     custom_unit_nodes = []

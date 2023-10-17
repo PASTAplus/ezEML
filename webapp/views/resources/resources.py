@@ -444,7 +444,8 @@ def remove_keyword(filename, node_id):
         keyword_node = Node.get_node_instance(node_id)
         if keyword_node:
             keyword_set_node = keyword_node.parent
-        remove_child(node_id=node_id)
+        node = Node.get_node_instance(node_id)
+        remove_child(node)
         # if we've just removed the last keyword under the keywordSet, remove the keywordSet
         if not keyword_set_node.find_all_children(names.KEYWORD):
             parent_node = keyword_set_node.parent

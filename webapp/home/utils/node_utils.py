@@ -65,10 +65,11 @@ def add_child(parent_node:Node, child_node:Node):
         parent_node.add_child(child_node, index=index)
 
 
-def remove_child(node_id:str=None):
+def remove_child(node:Node):
     """
-    Remove the child node with the given node ID from its parent.
+    Remove the given child node from its parent.
     """
+    node_id = node.id
     if node_id:
         child_node = Node.get_node_instance(node_id)
         if child_node:

@@ -232,7 +232,8 @@ def funding_award_select(filename=None, project_node_id=None):
                     new_page = PAGE_FUNDING_AWARD_SELECT
                     node_id = key
                     eml_node = load_eml(filename=filename)
-                    remove_child(node_id=node_id)
+                    node = Node.get_node_instance(node_id)
+                    remove_child(node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                 elif val == UP_ARROW:
                     new_page = PAGE_FUNDING_AWARD_SELECT

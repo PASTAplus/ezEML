@@ -93,7 +93,8 @@ def method_step_select(filename=None):
                     new_page = this_page
                     node_id = key
                     eml_node = load_eml(filename=filename)
-                    remove_child(node_id=node_id)
+                    node = Node.get_node_instance(node_id)
+                    remove_child(node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                 elif val == UP_ARROW:
                     new_page = this_page
@@ -472,7 +473,7 @@ def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=
 
 
 def add_child(parent_node, child_node):
-    webapp.home.utils.node_utils.add_child(child_node)
+    webapp.home.utils.node_utils.add_child(parent_node, child_node)
     child_node.parent = parent_node
 
 
@@ -582,7 +583,8 @@ def data_source(filename, ms_node_id, data_source_node_id):
                     if val == BTN_REMOVE:
                         _, rp_node_id, _ = key.split('|')
                         eml_node = load_eml(filename=filename)
-                        remove_child(node_id=rp_node_id)
+                        node = Node.get_node_instance(rp_node_id)
+                        remove_child(node)
                         save_both_formats(filename=filename, eml_node=eml_node)
                         # drop through to reload the page
             if BTN_ADD_CREATOR in request.form.values():

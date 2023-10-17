@@ -667,7 +667,8 @@ def attribute_select(filename=None, dt_node_id=None):
                     new_page = this_page
                     node_id = key
                     eml_node = load_eml(filename=filename)
-                    remove_child(node_id=node_id)
+                    node = Node.get_node_instance(node_id)
+                    remove_child(node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                 elif val == BTN_CHANGE_SCALE:
                     node_id = key
@@ -1613,8 +1614,9 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             next_page = PAGE_ATTRIBUTE_SELECT
         elif 'Codes' in request.form:
             next_page = PAGE_CODE_DEFINITION_SELECT
-        this_page = PAGE_ATTRIBUTE_CATEGORICAL
-        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_CATEGORICAL)
+        else:
+            next_page = PAGE_ATTRIBUTE_CATEGORICAL
+        next_page = handle_hidden_buttons(next_page)
 
         if submit_type == 'Save Changes':
             dt_node = None
@@ -1879,7 +1881,8 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
                     new_page = this_page
                     node_id = key
                     eml_node = load_eml(filename=filename)
-                    remove_child(node_id=node_id)
+                    node = Node.get_node_instance(node_id)
+                    remove_child(node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                 elif val == UP_ARROW:
                     new_page = this_page

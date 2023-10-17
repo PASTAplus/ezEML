@@ -52,7 +52,12 @@ def concat_str(form):
         if field_data:
             i = 0  # We interleave the field index so we can detect if a field's value is copy-pasted to another field
             for val in field_data:
-                # if val:
+                # Initially a field may have value None, but in the normal course of processing GET and POST, Flask
+                # will convert None to an empty string. So we do the same here. Otherwise, we get lots of false
+                # positives, where it appears that a form is dirty when the only change is that a field has been
+                # converted from None to ''.
+                if val is None:
+                    val = ''
                 concat_str += str(i) + str(val)
                 i += 1
     return concat_str

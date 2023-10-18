@@ -4,7 +4,7 @@ Documents and videos aimed at developers working on ezEML.
 
 Assumed is a basic familiarity with Python, Flask, EML, and the functionality of ezEML.
 
-The videos may be especially useful in getting an overview of different topics. Good videos to start out with might be:
+Developers may find the videos to be especially useful. They provide overviews of different topics. Good videos to start out with might be:
 - Overview of ezEML Server File System Organization
 - Overview of User Data and JSON Models
 - Tracking down a user-reported bug

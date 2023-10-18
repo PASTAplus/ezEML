@@ -399,14 +399,18 @@ A data table is one tabular entity in the data package, identified by its name. 
 To enter a table's metadata into ezEML, start by uploading it via the <b>Load Data Table from CSV File</b> button. The table is assumed to be in a text file in CSV (comma-separated value) format. Besides commas, ezEML accepts several other field delimiters, such as tabs. When you upload the table, ezEML infers as much metadata as it can from the table itself. ezEML can, for example, detect the file size, number of records, etc., and it can infer many of the attributes of the table's columns: name of column, variable type, etc.
 
 Certain metadata elements (such as the descriptions of the table and of each of the columns) must be entered manually, since they do not appear in the table file. To determine which metadata elements remain to be filled in, use the <b>Check Metadata</b> feature. You should also check that ezEML has inferred the columns' data types correctly.
+
+Note: You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
 --------------------
 data_table_reupload
 Re-upload Data Table
 The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the metadata for the data table and its columns all over again.
 
-Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
+Moreover, if you later use <b>Export Data Package</b>, <b>Submit Package to EDI</b>, or <b>Collaborate with Colleagues</b> to share your package with others, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the shared data package.
 
-<b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
+<b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and variable types to change.
+
+You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/QLRbCqQZt20" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
@@ -414,7 +418,7 @@ data_table_reupload_full
 Re-upload Data Table
 The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the metadata for the data table and its columns all over again.
 
-Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
+Moreover, if you later use <b>Export Data Package</b>, <b>Submit Package to EDI</b>, or <b>Collaborate with Colleagues</b> to share your package with others, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the shared data package.
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 
@@ -517,8 +521,6 @@ Export ezEML Data Package
 When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.
 
 <b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for downloading the archive, which you can share with collaborators, for example.
-
-To submit the data package to the EDI data repository, you can use <b><a href="edit/home.submit_package">Send to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission. Alternatively, you can use <b><a href="edit/collab.enable_edi_curation">Enable EDI Curation</a></b> to authorize the EDI data curation team to access your package directly without your needing to create an archive.
 --------------------
 fetch_data_source
 Fetch Data Source Info from EDI
@@ -629,7 +631,7 @@ import_package
 Import an ezEML Data Package
 <b>Import an ezEML Data Package</b> lets you import a data package archive file that was exported from ezEML (see <b>Export ezEML Data Package</b>).
 
-The data package archive file may have been sent to you by a collaborator, for example. Alternatively, you may have submitted a data package to EDI (see <b>Send to EDI</b>), and EDI's data curators may have found it necessary to make corrections or other changes to your data package. In that case, EDI's data curators will send you an updated data package archive file so you can import it and keep your ezEML account up to date.
+The data package archive file may have been sent to you by a collaborator, for example.
 --------------------
 import_package_2
 Import an ezEML Data Package
@@ -806,7 +808,7 @@ manage_data_usage
 Manage Data Usage
 The <b>Manage Data Usage</b> page is for use by system admins. It is available only to the EDI LDAP account. It lists all ezEML accounts and shows the amount of data storage used by each. In addition, it provides an entry point for running garbage collection on ezEML data storage.
 
-Garbage collection looks at all data packages whose metadata has not been modified within the specified number of days and deletes their uploaded data tables and other entities. In addition, it deletes the associated ezEML data packages that have been prepared for export, for example by the use of the Send to EDI command.
+Garbage collection looks at all data packages whose metadata has not been modified within the specified number of days and deletes their uploaded data tables and other entities. In addition, it deletes the associated ezEML data packages that have been prepared for export.
 
 The metadata files themselves are preserved, so the data packages can be reconstituted, if needed, by re-uploading the data tables and other entities.
 
@@ -940,7 +942,7 @@ other_entity_reupload
 Re-upload Other Entity
 The purpose of <b>Re-upload Other Entity</b> is to let you update an other entity file without having to enter the properties of the other entity all over again. In addition, it updates the file size and checksum, which are part of the metadata describing the other entity.
 
-Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
+Moreover, if you later use <b>Export Data Package</b>, <b>Submit Package to EDI</b>, or <b>Collaborate with Colleagues</b> to share your package with others, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the shared data package.
 --------------------
 personnel
 Project Personnel

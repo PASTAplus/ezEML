@@ -400,7 +400,7 @@ To enter a table's metadata into ezEML, start by uploading it via the <b>Load Da
 
 Certain metadata elements (such as the descriptions of the table and of each of the columns) must be entered manually, since they do not appear in the table file. To determine which metadata elements remain to be filled in, use the <b>Check Metadata</b> feature. You should also check that ezEML has inferred the columns' data types correctly.
 
-Note: You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
+Note: You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table file has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
 --------------------
 data_table_reupload
 Re-upload Data Table
@@ -410,7 +410,7 @@ Moreover, if you later use <b>Export Data Package</b>, <b>Submit Package to EDI<
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and variable types to change.
 
-You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
+You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table file has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/QLRbCqQZt20" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------

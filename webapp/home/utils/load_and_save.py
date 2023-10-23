@@ -26,7 +26,7 @@ from webapp.views.collaborations import collaborations as collaborations
 from metapype.eml import names
 from metapype.model import metapype_io, mp_io
 from metapype.model.node import Node
-
+import webapp.views.data_tables.load_data as load_data
 
 def from_json(filename):
     """
@@ -460,7 +460,19 @@ def clean_model(eml_node):
         if not project_node.children:
             project_node.parent.remove_child(project_node)
 
-    # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
+    # Fixup formatName fields to use mime types instead of file extensions
+    other_entity_nodes = []
+    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+    for other_entity_node in other_entity_nodes:
+        format_name_node = other_entity_node.find_descendant(names.FORMATNAME)
+        if format_name_node:
+            object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+            if object_name_node:
+                object_name = object_name_node.content
+                if object_name:
+                    format_name_node.content = load_data.format_name_from_data_file(object_name)
+
+# # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []
     # to_remove = []
     # eml_node.find_all_descendants(names.FUNDING, funding_nodes)

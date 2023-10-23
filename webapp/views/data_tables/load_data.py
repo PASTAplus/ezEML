@@ -10,6 +10,7 @@ Contains the helper functions for loading data tables and other entities, includ
 import csv
 import hashlib
 import math
+import mimetypes
 import os
 import re
 import numpy as np
@@ -80,10 +81,14 @@ def entity_name_from_data_file(filename: str = ''):
 
 def format_name_from_data_file(filename: str = ''):
     """Return the file format from a data file name. For example, if filename is FOO.CSV, return CSV."""
-    format_name = ''
     if filename:
-        format_name = filename.rsplit('.', 1)[1]
-    return format_name
+        mimetype, _ = mimetypes.guess_type(filename)
+        if mimetype:
+            return mimetype
+        else:
+            return os.path.splitext(filename)[1] # use the file extension
+    else:
+        return ''
 
 
 # def is_datetime_column(col: str = None):

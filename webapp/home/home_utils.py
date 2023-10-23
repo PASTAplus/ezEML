@@ -2,28 +2,12 @@
 
 import sys, daiquiri
 
-from enum import Enum
-
 from flask import session
 from flask_login import current_user
 
 from metapype.model.node import Node
 
 RELEASE_NUMBER = '2023.07.06'
-
-
-class VariableType(Enum):
-    """
-    The four variable types represented in ezEML.
-
-    ezEML makes no distinction between ratio and interval variables -- both are represented as NUMERICAL.
-    Similarly, ezEML makes no distinction between ordinal and nominal variables -- both are represented as either
-    CATEGORICAL or TEXT depending on whether they have enumeratedDomain or textDomain children.
-    """
-    CATEGORICAL = 1
-    DATETIME = 2
-    NUMERICAL = 3
-    TEXT = 4
 
 
 def extract_caller_module_name():

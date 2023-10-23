@@ -22,6 +22,7 @@ from flask_login import current_user
 import daiquiri
 
 import webapp.home.home_utils
+import webapp.home.metapype_client
 import webapp.home.utils.create_nodes
 import webapp.home.utils.load_and_save
 import webapp.home.utils.node_utils
@@ -179,22 +180,22 @@ def infer_col_type(data_frame, data_frame_raw, col):
     else:
         is_categorical = (fraction < 0.1 and num_codes < 15) or (fraction < 0.25 and num_codes < 10) or num_codes <= 5
     if is_categorical:
-        col_type = webapp.home.home_utils.VariableType.CATEGORICAL
+        col_type = webapp.home.metapype_client.VariableType.CATEGORICAL
         sorted_codes = sort_codes(codes)
     else:
         if dtype == object:
             if is_datetime(data_frame, col):
-                return webapp.home.home_utils.VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
+                return webapp.home.metapype_client.VariableType.DATETIME, infer_datetime_format(data_frame[col][1])
             else:
-                col_type = webapp.home.home_utils.VariableType.TEXT
+                col_type = webapp.home.metapype_client.VariableType.TEXT
         else:
-            col_type = webapp.home.home_utils.VariableType.NUMERICAL
+            col_type = webapp.home.metapype_client.VariableType.NUMERICAL
 
     # does it look like a date?
     lc_col = col.lower()
     if (
             ('year' in lc_col or 'date' in lc_col)
-            and col_type == webapp.home.home_utils.VariableType.CATEGORICAL
+            and col_type == webapp.home.metapype_client.VariableType.CATEGORICAL
             and is_datetime(data_frame, col)
     ):
         # make sure we don't just have numerical codes that are incorrectly being treated as years
@@ -210,7 +211,7 @@ def infer_col_type(data_frame, data_frame_raw, col):
                 pass
 
         if year_like >= len(sorted_codes) - 3:  # allowing for up to 3 distinct missing value codes
-            return webapp.home.home_utils.VariableType.DATETIME, 'YYYY'
+            return webapp.home.metapype_client.VariableType.DATETIME, 'YYYY'
 
     return col_type, sorted_codes
 
@@ -508,7 +509,7 @@ def load_data_table(uploads_path: str = None,
                 mv_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
                 code_node = new_child_node(names.CODE, parent=mv_node, content=missing_value_code)
 
-            if var_type == webapp.home.home_utils.VariableType.CATEGORICAL:
+            if var_type == webapp.home.metapype_client.VariableType.CATEGORICAL:
                 codes = force_categorical_codes(attribute_node, dtype, codes)
                 codes = force_missing_value_code(missing_value_code, dtype, codes)
 
@@ -522,7 +523,7 @@ def load_data_table(uploads_path: str = None,
                     code_node = new_child_node(names.CODE, code_definition_node, content=str(code))
                     definition_node = new_child_node(names.DEFINITION, code_definition_node)
 
-            elif var_type == webapp.home.home_utils.VariableType.NUMERICAL:
+            elif var_type == webapp.home.metapype_client.VariableType.NUMERICAL:
                 # ratio / numericDomain
                 ratio_node = new_child_node(names.RATIO, ms_node)
                 numeric_domain_node = new_child_node(names.NUMERICDOMAIN, ratio_node)
@@ -532,14 +533,14 @@ def load_data_table(uploads_path: str = None,
                 number_type_node = new_child_node(names.NUMBERTYPE, numeric_domain_node, content=number_type)
                 numeric_domain_node = new_child_node(names.UNIT, ratio_node)
 
-            elif var_type == webapp.home.home_utils.VariableType.TEXT:
+            elif var_type == webapp.home.metapype_client.VariableType.TEXT:
                 # nominal / nonNumericDomain / textDomain
                 nominal_node = new_child_node(names.NOMINAL, ms_node)
                 non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
                 text_domain_node = new_child_node(names.TEXTDOMAIN, non_numeric_domain_node)
                 definition_node = new_child_node(names.DEFINITION, text_domain_node)
 
-            elif var_type == webapp.home.home_utils.VariableType.DATETIME:
+            elif var_type == webapp.home.metapype_client.VariableType.DATETIME:
                 # dateTime / formatString
                 datetime_node = Node(names.DATETIME, parent=ms_node)
                 add_child(ms_node, datetime_node)

@@ -26,7 +26,8 @@ from webapp.home.texttype_node_processing import is_valid_xml_fragment, invalid_
     post_process_texttype_node
 
 from webapp.utils import null_string
-from webapp.home.home_utils import RELEASE_NUMBER, VariableType, log_error, log_info
+from webapp.home.home_utils import RELEASE_NUMBER, log_error, log_info
+from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_utils import new_child_node, remove_child, add_node, Optionality
 
 from webapp.home.utils.load_and_save import save_both_formats, handle_custom_unit_additional_metadata

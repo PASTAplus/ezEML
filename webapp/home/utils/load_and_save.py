@@ -16,7 +16,8 @@ import webapp.home.texttype_node_processing as texttype_node_processing
 from webapp import Config
 from webapp.auth import user_data as user_data
 from webapp.home import check_data_table_contents as check_data_table_contents
-from webapp.home.home_utils import log_error, log_info, get_check_metadata_status, VariableType
+from webapp.home.home_utils import log_error, log_info, get_check_metadata_status
+from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_store import calculate_node_store_checksum
 from webapp.home.utils.node_utils import add_node, Optionality
 from webapp.utils import null_string

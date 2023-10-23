@@ -15,7 +15,8 @@ from metapype.model.node import Node
 from webapp import Config
 
 from webapp.auth import user_data as user_data
-from webapp.home.home_utils import log_info, VariableType
+from webapp.home.home_utils import log_info
+from webapp.home.metapype_client import VariableType
 from webapp.home.texttype_node_processing import excerpt_text
 from webapp.home.utils.import_nodes import compose_rp_label
 
@@ -175,7 +176,6 @@ def mscale_from_attribute(att_node: Node = None):
     """
     Given an attribute node, return the measurement scale as a VariableType enum value.
     """
-    from webapp.home.home_utils import VariableType
     if att_node:
         mscale_node = att_node.find_child(names.MEASUREMENTSCALE)
 

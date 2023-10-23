@@ -42,7 +42,7 @@ from webapp.home.forms import (
     LoadDataForm, ImportEMLForm
 )
 
-from webapp.home.home_utils import VariableType
+from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_utils import remove_child, new_child_node, add_child
 from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.node_store import dump_node_store

@@ -46,6 +46,7 @@ from typing import List
 import urllib.parse
 import warnings
 
+import webapp.home.metapype_client
 from webapp.home.home_utils import log_error, log_info
 import webapp.home.utils.load_and_save
 from webapp.utils import path_exists, path_isdir, path_join
@@ -192,7 +193,7 @@ def get_attribute_node(data_table_node, attribute_name):
 def get_variable_type(attribute_node):
     """
     Get the variable type of an attribute (column) from an attribute node. Variable type here means
-        home_utils.VariableType.
+        metapype_client.VariableType.
     The attribute node is assumed to have the required descendants.
         E.g., it assumed to have a measurementScale child, which in turn is assumed to have a nominal, ordinal, ratio, or
         interval child. Nominal and ordinal are assumed to have a nonNumericDomain child, etc.
@@ -207,21 +208,21 @@ def get_variable_type(attribute_node):
             nominal_or_ordinal_node = measurement_scale_node.find_child(names.ORDINAL)
         if nominal_or_ordinal_node:
             if nominal_or_ordinal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.ENUMERATEDDOMAIN]):
-                return webapp.home.home_utils.VariableType.CATEGORICAL.name
+                return webapp.home.metapype_client.VariableType.CATEGORICAL.name
             if nominal_or_ordinal_node.find_single_node_by_path([names.NONNUMERICDOMAIN, names.TEXTDOMAIN]):
-                return webapp.home.home_utils.VariableType.TEXT.name
+                return webapp.home.metapype_client.VariableType.TEXT.name
 
         # See if it's ratio or interval, and if so, it's numerical.
         ratio_or_interval_node = measurement_scale_node.find_child(names.RATIO)
         if not ratio_or_interval_node:
             ratio_or_interval_node = measurement_scale_node.find_child(names.INTERVAL)
         if ratio_or_interval_node:
-            return webapp.home.home_utils.VariableType.NUMERICAL.name
+            return webapp.home.metapype_client.VariableType.NUMERICAL.name
 
         # See if it's datetime.
         datetime_node = measurement_scale_node.find_child(names.DATETIME)
         if datetime_node:
-            return webapp.home.home_utils.VariableType.DATETIME.name
+            return webapp.home.metapype_client.VariableType.DATETIME.name
 
     raise ValueError(f'Variable type for {get_attribute_name(attribute_node)} could not be inferred from the EML')
 

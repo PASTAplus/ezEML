@@ -16,6 +16,7 @@
 import csv
 import hashlib
 import math
+import mimetypes
 import os
 import re
 import numpy as np
@@ -92,10 +93,14 @@ def entity_name_from_data_file(filename: str = ''):
 
 
 def format_name_from_data_file(filename: str = ''):
-    format_name = ''
     if filename:
-        format_name = filename.rsplit('.', 1)[1]
-    return format_name
+        mimetype, _ = mimetypes.guess_type(filename)
+        if mimetype:
+            return mimetype
+        else:
+            return filename.rsplit('.', 1)[1]
+    else:
+        return ''
 
 
 def is_datetime_column(col: str = None):

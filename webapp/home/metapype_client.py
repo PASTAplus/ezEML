@@ -37,6 +37,7 @@ from flask_login import (
 
 from webapp.config import Config
 from webapp.home.intellectual_rights import INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
+import webapp.home.load_data as load_data
 
 from metapype.eml import evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
@@ -1452,6 +1453,18 @@ def clean_model(eml_node):
     for project_node in project_nodes:
         if not project_node.children:
             project_node.parent.remove_child(project_node)
+
+    # Fixup formatName fields to use mime types instead of file extensions
+    other_entity_nodes = []
+    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+    for other_entity_node in other_entity_nodes:
+        format_name_node = other_entity_node.find_descendant(names.FORMATNAME)
+        if format_name_node:
+            object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+            if object_name_node:
+                object_name = object_name_node.content
+                if object_name:
+                    format_name_node.content = load_data.format_name_from_data_file(object_name)
 
     # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []

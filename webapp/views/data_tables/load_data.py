@@ -746,10 +746,6 @@ def get_column_properties(eml_node, document, dt_node, object_name):
                                                 new_column_names,
                                                 new_column_codes)
 
-        # Update the distribution urls.
-        views.clear_distribution_url(dt_node)
-        views.insert_upload_urls(document, eml_node)
-
         return new_column_vartypes
 
     except FileNotFoundError:

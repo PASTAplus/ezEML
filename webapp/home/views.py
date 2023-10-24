@@ -990,9 +990,8 @@ def download_current():
     """
     current_document = user_data.get_active_document()
     if current_document:
-        # Force the document to be saved, so it gets cleaned, and incorporate the upload URLs for the data
+        # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
-        insert_upload_urls(current_document, eml_node)
         save_both_formats(filename=current_document, eml_node=eml_node)
 
         # Do the download
@@ -1809,7 +1808,6 @@ def export_package():
         return redirect(url_for(PAGE_INDEX))
 
     if request.method == 'POST':
-        insert_upload_urls(current_document, eml_node)
         save_both_formats(current_document, eml_node)
         try:
             zipfile_path = zip_package(current_document, eml_node)
@@ -3349,8 +3347,6 @@ def submit_package(filename=None, success=None):
             email_address = form.data['email_address']
             notes = form.data['notes']
 
-            # update the EML to include URLs to data table files and other entity files
-            insert_upload_urls(current_document, eml_node)
             save_both_formats(filename=current_document, eml_node=eml_node)
 
             try:
@@ -3446,7 +3442,6 @@ def send_to_other(filename=None, mailto=None):
             email_address = form.data['email_address']
 
             eml_node = load_eml(filename=filename)
-            insert_upload_urls(current_document, eml_node)
             log_usage(actions['SEND_TO_COLLEAGUE'], colleague_name, email_address)
 
             dataset_node = eml_node.find_child(child_name=names.DATASET)

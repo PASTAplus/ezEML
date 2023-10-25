@@ -7,7 +7,7 @@ import os
 import pickle
 from datetime import date
 
-from flask import request, session
+from flask import flash, request, session
 from flask_login import current_user
 
 import webapp.home.utils.node_utils as node_utils
@@ -460,8 +460,10 @@ def clean_model(eml_node):
         if not project_node.children:
             project_node.parent.remove_child(project_node)
 
-    # Fixup formatName fields to use mime types instead of file extensions
+    # Fixup formatName fields to use mime types instead of file extensions.
+    # If we make a change, flash a message to the user.
     other_entity_nodes = []
+    changed = False
     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
     for other_entity_node in other_entity_nodes:
         format_name_node = other_entity_node.find_descendant(names.FORMATNAME)
@@ -470,7 +472,12 @@ def clean_model(eml_node):
             if object_name_node:
                 object_name = object_name_node.content
                 if object_name:
+                    old_content = format_name_node.content
                     format_name_node.content = load_data.format_name_from_data_file(object_name)
+                    if old_content != format_name_node.content:
+                        changed = True
+    if changed:
+        flash("In one or more Other Entities, the Data Format field has been modified to use mime types.")
 
 # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []

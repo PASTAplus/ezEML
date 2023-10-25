@@ -2347,6 +2347,10 @@ def import_xml_4(filename=None, fetched=False):
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
+        if is_hidden_button():
+            # Have a hidden button, so short-circuit out of here without importing the data
+            current_document = user_data.get_active_document()
+            return redirect(url_for(handle_hidden_buttons(PAGE_TITLE), filename=current_document))
         try:
             total_size = import_data(filename, eml_node)
         except (AuthTokenExpired, Unauthorized) as e:

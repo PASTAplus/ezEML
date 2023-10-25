@@ -889,7 +889,7 @@ def load_df(attribute_node, usecols=None):
         else:
             return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
     except FileNotFoundError as e:
-        return None
+        raise webapp.home.exceptions.DataFileNotFound(f"Data file {data_file} not found.")
 
 
 def force_datetime_type(attribute_node):
@@ -897,7 +897,7 @@ def force_datetime_type(attribute_node):
     column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
     data_frame = load_df(attribute_node, usecols=[column_name])
     if data_frame is None:
-        return None
+        raise webapp.home.exceptions.DataFileNotFound("Data file not found.")
     if data_frame[column_name].size > 0:
         return infer_datetime_format(data_frame[column_name][1])
     else:
@@ -992,7 +992,12 @@ def change_measurement_scale(attribute_node, old_mscale, new_mscale):
         non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, new_scale_node)
         enumerated_domain_node = new_child_node(names.ENUMERATEDDOMAIN, non_numeric_domain_node)
 
-        sorted_codes = force_categorical_codes(attribute_node)
+        try:
+            sorted_codes = force_categorical_codes(attribute_node)
+        except webapp.home.exceptions.DataFileNotFound as e:
+            flash(e.message, 'warning')
+            flash("ezEML changed the variable type to Categorical but cannot automatically detect the categorical codes when the data file is absent.", 'warning')
+            return
         if not sorted_codes:
             return
 
@@ -1019,7 +1024,12 @@ def change_measurement_scale(attribute_node, old_mscale, new_mscale):
         set_storage_type(attribute_node, 'dateTime')
         new_scale_node = new_child_node(names.DATETIME, mscale_node)
         format_string_node = new_child_node(names.FORMATSTRING, new_scale_node)
-        format_string = force_datetime_type(attribute_node)
+        try:
+            format_string = force_datetime_type(attribute_node)
+        except webapp.home.exceptions.DataFileNotFound as e:
+            flash(e.message, 'warning')
+            flash("ezEML changed the variable type to DateTime but cannot automatically detect the datetime format when the data file is absent.", 'warning')
+            return
         if format_string:
             format_string_node.content = format_string
 

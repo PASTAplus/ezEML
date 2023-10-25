@@ -13,6 +13,10 @@ class AuthTokenExpired(ezEMLError):
     pass
 
 
+class DataFileNotFound(ezEMLError):
+    pass
+
+
 class DataTableError(ezEMLError):
     pass
 

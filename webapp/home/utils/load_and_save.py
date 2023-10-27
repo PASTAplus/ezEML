@@ -421,6 +421,22 @@ def clean_model(eml_node):
     for node in to_remove:
         node_utils.remove_child(node)
 
+    # Make sure all url elements for dataTable and otherEntity have the function="download" attribute
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    for data_table_node in data_table_nodes:
+        url_nodes = []
+        data_table_node.find_all_descendants(names.URL, url_nodes)
+        for url_node in url_nodes:
+            url_node.add_attribute('function', 'download')
+    other_entity_nodes = []
+    eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
+    for other_entity_node in other_entity_nodes:
+        url_nodes = []
+        other_entity_node.find_all_descendants(names.URL, url_nodes)
+        for url_node in url_nodes:
+            url_node.add_attribute('function', 'download')
+
     # The EML standard permits multiple instrumentation nodes, but the ezEML UI does not.
     # If there are multiple instrumentation nodes, we will compromise by putting the
     # instrumentation content in a single node, separated by newlines. The other

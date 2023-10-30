@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_import_keyword_2_id, help_import_keyword_2_title, help_import_keyword_2_content = help[0] %}
+    {% set help_import_keyword_2_btn = help_import_keyword_2_id ~ '_btn' %}
+    {% set help_import_keyword_2_dialog = help_import_keyword_2_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Import Keywords</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_keyword_2_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+                <table>
+                    {{ macros.import_selection(form, target_filename, 'keywords') }}
+                    {{ macros.import_buttons(form) }}
+                </table>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_import_keyword_2_dialog, help_import_keyword_2_title, help_import_keyword_2_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_import_keyword_2_id, help_import_keyword_2_title, help_import_keyword_2_content = help[0] %}
+    {% set help_import_keyword_2_btn = help_import_keyword_2_id ~ '_btn' %}
+    {% set help_import_keyword_2_dialog = help_import_keyword_2_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_import_keyword_2_dialog, help_import_keyword_2_btn) }}
+    });
+    </script>
+{% endblock %}

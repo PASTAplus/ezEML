@@ -86,7 +86,7 @@ from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_but
 from webapp.home.utils.load_and_save import load_eml, save_old_to_new, strip_elements_added_by_pasta, \
     package_contains_elements_unhandled_by_ezeml, save_both_formats, create_eml, add_imported_from_xml_metadata, \
     get_imported_from_xml_metadata, clear_taxonomy_imported_from_xml_flag
-from webapp.home.utils.import_nodes import import_responsible_parties, import_coverage_nodes, \
+from webapp.home.utils.import_nodes import import_responsible_parties, import_keyword_nodes, import_coverage_nodes, \
     import_funding_award_nodes, compose_funding_award_label, compose_project_label, import_project_node, \
     import_related_project_nodes, compose_rp_label
 from webapp.home.utils.lists import list_data_packages, compose_full_gc_label, truncate_middle, compose_taxonomic_label, \
@@ -1299,7 +1299,7 @@ def import_template_2(template_filename):
 @home_bp.route('/import_parties', methods=['GET', 'POST'])
 @login_required
 def import_parties():
-    """Handle the Import Responsible Parties item in EML Documents menu."""
+    """Handle the Import Responsible Parties item in Import/Export menu."""
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(True, True)
@@ -1321,7 +1321,7 @@ def import_parties():
 @home_bp.route('/import_parties_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_parties_2(filename):
-    """Handle the Import Responsible Parties item in EML Documents menu after a source document has been selected."""
+    """Handle the Import Responsible Parties item in Import/Export menu after a source document has been selected."""
 
     def get_responsible_parties_for_import(eml_node):
         parties = []
@@ -1388,10 +1388,77 @@ def import_parties_2(filename):
     return render_template('import_parties_2.html', target_filename=filename, help=help, form=form)
 
 
+@home_bp.route('/import_keywords', methods=['GET', 'POST'])
+@login_required
+def import_keywords():
+    """Handle the Import Keywords item in Import/Export menu."""
+
+    form = ImportEMLForm()
+    form.filename.choices = list_data_packages(False, False)
+
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+        if form.validate_on_submit():
+            filename = form.filename.data
+            return redirect(url_for('home.import_keywords_2', filename=filename))
+
+    # Process GET
+    help = get_helps(['import_keywords'])
+    return render_template('import_keywords.html', help=help, form=form)
+
+
+@home_bp.route('/import_keywords_2/<filename>/', methods=['GET', 'POST'])
+@login_required
+def import_keywords_2(filename):
+    """Handle the Import Keywords item in Import/Export menu after a source document has been selected."""
+
+    def get_keywords_for_import(eml_node):
+        keyword_tuples = []
+        # Returns a list of tuples
+        #    (keyword_node_id, keyword)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if not dataset_node:
+            return []
+        keyword_set_nodes = []
+        dataset_node.find_all_descendants(names.KEYWORDSET, keyword_set_nodes)
+        for keyword_set_node in keyword_set_nodes:
+            keyword_nodes = []
+            keyword_set_node.find_all_descendants(names.KEYWORD, keyword_nodes)
+            for keyword_node in keyword_nodes:
+                keyword = keyword_node.content
+                if not keyword:
+                    continue
+                keyword_tuples.append((keyword_node.id, keyword))
+        return keyword_tuples
+
+    form = ImportItemsForm()
+
+    eml_node = load_eml(filename)
+    keyword_tuples = get_keywords_for_import(eml_node)
+    choices = [keyword_tuple for keyword_tuple in keyword_tuples]
+    form.to_import.choices = choices
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if form.validate_on_submit():
+        node_ids_to_import = form.data['to_import']
+        target_package = current_user.get_filename()
+        import_keyword_nodes(target_package, node_ids_to_import)
+        log_usage(actions['IMPORT_KEYWORDS'], filename)
+        return redirect(url_for(PAGE_KEYWORD_SELECT, filename=target_package))
+
+    # Process GET
+    help = get_helps(['import_keywords_2'])
+    return render_template('import_keywords_2.html', help=help, target_filename=filename, form=form)
+
+
 @home_bp.route('/import_geo_coverage', methods=['GET', 'POST'])
 @login_required
 def import_geo_coverage():
-    """Handle the Import Geographic Coverage item in EML Documents menu."""
+    """Handle the Import Geographic Coverage item in Import/Export menu."""
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
@@ -1412,7 +1479,7 @@ def import_geo_coverage():
 @home_bp.route('/import_geo_coverage_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_geo_coverage_2(filename):
-    """Handle the Import Geographic Coverage item in EML Documents menu after a source document has been selected."""
+    """Handle the Import Geographic Coverage item in Import/Export menu after a source document has been selected."""
 
     def get_geo_coverages_for_import(eml_node):
         coverages = []
@@ -1446,7 +1513,7 @@ def import_geo_coverage_2(filename):
 @home_bp.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
 @login_required
 def import_taxonomic_coverage():
-    """Handle the Import Taxonomic Coverage item in EML Documents menu."""
+    """Handle the Import Taxonomic Coverage item in Import/Export menu."""
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
@@ -1467,7 +1534,7 @@ def import_taxonomic_coverage():
 @home_bp.route('/import_taxonomic_coverage_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_taxonomic_coverage_2(filename):
-    """Handle the Import Taxonomic Coverage item in EML Documents menu after a source document has been selected."""
+    """Handle the Import Taxonomic Coverage item in Import/Export menu after a source document has been selected."""
 
     def get_taxonomic_coverages_for_import(eml_node):
         coverages = []
@@ -1502,7 +1569,7 @@ def import_taxonomic_coverage_2(filename):
 @home_bp.route('/import_funding_awards', methods=['GET', 'POST'])
 @login_required
 def import_funding_awards():
-    """Handle the Import Funding Awards item in EML Documents menu."""
+    """Handle the Import Funding Awards item in Import/Export menu."""
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
@@ -1523,7 +1590,7 @@ def import_funding_awards():
 @home_bp.route('/import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_funding_awards_2(filename):
-    """Handle the Import Funding Awards item in EML Documents menu after a source document has been selected."""
+    """Handle the Import Funding Awards item in Import/Export menu after a source document has been selected."""
 
     def get_funding_awards_for_import(eml_node):
         awards = []
@@ -1558,7 +1625,7 @@ def import_funding_awards_2(filename):
 @home_bp.route('/import_project', methods=['GET', 'POST'])
 @login_required
 def import_project():
-    """Handle the Import Project item in EML Documents menu."""
+    """Handle the Import Project item in Import/Export menu."""
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
@@ -1594,7 +1661,7 @@ def get_projects_for_import(eml_node):
 @home_bp.route('/import_project_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_project_2(filename):
-    """Handle the Import Project item in EML Documents menu after a source document has been selected."""
+    """Handle the Import Project item in Import/Export menu after a source document has been selected."""
 
     form = ImportSingleItemForm()
 
@@ -1621,7 +1688,7 @@ def import_project_2(filename):
 @home_bp.route('/import_related_projects', methods=['GET', 'POST'])
 @login_required
 def import_related_projects():
-    """Handle the Import Related Projects item in EML Documents menu."""
+    """Handle the Import Related Projects item in Import/Export menu."""
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
@@ -1642,7 +1709,7 @@ def import_related_projects():
 @home_bp.route('/import_related_projects_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_related_projects_2(filename):
-    """Handle the Import Related Projects item in EML Documents menu after a source document has been selected."""
+    """Handle the Import Related Projects item in Import/Export menu after a source document has been selected."""
 
     form = ImportItemsForm()
 
@@ -3256,7 +3323,7 @@ def slow_poke():
 @home_bp.route('/import_temporal_coverage', methods=['GET', 'POST'])
 @login_required
 def import_temporal_coverage():
-    """Handle the Import Temporal Coverage item in EML Documents menu. Not currently used."""
+    """Handle the Import Temporal Coverage item in Import/Export menu. Not currently used."""
 
     raise DeprecatedCodeError('import_temporal_coverage()')
 
@@ -3281,7 +3348,7 @@ def import_temporal_coverage():
 @home_bp.route('/import_temporal_coverage_2/<filename>/', methods=['GET', 'POST'])
 @login_required
 def import_temporal_coverage_2(filename):
-    """Handle the Import Temporal Coverage item in EML Documents menu after a source document has been selected.
+    """Handle the Import Temporal Coverage item in Import/Export menu after a source document has been selected.
     Not currently used."""
 
     raise DeprecatedCodeError('import_temporal_coverage_2()')

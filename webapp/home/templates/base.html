@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2023.10.25' %}
+{% set release_number = '2023.10.30' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -133,6 +133,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                     <ul class="dropdown-menu">
                         {% if current_user.get_filename() %}
                         {{ macros.toolbar_menu_item(url_for('home.import_parties'), 'hidden_import_parties', 'Import Responsible Parties (Creators, Contacts, etc.)', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_keywords'), 'hidden_import_keywords', 'Import Keywords', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.import_geo_coverage'), 'hidden_import_geo_coverage', 'Import Geographic Coverage', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.import_taxonomic_coverage'), 'hidden_import_taxonomic_coverage', 'Import Taxonomic Coverage', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.import_funding_awards'), 'hidden_import_funding_awards', 'Import Funding Awards', ns.is_non_saving) }}

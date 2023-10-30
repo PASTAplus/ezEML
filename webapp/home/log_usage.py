@@ -35,6 +35,7 @@ actions = {
     'IMPORT_EZEML_DATA_PACKAGE': 'Import ezEML Data Package',
     'IMPORT_FUNDING_AWARDS': 'Import Funding Awards',
     'IMPORT_GEOGRAPHIC_COVERAGE': 'Import Geographic Coverage',
+    'IMPORT_KEYWORDS': 'Import Keywords',
     'IMPORT_PROJECT': 'Import Project',
     'IMPORT_RELATED_PROJECTS': 'Import Related Projects',
     'IMPORT_RESPONSIBLE_PARTIES': 'Import Responsible Parties',

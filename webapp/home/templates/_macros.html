@@ -15,6 +15,7 @@
                 <input id="hidden_import_ezEML_data_package" style="display: none;" name="Hidden_Import_ezEML_Data_Package" type="submit" value="Hidden_Import_ezEML_Data_Package"/>
                 <input id="hidden_import_funding_awards" style="display: none;" name="Hidden_Import_Funding_Awards" type="submit" value="Hidden_Import_Funding_Awards"/>
                 <input id="hidden_import_geo_coverage" style="display: none;" name="Hidden_Import_Geo_Coverage" type="submit" value="Hidden_Import_Geo_Coverage"/>
+                <input id="hidden_import_keywords" style="display: none;" name="Hidden_Import_Keywords" type="submit" value="Hidden_Import_Keywords"/>
                 <input id="hidden_import_parties" style="display: none;" name="Hidden_Import_Parties" type="submit" value="Hidden_Import_Parties"/>
                 <input id="hidden_import_project" style="display: none;" name="Hidden_Import_Project" type="submit" value="Hidden_Import_Project"/>
                 <input id="hidden_import_related_projects" style="display: none;" name="Hidden_Import_Related_Projects" type="submit" value="Hidden_Import_Related_Projects"/>
@@ -66,6 +67,32 @@
                             {% else %}
                             <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();">{{ display_name }}</a>
                             {% endif %}
+{% endmacro %}
+{% macro import_selection(form, target_filename, item_name) %}
+    <script>
+        function choose_options(all) {
+            $('input:checkbox').not(this).prop('checked', all);
+        }
+    </script>
+                    <tr><h5>Select {{ item_name }} to import from "{{ target_filename }}":
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(true); return false;">Select All</button> ]
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(false); return false;">Clear All</button> ]</h5>
+                    </tr>
+                    {% if form.to_import.choices %}
+                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
+                    {% else %}
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;The selected data package contains no {{ item_name }}.<p></p></span><br></tr>
+                    {% endif %}
+{% endmacro %}
+{% macro import_buttons(form) %}
+                    <tr>
+                    {% if form.to_import.choices %}
+                    <input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;&nbsp;
+                    {% else %}
+                    <input class="btn btn-primary" name="Import" disabled type="submit" value="Import"/>&nbsp;&nbsp;
+                    {% endif %}
+                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                    </tr>
 {% endmacro %}
 {% macro contents_menu_item(url, style, hidden_name, display_name, is_non_saving) %}
                             {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}

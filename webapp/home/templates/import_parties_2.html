@@ -15,13 +15,13 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select responsible parties to import from {{ target_filename }}:</h5></tr>
-                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
+                    {{ macros.import_selection(form, target_filename, "responsible parties") }}
+                    {% if form.to_import.choices %}
                     <tr><h5>Import as:</h5></tr>
                     <tr>{{ form.target(style="list-style:none;") }}</tr>
                     <tr>&nbsp;<p/></tr>
-                    <tr><input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;
-                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                    {% endif %}
+                    {{ macros.import_buttons(form) }}
                 </table>
                 {{ macros.hidden_buttons() }}
             </form>

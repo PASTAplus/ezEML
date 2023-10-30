@@ -615,6 +615,18 @@ Select the funding awards to import.
 
 If none are shown, none are available in the selected data package.
 --------------------
+import_keywords
+Import Keywords
+You may import selected keywords from another data package.
+
+Currently, all imported keywords are applied to the dataset as a whole, rather than to individual data tables, etc.
+--------------------
+import_keywords_2
+Import Keywords
+Select the keywords to import.
+
+If none are shown, none are available in the selected data package.
+--------------------
 import_geographic_coverage
 Import Geographic Coverage
 You may import selected geographic coverage details from another data package.

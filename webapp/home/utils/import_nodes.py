@@ -80,6 +80,40 @@ def import_responsible_parties(target_package, node_ids_to_import, target_class)
     save_both_formats(target_package, target_eml_node)
 
 
+def import_keyword_nodes(target_package, node_ids_to_import):
+    """
+    Import keywords from the source package into the target package. The keywords will be imported into the
+    target package's dataset node.
+
+    node_ids_to_import is a list of node IDs of the keywords to import. The caller will have loaded the source
+    package and the user will have selected which keywords to import.
+    """
+    # Load the target package's metadata.
+    owner_login = user_data.get_active_document_owner_login()
+    target_eml_node = load_eml(target_package, owner_login=owner_login)
+    # Find the dataset node, which is assumed to exist.
+    dataset_node = target_eml_node.find_child(names.DATASET)
+    # For each keyword to import, create a new keyword node and add it to the target package under the dataset node.
+    for node_id in node_ids_to_import:
+        keyword_set_node = Node(names.KEYWORDSET, parent=dataset_node)
+        add_child(dataset_node, keyword_set_node)
+        # Get the keyword node from the source package.
+        source_node = Node.get_node_instance(node_id)
+        # Copy the keyword node.
+        new_keyword_node = source_node.copy()
+        # See if the source node has a thesaurus node.
+        keyword_thesaurus_node = source_node.parent.find_child(names.KEYWORDTHESAURUS)
+        # If so, copy it.
+        new_keyword_thesaurus_node = keyword_thesaurus_node.copy() if keyword_thesaurus_node else None
+        # Add the keyword node and thesaurus node to the target package.
+        add_child(keyword_set_node, new_keyword_node)
+        if new_keyword_thesaurus_node:
+            add_child(keyword_set_node, new_keyword_thesaurus_node)
+
+    # Save the changes to the target package.
+    save_both_formats(target_package, target_eml_node)
+
+
 def import_coverage_nodes(target_package, node_ids_to_import):
     """
     Import geographic coverage or taxonomic coverage nodes from the source package into the target package.

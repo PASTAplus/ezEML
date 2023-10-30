@@ -6,6 +6,12 @@
     {% set help_funding_awards_2_btn = help_funding_awards_2_id ~ '_btn' %}
     {% set help_funding_awards_2_dialog = help_funding_awards_2_id ~ '_dialog' %}
 
+{#    <script>#}
+{#        function choose_options(all) {#}
+{#            $('input:checkbox').not(this).prop('checked', all);#}
+{#        }#}
+{#    </script>#}
+
     <table>
         <td><h2>Import Funding Awards</h2></td>
         <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_funding_awards_2_btn) }}</td>
@@ -15,11 +21,8 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select funding awards to import from {{ target_filename }}:</h5></tr>
-                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
-                    <tr>&nbsp;<p/></tr>
-                    <tr><input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;
-                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                    {{ macros.import_selection(form, target_filename, 'funding awards') }}
+                    {{ macros.import_buttons(form) }}
                     {{ macros.hidden_buttons() }}
                     </table>
             </form>

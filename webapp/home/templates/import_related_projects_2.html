@@ -15,21 +15,8 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select one or more projects to import as Related Projects from {{ target_filename }}:</h5></tr>
-                    {% if form.to_import.choices %}
-                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
-                    {% else %}
-                    <tr><span style="font-style: italic;">&nbsp;&nbsp;The selected EML document contains no projects.</span><br></tr>
-                    {% endif %}
-                    <tr>&nbsp;<p/></tr>
-                    <tr>&nbsp;
-                    {% if form.to_import.choices %}
-                    <input class="btn btn-primary" name="Import" type="submit" value="Import"/>
-                    {% else %}
-                    <input class="btn btn-primary" name="Import" disabled type="submit" value="Import"/>
-                    {% endif %}
-                    &nbsp;
-                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                    {{ macros.import_selection(form, target_filename, "related projects") }}
+                    {{ macros.import_buttons(form) }}
                     {{ macros.hidden_buttons() }}
                     </table>
             </form>

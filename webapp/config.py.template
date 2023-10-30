@@ -77,7 +77,7 @@ class Config(object):
         "bmcafee-9722dcae0cf4708f5946995452883e27",
         "csmith-3baeec96846153563e16e334d058e7b8",
         "Corinna_Gries-0cefc3d7c9858476b71dbb3ab442fca6",
-        "Gregory_Maurer-814ee57f685379d6594c61911079d89b",
+        "gmaurer-a4d2d568283e74b5c4aa0f21b0b21dea",
         "jide-7a03c1e6f4528a6f9c4b1ae3cec24b39",
         "jlemaire-33463893a66177fe46eb87acc9d20e71"
         ]}

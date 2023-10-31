@@ -1309,6 +1309,11 @@ def import_parties():
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
 
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_IMPORT_PARTIES)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_parties_2', filename=filename))
@@ -1363,6 +1368,11 @@ def import_parties_2(filename):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_IMPORT_PARTIES)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_class = form.data['target']
@@ -1400,6 +1410,12 @@ def import_keywords():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_IMPORT_KEYWORDS)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_keywords_2', filename=filename))
@@ -1443,6 +1459,11 @@ def import_keywords_2(filename):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_IMPORT_KEYWORDS)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1467,6 +1488,12 @@ def import_geo_coverage():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_IMPORT_GEO_COVERAGE)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_geo_coverage_2', filename=filename))
@@ -1498,6 +1525,11 @@ def import_geo_coverage_2(filename):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_IMPORT_GEO_COVERAGE)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1522,6 +1554,12 @@ def import_taxonomic_coverage():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_IMPORT_TAXONOMIC_COVERAGE)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename))
@@ -1553,6 +1591,11 @@ def import_taxonomic_coverage_2(filename):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_IMPORT_TAXONOMIC_COVERAGE)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1578,6 +1621,12 @@ def import_funding_awards():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_IMPORT_FUNDING_AWARDS)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_funding_awards_2', filename=filename))
@@ -1610,6 +1659,11 @@ def import_funding_awards_2(filename):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_IMPORT_FUNDING_AWARDS)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1634,6 +1688,12 @@ def import_project():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_IMPORT_PROJECT)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_project_2', filename=filename))
@@ -1673,6 +1733,11 @@ def import_project_2(filename):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_IMPORT_PROJECT)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
+
     if form.validate_on_submit():
         node_id_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1697,6 +1762,12 @@ def import_related_projects():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_IMPORT_RELATED_PROJECTS)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             return redirect(url_for('home.import_related_projects_2', filename=filename))
@@ -1720,6 +1791,11 @@ def import_related_projects_2(filename):
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
+
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_IMPORT_RELATED_PROJECTS)
+        current_document = current_user.get_filename()
+        return redirect(url_for(new_page, filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']

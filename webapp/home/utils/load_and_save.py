@@ -171,6 +171,9 @@ def load_eml(filename:str=None,
             log_info(f"load_eml: ext_filename: {ext_filename}")
         if os.path.isfile(ext_filename):
             eml_node = from_json(ext_filename)
+        else:
+            log_error(f"load_eml: Could not find {ext_filename}")
+            return None
 
         if eml_node:
             if not skip_metadata_check:

@@ -21,8 +21,8 @@ from webapp.home.texttype_node_processing import excerpt_text
 from webapp.home.utils.import_nodes import compose_rp_label
 
 NO_OP = ''
-UP_ARROW = html.unescape('&#x25B2;')
-DOWN_ARROW = html.unescape('&#x25BC;')
+UP_ARROW = html.unescape('&#x2B06;')
+DOWN_ARROW = html.unescape('&#x2B07;')
 
 
 def get_upval(i:int):

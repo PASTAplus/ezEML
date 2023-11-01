@@ -7,7 +7,7 @@ from flask_login import current_user
 
 from metapype.model.node import Node
 
-RELEASE_NUMBER = '2023.10.30'
+RELEASE_NUMBER = '2023.11.01'
 
 
 def extract_caller_module_name():

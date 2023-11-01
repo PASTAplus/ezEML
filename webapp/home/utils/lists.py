@@ -734,6 +734,28 @@ def list_method_steps(parent_node:Node=None):
 
 
 def list_keywords(eml_node:Node=None):
+    def get_upval(kw_node):
+        # If the keyword is the first one in the keyword set, return NO_OP. Otherwise, return UP_ARROW.
+        upval = UP_ARROW
+        if kw_node:
+            keyword_set_node = kw_node.parent
+            kw_nodes = keyword_set_node.find_all_children(names.KEYWORD)
+            if kw_nodes:
+                if kw_nodes[0] == kw_node:
+                    upval = NO_OP
+        return upval
+
+    def get_downval(kw_node):
+        # If the keyword is the last one in the keyword set, return NO_OP. Otherwise, return DOWN_ARROW.
+        downval = DOWN_ARROW
+        if kw_node:
+            keyword_set_node = kw_node.parent
+            kw_nodes = keyword_set_node.find_all_children(names.KEYWORD)
+            if kw_nodes:
+                if kw_nodes[-1] == kw_node:
+                    downval = NO_OP
+        return downval
+
     """
     Returns a list of namedtuples of type KW_Entry for the keywords for a dataset, across all keywordSets.
     """
@@ -750,12 +772,19 @@ def list_keywords(eml_node:Node=None):
             for i, kw_node in enumerate(kw_nodes):
                 id = kw_node.id
                 keyword = kw_node.content
+                keyword_set_node = kw_node.parent
+                thesaurus_node = keyword_set_node.find_child(names.KEYWORDTHESAURUS)
+                thesaurus = ''
+                if thesaurus_node:
+                    thesaurus = thesaurus_node.content
+                    if thesaurus:
+                        thesaurus = ' [' + thesaurus + ']'
                 kt = kw_node.attribute_value('keywordType')
                 keyword_type = kt if kt else ''
-                upval = get_upval(i)
-                downval = get_downval(i + 1, len(kw_nodes))
+                upval = get_upval(kw_node)
+                downval = get_downval(kw_node)
                 kw_entry = KW_Entry(id=id,
-                                    keyword=keyword,
+                                    keyword=keyword + thesaurus,
                                     keyword_type=keyword_type,
                                     upval=upval,
                                     downval=downval)

@@ -767,6 +767,8 @@ One set of keywords may identify the contributing organization(s), e.g., the LTE
 
 Meaningful geographic place names also are appropriate (e.g. state, city, county).
 
+If a keyword has a keyword thesaurus (controlled vocabulary) associated with it, that thesaurus name is displayed in square brackets after the keyword. Keywords can be sorted within a thesaurus keyword set. The keyword sets are displayed in the order that they were added to the metadata.
+
 Note: Communities sometimes have specific requests for keywords to assist in searches. E.g, the LTER requests that keywords should include LTER core research area(s), the network acronym (LTER, ILTER, etc.), three-letter site acronym and site name. In addition to specific keywords, relevant conceptual keywords should also be included, e.g., from the LTER Controlled Vocabulary.
 --------------------
 load_taxonomic_coverage

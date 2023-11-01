@@ -16,7 +16,7 @@ from webapp.home.utils.node_utils import remove_child, add_child
 from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.node_store import dump_node_store
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
-from webapp.home.utils.lists import UP_ARROW, DOWN_ARROW, list_keywords
+from webapp.home.utils.lists import UP_ARROW, DOWN_ARROW, NO_OP, list_keywords
 from webapp.home.utils.create_nodes import create_title, create_data_package_id, create_pubinfo, create_abstract, \
     create_intellectual_rights, create_keyword
 

@@ -1446,7 +1446,11 @@ def import_keywords_2(filename):
                 keyword = keyword_node.content
                 if not keyword:
                     continue
-                keyword_tuples.append((keyword_node.id, keyword))
+                thesaurus_node = keyword_set_node.find_child(names.KEYWORDTHESAURUS)
+                thesaurus = thesaurus_node.content if thesaurus_node else ''
+                if thesaurus:
+                    thesaurus = f'[{thesaurus}]'
+                keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}'))
         return keyword_tuples
 
     form = ImportItemsForm()

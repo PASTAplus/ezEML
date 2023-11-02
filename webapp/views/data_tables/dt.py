@@ -44,7 +44,7 @@ from webapp.home.forms import (
 
 from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_utils import remove_child, new_child_node, add_child
-from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.node_store import dump_node_store
 from webapp.home.utils.load_and_save import load_eml, save_both_formats, handle_custom_unit_additional_metadata
 from webapp.home.utils.lists import list_data_packages, list_data_tables, list_data_table_columns, list_attributes, \
@@ -440,6 +440,11 @@ def load_data(filename=None):
         return redirect(views.get_back_url())
 
     if request.method == 'POST' and form.validate_on_submit():
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_LOAD_DATA)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
 
         # Check if the post request has the file part
         if 'file' not in request.files:

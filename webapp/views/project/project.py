@@ -297,6 +297,10 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
             names.DATASET,
             names.PROJECT
         ])
+        if not project_node:
+            dataset_node = eml_node.find_child(names.DATASET)
+            project_node = Node(names.PROJECT, parent=dataset_node)
+            dataset_node.add_child(project_node)
     else:
         project_node = Node.get_node_instance(project_node_id)
     if request.method == 'POST':

@@ -10,6 +10,7 @@ from datetime import date
 from flask import flash, request, session
 from flask_login import current_user
 
+import webapp.home.utils.import_nodes as import_nodes
 import webapp.home.utils.node_utils as node_utils
 import webapp.home.texttype_node_processing as texttype_node_processing
 
@@ -497,6 +498,10 @@ def clean_model(eml_node):
                         changed = True
     if changed:
         flash("In one or more Other Entities, the Data Format field has been modified to use mime types.")
+
+    # Collect keywords for a given thesaurus into a single keywordSet node.
+    import_nodes.consolidate_keyword_sets(eml_node)
+
 
 # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []

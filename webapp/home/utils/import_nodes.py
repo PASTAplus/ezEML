@@ -5,11 +5,13 @@ These pertain to operations like "Import Responsible Parties", "Import Geographi
 Importing XML files and ezEML Data Packages are handled elsewhere.
 """
 
+from collections import OrderedDict
+
 import webapp.auth.user_data as user_data
 import webapp.home.utils.node_utils
 from metapype.eml import names
 from metapype.model.node import Node
-from webapp.home.utils.load_and_save import load_eml, save_both_formats
+import webapp.home.utils.load_and_save as load_and_save
 from webapp.home.utils.node_utils import new_child_node, add_child
 
 
@@ -42,7 +44,7 @@ def import_responsible_parties(target_package, node_ids_to_import, target_class)
     """
     # Load the target package's metadata.
     owner_login = user_data.get_active_document_owner_login()
-    target_eml_node = load_eml(target_package, owner_login=owner_login)
+    target_eml_node = load_and_save.load_eml(target_package, owner_login=owner_login)
     # Find the dataset node, which is assumed to exist.
     dataset_node = target_eml_node.find_child(names.DATASET)
     if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts', 'Publisher']:
@@ -77,7 +79,41 @@ def import_responsible_parties(target_package, node_ids_to_import, target_class)
         new_node.name = new_name
         add_child(parent_node, new_node)
     # Save the changes to the target package.
-    save_both_formats(target_package, target_eml_node)
+    load_and_save.save_both_formats(target_package, target_eml_node)
+
+
+def consolidate_keyword_sets(eml_node):
+    dataset_node = eml_node.find_child(names.DATASET)
+    # Collect keywords for a given thesaurus into a single keywordSet node.
+    # First, create a dict of keywords, keyed by thesaurus.
+    keyword_dict = OrderedDict()
+    original_keyword_set_nodes = []
+    eml_node.find_all_descendants(names.KEYWORDSET, original_keyword_set_nodes)
+    keywords = []
+    eml_node.find_all_descendants(names.KEYWORD, keywords)
+    for keyword in keywords:
+        thesaurus_node = keyword.parent.find_child(names.KEYWORDTHESAURUS)
+        if thesaurus_node:
+            thesaurus = thesaurus_node.content
+        else:
+            thesaurus = ''
+        keyword_list = keyword_dict.get(thesaurus, [])
+        keyword_list.append(keyword)
+        keyword_dict[thesaurus] = keyword_list
+    # For each thesaurus, create a new keywordSet node and add it to the dataset node.
+    for thesaurus, keyword_list in keyword_dict.items():
+        keywordSet_node = new_child_node(names.KEYWORDSET, dataset_node)
+        keywordSet_node.parent = dataset_node
+        for keyword in keyword_list:
+            add_child(keywordSet_node, keyword)
+            keyword.parent = keywordSet_node
+        if thesaurus:
+            thesaurus_node = Node(names.KEYWORDTHESAURUS, parent=keywordSet_node)
+            add_child(keywordSet_node, thesaurus_node)
+            thesaurus_node.content = thesaurus
+    # Now, remove the original keywordSet nodes.
+    for keywordSet_node in original_keyword_set_nodes:
+        webapp.home.utils.node_utils.remove_child(keywordSet_node)
 
 
 def import_keyword_nodes(target_package, node_ids_to_import):
@@ -90,7 +126,7 @@ def import_keyword_nodes(target_package, node_ids_to_import):
     """
     # Load the target package's metadata.
     owner_login = user_data.get_active_document_owner_login()
-    target_eml_node = load_eml(target_package, owner_login=owner_login)
+    target_eml_node = load_and_save.load_eml(target_package, owner_login=owner_login)
     # Find the dataset node, which is assumed to exist.
     dataset_node = target_eml_node.find_child(names.DATASET)
     # For each keyword to import, create a new keyword node and add it to the target package under the dataset node.
@@ -110,8 +146,11 @@ def import_keyword_nodes(target_package, node_ids_to_import):
         if new_keyword_thesaurus_node:
             add_child(keyword_set_node, new_keyword_thesaurus_node)
 
+    # Consolidate keyword sets.
+    consolidate_keyword_sets(target_eml_node)
+
     # Save the changes to the target package.
-    save_both_formats(target_package, target_eml_node)
+    load_and_save.save_both_formats(target_package, target_eml_node)
 
 
 def import_coverage_nodes(target_package, node_ids_to_import):
@@ -123,7 +162,7 @@ def import_coverage_nodes(target_package, node_ids_to_import):
     """
     # Load the target package's metadata.
     owner_login = user_data.get_active_document_owner_login()
-    target_eml_node = load_eml(target_package, owner_login=owner_login)
+    target_eml_node = load_and_save.load_eml(target_package, owner_login=owner_login)
     # Get the coverage node in the target package. If it doesn't exist, create it.
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE])
     if not parent_node:
@@ -138,7 +177,7 @@ def import_coverage_nodes(target_package, node_ids_to_import):
         new_node = node.copy()
         add_child(parent_node, new_node)
     # Save the changes to the target package.
-    save_both_formats(target_package, target_eml_node)
+    load_and_save.save_both_formats(target_package, target_eml_node)
     return target_eml_node
 
 
@@ -149,7 +188,7 @@ def import_funding_award_nodes(target_package, node_ids_to_import):
     """
     # Load the target package's metadata.
     owner_login = user_data.get_active_document_owner_login()
-    target_eml_node = load_eml(target_package, owner_login=owner_login)
+    target_eml_node = load_and_save.load_eml(target_package, owner_login=owner_login)
     # Find the dataset's project node. If it doesn't exist, create it.
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if not parent_node:
@@ -163,7 +202,7 @@ def import_funding_award_nodes(target_package, node_ids_to_import):
         new_node = node.copy()
         add_child(parent_node, new_node)
     # Save the changes to the target package.
-    save_both_formats(target_package, target_eml_node)
+    load_and_save.save_both_formats(target_package, target_eml_node)
 
 
 def compose_funding_award_label(award_node:Node=None):
@@ -208,7 +247,7 @@ def import_project_node(target_package, node_id_to_import):
         return
     # Load the target package's metadata.
     owner_login = user_data.get_active_document_owner_login()
-    target_eml_node = load_eml(target_package, owner_login=owner_login)
+    target_eml_node = load_and_save.load_eml(target_package, owner_login=owner_login)
     # Find the target package's project node. If it exists, remove it, since we are about to replace it.
     project_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if project_node:
@@ -223,7 +262,7 @@ def import_project_node(target_package, node_id_to_import):
     dataset_node = target_eml_node.find_child(names.DATASET)
     add_child(dataset_node, new_node)
     # Save the changes to the target package.
-    save_both_formats(target_package, target_eml_node)
+    load_and_save.save_both_formats(target_package, target_eml_node)
 
 
 def import_related_project_nodes(target_package, node_ids_to_import):
@@ -233,7 +272,7 @@ def import_related_project_nodes(target_package, node_ids_to_import):
     """
     # Load the target package's metadata.
     owner_login = user_data.get_active_document_owner_login()
-    target_eml_node = load_eml(target_package, owner_login=owner_login)
+    target_eml_node = load_and_save.load_eml(target_package, owner_login=owner_login)
     # Find the dataset's project node. If it doesn't exist, create it.
     parent_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     if not parent_node:
@@ -253,7 +292,7 @@ def import_related_project_nodes(target_package, node_ids_to_import):
         # Add the new related project node to the target package as a child of the project node.
         add_child(parent_node, new_node)
     # Save the changes to the target package.
-    save_both_formats(target_package, target_eml_node)
+    load_and_save.save_both_formats(target_package, target_eml_node)
 
 
 def compose_rp_label(rp_node:Node=None):

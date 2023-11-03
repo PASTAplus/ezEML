@@ -5,9 +5,9 @@
 
 {% block app_content %}
     {% if help %}
-    {% set help_import_template_id, help_import_template_title, help_import_template_content = help[0] %}
-    {% set help_import_template_btn = help_import_template_id ~ '_btn' %}
-    {% set help_import_template_dialog = help_import_template_id ~ '_dialog' %}
+    {% set help_new_from_template_id, help_new_from_template_title, help_new_from_template_content = help[0] %}
+    {% set help_new_from_template_btn = help_new_from_template_id ~ '_btn' %}
+    {% set help_new_from_template_dialog = help_new_from_template_id ~ '_dialog' %}
     {% endif %}
     
     <body onload="displayDirectory();">
@@ -50,7 +50,7 @@
 
     <table>
         <td><h2>New EML Document from a Template</h2></td>
-        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_import_template_btn) }}</td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_new_from_template_btn) }}</td>
     </table>
 
     <div class="row">
@@ -78,22 +78,22 @@
     </div>
     </body>
 
-    {{ macros.help_dialog(help_import_template_dialog, help_import_template_title, help_import_template_content) }}
+    {{ macros.help_dialog(help_new_from_template_dialog, help_new_from_template_title, help_new_from_template_content) }}
 {% endblock %}
 
 
 {% block app_scripts %}
     {{ super() }}
     {% if help %}
-    {% set help_import_template_id, help_import_template_title, help_import_template_content = help[0] %}
-    {% set help_import_template_btn = help_import_template_id ~ '_btn' %}
-    {% set help_import_template_dialog = help_import_template_id ~ '_dialog' %}
+    {% set help_new_from_template_id, help_new_from_template_title, help_new_from_template_content = help[0] %}
+    {% set help_new_from_template_btn = help_new_from_template_id ~ '_btn' %}
+    {% set help_new_from_template_dialog = help_new_from_template_id ~ '_dialog' %}
     {% endif %}
 
     <script>
     $(function()
     {
-        {{ macros.help_script(help_import_template_dialog, help_import_template_btn) }}
+        {{ macros.help_script(help_new_from_template_dialog, help_new_from_template_btn) }}
     });
     </script>
 {% endblock %}

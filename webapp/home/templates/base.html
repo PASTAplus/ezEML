@@ -113,7 +113,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                             explanation in the vicinity of line 20, above. #}
 {#                        <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
                         {{ macros.toolbar_menu_item(url_for('home.create'), 'hidden_new', 'New...', ns.is_non_saving) }}
-                        {{ macros.toolbar_menu_item(url_for('home.import_template'), 'hidden_new_from_template', 'New from Template...', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.new_from_template'), 'hidden_new_from_template', 'New from Template...', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.open_eml_document'), 'hidden_open', 'Open...', ns.is_non_saving) }}
                     {% if current_user.get_filename() %}
                         {{ macros.toolbar_menu_item(url_for('home.close'), 'hidden_close', 'Close', ns.is_non_saving) }}

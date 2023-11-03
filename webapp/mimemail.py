@@ -59,7 +59,7 @@ def send_mail(subject, msg, to, to_name=None):
         return True
     except smtplib.SMTPException as e:
         logger.error(e)
-        if e.smtp_error:
+        if hasattr(e.smtp_error) and e.smtp_error:
             return e.smtp_error.decode()
         else:
             return 'Email failed to send'

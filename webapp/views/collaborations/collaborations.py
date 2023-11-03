@@ -6,14 +6,17 @@ import string
 
 import sqlalchemy
 from sqlalchemy.types import TypeDecorator, String
+from urllib.parse import urlparse
 
 from dataclasses import dataclass
 from datetime import datetime, date
 from enum import Enum, auto
+from flask import request
 from flask_login import current_user
 
 from webapp import db
 from webapp.config import Config
+import webapp.mimemail as mimemail
 
 from webapp.views.collaborations.model import (
     Collaboration,
@@ -1467,6 +1470,31 @@ def accept_invitation(user_login, invitation_code, session=None):
         # Remove the invitation
         session.delete(invitation)
         return collaboration
+
+
+def create_auto_collaboration(owner_login, collaborator_login, package_name, collaborator_email=None, session=None):
+    """
+    Creates a collaboration automatically, without an invitation. Certain templates are configured to automatically
+    create collaborations between the owner and collaborator IMs. This function is called when a user creates a package
+    from such a template.
+    """
+    def send_auto_collaboration_email(to_address, owner_login, package_name, template_name):
+        parsed_url = urlparse(request.base_url)
+        server = parsed_url.netloc
+        subject = f'Collaboration on ezEML package {package_name} created from template {template_name}'
+        msg = f'You have been added as a collaborator on package {package_name} created by user ' \
+              f'{display_name(owner_login)} from template {template_name} on {server}.'
+        mimemail.send_mail(subject=subject, msg=msg, to=to_address)
+
+    with db_session(session) as session:
+        owner_id = get_user(owner_login, create_if_not_found=True, session=session).user_id
+        collaborator_id = get_user(collaborator_login, create_if_not_found=True, session=session).user_id
+        package_id = get_package(owner_login, package_name, create_if_not_found=True, session=session).package_id
+        if owner_id != collaborator_id:
+            _ = _add_collaboration(owner_id, collaborator_id, package_id, session=session)
+            if collaborator_email:
+                # Send an email to the collaborator
+                send_auto_collaboration_email(collaborator_email, owner_login, collaborator_login, package_name)
 
 
 def remove_invitation(invitation_code):

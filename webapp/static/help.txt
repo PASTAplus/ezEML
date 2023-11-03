@@ -707,18 +707,6 @@ Select the taxonomic coverages to import.
 
 If none are shown, none are available in the selected data package.
 --------------------
-import_template
-New EML Document from a Template
-A particular research site or organization may find it useful to create templates that can serve as starting points for EML documents to be created by people in their organization. Such templates reside in their own space on the ezEML server, rather than in an individual ezEML login account, so they are accessible to everyone.
-
-A typical template might contain a selection of Creators, Geographic Coverages, and Keywords, for example. When a new document is created from the template, it is pre-populated with all of the items in the template. This saves work, but it also assists in standardizing spellings, addresses, etc., so they are consistent across documents.
-
-Templates are organized in a folder structure defined by their creators. To expand a folder, click on its name (not the icon). Template names are displayed in blue italics. Click a template name to select the template, then click <b>OK</b>. You will then be asked to provide a name for the new EML document to be created from the template.
-
-See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf" target="_user_guide_ezeml">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
-
-Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T7GAYXS1liI" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
---------------------
 import_xml
 Import an EML XML File
 Use <b>Import an EML XML File</b> to read an EML <i>XML</i> file (as opposed to a data package exported from ezEML) into ezEML. You may, for example, wish to use ezEML to create a revision of an existing EML XML file that was created outside of ezEML.
@@ -939,6 +927,18 @@ Provide a document name for the data package. This is the name by which the docu
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 
 If the data package is submitted to the EDI data repository, it will be assigned a Data Package ID, but that process happens outside of ezEML and is unknown to ezEML. ezEML will know the document by the name you provide here.
+--------------------
+new_from_template
+New EML Document from a Template
+A particular research site or organization may find it useful to create templates that can serve as starting points for EML documents to be created by people in their organization. Such templates reside in their own space on the ezEML server, rather than in an individual ezEML login account, so they are accessible to everyone.
+
+A typical template might contain a selection of Creators, Geographic Coverages, and Keywords, for example. When a new document is created from the template, it is pre-populated with all of the items in the template. This saves work, but it also assists in standardizing spellings, addresses, etc., so they are consistent across documents.
+
+Templates are organized in a folder structure defined by their creators. To expand a folder, click on its name (not the icon). Template names are displayed in blue italics. Click a template name to select the template, then click <b>OK</b>. You will then be asked to provide a name for the new EML document to be created from the template.
+
+See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf" target="_user_guide_ezeml">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T7GAYXS1liI" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 other_entities
 Other Entities

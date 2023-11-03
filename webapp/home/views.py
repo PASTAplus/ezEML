@@ -101,7 +101,8 @@ from webapp.home.standard_units import init_standard_units
 from webapp.views.collaborations.collaborations import (
     init_db,
     close_package,
-    release_acquired_lock
+    release_acquired_lock,
+    create_auto_collaboration
 )
 import webapp.views.collaborations.collaborations as collaborations
 from webapp.buttons import *
@@ -1171,9 +1172,9 @@ def open_package(package_name, owner=None):
     return redirect(url_for(new_page, filename=package_name))
 
 
-@home_bp.route('/import_template', methods=['GET', 'POST'])
+@home_bp.route('/new_from_template', methods=['GET', 'POST'])
 @login_required
-def import_template():
+def new_from_template():
     """
     Handle the New from Template... item in EML Documents menu.
 
@@ -1240,9 +1241,9 @@ def import_template():
                 break
         if template_path:
             template_path = template_path.replace('/', '\\')
-            return redirect(url_for(PAGE_IMPORT_TEMPLATE_2, template_filename=template_path))
+            return redirect(url_for(PAGE_NEW_FROM_TEMPLATE_2, template_filename=template_path))
         else:
-            new_page = handle_hidden_buttons(PAGE_IMPORT_TEMPLATE_2)
+            new_page = handle_hidden_buttons(PAGE_NEW_FROM_TEMPLATE_2)
             return redirect(url_for(new_page))
 
     # Process GET
@@ -1250,14 +1251,30 @@ def import_template():
     output = form_template_tree(Config.TEMPLATE_DIR, output)
     output += '</ul>'
 
-    help = get_helps(['import_template'])
-    return render_template('import_template.html', directory_list=output, help=help)
+    help = get_helps(['new_from_template'])
+    return render_template('new_from_template.html', directory_list=output, help=help)
 
 
-@home_bp.route('/import_template_2/<template_filename>/', methods=['GET', 'POST'])
+@home_bp.route('/new_from_template_2/<template_filename>/', methods=['GET', 'POST'])
 @login_required
-def import_template_2(template_filename):
+def new_from_template_2(template_filename):
     """Handle the New from Template... item in EML Documents menu after a template has been selected."""
+
+    def create_auto_collaborations(template_filename, package_name):
+        """
+        Certain sites are configured to automatically generate one or more collaborations when a new package is created
+         from one of their templates. Handle that here.
+        """
+        # See if auto-collaborations are configured for this template, based on the template path, and if so, create them.
+        auto_collaborations = Config.AUTO_COLLABORATION_SITES
+        if auto_collaborations:
+            for key, value in auto_collaborations.items():
+                path = os.path.dirname(template_filename)
+                if path == key:
+                    for collaborator_info in value:
+                        collaborator_login = collaborator_info[0]
+                        collaborator_email = collaborator_info[1] if len(collaborator_info) > 0 else None
+                        create_auto_collaboration(current_user.get_user_login(), collaborator_login, package_name, collaborator_email)
 
     def import_selected_template(template_filename, output_filename):
         # Copy the template into the user's directory
@@ -1274,6 +1291,11 @@ def import_template_2(template_filename):
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
 
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_NEW_FROM_TEMPLATE_2)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         if form.validate_on_submit():
             filename = form.filename.data
             user_filenames = user_data.get_user_document_list()
@@ -1289,11 +1311,12 @@ def import_template_2(template_filename):
             current_user.set_filename(filename)
             log_usage(actions['NEW_FROM_TEMPLATE'], template_filename)
             current_user.set_packageid(None)
+            create_auto_collaborations(template_filename, filename)
             new_page = PAGE_TITLE
             return redirect(url_for(new_page, filename=filename))
 
     # Process GET
-    return render_template('import_template_2.html', help=help, form=form)
+    return render_template('new_from_template_2.html', help=help, form=form)
 
 
 @home_bp.route('/import_parties', methods=['GET', 'POST'])

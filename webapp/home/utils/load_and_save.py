@@ -102,6 +102,41 @@ def load_template(template_pathname):
     return load_eml(filename=filename, folder_name=folder_name, skip_metadata_check=True)
 
 
+def get_pathname(filename:str=None,
+                 folder_name:str=None,
+                 file_extension:str=None,
+                 owner_login:str=None,
+                 log_the_details:bool=False):
+    """
+    Get the pathname of the file to load, respecting any collaboration that is in effect.
+    """
+    if not owner_login:
+        owner_login = user_data.get_active_document_owner_login()
+
+    if owner_login:
+        # If we are loading a document that is owned by someone else, we need to get the document from the
+        #  owner's user-data folder.
+        folder_name = user_data.get_user_folder_name(owner_login=owner_login)
+
+    if folder_name:
+        # If a folder name was passed, load the file from that folder.
+        user_folder = folder_name
+    else:
+        user_folder = None
+        try:
+            # Otherwise, folder_name was not passed, so load the file from the current user's folder, respecting
+            #  any collaboration that is in effect.
+            user_folder = user_data.get_user_folder_name(log_the_details=log_the_details)
+        except Exception as e:
+            log_error(f"load_eml: {e}")
+    if not user_folder:
+        user_folder = '.'
+    pathname = f"{user_folder}/{filename}.{file_extension}"
+    if log_the_details:
+        log_info(f"get_pathname: pathname: {pathname}")
+    return pathname
+
+
 def load_eml(filename:str=None,
              folder_name=None,
              skip_metadata_check:bool=False,
@@ -154,29 +189,12 @@ def load_eml(filename:str=None,
             raise
 
     try:
-        if owner_login:
-            # If we are loading a document that is owned by someone else, we need to get the document from the
-            #  owner's user-data folder.
-            folder_name = user_data.get_user_folder_name(owner_login=owner_login)
 
-        eml_node = None
-        if folder_name:
-            # If a folder name was passed, load the file from that folder.
-            user_folder = folder_name
-        else:
-            user_folder = None
-            try:
-                # Otherwise, folder_name was not passed, so load the file from the current user's folder, respecting
-                #  any collaboration that is in effect.
-                user_folder = user_data.get_user_folder_name(log_the_details=log_the_details)
-            except Exception as e:
-                log_error(f"load_eml: {e}")
-        if not user_folder:
-            user_folder = '.'
-        ext = 'json'
-        ext_filename = f"{user_folder}/{filename}.{ext}"
-        if log_the_details:
-            log_info(f"load_eml: ext_filename: {ext_filename}")
+        ext_filename = get_pathname(filename,
+                                    folder_name=folder_name,
+                                    file_extension='json',
+                                    owner_login=owner_login,
+                                    log_the_details=log_the_details)
         if os.path.isfile(ext_filename):
             eml_node = from_json(ext_filename)
         else:

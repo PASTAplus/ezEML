@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2023.11.01' %}
+{% set release_number = '2023.11.08' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -145,6 +145,9 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                 {% endif %}
                 {% if current_user.is_authenticated %}
                         {{ macros.toolbar_menu_item(url_for('home.fetch_xml'), 'hidden_fetch_from_EDI', 'Fetch a Package from EDI...', ns.is_non_saving) }}
+                        {% if current_user.get_filename() %}
+                            {{ macros.toolbar_menu_item(url_for('home.preview_data_portal'), 'hidden_preview_data_portal', "Preview Your Metadata in the EDI Data Portal...", ns.is_non_saving) }}
+                        {% endif %}
                         <li>
                             <hr style="border-top: 1px solid #B0B0B0;">
                         </li>

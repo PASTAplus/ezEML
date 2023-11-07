@@ -964,6 +964,12 @@ Contact and role information for a person/organization involved in the research 
 
 Note that Role is a required field.
 --------------------
+preview_data_portal
+Preview Metadata in the EDI Data Portal
+Clicking <b>Generate Preview</b> will open a new browser tab and display your metadata using the "Preview Your Metadata" tool on the EDI Data Portal.
+
+This is a convenient way to preview what the metadata will look like when it is published in the EDI Data Portal, without your having to download the EML/XML, upload it to the portal, and then preview it there.
+--------------------
 project
 Project
 This documents the research context of a data package or another project. It can include research goals, motivations, theory, hypotheses, etc., as well as a description of research efforts that form the basis for other work.

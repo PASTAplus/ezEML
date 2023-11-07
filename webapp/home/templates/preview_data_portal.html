@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_preview_data_portal_id, help_preview_data_portal_title, help_preview_data_portal_content = help[0] %}
+    {% set help_preview_data_portal_btn = help_preview_data_portal_id ~ '_btn' %}
+    {% set help_preview_data_portal_dialog = help_preview_data_portal_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Preview Metadata in the EDI Data Portal</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_preview_data_portal_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+    <p></p>
+        <form id='preview' name='preview' method='POST'
+              action='https://portal.edirepository.org/nis/metadataPreviewer'
+              enctype='multipart/form-data' target='_data_portal_preview_ezeml'>
+        Click <b>Generate Preview</b> to preview your metadata in the EDI Data Portal. The preview will be displayed in a new tab.
+        <br><br>
+            <input class="btn btn-primary" style="width: 200px;" name="upload" type="submit" value="Generate Preview"/>
+        </form>
+    <p>&nbsp;</p>
+{#    <p>&nbsp;</p>#}
+        <form method="POST" action="" class="form" role="form" novalidate="true">
+        Click <b>Back</b> to return to the page you were on.
+        <br><br>
+            <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Back"/>
+            {{ macros.hidden_buttons() }}
+            {{ form.csrf_token }}
+            {{ wtf.form_field(form.md5) }}
+        </form>
+    {{ macros.help_dialog(help_preview_data_portal_dialog, help_preview_data_portal_title, help_preview_data_portal_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_preview_data_portal_id, help_preview_data_portal_title, help_preview_data_portal_content = help[0] %}
+    {% set help_preview_data_portal_btn = help_preview_data_portal_id ~ '_btn' %}
+    {% set help_preview_data_portal_dialog = help_preview_data_portal_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_preview_data_portal_dialog, help_preview_data_portal_btn) }}
+    });
+    </script>
+<script>
+
+let emlStr;
+
+const formEl = document.querySelector("#preview");
+
+formEl.addEventListener('submit', (e) => {
+  {#if (e.submitter.value === 'Generate Preview') {#}
+      e.preventDefault();
+      fetch('preview_data_portal_2')
+          .then(response => response.blob())
+          .then(emlStr_ => emlStr = emlStr_)
+          .then(() => formEl.submit());
+  {# } else { #}
+  {#    formEl.action = '';#}
+  {#    formEl.target = '';#}
+  {# } #}
+});
+
+formEl.addEventListener('formdata', (e) => {
+  const blob = new Blob([emlStr]);
+  {#if (typeof emlStr === 'object') {#}
+      e.formData.append('emlfile', blob, 'eml.xml');
+  {# } #}
+});
+
+</script>
+{% endblock %}

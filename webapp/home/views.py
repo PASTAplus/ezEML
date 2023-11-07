@@ -83,7 +83,7 @@ from webapp.home.manage_packages import get_data_packages, get_data_usage
 from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status
 from webapp.home.utils.node_utils import remove_child, new_child_node
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
-from webapp.home.utils.load_and_save import load_eml, load_template, save_old_to_new, strip_elements_added_by_pasta, \
+from webapp.home.utils.load_and_save import get_pathname, load_eml, load_template, save_old_to_new, strip_elements_added_by_pasta, \
     package_contains_elements_unhandled_by_ezeml, save_both_formats, create_eml, add_imported_from_xml_metadata, \
     get_imported_from_xml_metadata, clear_taxonomy_imported_from_xml_flag
 from webapp.home.utils.import_nodes import import_responsible_parties, import_keyword_nodes, import_coverage_nodes, \
@@ -2858,6 +2858,44 @@ def fetch_xml_3(scope_identifier='', revision=''):
 
     help = get_helps(['import_xml_3'])
     return render_template('fetch_xml_3.html', package_links=package_links, form=form, help=help)
+
+
+@home_bp.route('/preview_data_portal', methods=['GET', 'POST'])
+@login_required
+def preview_data_portal():
+    """Handle the Preview in EDI Data Portal item from the Import/Export menu."""
+    form = EDIForm()
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_PREVIEW_DATA_PORTAL)
+        current_document = user_data.get_active_document()
+        return redirect(url_for(new_page, filename=current_document))
+
+    return render_template('preview_data_portal.html', form=form, help=get_helps(['preview_data_portal']))
+
+
+@home_bp.route('/preview_data_portal_2', methods=['GET', 'POST'])
+@login_required
+def preview_data_portal_2():
+    """Handle the Preview in EDI Data Portal item from the Import/Export menu."""
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_PREVIEW_DATA_PORTAL_2)
+        current_document = user_data.get_active_document()
+        return redirect(url_for(new_page, filename=current_document))
+
+    if request.method == 'GET':
+        current_document = user_data.get_active_document()
+        pathname = get_pathname(current_document, file_extension='xml')
+        with open(pathname, 'rb') as f:
+            xml = f.read()
+            return xml
+    return None
 
 
 @home_bp.route('/import_package', methods=['GET', 'POST'])

@@ -4,6 +4,7 @@ Helper functions for generating lists of items for use, for example, in pages wh
 
 import collections
 import html
+import os
 from os import listdir
 from os.path import isfile, join
 
@@ -43,6 +44,36 @@ def get_downval(i:int, n:int):
     i is the index of the item in the list, n is the number of items in the list.
     """
     return NO_OP if i >= n else DOWN_ARROW
+
+
+def template_display_name(template_path:str):
+    template_dir = Config.TEMPLATE_DIR
+    if template_dir[-1] != '/':
+        template_dir += '/'
+    template_path = template_path.replace(template_dir, '')
+    template_dir = os.path.dirname(template_path)
+    template_basename = os.path.basename(template_path).replace('.json', '')
+    segments = template_dir.split('/')
+    segments.append(template_basename)
+    return ' | '.join(segments)
+
+
+def list_templates():
+    template_dir = Config.TEMPLATE_DIR
+    if template_dir[-1] != '/':
+        template_dir += '/'
+    templates = []
+    for root, dirs, files in os.walk(template_dir):
+        for name in files:
+            if name.endswith('.json'):
+                templates.append((root, name))
+    choices = []
+    for template in templates:
+        name = template[1].replace('.json', '')
+        segments = template[0].replace(template_dir, '').split('/')
+        segments.append(name)
+        choices.append((os.path.join(template[0], template[1]), ' | '.join(segments)))
+    return sorted(choices)
 
 
 def list_data_packages(flag_current=False, include_current=True, current_user_directory_only=True):

@@ -15,7 +15,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    {{ macros.import_selection(form, target_filename, "geographic coverages") }}
+                    {{ macros.import_selection(form, source_filename, "geographic coverages") }}
                     {{ macros.import_buttons(form) }}
                 </table>
                 {{ macros.hidden_buttons() }}

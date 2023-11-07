@@ -21,7 +21,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    {{ macros.import_selection(form, target_filename, 'funding awards') }}
+                    {{ macros.import_selection(form, source_filename, 'funding awards') }}
                     {{ macros.import_buttons(form) }}
                     {{ macros.hidden_buttons() }}
                     </table>

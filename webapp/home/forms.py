@@ -126,6 +126,7 @@ class MultiCheckboxField(SelectMultipleField):
 
 class ImportEMLForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
+    template = SelectField('Template', choices=[])
 
 
 class ImportPackageForm(FlaskForm):

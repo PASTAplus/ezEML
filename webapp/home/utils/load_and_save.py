@@ -95,6 +95,13 @@ def save_package_id(eml_node):
             user_data.set_active_packageid(data_package_id)
 
 
+def load_template(template_pathname):
+    filename = os.path.basename(template_pathname)
+    filename = os.path.splitext(filename)[0]
+    folder_name = os.path.dirname(template_pathname)
+    return load_eml(filename=filename, folder_name=folder_name, skip_metadata_check=True)
+
+
 def load_eml(filename:str=None,
              folder_name=None,
              skip_metadata_check:bool=False,

@@ -83,14 +83,14 @@ from webapp.home.manage_packages import get_data_packages, get_data_usage
 from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status
 from webapp.home.utils.node_utils import remove_child, new_child_node
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
-from webapp.home.utils.load_and_save import load_eml, save_old_to_new, strip_elements_added_by_pasta, \
+from webapp.home.utils.load_and_save import load_eml, load_template, save_old_to_new, strip_elements_added_by_pasta, \
     package_contains_elements_unhandled_by_ezeml, save_both_formats, create_eml, add_imported_from_xml_metadata, \
     get_imported_from_xml_metadata, clear_taxonomy_imported_from_xml_flag
 from webapp.home.utils.import_nodes import import_responsible_parties, import_keyword_nodes, import_coverage_nodes, \
     import_funding_award_nodes, compose_funding_award_label, compose_project_label, import_project_node, \
     import_related_project_nodes, compose_rp_label
-from webapp.home.utils.lists import list_data_packages, compose_full_gc_label, truncate_middle, compose_taxonomic_label, \
-    UP_ARROW, DOWN_ARROW
+from webapp.home.utils.lists import list_data_packages, list_templates, template_display_name, compose_full_gc_label, \
+    truncate_middle, compose_taxonomic_label, UP_ARROW, DOWN_ARROW
 from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fetched_from_edi_metadata
 
 import webapp.home.check_data_table_contents as check_data_table_contents
@@ -1276,7 +1276,7 @@ def new_from_template_2(template_filename):
                         collaborator_email = collaborator_info[1] if len(collaborator_info) > 0 else None
                         create_auto_collaboration(current_user.get_user_login(), collaborator_login, package_name, collaborator_email)
 
-    def import_selected_template(template_filename, output_filename):
+    def new_from_selected_template(template_filename, output_filename):
         # Copy the template into the user's directory
         user_folder = user_data.get_user_folder_name(current_user_directory_only=True)
         copyfile(f"{Config.TEMPLATE_DIR}/{template_filename}", f"{user_folder}/{output_filename}.json")
@@ -1307,7 +1307,7 @@ def new_from_template_2(template_filename):
             template_filename = template_filename.replace('\\', '/')
             template_path = f'{template_filename}.json'
 
-            import_selected_template(template_path, filename)
+            new_from_selected_template(template_path, filename)
             current_user.set_filename(filename)
             log_usage(actions['NEW_FROM_TEMPLATE'], template_filename)
             current_user.set_packageid(None)
@@ -1326,6 +1326,7 @@ def import_parties():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(True, True)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':
@@ -1339,16 +1340,18 @@ def import_parties():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            return redirect(url_for('home.import_parties_2', filename=filename))
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_parties_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     help = get_helps(['import_responsible_parties'])
     return render_template('import_parties.html', help=help, form=form)
 
 
-@home_bp.route('/import_parties_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_parties_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
-def import_parties_2(filename):
+def import_parties_2(filename, template, is_template):
     """Handle the Import Responsible Parties item in Import/Export menu after a source document has been selected."""
 
     def get_responsible_parties_for_import(eml_node):
@@ -1375,7 +1378,14 @@ def import_parties_2(filename):
 
     form = ImportEMLItemsForm()
 
-    eml_node = load_eml(filename)
+    is_template = ast.literal_eval(is_template)
+    if not is_template:
+        source_filename = filename
+        eml_node = load_eml(source_filename)
+    else:
+        source_filename = template_display_name(unquote(template))
+        eml_node = load_template(unquote(template))
+
     parties = get_responsible_parties_for_import(eml_node)
     choices = [[party[2], party[1]] for party in parties]
     form.to_import.choices = choices
@@ -1418,7 +1428,7 @@ def import_parties_2(filename):
 
     # Process GET
     help = get_helps(['import_responsible_parties_2'])
-    return render_template('import_parties_2.html', target_filename=filename, help=help, form=form)
+    return render_template('import_parties_2.html',source_filename=source_filename, help=help, form=form)
 
 
 @home_bp.route('/import_keywords', methods=['GET', 'POST'])
@@ -1428,6 +1438,7 @@ def import_keywords():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':
@@ -1441,16 +1452,18 @@ def import_keywords():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            return redirect(url_for('home.import_keywords_2', filename=filename))
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_keywords_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     help = get_helps(['import_keywords'])
     return render_template('import_keywords.html', help=help, form=form)
 
 
-@home_bp.route('/import_keywords_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_keywords_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
-def import_keywords_2(filename):
+def import_keywords_2(filename, template, is_template):
     """Handle the Import Keywords item in Import/Export menu after a source document has been selected."""
 
     def get_keywords_for_import(eml_node):
@@ -1478,7 +1491,14 @@ def import_keywords_2(filename):
 
     form = ImportItemsForm()
 
-    eml_node = load_eml(filename)
+    is_template = ast.literal_eval(is_template)
+    if not is_template:
+        source_filename = filename
+        eml_node = load_eml(source_filename)
+    else:
+        source_filename = template_display_name(unquote(template))
+        eml_node = load_template(unquote(template))
+
     keyword_tuples = get_keywords_for_import(eml_node)
     choices = [keyword_tuple for keyword_tuple in keyword_tuples]
     form.to_import.choices = choices
@@ -1500,7 +1520,7 @@ def import_keywords_2(filename):
 
     # Process GET
     help = get_helps(['import_keywords_2'])
-    return render_template('import_keywords_2.html', help=help, target_filename=filename, form=form)
+    return render_template('import_keywords_2.html', help=help, source_filename=source_filename, form=form)
 
 
 @home_bp.route('/import_geo_coverage', methods=['GET', 'POST'])
@@ -1510,6 +1530,7 @@ def import_geo_coverage():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':
@@ -1523,16 +1544,18 @@ def import_geo_coverage():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            return redirect(url_for('home.import_geo_coverage_2', filename=filename))
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_geo_coverage_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     help = get_helps(['import_geographic_coverage'])
     return render_template('import_geo_coverage.html', help=help, form=form)
 
 
-@home_bp.route('/import_geo_coverage_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_geo_coverage_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
-def import_geo_coverage_2(filename):
+def import_geo_coverage_2(filename, template, is_template):
     """Handle the Import Geographic Coverage item in Import/Export menu after a source document has been selected."""
 
     def get_geo_coverages_for_import(eml_node):
@@ -1544,7 +1567,14 @@ def import_geo_coverage_2(filename):
 
     form = ImportItemsForm()
 
-    eml_node = load_eml(filename)
+    is_template = ast.literal_eval(is_template)
+    if not is_template:
+        source_filename = filename
+        eml_node = load_eml(source_filename)
+    else:
+        source_filename = template_display_name(unquote(template))
+        eml_node = load_template(unquote(template))
+
     coverages = get_geo_coverages_for_import(eml_node)
     choices = [[coverage[1], coverage[0]] for coverage in coverages]
     form.to_import.choices = choices
@@ -1566,7 +1596,7 @@ def import_geo_coverage_2(filename):
 
     # Process GET
     help = get_helps(['import_geographic_coverage_2'])
-    return render_template('import_geo_coverage_2.html', help=help, target_filename=filename, form=form)
+    return render_template('import_geo_coverage_2.html', help=help,source_filename=source_filename, form=form)
 
 
 @home_bp.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
@@ -1576,6 +1606,7 @@ def import_taxonomic_coverage():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':
@@ -1589,16 +1620,18 @@ def import_taxonomic_coverage():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename))
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     help = get_helps(['import_taxonomic_coverage'])
     return render_template('import_taxonomic_coverage.html', help=help, form=form)
 
 
-@home_bp.route('/import_taxonomic_coverage_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_taxonomic_coverage_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
-def import_taxonomic_coverage_2(filename):
+def import_taxonomic_coverage_2(filename, template, is_template):
     """Handle the Import Taxonomic Coverage item in Import/Export menu after a source document has been selected."""
 
     def get_taxonomic_coverages_for_import(eml_node):
@@ -1610,7 +1643,14 @@ def import_taxonomic_coverage_2(filename):
 
     form = ImportItemsForm()
 
-    eml_node = load_eml(filename)
+    is_template = ast.literal_eval(is_template)
+    if not is_template:
+        source_filename = filename
+        eml_node = load_eml(source_filename)
+    else:
+        source_filename = template_display_name(unquote(template))
+        eml_node = load_template(unquote(template))
+
     coverages = get_taxonomic_coverages_for_import(eml_node)
     choices = [[coverage[1], coverage[0]] for coverage in coverages]
     form.to_import.choices = choices
@@ -1633,7 +1673,7 @@ def import_taxonomic_coverage_2(filename):
 
     # Process GET
     help = get_helps(['import_taxonomic_coverage_2'])
-    return render_template('import_taxonomic_coverage_2.html', help=help, target_filename=filename, form=form)
+    return render_template('import_taxonomic_coverage_2.html', help=help, source_filename=source_filename, form=form)
 
 
 @home_bp.route('/import_funding_awards', methods=['GET', 'POST'])
@@ -1643,6 +1683,7 @@ def import_funding_awards():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':
@@ -1656,16 +1697,18 @@ def import_funding_awards():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            return redirect(url_for('home.import_funding_awards_2', filename=filename))
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_funding_awards_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     help = get_helps(['import_funding_awards'])
     return render_template('import_funding_awards.html', help=help, form=form)
 
 
-@home_bp.route('/import_funding_awards_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_funding_awards_2/<filename>//<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
-def import_funding_awards_2(filename):
+def import_funding_awards_2(filename, template, is_template):
     """Handle the Import Funding Awards item in Import/Export menu after a source document has been selected."""
 
     def get_funding_awards_for_import(eml_node):
@@ -1678,7 +1721,14 @@ def import_funding_awards_2(filename):
 
     form = ImportItemsForm()
 
-    eml_node = load_eml(filename)
+    is_template = ast.literal_eval(is_template)
+    if not is_template:
+        source_filename = filename
+        eml_node = load_eml(source_filename)
+    else:
+        source_filename = template_display_name(unquote(template))
+        eml_node = load_template(unquote(template))
+
     coverages = get_funding_awards_for_import(eml_node)
     choices = [[coverage[1], coverage[0]] for coverage in coverages]
     form.to_import.choices = choices
@@ -1700,7 +1750,7 @@ def import_funding_awards_2(filename):
 
     # Process GET
     help = get_helps(['import_funding_awards_2'])
-    return render_template('import_funding_awards_2.html', help=help, target_filename=filename, form=form)
+    return render_template('import_funding_awards_2.html', help=help, source_filename=source_filename, form=form)
 
 
 @home_bp.route('/import_project', methods=['GET', 'POST'])
@@ -1710,6 +1760,7 @@ def import_project():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':
@@ -1723,7 +1774,9 @@ def import_project():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            return redirect(url_for('home.import_project_2', filename=filename))
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_project_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     help = get_helps(['import_project'])
@@ -1745,14 +1798,21 @@ def get_projects_for_import(eml_node):
     return projects
 
 
-@home_bp.route('/import_project_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_project_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
-def import_project_2(filename):
+def import_project_2(filename, template, is_template):
     """Handle the Import Project item in Import/Export menu after a source document has been selected."""
 
     form = ImportSingleItemForm()
 
-    eml_node = load_eml(filename)
+    is_template = ast.literal_eval(is_template)
+    if not is_template:
+        source_filename = filename
+        eml_node = load_eml(source_filename)
+    else:
+        source_filename = template_display_name(unquote(template))
+        eml_node = load_template(unquote(template))
+
     projects = get_projects_for_import(eml_node)
     choices = [[project[1], project[0]] for project in projects]
     form.to_import.choices = choices
@@ -1774,7 +1834,7 @@ def import_project_2(filename):
 
     # Process GET
     help = get_helps(['import_project_2'])
-    return render_template('import_project_2.html', help=help, target_filename=filename, form=form)
+    return render_template('import_project_2.html', help=help, source_filename=source_filename, form=form)
 
 
 @home_bp.route('/import_related_projects', methods=['GET', 'POST'])
@@ -1784,6 +1844,7 @@ def import_related_projects():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':
@@ -1797,21 +1858,30 @@ def import_related_projects():
 
         if form.validate_on_submit():
             filename = form.filename.data
-            return redirect(url_for('home.import_related_projects_2', filename=filename))
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_related_projects_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     help = get_helps(['import_related_projects'])
     return render_template('import_related_projects.html', help=help, form=form)
 
 
-@home_bp.route('/import_related_projects_2/<filename>/', methods=['GET', 'POST'])
+@home_bp.route('/import_related_projects_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
-def import_related_projects_2(filename):
+def import_related_projects_2(filename, template, is_template):
     """Handle the Import Related Projects item in Import/Export menu after a source document has been selected."""
 
     form = ImportItemsForm()
 
-    eml_node = load_eml(filename)
+    is_template = ast.literal_eval(is_template)
+    if not is_template:
+        source_filename = filename
+        eml_node = load_eml(source_filename)
+    else:
+        source_filename = template_display_name(unquote(template))
+        eml_node = load_template(unquote(template))
+
     projects = get_projects_for_import(eml_node)
     choices = [[project[1], project[0]] for project in projects]
     form.to_import.choices = choices
@@ -1833,7 +1903,7 @@ def import_related_projects_2(filename):
 
     # Process GET
     help = get_helps(['import_related_projects_2'])
-    return render_template('import_related_projects_2.html', help=help, target_filename=filename, form=form)
+    return render_template('import_related_projects_2.html', help=help, source_filename=source_filename, form=form)
 
 
 def display_decode_error_lines(filename):
@@ -3432,6 +3502,7 @@ def import_temporal_coverage():
 
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
+    form.template.choices = list_templates()
 
     # Process POST
     if request.method == 'POST':

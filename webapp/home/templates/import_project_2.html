@@ -15,7 +15,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select a project to import from {{ target_filename }}:</h5></tr>
+                    <tr><h5>Select a project to import from {{ source_filename }}:</h5></tr>
                     {% if form.to_import.choices %}
                     <tr>{{ form.to_import(style="list-style:none;") }}</tr>
                     {% else %}

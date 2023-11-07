@@ -81,7 +81,7 @@
                     {% if form.to_import.choices %}
                     <tr>{{ form.to_import(style="list-style:none;") }}</tr>
                     {% else %}
-                    <tr><span style="font-style: italic;">&nbsp;&nbsp;The selected data package contains no {{ item_name }}.<p></p></span><br></tr>
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ target_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
                     {% endif %}
 {% endmacro %}
 {% macro import_buttons(form) %}
@@ -233,4 +233,16 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     {% if link %}
         <a href="{{ link }}" target="_taxon_link">External Link</a>
     {% endif %}
+{% endmacro %}
+{% macro import_document_selection(wtf, form) %}
+                <h5>Select a data package from which to import:</h5>
+                {{ wtf.form_field(form.filename) }}
+                <input class="btn btn-primary" name="Open" type="submit" value="Open for Import"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <h5>Or select a template from which to import:</h5>
+                {{ wtf.form_field(form.template) }}
+                <input class="btn btn-primary" name="Open Template" type="submit" value="Open Template for Import"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
 {% endmacro %}

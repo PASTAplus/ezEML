@@ -15,7 +15,7 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    {{ macros.import_selection(form, target_filename, "responsible parties") }}
+                    {{ macros.import_selection(form, source_filename, "responsible parties") }}
                     {% if form.to_import.choices %}
                     <tr><h5>Import as:</h5></tr>
                     <tr>{{ form.target(style="list-style:none;") }}</tr>

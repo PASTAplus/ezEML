@@ -1481,9 +1481,12 @@ def create_auto_collaboration(owner_login, collaborator_login, package_name, tem
     def send_auto_collaboration_email(to_address, owner_login, package_name, template_name):
         parsed_url = urlparse(request.base_url)
         server = parsed_url.netloc
-        subject = f'Collaboration on ezEML package "{package_name}" created from template {template_name}'
-        msg = f'ezEML has added you as a collaborator on package {package_name} created by user ' \
-              f'{display_name(owner_login)} from template "{template_name}" on {server}.'
+        subject = f'Collaboration on ezEML package "{package_name}" created from template "{template_name}"'
+        msg = f'ezEML has added you as a collaborator on package "{package_name}" created by user ' \
+              f'{display_name(owner_login)} from template "{template_name}" on {server}.\n\n' \
+              f'ezEML currently is configured to automatically add you as a collaborator whenever a package is created ' \
+              f'from template "{template_name}". If you no longer wish to be added as a collaborator on such ' \
+              f'packages, please contact support@edirepository.org.\n\n'
         mimemail.send_mail(subject=subject, msg=msg, to=to_address)
 
     with db_session(session) as session:

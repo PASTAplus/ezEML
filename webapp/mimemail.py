@@ -38,7 +38,7 @@ def send_mail(subject, msg, to, to_name=None):
     message["Subject"] = subject
     # The from identity needs to be known to the relay server
     message["From"] = formataddr((Config.FROM_NAME, Config.FROM))
-    if to and to_name:
+    if to:
         message["To"] = formataddr((to_name, to))
     else:
         message["To"] = formataddr((Config.TO_NAME, Config.TO))

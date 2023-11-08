@@ -1,6 +1,7 @@
 """
 This module contains helper functions for accessing and manipulating the collaborations database.
 """
+import os
 import random
 import string
 
@@ -1485,8 +1486,8 @@ def create_auto_collaboration(owner_login, collaborator_login, package_name, tem
         msg = f'ezEML has added you as a collaborator on package "{package_name}" created by user ' \
               f'{display_name(owner_login)} from template "{template_name}" on {server}.\n\n' \
               f'ezEML currently is configured to automatically add you as a collaborator whenever a package is created ' \
-              f'from template "{template_name}". If you no longer wish to be added as a collaborator on such ' \
-              f'packages, please contact support@edirepository.org.\n\n'
+              f'from any template under "{os.path.dirname(template_name)}". If you no longer wish to be added as a ' \
+              f'collaborator on such packages, please contact support@edirepository.org.'
         mimemail.send_mail(subject=subject, msg=msg, to=to_address)
 
     with db_session(session) as session:

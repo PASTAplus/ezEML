@@ -622,6 +622,8 @@ Imported keywords are applied to the dataset as a whole, rather than to individu
 import_keywords_2
 Import Keywords
 Select the keywords to import.
+
+Imported keywords are applied to the dataset as a whole, rather than to individual data tables, etc.
 --------------------
 import_geographic_coverage
 Import Geographic Coverage
@@ -632,6 +634,8 @@ Currently, only geographic coverages at the data package level (as opposed to th
 import_geographic_coverage_2
 Import Geographic Coverage
 Select the geographic coverages to import.
+
+Imported geographic coverages are applied to the dataset as a whole, rather than to individual data tables, etc.
 --------------------
 import_package
 Import an ezEML Data Package
@@ -692,6 +696,8 @@ Currently, only taxonomic coverages at the data package level (as opposed to the
 import_taxonomic_coverage_2
 Import Taxonomic Coverage
 Select the taxonomic coverages to import.
+
+Imported taxonomic coverages are applied to the dataset as a whole, rather than to individual data tables, etc.
 --------------------
 import_xml
 Import an EML XML File

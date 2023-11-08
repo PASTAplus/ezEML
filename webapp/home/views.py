@@ -1274,7 +1274,11 @@ def new_from_template_2(template_filename):
                     for collaborator_info in value:
                         collaborator_login = collaborator_info[0]
                         collaborator_email = collaborator_info[1] if len(collaborator_info) > 0 else None
-                        create_auto_collaboration(current_user.get_user_login(), collaborator_login, package_name, collaborator_email)
+                        create_auto_collaboration(current_user.get_user_login(),
+                                                  collaborator_login,
+                                                  package_name,
+                                                  template_filename,
+                                                  collaborator_email)
 
     def new_from_selected_template(template_filename, output_filename):
         # Copy the template into the user's directory

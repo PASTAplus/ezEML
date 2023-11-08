@@ -605,39 +605,33 @@ Geographic Description can also contain information about the collection of boun
 --------------------
 import_funding_awards
 Import Funding Awards
-You may import the details for one or more funding awards from another data package.
+You may import the details for one or more funding awards from another data package or from a template.
 
 Note that you may also "import" from the current data package, to "copy and paste" a funding award to which you can then make edits.
 --------------------
 import_funding_awards_2
 Import Funding Awards
 Select the funding awards to import.
-
-If none are shown, none are available in the selected data package.
 --------------------
 import_keywords
 Import Keywords
-You may import selected keywords from another data package.
+You may import selected keywords from another data package or from a template.
 
-Currently, all imported keywords are applied to the dataset as a whole, rather than to individual data tables, etc.
+Imported keywords are applied to the dataset as a whole, rather than to individual data tables, etc.
 --------------------
 import_keywords_2
 Import Keywords
 Select the keywords to import.
-
-If none are shown, none are available in the selected data package.
 --------------------
 import_geographic_coverage
 Import Geographic Coverage
-You may import selected geographic coverage details from another data package.
+You may import selected geographic coverage details from another data package or from a template.
 
 Currently, only geographic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
 import_geographic_coverage_2
 Import Geographic Coverage
 Select the geographic coverages to import.
-
-If none are shown, none are available in the selected data package.
 --------------------
 import_package
 Import an ezEML Data Package
@@ -655,33 +649,29 @@ Suppose, instead, that you elect to <b>Copy</b> the package. If the existing pac
 --------------------
 import_project
 Import Project
-You may import a project from another data package to be incorporated in the current data package as the primary project.
+You may import a project from another data package or a template. The project will be incorporated in the current data package as the primary project.
 
 The project you import may be a primary project or a related project in the other data package, but in the current data package it will be treated as the primary project. To import a project as a related project instead, use <b>Import Related Projects</b>.
 --------------------
 import_project_2
 Import Project
 Select the project you wish to import as the primary project.
-
-If none are listed, none are available in the selected data package.
 --------------------
 import_related_projects
 Import Related Projects
-You may import one or more projects from another data package to be incorporated in the current data package as related projects.
+You may import one or more projects from another data package or a template. The project(s) will be incorporated in the current data package as related project(s).
 
 The projects you import may be a primary project or a related project in the other data package, but in the current data package they will be treated as related projects.
 --------------------
 import_related_projects_2
 Import Related Projects
 Select the projects you wish to import as related projects.
-
-If none are listed, none are available in the selected data package.
 --------------------
 import_responsible_parties
 Import Responsible Parties
-You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
+You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package or a template. This saves you from having re-enter their details.
 
-The parties you import do not have to be used for the same purpose in this data package as they were in the other data package. For example, a person who was a Contact in another data package can be imported into this data package as an Associated Party.
+The parties you import do not have to be used for the same purpose in this data package as they were in the source package. For example, a person who was a Contact in another data package or template can be imported into this data package as an Associated Party.
 
 <b>Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.</b>
 
@@ -690,22 +680,18 @@ Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/gAnzUKiXBaQ"
 import_responsible_parties_2
 Import Responsible Parties
 Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
-
-If none are listed, none are available in the selected data package.
 --------------------
 import_taxonomic_coverage
 Import Taxonomic Coverage
-You may import selected taxonomic coverage details from another data package.
+You may import selected taxonomic coverage details from another data package or a template.
 
-Note that you may also "import" from the current data package, to "copy and paste" a taxonomy you can then edit.
+Note that you may also "import" from the current data package, to "copy and paste" a taxonomy that you can then edit.
 
 Currently, only taxonomic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
 import_taxonomic_coverage_2
 Import Taxonomic Coverage
 Select the taxonomic coverages to import.
-
-If none are shown, none are available in the selected data package.
 --------------------
 import_xml
 Import an EML XML File

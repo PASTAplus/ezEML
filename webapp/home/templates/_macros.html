@@ -236,13 +236,13 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     {% endif %}
 {% endmacro %}
 {% macro import_document_selection(wtf, form) %}
-                <h5>Select a data package from which to import:</h5>
+                <h5>Select a data package to import from:</h5>
                 {{ wtf.form_field(form.filename) }}
                 <input class="btn btn-primary" name="Open" type="submit" value="Open for Import"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 <p>&nbsp;</p>
                 <p>&nbsp;</p>
-                <h5>Or select a template from which to import:</h5>
+                <h5>Or select a template to import from:</h5>
                 {{ wtf.form_field(form.template) }}
                 <input class="btn btn-primary" name="Open Template" type="submit" value="Open Template for Import"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>

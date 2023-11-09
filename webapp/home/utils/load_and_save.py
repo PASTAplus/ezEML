@@ -113,7 +113,7 @@ def get_pathname(filename:str=None,
     if not owner_login:
         owner_login = user_data.get_active_document_owner_login()
 
-    if owner_login:
+    if owner_login and not folder_name:
         # If we are loading a document that is owned by someone else, we need to get the document from the
         #  owner's user-data folder.
         folder_name = user_data.get_user_folder_name(owner_login=owner_login)

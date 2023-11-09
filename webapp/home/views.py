@@ -1089,7 +1089,7 @@ def open_document(filename, owner=None, owner_login=None):
     #  informative message.
     lock = user_data.is_document_locked(filename)
 
-    eml_node = load_eml(filename)
+    eml_node = load_eml(filename, owner_login=owner_login)
     loaded_ok = True
     if eml_node:
         try:

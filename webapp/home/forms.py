@@ -124,6 +124,10 @@ class MultiCheckboxField(SelectMultipleField):
 
 # The forms below are used in the home blueprint.
 
+class OpenDocumentForm(FlaskForm):
+    filename = SelectField('Document Name', choices=[])
+
+
 class ImportEMLForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
     template = SelectField('Template', choices=[])

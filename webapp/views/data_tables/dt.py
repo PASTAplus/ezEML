@@ -39,7 +39,7 @@ from webapp.views.data_tables.forms import (
 
 from webapp.home.forms import (
     form_md5, is_dirty_form,
-    LoadDataForm, ImportEMLForm
+    LoadDataForm, OpenDocumentForm
 )
 
 from webapp.home.metapype_client import VariableType
@@ -2159,7 +2159,7 @@ def clone_attributes(filename, dt_node_id):
     target_filename = filename
     target_dt_id = dt_node_id
 
-    form = ImportEMLForm()
+    form = OpenDocumentForm()
     form.filename.choices = list_data_packages(True, True, current_user_directory_only=False)
 
     # Process POST

@@ -929,6 +929,12 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None,
     additional_metadata_nodes = []
     eml_node.find_all_descendants(names.ADDITIONALMETADATA, additional_metadata_nodes)
     metadata_node = None
+    # If no additionalMetadata node, create one
+    if not additional_metadata_nodes:
+        dataset_node = eml_node.find_child(names.DATASET)
+        additional_metadata_node = add_node(dataset_node, names.ADDITIONALMETADATA, None, Optionality.FORCE)
+        additional_metadata_nodes.append(additional_metadata_node)
+        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.FORCE)
     unitlist_node = None
     prefix = None
     # Find an additionalMetadata node that has a unitlist node, if any. If there are multiple, we'll use the first one.

@@ -83,7 +83,8 @@ from webapp.home.manage_packages import get_data_packages, get_data_usage
 from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status
 from webapp.home.utils.node_utils import remove_child, new_child_node
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
-from webapp.home.utils.load_and_save import get_pathname, load_eml, load_template, save_old_to_new, strip_elements_added_by_pasta, \
+from webapp.home.utils.load_and_save import get_pathname, load_eml, load_template, save_old_to_new, \
+    strip_elements_added_by_pasta, save_eml, \
     package_contains_elements_unhandled_by_ezeml, save_both_formats, create_eml, add_imported_from_xml_metadata, \
     get_imported_from_xml_metadata, clear_taxonomy_imported_from_xml_flag
 from webapp.home.utils.import_nodes import import_responsible_parties, import_keyword_nodes, import_coverage_nodes, \
@@ -1285,6 +1286,9 @@ def new_from_template_2(template_filename):
         user_folder = user_data.get_user_folder_name(current_user_directory_only=True)
         copyfile(f"{Config.TEMPLATE_DIR}/{template_filename}", f"{user_folder}/{output_filename}.json")
         open_document(filename=output_filename)
+        # Save XML
+        eml_node = load_eml(output_filename)
+        save_eml(filename=output_filename, eml_node=eml_node, format='xml')
 
     form = CreateEMLForm()
 

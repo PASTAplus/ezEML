@@ -47,6 +47,7 @@
                 {{ wtf.form_field(form.username, size=50) }}
                 {{ wtf.form_field(form.password, size=50) }}
                 <input class="btn btn-primary" name="Login Using EDI Account" type="submit" value="Login Using EDI Account"/>
+                {{ macros.hidden_buttons() }}
             </form>
         </div>
     </div>

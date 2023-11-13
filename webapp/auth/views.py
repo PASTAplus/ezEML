@@ -25,6 +25,8 @@ from webapp.auth.user import User
 from webapp.auth.user_data import get_active_document, initialize_user_data
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
+
 from webapp.home.log_usage import (
     actions,
     log_usage,
@@ -45,6 +47,11 @@ def is_whitelisted_username(username):
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    # We want to be able to handle hidden buttons for User Guide, About, and News without user being logged in
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_LOGIN)
+        return redirect(url_for(new_page, filename=None))
+
     if current_user.is_authenticated:
         filename = get_active_document()
         if filename:

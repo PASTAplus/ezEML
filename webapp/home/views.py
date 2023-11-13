@@ -975,6 +975,11 @@ def datetime_formats():
 
     # Process POST
     if request.method == 'POST':
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_DATETIME_FORMATS)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
+
         return redirect(url_for(PAGE_DATETIME_FORMATS))
 
     else:

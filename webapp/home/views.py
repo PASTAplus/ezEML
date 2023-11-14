@@ -1394,7 +1394,8 @@ def import_parties_2(filename, template, is_template):
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
-        eml_node = load_eml(source_filename)
+        user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
+        eml_node = load_eml(source_filename, owner_login=user_login)
     else:
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
@@ -1507,7 +1508,8 @@ def import_keywords_2(filename, template, is_template):
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
-        eml_node = load_eml(source_filename)
+        user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
+        eml_node = load_eml(source_filename, owner_login=user_login)
     else:
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
@@ -1583,7 +1585,8 @@ def import_geo_coverage_2(filename, template, is_template):
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
-        eml_node = load_eml(source_filename)
+        user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
+        eml_node = load_eml(source_filename, owner_login=user_login)
     else:
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
@@ -1659,7 +1662,8 @@ def import_taxonomic_coverage_2(filename, template, is_template):
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
-        eml_node = load_eml(source_filename)
+        user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
+        eml_node = load_eml(source_filename, owner_login=user_login)
     else:
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
@@ -1737,7 +1741,8 @@ def import_funding_awards_2(filename, template, is_template):
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
-        eml_node = load_eml(source_filename)
+        user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
+        eml_node = load_eml(source_filename, owner_login=user_login)
     else:
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
@@ -1821,7 +1826,8 @@ def import_project_2(filename, template, is_template):
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
-        eml_node = load_eml(source_filename)
+        user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
+        eml_node = load_eml(source_filename, owner_login=user_login)
     else:
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
@@ -1890,7 +1896,8 @@ def import_related_projects_2(filename, template, is_template):
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
-        eml_node = load_eml(source_filename)
+        user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
+        eml_node = load_eml(source_filename, owner_login=user_login)
     else:
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))

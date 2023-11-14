@@ -37,12 +37,15 @@
                 select_default(this.id);
             });
         }
-        function select_default(select_id) {
+        function select_default(_select_id) {
+            // We need to replace spaces with underscores in the SELECT id for jQuery to work properly
+            let select_id = _select_id.replace(/ /g, '_');
             let selector = '#' + select_id + ' option';
-            // Get rid of SELECT__ and __SELECT
+            // Get rid of SELECT__ and __SELECT substrings
             let default_val = select_id.substring(8, select_id.length - 8);
             $(selector).filter(function() {
-                return $(this).text() == default_val;
+                let this_text = $(this).text().replace(/ /g, '_');
+                return this_text === default_val;
             }).prop('selected', true);
         }
     </script>
@@ -54,10 +57,11 @@
                 <table>
                     <tr><td style="padding: 5px;"><b>Source Column</b></td><td style="padding: 5px;color: black;"><b>&#8594;</b></td><td style="padding: 5px;"><b>Target Column</b>
                         <span>{{ macros.help_button(help_clone_attributes_targets_btn) }}</span></td></tr>
-                    {% for source_attr in source_attrs: %}
-                    <tr><td style="padding: 5px;">{{ source_attr[0] }}</td><td></td><td style="padding: 5px;"><select name="SELECT__{{ source_attr[0] }}__SELECT" id="SELECT__{{ source_attr[0] }}__SELECT">
+                    {% for source_attr in source_attrs %}
+                    <tr><td style="padding: 5px;">{{ source_attr[0] }}</td><td></td><td style="padding: 5px;">
+                        <select name="SELECT__{{ source_attr[0] }}__SELECT" id="SELECT__{{ source_attr[0]|replace(' ', '_') }}__SELECT">
                         <option value="">- select target column -</option>
-                        {% for target_attr in target_attrs: %}
+                        {% for target_attr in target_attrs %}
                         <option value="{{ target_attr[1] }}">{{ target_attr[0] }}</option>
                         {% endfor %}
                     {% endfor %}

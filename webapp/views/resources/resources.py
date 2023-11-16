@@ -20,7 +20,7 @@ from webapp.home.utils.lists import UP_ARROW, DOWN_ARROW, NO_OP, list_keywords
 from webapp.home.utils.create_nodes import create_title, create_data_package_id, create_pubinfo, create_abstract, \
     create_intellectual_rights, create_keyword
 
-from webapp.home.forms import is_dirty_form, form_md5
+from webapp.home.forms import is_dirty_form, init_form_md5
 from webapp.views.resources.forms import (
     AbstractForm,
     DataPackageIDForm,
@@ -80,7 +80,7 @@ def title(filename=None):
         # If the form is dirty, then save the data.
         if is_dirty_form(form):
             create_title(title=form.title.data, filename=filename)
-            form.md5.data = form_md5(form)
+            init_form_md5(form)
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = handle_hidden_buttons(PAGE_DATA_TABLE_SELECT)
@@ -107,7 +107,7 @@ def title(filename=None):
         log_error(err)
         raise err
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     set_current_page('title')
     help = get_helps(['title', 'nav', 'welcome'])
@@ -130,7 +130,7 @@ def data_package_id(filename=None):
             data_package_id = form.data_package_id.data
             create_data_package_id(data_package_id, filename)
             set_active_packageid(data_package_id)
-            form.md5.data = form_md5(form)
+            init_form_md5(form)
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = handle_hidden_buttons(PAGE_CHECK_METADATA)
@@ -142,7 +142,7 @@ def data_package_id(filename=None):
     # Populate the form values
     data_package_id = eml_node.attribute_value('packageId')
     form.data_package_id.data = data_package_id if data_package_id else ''
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     set_current_page('data_package_id')
     help = get_helps(['data_package_id'])
@@ -179,7 +179,7 @@ def publication_info(filename=None):
     pubdate_node = eml_node.find_single_node_by_path([names.DATASET, names.PUBDATE])
     if pubdate_node:
         form.pubdate.data = pubdate_node.content
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     set_current_page('publication_info')
     help = get_helps(['pubplace', 'pubdate'])
@@ -209,9 +209,11 @@ def abstract(filename=None):
 
         if form.validate_on_submit():
             # If the form is dirty, then save the data.
+            abstract = form.abstract.data
             if is_dirty_form(form):
-                abstract = form.abstract.data
                 # Abstract can use complex text types, so we need to validate it as XML if it's expressed that way.
+                # We do this before checking is_dirty because is_valid_xml_fragment may change the form data (e.g.,
+                #  replacing \r\n with \n) and the initial md5 hash will have been applied to that modified data.
                 valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
                 if valid:
                     create_abstract(filename=filename, abstract=abstract)
@@ -228,7 +230,8 @@ def abstract(filename=None):
 
 def render_get_abstract_page(form, filename):
     eml_node=load_eml(filename)
-    form.md5.data = form_md5(form)
+
+    init_form_md5(form)
 
     set_current_page('abstract')
     help = [get_help('abstract'), get_help('nav')]
@@ -249,6 +252,7 @@ def get_abstract(filename, form):
             form.abstract.data = display_texttype_node(abstract_node)
         except InvalidXMLError as exc:
             flash('The XML is invalid. Please make corrections.', 'error')
+
     return render_get_abstract_page(form, filename)
 
 
@@ -299,7 +303,7 @@ def intellectual_rights(filename=None):
 
 def render_get_intellectual_rights_page(form, filename, font_family):
     eml_node=load_eml(filename)
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     set_current_page('intellectual_rights')
     help = [get_help('intellectual_rights')]
@@ -349,7 +353,7 @@ def populate_keyword_form(form: KeywordForm, kw_node: Node, keyword_thesaurus_no
     form.keyword.data = keyword
     form.keyword_thesaurus.data = keyword_thesaurus
     form.keyword_type.data = keyword_type
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @res_bp.route('/keyword_select/<filename>', methods=['GET', 'POST'])
@@ -543,9 +547,7 @@ def keyword(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         keyword_set_nodes = []
         eml_node.find_all_descendants(names.KEYWORDSET, keyword_set_nodes)
         found = False
@@ -560,6 +562,8 @@ def keyword(filename=None, node_id=None):
                         break
             if found:
                 break
+
+    init_form_md5(form)
 
     set_current_page('keyword')
     help = [get_help('keywords')]

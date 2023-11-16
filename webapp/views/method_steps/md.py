@@ -11,7 +11,7 @@ from urllib.parse import urlencode, urlparse, quote, unquote
 import webapp.home.utils.create_nodes
 import webapp.home.utils.node_utils
 from webapp.home.forms import (
-    form_md5, is_dirty_form, EDIForm
+    init_form_md5, is_dirty_form, EDIForm
 )
 
 from webapp.home.views import (
@@ -238,9 +238,7 @@ def method_step(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         method_step_node = Node.get_node_instance(node_id)
         if method_step_node:
             populate_method_step_form(form, method_step_node)
@@ -248,6 +246,7 @@ def method_step(filename=None, node_id=None):
         deprecated_data_source = (data_sources_marker_begin in form.description.data)
     else:
         deprecated_data_source = False
+    init_form_md5(form)
     return render_get_method_step_page(eml_node, form, filename,
                                        deprecated_data_source=deprecated_data_source)
 
@@ -304,7 +303,7 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
         form.instrumentation.data = instrumentation
         form.data_sources.data = data_sources
         form.data_sources_list = data_sources_list
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @md_bp.route('/fetch_data_source/<node_id>', methods=['GET', 'POST'])
@@ -328,7 +327,7 @@ def fetch_data_source(node_id=None):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     try:
         ids = get_pasta_identifiers()
@@ -370,7 +369,7 @@ def fetch_data_source_2(node_id=None, scope=''):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     ids = get_pasta_identifiers(scope)
     package_links = ''
@@ -407,7 +406,7 @@ def fetch_data_source_2a(node_id=None, scope_identifier=''):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
 
@@ -450,7 +449,7 @@ def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
 
@@ -602,7 +601,7 @@ def data_source(filename, ms_node_id, data_source_node_id):
                 return redirect(url_for(PAGE_METHOD_STEP, filename=filename, node_id=ms_node_id))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
     help = get_helps(['data_source', 'data_source_title', 'data_source_online_description', 'data_source_url',
                       'data_source_creators', 'data_source_contacts'])
 

@@ -43,7 +43,7 @@ from webapp.views.method_steps.md import (
 )
 
 from webapp.home.forms import (
-    form_md5, is_dirty_form
+    init_form_md5, is_dirty_form
 )
 
 from webapp.views.data_tables.dt import entity_name_from_data_table
@@ -220,9 +220,7 @@ def other_entity(filename=None, node_id=None):
                                     dt_node_id=dt_node_id))
 
     # Process GET
-    if dt_node_id == '1':
-        form.init_md5()
-    else:
+    if dt_node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -231,6 +229,8 @@ def other_entity(filename=None, node_id=None):
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
                         populate_other_entity_form(form, dt_node)
+
+    init_form_md5(form)
 
     set_current_page('other_entity')
     help = [get_help('other_entity')]
@@ -284,7 +284,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
                 url_node = online_node.find_child(names.URL)
                 if url_node:
                     form.online_url.data = url_node.content
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @ent_bp.route('/entity_access_select/<filename>/<dt_element_name>/<dt_node_id>',
@@ -319,9 +319,7 @@ def entity_access_select_get(filename=None, form=None, dt_node_id=None):
     entity_name = ''
     load_eml(filename=filename)
 
-    if dt_node_id == '1':
-        form.init_md5()
-    else:
+    if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
@@ -330,6 +328,8 @@ def entity_access_select_get(filename=None, form=None, dt_node_id=None):
                 distribution_node = physical_node.find_child(names.DISTRIBUTION)
                 if distribution_node:
                     access_rules_list = list_access_rules(distribution_node)
+
+    init_form_md5(form)
 
     set_current_page('other_entity')
     return render_template('access_select.html',
@@ -488,9 +488,7 @@ def entity_access(filename=None, dt_element_name=None, dt_node_id=None, node_id=
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -510,6 +508,8 @@ def entity_access(filename=None, dt_element_name=None, dt_node_id=None, node_id=
                                             if node_id == allow_node.id:
                                                 populate_access_rule_form(form, allow_node)
                                                 break
+
+    init_form_md5(form)
 
     set_current_page('other_entity')
     return render_template('access.html', title='Access Rule', form=form, filename=filename)
@@ -542,13 +542,13 @@ def entity_method_step_select(filename=None, dt_element_name: str = None, dt_nod
     entity_name = ''
     load_eml(filename=filename)
 
-    if dt_node_id == '1':
-        form.init_md5()
-    else:
+    if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
             method_step_list = list_method_steps(data_table_node)
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
@@ -650,9 +650,7 @@ def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, nod
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -668,6 +666,8 @@ def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, nod
                                     if node_id == ms_node.id:
                                         populate_method_step_form(form, ms_node)
                                         break
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
@@ -703,13 +703,13 @@ def entity_geographic_coverage_select(filename=None, dt_element_name: str = None
     entity_name = ''
     load_eml(filename=filename)
 
-    if dt_node_id == '1':
-        form.init_md5()
-    else:
+    if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
             gc_list = list_geographic_coverages(data_table_node)
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
@@ -822,9 +822,7 @@ def entity_geographic_coverage(filename=None, dt_element_name=None, dt_node_id=N
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -840,6 +838,8 @@ def entity_geographic_coverage(filename=None, dt_element_name=None, dt_node_id=N
                                     if node_id == gc_node.id:
                                         populate_geographic_coverage_form(form, gc_node)
                                         break
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
@@ -936,13 +936,13 @@ def entity_temporal_coverage_select(filename=None, dt_element_name: str = None, 
     entity_name = ''
     load_eml(filename=filename)
 
-    if dt_node_id == '1':
-        form.init_md5()
-    else:
+    if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
             tc_list = list_temporal_coverages(data_table_node)
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
@@ -1044,9 +1044,7 @@ def entity_temporal_coverage(filename=None, dt_element_name=None, dt_node_id=Non
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -1062,6 +1060,8 @@ def entity_temporal_coverage(filename=None, dt_element_name=None, dt_node_id=Non
                                     if node_id == tc_node.id:
                                         populate_temporal_coverage_form(form, tc_node)
                                         break
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
@@ -1096,13 +1096,13 @@ def entity_taxonomic_coverage_select(filename=None, dt_element_name: str = None,
     entity_name = ''
     load_eml(filename=filename)
 
-    if dt_node_id == '1':
-        form.init_md5()
-    else:
+    if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
             txc_list = list_taxonomic_coverages(data_table_node)
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')
@@ -1213,9 +1213,7 @@ def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=No
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -1231,6 +1229,8 @@ def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=No
                                     if node_id == txc_node.id:
                                         populate_temporal_coverage_form(form, txc_node)  # FIXME - is this right??
                                         break
+
+    init_form_md5(form)
 
     if dt_element_name == 'dataTable':
         set_current_page('data_table')

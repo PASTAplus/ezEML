@@ -123,7 +123,7 @@ def get_data_entity_sizes(scope, identifier, revision):
     get_sizes_url = f"{Config.PASTA_URL}/data/size/eml/{scope}/{identifier}/{revision}"
     response = send_authorized_pasta_request(get_sizes_url)
     response.raise_for_status()
-    lines = response.text.split('\n')
+    lines = response.text.splitlines()
     total = 0
     sizes = []
     for line in lines:
@@ -297,7 +297,7 @@ def get_pasta_identifiers(scope=''):
     response = requests.get(get_pasta_identifiers_url)
     response.raise_for_status()
     ids = []
-    lines = response.text.split('\n')
+    lines = response.text.splitlines()
     for line in lines:
         ids.append(line)
     return lines
@@ -311,6 +311,6 @@ def get_revisions_list(scope, identifier):
 
     response = requests.get(url)
     response.raise_for_status()
-    revisions = response.text.split('\n')
+    revisions = response.text.splitlines()
     return revisions
 

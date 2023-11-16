@@ -13,8 +13,7 @@ from webapp.home.utils.node_utils import add_child
 
 from webapp.home.texttype_node_processing import display_texttype_node, post_process_texttype_node
 
-from webapp.home.forms import is_dirty_form, form_md5
-from webapp.home.views import non_breaking, process_up_button, process_down_button
+from webapp.home.forms import is_dirty_form, init_form_md5
 
 from webapp.views.maintenance.forms import (
     MaintenanceForm
@@ -67,7 +66,7 @@ def maintenance(filename=None):
 
             form.description.data = description
             form.update_frequency.data = update_frequency
-        form.md5.data = form_md5(form)
+        init_form_md5(form)
 
     form = MaintenanceForm(filename=filename)
     eml_node = load_eml(filename=filename)

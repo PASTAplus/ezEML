@@ -10,7 +10,7 @@ from webapp.views.responsible_parties.forms import (
 )
 
 from webapp.home.forms import (
-    form_md5, is_dirty_form
+    init_form_md5, is_dirty_form
 )
 
 from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
@@ -255,11 +255,11 @@ def responsible_party(filename=None, rp_node_id=None,
             return redirect(url_for(new_page, filename=filename, node_id=parent_node_id))
 
     # Process GET
-    if rp_node_id == '1':
-        form.init_md5()
-    else:
+    if rp_node_id != '1':
         rp_node = Node.get_node_instance(rp_node_id)
         populate_responsible_party_form(form, rp_node)
+
+    init_form_md5(form)
 
     if parent_node and parent_node.name == names.RELATED_PROJECT:
         title = 'Related ' + title
@@ -505,7 +505,7 @@ def populate_responsible_party_form(form: ResponsiblePartyForm, node: Node):
     if role_node:
         form.role.data = role_node.content
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @rp_bp.route('/project_personnel/<filename>/<node_id>', methods=['GET', 'POST'])

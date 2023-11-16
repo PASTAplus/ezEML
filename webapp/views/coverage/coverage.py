@@ -49,7 +49,7 @@ from webapp.auth.user_data import (
     get_document_uploads_folder_name, get_user_folder_name
 )
 
-from webapp.home.forms import is_dirty_form, form_md5, LoadDataForm
+from webapp.home.forms import is_dirty_form, init_form_md5, LoadDataForm
 from webapp.views.coverage.forms import (
     GeographicCoverageForm,
     GeographicCoverageSelectForm,
@@ -330,9 +330,7 @@ def geographic_coverage(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -344,6 +342,7 @@ def geographic_coverage(filename=None, node_id=None):
                         if node_id == gc_node.id:
                             populate_geographic_coverage_form(form, gc_node)
 
+    form.blah
     set_current_page('geographic_coverage')
     help = get_helps(['geographic_coverages', 'geographic_description', 'bounding_coordinates', 'bounding_altitudes'])
     return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, help=help)
@@ -406,7 +405,7 @@ def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
     if aunits_node:
         form.aunits.data = aunits_node.content
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @cov_bp.route('/temporal_coverage_select/<filename>', methods=['GET', 'POST'])
@@ -515,9 +514,7 @@ def temporal_coverage(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -528,6 +525,8 @@ def temporal_coverage(filename=None, node_id=None):
                     for tc_node in tc_nodes:
                         if node_id == tc_node.id:
                             populate_temporal_coverage_form(form, tc_node)
+
+    init_form_md5(form)
 
     set_current_page('temporal_coverage')
     return render_template('temporal_coverage.html', title='Temporal Coverage', form=form)
@@ -558,7 +557,7 @@ def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
             calendar_date_node = single_date_time_node.find_child(names.CALENDARDATE)
             form.begin_date.data = calendar_date_node.content
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @cov_bp.route('/taxonomic_coverage_select/<filename>', methods=['GET', 'POST'])
@@ -951,7 +950,6 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
     # Process GET
     have_links = False
     if node_id == '1':
-        form.init_md5()
         if taxon:
             form.taxon_value.data = taxon
     else:
@@ -965,6 +963,8 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                     for txc_node in txc_nodes:
                         if node_id == txc_node.id:
                             have_links = populate_taxonomic_coverage_form(form, txc_node)
+
+    init_form_md5(form)
 
     help = get_helps(['taxonomic_coverage_fill_hierarchy'])
 
@@ -1050,5 +1050,5 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
             if link:
                 have_links = True
                 break
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
     return have_links

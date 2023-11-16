@@ -28,6 +28,8 @@ class EDIForm(FlaskForm):
     init_str = ''
 
     def init_md5(self):
+        # Note: this initializes the MD5 hash for the empty form. After the form is populated with data, the MD5 hash
+        # needs to be updated. See init_form_md5().
         self.md5.data = hashlib.md5(self.init_str.encode('utf-8')).hexdigest()
 
     def field_data(self):
@@ -66,6 +68,8 @@ def concat_str(form):
 def form_md5(form):
     """Return the MD5 hash of the relevant field data, i.e., excluding md5 and csrf_token."""
     form_str = concat_str(form)
+    # Browser may convert line endings to \r\n, so we convert to \n to ensure consistent results.
+    form_str = form_str.replace('\r\n', '\n')
     md5 = hashlib.md5(form_str.encode('utf-8')).hexdigest()
     return md5
 

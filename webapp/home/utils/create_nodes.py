@@ -591,13 +591,13 @@ def create_abstract(filename:str=None, abstract:str=None):
         abstract_node = new_child_node(names.ABSTRACT, parent=dataset_node)
 
     # We've got the node, now fill in its content.
-    abstract_node.content = abstract
+    displayed_text = abstract
     # The abstract node is one that supports TextType content, so we need to check its validity and post-process it
     #  to handle para tags properly, etc.
     valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
     if valid:
         try:
-            post_process_texttype_node(abstract_node)
+            post_process_texttype_node(abstract_node, displayed_text)
             try:
                 save_both_formats(filename=filename, eml_node=eml_node)
             except Exception as e:
@@ -629,7 +629,7 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
         intellectual_rights_node = new_child_node(names.INTELLECTUALRIGHTS, parent=dataset_node)
 
     # We've got the node, now fill in its content.
-    intellectual_rights_node.content = intellectual_rights
+    displayed_text = intellectual_rights
     # The intellectualRights node is one that supports TextType content, so we need to check its validity and
     # post-process it to handle para tags properly, etc.
     intellectual_rights_node.children = []
@@ -637,7 +637,7 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
         valid, msg = is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
         if valid:
             try:
-                post_process_texttype_node(intellectual_rights_node)
+                post_process_texttype_node(intellectual_rights_node, displayed_text)
             except exceptions.InvalidXMLError as e:
                 log_error(e)
                 flash(invalid_xml_error_message(str(e)), 'error')
@@ -660,8 +660,8 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
             # add_node either creates a new node or returns an existing one, so we don't need to check for existence
             #  or remove the old one.
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
-            description_node = add_node(maintenance_node, names.DESCRIPTION, description)
-            post_process_texttype_node(description_node)
+            description_node = add_node(maintenance_node, names.DESCRIPTION)
+            post_process_texttype_node(description_node, description)
 
             if update_frequency:
                 update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
@@ -690,8 +690,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if not abstract_node:
             abstract_node = new_child_node(names.ABSTRACT, parent=project_node)
         if abstract:
-            abstract_node.content = abstract
-            post_process_texttype_node(abstract_node)
+            post_process_texttype_node(abstract_node, abstract)
         else:
             project_node.remove_child(abstract_node)
 
@@ -699,8 +698,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if not funding_node:
             funding_node = new_child_node(names.FUNDING, parent=project_node)
         if funding:
-            funding_node.content = funding
-            post_process_texttype_node(funding_node)
+            post_process_texttype_node(funding_node, funding)
         else:
             project_node.remove_child(funding_node)
 
@@ -745,8 +743,7 @@ def create_related_project(dataset_node:Node=None,
         if not abstract_node:
             abstract_node = new_child_node(names.ABSTRACT, parent=related_project_node)
         if abstract:
-            abstract_node.content = abstract
-            post_process_texttype_node(abstract_node)
+            post_process_texttype_node(abstract_node, abstract)
         else:
             related_project_node.remove_child(abstract_node)
 
@@ -754,8 +751,7 @@ def create_related_project(dataset_node:Node=None,
         if not funding_node:
             funding_node = new_child_node(names.FUNDING, parent=related_project_node)
         if funding:
-            funding_node.content = funding
-            post_process_texttype_node(funding_node)
+            post_process_texttype_node(funding_node, funding)
         else:
             related_project_node.remove_child(funding_node)
 
@@ -1090,8 +1086,7 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
             description = f"{description}\n{data_sources_marker_begin}\n{data_sources}\n{data_sources_marker_end}"
 
         if description:
-            description_node.content = description
-            post_process_texttype_node(description_node)
+            post_process_texttype_node(description_node, description)
 
         if instrumentation:
             instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)

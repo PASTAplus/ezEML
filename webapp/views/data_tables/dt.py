@@ -38,7 +38,7 @@ from webapp.views.data_tables.forms import (
 )
 
 from webapp.home.forms import (
-    form_md5, is_dirty_form,
+    init_form_md5, is_dirty_form,
     LoadDataForm, OpenDocumentForm
 )
 
@@ -286,10 +286,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
     atts = 'No data table attributes have been added'
 
     was_uploaded = False
-    if dt_node_id == '1':
-        # Adding a new data table, so entries are blank, but we need the form to be initialized.
-        form.init_md5()
-    else:
+    if dt_node_id != '1':
         # Editing an existing data table, so we need to populate the form with the existing values.
         eml_node = load_eml(filename=filename)
         if eml_node:
@@ -316,6 +313,8 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
 
         else:
             flash('eml_node is None')
+
+    init_form_md5(form)
 
     views.set_current_page('data_table')
     help = views.get_helps([
@@ -415,7 +414,7 @@ def populate_data_table_form(form: DataTableForm, node: Node):
     if number_of_records_node:
         form.number_of_records.data = number_of_records_node.content
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @dt_bp.route('/load_data/<filename>', methods=['GET', 'POST'])
@@ -756,9 +755,7 @@ def attribute_select(filename=None, dt_node_id=None):
         was_uploaded = False
         load_eml(filename=filename)
 
-        if dt_node_id == '1':
-            form.init_md5()
-        else:
+        if dt_node_id != '1':
             data_table_node = Node.get_node_instance(dt_node_id)
             if data_table_node:
                 entity_name = entity_name_from_data_table(data_table_node)
@@ -784,6 +781,8 @@ def attribute_select(filename=None, dt_node_id=None):
                     object_name = object_name_node.content
                     if object_name:
                         was_uploaded = user_data.data_table_was_uploaded(object_name)
+
+        init_form_md5(form)
 
         views.set_current_page('data_table')
         help = [views.get_help('measurement_scale')]
@@ -1193,10 +1192,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-        # form.md5.data = form_md5(form)
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -1226,6 +1222,8 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
             attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
             if attribute_name_node:
                 attribute_name = attribute_name_node.content
+
+    init_form_md5(form)
 
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
@@ -1303,7 +1301,7 @@ def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
 
     populate_missing_value_codes_in_form(form, att_node)
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @dt_bp.route('/attribute_numerical/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
@@ -1420,9 +1418,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
 
     # Process GET
     attribute_name = ''
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -1453,6 +1449,9 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
         for name, desc in session['custom_units'].items():
             custom_unit_names.append(name)
             custom_unit_descriptions.append(desc)
+
+    init_form_md5(form)
+
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
                       'attribute_number_type', 'attribute_numerical_precision'])
     return render_template('attribute_numerical.html',
@@ -1573,7 +1572,7 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
 
     populate_missing_value_codes_in_form(form, att_node)
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @dt_bp.route('/attribute_text/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
@@ -1726,12 +1725,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
     # Process GET
     attribute_name = ''
     codes = 'No codes have been defined yet'
-    if node_id == '1':
-        form.init_md5()
-        # form_str = mscale + form.init_str
-        # form.md5.data = hashlib.md5(form_str.encode('utf-8')).hexdigest()
-        # form.mscale_choice.data = mscale
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -1761,6 +1755,8 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
             if attribute_name_node:
                 attribute_name = attribute_name_node.content
+
+    init_form_md5(form)
 
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
@@ -1850,7 +1846,7 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
 
     populate_missing_value_codes_in_form(form, att_node)
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
     return codes
 
 
@@ -2023,7 +2019,7 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
             if order:
                 form.order.data = order
 
-        form.md5.data = form_md5(form)
+        init_form_md5(form)
 
     eml_node = load_eml(filename=filename)
     att_node = Node.get_node_instance(att_node_id)
@@ -2118,9 +2114,7 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         enumerated_domain_node = enumerated_domain_from_attribute(att_node)  # FIXME - Question: schema allows multiple of these
         if enumerated_domain_node:
             cd_nodes = enumerated_domain_node.find_all_children(names.CODEDEFINITION)
@@ -2140,6 +2134,8 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
         entity_name_node = dt_node.find_child(names.ENTITYNAME)
         if entity_name_node:
             data_table_name = entity_name_node.content
+
+    init_form_md5(form)
 
     views.set_current_page('data_table')
     return render_template('code_definition.html', title='Code Definition',

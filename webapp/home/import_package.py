@@ -56,7 +56,7 @@ def upload_ezeml_package(file, package_name=None):
             raise FileNotFoundError(MANIFEST)
 
         manifest_data = zip_object.read(MANIFEST)
-        manifest = manifest_data.decode('utf-8').split('\n')
+        manifest = manifest_data.decode('utf-8').splitlines()
         user_path = user_data.get_user_folder_name()
         i = 3 # Skip the first 3 lines, which are headers
         while True:

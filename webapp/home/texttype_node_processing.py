@@ -185,7 +185,7 @@ def display_texttype_node(texttype_node):
         # Get the XML representation of the node and its subtree
         output = metapype_io.to_xml(texttype_node)
         # Suppress the xmlns from the opening tag. It won't make sense to users.
-        lines = output.split('\n')
+        lines = output.splitlines()
         if 'xmlns:' in lines[0]:
             open_tag = lines[0].split('xmlns:')[0][:-1] + '>'
         else:
@@ -195,7 +195,7 @@ def display_texttype_node(texttype_node):
             output = open_tag + texttype_node.content + close_tag
         elif 'xmlns:' in lines[0]:
             # We replace line 0 with the open_tag. This gets rid of the xmlns.
-            output = open_tag + '\n' + '\n'.join(lines[1:-1])
+            output = open_tag + '\n' + '\n'.join(lines[1:])
         return add_escapes(output).replace('&lt;', '<').replace('&gt;', '>')
     else:
         return display_simple_texttype_node(texttype_node)
@@ -252,6 +252,15 @@ def construct_texttype_node(text, parent_name=None):
         s = s.replace(r'\<', '<').replace(r'\>', '>').replace('\r\n', '\n')
         return s
 
+    def introduce_paras(s):
+        if s:
+            output = []
+            paras = s.splitlines()
+            for para in paras:
+                output.append(f'<para>{para}</para>')
+            return '\n'.join(output)
+        return ''
+
     if parent_name and parent_name not in TEXTTYPE_NODES:
         return text
     try:
@@ -264,7 +273,8 @@ def construct_texttype_node(text, parent_name=None):
             if str(e).startswith('Start tag expected'):
                 try:
                     # We may have a naked string. Try adding the root node.
-                    text = f"<{parent_name}>{text}</{parent_name}>"
+                    # First, capture paras
+                    text = f"<{parent_name}>{introduce_paras(text)}</{parent_name}>"
                     subtree = metapype_io.from_xml(text, clean=True, literals=['literalLayout', 'markdown'])
                     validate.tree(subtree)
                     return subtree
@@ -288,20 +298,25 @@ def check_xml_validity(xml:str=None, parent_name:str=None):
     return response
 
 
-def post_process_texttype_node(text_node:Node=None):
+def post_process_texttype_node(text_node:Node=None, displayed_text:str=None):
     """
     After a text node has been edited or created, we need to post-process it to make sure it's in the correct form.
 
     If our model has complex TextTypes and the node is TextType node, if the user has edited it the edited text will
     be in the content of the node. We need to convert appropriately to represent the XML structure in descendants of
     the node.
+
+    It is assumed that text_node.content has been set to the text displayed in the form, which may or may not have been
+    modified by the user. If the user has modified the text, then text_node.content will be different from the
+    original text in the node. If the user has not modified the text, then text_node.content will be the same as the
+    original text in the node.
     """
     from webapp.home.texttype_node_processing import TEXTTYPE_NODES, construct_texttype_node
 
     def save_content_in_para_nodes(text_node):
         s = text_node.content
         if s:
-            paras = s.split('\n')
+            paras = s.splitlines()
             for para in paras:
                 para_node = Node(names.PARA, parent=text_node)
                 para_node.content = para
@@ -318,15 +333,15 @@ def post_process_texttype_node(text_node:Node=None):
     if not text_node:
         return
     use_complex_representation = user_data.get_model_has_complex_texttypes()
-    if text_node.content:
-        # If we have content, we're saving a node that's been modified. We remake the children.
+    original_text = display_texttype_node(text_node)
+    if displayed_text != original_text:
+        # We're saving a node that's been modified. We remake the children.
         if use_complex_representation and text_node.name in TEXTTYPE_NODES:
-            new_node = construct_texttype_node(text_node.content, text_node.name)
+            new_node = construct_texttype_node(displayed_text, text_node.name)
             text_node.content = new_node.content
             text_node.tail = new_node.tail
             text_node.children = new_node.children
         else:
-            content = remove_paragraph_tags(text_node.content)
             # If we have para children, we're handling text that has been modified but that originally used
             #  para tags (e.g., a package imported from XML). Presumably, the user wants paras, so let's
             #  do that. We need to check for this before we remove the children.
@@ -339,6 +354,8 @@ def post_process_texttype_node(text_node:Node=None):
                         all_paras = False
                         break
             text_node.remove_children()
-            text_node.content = content
+            text_node.content = displayed_text
             if all_paras or not children:  # If we have no children, we're handling simple text. Add paras there, too.
                 save_content_in_para_nodes(text_node)
+                # Now the content is in the children. We need to remove the content from the node.
+                text_node.content = ''

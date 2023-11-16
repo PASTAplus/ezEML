@@ -11,7 +11,7 @@ from webapp.home.utils.node_utils import remove_child, add_child
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import UP_ARROW, DOWN_ARROW, list_access_rules
 from webapp.home.utils.create_nodes import create_access_rule
-from webapp.home.forms import is_dirty_form, form_md5
+from webapp.home.forms import is_dirty_form, init_form_md5
 from webapp.views.access.forms import AccessForm, AccessSelectForm
 
 from metapype.eml import names
@@ -163,15 +163,15 @@ def access(filename=None, node_id=None):
             return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         allow_nodes = access_node.find_all_children(names.ALLOW)
         if allow_nodes:
             for allow_node in allow_nodes:
                 if node_id == allow_node.id:
                     populate_access_rule_form(form, allow_node)
                     break
+
+    init_form_md5(form)
 
     return render_template('access.html', title='Access Rule', form=form, filename=filename)
 
@@ -191,6 +191,6 @@ def populate_access_rule_form(form: AccessForm, allow_node: Node):
 
         form.userid.data = userid
         form.permission.data = permission
-        form.md5.data = form_md5(form)
+        init_form_md5(form)
 
 

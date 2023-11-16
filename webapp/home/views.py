@@ -97,7 +97,7 @@ from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fe
 import webapp.home.check_data_table_contents as check_data_table_contents
 from webapp.home.check_data_table_contents import format_date_time_formats_list
 from webapp.home.check_metadata import check_eml
-from webapp.home.forms import form_md5
+from webapp.home.forms import init_form_md5
 from webapp.home.standard_units import init_standard_units
 from webapp.views.collaborations.collaborations import (
     init_db,
@@ -2565,7 +2565,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     unhandled_elements = package_contains_elements_unhandled_by_ezeml(filename, eml_node)
 
@@ -2638,7 +2638,7 @@ def import_xml_4(filename=None, fetched=False):
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     try:
         mb = get_data_size(filename)
@@ -2675,7 +2675,7 @@ def fetch_xml():
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     try:
         # Get a list of PASTA scopes
@@ -2717,7 +2717,7 @@ def fetch_xml_2(scope=''):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     # Get a list of PASTA identifiers for the selected scope
     ids = get_pasta_identifiers(scope)
@@ -2758,7 +2758,7 @@ def fetch_xml_2a(scope_identifier=''):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
 
@@ -2803,7 +2803,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
 

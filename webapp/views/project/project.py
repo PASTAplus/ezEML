@@ -27,7 +27,7 @@ from webapp.home.texttype_node_processing import (
     invalid_xml_error_message, post_process_texttype_node
 )
 
-from webapp.home.forms import is_dirty_form, form_md5
+from webapp.home.forms import is_dirty_form, init_form_md5
 from webapp.home.views import (
     non_breaking, process_up_button, process_down_button, select_post, set_current_page, get_help
 )
@@ -126,14 +126,16 @@ def project(filename=None, project_node_id=None):
             return redirect(url_for(new_page, filename=filename, node_id='None', project_node_id=project_node_id))
 
     # Process GET
-    if project_node_id == '1':
-        form.init_md5()
-    elif doing_related_project:
-        related_project_node = Node.get_node_instance(project_node_id)
-        populate_project_form(form, related_project_node)
-    elif dataset_node:
-        project_node = dataset_node.find_child(names.PROJECT)
-        populate_project_form(form, project_node)
+    if project_node_id != '1':
+        if doing_related_project:
+            related_project_node = Node.get_node_instance(project_node_id)
+            populate_project_form(form, related_project_node)
+        elif dataset_node:
+            project_node = dataset_node.find_child(names.PROJECT)
+            populate_project_form(form, project_node)
+
+    init_form_md5(form)
+
     return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id)
 
 
@@ -164,15 +166,15 @@ def populate_project_form(form: ProjectForm, project_node: Node):
             title = title_node.content
 
         abstract_node = project_node.find_child(names.ABSTRACT)
-        post_process_texttype_node(abstract_node)
+        # post_process_texttype_node(abstract_node)
 
         funding_node = project_node.find_child(names.FUNDING)
-        post_process_texttype_node(funding_node)
+        # post_process_texttype_node(funding_node)
 
         form.title.data = title
         form.abstract.data = display_texttype_node(abstract_node)
         form.funding.data = display_texttype_node(funding_node)
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @proj_bp.route('/project_personnel_select/<filename>', methods=['GET', 'POST'])
@@ -359,15 +361,15 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
         title = 'Related Project Funding Award'
         related_project = True
 
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         award_nodes = project_node.find_all_children(names.AWARD)
         if award_nodes:
             for award_node in award_nodes:
                 if node_id == award_node.id:
                     populate_award_form(form, award_node)
                     break
+
+    init_form_md5(form)
 
     set_current_page('project')
     help = [get_help('award'),

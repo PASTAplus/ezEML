@@ -263,7 +263,8 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         if not Config.DISABLE_ENABLE_EDI_CURATION_EMAILS:
             sent = mimemail.send_mail(subject='An ezEML user has enabled EDI curation',
                                       msg=msg,
-                                      to=[Config.TO])
+                                      to=Config.TO,
+                                      to_name=Config.TO_NAME)
         else:
             sent = True
         if sent is True:
@@ -279,7 +280,7 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
                 'package, below.')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except Exception as e:
-        flash('An error occurred while enabling EDI curation for this package.', 'error')
+        flash('An error occurred while enabling EDI curation for this package. Please report this to support@edirepository.org.', 'error')
         log_error(e)
 
     return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))

@@ -516,6 +516,15 @@ For more details, see <a style="color: steelblue;" href="/static/user_guide/subm
 
 Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=497s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Submit Package to EDI</b> here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=1855s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
+enable_edi_curation_notes
+Notes for EDI Data Curators
+If you have any notes for the EDI data curation team, enter them here. The curators will be able to see your notes when they access your package to prepare it for publication.
+
+Please include:<br>
+   - Any metadata fields you were unable to fill in or were unsure about,<br>
+   - Your affiliation, if any: for example, whether you are affiliated with an LTER site or other organization, since that may necessitate special handling of your data package,<br>
+   - Any other special instructions for the data curation team.
+--------------------
 export_package
 Export ezEML Data Package
 When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.

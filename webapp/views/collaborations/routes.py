@@ -200,7 +200,7 @@ def enable_edi_curation(filename=None):
         if request.form.get(BTN_CANCEL):
             return redirect(get_back_url())
 
-    help = get_helps(['enable_edi_curation'])
+    help = get_helps(['enable_edi_curation', 'enable_edi_curation_notes'])
     eml_node = load_eml(filename=filename)
     return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled,
                            check_metadata_status=get_check_metadata_status(eml_node, filename),

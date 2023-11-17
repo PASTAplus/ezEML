@@ -342,7 +342,6 @@ def geographic_coverage(filename=None, node_id=None):
                         if node_id == gc_node.id:
                             populate_geographic_coverage_form(form, gc_node)
 
-    form.blah
     set_current_page('geographic_coverage')
     help = get_helps(['geographic_coverages', 'geographic_description', 'bounding_coordinates', 'bounding_altitudes'])
     return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, help=help)

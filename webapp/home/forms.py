@@ -86,6 +86,9 @@ def is_dirty_form(form):
         md5 = form_md5(form)
         hidden_md5 = form.md5.data 
         is_dirty = (md5 != hidden_md5)
+        # if is_dirty:
+        #     import os
+        #     os.system('say "Beep"')
     return is_dirty
 
 

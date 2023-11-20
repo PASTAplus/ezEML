@@ -145,6 +145,10 @@ def responsible_party(filename=None, rp_node_id=None,
         data_source_node_id = parent_node_id
 
     role = False
+    # If this is an associatedParty or a project personnel element,
+    # set role to True so it will appear as a form field.
+    if node_name == names.ASSOCIATEDPARTY or node_name == names.PERSONNEL:
+        role = True
 
     # Process POST
     if request.method == 'POST':
@@ -169,11 +173,6 @@ def responsible_party(filename=None, rp_node_id=None,
                           'POST', PAGE_PUBLISHER,
                           PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
                           PAGE_PUBLISHER, project_node_id=project_node_id)
-
-        # If this is an associatedParty or a project personnel element,
-        # set role to True so it will appear as a form field.
-        if node_name == names.ASSOCIATEDPARTY or node_name == names.PERSONNEL:
-            role = True
 
         save = False
         if is_dirty_form(form):

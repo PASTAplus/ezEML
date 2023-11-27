@@ -801,6 +801,18 @@ def check_contacts(eml_node, doc_name, validation_errs=None, evaluation_warnings
                                     doc_name, contact_node.id, is_data_source=is_data_source)
 
 
+def check_publisher(eml_node, doc_name):
+    """
+    Check that publisher is valid.
+    """
+    link = url_for(PAGE_PUBLISHER, filename=doc_name)
+    publisher_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER])
+    if publisher_nodes and len(publisher_nodes) > 0:
+        for publisher_node in publisher_nodes:
+            check_responsible_party(publisher_node, 'Publisher', 'Publisher',
+                                    PAGE_PUBLISHER, doc_name, publisher_node.id)
+
+
 def check_data_source(doc_name, data_source_node):
     """ Check a data source node for completeness and correctness. A data source node is essentially another
         EML document, so we can use some of the same functions to check it as we use to check the top-level EML
@@ -1054,7 +1066,8 @@ def format_output(evaluation, eml_node):
 
     sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
                 'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
-                'Taxonomic Coverage', 'Maintenance', 'Methods', 'Data Sources', 'Project', 'Other Entities', 'Data Package ID']
+                'Taxonomic Coverage', 'Maintenance', 'Publisher', 'Methods', 'Data Sources', 'Project', 'Other Entities',
+                'Data Package ID']
 
     severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
@@ -1171,6 +1184,7 @@ def perform_evaluation(eml_node, doc_name):
     check_coverage(eml_node, doc_name, evaluation_warnings)
     check_geographic_coverage(eml_node, doc_name)
     check_maintenance(eml_node, doc_name, evaluation_warnings)
+    check_publisher(eml_node, doc_name)
     check_method_steps(eml_node, doc_name, validation_errs, evaluation_warnings)
     check_project(eml_node, doc_name)
     check_other_entities(eml_node, doc_name)

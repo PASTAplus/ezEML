@@ -633,17 +633,16 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
     # The intellectualRights node is one that supports TextType content, so we need to check its validity and
     # post-process it to handle para tags properly, etc.
     intellectual_rights_node.children = []
-    if intellectual_rights != INTELLECTUAL_RIGHTS_CC0 and intellectual_rights != INTELLECTUAL_RIGHTS_CC_BY:
-        valid, msg = is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
-        if valid:
-            try:
-                post_process_texttype_node(intellectual_rights_node, displayed_text)
-            except exceptions.InvalidXMLError as e:
-                log_error(e)
-                flash(invalid_xml_error_message(str(e)), 'error')
-                return
-        else:
-            flash(invalid_xml_error_message(msg), 'error')
+    valid, msg = is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
+    if valid:
+        try:
+            post_process_texttype_node(intellectual_rights_node, displayed_text)
+        except exceptions.InvalidXMLError as e:
+            log_error(e)
+            flash(invalid_xml_error_message(str(e)), 'error')
+            return
+    else:
+        flash(invalid_xml_error_message(msg), 'error')
     try:
         save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:

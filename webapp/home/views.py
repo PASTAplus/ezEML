@@ -1333,8 +1333,9 @@ def new_from_template_2(template_filename):
 
 
 @home_bp.route('/import_parties', methods=['GET', 'POST'])
+@home_bp.route('/import_parties/<target>', methods=['GET', 'POST'])
 @login_required
-def import_parties():
+def import_parties(target=None):
     """Handle the Import Responsible Parties item in Import/Export menu."""
 
     form = ImportEMLForm()
@@ -1355,16 +1356,17 @@ def import_parties():
             filename = form.filename.data
             template = form.template.data
             is_template = 'Open Template' in request.form
-            return redirect(url_for('home.import_parties_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
+            return redirect(url_for('home.import_parties_2', filename=filename, template=quote(template, safe=''),
+                                    is_template=is_template, target=target))
 
     # Process GET
     help = get_helps(['import_responsible_parties'])
-    return render_template('import_parties.html', help=help, form=form)
+    return render_template('import_parties.html', target=target, help=help, form=form)
 
 
-@home_bp.route('/import_parties_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
+@home_bp.route('/import_parties_2/<filename>/<template>/<is_template>/<target>', methods=['GET', 'POST'])
 @login_required
-def import_parties_2(filename, template, is_template):
+def import_parties_2(filename, template, is_template, target):
     """Handle the Import Responsible Parties item in Import/Export menu after a source document has been selected."""
 
     def get_responsible_parties_for_import(eml_node):
@@ -1372,15 +1374,15 @@ def import_parties_2(filename, template, is_template):
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
             label = compose_rp_label(node)
             parties.append(('Creator', f'{label} (Creator)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
-            label = compose_rp_label(node)
-            parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
-            label = compose_rp_label(node)
-            parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
             label = compose_rp_label(node)
             parties.append(('Contact', f'{label} (Contact)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
+            label = compose_rp_label(node)
+            parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
+            label = compose_rp_label(node)
+            parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
             label = compose_rp_label(node)
             parties.append(('Publisher', f'{label} (Publisher)', node.id))
@@ -1405,9 +1407,9 @@ def import_parties_2(filename, template, is_template):
     form.to_import.choices = choices
     targets = [
         ("Creators", "Creators"),
-        ("Metadata Providers", "Metadata Providers"),
-        ("Associated Parties", "Associated Parties"),
         ("Contacts", "Contacts"),
+        ("Associated Parties", "Associated Parties"),
+        ("Metadata Providers", "Metadata Providers"),
         ("Publisher", "Publisher"),
         ("Project Personnel", "Project Personnel")]
     form.target.choices = targets
@@ -1438,11 +1440,11 @@ def import_parties_2(filename, template, is_template):
             new_page = PAGE_PUBLISHER
         elif target_class == 'Project Personnel':
             new_page = PAGE_PROJECT_PERSONNEL_SELECT
-        return redirect(url_for(new_page, filename=target_filename))
+        return redirect(url_for(new_page, filename=target_filename, target=target))
 
     # Process GET
     help = get_helps(['import_responsible_parties_2'])
-    return render_template('import_parties_2.html',source_filename=source_filename, help=help, form=form)
+    return render_template('import_parties_2.html', source_filename=source_filename, target=target, help=help, form=form)
 
 
 @home_bp.route('/import_keywords', methods=['GET', 'POST'])
@@ -3355,7 +3357,8 @@ def remove_from_uploads(filename):
 
 def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
-                next_page=None, edit_page=None, project_node_id=None, reupload_page=None):
+                next_page=None, edit_page=None, project_node_id=None, reupload_page=None,
+                import_page=None, import_target=None):
 
     def extract_ids(key):
         if '|' not in key:
@@ -3419,10 +3422,10 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = edit_page
                 if node_id is None:
                     node_id = '1'
-                # if non_breaking('Project Personnel') in val and project_node_id is not None:
-                #    node_id = project_node_id
-                # else:
-                #     node_id = '1'
+            elif val[0:6] == BTN_IMPORT:
+                new_page = import_page
+                if node_id is None:
+                    node_id = '1'
             elif val == BTN_LOAD_DATA_TABLE:
                 new_page = PAGE_LOAD_DATA
                 node_id = '1'
@@ -3450,6 +3453,8 @@ def select_post(filename=None, form=None, form_dict=None,
             return url_for(new_page, filename=filename, project_node_id=project_node_id)
         elif new_page == PAGE_PROJECT_PERSONNEL:
             return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
+        elif new_page == PAGE_IMPORT_PARTIES:
+            return url_for(new_page, filename=filename, target=import_target)
         else:
             if new_page is None:
                 # url_for would raise an exception... log debug info

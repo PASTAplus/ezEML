@@ -582,7 +582,7 @@ Additional <b>Geographic Coverage</b> elements should be included if there are s
 --------------------
 geographic_coverages_csv_file
 Add / Load Geographic Coverage
-You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML by clicking <b>Add Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
+You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML by clicking <b>Add Geographic Coverage</b>, import them from another package or template by clicking <b>Import Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
 
 In the latter case, the CSV file is required to have the following format:
 <ul>
@@ -1129,7 +1129,7 @@ Taxonomic Coverage
 
 The EML standard says that "the lowest available level, preferably the species binomial, should always be included, but higher-level taxa should also be included to support broader taxonomic searches." ezEML can fill in the higher-level taxa for you automatically by accessing a user-specified taxonomic authority online.
 
-To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Coverage</b>. To edit an existing taxonomic coverage entry, click the <b>Edit</b> button next to it. To remove a taxonomic coverage entry, click the <b>Remove</b> button next to it.
+To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Coverage</b>. To edit an existing taxonomic coverage entry, click the <b>Edit</b> button next to it. To remove a taxonomic coverage entry, click the <b>Remove</b> button next to it. To import taxonomic coverages from another package or template, click <b>Import Taxonomic Coverage</b>.
 
 <b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single bulk operation. ezEML will fill in taxonomic hierarchies for the taxa automatically by querying a user-specified taxonomic authority. For details, go to <b>Load Taxonomic Coverage from CSV File</b> and click the Help on that page.
 

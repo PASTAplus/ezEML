@@ -42,7 +42,8 @@ def creator_select(filename=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_CREATOR_SELECT, PAGE_TITLE,
-                          PAGE_CONTACT_SELECT, PAGE_CREATOR)
+                          PAGE_CONTACT_SELECT, PAGE_CREATOR,
+                          import_page=PAGE_IMPORT_PARTIES, import_target='Creators')
         return redirect(url)
 
     # Process GET
@@ -172,7 +173,8 @@ def responsible_party(filename=None, rp_node_id=None,
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_PUBLISHER,
                           PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
-                          PAGE_PUBLISHER, project_node_id=project_node_id)
+                          PAGE_PUBLISHER, project_node_id=project_node_id,
+                          import_page=PAGE_IMPORT_PARTIES)
 
         save = False
         if is_dirty_form(form):
@@ -285,7 +287,9 @@ def metadata_provider_select(filename=None):
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_METADATA_PROVIDER_SELECT,
                           PAGE_ASSOCIATED_PARTY_SELECT, PAGE_ABSTRACT,
-                          PAGE_METADATA_PROVIDER)
+                          PAGE_METADATA_PROVIDER,
+                          import_page=PAGE_IMPORT_PARTIES,
+                          import_target='Metadata Providers')
         return redirect(url)
 
     # Process GET
@@ -322,7 +326,9 @@ def associated_party_select(filename=None):
                           'POST', PAGE_ASSOCIATED_PARTY_SELECT,
                           PAGE_CONTACT_SELECT,
                           PAGE_METADATA_PROVIDER_SELECT,
-                          PAGE_ASSOCIATED_PARTY)
+                          PAGE_ASSOCIATED_PARTY,
+                          import_page=PAGE_IMPORT_PARTIES,
+                          import_target='Associated Parties')
         return redirect(url)
 
     # Process GET
@@ -357,7 +363,8 @@ def contact_select(filename=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_CONTACT_SELECT, PAGE_CREATOR_SELECT,
-                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_CONTACT)
+                          PAGE_ASSOCIATED_PARTY_SELECT, PAGE_CONTACT,
+                          import_page=PAGE_IMPORT_PARTIES, import_target='Contacts')
         return redirect(url)
 
     # Process GET

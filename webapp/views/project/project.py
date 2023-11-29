@@ -197,7 +197,8 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_PROJECT_PERSONNEL_SELECT, PAGE_PROJECT,
-                          PAGE_PROJECT, PAGE_PROJECT_PERSONNEL, project_node_id=project_node_id)
+                          PAGE_PROJECT, PAGE_PROJECT_PERSONNEL, project_node_id=project_node_id,
+                          import_page=PAGE_IMPORT_PARTIES, import_target='Project Personnel')
         return redirect(url)
 
     # Process GET
@@ -248,6 +249,10 @@ def funding_award_select(filename=None, project_node_id=None):
                 elif val[0:3] == 'Add':
                     new_page = PAGE_FUNDING_AWARD
                     node_id = '1'
+                elif val[0:6] == BTN_IMPORT:
+                    new_page = PAGE_IMPORT_FUNDING_AWARDS
+                    if node_id is None:
+                        node_id = '1'
                 else:
                     new_page = check_val_for_hidden_buttons(val, new_page)
 
@@ -350,7 +355,8 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
 
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT,
-                          PAGE_FUNDING_AWARD_SELECT, PAGE_FUNDING_AWARD, project_node_id=project_node_id)
+                          PAGE_FUNDING_AWARD_SELECT, PAGE_FUNDING_AWARD,
+                          project_node_id=project_node_id, import_page=PAGE_IMPORT_PARTIES)
         return redirect(url)
 
     # Process GET
@@ -503,6 +509,10 @@ def related_project_select_post(filename=None, form=None, form_dict=None,
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 project_node_id = '1'
+            elif val[0:6] == BTN_IMPORT:
+                new_page = PAGE_IMPORT_RELATED_PROJECTS
+                if project_node_id is None:
+                    project_node_id = '1'
             elif val[0:4] == BTN_BACK:
                 new_page = edit_page
                 project_node_id = None

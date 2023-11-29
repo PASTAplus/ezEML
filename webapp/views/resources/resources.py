@@ -370,7 +370,7 @@ def keyword_select(filename=None):
         # Decide which page to go to next depending on the button clicked.
         url = keyword_select_post(filename, form, form_dict,
                                   'POST', PAGE_KEYWORD_SELECT, PAGE_ABSTRACT,
-                                  PAGE_INTELLECTUAL_RIGHTS, PAGE_KEYWORD)
+                                  PAGE_INTELLECTUAL_RIGHTS, PAGE_KEYWORD, PAGE_IMPORT_KEYWORDS)
         return redirect(url)
 
     # Process GET
@@ -397,7 +397,7 @@ def keyword_select_get(filename=None, form=None):
 
 def keyword_select_post(filename=None, form=None, form_dict=None,
                         method=None, this_page=None, back_page=None,
-                        next_page=None, edit_page=None):
+                        next_page=None, edit_page=None, import_page=None):
     """Decide which page to go to next from the Keywords page depending on the button clicked."""
     node_id = ''
     new_page = None
@@ -426,6 +426,10 @@ def keyword_select_post(filename=None, form=None, form_dict=None,
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 node_id = '1'  # node_id == '1`' means add a new keyword
+            elif val[0:6] == BTN_IMPORT:
+                new_page = import_page
+                if node_id is None:
+                    node_id = '1'
             new_page = check_val_for_hidden_buttons(val, new_page)
             if new_page:
                 break

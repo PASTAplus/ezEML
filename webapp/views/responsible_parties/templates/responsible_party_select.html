@@ -31,9 +31,8 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add {{ rp_singular }}"/>
-{#                &nbsp;#}
-{#                <input class="btn btn-primary" name="1" type="submit" value="Reuse a Responsible Party"/>#}
+                <input class="btn btn-primary" name="1" type="submit" value="Add {{ rp_singular }}"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" name="1" type="submit" value="Import {{ rp_singular }}"/>
                 <br/><br/>
                 {% if session['current_page'] != 'project' %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>

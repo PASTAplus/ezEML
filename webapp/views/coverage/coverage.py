@@ -95,7 +95,7 @@ def geographic_coverage_select(filename=None):
                           'POST', PAGE_GEOGRAPHIC_COVERAGE_SELECT,
                           PAGE_INTELLECTUAL_RIGHTS,
                           PAGE_TEMPORAL_COVERAGE_SELECT,
-                          PAGE_GEOGRAPHIC_COVERAGE)
+                          PAGE_GEOGRAPHIC_COVERAGE, import_page=PAGE_IMPORT_GEO_COVERAGE)
         return redirect(url)
 
     # Process GET
@@ -578,7 +578,8 @@ def taxonomic_coverage_select(filename=None):
             url = select_post(filename, form, form_dict,
                               'POST', PAGE_TAXONOMIC_COVERAGE_SELECT,
                               PAGE_TEMPORAL_COVERAGE_SELECT,
-                              PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
+                              PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE,
+                              import_page=PAGE_IMPORT_TAXONOMIC_COVERAGE)
             return redirect(url)
 
     # Process GET

@@ -455,10 +455,14 @@ Specifies the character used in the data table file for delimiting data values. 
 data_table_size
 Size
 The size of the data table, in bytes.
+
+ezEML calculates the size automatically when the data table is uploaded. The EML standard does not require a Size element, but EDI requires it.
 --------------------
 data_table_checksum
 MD5 Checksum
 The checksum for the data table, calculated using the MD5 message-digest algorithm.
+
+ezEML calculates the checksum automatically when the data table is uploaded. The EML standard does not require a checksum element, but EDI requires it.
 --------------------
 data_table_header_lines
 Number of Header Lines
@@ -475,6 +479,8 @@ Record Delimiter
 Character(s) used to delimit records (i.e., rows).
 
 The record delimiter is usually a linefeed (\n) on UNIX, a carriage return (\r) on MacOS, or both (\r\n) on Windows/DOS.
+
+ezEML enters the record delimiter automatically when the data table is uploaded. The EML standard does not require a record delimiter element, but EDI requires it.
 --------------------
 data_table_case_sensitive
 Case Sensitive
@@ -487,6 +493,8 @@ Number of Records
 The integer count of the number of records (rows) in the data table.
 
 It should only include records that represent observations. I.e., it would not include any details of physical formatting such as the number of header lines.
+
+ezEML enters the Number of Records automatically when the data table is uploaded. The EML standard does not require a number of records element, but EDI requires it.
 --------------------
 data_table_online_url
 Online Distribution URL

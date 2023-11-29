@@ -740,6 +740,14 @@ def check_data_table(eml_node, doc_name, data_table_node:Node):
     evaluation_warnings = evaluate_via_metapype(data_table_node)
     if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_DESCRIPTION_MISSING, names.DATATABLE):
         add_to_evaluation('data_table_02', link, data_table_name=data_table_name)
+    if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_RECORD_DELIMITER_MISSING, names.DATATABLE):
+        add_to_evaluation('data_table_08', link, data_table_name=data_table_name)
+    if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_SIZE_MISSING, names.DATATABLE):
+        add_to_evaluation('data_table_09', link, data_table_name=data_table_name)
+    if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_MD5_CHECKSUM_MISSING, names.DATATABLE):
+        add_to_evaluation('data_table_10', link, data_table_name=data_table_name)
+    if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_NUMBER_OF_RECORDS_MISSING, names.DATATABLE):
+        add_to_evaluation('data_table_11', link, data_table_name=data_table_name)
 
     attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
     if attribute_list_node:

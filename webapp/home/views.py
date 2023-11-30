@@ -135,6 +135,17 @@ keywords = {}
 
 AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be caused by a login timeout. Please log out, log back in, and try again.'
 
+@home_bp.before_app_request
+def log_referrer():
+    """
+    Log the referrer URL if it exists.
+    """
+    referrer = request.referrer
+    url = request.url
+    if '/static/' not in url and 'youtube.png' not in url and 'favicon.ico' not in url and 'logo.png' not in url:
+        if referrer:
+            log_info(f"REFERRER: {referrer} {request.method} {request.url}")
+
 
 def url_of_interest():
     """

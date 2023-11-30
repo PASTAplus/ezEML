@@ -3523,8 +3523,11 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
 
 def set_current_page(page):
     """Set the current page so it can be highlighted in the Contents menu."""
+    from inspect import getframeinfo, stack
+    caller = getframeinfo(stack()[1][0])
     import webapp.home.home_utils as home_utils
-    home_utils.log_info(f'set_current_page: {page}')
+    home_utils.log_info(f'{caller.filename} @ line {caller.lineno} - set_current_page: {page}')
+
     session['current_page'] = page
 
 

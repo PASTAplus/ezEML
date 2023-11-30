@@ -389,6 +389,12 @@ def keyword_select_get(filename=None, form=None):
 
     set_current_page('keyword')
     help = [get_help('keywords')]
+    log_info('Calling render_template')
+    foo = render_template('keyword_select.html', title=title,
+                            filename=filename,
+                            kw_list=kw_list,
+                            form=form, help=help)
+    log_info('Back from render_template')
     return render_template('keyword_select.html', title=title,
                            filename=filename,
                            kw_list=kw_list,

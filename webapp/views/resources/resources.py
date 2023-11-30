@@ -190,9 +190,10 @@ def publication_info(filename=None):
 @login_required
 def abstract(filename=None):
     """Handle the page for the Abstract item in the Contents menu."""
+    log_info(f'Entering abstract... {request.method}')
 
     form = AbstractForm(filename=filename)
-    log_info(f'Entering abstract... {request.method}')
+
     # Process POST
     if request.method == 'POST':
 

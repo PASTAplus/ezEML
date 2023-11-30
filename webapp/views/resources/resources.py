@@ -395,6 +395,7 @@ def keyword_select_get(filename=None, form=None):
                             kw_list=kw_list,
                             form=form, help=help)
     log_info('Back from render_template')
+    log_info(foo)
     return render_template('keyword_select.html', title=title,
                            filename=filename,
                            kw_list=kw_list,

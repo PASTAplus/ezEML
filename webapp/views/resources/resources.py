@@ -192,7 +192,7 @@ def abstract(filename=None):
     """Handle the page for the Abstract item in the Contents menu."""
 
     form = AbstractForm(filename=filename)
-
+    log_info(f'Entering abstract... {request.method}')
     # Process POST
     if request.method == 'POST':
 
@@ -206,6 +206,7 @@ def abstract(filename=None):
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_KEYWORD_SELECT
         new_page = handle_hidden_buttons(new_page)
+        log_info(f'After handle_hidden_buttons, new_page={new_page}')
 
         if form.validate_on_submit():
             # If the form is dirty, then save the data.
@@ -217,11 +218,14 @@ def abstract(filename=None):
                 valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
                 if valid:
                     create_abstract(filename=filename, abstract=abstract)
+                    log_info('After create_abstract new_page={new_page}')
                     return redirect(url_for(new_page, filename=filename))
                 else:
                     flash(invalid_xml_error_message(msg), 'error')
+                    log_info('After invalid_xml_error_message new_page={new_page}')
                     return render_get_abstract_page(form, filename)
             else:
+                log_info('Not is_dirty... new_page={new_page}')
                 return redirect(url_for(new_page, filename=filename))
 
     # Process GET
@@ -235,6 +239,7 @@ def render_get_abstract_page(form, filename):
 
     set_current_page('abstract')
     help = [get_help('abstract'), get_help('nav')]
+    log_info('render_get_abstract_page... render_template...')
     return render_template('abstract.html',
                            title='Abstract', model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
                            filename=filename, form=form, help=help)
@@ -253,6 +258,7 @@ def get_abstract(filename, form):
         except InvalidXMLError as exc:
             flash('The XML is invalid. Please make corrections.', 'error')
 
+    log_info('get_abstract... calling render_get_abstract_page...')
     return render_get_abstract_page(form, filename)
 
 

@@ -218,14 +218,14 @@ def abstract(filename=None):
                 valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
                 if valid:
                     create_abstract(filename=filename, abstract=abstract)
-                    log_info('After create_abstract new_page={new_page}')
+                    log_info(f'After create_abstract new_page={new_page}')
                     return redirect(url_for(new_page, filename=filename))
                 else:
                     flash(invalid_xml_error_message(msg), 'error')
-                    log_info('After invalid_xml_error_message new_page={new_page}')
+                    log_info(f'After invalid_xml_error_message new_page={new_page}')
                     return render_get_abstract_page(form, filename)
             else:
-                log_info('Not is_dirty... new_page={new_page}')
+                log_info(f'Not is_dirty... new_page={new_page}')
                 return redirect(url_for(new_page, filename=filename))
 
     # Process GET

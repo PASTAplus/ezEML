@@ -607,10 +607,13 @@ def edit(page:str=None, dev=None):
                     new_page = PAGE_FILE_ERROR
             else:
                 new_page = page
+            log_info(f'edit() redirecting to {new_page}')
             return redirect(url_for(new_page, filename=current_filename))
         else:
+            log_info(f'edit()... no current doc... redirecting to {PAGE_INDEX}')
             return redirect(url_for(PAGE_INDEX))
     else:
+        log_info(f'edit()... not authenticated... redirecting to {PAGE_LOGIN}')
         return redirect(url_for(PAGE_LOGIN))
 
 

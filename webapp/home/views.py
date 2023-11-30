@@ -3523,11 +3523,16 @@ def compare_begin_end_dates(begin_date_str:str=None, end_date_str:str=None):
 
 def set_current_page(page):
     """Set the current page so it can be highlighted in the Contents menu."""
+    import webapp.home.home_utils as home_utils
+    home_utils.log_info(f'set_current_page: {page}')
     session['current_page'] = page
 
 
 def get_current_page():
     """Return the current page, for example to redirect back to it."""
+    import webapp.home.home_utils as home_utils
+    page = session.get('current_page')
+    home_utils.log_info(f'get_current_page: {page}')
     return session.get('current_page')
 
 

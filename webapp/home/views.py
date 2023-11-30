@@ -1463,8 +1463,11 @@ def import_parties_2(filename, template, is_template, target):
 def import_keywords():
     """Handle the Import Keywords item in Import/Export menu."""
 
+    log_info(f'Entering import_keywords()')
     form = ImportEMLForm()
+    log_info(f'   import_keywords 1')
     form.filename.choices = list_data_packages(False, False)
+    log_info(f'   import_keywords 2')
     form.template.choices = list_templates()
 
     # Process POST
@@ -1484,7 +1487,10 @@ def import_keywords():
             return redirect(url_for('home.import_keywords_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
+    log_info(f'   import_keywords 3')
     help = get_helps(['import_keywords'])
+    log_info(f'   import_keywords 4')
+
     return render_template('import_keywords.html', help=help, form=form)
 
 

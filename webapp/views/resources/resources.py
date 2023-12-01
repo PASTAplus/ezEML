@@ -190,7 +190,6 @@ def publication_info(filename=None):
 @login_required
 def abstract(filename=None):
     """Handle the page for the Abstract item in the Contents menu."""
-    log_info(f'Entering abstract... {request.method}')
 
     form = AbstractForm(filename=filename)
 
@@ -207,7 +206,6 @@ def abstract(filename=None):
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
         new_page = PAGE_KEYWORD_SELECT
         new_page = handle_hidden_buttons(new_page)
-        log_info(f'After handle_hidden_buttons, new_page={new_page}')
 
         if form.validate_on_submit():
             # If the form is dirty, then save the data.
@@ -219,14 +217,11 @@ def abstract(filename=None):
                 valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
                 if valid:
                     create_abstract(filename=filename, abstract=abstract)
-                    log_info(f'After create_abstract new_page={new_page}')
                     return redirect(url_for(new_page, filename=filename))
                 else:
                     flash(invalid_xml_error_message(msg), 'error')
-                    log_info(f'After invalid_xml_error_message new_page={new_page}')
                     return render_get_abstract_page(form, filename)
             else:
-                log_info(f'Not is_dirty... new_page={new_page}')
                 return redirect(url_for(new_page, filename=filename))
 
     # Process GET
@@ -396,13 +391,6 @@ def keyword_select_get(filename=None, form=None):
 
     set_current_page('keyword')
     help = [get_help('keywords')]
-    log_info('Calling render_template')
-    foo = render_template('keyword_select.html', title=title,
-                            filename=filename,
-                            kw_list=kw_list,
-                            form=form, help=help)
-    log_info('Back from render_template')
-    log_info(foo)
     return render_template('keyword_select.html', title=title,
                            filename=filename,
                            kw_list=kw_list,

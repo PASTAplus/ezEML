@@ -146,7 +146,7 @@ def log_request():
         return
 
     referrer = request.referrer
-    log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
+    # log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
 
 
 @home_bp.after_app_request
@@ -158,10 +158,10 @@ def log_response(response):
     if '/static/' in url or 'youtube.png' in url or 'favicon.ico' in url or 'logo.png' in url:
         return response
 
-    if response:
-        log_info(f'**** OUTGOING RESPONSE: {request.remote_addr}  [{request.method}]  {request.full_path}  {response.status}')
-    else:
-        log_info('**** OUTGOING RESPONSE: None')
+    # if response:
+    #     log_info(f'**** OUTGOING RESPONSE: {request.remote_addr}  [{request.method}]  {request.full_path}  {response.status}')
+    # else:
+    #     log_info('**** OUTGOING RESPONSE: None')
     return response
 
 
@@ -607,13 +607,10 @@ def edit(page:str=None, dev=None):
                     new_page = PAGE_FILE_ERROR
             else:
                 new_page = page
-            log_info(f'edit() redirecting to {new_page}')
             return redirect(url_for(new_page, filename=current_filename))
         else:
-            log_info(f'edit()... no current doc... redirecting to {PAGE_INDEX}')
             return redirect(url_for(PAGE_INDEX))
     else:
-        log_info(f'edit()... not authenticated... redirecting to {PAGE_LOGIN}')
         return redirect(url_for(PAGE_LOGIN))
 
 
@@ -1484,11 +1481,8 @@ def import_parties_2(filename, template, is_template, target):
 def import_keywords():
     """Handle the Import Keywords item in Import/Export menu."""
 
-    log_info(f'Entering import_keywords()')
     form = ImportEMLForm()
-    log_info(f'   import_keywords 1')
     form.filename.choices = list_data_packages(False, False)
-    log_info(f'   import_keywords 2')
     form.template.choices = list_templates()
 
     # Process POST
@@ -1508,9 +1502,7 @@ def import_keywords():
             return redirect(url_for('home.import_keywords_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
-    log_info(f'   import_keywords 3')
     help = get_helps(['import_keywords'])
-    log_info(f'   import_keywords 4')
 
     return render_template('import_keywords.html', help=help, form=form)
 
@@ -2219,7 +2211,6 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
             url_node.add_attribute('function', 'download')
             url_node.content = f"{uploads_url_prefix}/{object_name}"
             encode_distribution_url(url_node)
-            # log_info(f"  object_name={object_name_node.content}... url={url_node.content}")
         except Exception as err:
             flash(err)
             continue
@@ -3499,9 +3490,6 @@ def select_post(filename=None, form=None, form_dict=None,
                 vals = []
                 for key in form_dict:
                     vals.append(form_dict[key][0])  # value is the first list element
-                log_info(f'**** select_post: new_page is None')
-                log_info(f'**** this_page: {this_page}')
-                log_info(f'**** vals in form_dict: {vals}')
                 new_page = PAGE_INDEX  # so we don't raise a general error exception
             return url_for(new_page, filename=filename, node_id=node_id)
 
@@ -3563,8 +3551,8 @@ def set_current_page(page):
     """Set the current page so it can be highlighted in the Contents menu."""
     from inspect import getframeinfo, stack
     caller = getframeinfo(stack()[1][0])
-    import webapp.home.home_utils as home_utils
-    home_utils.log_info(f'{caller.filename} @ line {caller.lineno} - set_current_page: {page}')
+    # import webapp.home.home_utils as home_utils
+    # home_utils.log_info(f'{caller.filename} @ line {caller.lineno} - set_current_page: {page}')
 
     session['current_page'] = page
 
@@ -3573,7 +3561,7 @@ def get_current_page():
     """Return the current page, for example to redirect back to it."""
     import webapp.home.home_utils as home_utils
     page = session.get('current_page')
-    home_utils.log_info(f'get_current_page: {page}')
+    # home_utils.log_info(f'get_current_page: {page}')
     return session.get('current_page')
 
 

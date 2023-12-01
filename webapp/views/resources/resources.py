@@ -235,7 +235,6 @@ def render_get_abstract_page(form, filename):
 
     set_current_page('abstract')
     help = [get_help('abstract'), get_help('nav')]
-    log_info('render_get_abstract_page... render_template...')
     return render_template('abstract.html',
                            title='Abstract', model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
                            filename=filename, form=form, help=help)
@@ -254,7 +253,6 @@ def get_abstract(filename, form):
         except InvalidXMLError as exc:
             flash('The XML is invalid. Please make corrections.', 'error')
 
-    log_info('get_abstract... calling render_get_abstract_page...')
     return render_get_abstract_page(form, filename)
 
 

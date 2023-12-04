@@ -44,6 +44,7 @@ import requests
 from requests_file import FileAdapter
 from typing import List
 import urllib.parse
+from urllib.parse import unquote_plus
 import warnings
 
 import webapp.home.metapype_client
@@ -127,7 +128,7 @@ def load_df(eml_node, csv_url, data_table_name):
     try:
         if delimiter == '\\t':
             delimiter = '\t'
-        return pd.read_csv(csv_url, encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
+        return pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
                            keep_default_na=False, skiprows=range(1, num_header_lines),
                            skipfooter=num_footer_lines, low_memory=False, infer_datetime_format=True,
                            dtype=str)   # Set dtype to str to prevent pandas from converting empty strings to NaN,
@@ -582,12 +583,13 @@ def check_data_table(eml_file_url:str=None,
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
+    log_info(f'After check_columns_existence_against_metadata, there are {len(errors)} errors')
 
     # Check for empty rows
     data_table_name = get_data_table_name(data_table_node)
     num_header_lines = get_num_header_lines(data_table_node)
     errors.extend(check_for_empty_rows(df, data_table_name, num_header_lines))
-    log_info(f'After checking for empty rows, there are {len(errors)} errors')
+    log_info(f'After check_for_empty_rows {data_table_name}, there are {len(errors)} errors')
 
     if not column_names:
         # check them all... we will use the data table column names. they may not exactly match the metadata column
@@ -607,15 +609,15 @@ def check_data_table(eml_file_url:str=None,
         if variable_type == 'CATEGORICAL':
             columns_checked.append(column_name)
             errors.extend(check_categorical_column(df, data_table_node, column_name, max_errs_per_column))
-            log_info(f'After check_categorical_column, there are {len(errors)} errors')
+            log_info(f'After check_categorical_column {column_name}, there are {len(errors)} errors')
         elif variable_type == 'DATETIME':
             columns_checked.append(column_name)
             errors.extend(check_date_time_column(df, data_table_node, column_name, max_errs_per_column))
-            log_info(f'After check_date_time_column, there are {len(errors)} errors')
+            log_info(f'After check_date_time_column {column_name}, there are {len(errors)} errors')
         elif variable_type == 'NUMERICAL':
             columns_checked.append(column_name)
             errors.extend(check_numerical_column(df, data_table_node, column_name, max_errs_per_column))
-            log_info(f'After check_numerical_column, there are {len(errors)} errors')
+            log_info(f'After check_numerical_column {column_name}, there are {len(errors)} errors')
 
     return create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
 

@@ -578,6 +578,7 @@ def check_data_table(eml_file_url:str=None,
     """
     eml_node, _ = load_eml_file(eml_file_url)
     df = load_df(eml_node, csv_file_url, data_table_name)
+    log_info(f'Loaded {len(df)} rows from {csv_file_url}')
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)

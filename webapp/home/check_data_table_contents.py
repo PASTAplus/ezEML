@@ -986,7 +986,7 @@ def collapse_error_info_for_webpage(row_errs, column_errs):
     When essentially the same error is repeated on a sequence of consecutive rows, we want to collapse the sequence.
     """
 
-    def collapse_error_info_for_column(column_errors):
+    def collapse_error_info(column_errors):
         collapsed_errors = []
         prev_row_number = None
         prev_info = None
@@ -1045,8 +1045,8 @@ def collapse_error_info_for_webpage(row_errs, column_errs):
         return column_errors
 
     errors = row_errs + column_errs
-    for column_errors in errors:
-        collapse_error_info_for_column(column_errors)
+    for error in errors:
+        collapse_error_info(error)
     return errors
 
 

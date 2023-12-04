@@ -702,9 +702,11 @@ def check_for_empty_rows(df, data_table_name, num_header_lines):
     errors = []
     is_empty = lambda x: x == ''
     empty_rows = df.applymap(is_empty).all(axis=1)
+    log_info(f'check_for_empty_rows {len(df)} rows in df')
     empty_row_indices = []
     if empty_rows.any():
         empty_row_indices = empty_rows[empty_rows].index.values
+    log_info(f'empty_row_indices {len(empty_row_indices)}')
     for index in empty_row_indices:
         # Make the index 1-based and take into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, None,

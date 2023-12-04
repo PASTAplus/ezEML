@@ -23,20 +23,24 @@
             <a href="{{ request.referrer }}">Back</a>
             <p></p><span style="font-size:1.25em;"><b>Data Table: </b>{{ data_table_name }}</span>
             <br>
-            {% if column_errs|length > 0 %}
-            {% for column_err in column_errs %}
+            {% if collapsed_errs|length > 0 %}
+            {% for collapsed_err in collapsed_errs %}
+                {% if collapsed_err.column_name and collapsed_err.variable_type %}
                 <span style="padding-bottom:5px;display:block">
                 <br>
-                Column: <b>{{ column_err.column_name }}</b>
+                Column: <b>{{ collapsed_err.column_name }}</b>
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                Type: {{ column_err.variable_type }}
+                Type: {{ collapsed_err.variable_type }}
                 </span>
+                {% else %}
+                    <p></p>
+                {% endif %}
             <table class="eval_table" width=100% style="padding: 10px;">
                 <tr><th class="eval_table" align="left" width=8%>Row</th>
                 <th class="eval_table" align="left" width=42%>Error</th>
                 <th class="eval_table" align="left" width=25%>Expected</th>
                 <th align="left" width=25%>Found</th></tr>
-                {% for error in column_err.errors %}
+                {% for error in collapsed_err.errors %}
                 <tr>
                 <td class="eval_table" valign="top">{{ error.row }}</td>
                 <td class="eval_table" valign="top">{{ error.error_type }}</td>

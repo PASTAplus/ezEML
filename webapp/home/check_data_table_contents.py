@@ -582,6 +582,11 @@ def check_data_table(eml_file_url:str=None,
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
 
+    # Check for empty rows
+    data_table_name = get_data_table_name(data_table_node)
+    num_header_lines = get_num_header_lines(data_table_node)
+    errors.extend(check_for_empty_rows(df, data_table_name, num_header_lines))
+
     if not column_names:
         # check them all... we will use the data table column names. they may not exactly match the metadata column
         # names, for example if there are spaces at the end of column names.
@@ -683,6 +688,24 @@ def check_date_time_attribute(attribute_node):
             return format_string
 
 
+def check_for_empty_rows(df, data_table_name, num_header_lines):
+    """
+    Check for empty rows in the data table.
+    """
+    errors = []
+    is_empty = lambda x: x == ''
+    empty_rows = df.applymap(is_empty).all(axis=1)
+    empty_row_indices = []
+    if empty_rows.any():
+        empty_row_indices = empty_rows[empty_rows].index.values
+    for index in empty_row_indices:
+        # Make the index 1-based and take into account the number of header rows. I.e., make it match what they'd see in Excel.
+        errors.append(create_error_json(data_table_name, None,
+                                        index + num_header_lines + 1,
+                                        'Row is empty', 'Data', 'No data'))
+    return errors
+
+
 def format_date_time_formats_list():
     """
     Format the list of supported date time formats for display in HTML.
@@ -734,21 +757,27 @@ def generate_error_info_for_webpage(data_table_node, errors):
     errs_obj = json.loads(errors)
     data_table_name = get_data_table_name(data_table_node)
     column_name = None
+    row_errs = []
     column_errs = []
     errors = []
     has_blanks = False
     for error in errs_obj['errors']:
         if error['location']['table'] != urllib.parse.quote(data_table_name):
             continue
-        if error['location']['column'] != (urllib.parse.quote(column_name) if column_name else None):
-            column_name = urllib.parse.unquote(error['location']['column'])
-            try:
-                attribute_node = get_attribute_node(data_table_node, column_name)
-                variable_type = get_variable_type(attribute_node)
-            except ValueError:
-                variable_type = 'UNKNOWN'
-            errors = []
-            column_errs.append({ "column_name": column_name, "variable_type": variable_type, "errors": errors})
+        if error['error_scope'] in ['column', 'element']:
+            if error['location']['column'] != (urllib.parse.quote(column_name) if column_name else None):
+                column_name = urllib.parse.unquote(error['location']['column'])
+                try:
+                    attribute_node = get_attribute_node(data_table_node, column_name)
+                    variable_type = get_variable_type(attribute_node)
+                except ValueError:
+                    variable_type = 'UNKNOWN'
+                errors = []
+                column_errs.append({ "column_name": column_name, "variable_type": variable_type, "errors": errors})
+        if error['error_scope'] == 'row':
+            if not row_errs:
+                errors = []
+                row_errs.append({ "column_name": '', "variable_type": '', "errors": errors})
         expected, blank = make_blanks_visible(error['expected'])
         has_blanks = has_blanks or blank
         found, blank = make_blanks_visible(error['found'])
@@ -758,7 +787,7 @@ def generate_error_info_for_webpage(data_table_node, errors):
             "error_type": error['error_type'],
             "expected": expected,
             "found": found})
-    return column_errs, has_blanks
+    return row_errs, column_errs, has_blanks
 
 
 def get_eml_file_url(document_name, eml_node):
@@ -952,7 +981,7 @@ def hash_data_table_metadata_settings(eml_node, data_table_name):
     return hash
 
 
-def collapse_error_info_for_webpage(errors):
+def collapse_error_info_for_webpage(row_errs, column_errs):
     """
     When essentially the same error is repeated on a sequence of consecutive rows, we want to collapse the sequence.
     """
@@ -1015,6 +1044,7 @@ def collapse_error_info_for_webpage(errors):
         column_errors['errors'] = collapsed_errors
         return column_errors
 
+    errors = row_errs + column_errs
     for column_errors in errors:
         collapse_error_info_for_column(column_errors)
     return errors

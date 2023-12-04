@@ -408,6 +408,7 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     attribute_node = get_attribute_node(data_table_node, column_name)
     number_type = get_number_type(attribute_node)
     col_values = df[column_name].astype(str)
+    log_info(f'Column {column_name}: {col_values}')
 
     # Construct a regex based on the number type
     if number_type == 'integer':
@@ -469,6 +470,7 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     errors = []
     attribute_node = get_attribute_node(data_table_node, column_name)
     col_values = df[column_name].astype(str)
+    log_info(f'Column {column_name}: {col_values}')
 
     # If the metadata says codes values are not "enforced" to be the defined codes, then there cannot be errors
     enumerated_domain_node = attribute_node.find_descendant(names.ENUMERATEDDOMAIN)
@@ -525,6 +527,8 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
         return get_regex_for_format(date_time_format)
 
     col_values = df[column_name].astype(str)
+    log_info(f'Column {column_name}: {col_values}')
+
     regex = get_date_time_format_regex(data_table_node, column_name)
     if not regex:
         date_time_format = get_date_time_format_specification(data_table_node, column_name)

@@ -1,13 +1,17 @@
+"""
+Helper functions for the Manage Packages and Manage Data Usage pages. The latter is only available to admins and data
+curators and provides an overview of data usage for all users.
+"""
+
 import collections
 from datetime import datetime
 import os
 
-import flask
 from flask import (
     url_for
 )
 
-from webapp.home.metapype_client import load_eml
+from webapp.home.utils.load_and_save import load_eml
 import webapp.auth.user_data as user_data
 from webapp.config import Config
 from webapp.pages import *
@@ -21,6 +25,8 @@ Data_Usage = collections.namedtuple(
 
 
 def get_dir_size(path='.'):
+    """ Get the size of a directory in bytes. This is a recursive function that will include subdirectories. """
+
     total = 0
     if os.path.exists(path):
         with os.scandir(path) as it:
@@ -33,16 +39,21 @@ def get_dir_size(path='.'):
 
 
 def get_package_size(package_name, current_user_directory_only=True):
-    """Get the size of a package in bytes. We will only count the size of the XML file and the
-    size of the data files. We will not count the size of the JSON files or PKL files since these
-    are not seen by users."""
+    """ Get the size of a package in bytes. We will only count the size of the XML file and the
+    sizes of the data files. We will not count the size of the JSON files or PKL files since these
+    are not seen by users.
+
+    current_user_directory_only=True means don't do redirection based on collaboration status; just look
+    in the user's directory.
+    """
 
     # See if an XML file exists using the package name
     user_dir = user_data.get_user_folder_name(current_user_directory_only=current_user_directory_only)
     xml_file = os.path.join(user_dir, package_name + '.xml')
     xml_size = 0
     if not os.path.isfile(xml_file):
-        # Load the JSON model to find the package ID
+        # XML file isn't named using the package name, so look for it using the package ID.
+        # Load the JSON model to find the package ID.
         json_file = os.path.join(user_dir, package_name + '.json')
         eml_node = load_eml(package_name, folder_name=user_dir, skip_metadata_check=True, do_not_lock=True)
         package_id = eml_node.attribute_value('packageId')
@@ -65,13 +76,14 @@ def get_package_size(package_name, current_user_directory_only=True):
 
 
 def get_user_date_modified(user_dir, date_format='%Y-%m-%d %H:%M:%S'):
-    """Get the date modified for a user. This has a special meaning in this context.
+    """ Get the date modified for a user. This has a special meaning in this context.
         In the case of a package, it's the date that the JSON was last modified. In the case of a
         user, it's the most recent date_modified for any of that user's packages. We define
         date_modified in this way, rather than simply getting the system's date modified for the user
         folder, because otherwise an action like garbage-collecting old packages would cause the
         date_modified for the user folder to change, even though the user hasn't actually done anything.
     """
+
     datetimes = []
     for filename in os.listdir(user_dir):
         package_name, file_ext = os.path.splitext(filename)
@@ -95,12 +107,14 @@ def get_data_packages(sort_by='date_modified',
                       reverse=True,
                       date_format='%Y-%m-%d %H:%M:%S',
                       current_user_directory_only=True):
-    """Get a list of data packages from the user's data directory."""
+    """ Get a list of data packages from the user's data directory. Used by Manage Packages page. """
+
     user_dir = user_data.get_user_folder_name(current_user_directory_only=current_user_directory_only)
     packages = []
     for filename in os.listdir(user_dir):
         package_name, file_ext = os.path.splitext(filename)
         if file_ext.lower() != '.json' or package_name == '__user_properties__':
+            # We just want to look at the JSON files that represent data packages.
             continue
         package_link = f'<a href="{url_for(PAGE_OPEN_PACKAGE, package_name=package_name)}">{package_name}</a>'
         date_modified = datetime.fromtimestamp(os.path.getmtime(os.path.join(user_dir, filename))).strftime(date_format)
@@ -114,7 +128,8 @@ def get_data_packages(sort_by='date_modified',
 
 
 def get_data_usage(sort_by='user_name', reverse=False, date_format='%Y-%m-%d %H:%M:%S'):
-    """Returns a list of data usages by each ezEML user."""
+    """ Returns a list of data usages by each ezEML user.  Used by Manage Data Usage page."""
+
     data_usages = []
     user_dirs = user_data.get_all_user_dirs()
     for dir_name in user_dirs:
@@ -130,10 +145,3 @@ def get_data_usage(sort_by='user_name', reverse=False, date_format='%Y-%m-%d %H:
         data_usages.append(data_usage)
     total_usage = get_dir_size(Config.USER_DATA_DIR)
     return total_usage, sorted(data_usages, key=lambda x: getattr(x, sort_by), reverse=reverse)
-
-
-if __name__=="__main__":
-    # l = get_data_usage()
-    # for p in l:
-    #     print(p)
-    pass

@@ -1,17 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""":Mod: metapype_client.py
-
-:Synopsis:
-
-:Author:
-    costa
-    ide
-
-:Created:
-    12/18/2018
 """
+Helper functions for accessing data regarding the current user.
+"""
+
 import json
 import os
 import os.path
@@ -29,8 +22,8 @@ from webapp.config import Config
 import webapp.home.views as views
 import webapp.views.collaborations.collaborations as collaborations
 import webapp.home.exceptions as exceptions
+from webapp.home.home_utils import log_error, log_info
 
-logger = daiquiri.getLogger('user_data: ' + __name__)
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
 
@@ -70,10 +63,10 @@ def get_user_folder_name(current_user_directory_only=False,
         user_folder_name = f'{prefix}/{user_login}'
 
     if log_the_details:
-        logger.info(f'current_user_directory_only: {current_user_directory_only}')
-        logger.info(f'user_login: {user_login}')
-        logger.info(f'owner_login: {owner_login}')
-        logger.info(f'user_folder_name: {user_folder_name}')
+        log_info(f'current_user_directory_only: {current_user_directory_only}')
+        log_info(f'user_login: {user_login}')
+        log_info(f'owner_login: {owner_login}')
+        log_info(f'user_folder_name: {user_folder_name}')
     return user_folder_name
 
 
@@ -186,7 +179,7 @@ def is_document_locked(filename, owner_login=None):
     owner_login, if passed, is used to help identify the package.
     """
     user_login = current_user.get_user_org()
-    collaborations.update_lock(user_login, filename, owner_login=owner_login)
+    return collaborations.update_lock(user_login, filename, owner_login=owner_login)
 
 
 def release_document_lock(filename):
@@ -241,6 +234,8 @@ def get_uploaded_table_properties_dict():
         with open(properties_file, 'rb') as f:
             return pickle.load(f)
     except FileNotFoundError:
+        return dict()
+    except Exception as e:
         return dict()
 
 

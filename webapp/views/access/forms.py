@@ -1,3 +1,8 @@
+"""
+Not currently used. WTForms for setting access rules for a dataset,  but we don't expose that functionality to users,
+currently.
+"""
+
 from wtforms import (
     StringField, SelectField, HiddenField
 )

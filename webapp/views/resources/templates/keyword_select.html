@@ -24,7 +24,7 @@
                     </tr>
                     {% for kw_entry in kw_list %}
                     <tr>
-                        <td width="50%">{{ kw_entry.keyword }}</td>
+                        <td width="65%">{{ kw_entry.keyword }}</td>
 {#                        <td>{{ kw_entry.keyword_type }}</td>#}
                         {{ macros.up_down_arrow(kw_entry.id, kw_entry.upval) }}
                         {{ macros.up_down_arrow(kw_entry.id, kw_entry.downval) }}
@@ -34,7 +34,8 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Keyword"/>
+                <input class="btn btn-primary" name="1" type="submit" value="Add Keyword"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" name="2" type="submit" value="Import Keyword"/>
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>

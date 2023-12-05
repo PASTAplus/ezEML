@@ -49,7 +49,7 @@ class ResponsiblePartyForm(EDIForm):
                 self.user_id.data,
                 self.organization.data,
                 self.org_id.data,
-                self.org_id_type,
+                self.org_id_type.data,
                 self.position_name.data,
                 self.address_1.data,
                 self.address_2.data,

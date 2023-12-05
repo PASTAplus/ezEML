@@ -1,8 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+import_xml.py
+
+This module contains functions for importing/parsing EML XML when executing "Import EML File (XML)..." or
+"Fetch a Package from EDI..." items in the Import/Export menu.
+"""
 
 import os
 import shutil
 
-import daiquiri
 from flask_login import current_user
 from urllib.parse import unquote
 
@@ -13,26 +21,15 @@ from metapype.eml.validation_errors import ValidationError
 
 import webapp.auth.user_data as user_data
 
-from webapp.home.metapype_client import list_files_in_dir, fixup_eml_namespaces_on_import
-
-logger = daiquiri.getLogger('import_xml: ' + __name__)
-
-
-def log_error(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.error(msg, USER=current_user.get_username())
-    else:
-        logger.error(msg)
-
-
-def log_info(msg):
-    if current_user and hasattr(current_user, 'get_username'):
-        logger.info(msg, USER=current_user.get_username())
-    else:
-        logger.info(msg)
+from webapp.home.utils.load_and_save import fixup_eml_namespaces_on_import
+from webapp.home.utils.lists import list_files_in_dir
+from webapp.home.home_utils import log_error, log_info
 
 
 def extract_eml_errors(errs):
+    """
+    Separate the errors into four sets: unknown node names, unrecognized attributes, child not allowed, and other.
+    """
     attribute_unrecognized_errs = set()
     child_not_allowed_errs = set()
     other_errs = set()
@@ -56,7 +53,14 @@ def extract_eml_errors(errs):
             sorted(other_errs))
 
 
-def determine_package_name(package_name=None):
+def determine_package_name_for_copy(package_name):
+    """
+    Determine the name to use for the output package when we're making a copy.
+
+    Package name may already be of the form foobar_COPYn. If so, replace n with 1 greater than the max copy number
+    already existing. Otherwise, append _COPY.
+    """
+
     user_path = user_data.get_user_folder_name()
     work_path = os.path.join(user_path, 'zip_temp')
 
@@ -82,13 +86,14 @@ def determine_package_name(package_name=None):
         suffix = str(max_copy + 1)
     output_package_name = name_with_copy + suffix
 
-    # src_file = os.path.join(work_path, package_name) + '.zip'
-    # dest_file = os.path.join(work_path, output_package_name) + '.zip'
-    # shutil.move(src_file, dest_file)
     return output_package_name
 
 
-def save_xml_file(file):
+def save_xml_file_in_temp_folder(file):
+    """
+    Save the uploaded XML file in the user's temp folder, which is the user folder plus 'zip_temp'.
+    """
+
     user_path = user_data.get_user_folder_name()
     work_path = os.path.join(user_path, 'zip_temp')
 
@@ -109,6 +114,10 @@ def save_xml_file(file):
 
 
 def fix_field_delimiters(eml_node):
+    """
+    If field delimiters are represented as hex values, convert them to characters. Otherwise, csv readers will fail.
+    """
+
     field_delimiter_nodes = []
     eml_node.find_all_descendants(names.FIELDDELIMITER, field_delimiter_nodes)
     for field_delimiter_node in field_delimiter_nodes:
@@ -126,6 +135,10 @@ def fix_field_delimiters(eml_node):
 
 
 def parse_xml_file(filename, filepath):
+    """
+    Parse the XML file and return the EML node and any errors.
+    """
+
     log_info(f"parse_xml_file: {filename}")
     eml_version = ''
     with open(filepath, "r") as f:
@@ -152,7 +165,6 @@ def parse_xml_file(filename, filepath):
         validate.tree(eml_node)
         print(f'{filename} - {eml_version}: valid')
         log_info(f'{filename} - {eml_version}: valid')
-#         return None
     except Exception as e:
         print(f'{filename} - {eml_version}: ', end='')
         try:

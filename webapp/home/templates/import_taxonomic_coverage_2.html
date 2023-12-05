@@ -15,11 +15,8 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select taxonomic coverages to import from {{ target_filename }}:</h5></tr>
-                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
-                    <tr><p>&nbsp;</p></tr>
-                    <tr><input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;
-                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                    {{ macros.import_selection(form, source_filename, "taxonomic coverages") }}
+                    {{ macros.import_buttons(form) }}
                     </table>
                 {{ macros.hidden_buttons() }}
             </form>

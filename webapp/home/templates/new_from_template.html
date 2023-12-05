@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% set target_name = '' %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_new_from_template_id, help_new_from_template_title, help_new_from_template_content = help[0] %}
+    {% set help_new_from_template_btn = help_new_from_template_id ~ '_btn' %}
+    {% set help_new_from_template_dialog = help_new_from_template_id ~ '_dialog' %}
+    {% endif %}
+    
+    <body onload="displayDirectory();">
+    <script>
+        function setTarget(targetName, targetPath) {
+            $("#target_prefix").css('visibility', 'visible');
+            $("#submit_button").prop('disabled', false);
+            $("#target_name").text(targetName);
+            $("#target_path").text(targetPath);
+            $("#submit_button").attr('name', targetPath + '/' + targetName);
+            $('target_name').val()
+        }
+        function displayDirectory() {
+            {#alert('hello');#}
+            // get all folders in our .directory-list
+            let allFolders = $(".directory-list li > ul");
+            allFolders.each(function() {
+
+              // add the folder class to the parent <li>
+              let folderAndName = $(this).parent();
+              folderAndName.addClass("folder");
+
+              // backup this inner <ul>
+              let backupOfThisFolder = $(this);
+              // then delete it
+              $(this).remove();
+              // add an <a> tag to whats left ie. the folder name
+              folderAndName.wrapInner("<a href='#' />");
+              // then put the inner <ul> back
+              folderAndName.append(backupOfThisFolder);
+
+              // now add a slideToggle to the <a> we just added
+              folderAndName.find("a").click(function(e) {
+                $(this).siblings("ul").slideToggle("fast");
+                e.preventDefault();
+              });
+            });
+        }
+    </script>
+
+    <table>
+        <td><h2>New EML Document from a Template</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_new_from_template_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                <br>
+
+                <table>
+                    <td><h4>Select a template:</h4></td>
+{#                    <td valign="middle" style="padding-top: 5px;padding-left: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+                </table>
+
+                {{ directory_list | safe }}
+
+                <span id="target_prefix" style="font-size: 12pt;visibility: hidden;">Selected: </span>
+                <span id="target_name" style="font-size: 12pt;"></span>
+                <span id="target_path" style="display:none;font-size: 12pt;"></span>
+                <br>&nbsp;<br>
+
+                <input class="btn btn-primary" id="submit_button" disabled="true" style="width: 100px;" name="" type="submit" value="OK"/>&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    </body>
+
+    {{ macros.help_dialog(help_new_from_template_dialog, help_new_from_template_title, help_new_from_template_content) }}
+{% endblock %}
+
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_new_from_template_id, help_new_from_template_title, help_new_from_template_content = help[0] %}
+    {% set help_new_from_template_btn = help_new_from_template_id ~ '_btn' %}
+    {% set help_new_from_template_dialog = help_new_from_template_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_new_from_template_dialog, help_new_from_template_btn) }}
+    });
+    </script>
+{% endblock %}

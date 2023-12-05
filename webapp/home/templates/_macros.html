@@ -6,20 +6,102 @@
     {% endif %}
 {% endmacro %}
 {% macro hidden_buttons() %}
+                <input id="hidden_about" style="display: none;" name="Hidden_About" type="submit" value="Hidden_About"/>
+                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
+                <input id="hidden_collaborate" style="display: none;" name="Hidden_Collaborate" type="submit" value="Hidden_Collaborate"/>
+                <input id="hidden_download" style="display: none;" name="Hidden_Download" type="submit" value="Hidden_Download"/>
+                <input id="hidden_export_ezEML_data_package" style="display: none;" name="Hidden_Export_ezEML_Data_Package" type="submit" value="Hidden_Export_ezEML_Data_Package"/>
+                <input id="hidden_fetch_from_EDI" style="display: none;" name="Hidden_Fetch_From_EDI" type="submit" value="Hidden_Fetch_From_EDI"/>
+                <input id="hidden_preview_data_portal" style="display: none;" name="Hidden_Preview_Data_Portal" type="submit" value="Hidden_Preview_Data_Portal"/>
+                <input id="hidden_import_ezEML_data_package" style="display: none;" name="Hidden_Import_ezEML_Data_Package" type="submit" value="Hidden_Import_ezEML_Data_Package"/>
+                <input id="hidden_import_funding_awards" style="display: none;" name="Hidden_Import_Funding_Awards" type="submit" value="Hidden_Import_Funding_Awards"/>
+                <input id="hidden_import_geo_coverage" style="display: none;" name="Hidden_Import_Geo_Coverage" type="submit" value="Hidden_Import_Geo_Coverage"/>
+                <input id="hidden_import_keywords" style="display: none;" name="Hidden_Import_Keywords" type="submit" value="Hidden_Import_Keywords"/>
+                <input id="hidden_import_parties" style="display: none;" name="Hidden_Import_Parties" type="submit" value="Hidden_Import_Parties"/>
+                <input id="hidden_import_project" style="display: none;" name="Hidden_Import_Project" type="submit" value="Hidden_Import_Project"/>
+                <input id="hidden_import_related_projects" style="display: none;" name="Hidden_Import_Related_Projects" type="submit" value="Hidden_Import_Related_Projects"/>
+                <input id="hidden_import_taxonomic_coverage" style="display: none;" name="Hidden_Import_Taxonomic_Coverage" type="submit" value="Hidden_Import_Taxonomic_Coverage"/>
+                <input id="hidden_import_xml" style="display: none;" name="Hidden_Import_XML" type="submit" value="Hidden_Import_XML"/>
+                <input id="hidden_index" style="display: none;" name="Hidden_Index" type="submit" value="Hidden_Index"/>
+                <input id="hidden_logout" style="display: none;" name="Hidden_Logout" type="submit" value="Hidden_Logout"/>
+                <input id="hidden_manage" style="display: none;" name="Hidden_Manage" type="submit" value="Hidden_Manage"/>
                 <input id="hidden_new" style="display: none;" name="Hidden_New" type="submit" value="Hidden_New"/>
                 <input id="hidden_new_from_template" style="display: none;" name="Hidden_New_From_Template" type="submit" value="Hidden_New_From_Template"/>
+                <input id="hidden_news" style="display: none;" name="Hidden_News" type="submit" value="Hidden_News"/>
                 <input id="hidden_open" style="display: none;" name="Hidden_Open" type="submit" value="Hidden_Open"/>
-                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
-                <input id="hidden_check" style="display: none;" name="Hidden_Check" type="submit" value="Hidden_Check"/>
                 <input id="hidden_save" style="display: none;" name="Hidden_Save" type="submit" value="Hidden_Save"/>
-                <input id="hidden_download" style="display: none;" name="Hidden_Download" type="submit" value="Hidden_Download"/>
+                <input id="hidden_save_as" style="display: none;" name="Hidden_Save_As" type="submit" value="Hidden_Save_As"/>
+                <input id="hidden_user_guide" style="display: none;" name="Hidden_User_Guide" type="submit" value="Hidden_User_Guide"/>
+                {# Buttons for Contents Menu #}
+                <input id="hidden_title" style="display: none;" name="Hidden_Title" type="submit" value="Hidden_Title"/>
+                <input id="hidden_data_tables" style="display: none;" name="Hidden_Data_Tables" type="submit" value="Hidden_Data_Tables"/>
+                <input id="hidden_creators" style="display: none;" name="Hidden_Creators" type="submit" value="Hidden_Creators"/>
+                <input id="hidden_contacts" style="display: none;" name="Hidden_Contacts" type="submit" value="Hidden_Contacts"/>
+                <input id="hidden_associated_parties" style="display: none;" name="Hidden_Associated_Parties" type="submit" value="Hidden_Associated_Parties"/>
+                <input id="hidden_metadata_providers" style="display: none;" name="Hidden_Metadata_Providers" type="submit" value="Hidden_Metadata_Providers"/>
+                <input id="hidden_abstract" style="display: none;" name="Hidden_Abstract" type="submit" value="Hidden_Abstract"/>
+                <input id="hidden_keywords" style="display: none;" name="Hidden_Keywords" type="submit" value="Hidden_Keywords"/>
+                <input id="hidden_intellectual_rights" style="display: none;" name="Hidden_Intellectual_Rights" type="submit" value="Hidden_Intellectual_Rights"/>
+                <input id="hidden_geographic_coverage" style="display: none;" name="Hidden_Geographic_Coverage" type="submit" value="Hidden_Geographic_Coverage"/>
+                <input id="hidden_temporal_coverage" style="display: none;" name="Hidden_Temporal_Coverage" type="submit" value="Hidden_Temporal_Coverage"/>
+                <input id="hidden_taxonomic_coverage" style="display: none;" name="Hidden_Taxonomic_Coverage" type="submit" value="Hidden_Taxonomic_Coverage"/>
+                <input id="hidden_maintenance" style="display: none;" name="Hidden_Maintenance" type="submit" value="Hidden_Maintenance"/>
+                <input id="hidden_publisher" style="display: none;" name="Hidden_Publisher" type="submit" value="Hidden_Publisher"/>
+                <input id="hidden_publication_info" style="display: none;" name="Hidden_Publication_Info" type="submit" value="Hidden_Publication_Info"/>
+                <input id="hidden_methods" style="display: none;" name="Hidden_Methods" type="submit" value="Hidden_Methods"/>
+                <input id="hidden_project" style="display: none;" name="Hidden_Project" type="submit" value="Hidden_Project"/>
+                <input id="hidden_other_entities" style="display: none;" name="Hidden_Other_Entities" type="submit" value="Hidden_Other_Entities"/>
+                <input id="hidden_data_package_id" style="display: none;" name="Hidden_Data_Package_ID" type="submit" value="Hidden_Data_Package_ID"/>
+                <input id="hidden_check_metadata" style="display: none;" name="Hidden_Check_Metadata" type="submit" value="Hidden_Check_Metadata"/>
+                <input id="hidden_check_data_tables" style="display: none;" name="Hidden_Check_Data_Tables" type="submit" value="Hidden_Check_Data_Tables"/>
+                <input id="hidden_submit_share_package" style="display: none;" name="Hidden_Submit_Share_Package" type="submit" value="Hidden_Submit_Share_Package"/>
+                <input id="hidden_manage_data_usage" style="display: none;" name="Hidden_Manage_Data_Usage" type="submit" value="Hidden_Manage_Data_Usage"/>
     {% set show_nav_buttons = 'visible' %}
 {% endmacro %}
-{% macro hidden_new_open_close_buttons() %}
-                <input id="hidden_new" style="display: none;" name="Hidden_New" type="submit" value="Hidden_New"/>
-                <input id="hidden_new_from_template" style="display: none;" name="Hidden_New_From_Template" type="submit" value="Hidden_New_From_Template"/>
-                <input id="hidden_open" style="display: none;" name="Hidden_Open" type="submit" value="Hidden_Open"/>
-                <input id="hidden_close" style="display: none;" name="Hidden_Close" type="submit" value="Hidden_Close"/>
+{% macro hidden_buttons_with_no_contents_menu() %}
+    {{ hidden_buttons() }}
+                <input id="hide_contents_menu" style="display: none;" name="Hide Contents Menu" type="submit" value="Hide Contents Menu"/>
+{% endmacro %}
+{% macro button_link(url, class, style, hidden_name, display_name, is_non_saving) %}
+                            {% if is_non_saving %}
+                            <a class="{{ class }}" style={{ style }}; href="{{ url }}" title="{{ display_name }}">{{ display_name }}</a>
+                            {% else %}
+                            <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();">{{ display_name }}</a>
+                            {% endif %}
+{% endmacro %}
+{% macro import_selection(form, target_filename, item_name) %}
+    <script>
+        function choose_options(all) {
+            $('input:checkbox').not(this).prop('checked', all);
+        }
+    </script>
+                    <tr><h5>Select {{ item_name }} to import from "{{ target_filename }}":
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(true); return false;">Select All</button> ]
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(false); return false;">Clear All</button> ]</h5>
+                    </tr>
+                    {% if form.to_import.choices %}
+                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
+                    {% else %}
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ target_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
+                    {% endif %}
+{% endmacro %}
+{% macro import_buttons(form) %}
+                    <tr>
+                    {% if form.to_import.choices %}
+                    <input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;&nbsp;
+                    {% else %}
+                    <input class="btn btn-primary" name="Import" disabled type="submit" value="Import"/>&nbsp;&nbsp;
+                    {% endif %}
+                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                    </tr>
+{% endmacro %}
+{% macro contents_menu_item(url, style, hidden_name, display_name, is_non_saving) %}
+                            {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
+{% endmacro %}
+{% macro toolbar_menu_item(url, hidden_name, display_name, is_non_saving) %}
+                        <li>
+                            {{ button_link(url, '', '', hidden_name, display_name, is_non_saving) }}
+                        </li>
 {% endmacro %}
 {% macro help_button(id, class) %}
     <button class="{{ class }}" type="button" id="{{ id }}" style="border:none;background:none;cursor:pointer;outline: none;" title="Help">
@@ -147,4 +229,21 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 $.get(url, function(response, status) {});
             }
         });
+{% endmacro %}
+{% macro taxon_link(link) %}
+    {% if link %}
+        <a href="{{ link }}" target="_taxon_link">External Link</a>
+    {% endif %}
+{% endmacro %}
+{% macro import_document_selection(wtf, form) %}
+                <h5>Select a data package to import from:</h5>
+                {{ wtf.form_field(form.filename) }}
+                <input class="btn btn-primary" name="Open" type="submit" value="Open for Import"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <h5>Or select a template to import from:</h5>
+                {{ wtf.form_field(form.template) }}
+                <input class="btn btn-primary" name="Open Template" type="submit" value="Open Template for Import"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
 {% endmacro %}

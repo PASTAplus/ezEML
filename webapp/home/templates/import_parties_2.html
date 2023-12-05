@@ -6,6 +6,18 @@
     {% set help_import_responsible_parties_2_btn = help_import_responsible_parties_2_id ~ '_btn' %}
     {% set help_import_responsible_parties_2_dialog = help_import_responsible_parties_2_id ~ '_dialog' %}
 
+    <body onload="setTarget('{{ target }}');">
+    <script>
+        function setTarget(target) {
+            let target_list = document.getElementsByName('target');
+            for (let i = 0; i < target_list.length; i++) {
+                if (target_list[i].value == target) {
+                    target_list[i].checked = true;
+                }
+            }
+        }
+    </script>
+
     <table>
         <td><h2>Import Responsible Parties</h2></td>
         <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_import_responsible_parties_2_btn) }}</td>
@@ -15,18 +27,19 @@
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
                 <table>
-                    <tr><h5>Select responsible parties to import from {{ target_filename }}:</h5></tr>
-                    <tr>{{ form.to_import(style="list-style:none;") }}</tr>
+                    {{ macros.import_selection(form, source_filename, "responsible parties") }}
+                    {% if form.to_import.choices %}
                     <tr><h5>Import as:</h5></tr>
                     <tr>{{ form.target(style="list-style:none;") }}</tr>
                     <tr>&nbsp;<p/></tr>
-                    <tr><input class="btn btn-primary" name="Import" type="submit" value="Import"/>&nbsp;
-                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></tr>
+                    {% endif %}
+                    {{ macros.import_buttons(form) }}
                 </table>
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
     </div>
+    </body>
     {{ macros.help_dialog(help_import_responsible_parties_2_dialog, help_import_responsible_parties_2_title, help_import_responsible_parties_2_content) }}
 {% endblock %}
 

@@ -1,16 +1,5 @@
-  #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""":Mod: forms.py
-
-:Synopsis:
-
-:Author:
-    servilla
-    costa
-
-:Created:
-    7/20/18
+"""
+Forms used in the home blueprint.
 """
 
 import hashlib
@@ -28,16 +17,23 @@ from wtforms.widgets import TextArea
 
 
 class EDIForm(FlaskForm):
-    # @classmethod
-    # def init_md5(cls, init_str):
-    #     cls.md5 = HiddenField(hashlib.md5(init_str.encode('utf-8')).hexdigest())
+    """
+    Base class for EDI forms.
+
+    Contains MD5 hash of form data to detect whether form contents have changed.
+    Various methods are provided to support MD5 hash calculation, external to the class. See below.
+    """
+
     md5 = HiddenField('')
     init_str = ''
 
     def init_md5(self):
+        # Note: this initializes the MD5 hash for the empty form. After the form is populated with data, the MD5 hash
+        # needs to be updated. See init_form_md5().
         self.md5.data = hashlib.md5(self.init_str.encode('utf-8')).hexdigest()
 
     def field_data(self):
+        """Return a tuple of field data, excluding md5 and csrf_token."""
         fields = [
             val
             for key, val in self.data.items()
@@ -47,38 +43,57 @@ class EDIForm(FlaskForm):
 
 
 def concat_str(form):
+    """Return a concatenated string of field data, excluding md5 and csrf_token, interleaved with field index.
+    We interleave the field index so we can detect if a field's value is copy-pasted to another field, for example.
+    If the field index were not interleaved, then the MD5 hash would be the same for two forms with the same field
+    values in permuted order."""
+
     concat_str = ''
     if form:
         field_data = form.field_data()
         if field_data:
-            i = 0  # we interleave the field index so we can detect if a field's value is cut-and-pasted to another field
+            i = 0  # We interleave the field index so we can detect if a field's value is copy-pasted to another field
             for val in field_data:
-                # if val:
+                # Initially a field may have value None, but in the normal course of processing GET and POST, Flask
+                # will convert None to an empty string. So we do the same here. Otherwise, we get lots of false
+                # positives, where it appears that a form is dirty when the only change is that a field has been
+                # converted from None to ''.
+                if val is None:
+                    val = ''
                 concat_str += str(i) + str(val)
                 i += 1
     return concat_str
 
 
 def form_md5(form):
+    """Return the MD5 hash of the relevant field data, i.e., excluding md5 and csrf_token."""
     form_str = concat_str(form)
+    # Browser may convert line endings to \r\n, so we convert to \n to ensure consistent results.
+    form_str = form_str.replace('\r\n', '\n')
     md5 = hashlib.md5(form_str.encode('utf-8')).hexdigest()
     return md5
 
 
 def init_form_md5(form):
+    """Initialize the MD5 hash for a form."""
     form.md5.data = form_md5(form)
 
 
 def is_dirty_form(form):
+    """Return True if the form data has changed since the form was last checked."""
     is_dirty = False
     if form:
         md5 = form_md5(form)
         hidden_md5 = form.md5.data 
         is_dirty = (md5 != hidden_md5)
+        # if is_dirty:
+        #     import os
+        #     os.system('say "Beep"')
     return is_dirty
 
 
 def validate_float(form, field):
+    """Validate that the field data is a float, but allow an empty field."""
     if len(field.data) == 0:
         return
     try:
@@ -88,6 +103,7 @@ def validate_float(form, field):
 
 
 def validate_integer(form, field):
+    """Validate that the field data is an integer, but allow an empty field."""
     if len(field.data) == 0:
         return
     try:
@@ -97,13 +113,14 @@ def validate_integer(form, field):
 
 
 class CheckboxField(SelectField):
+    """A select field that displays a list of checkboxes rather than radio buttons."""
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
 
 
 class MultiCheckboxField(SelectMultipleField):
     """
-    A multiple-select, except displays a list of checkboxes.
+    A multiple-select that displays a list of checkboxes.
 
     Iterating the field will produce subfields, allowing custom rendering of
     the enclosed checkbox fields.
@@ -112,8 +129,15 @@ class MultiCheckboxField(SelectMultipleField):
     option_widget = widgets.CheckboxInput()
 
 
+# The forms below are used in the home blueprint.
+
+class OpenDocumentForm(FlaskForm):
+    filename = SelectField('Document Name', choices=[])
+
+
 class ImportEMLForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
+    template = SelectField('Template', choices=[])
 
 
 class ImportPackageForm(FlaskForm):
@@ -165,7 +189,7 @@ class DownloadEMLForm(FlaskForm):
     filename = StringField('Document Name', validators=[DataRequired()])
 
 
-class LoadDataForm(FlaskForm):
+class LoadDataForm(EDIForm):
     delimiter = SelectField('Field Delimiter', choices=[
         (',', 'comma'),
         ('\t', 'tab'),

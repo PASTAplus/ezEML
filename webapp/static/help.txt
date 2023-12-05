@@ -399,14 +399,18 @@ A data table is one tabular entity in the data package, identified by its name. 
 To enter a table's metadata into ezEML, start by uploading it via the <b>Load Data Table from CSV File</b> button. The table is assumed to be in a text file in CSV (comma-separated value) format. Besides commas, ezEML accepts several other field delimiters, such as tabs. When you upload the table, ezEML infers as much metadata as it can from the table itself. ezEML can, for example, detect the file size, number of records, etc., and it can infer many of the attributes of the table's columns: name of column, variable type, etc.
 
 Certain metadata elements (such as the descriptions of the table and of each of the columns) must be entered manually, since they do not appear in the table file. To determine which metadata elements remain to be filled in, use the <b>Check Metadata</b> feature. You should also check that ezEML has inferred the columns' data types correctly.
+
+Note: You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table file has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
 --------------------
 data_table_reupload
 Re-upload Data Table
 The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the metadata for the data table and its columns all over again.
 
-Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
+Moreover, if you later use <b>Export Data Package</b>, <b>Submit Package to EDI</b>, or <b>Collaborate with Colleagues</b> to share your package with others, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the shared data package.
 
-<b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
+<b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and variable types to change.
+
+You may discover that sometimes the <b>Re-upload</b> button is not available for a data table. This happens when the original data table file has not been uploaded to ezEML. (For example, you may have done <b>Fetch a Package from EDI</b> and elected not to get the associated data files.) ezEML needs the data table file, not just its metadata, to be able to perform the checks and manipulations required by the Re-upload feature, so if the data table file is not available, the Re-upload feature is not available either.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/QLRbCqQZt20" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
@@ -414,7 +418,7 @@ data_table_reupload_full
 Re-upload Data Table
 The purpose of <b>Re-upload Data Table</b> is to let you update a data table's contents (e.g., because you've added some new rows or edited some cell values) without having to enter the metadata for the data table and its columns all over again.
 
-Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
+Moreover, if you later use <b>Export Data Package</b>, <b>Submit Package to EDI</b>, or <b>Collaborate with Colleagues</b> to share your package with others, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the shared data package.
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and types to change.
 
@@ -451,10 +455,14 @@ Specifies the character used in the data table file for delimiting data values. 
 data_table_size
 Size
 The size of the data table, in bytes.
+
+ezEML calculates the size automatically when the data table is uploaded. The EML standard does not require a Size element, but EDI requires it.
 --------------------
 data_table_checksum
 MD5 Checksum
 The checksum for the data table, calculated using the MD5 message-digest algorithm.
+
+ezEML calculates the checksum automatically when the data table is uploaded. The EML standard does not require a checksum element, but EDI requires it.
 --------------------
 data_table_header_lines
 Number of Header Lines
@@ -471,6 +479,8 @@ Record Delimiter
 Character(s) used to delimit records (i.e., rows).
 
 The record delimiter is usually a linefeed (\n) on UNIX, a carriage return (\r) on MacOS, or both (\r\n) on Windows/DOS.
+
+ezEML enters the record delimiter automatically when the data table is uploaded. The EML standard does not require a record delimiter element, but EDI requires it.
 --------------------
 data_table_case_sensitive
 Case Sensitive
@@ -483,6 +493,8 @@ Number of Records
 The integer count of the number of records (rows) in the data table.
 
 It should only include records that represent observations. I.e., it would not include any details of physical formatting such as the number of header lines.
+
+ezEML enters the Number of Records automatically when the data table is uploaded. The EML standard does not require a number of records element, but EDI requires it.
 --------------------
 data_table_online_url
 Online Distribution URL
@@ -512,13 +524,20 @@ For more details, see <a style="color: steelblue;" href="/static/user_guide/subm
 
 Watch a video demo of the <b>Collaborate</b> features here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=497s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>, and a demo of <b>Submit Package to EDI</b> here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=1855s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>.
 --------------------
+enable_edi_curation_notes
+Notes for EDI Data Curators
+If you have any notes for the EDI data curation team, enter them here. The curators will be able to see your notes when they access your package to prepare it for publication.
+
+Please include:<br>
+   - Any metadata fields you were unable to fill in or were unsure about,<br>
+   - Your affiliation, if any: for example, whether you are affiliated with an LTER site or other organization, since that may necessitate special handling of your data package,<br>
+   - Any other special instructions for the data curation team.
+--------------------
 export_package
 Export ezEML Data Package
 When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.
 
 <b>Export ezEML Data Package</b> creates an archive (zip) file containing the EML metadata (in both XML format and ezEML's JSON format) and the data files. This archive file can be downloaded to your computer. You will also be provided with a URL address for downloading the archive, which you can share with collaborators, for example.
-
-To submit the data package to the EDI data repository, you can use <b><a href="edit/home.submit_package">Send to EDI</a></b> which will take care of creating the archive and sending it to EDI for submission. Alternatively, you can use <b><a href="edit/collab.enable_edi_curation">Enable EDI Curation</a></b> to authorize the EDI data curation team to access your package directly without your needing to create an archive.
 --------------------
 fetch_data_source
 Fetch Data Source Info from EDI
@@ -571,7 +590,7 @@ Additional <b>Geographic Coverage</b> elements should be included if there are s
 --------------------
 geographic_coverages_csv_file
 Add / Load Geographic Coverage
-You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML by clicking <b>Add Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
+You can enter <b>Geographic Coverage</b> elements (bounding boxes) directly in ezEML by clicking <b>Add Geographic Coverage</b>, import them from another package or template by clicking <b>Import Geographic Coverage</b>, or you can click <b>Load Geographic Coverage from CSV File</b> to load geographic coverage elements from a comma-separated value (CSV) file that you have prepared in advance.
 
 In the latter case, the CSV file is required to have the following format:
 <ul>
@@ -603,19 +622,29 @@ Geographic Description can also contain information about the collection of boun
 --------------------
 import_funding_awards
 Import Funding Awards
-You may import the details for one or more funding awards from another data package.
+You may import the details for one or more funding awards from another data package or from a template.
 
 Note that you may also "import" from the current data package, to "copy and paste" a funding award to which you can then make edits.
 --------------------
 import_funding_awards_2
 Import Funding Awards
 Select the funding awards to import.
+--------------------
+import_keywords
+Import Keywords
+You may import selected keywords from another data package or from a template.
 
-If none are shown, none are available in the selected data package.
+Imported keywords are applied to the dataset as a whole, rather than to individual data tables, etc.
+--------------------
+import_keywords_2
+Import Keywords
+Select the keywords to import.
+
+Imported keywords are applied to the dataset as a whole, rather than to individual data tables, etc.
 --------------------
 import_geographic_coverage
 Import Geographic Coverage
-You may import selected geographic coverage details from another data package.
+You may import selected geographic coverage details from another data package or from a template.
 
 Currently, only geographic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
@@ -623,13 +652,13 @@ import_geographic_coverage_2
 Import Geographic Coverage
 Select the geographic coverages to import.
 
-If none are shown, none are available in the selected data package.
+Imported geographic coverages are applied to the dataset as a whole, rather than to individual data tables, etc.
 --------------------
 import_package
 Import an ezEML Data Package
 <b>Import an ezEML Data Package</b> lets you import a data package archive file that was exported from ezEML (see <b>Export ezEML Data Package</b>).
 
-The data package archive file may have been sent to you by a collaborator, for example. Alternatively, you may have submitted a data package to EDI (see <b>Send to EDI</b>), and EDI's data curators may have found it necessary to make corrections or other changes to your data package. In that case, EDI's data curators will send you an updated data package archive file so you can import it and keep your ezEML account up to date.
+The data package archive file may have been sent to you by a collaborator, for example.
 --------------------
 import_package_2
 Import an ezEML Data Package
@@ -641,33 +670,29 @@ Suppose, instead, that you elect to <b>Copy</b> the package. If the existing pac
 --------------------
 import_project
 Import Project
-You may import a project from another data package to be incorporated in the current data package as the primary project.
+You may import a project from another data package or a template. The project will be incorporated in the current data package as the primary project.
 
 The project you import may be a primary project or a related project in the other data package, but in the current data package it will be treated as the primary project. To import a project as a related project instead, use <b>Import Related Projects</b>.
 --------------------
 import_project_2
 Import Project
 Select the project you wish to import as the primary project.
-
-If none are listed, none are available in the selected data package.
 --------------------
 import_related_projects
 Import Related Projects
-You may import one or more projects from another data package to be incorporated in the current data package as related projects.
+You may import one or more projects from another data package or a template. The project(s) will be incorporated in the current data package as related project(s).
 
 The projects you import may be a primary project or a related project in the other data package, but in the current data package they will be treated as related projects.
 --------------------
 import_related_projects_2
 Import Related Projects
 Select the projects you wish to import as related projects.
-
-If none are listed, none are available in the selected data package.
 --------------------
 import_responsible_parties
 Import Responsible Parties
-You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package. This saves you from having re-enter their details.
+You may import the details for one or more responsible parties (persons, organizations, or positions) who have been specified as Creators, Contacts, etc. in another data package or a template. This saves you from having re-enter their details.
 
-The parties you import do not have to be used for the same purpose in this data package as they were in the other data package. For example, a person who was a Contact in another data package can be imported into this data package as an Associated Party.
+The parties you import do not have to be used for the same purpose in this data package as they were in the source package. For example, a person who was a Contact in another data package or template can be imported into this data package as an Associated Party.
 
 <b>Note that you may also "import" from the current data package, for example to re-use one or more Creators as Contacts or Project Personnel.</b>
 
@@ -676,14 +701,12 @@ Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/gAnzUKiXBaQ"
 import_responsible_parties_2
 Import Responsible Parties
 Select the responsible parties (persons, organizations, positions) whose details you wish to import, and select how they will be used in the current data package, i.e., as Creators, Metadata Providers, Associated Parties, Contacts, or Project Personnel.
-
-If none are listed, none are available in the selected data package.
 --------------------
 import_taxonomic_coverage
 Import Taxonomic Coverage
-You may import selected taxonomic coverage details from another data package.
+You may import selected taxonomic coverage details from another data package or a template.
 
-Note that you may also "import" from the current data package, to "copy and paste" a taxonomy you can then edit.
+Note that you may also "import" from the current data package, to "copy and paste" a taxonomy that you can then edit.
 
 Currently, only taxonomic coverages at the data package level (as opposed to the individual data table level) are available to import.
 --------------------
@@ -691,19 +714,7 @@ import_taxonomic_coverage_2
 Import Taxonomic Coverage
 Select the taxonomic coverages to import.
 
-If none are shown, none are available in the selected data package.
---------------------
-import_template
-New EML Document from a Template
-A particular research site or organization may find it useful to create templates that can serve as starting points for EML documents to be created by people in their organization. Such templates reside in their own space on the ezEML server, rather than in an individual ezEML login account, so they are accessible to everyone.
-
-A typical template might contain a selection of Creators, Geographic Coverages, and Keywords, for example. When a new document is created from the template, it is pre-populated with all of the items in the template. This saves work, but it also assists in standardizing spellings, addresses, etc., so they are consistent across documents.
-
-Templates are organized in a folder structure defined by their creators. To expand a folder, click on its name (not the icon). Template names are displayed in blue italics. Click a template name to select the template, then click <b>OK</b>. You will then be asked to provide a name for the new EML document to be created from the template.
-
-See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf" target="_user_guide_ezeml">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
-
-Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T7GAYXS1liI" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
+Imported taxonomic coverages are applied to the dataset as a whole, rather than to individual data tables, etc.
 --------------------
 import_xml
 Import an EML XML File
@@ -752,6 +763,8 @@ It is recommended that meaningful sets of keywords be provided.
 One set of keywords may identify the contributing organization(s), e.g., the LTER or OBFS site, LTREB or Macrosystems project, especially if data are co-funded or funding is leveraged.
 
 Meaningful geographic place names also are appropriate (e.g. state, city, county).
+
+If a keyword has a keyword thesaurus (controlled vocabulary) associated with it, that thesaurus name is displayed in square brackets after the keyword. Keywords can be sorted within a thesaurus keyword set. The keyword sets are displayed in the order that they were added to the metadata.
 
 Note: Communities sometimes have specific requests for keywords to assist in searches. E.g, the LTER requests that keywords should include LTER core research area(s), the network acronym (LTER, ILTER, etc.), three-letter site acronym and site name. In addition to specific keywords, relevant conceptual keywords should also be included, e.g., from the LTER Controlled Vocabulary.
 --------------------
@@ -806,7 +819,7 @@ manage_data_usage
 Manage Data Usage
 The <b>Manage Data Usage</b> page is for use by system admins. It is available only to the EDI LDAP account. It lists all ezEML accounts and shows the amount of data storage used by each. In addition, it provides an entry point for running garbage collection on ezEML data storage.
 
-Garbage collection looks at all data packages whose metadata has not been modified within the specified number of days and deletes their uploaded data tables and other entities. In addition, it deletes the associated ezEML data packages that have been prepared for export, for example by the use of the Send to EDI command.
+Garbage collection looks at all data packages whose metadata has not been modified within the specified number of days and deletes their uploaded data tables and other entities. In addition, it deletes the associated ezEML data packages that have been prepared for export.
 
 The metadata files themselves are preserved, so the data packages can be reconstituted, if needed, by re-uploading the data tables and other entities.
 
@@ -924,6 +937,18 @@ This document name will not appear in the EML itself. I.e., it is distinct from 
 
 If the data package is submitted to the EDI data repository, it will be assigned a Data Package ID, but that process happens outside of ezEML and is unknown to ezEML. ezEML will know the document by the name you provide here.
 --------------------
+new_from_template
+New EML Document from a Template
+A particular research site or organization may find it useful to create templates that can serve as starting points for EML documents to be created by people in their organization. Such templates reside in their own space on the ezEML server, rather than in an individual ezEML login account, so they are accessible to everyone.
+
+A typical template might contain a selection of Creators, Geographic Coverages, and Keywords, for example. When a new document is created from the template, it is pre-populated with all of the items in the template. This saves work, but it also assists in standardizing spellings, addresses, etc., so they are consistent across documents.
+
+Templates are organized in a folder structure defined by their creators. To expand a folder, click on its name (not the icon). Template names are displayed in blue italics. Click a template name to select the template, then click <b>OK</b>. You will then be asked to provide a name for the new EML document to be created from the template.
+
+See also the <b>Creating a New EML Document from a Template</b> section in <a style="color: steelblue;" href="/static/user_guide/creating_new_documents.pdf" target="_user_guide_ezeml">Creating a New EML Document</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T7GAYXS1liI" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
+--------------------
 other_entities
 Other Entities
 <b>Other Entities</b> are data entities other than data tables that will be included in the data package. They are identified by their names.
@@ -940,13 +965,19 @@ other_entity_reupload
 Re-upload Other Entity
 The purpose of <b>Re-upload Other Entity</b> is to let you update an other entity file without having to enter the properties of the other entity all over again. In addition, it updates the file size and checksum, which are part of the metadata describing the other entity.
 
-Moreover, if you later use <b>Export Data Package</b>, <b>Send to EDI</b>, or <b>Send to Colleague</b> to create a zip file containing the EML metadata and all of the data tables and other entities associated with the data package, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the exported data package.
+Moreover, if you later use <b>Export Data Package</b>, <b>Submit Package to EDI</b>, or <b>Collaborate with Colleagues</b> to share your package with others, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the shared data package.
 --------------------
 personnel
 Project Personnel
 Contact and role information for a person/organization involved in the research project.
 
 Note that Role is a required field.
+--------------------
+preview_data_portal
+Preview Metadata in the EDI Data Portal
+Clicking <b>Generate Preview</b> will open a new browser tab and display your metadata using the "Preview Your Metadata" tool on the EDI Data Portal.
+
+This is a convenient way to preview what the metadata will look like when it is published in the EDI Data Portal, without your having to download the EML/XML, upload it to the portal, and then preview it there.
 --------------------
 project
 Project
@@ -1106,7 +1137,7 @@ Taxonomic Coverage
 
 The EML standard says that "the lowest available level, preferably the species binomial, should always be included, but higher-level taxa should also be included to support broader taxonomic searches." ezEML can fill in the higher-level taxa for you automatically by accessing a user-specified taxonomic authority online.
 
-To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Coverage</b>. To edit an existing taxonomic coverage entry, click the <b>Edit</b> button next to it. To remove a taxonomic coverage entry, click the <b>Remove</b> button next to it.
+To add taxonomic coverage for a taxon interactively, click <b>Add Taxonomic Coverage</b>. To edit an existing taxonomic coverage entry, click the <b>Edit</b> button next to it. To remove a taxonomic coverage entry, click the <b>Remove</b> button next to it. To import taxonomic coverages from another package or template, click <b>Import Taxonomic Coverage</b>.
 
 <b>Load Taxonomic Coverage from CSV File</b> lets you load multiple taxa in a single bulk operation. ezEML will fill in taxonomic hierarchies for the taxa automatically by querying a user-specified taxonomic authority. For details, go to <b>Load Taxonomic Coverage from CSV File</b> and click the Help on that page.
 

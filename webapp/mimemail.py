@@ -38,7 +38,7 @@ def send_mail(subject, msg, to, to_name=None):
     message["Subject"] = subject
     # The from identity needs to be known to the relay server
     message["From"] = formataddr((Config.FROM_NAME, Config.FROM))
-    if to and to_name:
+    if to:
         message["To"] = formataddr((to_name, to))
     else:
         message["To"] = formataddr((Config.TO_NAME, Config.TO))
@@ -59,7 +59,7 @@ def send_mail(subject, msg, to, to_name=None):
         return True
     except smtplib.SMTPException as e:
         logger.error(e)
-        if e.smtp_error:
+        if hasattr(e.smtp_error) and e.smtp_error:
             return e.smtp_error.decode()
         else:
             return 'Email failed to send'

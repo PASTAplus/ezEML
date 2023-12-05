@@ -203,10 +203,10 @@ class DataTableForm(EDIForm):
     entity_name = StringField('Name *', validators=[InputRequired(message='Name is required')])
     entity_description = StringField('Description (Recommended)', widget=TextArea(), validators=[])
     object_name = StringField('Filename *', validators=[])
-    size = StringField('Size (Optional)', validators=[Optional(), validate_integer])
-    md5_hash = StringField('MD5 Checksum (Optional)', validators=[Optional()])
+    size = StringField('Size *', validators=[validate_integer])
+    md5_hash = StringField('MD5 Checksum *', validators=[])
     num_header_lines = StringField('Number of Header Lines (Optional)', validators=[Optional(), validate_integer])
-    record_delimiter = StringField('Record Delimiter (Optional)', validators=[])
+    record_delimiter = StringField('Record Delimiter *', validators=[])
     quote_character = SelectField('Quote Character', choices=[
         ('"', 'double quote - "'),
         ("'", "single quote - '")
@@ -222,7 +222,7 @@ class DataTableForm(EDIForm):
     ], default=','
     )
     case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
-    number_of_records = StringField('Number of Records (Optional)', validators=[Optional(), validate_integer])
+    number_of_records = StringField('Number of Records *', validators=[validate_integer])
     online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
     md5 = HiddenField('')
     init_str = '"column,no'

@@ -1,33 +1,36 @@
+"""
+Routes for project and related project pages.
+"""
+
 import collections
 
+import daiquiri
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
 from flask_login import (
-    login_required
+    current_user, login_required
 )
 
-from webapp.home.metapype_client import (
-    add_child, create_project, create_related_project,
-    remove_related_project, load_eml, save_both_formats,
-    list_funding_awards, create_funding_award,
-    remove_child, UP_ARROW, DOWN_ARROW,
-    get_upval, get_downval,
-    post_process_texttype_node,
-    handle_hidden_buttons, check_val_for_hidden_buttons,
-    dump_node_store
-)
+from webapp.home.home_utils import log_error, log_info
+from webapp.home.utils.node_utils import remove_child, add_child
+from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.node_store import dump_node_store
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_funding_awards
+from webapp.home.utils.create_nodes import create_project, create_related_project, create_funding_award
 
-from webapp.home.texttype_node_processing import(
+from webapp.home.texttype_node_processing import (
     display_texttype_node,
     model_has_complex_texttypes,
     is_valid_xml_fragment,
-    invalid_xml_error_message
+    invalid_xml_error_message, post_process_texttype_node
 )
 
-from webapp.home.forms import is_dirty_form, form_md5
-from webapp.home.views import non_breaking, process_up_button, process_down_button
-
+from webapp.home.forms import is_dirty_form, init_form_md5
+from webapp.home.views import (
+    non_breaking, process_up_button, process_down_button, select_post, set_current_page, get_help
+)
 from webapp.views.project.forms import (
     ProjectForm, AwardSelectForm, AwardForm, RelatedProjectSelectForm
 )
@@ -37,7 +40,6 @@ from webapp.views.responsible_parties.forms import ResponsiblePartySelectForm
 
 from webapp.buttons import *
 from webapp.pages import *
-from webapp.home.views import select_post, set_current_page, get_help
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -92,7 +94,7 @@ def project(filename=None, project_node_id=None):
             new_page = PAGE_RELATED_PROJECT_SELECT
             # doing_related_project = True
         else:
-            new_page = handle_hidden_buttons(new_page, this_page)
+            new_page = handle_hidden_buttons(new_page)
 
         if save:
             abstract = form.abstract.data
@@ -124,14 +126,16 @@ def project(filename=None, project_node_id=None):
             return redirect(url_for(new_page, filename=filename, node_id='None', project_node_id=project_node_id))
 
     # Process GET
-    if project_node_id == '1':
-        form.init_md5()
-    elif doing_related_project:
-        related_project_node = Node.get_node_instance(project_node_id)
-        populate_project_form(form, related_project_node)
-    elif dataset_node:
-        project_node = dataset_node.find_child(names.PROJECT)
-        populate_project_form(form, project_node)
+    if project_node_id != '1':
+        if doing_related_project:
+            related_project_node = Node.get_node_instance(project_node_id)
+            populate_project_form(form, related_project_node)
+        elif dataset_node:
+            project_node = dataset_node.find_child(names.PROJECT)
+            populate_project_form(form, project_node)
+
+    init_form_md5(form)
+
     return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id)
 
 
@@ -162,15 +166,15 @@ def populate_project_form(form: ProjectForm, project_node: Node):
             title = title_node.content
 
         abstract_node = project_node.find_child(names.ABSTRACT)
-        post_process_texttype_node(abstract_node)
+        # post_process_texttype_node(abstract_node)
 
         funding_node = project_node.find_child(names.FUNDING)
-        post_process_texttype_node(funding_node)
+        # post_process_texttype_node(funding_node)
 
         form.title.data = title
         form.abstract.data = display_texttype_node(abstract_node)
         form.funding.data = display_texttype_node(funding_node)
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @proj_bp.route('/project_personnel_select/<filename>', methods=['GET', 'POST'])
@@ -193,7 +197,8 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_PROJECT_PERSONNEL_SELECT, PAGE_PROJECT,
-                          PAGE_PROJECT, PAGE_PROJECT_PERSONNEL, project_node_id=project_node_id)
+                          PAGE_PROJECT, PAGE_PROJECT_PERSONNEL, project_node_id=project_node_id,
+                          import_page=PAGE_IMPORT_PARTIES, import_target='Project Personnel')
         return redirect(url)
 
     # Process GET
@@ -230,7 +235,8 @@ def funding_award_select(filename=None, project_node_id=None):
                     new_page = PAGE_FUNDING_AWARD_SELECT
                     node_id = key
                     eml_node = load_eml(filename=filename)
-                    remove_child(node_id=node_id)
+                    node = Node.get_node_instance(node_id)
+                    remove_child(node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                 elif val == UP_ARROW:
                     new_page = PAGE_FUNDING_AWARD_SELECT
@@ -243,8 +249,12 @@ def funding_award_select(filename=None, project_node_id=None):
                 elif val[0:3] == 'Add':
                     new_page = PAGE_FUNDING_AWARD
                     node_id = '1'
+                elif val[0:6] == BTN_IMPORT:
+                    new_page = PAGE_IMPORT_FUNDING_AWARDS
+                    if node_id is None:
+                        node_id = '1'
                 else:
-                    new_page = check_val_for_hidden_buttons(val, new_page, PAGE_FUNDING_AWARD_SELECT)
+                    new_page = check_val_for_hidden_buttons(val, new_page)
 
         if form.validate_on_submit():
             if node_id and project_node_id:
@@ -294,6 +304,10 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
             names.DATASET,
             names.PROJECT
         ])
+        if not project_node:
+            dataset_node = eml_node.find_child(names.DATASET)
+            project_node = Node(names.PROJECT, parent=dataset_node)
+            dataset_node.add_child(project_node)
     else:
         project_node = Node.get_node_instance(project_node_id)
     if request.method == 'POST':
@@ -341,7 +355,8 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
 
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT,
-                          PAGE_FUNDING_AWARD_SELECT, PAGE_FUNDING_AWARD, project_node_id=project_node_id)
+                          PAGE_FUNDING_AWARD_SELECT, PAGE_FUNDING_AWARD,
+                          project_node_id=project_node_id, import_page=PAGE_IMPORT_PARTIES)
         return redirect(url)
 
     # Process GET
@@ -352,15 +367,15 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
         title = 'Related Project Funding Award'
         related_project = True
 
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         award_nodes = project_node.find_all_children(names.AWARD)
         if award_nodes:
             for award_node in award_nodes:
                 if node_id == award_node.id:
                     populate_award_form(form, award_node)
                     break
+
+    init_form_md5(form)
 
     set_current_page('project')
     help = [get_help('award'),
@@ -449,6 +464,21 @@ def related_project_select_get(filename=None, form=None):
                            form=form, help=help)
 
 
+def remove_related_project(filename:str=None, node_id:str=None):
+    eml_node = load_eml(filename=filename)
+    related_project_node = Node.get_node_instance(node_id)
+    if related_project_node:
+        parent_node = related_project_node.parent
+        if parent_node:
+            parent_node.remove_child(related_project_node)
+            try:
+                if eml_node:
+                    save_both_formats(filename=filename, eml_node=eml_node)
+            except Exception as e:
+                logger.error(e)
+
+
+
 def related_project_select_post(filename=None, form=None, form_dict=None,
                         method=None, this_page=None, back_page=None,
                         next_page=None, edit_page=None):
@@ -479,11 +509,15 @@ def related_project_select_post(filename=None, form=None, form_dict=None,
             elif val[0:3] == BTN_ADD:
                 new_page = edit_page
                 project_node_id = '1'
+            elif val[0:6] == BTN_IMPORT:
+                new_page = PAGE_IMPORT_RELATED_PROJECTS
+                if project_node_id is None:
+                    project_node_id = '1'
             elif val[0:4] == BTN_BACK:
                 new_page = edit_page
                 project_node_id = None
             else:
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
     if form.validate_on_submit():
         if new_page == edit_page:

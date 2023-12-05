@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
-{#{% set dns_ns = namespace(do_not_show_cb = false) %}#}
 
 {% block app_content %}
     {% set help_title_id, help_title_title, help_title_content = help[0] %}
@@ -12,11 +11,8 @@
     {% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
     {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
     {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
-{#    {% set dns_ns = namespace(do_not_show_cb = false) %}#}
-{#    {% set ns = namespace(is_non_saving = false) %}#}
 
     <h2>Title</h2>
-{#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter a title for the data package:</h5>
@@ -64,7 +60,6 @@
         {{ macros.help_script(help_title_dialog, help_title_btn) }}
         {{ macros.help_script(help_nav_dialog, help_nav_btn) }}
         {{ macros.help_script(help_welcome_dialog, help_welcome_btn) }}
-        {#localStorage.setItem("do_not_show_ezeml_welcome_dialog", false);#}
         let do_not_show = localStorage.getItem("do_not_show_ezeml_welcome_dialog") == 'true';
         if (!do_not_show) {
             let welcome_dialog = $('#{{ help_welcome_dialog }}').dialog({

@@ -1,8 +1,17 @@
+
+{#
+The base template that handles the navbar/menus and the main Contents menu.
+
+Includes a releaase_number constant that needs to match the RELEASE_NUMBER in home_utils.py.
+
+For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidden_buttons.py.
+#}
+
 {% extends 'bootstrap/base.html' %}
 {% import '_macros.html' as macros %}
 
-{# The following must agree with RELEASE_NUMBER in metapype_client.py #}
-{% set release_number = '2023.08.30' %}
+{# The following must agree with RELEASE_NUMBER in home_utils.py #}
+{% set release_number = '2023.11.29' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -15,12 +24,6 @@
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/directory-list.css', version=release_number) }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
-
-{#    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">#}
-{#    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js">#}
-{#    </script>#}
-{#    <script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js">#}
-{#</script>#}
 {% endblock %}
 
 {% block title %}
@@ -32,19 +35,20 @@
    be different depending on whether or not we are on such a page. If we are, the "New" menu
    item, for example, can go directly to the home.create page. Otherwise, it needs first to
    go to the handler for the page so it can save the content, after which the hidden button is
-   handled in that other page's handler. See, for example, the EML Documents dropdown menu, below. #}
+   handled in that other page's handler. See, for example, the EML Documents dropdown menu, below,
+   and the macro toolbar_menu_item(). #}
 {% set non_saving_endswith = ['/eml/', '/create', '/open_eml_document', '/close',
         '/load_data', 'load_other_entity', 'check_metadata', 'delete',
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package', 'import_xml',
         'export_package'] %}
-{% set non_saving_contains = ['/check_metadata/', '/check_data_tables/',
+{% set non_saving_contains = ['_select', '/check_metadata/', '/check_data_tables/',
         '/data_table_errors/', '/fetch_xml', '/manage_packages',
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
         'import_package_2', 'import_xml_2', 'export_package_2',
-        '/send_to_other', '_select', '/load_geo_coverage',
+        '/send_to_other', '/load_geo_coverage',
         '/load_taxonomic_coverage', '/load_taxonomic_coverage_2',
         '/manage_data_usage', '/submit_package'] %}
 {% set ns = namespace(is_non_saving = false) %}
@@ -58,16 +62,24 @@
         {% set ns.is_non_saving = true %}
     {% endif %}
 {% endfor %}
-
 {% block navbar %}
 
 <nav class="navbar navbar-default">
     <div class="container-fluid">
+        {# Top-of-page navbar #}
         <div class="navbar-header">
             <table>
                 <td width="5%"></td>
-                <td><a onclick="nav_save.click();" href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a></td>
+                {# EDI logo home button #}
+                <td style="vertical-align: middle">
+                    {% if ns.is_non_saving %}
+                    <a href="{{ url_for('home.index') }}"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a>
+                    {% else %}
+                    <a href="#" onclick="$('#hidden_index').click();"><img style="width: 32px; width: 32px;" src="{{ url_for('static', filename='EDI-logo-300DPI_5.png') }}"></a>
+                    {% endif %}
+                </td>
                 <td width="5%"></td>
+                {# ezEML home button #}
                 <td>
                     <button aria-controls="navbar" aria-expanded="false"
                             class="navbar-toggle collapsed" data-target="#top-navbar"
@@ -77,11 +89,16 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" onclick="nav_save.click();" href="{{ url_for('home.index') }}">ezEML</a>
+                    {% if ns.is_non_saving %}
+                    <a class="navbar-brand" href="{{ url_for('home.index') }}" title="ezEML">ezEML</a>
+                    {% else %}
+                    <a class="navbar-brand" href="#" onclick="$('#hidden_index').click();">ezEML</a>
+                    {% endif %}
                 </td>
             </table>
         </div>
         <div class="navbar-collapse collapse" id="top-navbar">
+            {# EML Documents menu #}
             <ul class="nav navbar-nav">
             {% if current_user.is_authenticated %}
                 <li class="dropdown">
@@ -95,48 +112,15 @@
                             is helpful if debugging something related to is_non_saving. See the
                             explanation in the vicinity of line 20, above. #}
 {#                        <li>{{ ns.is_non_saving }}  {{ request.path }}</li>#}
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.create') }}" title="New">New...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_new').click();">New...</a>
-                            {% endif %}
-                        </li>
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.import_template') }}" title="New from Template">New from Template...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_new_from_template').click();">New from Template...</a>
-                            {% endif %}
-                        </li>
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.open_eml_document') }}" title="Open">Open...</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_open').click();">Open...</a>
-                            {% endif %}
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.create'), 'hidden_new', 'New...', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.new_from_template'), 'hidden_new_from_template', 'New from Template...', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.open_eml_document'), 'hidden_open', 'Open...', ns.is_non_saving) }}
                     {% if current_user.get_filename() %}
-                        <li>
-                            {% if ns.is_non_saving %}
-                            <a href="{{ url_for('home.close') }}" title="Close">Close</a>
-                            {% else %}
-                            <a href="#" onclick="$('#hidden_close').click();">Close</a>
-                            {% endif %}
-                        </li>
-                        <li>
-                            <a onclick="nav_save.click();" href="#" title="Save">Save</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.save_as') }}" title="Save As">Save As...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.close'), 'hidden_close', 'Close', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.save'), 'hidden_save', 'Save', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.save_as'), 'hidden_save_as', 'Save As...', ns.is_non_saving) }}
                     {% endif %}
-{#                        <li>#}
-{#                            <a href="{{ url_for('home.delete') }}" title="Delete">Delete...</a>#}
-{#                        </li>#}
-                        <li>
-                            <a href="{{ url_for('home.manage_packages') }}" title="Manage">Manage...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.manage_packages'), 'hidden_manage', 'Manage...', ns.is_non_saving) }}
                     </ul>
                 </li>
             {% endif %}
@@ -148,68 +132,48 @@
                     </a>
                     <ul class="dropdown-menu">
                         {% if current_user.get_filename() %}
-                        <li>
-                            <a href="{{ url_for('home.import_parties') }}" title="Import Responsible Parties">Import Responsible Parties (Creators, Contacts, etc.)</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_geo_coverage') }}" title="Import Geographic Coverage">Import Geographic Coverage</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_taxonomic_coverage') }}" title="Import Taxonomic Coverage">Import Taxonomic Coverage</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_funding_awards') }}" title="Import Funding Awards">Import Funding Awards</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_project') }}" title="Import Project">Import Project</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('home.import_related_projects') }}" title="Import Related Projects">Import Related Projects</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.import_parties'), 'hidden_import_parties', 'Import Responsible Parties (Creators, Contacts, etc.)', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_keywords'), 'hidden_import_keywords', 'Import Keywords', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_geo_coverage'), 'hidden_import_geo_coverage', 'Import Geographic Coverage', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_taxonomic_coverage'), 'hidden_import_taxonomic_coverage', 'Import Taxonomic Coverage', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_funding_awards'), 'hidden_import_funding_awards', 'Import Funding Awards', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_project'), 'hidden_import_project', 'Import Project', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.import_related_projects'), 'hidden_import_related_projects', 'Import Related Projects', ns.is_non_saving) }}
                         <li>
                             <hr style="border-top: 1px solid #B0B0B0;">
                         </li>
                 {% endif %}
                 {% if current_user.is_authenticated %}
-                        <li>
-                            <a href="{{ url_for('home.fetch_xml') }}" title="Fetch a Package from EDI">Fetch a Package from EDI...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.fetch_xml'), 'hidden_fetch_from_EDI', 'Fetch a Package from EDI...', ns.is_non_saving) }}
+                        {% if current_user.get_filename() %}
+                            {{ macros.toolbar_menu_item(url_for('home.preview_data_portal'), 'hidden_preview_data_portal', "Preview Your Metadata in the EDI Data Portal...", ns.is_non_saving) }}
+                        {% endif %}
                         <li>
                             <hr style="border-top: 1px solid #B0B0B0;">
                         </li>
                 {% endif %}
                 {% if current_user.get_filename() %}
-                        <li>
-                            <a href="{{ url_for('home.download_current') }}" title="Download EML File">Download EML File (XML)</a>
-                        </li>
-
+                        {{ macros.toolbar_menu_item(url_for('home.download_current'), 'hidden_download', 'Download EML File (XML)', ns.is_non_saving) }}
                 {% endif %}
                 {% if current_user.is_authenticated %}
-                        <li>
-                            <a href="{{ url_for('home.import_xml') }}" title="Import EML File (XML)">Import EML File (XML)...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.import_xml'), 'hidden_import_xml', 'Import EML File (XML)...', ns.is_non_saving) }}
                 {% endif %}
                 {% if current_user.is_authenticated %}
-                        <li>
-                            <a href="{{ url_for('home.export_package') }}" title="Export ezEML Data Package">Export ezEML Data Package...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.export_package'), 'hidden_export_ezEML_data_package', 'Export ezEML Data Package...', ns.is_non_saving) }}
                 {% endif %}
-
-                        <li>
-                            <a href="{{ url_for('home.import_package') }}" title="Import ezEML Data Package">Import ezEML Data Package...</a>
-                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.import_package'), 'hidden_import_ezEML_data_package', 'Import ezEML Data Package...', ns.is_non_saving) }}
                     </ul>
                 </li>
             {% endif %}
                 <li class="dropdown">
                     <a aria-expanded="false" aria-haspopup="true"
                        class="dropdown-toggle" data-toggle="dropdown" href="#"
-                       role="button">EDI Links
+                       role="button">EDI Info
                         <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a href="https://edirepository.org//" target="_blank">Environmental Data Initiative</a>
+                           <a href="https://edirepository.org/" target="_blank">Environmental Data Initiative (EDI)</a>
                         </li>
                         <li>
                             <a href="https://portal.edirepository.org/nis/home.jsp" target="_blank">EDI Data Portal</a>
@@ -222,15 +186,9 @@
                         </li>
                     </ul>
                 </li>
-                <li>
-                    <a href="{{ url_for('home.user_guide') }}" title="User Guide">User Guide</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('home.about') }}" title="About">About</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('home.news') }}" title="News">News</a>
-                </li>
+                        {{ macros.toolbar_menu_item(url_for('home.user_guide'), 'hidden_user_guide', 'User Guide', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.about'), 'hidden_about', 'About', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.news'), 'hidden_news', 'News', ns.is_non_saving) }}
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
@@ -240,23 +198,19 @@
                 {% else %}
                 <li>
                     <table style="height: 50px;" valign="middle">
-                        <td>
-                             <input id="nav_save" style="display: none;color: steelblue;font-weight: bold;" class="btn btn-link" name="Save" type="submit" value="Save"/>
-                        </td>
+{#                        <td>#}
+{#                             <input id="nav_save" style="display: none;color: steelblue;font-weight: bold;" class="btn btn-link" name="Save" type="submit" value="Save"/>#}
+{#                        </td>#}
                         {% if session['collaboration_enabled_for_user'] %}
                         <td>
                             <ul class="nav navbar-nav">
-                            <li>
-                                <a class="nav navbar-nav" href="{{ url_for('collab.collaborate') }}">Collaborate</a>
-                            </li>
+                            {{ macros.toolbar_menu_item(url_for('collab.collaborate'), 'hidden_collaborate', 'Collaborate', ns.is_non_saving) }}
                             </ul>
                         </td>
                         {% endif %}
                         <td>
                             <ul class="nav navbar-nav">
-                            <li>
-                                <a class="nav navbar-nav" href="{{ url_for('auth.logout') }}">Logout</a>
-                            </li>
+                            {{ macros.toolbar_menu_item(url_for('auth.logout'), 'hidden_logout', 'Logout', ns.is_non_saving) }}
                             </ul>
                         </td>
                     </table>
@@ -290,7 +244,6 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-{#    <div class="alert alert-info" role="alert">{{ message }}</div>#}
     <div class="alert alert-info {{ category }}" role="alert">{{ message }}</div>
     {% endfor %}
     {% endif %}
@@ -303,7 +256,6 @@
                     <td style="width:2%;"><h4 class="nav_link">Contents</h4><p></p></td>
                     <td><table width="10%">
                     <td style="width:2%; text-align:right; vertical-align:middle; padding-top: 4px;">{{ macros.help_button('__help__contents_btn', 'nav_link') }}</td>
-{#                    <td style="width:2%; text-align=right; vertical-align:middle; padding-top: 6px;">{{ macros.video_button('https://youtu.be/T2lhEBWzIPQ' )}}</td>#}
                     </table></td>
                 </table>
             {% set title_style = '""'|safe %}
@@ -333,6 +285,7 @@
             {% set collaborate_style = '""'|safe %}
             {% set manage_data_usage_style = '""'|safe %}
 
+            {# Mark the current page with a bold font.#}
             {% set page = session['current_page'] %}
             {% set current = '"font-weight: bold;color: #0060d8;"'|safe %}
             {% if page == 'title' %}{% set title_style = current %}{% endif %}
@@ -363,47 +316,41 @@
             {% if page == 'grant_access' %}{% set grant_access_style = current %}{% endif %}
             {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
 
-        <a class="nav_link" style={{ title_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.title') }}" title="Edit">Title</a><br>
-        <a class="nav_link" style={{ data_table_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='dt.data_table_select') }}" title="Edit">Data Tables</a><br>
-        <a class="nav_link" style={{ creator_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.creator_select') }}" title="Edit">Creators</a><br>
-        <a class="nav_link" style={{ contact_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.contact_select') }}" title="Edit">Contacts</a><br>
-        <a class="nav_link" style={{ associated_party_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.associated_party_select') }}" title="Edit">Associated Parties</a><br>
-        <a class="nav_link" style={{ metadata_provider_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.metadata_provider_select') }}" title="Edit">Metadata Providers</a><br>
-        <a class="nav_link" style={{ abstract_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.abstract') }}" title="Edit">Abstract</a><br>
-        <a class="nav_link" style={{ keyword_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.keyword_select') }}" title="Edit">Keywords</a><br>
-        <a class="nav_link" style={{ intellectual_rights_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.intellectual_rights') }}" title="Edit">Intellectual Rights</a><br>
-        <a class="nav_link" style={{ geographic_coverage_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.geographic_coverage_select') }}" title="Edit">Geographic Coverage</a><br>
-        <a class="nav_link" style={{ temporal_coverage_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.temporal_coverage_select') }}" title="Edit">Temporal Coverage</a><br>
-        <a class="nav_link" style={{ taxonomic_coverage_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='cov.taxonomic_coverage_select') }}" title="Edit">Taxonomic Coverage</a><br>
-        <a class="nav_link" style={{ maintenance_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='maint.maintenance') }}" title="Edit">Maintenance</a><br>
-        <a class="nav_link" style={{ publisher_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='rp.publisher') }}" title="Edit">Publisher</a><br>
-        <a class="nav_link" style={{ publication_info_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.publication_info') }}" title="Edit">Publication Info</a><br>
-        <a class="nav_link" style={{ method_step_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='md.method_step_select') }}" title="Edit">Methods</a><br>
-        <a class="nav_link" style={{ project_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='proj.project') }}" title="Edit">Project</a><br>
-        <a class="nav_link" style={{ other_entity_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='ent.other_entity_select') }}" title="Edit">Other Entities</a><br>
-        <a class="nav_link" style={{ data_package_id_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='res.data_package_id') }}" title="Edit">Data Package ID</a><br>
-        <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <a class="nav_link" style={{ check_metadata_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
+        {# Handle clicks on the main Contents menu.#}
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.title'), title_style, 'hidden_title', 'Title', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='dt.data_table_select'), data_table_style, 'hidden_data_tables', 'Data Tables', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.creator_select'), creator_style, 'hidden_creators', 'Creators', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.contact_select'), contact_style, 'hidden_contacts', 'Contacts', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.associated_party_select'), associated_party_style, 'hidden_associated_parties', 'Associated Parties', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.metadata_provider_select'), metadata_provider_style, 'hidden_metadata_providers', 'Metadata Providers', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.abstract'), abstract_style, 'hidden_abstract', 'Abstract', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.keyword_select'), keyword_style, 'hidden_keywords', 'Keywords', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.intellectual_rights'), intellectual_rights_style, 'hidden_intellectual_rights', 'Intellectual Rights', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='cov.geographic_coverage_select'), geographic_coverage_style, 'hidden_geographic_coverage', 'Geographic Coverage', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='cov.temporal_coverage_select'), temporal_coverage_style, 'hidden_temporal_coverage', 'Temporal Coverage', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='cov.taxonomic_coverage_select'), taxonomic_coverage_style, 'hidden_taxonomic_coverage', 'Taxonomic Coverage', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='maint.maintenance'), maintenance_style, 'hidden_maintenance', 'Maintenance', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='rp.publisher'), publisher_style, 'hidden_publisher', 'Publisher', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.publication_info'), publication_info_style, 'hidden_publication_info', 'Publication Info', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='md.method_step_select'), method_step_style, 'hidden_methods', 'Methods', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='proj.project'), project_style, 'hidden_project', 'Project', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='ent.other_entity_select'), other_entity_style, 'hidden_other_entities', 'Other Entities', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item(url_for('home.edit', page='res.data_package_id'), data_package_id_style, 'hidden_data_package_id', 'Data Package ID', ns.is_non_saving) }}<br>
+            <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
+        <a class="nav_link" style={{ check_metadata_style }}; href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>
             <br>
-{#        {% if current_user and current_user.is_authenticated and current_user.get_username() in session.get("privileged_logins", []) %}#}
         {% if current_user and current_user.is_authenticated %}
-        <a class="nav_link" style={{ check_data_tables_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.check_data_tables') }}" title="Edit">Check Data Tables</a>&nbsp;
+        <a class="nav_link" style={{ check_data_tables_style }}; href="{{ url_for('home.edit', page='home.check_data_tables') }}" title="Edit">Check Data Tables</a>&nbsp;
             <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
             <br>
         {% endif %}
-{#            <br>#}
-{#        {% if session['collaboration_enabled_for_user'] %}#}
-{#        <a class="nav_link" style={{ grant_access_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='collab.enable_edi_curation') }}" title="Edit">Enable EDI Curation</a><br>#}
-{#        {% endif %}#}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <a class="nav_link" style={{ share_submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.share_submit_package') }}" title="Edit">Submit/Share Package</a><br>
-{#        <a class="nav_link" style={{ submit_package_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.submit_package') }}" title="Edit">Send to EDI<Your/a><br>#}
-{#        <a class="nav_link" style={{ send_to_other_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.send_to_other') }}" title="Edit">Send to Colleague</a><br>#}
+        <a class="nav_link" style={{ share_submit_package_style }}; href="{{ url_for('home.edit', page='home.share_submit_package') }}" title="Edit">Submit/Share Package</a><br>
 
         {% if current_user and current_user.is_authenticated and (current_user.is_admin() or current_user.is_data_curator()) %}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <a class="nav_link" style={{ manage_data_usage_style }}; onclick="nav_save.click();" href="{{ url_for('home.edit', page='home.manage_data_usage') }}" title="Edit">Manage Data Usage</a><br>
+        <a class="nav_link" style={{ manage_data_usage_style }}; href="{{ url_for('home.edit', page='home.manage_data_usage') }}" title="Edit">Manage Data Usage</a><br>
         {% endif %}
 
         {% endif %}
@@ -423,25 +370,14 @@
     <script>
     $(function()
     {
-        let nav_check = $("#nav_check");
-        let nav_save = $("#nav_save");
-        let nav_download = $("#nav_download");
-        let nav_close = $("#nav_close");
-        let hidden_check = $("#hidden_check");
-        let hidden_save = $("#hidden_save");
-        let hidden_download = $("#hidden_download");
-        let hidden_new = $("#hidden_new");
-        let hidden_new_from_template = $("#hidden_new_from_template");
-        let hidden_open = $("#hidden_open");
-        let hidden_close = $("#hidden_close");
         let nav_link = $('.nav_link');
         let contents_div = $('#contents_div');
         let app_div = $('#app_div');
-        if (hidden_save.length === 0) {
-            nav_link.hide();
-            nav_save.hide();
-            nav_check.hide();
+        let hide_contents_menu = $('#hide_contents_menu');
+        if (hide_contents_menu.length > 0) {
+            nav_link.hide(); // this hides the Contents menu
         }
+        // Certain pages want to be displayed full width.
         {% if request.path.endswith('/collaborate') or '/collaborate/' in request.path or
                 request.path.endswith('/show_backups') or '/show_backups/' in request.path or
                 request.path.endswith('/manage_packages') or '/manage_packages/' in request.path %}
@@ -449,60 +385,7 @@
             app_div.css({'margin-left':'0px'});
             nav_link.hide();
         {% endif %}
-        if (hidden_download.length === 0) {
-            nav_download.hide();
-        }
-        nav_check.on("click", function() {
-            if (hidden_check.length) {
-                {#alert('click');#}
-                {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
-                {#alert($('form').serialize());#}
-                {#alert($('form').data('serialize'));#}
-                hidden_check.click();
-            }
-        })
-        nav_save.on("click", function() {
-            if (hidden_save.length) {
-                {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
-                {#alert($('form').serialize());#}
-                {#alert($('form').data('serialize'));#}
-                hidden_save.click();
-            }
-        })
-        nav_download.on("click", function() {
-            if (hidden_download.length) {
-                {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
-                {#alert($('form').serialize());#}
-                {#alert($('form').data('serialize'));#}
-                hidden_download.click();
-            }
-        })
 
-        {#hidden_new.on("click", function() {#}
-        {#    alert('clicked hidden new');#}
-        {#})#}
-        nav_close.on("click", function() {
-            {#alert('click');#}
-            if (hidden_close.length) {
-                hidden_close.click();
-            }
-        })
-
-        {#$('form').data('serialize',$('form').serialize()); // On load save form current state#}
-        {#alert($('form').serialize());#}
-        {#alert($('form').data('serialize'));#}
-        {##}
-        {#$(window).bind('beforeunload', function(e){#}
-        {#   // if form state change show warning box, else don't show it.#}
-        {#   if ($('form').serialize()!=$('form').data('serialize')) {#}
-                {#alert($('form').serialize());#}
-                {#alert($('form').data('serialize'));#}
-        {#       return true;#}
-        {#   }#}
-        {#   else {#}
-        {#       e = null;#}
-        {#   }#}
-        {#})#}
         });
     </script>
 

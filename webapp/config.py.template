@@ -77,11 +77,18 @@ class Config(object):
         "bmcafee-9722dcae0cf4708f5946995452883e27",
         "csmith-3baeec96846153563e16e334d058e7b8",
         "Corinna_Gries-0cefc3d7c9858476b71dbb3ab442fca6",
+        "gmaurer-a4d2d568283e74b5c4aa0f21b0b21dea",
         "jide-7a03c1e6f4528a6f9c4b1ae3cec24b39",
         "jlemaire-33463893a66177fe46eb87acc9d20e71"
         ]}
 
     COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES = 30
+
+    # Certain sites are configured to automatically generate one or more collaborations when a new package is created
+    #  from one of their templates.
+    AUTO_COLLABORATION_SITES = {
+        "UMBS" : [ ("Jason_Tallant-40d45c7169e13671c6b8f78c30e21327", "jtallant@umich.edu") ]
+    }
 
     # To allow disabling EDI Curation emails during development so as not to annoy curators
     DISABLE_ENABLE_EDI_CURATION_EMAILS = False

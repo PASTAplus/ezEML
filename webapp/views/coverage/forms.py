@@ -1,3 +1,7 @@
+"""
+WTForms for the coverage blueprint.
+"""
+
 from wtforms import (
     StringField,
     FloatField,
@@ -160,8 +164,8 @@ class TaxonomicCoverageForm(EDIForm):
     taxon_value = StringField('Taxon Scientific Name', validators=[])
     hierarchy = HiddenField('')
     taxonomic_authority = SelectField("Taxonomic Authority", choices=[
-        ("ITIS", "ITIS - Integrated Taxonomic Information System"),
         ("NCBI", "NCBI - National Center for Biotechnology Information"),
+        ("ITIS", "ITIS - Integrated Taxonomic Information System"),
         ("WORMS", "WORMS - World Register of Marine Species")])
     md5 = HiddenField('')
     hidden_taxon_rank = HiddenField('')
@@ -206,8 +210,8 @@ class LoadTaxonomicCoverageForm(EDIForm):
     general_taxonomic_coverage = StringField('General Taxonomic Coverage (Optional)', widget=TextArea(), validators=[])
     hierarchy = HiddenField('')
     taxonomic_authority = SelectField("Taxonomic Authority", choices=[
-        ("ITIS", "ITIS - Integrated Taxonomic Information System"),
         ("NCBI", "NCBI - National Center for Biotechnology Information"),
+        ("ITIS", "ITIS - Integrated Taxonomic Information System"),
         ("WORMS", "WORMS - World Register of Marine Species")])
     md5 = HiddenField('')
     hidden_taxonomic_authority = HiddenField('')

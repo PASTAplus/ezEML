@@ -40,16 +40,22 @@
                 {% if imported_from_xml %}
                 disabled
                 {% endif %}
-                type="submit" value="Add Taxonomic Coverage"/>
-                &nbsp;&nbsp;<input class="btn btn-primary" name="Load Taxonomic Coverage from CSV File"
+                type="submit" value="Add Taxonomic Coverage"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" name="2"
                 {% if imported_from_xml %}
                 disabled
                 {% endif %}
-                type="submit" value="Load Taxonomic Coverage from CSV File"/>
+                type="submit" value="Import Taxonomic Coverage"/>
+            <p>&nbsp;</p>
+                <input class="btn btn-primary" name="Load Taxonomic Coverage from CSV File"
+                {% if imported_from_xml %}
+                disabled
+                {% endif %}
+                type="submit" value="Load Taxonomic Coverage from CSV File"/>&nbsp;&nbsp;
 {#                {% if imported_from_xml %}#}
-                &nbsp;&nbsp;<input class="btn btn-primary" name="Clear" onclick="return confirm('This will clear all Taxonomic Coverage and cannot be undone. Continue?');" type="submit" value="Clear All Taxonomic Coverage"/>
+                <input class="btn btn-primary" name="Clear" onclick="return confirm('This will clear all Taxonomic Coverage and cannot be undone. Continue?');" type="submit" value="Clear All Taxonomic Coverage"/>
 {#                {% endif %}#}
-                <br/><br/>
+            <p>&nbsp;</p>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>

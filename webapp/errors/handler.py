@@ -1,23 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""":Mod: handler
-
-:Synopsis:
-
-:Author:
-    servilla
-    ide
-
-:Created:
-    5/30/18
 """
+Handlers for the various errors that can occur in the webapp. Logs the error and returns a template.
+"""
+
 import daiquiri
 from flask import Blueprint, render_template, request
 from flask_login import current_user
 from flask_wtf.csrf import CSRFError
 from webapp import app
-from webapp.home.exceptions import LockOwnedByAGroup, LockOwnedByAnotherUser
+from webapp.home.exceptions import LockOwnedByAGroup, LockOwnedByAnotherUser, DeprecatedCodeError
 from webapp.config import Config
 
 
@@ -83,3 +73,9 @@ def handle_lock_is_not_owned_by_user(error):
 def handle_csrf_error(error):
     log_error('**** A CSRF error occurred: {0}'.format(error.description))
     return render_template('401.html'), 403
+
+
+@app.errorhandler(DeprecatedCodeError)
+def handle_deprecated_code_error(error):
+    log_error('**** A deprecated code error occurred: {0}'.format(error.message))
+    return render_template('deprecated_code_error.html', message=error.message), 403

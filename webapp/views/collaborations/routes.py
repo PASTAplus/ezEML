@@ -1,4 +1,6 @@
-import daiquiri
+"""
+The various routes for the collaborate page. E.g., display the page, enable EDI curation, invite a collaborator, etc.
+"""
 import os
 import shutil
 from urllib.parse import quote, unquote, urlparse
@@ -16,13 +18,10 @@ import webapp.auth.user_data as user_data
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.metapype_client import (
-    load_eml,
-    is_hidden_button,
-    handle_hidden_buttons,
-    get_check_metadata_status,
-    list_data_packages
-)
+from webapp.home.home_utils import log_error, log_info, get_check_metadata_status
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml
+from webapp.home.utils.lists import list_data_packages
 from webapp.buttons import *
 from webapp.pages import *
 from metapype.eml import names
@@ -64,7 +63,6 @@ from webapp.views.collaborations.forms import (
     InviteCollaboratorForm,
     AcceptInvitationForm)
 
-logger = daiquiri.getLogger('collab: ' + __name__)
 collab_bp = Blueprint('collab', __name__, template_folder='templates')
 
 
@@ -73,8 +71,11 @@ collab_bp = Blueprint('collab', __name__, template_folder='templates')
 @collab_bp.route('/collaborate/<filename>/<dev>', methods=['GET', 'POST'])
 @login_required
 def collaborate(filename=None, dev=None):
+    """
+    Handle display of the collaborate page.
+    """
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_COLLABORATE, PAGE_COLLABORATE)
+        new_page = handle_hidden_buttons(PAGE_COLLABORATE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -145,7 +146,7 @@ def collaborate(filename=None, dev=None):
 @login_required
 def enable_edi_curation(filename=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE, PAGE_SHARE_SUBMIT_PACKAGE)
+        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -199,7 +200,7 @@ def enable_edi_curation(filename=None):
         if request.form.get(BTN_CANCEL):
             return redirect(get_back_url())
 
-    help = get_helps(['enable_edi_curation'])
+    help = get_helps(['enable_edi_curation', 'enable_edi_curation_notes'])
     eml_node = load_eml(filename=filename)
     return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled,
                            check_metadata_status=get_check_metadata_status(eml_node, filename),
@@ -222,9 +223,9 @@ def enable_edi_curation_mail_body(server=None, package_id=None, filename=None, n
         msg += '   User\'s Notes: ' + unquote(notes)
     if package_id and another_package_with_same_name_is_under_edi_curation(package_id):
         msg += '\n\n' + \
-            'ezEML-Generated Note to Curators: \n' + \
-            '   Another package with the same name but a different owner is already under EDI Curation.\n' + \
-            '   This may indicate that the package has been duplicated in multiple accounts and the user is confused\n' + \
+            'ezEML-Generated Note to Curators:\n' + \
+            '   Another package with the same name but a different owner is already under EDI curation.\n' + \
+            '   This may indicate that the package has been duplicated in multiple accounts amd the user is confused\n' + \
             '   about how collaboration is intended to work. Please contact the user to clarify the situation.'
     return msg
 
@@ -234,7 +235,7 @@ def enable_edi_curation_mail_body(server=None, package_id=None, filename=None, n
 @login_required
 def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=None, is_update:bool=False, update_package=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_DELETE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -262,7 +263,8 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         if not Config.DISABLE_ENABLE_EDI_CURATION_EMAILS:
             sent = mimemail.send_mail(subject='An ezEML user has enabled EDI curation',
                                       msg=msg,
-                                      to=[Config.TO])
+                                      to=Config.TO,
+                                      to_name=Config.TO_NAME)
         else:
             sent = True
         if sent is True:
@@ -278,8 +280,8 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
                 'package, below.')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except Exception as e:
-        flash('An error occurred while enabling EDI curation for this package.', 'error')
-        logger.error(e)
+        flash('An error occurred while enabling EDI curation for this package. Please report this to support@edirepository.org.', 'error')
+        log_error(e)
 
     return redirect(url_for(PAGE_COLLABORATE, filename=current_user.get_filename()))
 
@@ -290,7 +292,7 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
 @login_required
 def accept_invitation(filename=None, invitation_code=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_DELETE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -390,7 +392,7 @@ def compose_invite_collaborator_email(name, sender_name, sender_email, title, in
 @login_required
 def invite_collaborator(filename=None):
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE, PAGE_DELETE)
+        new_page = handle_hidden_buttons(PAGE_DELETE)
         current_document = current_user.get_filename()
         return redirect(url_for(new_page, filename=current_document))
 
@@ -421,7 +423,7 @@ def invite_collaborator(filename=None):
                 invitation_code = collaborations.create_invitation(filename, user_name, user_email,
                                                                    collaborator_name, email_address)
             except Exception as e:
-                logger.error(f'create_invitation: {e}')
+                log_error(f'create_invitation: {e}')
                 raise
 
             try:
@@ -565,7 +567,7 @@ def show_backups(filename=None, action=None):
     current_document = current_user.get_filename()
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHOW_BACKUPS, PAGE_SHOW_BACKUPS)
+        new_page = handle_hidden_buttons(PAGE_SHOW_BACKUPS)
         return redirect(url_for(new_page, filename=current_document))
 
     # The action parameter is used to signal we want to

@@ -1,25 +1,66 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""":Mod: log_usage.py
-
-:Synopsis:
+"""
     Write usage info to usage log
-
-:Author:
-    ide
-
-:Created:
-    2022-04-04
 """
 
 from datetime import date, datetime
 from flask_login import current_user
 
-from webapp.home.import_data import convert_file_size
+from webapp.home.fetch_data import convert_file_size
 
 
 USAGE_LOG_FILE = 'usage.log'
+
+
+actions = {
+    'ACCEPT_INVITATION': 'Accept Invitation',
+    'CHECK_DATA_TABLES': 'Check Data Tables',
+    'CHECK_METADATA': 'Check Metadata',
+    'CHECK_XML': 'Check XML',
+    'CLONE_COLUMN_PROPERTIES': 'Clone Column Properties',
+    'CLOSE_DOCUMENT': 'Close',
+    'COLLABORATE': 'Collaborate',
+    'COLLABORATION_BACKUPS': 'Collaboration Backups',
+    'DELETE_DOCUMENT': 'Delete',
+    'DOWNLOAD_EML_FILE': 'Download EML File',
+    'ENABLE_EDI_CURATION': 'Enable EDI Curation',
+    'END_COLLABORATION': 'End Collaboration',
+    'END_GROUP_COLLABORATION': 'End Group Collaboration',
+    'EXPORT_EZEML_DATA_PACKAGE': 'Export ezEML Data Package',
+    'FETCH_FROM_EDI': 'Fetch from EDI',
+    'FETCH_PROVENANCE_INFO': 'Fetch Provenance Info from EDI',
+    'FILL_TAXONOMIC_HIERARCHY': 'Fill Taxonomic Hierarchy',
+    'GET_ASSOCIATED_DATA_FILES': 'Get Associated Data Files',
+    'HELP': 'Help',
+    'IMPORT_EML_XML_FILE': 'Import EML File (XML)',
+    'IMPORT_EZEML_DATA_PACKAGE': 'Import ezEML Data Package',
+    'IMPORT_FUNDING_AWARDS': 'Import Funding Awards',
+    'IMPORT_GEOGRAPHIC_COVERAGE': 'Import Geographic Coverage',
+    'IMPORT_KEYWORDS': 'Import Keywords',
+    'IMPORT_PROJECT': 'Import Project',
+    'IMPORT_RELATED_PROJECTS': 'Import Related Projects',
+    'IMPORT_RESPONSIBLE_PARTIES': 'Import Responsible Parties',
+    'IMPORT_TAXONOMIC_COVERAGE': 'Import Taxonomic Coverage',
+    'INVITE_COLLABORATOR': 'Invite a Collaborator',
+    'LOAD_DATA_TABLE': 'Load Data Table',
+    'LOAD_GEOGRAPHIC_COVERAGE': 'Load Geographic Coverage',
+    'LOAD_OTHER_ENTITY': 'Load Other Entity',
+    'LOAD_TAXONOMIC_COVERAGE': 'Load Taxonomic Coverage',
+    'LOGIN': 'Login',
+    'LOGOUT': 'Logout',
+    'MANAGE_DATA_USAGE': 'Manage Data Usage',
+    'MANAGE_PACKAGES': 'Manage Packages',
+    'NEW_DOCUMENT': 'New',
+    'NEW_FROM_TEMPLATE': 'New from Template',
+    'OPEN_BY_COLLABORATOR': 'Open by Collaborator',
+    'OPEN_DOCUMENT': 'Open',
+    'RE_UPLOAD_DATA_TABLE': 'Re-upload Data Table',
+    'RE_UPLOAD_OTHER_ENTITY': 'Re-upload Other Entity',
+    'SAVE_AS_DOCUMENT': 'Save As',
+    'SAVE_DOCUMENT': 'Save',
+    'SEND_TO_EDI': 'Send to EDI',
+    'SEND_TO_COLLEAGUE': 'Send to Colleague',
+    'USER_GUIDE': 'User Guide'
+}
 
 
 def handle_special_cases(action, args):
@@ -74,54 +115,3 @@ def log_usage(action, *args):
         data = ','.join(data_cols)
         line = f"{date},{time},{username},{action},{current_document},{data}\n"
         log.write(line)
-
-
-actions = {
-    'ACCEPT_INVITATION': 'Accept Invitation',
-    'CHECK_DATA_TABLES': 'Check Data Tables',
-    'CHECK_METADATA': 'Check Metadata',
-    'CHECK_XML': 'Check XML',
-    'CLONE_COLUMN_PROPERTIES': 'Clone Column Properties',
-    'CLOSE_DOCUMENT': 'Close',
-    'COLLABORATE': 'Collaborate',
-    'COLLABORATION_BACKUPS': 'Collaboration Backups',
-    'DELETE_DOCUMENT': 'Delete',
-    'DOWNLOAD_EML_FILE': 'Download EML File',
-    'ENABLE_EDI_CURATION': 'Enable EDI Curation',
-    'END_COLLABORATION': 'End Collaboration',
-    'END_GROUP_COLLABORATION': 'End Group Collaboration',
-    'EXPORT_EZEML_DATA_PACKAGE': 'Export ezEML Data Package',
-    'FETCH_FROM_EDI': 'Fetch from EDI',
-    'FETCH_PROVENANCE_INFO': 'Fetch Provenance Info from EDI',
-    'FILL_TAXONOMIC_HIERARCHY': 'Fill Taxonomic Hierarchy',
-    'GET_ASSOCIATED_DATA_FILES': 'Get Associated Data Files',
-    'HELP': 'Help',
-    'IMPORT_EML_XML_FILE': 'Import EML File (XML)',
-    'IMPORT_EZEML_DATA_PACKAGE': 'Import ezEML Data Package',
-    'IMPORT_FUNDING_AWARDS': 'Import Funding Awards',
-    'IMPORT_GEOGRAPHIC_COVERAGE': 'Import Geographic Coverage',
-    'IMPORT_PROJECT': 'Import Project',
-    'IMPORT_RELATED_PROJECTS': 'Import Related Projects',
-    'IMPORT_RESPONSIBLE_PARTIES': 'Import Responsible Parties',
-    'IMPORT_TAXONOMIC_COVERAGE': 'Import Taxonomic Coverage',
-    'INVITE_COLLABORATOR': 'Invite a Collaborator',
-    'LOAD_DATA_TABLE': 'Load Data Table',
-    'LOAD_GEOGRAPHIC_COVERAGE': 'Load Geographic Coverage',
-    'LOAD_OTHER_ENTITY': 'Load Other Entity',
-    'LOAD_TAXONOMIC_COVERAGE': 'Load Taxonomic Coverage',
-    'LOGIN': 'Login',
-    'LOGOUT': 'Logout',
-    'MANAGE_DATA_USAGE': 'Manage Data Usage',
-    'MANAGE_PACKAGES': 'Manage Packages',
-    'NEW_DOCUMENT': 'New',
-    'NEW_FROM_TEMPLATE': 'New from Template',
-    'OPEN_BY_COLLABORATOR': 'Open by Collaborator',
-    'OPEN_DOCUMENT': 'Open',
-    'RE_UPLOAD_DATA_TABLE': 'Re-upload Data Table',
-    'RE_UPLOAD_OTHER_ENTITY': 'Re-upload Other Entity',
-    'SAVE_AS_DOCUMENT': 'Save As',
-    'SAVE_DOCUMENT': 'Save',
-    'SEND_TO_EDI': 'Send to EDI',
-    'SEND_TO_COLLEAGUE': 'Send to Colleague',
-    'USER_GUIDE': 'User Guide'
-}

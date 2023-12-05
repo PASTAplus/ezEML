@@ -1,3 +1,20 @@
+"""
+This module contains the routes for the geographic, temporal, and taxonomic coverage pages.
+
+There is one gotcha regarding taxonomic coverage. The EML standard permits a variety of different ways to define
+taxonomic coverage. In particular, the schema permits multiple taxonomicClassification children of a taxonomicCoverage
+element.
+
+What ezEML expects is that each taxonomicCoverage element will have one and only one taxonomicClassification child.
+So, if there are multiple taxonomic coverages defined, each will have its own taxonomicCoverage element under the
+dataset's coverage element. A package that was created using ezEML will adhere to ezEML's expectations, but a package
+that was created using some other tool may not. So, when loading a package, ezEML will check to see if the package
+conforms to ezEML's expectations. If it does not, ezEML sets a flag (and saves it in additionalMetadata) that prevents
+the user from editing the taxonomic coverage. The user can still view the taxonomic coverage, but cannot edit it.
+It will, however, be preserved and saved in XML output. The user can also delete the taxonomic coverage and create a
+new one (which will necessarily conform to ezEML's expectations).
+"""
+
 import ast
 import numpy as np
 import os
@@ -11,17 +28,17 @@ from flask_login import (
     current_user, login_required
 )
 
+import webapp.home.utils.node_utils
 from webapp.home.exceptions import InvalidHeaderRow, UnexpectedDataTypes, TaxonNotFound
 
-from webapp.home.metapype_client import (
-    add_child, load_eml, save_both_formats,
-    list_geographic_coverages, create_geographic_coverage,
-    create_temporal_coverage, list_temporal_coverages,
-    create_taxonomic_coverage, list_taxonomic_coverages,
-    handle_hidden_buttons, check_val_for_hidden_buttons,
-    taxonomy_imported_from_xml, clear_taxonomy_imported_from_xml,
-    dump_node_store
-)
+from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.node_store import dump_node_store
+from webapp.home.utils.load_and_save import load_eml, save_both_formats, clear_taxonomy_imported_from_xml_flag, \
+    taxonomy_inconsistent_with_ezeml
+from webapp.home.utils.lists import list_geographic_coverages, list_temporal_coverages, list_taxonomic_coverages
+from webapp.home.utils.create_nodes import create_geographic_coverage, create_temporal_coverage, \
+    create_taxonomic_coverage
+from webapp.home.utils.node_utils import add_child
 
 from webapp.views.coverage.taxonomy import (
     TaxonomySourceEnum, ITISTaxonomy, NCBITaxonomy, WORMSTaxonomy,
@@ -32,7 +49,7 @@ from webapp.auth.user_data import (
     get_document_uploads_folder_name, get_user_folder_name
 )
 
-from webapp.home.forms import is_dirty_form, form_md5, LoadDataForm
+from webapp.home.forms import is_dirty_form, init_form_md5, LoadDataForm
 from webapp.views.coverage.forms import (
     GeographicCoverageForm,
     GeographicCoverageSelectForm,
@@ -65,6 +82,9 @@ cov_bp = Blueprint('cov', __name__, template_folder='templates')
 @cov_bp.route('/geographic_coverage_select/<filename>', methods=['GET', 'POST'])
 @login_required
 def geographic_coverage_select(filename=None):
+    """
+    Display a list of geographic coverages. The user can select one of the coverages to edit.
+    """
     form = GeographicCoverageSelectForm(filename=filename)
 
     # Process POST
@@ -75,7 +95,7 @@ def geographic_coverage_select(filename=None):
                           'POST', PAGE_GEOGRAPHIC_COVERAGE_SELECT,
                           PAGE_INTELLECTUAL_RIGHTS,
                           PAGE_TEMPORAL_COVERAGE_SELECT,
-                          PAGE_GEOGRAPHIC_COVERAGE)
+                          PAGE_GEOGRAPHIC_COVERAGE, import_page=PAGE_IMPORT_GEO_COVERAGE)
         return redirect(url)
 
     # Process GET
@@ -97,6 +117,81 @@ def geographic_coverage_select(filename=None):
 @cov_bp.route('/load_geo_coverage/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_geo_coverage(filename):
+    """
+    Route for loading a geographic coverage from a CSV file.
+    """
+
+    def load_geo_coverage_from_csv(csv_filename, filename):
+        """
+        Load a geographic coverage from a CSV file.
+        """
+
+        def add_geo_coverage_node(eml_node, description, north, south, east, west, amin=None, amax=None, aunits=None):
+            dataset_node = eml_node.find_child(names.DATASET)
+            if not dataset_node:
+                dataset_node = Node(names.DATASET)
+
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if not coverage_node:
+                coverage_node = Node(names.COVERAGE, parent=dataset_node)
+                add_child(dataset_node, coverage_node)
+
+            gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
+            add_child(coverage_node, gc_node)
+
+            create_geographic_coverage(
+                gc_node, description, west, east, north, south, amin, amax, aunits)
+
+        eml_node = load_eml(filename=filename)
+
+        data_frame = pd.read_csv(csv_filename, comment='#', encoding='utf8')
+
+        required_columns = ['geographicDescription',
+                            'northBoundingCoordinate',
+                            'southBoundingCoordinate',
+                            'eastBoundingCoordinate',
+                            'westBoundingCoordinate']
+        optional_columns = ['minimumAltitude',
+                            'maximumAltitude',
+                            'altitudeUnits']
+        has_required_columns = False
+        has_optional_columns = False
+
+        if list(data_frame.columns) == required_columns:
+            has_required_columns = True
+        if list(data_frame.columns) == required_columns + optional_columns:
+            has_required_columns = True
+            has_optional_columns = True
+
+        if not has_required_columns:
+            raise InvalidHeaderRow('Geographic coverage file does not have expected column names.')
+
+        expected_types_error_msg = 'Geographic coverage file does not have expected variable types in columns. Note that ' \
+                                   'numerical values must be written with a decimal point.'
+        if not has_optional_columns:
+            if list(data_frame.dtypes)[1:] != [np.float64, np.float64, np.float64, np.float64]:
+                raise UnexpectedDataTypes(expected_types_error_msg)
+        else:
+            if list(data_frame.dtypes)[1:-1] != [np.float64, np.float64, np.float64, np.float64, np.float64,
+                                                 np.float64]:
+                raise UnexpectedDataTypes(expected_types_error_msg)
+
+        # Check for missing values
+        for column in required_columns:
+            if data_frame[column].isnull().values.any():
+                raise UnexpectedDataTypes(f'Geographic coverage file contains missing values in column: {column}.')
+
+        for index, row in data_frame.iterrows():
+            if has_optional_columns:
+                add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4],
+                                      str(row[5]) if not pd.isna(row[5]) else None,
+                                      str(row[6]) if not pd.isna(row[6]) else None,
+                                      str(row[7]) if not pd.isna(row[7]) else None)
+            else:
+                add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
+
+        save_both_formats(filename=filename, eml_node=eml_node)
+
     form = LoadDataForm()
     document = current_user.get_filename()
     uploads_folder = get_document_uploads_folder_name()
@@ -114,7 +209,7 @@ def load_geo_coverage(filename):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_LOAD_GEO_COVERAGE)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         if new_page:
             url = url_for(new_page, filename=filename)
@@ -153,77 +248,12 @@ def load_geo_coverage(filename):
                            help=help)
 
 
-def load_geo_coverage_from_csv(csv_filename, filename):
-    eml_node = load_eml(filename=filename)
-
-    data_frame = pd.read_csv(csv_filename, comment='#', encoding='utf8')
-
-    required_columns = ['geographicDescription',
-                        'northBoundingCoordinate',
-                        'southBoundingCoordinate',
-                        'eastBoundingCoordinate',
-                        'westBoundingCoordinate']
-    optional_columns = ['minimumAltitude',
-                        'maximumAltitude',
-                        'altitudeUnits']
-    has_required_columns = False
-    has_optional_columns = False
-
-    if list(data_frame.columns) == required_columns:
-        has_required_columns = True
-    if list(data_frame.columns) == required_columns + optional_columns:
-        has_required_columns = True
-        has_optional_columns = True
-
-    if not has_required_columns:
-        raise InvalidHeaderRow('Geographic coverage file does not have expected column names.')
-
-    expected_types_error_msg = 'Geographic coverage file does not have expected variable types in columns. Note that ' \
-        'numerical values must be written with a decimal point.'
-    if not has_optional_columns:
-        if list(data_frame.dtypes)[1:] != [np.float64, np.float64, np.float64, np.float64]:
-            raise UnexpectedDataTypes(expected_types_error_msg)
-    else:
-        if list(data_frame.dtypes)[1:-1] != [np.float64, np.float64, np.float64, np.float64, np.float64, np.float64]:
-            raise UnexpectedDataTypes(expected_types_error_msg)
-
-    # Check for missing values
-    for column in required_columns:
-        if data_frame[column].isnull().values.any():
-            raise UnexpectedDataTypes(f'Geographic coverage file contains missing values in column: {column}.')
-
-    for index, row in data_frame.iterrows():
-        if has_optional_columns:
-            add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4],
-                                  str(row[5]) if not pd.isna(row[5]) else None,
-                                  str(row[6]) if not pd.isna(row[6]) else None,
-                                  str(row[7]) if not pd.isna(row[7]) else None)
-        else:
-            add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
-
-    save_both_formats(filename=filename, eml_node=eml_node)
-
-
-def add_geo_coverage_node(eml_node, description, north, south, east, west, amin=None, amax=None, aunits=None):
-    dataset_node = eml_node.find_child(names.DATASET)
-    if not dataset_node:
-        dataset_node = Node(names.DATASET)
-
-    coverage_node = dataset_node.find_child(names.COVERAGE)
-    if not coverage_node:
-        coverage_node = Node(names.COVERAGE, parent=dataset_node)
-        add_child(dataset_node, coverage_node)
-
-    gc_node = Node(names.GEOGRAPHICCOVERAGE, parent=coverage_node)
-    add_child(coverage_node, gc_node)
-
-    create_geographic_coverage(
-        gc_node, description, west, east, north, south, amin, amax, aunits)
-
-
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def geographic_coverage(filename=None, node_id=None):
+    """
+    Route for displaying/editing a geographic coverage
+    """
     form = GeographicCoverageForm(filename=filename)
 
     # Process POST
@@ -243,7 +273,7 @@ def geographic_coverage(filename=None, node_id=None):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         url = url_for(new_page, filename=filename)
 
@@ -300,9 +330,7 @@ def geographic_coverage(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -320,6 +348,9 @@ def geographic_coverage(filename=None, node_id=None):
 
 
 def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
+    """
+    Populate the geographic coverage form with values from the node
+    """
     geographic_description_node = node.find_child(names.GEOGRAPHICDESCRIPTION)
     if geographic_description_node:
         form.geographic_description.data = geographic_description_node.content
@@ -373,12 +404,15 @@ def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
     if aunits_node:
         form.aunits.data = aunits_node.content
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @cov_bp.route('/temporal_coverage_select/<filename>', methods=['GET', 'POST'])
 @login_required
 def temporal_coverage_select(filename=None):
+    """
+    Display a list of temporal coverages. The user can select one of the coverages to edit.
+    """
     form = TemporalCoverageSelectForm(filename=filename)
 
     # Process POST
@@ -411,6 +445,9 @@ def temporal_coverage_select(filename=None):
 @cov_bp.route('/temporal_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def temporal_coverage(filename=None, node_id=None):
+    """
+    Display a form for editing a temporal coverage.
+    """
     form = TemporalCoverageForm(filename=filename)
     tc_node_id = node_id
 
@@ -427,11 +464,10 @@ def temporal_coverage(filename=None, node_id=None):
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         new_page = PAGE_TEMPORAL_COVERAGE_SELECT
-        this_page = PAGE_TEMPORAL_COVERAGE
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         url = url_for(new_page, filename=filename)
 
@@ -477,9 +513,7 @@ def temporal_coverage(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
@@ -491,11 +525,16 @@ def temporal_coverage(filename=None, node_id=None):
                         if node_id == tc_node.id:
                             populate_temporal_coverage_form(form, tc_node)
 
+    init_form_md5(form)
+
     set_current_page('temporal_coverage')
     return render_template('temporal_coverage.html', title='Temporal Coverage', form=form)
 
 
 def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
+    """
+    Populate the temporal coverage form with values from the given node.
+    """
     begin_date_node = node.find_single_node_by_path([
         names.RANGEOFDATES,
         names.BEGINDATE
@@ -517,12 +556,15 @@ def populate_temporal_coverage_form(form: TemporalCoverageForm, node: Node):
             calendar_date_node = single_date_time_node.find_child(names.CALENDARDATE)
             form.begin_date.data = calendar_date_node.content
 
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @cov_bp.route('/taxonomic_coverage_select/<filename>', methods=['GET', 'POST'])
 @login_required
 def taxonomic_coverage_select(filename=None):
+    """
+    Display a form for selecting a taxonomic coverage.
+    """
     form = TaxonomicCoverageSelectForm(filename=filename)
 
     # Process POST
@@ -536,7 +578,8 @@ def taxonomic_coverage_select(filename=None):
             url = select_post(filename, form, form_dict,
                               'POST', PAGE_TAXONOMIC_COVERAGE_SELECT,
                               PAGE_TEMPORAL_COVERAGE_SELECT,
-                              PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE)
+                              PAGE_MAINTENANCE, PAGE_TAXONOMIC_COVERAGE,
+                              import_page=PAGE_IMPORT_TAXONOMIC_COVERAGE)
             return redirect(url)
 
     # Process GET
@@ -547,14 +590,14 @@ def taxonomic_coverage_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            if not taxonomy_imported_from_xml(eml_node, filename):
+            if not taxonomy_inconsistent_with_ezeml(eml_node, filename):
                 txc_list = list_taxonomic_coverages(dataset_node)
 
     set_current_page('taxonomic_coverage')
     help = [get_help('taxonomic_coverages'), get_help('taxonomy_imported_from_xml')]
     return render_template('taxonomic_coverage_select.html', title=title,
                            txc_list=txc_list,
-                           imported_from_xml=taxonomy_imported_from_xml(eml_node, filename),
+                           imported_from_xml=taxonomy_inconsistent_with_ezeml(eml_node, filename),
                            form=form, help=help)
 
 
@@ -566,13 +609,19 @@ def clear_taxonomic_coverage(package_name):
     if coverage_node:
         taxonomic_coverage_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
         for taxonomic_coverage_node in taxonomic_coverage_nodes:
-            coverage_node.remove_child(taxonomic_coverage_node)
+            webapp.home.utils.node_utils.remove_child(taxonomic_coverage_node)
             Node.delete_node_instance(taxonomic_coverage_node.id)
-        clear_taxonomy_imported_from_xml(eml_node, package_name)
+        clear_taxonomy_imported_from_xml_flag(eml_node, package_name)
         save_both_formats(filename=package_name, eml_node=eml_node)
 
 
 def fill_taxonomic_coverage(taxon, source_type, source_name, row=None, processing_csv_file=False):
+    """
+    Fill out the taxonomic hierarchy for the given taxon using the specified taxonomic authority (source_type).
+
+    Raise a TaxonNotFound exception if the hierarchy cannot be filled. The TaxonNotFound exception is includes
+    relevant error message text.
+    """
     # taxon = form.taxon_value.data
     hierarchy = []
     if not taxon:
@@ -592,7 +641,10 @@ def fill_taxonomic_coverage(taxon, source_type, source_name, row=None, processin
     try:
         hierarchy = source.fill_common_names(source.fill_hierarchy(taxon))
     except Exception as err:
-        raise ValueError(f'A network error occurred. Please try again.')
+        err_msg = 'A network error occurred. Please try again, or try a different taxonomic authority.'
+        if source.name == 'ITIS':
+            err_msg += ' ITIS seems especially prone to network timeout errors.'
+        raise ValueError(err_msg) from err
     if not hierarchy:
         if processing_csv_file:
             raise TaxonNotFound(f'Row {row}: Taxon "{taxon}" - Not found in authority {source.name}. Please check that you'
@@ -609,6 +661,37 @@ def fill_taxonomic_coverage(taxon, source_type, source_name, row=None, processin
 @cov_bp.route('/load_taxonomic_coverage/<filename>', methods=['GET', 'POST'])
 @login_required
 def load_taxonomic_coverage(filename):
+    """
+    Route for loading taxonomic coverage from a CSV file.
+    """
+
+    def save_uploaded_taxonomic_coverage(eml_node, hierarchies, general_coverages, global_authority):
+        """
+        Save the taxonomic coverage imported from a CSV file in the EML document.
+        """
+        dataset_node = eml_node.find_child(names.DATASET)
+        if not dataset_node:
+            dataset_node = Node(names.DATASET)
+
+        coverage_node = dataset_node.find_child(names.COVERAGE)
+        if not coverage_node:
+            coverage_node = Node(names.COVERAGE, parent=dataset_node)
+            add_child(dataset_node, coverage_node)
+
+        for hierarchy, general_coverage in zip(hierarchies, general_coverages):
+            if hierarchy is None:
+                continue
+
+            # Each hierarchy gets its own taxonomic coverage node. There are other ways to do this, but this is how ezEML does it.
+            taxonomic_coverage_node = Node(names.TAXONOMICCOVERAGE, parent=coverage_node)
+            add_child(coverage_node, taxonomic_coverage_node)
+
+            create_taxonomic_coverage(
+                taxonomic_coverage_node,
+                general_coverage,
+                hierarchy,
+                global_authority)
+
     form = LoadTaxonomicCoverageForm()
     document = current_user.get_filename()
     uploads_folder = get_document_uploads_folder_name()
@@ -626,7 +709,7 @@ def load_taxonomic_coverage(filename):
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_LOAD_TAXONOMIC_COVERAGE)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         if new_page:
             url = url_for(new_page, filename=filename)
@@ -694,6 +777,9 @@ def load_taxonomic_coverage(filename):
 @cov_bp.route('/load_taxonomic_coverage_2/', methods=['GET', 'POST'])
 @login_required
 def load_taxonomic_coverage_2():
+    """
+    Route to display errors from loading taxonomic coverage from a CSV file.
+    """
     # Read errors from file
     user_path = get_user_folder_name()
     work_path = os.path.join(user_path, 'zip_temp')
@@ -710,35 +796,13 @@ def load_taxonomic_coverage_2():
                            errors=errors)
 
 
-def save_uploaded_taxonomic_coverage(eml_node, hierarchies, general_coverages, global_authority):
-    dataset_node = eml_node.find_child(names.DATASET)
-    if not dataset_node:
-        dataset_node = Node(names.DATASET)
-
-    coverage_node = dataset_node.find_child(names.COVERAGE)
-    if not coverage_node:
-        coverage_node = Node(names.COVERAGE, parent=dataset_node)
-        add_child(dataset_node, coverage_node)
-
-    for hierarchy, general_coverage in zip(hierarchies, general_coverages):
-        if hierarchy is None:
-            continue
-
-        # Each hierarchy gets its own taxonomic coverage node. There are other ways to do this, but this is how ezEML does it.
-        taxonomic_coverage_node = Node(names.TAXONOMICCOVERAGE, parent=coverage_node)
-        add_child(coverage_node, taxonomic_coverage_node)
-
-        create_taxonomic_coverage(
-            taxonomic_coverage_node,
-            general_coverage,
-            hierarchy,
-            global_authority)
-
-
 @cov_bp.route('/taxonomic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
 @cov_bp.route('/taxonomic_coverage/<filename>/<node_id>/<taxon>', methods=['GET', 'POST'])
 @login_required
 def taxonomic_coverage(filename=None, node_id=None, taxon=None):
+    """
+    Route for editing a taxonomic coverage element.
+    """
     form = TaxonomicCoverageForm(filename=filename)
 
     # Process POST
@@ -803,11 +867,10 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
 
         form_dict = form_value.to_dict(flat=False)
         new_page = PAGE_TAXONOMIC_COVERAGE_SELECT
-        this_page = PAGE_TAXONOMIC_COVERAGE
         if form_dict:
             for key in form_dict:
                 val = form_dict[key][0]  # value is the first list element
-                new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         if save:
             if not form.taxon_value.data and not form.taxon_rank.data:
@@ -887,7 +950,6 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
     # Process GET
     have_links = False
     if node_id == '1':
-        form.init_md5()
         if taxon:
             form.taxon_value.data = taxon
     else:
@@ -902,6 +964,8 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                         if node_id == txc_node.id:
                             have_links = populate_taxonomic_coverage_form(form, txc_node)
 
+    init_form_md5(form)
+
     help = get_helps(['taxonomic_coverage_fill_hierarchy'])
 
     set_current_page('taxonomic_coverage')
@@ -910,6 +974,58 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
 
 
 def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
+    """
+    Populate the form with values from the given node.
+    """
+
+    def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
+        """
+        Auxiliary function to handle the recursion needed to populate the form with values from the given node.
+        """
+        if node:
+            taxon_rank_name_node = node.find_child(names.TAXONRANKNAME)
+            taxon_rank_value_node = node.find_child(names.TAXONRANKVALUE)
+            taxon_common_name_node = node.find_child(names.COMMONNAME)
+            taxon_id_node = node.find_child(names.TAXONID)
+
+            if taxon_rank_name_node and taxon_rank_name_node.content:
+                taxon_rank_name = taxon_rank_name_node.content
+            else:
+                taxon_rank_name = None
+            if taxon_rank_value_node and taxon_rank_value_node.content:
+                taxon_rank_value = taxon_rank_value_node.content
+            else:
+                taxon_rank_value = None
+            if taxon_common_name_node:
+                taxon_common_name = taxon_common_name_node.content
+            else:
+                taxon_common_name = ''
+            if taxon_id_node:
+                taxon_id = taxon_id_node.content
+                provider_uri = taxon_id_node.attribute_value(names.PROVIDER)
+            else:
+                taxon_id = None
+                provider_uri = None
+
+            link = None
+            provider = None
+            if taxon_rank_name and taxon_rank_value:
+                if taxon_id:
+                    if provider_uri == "https://www.itis.gov":
+                        link = f'https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value={taxon_id}'
+                        provider = 'ITIS'
+                    elif provider_uri == "https://www.ncbi.nlm.nih.gov/taxonomy":
+                        link = f'https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={taxon_id}'
+                        provider = 'NCBI'
+                    elif provider_uri == "http://www.marinespecies.org":
+                        link = f'http://marinespecies.org/aphia.php?p=taxdetails&id={taxon_id}'
+                        provider = 'WORMS'
+            hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_name, taxon_id, link, provider))
+
+            taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
+            if taxonomic_classification_node:
+                populate_taxonomic_coverage_form_aux(hierarchy, taxonomic_classification_node)
+
     general_taxonomic_coverage_node = node.find_child(names.GENERALTAXONOMICCOVERAGE)
     if general_taxonomic_coverage_node:
         form.general_taxonomic_coverage.data = general_taxonomic_coverage_node.content
@@ -934,51 +1050,5 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
             if link:
                 have_links = True
                 break
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
     return have_links
-
-
-def populate_taxonomic_coverage_form_aux(hierarchy, node: Node = None):
-    if node:
-        taxon_rank_name_node = node.find_child(names.TAXONRANKNAME)
-        taxon_rank_value_node = node.find_child(names.TAXONRANKVALUE)
-        taxon_common_name_node = node.find_child(names.COMMONNAME)
-        taxon_id_node = node.find_child(names.TAXONID)
-
-        if taxon_rank_name_node and taxon_rank_name_node.content:
-            taxon_rank_name = taxon_rank_name_node.content
-        else:
-            taxon_rank_name = None
-        if taxon_rank_value_node and taxon_rank_value_node.content:
-            taxon_rank_value = taxon_rank_value_node.content
-        else:
-            taxon_rank_value = None
-        if taxon_common_name_node:
-            taxon_common_name = taxon_common_name_node.content
-        else:
-            taxon_common_name = ''
-        if taxon_id_node:
-            taxon_id = taxon_id_node.content
-            provider_uri = taxon_id_node.attribute_value(names.PROVIDER)
-        else:
-            taxon_id = None
-            provider_uri = None
-
-        link = None
-        provider = None
-        if taxon_rank_name and taxon_rank_value:
-            if taxon_id:
-                if provider_uri == "https://www.itis.gov":
-                    link = f'https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value={taxon_id}'
-                    provider = 'ITIS'
-                elif provider_uri == "https://www.ncbi.nlm.nih.gov/taxonomy":
-                    link = f'https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={taxon_id}'
-                    provider = 'NCBI'
-                elif provider_uri == "http://www.marinespecies.org":
-                    link = f'http://marinespecies.org/aphia.php?p=taxdetails&id={taxon_id}'
-                    provider = 'WORMS'
-        hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_name, taxon_id, link, provider))
-
-        taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
-        if taxonomic_classification_node:
-            populate_taxonomic_coverage_form_aux(hierarchy, taxonomic_classification_node)

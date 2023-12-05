@@ -1,14 +1,13 @@
-from datetime import datetime
-from sqlalchemy.types import TypeDecorator, String
-
-from webapp import db
-
 """
-Within this module, user_id refers to the database ID of the user, not the ezEML login ID. 
+This module contains the database models for collaborations. It defines the database tables and the relationships
+among them. It also defines some functions for accessing the database.
+
+Within this module, user_id refers to the database ID of the user, not the ezEML login ID.
 The latter is called user_login. Functions that take a user_id as a parameter are intended to be called
-internally, within this module, with just a couple of exceptions. Functions that take a user_login as a 
+internally, within this module, with just a couple of exceptions. I.e., the database IDs are to thought
+of as an internal implementation detail of this module. Functions that take a user_login as a
 parameter are provided to be called from other modules. To help enforce this convention, names of functions 
-that take user_id as a parameter and are intended to be used internally are prefixed with an underscore.
+that take user_id as a parameter and are intended to be used internally are named with an underscore prefix.
 
 We use the following conventions:
     user_id: database ID of a user
@@ -22,9 +21,13 @@ We use the following conventions:
 
 To get the user_login for the currently logged in user, use current_user.get_user_org().
 """
+from datetime import datetime
+from sqlalchemy.types import TypeDecorator, String
+
+from webapp import db
+
 
 # Database models
-
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -134,8 +137,8 @@ class CollaborationStatus(db.Model):
 
 class UTCDateTime(TypeDecorator):
     """
-    SQLite does not save tzinfo, but we want to store the timestamp in UTC. So, we use the following workaround courtesy of
-    ChatGPT.
+    SQLite does not save tzinfo, but we want to store the timestamp in UTC. So, we use the following workaround,
+     courtesy of ChatGPT.
     """
     impl = String
 
@@ -166,7 +169,7 @@ class Lock(db.Model):
     """
     Note that Lock does not have a collab_id field. This is because a package may be opened before any collaboration
     exists for it, and we still want to be able to lock it. So, the lock is associated with the package, i.e., the
-    (owner_id, package_name) pair, not a collaboration.
+    (owner_id, package_name) pair, not with a collaboration.
     """
     lock_id = db.Column(db.Integer, primary_key=True)
     package_id = db.Column(db.Integer, db.ForeignKey('package.package_id'), unique=True, nullable=False)

@@ -5,6 +5,9 @@
     {% set help_enable_edi_curation_id, help_enable_edi_curation_title, help_enable_edi_curation_content = help[0] %}
     {% set help_enable_edi_curation_btn = help_enable_edi_curation_id ~ '_btn' %}
     {% set help_enable_edi_curation_dialog = help_enable_edi_curation_id ~ '_dialog' %}
+    {% set help_enable_edi_curation_notes_id, help_enable_edi_curation_notes_title, help_enable_edi_curation_notes_content = help[1] %}
+    {% set help_enable_edi_curation_notes_btn = help_enable_edi_curation_notes_id ~ '_btn' %}
+    {% set help_enable_edi_curation_notes_dialog = help_enable_edi_curation_notes_id ~ '_dialog' %}
     <table>
         <td><h2>Submit Package to EDI</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_enable_edi_curation_btn) }}</td>
@@ -42,7 +45,7 @@ If you have questions, please contact us at
 
         <table>
             <td>{{ wtf.form_field(form.notes, rows=4, cols=100) }}</td>
-{#            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>#}
+            <td valign="top" style="padding-top: 25px;">{{ macros.help_button(help_enable_edi_curation_notes_btn) }}</td>
         </table>
 
     <script type="text/javascript">
@@ -108,7 +111,7 @@ If you have questions, please contact us at
                 are, click <b><a href="edit/home.check_metadata">Check Metadata</a></b>.
             We encourage you to correct the errors before submitting, but you may go ahead and submit your package as is,
                 if you choose, for example if there are errors you're not sure how to handle. In that case, please leave
-            an explanation in the Notes text area above so we can assist you better.</span>
+            an explanation in the <b>Notes for EDI Data Curators</b> text area above so we can assist you better.</span>
             <p>&nbsp;</p>
         {% endif %}
 
@@ -123,6 +126,7 @@ If you have questions, please contact us at
         </form>
         </div>
     {{ macros.help_dialog(help_enable_edi_curation_dialog, help_enable_edi_curation_title, help_enable_edi_curation_content) }}
+    {{ macros.help_dialog(help_enable_edi_curation_notes_dialog, help_enable_edi_curation_notes_title, help_enable_edi_curation_notes_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -130,10 +134,14 @@ If you have questions, please contact us at
     {% set help_enable_edi_curation_id, help_enable_edi_curation_title, help_enable_edi_curation_content = help[0] %}
     {% set help_enable_edi_curation_btn = help_enable_edi_curation_id ~ '_btn' %}
     {% set help_enable_edi_curation_dialog = help_enable_edi_curation_id ~ '_dialog' %}
+    {% set help_enable_edi_curation_notes_id, help_enable_edi_curation_notes_title, help_enable_edi_curation_notes_content = help[1] %}
+    {% set help_enable_edi_curation_notes_btn = help_enable_edi_curation_notes_id ~ '_btn' %}
+    {% set help_enable_edi_curation_notes_dialog = help_enable_edi_curation_notes_id ~ '_dialog' %}
     <script>
     $(function()
     {
         {{ macros.help_script(help_enable_edi_curation_dialog, help_enable_edi_curation_btn) }}
+        {{ macros.help_script(help_enable_edi_curation_notes_dialog, help_enable_edi_curation_notes_btn) }}
     });
     </script>
 {% endblock %}

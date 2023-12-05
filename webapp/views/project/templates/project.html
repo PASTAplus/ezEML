@@ -40,8 +40,8 @@
                 <br/>
                 {% endif %}
 
-                <input class="btn btn-primary" name="Project Personnel" type="submit" value="Project Personnel"/>
-                <input class="btn btn-primary" name="Funding Awards" type="submit" value="Funding Awards"/>
+                <input class="btn btn-primary" name="Project Personnel" type="submit" value="Project Personnel"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" name="Funding Awards" type="submit" value="Funding Awards"/>&nbsp;&nbsp;
                 {% if title == 'Project' %}
                 <input class="btn btn-primary" name="Related Projects" type="submit" value="Related Projects"/>
                 {% endif %}
@@ -52,6 +52,7 @@
                 {% if title == 'Related Project' %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 {% endif %}
+                &nbsp;&nbsp;
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}

@@ -1,3 +1,9 @@
+"""
+This module contains data classes used by the collaborations module.
+
+These data classes represent the various data structures used by the collaborations module, but in a displayable form.
+"""
+
 from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
@@ -6,10 +12,12 @@ from flask_login import current_user
 
 from webapp.pages import *
 import webapp.views.collaborations.collaborations as collaborations
+from webapp.home.home_utils import log_error, log_info
 
-import daiquiri
-logger = daiquiri.getLogger('data_classes: ' + __name__)
 
+"""
+Represent a row of the backups table in a displayable form.
+"""
 @dataclass()
 class Backup:
     owner_login: str
@@ -22,6 +30,9 @@ class Backup:
     delete: str
 
 
+"""
+Represent a row of the collaborations table in a displayable form. 
+"""
 @dataclass()
 class CollaborationRecord:
     collaboration_case: Enum
@@ -43,18 +54,21 @@ class CollaborationRecord:
     action_str: str
 
     def update_action_str(self, action_str):
+        """ Add an action to the action_str """
         if len(self.action_str) > 0:
             self.action_str += '<br>'
         self.action_str += action_str
 
     def __post_init__(self):
+        """ Initialize various fields in the CollaborationRecord object based on values passed in. """
         current_user_login = current_user.get_user_org()
         current_user_id = collaborations.get_user(current_user_login).user_id
         self.owner_name = collaborations.display_name(self.owner_login)
         self.collaborator_name = collaborations.display_name(self.collaborator_login)
 
-
-        trace = self.owner_name in ['EDI', 'jide']
+        trace = False
+        # In development, you could uncomment the following line to see the trace, for example.
+        # trace = self.owner_name in ['EDI', 'jide']
 
         is_group_entry = self.collaborator_login.endswith('-group_collaboration')
         locked_by_individual = None
@@ -74,10 +88,10 @@ class CollaborationRecord:
                         locked_by_group = user_group.user_group_name
             else:
                 if trace:
-                    logger.info(f'collaborations._get_group_lock_by_id(self.locked_by_group_id) returns None')
+                    log_info(f'collaborations._get_group_lock_by_id(self.locked_by_group_id) returns None')
 
         if trace:
-            logger.info(f'owner: {self.owner_name}, collaborator: {self.collaborator_name}, lock_status: {self.lock_status}, locked_by_group_id: {self.locked_by_group_id}, locked_by_group: {locked_by_group}, locked_by_individual: {locked_by_individual}')
+            log_info(f'owner: {self.owner_name}, collaborator: {self.collaborator_name}, lock_status: {self.lock_status}, locked_by_group_id: {self.locked_by_group_id}, locked_by_group: {locked_by_group}, locked_by_individual: {locked_by_individual}')
 
         # Status
         if self.lock_status == collaborations.LockStatus.NOT_LOCKED:
@@ -172,6 +186,7 @@ class CollaborationRecord:
                 self.update_action_str(f'<a href="{link}" onclick="{onclick}">End group collaboration</a>')
 
     def __lt__(self, other):
+        """ This is used to sort the list of collaborations in the display table. """
         if self.package_name < other.package_name:
             return True
         elif self.package_name == other.package_name:
@@ -189,7 +204,7 @@ class CollaborationRecord:
 
 
 """
-InvitationRecord is a dataclass that is used to represent an invitation in a displayable form.
+Represent an invitation in a displayable form.
 """
 @dataclass()
 class InvitationRecord:
@@ -223,6 +238,11 @@ class InvitationRecord:
         else:
             return False
 
+
+"""
+The various data classes below with "Output" in their name are used to list the database contents for development and 
+debugging when the collaborate page is loaded with the "dev" parameter.
+"""
 
 @dataclass()
 class CollaborationOutput:

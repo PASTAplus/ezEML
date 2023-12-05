@@ -8,22 +8,21 @@ from flask_login import (
 import os
 from urllib.parse import urlencode, urlparse, quote, unquote
 
+import webapp.home.utils.create_nodes
+import webapp.home.utils.node_utils
 from webapp.home.forms import (
-    form_md5, is_dirty_form, EDIForm
+    init_form_md5, is_dirty_form, EDIForm
 )
 
 from webapp.home.views import (
     process_up_button, process_down_button,
     AUTH_TOKEN_FLASH_MSG
 )
-from webapp.home.metapype_client import (
-    load_eml, save_both_formats,
-    add_child, remove_child,
-    UP_ARROW, DOWN_ARROW,
-    get_upval, get_downval,
-    check_val_for_hidden_buttons,
-    new_child_node, compose_rp_label
-)
+from webapp.home.utils.node_utils import remove_child, new_child_node, add_child
+from webapp.home.utils.hidden_buttons import check_val_for_hidden_buttons
+from webapp.home.utils.load_and_save import load_eml, save_both_formats
+from webapp.home.utils.import_nodes import compose_rp_label
+from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_method_steps
 
 from webapp.home.exceptions import (
     ezEMLError,
@@ -39,7 +38,7 @@ from webapp.home.texttype_node_processing import (
     invalid_xml_error_message,
     is_valid_xml_fragment
 )
-from webapp.home.import_data import get_pasta_identifiers, get_revisions_list
+from webapp.home.fetch_data import get_pasta_identifiers, get_revisions_list
 from webapp.views.method_steps.forms import (
     MethodStepForm, MethodStepSelectForm, DataSourceForm
 )
@@ -51,12 +50,9 @@ from webapp.pages import *
 
 from metapype.eml import names
 from metapype.model.node import Node
-from webapp.home.metapype_client import (
-    create_method_step, create_data_source,
-    list_method_steps
-)
+from webapp.home.utils.create_nodes import create_method_step, create_data_source
 import webapp.auth.user_data as user_data
-from webapp.home.import_data import get_metadata_revision_from_pasta
+from webapp.home.fetch_data import get_metadata_revision_from_pasta
 from webapp.home.import_xml import parse_xml_file
 from webapp.home.log_usage import log_usage, actions
 from webapp.config import Config
@@ -97,7 +93,8 @@ def method_step_select(filename=None):
                     new_page = this_page
                     node_id = key
                     eml_node = load_eml(filename=filename)
-                    remove_child(node_id=node_id)
+                    node = Node.get_node_instance(node_id)
+                    remove_child(node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                 elif val == UP_ARROW:
                     new_page = this_page
@@ -114,7 +111,7 @@ def method_step_select(filename=None):
                     new_page = this_page
                     node_id = key
                 else:
-                    new_page = check_val_for_hidden_buttons(val, new_page, this_page)
+                    new_page = check_val_for_hidden_buttons(val, new_page)
 
         if form.validate_on_submit():
             if new_page in [edit_page, this_page]:
@@ -189,7 +186,7 @@ def method_step(filename=None, node_id=None):
                     ms_node_id, data_source_node_id = key.split('|')
                     method_step_node = Node.get_node_instance(id=ms_node_id)
                     data_source_node = Node.get_node_instance(id=data_source_node_id)
-                    method_step_node.remove_child(data_source_node)
+                    webapp.home.utils.node_utils.remove_child(data_source_node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                     new_page = PAGE_METHOD_STEP
                     break
@@ -201,7 +198,7 @@ def method_step(filename=None, node_id=None):
                                       PAGE_PROJECT, PAGE_DATA_SOURCE)
                     return redirect(url)
 
-                new_page = check_val_for_hidden_buttons(val, new_page, PAGE_METHOD_STEP)
+                new_page = check_val_for_hidden_buttons(val, new_page)
 
         submit_type = None
         if is_dirty_form(form):
@@ -241,9 +238,7 @@ def method_step(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
-    if node_id == '1':
-        form.init_md5()
-    else:
+    if node_id != '1':
         method_step_node = Node.get_node_instance(node_id)
         if method_step_node:
             populate_method_step_form(form, method_step_node)
@@ -251,6 +246,7 @@ def method_step(filename=None, node_id=None):
         deprecated_data_source = (data_sources_marker_begin in form.description.data)
     else:
         deprecated_data_source = False
+    init_form_md5(form)
     return render_get_method_step_page(eml_node, form, filename,
                                        deprecated_data_source=deprecated_data_source)
 
@@ -307,7 +303,7 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
         form.instrumentation.data = instrumentation
         form.data_sources.data = data_sources
         form.data_sources_list = data_sources_list
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
 
 @md_bp.route('/fetch_data_source/<node_id>', methods=['GET', 'POST'])
@@ -331,7 +327,7 @@ def fetch_data_source(node_id=None):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     try:
         ids = get_pasta_identifiers()
@@ -373,7 +369,7 @@ def fetch_data_source_2(node_id=None, scope=''):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     ids = get_pasta_identifiers(scope)
     package_links = ''
@@ -410,7 +406,7 @@ def fetch_data_source_2a(node_id=None, scope_identifier=''):
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
 
@@ -453,7 +449,7 @@ def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=
             return redirect(url_for(PAGE_INDEX))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
 
     scope, identifier = scope_identifier.split('.')
 
@@ -476,7 +472,7 @@ def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=
 
 
 def add_child(parent_node, child_node):
-    parent_node.add_child(child_node)
+    webapp.home.utils.node_utils.add_child(parent_node, child_node)
     child_node.parent = parent_node
 
 
@@ -586,7 +582,8 @@ def data_source(filename, ms_node_id, data_source_node_id):
                     if val == BTN_REMOVE:
                         _, rp_node_id, _ = key.split('|')
                         eml_node = load_eml(filename=filename)
-                        remove_child(node_id=rp_node_id)
+                        node = Node.get_node_instance(rp_node_id)
+                        remove_child(node)
                         save_both_formats(filename=filename, eml_node=eml_node)
                         # drop through to reload the page
             if BTN_ADD_CREATOR in request.form.values():
@@ -604,7 +601,7 @@ def data_source(filename, ms_node_id, data_source_node_id):
                 return redirect(url_for(PAGE_METHOD_STEP, filename=filename, node_id=ms_node_id))
 
     # Process GET
-    form.md5.data = form_md5(form)
+    init_form_md5(form)
     help = get_helps(['data_source', 'data_source_title', 'data_source_online_description', 'data_source_url',
                       'data_source_creators', 'data_source_contacts'])
 

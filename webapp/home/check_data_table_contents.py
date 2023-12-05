@@ -530,6 +530,7 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     log_info(f'Column {column_name}: {col_values}')
 
     regex = get_date_time_format_regex(data_table_node, column_name)
+    log_info(f'regex: {regex}')
     if not regex:
         date_time_format = get_date_time_format_specification(data_table_node, column_name)
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
@@ -553,6 +554,7 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     error_indices = result[result].index.values
     data_table_name = get_data_table_name(data_table_node)
     expected = get_date_time_format_specification(data_table_node, column_name)
+    log_info(f'len(error_indices)={len(error_indices)}  expected:{expected}')
     errors = []
     num_header_lines = get_num_header_lines(data_table_node)
     for index in error_indices:

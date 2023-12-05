@@ -520,14 +520,17 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     def get_date_time_format_regex(data_table_node, attribute_name):
         """ Get the regex for the date time format specified in the metadata."""
         def get_regex_for_format(format):
+            log_info('get_regex_for_format...')
             load_date_time_format_files()
+            log_info('len(date_time_format_regex): ' + str(len(date_time_format_regex)))
             return date_time_format_regex.get(format, None)
 
         date_time_format = get_date_time_format_specification(data_table_node, attribute_name)
+        log_info(f'date_time_format: {date_time_format}')
         return get_regex_for_format(date_time_format)
 
     col_values = df[column_name].astype(str)
-    log_info(f'Column {column_name}: {col_values}')
+    log_info(f'check_date_time_column... Column {column_name}: {col_values}')
 
     regex = get_date_time_format_regex(data_table_node, column_name)
     log_info(f'regex: {regex}')

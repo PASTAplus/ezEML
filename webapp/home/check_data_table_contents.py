@@ -408,7 +408,6 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     attribute_node = get_attribute_node(data_table_node, column_name)
     number_type = get_number_type(attribute_node)
     col_values = df[column_name].astype(str)
-    log_info(f'Column {column_name}: {col_values}')
 
     # Construct a regex based on the number type
     if number_type == 'integer':
@@ -470,7 +469,6 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     errors = []
     attribute_node = get_attribute_node(data_table_node, column_name)
     col_values = df[column_name].astype(str)
-    log_info(f'Column {column_name}: {col_values}')
 
     # If the metadata says codes values are not "enforced" to be the defined codes, then there cannot be errors
     enumerated_domain_node = attribute_node.find_descendant(names.ENUMERATEDDOMAIN)
@@ -520,20 +518,14 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
     def get_date_time_format_regex(data_table_node, attribute_name):
         """ Get the regex for the date time format specified in the metadata."""
         def get_regex_for_format(format):
-            log_info('get_regex_for_format...')
             load_date_time_format_files()
-            log_info('len(date_time_format_regex): ' + str(len(date_time_format_regex)))
             return date_time_format_regex.get(format, None)
 
         date_time_format = get_date_time_format_specification(data_table_node, attribute_name)
-        log_info(f'date_time_format: {date_time_format}')
         return get_regex_for_format(date_time_format)
 
     col_values = df[column_name].astype(str)
-    log_info(f'check_date_time_column... Column {column_name}: {col_values}')
-
     regex = get_date_time_format_regex(data_table_node, column_name)
-    log_info(f'regex: {regex}')
     if not regex:
         date_time_format = get_date_time_format_specification(data_table_node, column_name)
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
@@ -554,15 +546,11 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
         result = ~(matches | mvc_matches)
     else:
         result = ~matches
-    log_info(f'mvc={mvc}  result={result}')
     error_indices = result[result].index.values
-    log_info(f'len(error_indices)={len(error_indices)}')
     data_table_name = get_data_table_name(data_table_node)
     expected = get_date_time_format_specification(data_table_node, column_name)
-    log_info(f'expected:{expected}')
     errors = []
     num_header_lines = get_num_header_lines(data_table_node)
-    log_info(f'num_header_lines:{num_header_lines}')
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, column_name,
@@ -591,17 +579,14 @@ def check_data_table(eml_file_url:str=None,
     """
     eml_node, _ = load_eml_file(eml_file_url)
     df = load_df(eml_node, csv_file_url, data_table_name)
-    log_info(f'Loaded {len(df)} rows from {csv_file_url}')
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
-    log_info(f'After check_columns_existence_against_metadata, there are {len(errors)} errors')
 
     # Check for empty rows
     data_table_name = get_data_table_name(data_table_node)
     num_header_lines = get_num_header_lines(data_table_node)
     errors.extend(check_for_empty_rows(df, data_table_name, num_header_lines))
-    log_info(f'After check_for_empty_rows {data_table_name}, there are {len(errors)} errors')
 
     if not column_names:
         # check them all... we will use the data table column names. they may not exactly match the metadata column
@@ -621,15 +606,12 @@ def check_data_table(eml_file_url:str=None,
         if variable_type == 'CATEGORICAL':
             columns_checked.append(column_name)
             errors.extend(check_categorical_column(df, data_table_node, column_name, max_errs_per_column))
-            log_info(f'After check_categorical_column {column_name}, there are {len(errors)} errors')
         elif variable_type == 'DATETIME':
             columns_checked.append(column_name)
             errors.extend(check_date_time_column(df, data_table_node, column_name, max_errs_per_column))
-            log_info(f'After check_date_time_column {column_name}, there are {len(errors)} errors')
         elif variable_type == 'NUMERICAL':
             columns_checked.append(column_name)
             errors.extend(check_numerical_column(df, data_table_node, column_name, max_errs_per_column))
-            log_info(f'After check_numerical_column {column_name}, there are {len(errors)} errors')
 
     return create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
 
@@ -714,11 +696,9 @@ def check_for_empty_rows(df, data_table_name, num_header_lines):
     errors = []
     is_empty = lambda x: x == ''
     empty_rows = df.applymap(is_empty).all(axis=1)
-    log_info(f'check_for_empty_rows {len(df)} rows in df')
     empty_row_indices = []
     if empty_rows.any():
         empty_row_indices = empty_rows[empty_rows].index.values
-    log_info(f'empty_row_indices {len(empty_row_indices)}')
     for index in empty_row_indices:
         # Make the index 1-based and take into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, None,

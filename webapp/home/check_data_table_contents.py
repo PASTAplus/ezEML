@@ -551,12 +551,15 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
         result = ~(matches | mvc_matches)
     else:
         result = ~matches
+    log_info(f'mvc={mvc}  result={result}')
     error_indices = result[result].index.values
+    log_info(f'len(error_indices)={len(error_indices)}')
     data_table_name = get_data_table_name(data_table_node)
     expected = get_date_time_format_specification(data_table_node, column_name)
-    log_info(f'len(error_indices)={len(error_indices)}  expected:{expected}')
+    log_info(f'expected:{expected}')
     errors = []
     num_header_lines = get_num_header_lines(data_table_node)
+    log_info(f'num_header_lines:{num_header_lines}')
     for index in error_indices:
         # Make the index 1-based and taking into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, column_name,

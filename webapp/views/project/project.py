@@ -93,6 +93,8 @@ def project(filename=None, project_node_id=None):
         elif BTN_RELATED_PROJECTS in request.form:
             new_page = PAGE_RELATED_PROJECT_SELECT
             # doing_related_project = True
+        elif BTN_IMPORT in request.form:
+            new_page = PAGE_IMPORT_PROJECT
         else:
             new_page = handle_hidden_buttons(new_page)
 

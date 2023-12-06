@@ -1393,9 +1393,10 @@ def import_parties(target=None):
     return render_template('import_parties.html', target=target, help=help, form=form)
 
 
+@home_bp.route('/import_parties_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @home_bp.route('/import_parties_2/<filename>/<template>/<is_template>/<target>', methods=['GET', 'POST'])
 @login_required
-def import_parties_2(filename, template, is_template, target):
+def import_parties_2(filename, template, is_template, target=None):
     """Handle the Import Responsible Parties item in Import/Export menu after a source document has been selected."""
 
     def get_responsible_parties_for_import(eml_node):

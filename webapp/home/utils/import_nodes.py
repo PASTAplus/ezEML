@@ -101,12 +101,17 @@ def consolidate_keyword_sets(eml_node):
         keyword_list.append(keyword)
         keyword_dict[thesaurus] = keyword_list
     # For each thesaurus, create a new keywordSet node and add it to the dataset node.
+    # Avoid duplication of keywords within a keywordSet node.
     for thesaurus, keyword_list in keyword_dict.items():
         keywordSet_node = new_child_node(names.KEYWORDSET, dataset_node)
+        already_added = []
         keywordSet_node.parent = dataset_node
         for keyword in keyword_list:
+            if keyword.content in already_added:
+                continue
             add_child(keywordSet_node, keyword)
             keyword.parent = keywordSet_node
+            already_added.append(keyword.content)
         if thesaurus:
             thesaurus_node = Node(names.KEYWORDTHESAURUS, parent=keywordSet_node)
             add_child(keywordSet_node, thesaurus_node)

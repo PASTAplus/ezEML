@@ -314,7 +314,7 @@ def fetch_data_source(node_id=None):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -356,7 +356,7 @@ def fetch_data_source_2(node_id=None, scope=''):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -393,7 +393,7 @@ def fetch_data_source_2a(node_id=None, scope_identifier=''):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -436,7 +436,7 @@ def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -563,7 +563,7 @@ def data_source(filename, ms_node_id, data_source_node_id):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()

@@ -165,6 +165,45 @@ def log_response(response):
     return response
 
 
+def log_node_lineage(prefix, node):
+    # For debugging use
+    if node is None:
+        return
+    from webapp.home.home_utils import log_info
+    log_info(f'{prefix} {node.name} {node.id} with python id {id(Node.get_node_instance(node.id))}')
+    log_node_lineage(f'  ...parent', node.parent)
+
+
+def check_node_identity(node):
+    # For debugging use
+    from webapp.home.home_utils import log_info
+    node_id = node.id
+    if node_id:
+        node_in_store = Node.get_node_instance(node_id)
+        if node_in_store is not node:
+            log_node_lineage(f'node_in_store', node_in_store)
+            log_node_lineage(f'node', node)
+            log_info(f'***** Node {node.name} {node.id} with python id {id(node)} is not the same as '
+                             f'node_in_store {node_in_store.name} {node_in_store.id} with python id {id(node_in_store)}')
+            return False
+            # raise ValueError(f'Node {node.name} {node.id} with python id {id(node)} is not the same as '
+            #                  f'node_in_store {node_in_store.name} {node_in_store.id} with python id {id(node_in_store)}')
+
+
+def check_tree_identity(node):
+    # For debugging use
+    # The code that handles the Metapype store uses the actual identity of the node objects. E.g., remove_child expects
+    #  the actual node object, not a copy of it -- i.e., not just a node with the same id. This function checks that
+    #  the node objects in the tree are the same as the corresponding node objects in the Metapype store. When that
+    #  is not the case, very subtle bugs can occur. A case in point was that when a package was fetched from EDI, the
+    #  keyword sets were duplicated -- but only if the data objects were also fetched!
+    if not check_node_identity(node):
+        return
+    for child in node.children:
+        if not check_tree_identity(child):
+            return
+
+
 def url_of_interest():
     """
     We want to log Metapype store info only when processing the URLs that are of interest to us.
@@ -256,7 +295,9 @@ def debug_None(x, msg):
 
 
 def reload_metadata():
-    """ Reload the metadata to get the check_metadata badge status updated. """
+    """ Reload the metadata to get the check_metadata badge status updated.
+        NOTE: This updates eml_node, so callers should capture the return value.
+     """
     current_document = current_user.get_filename()
     if not current_document:
         # if we've just deleted the current document, it won't exist
@@ -2128,7 +2169,7 @@ def export_package_2(package_name, download_url):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     return render_template('export_package_2.html', back_url=get_back_url(), title='Export Data Package',
                            package_name=package_name, download_url=download_url)
@@ -2327,8 +2368,7 @@ def import_xml():
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    reload_metadata()  # So check_metadata status is correct
-    eml_node = None
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -2405,7 +2445,7 @@ def import_xml_2(package_name, filename, fetched=False):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
@@ -2558,11 +2598,10 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
         return err_html, err_text, err_heading
 
     form = EDIForm()
-    eml_node = load_eml(filename=filename)
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(url_for(PAGE_TITLE, filename=filename))
@@ -2622,6 +2661,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
 
     help = get_helps(['import_xml_3', 'complex_xml'])
     complex_xml = model_has_complex_texttypes(eml_node)
+
     return render_template('import_xml_3.html', err_html=err_html, err_text=err_text, err_heading=err_heading,
                            mb=mb, complex_xml=complex_xml, nsmap_changed=nsmap_changed, form=form, help=help)
 
@@ -2636,7 +2676,7 @@ def import_xml_4(filename=None, fetched=False):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(url_for(PAGE_TITLE, filename=filename))
@@ -2697,7 +2737,7 @@ def fetch_xml():
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2739,7 +2779,7 @@ def fetch_xml_2(scope=''):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2780,7 +2820,7 @@ def fetch_xml_2a(scope_identifier=''):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2825,7 +2865,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
 
     # Process POST
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2964,7 +3004,7 @@ def import_package():
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -3035,7 +3075,7 @@ def import_package_2(package_name):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    reload_metadata()  # So check_metadata status is correct
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form

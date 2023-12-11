@@ -76,7 +76,7 @@ def is_hidden_button():
     return any(button in request.form for button in HIDDEN_TARGETS)
 
 
-def handle_hidden_buttons(target_page):
+def handle_hidden_buttons(target_page=None):
     """
     See if a "hidden" button has been clicked. If so, return the page that the button indicates.
 
@@ -84,6 +84,9 @@ def handle_hidden_buttons(target_page):
     that the user was trying to get to when they clicked on the menu option, so we'll go there in the absence of
     a hidden button. If a hidden button was clicked, we'll go to the page that the hidden button indicates, after
     saving the data that the user entered in the page that they were in when they clicked on the menu option.
+
+    If handle_hidden_buttons() is called after checking is_hidden_button(), then we know that a hidden button has
+    been clicked, so it's fine to pass in None for target_page.
     """
     for button in HIDDEN_TARGETS:
         if button in request.form:

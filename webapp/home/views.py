@@ -20,6 +20,7 @@ from pathlib import Path
 import pickle
 from shutil import copyfile, move, rmtree
 import subprocess
+import time
 from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
 
@@ -306,6 +307,17 @@ def reload_metadata():
     # Call load_eml here to get the check_metadata status set correctly
     eml_node = load_eml(filename=current_document)
     return current_document, eml_node
+
+
+@home_bp.route('/sleep/<seconds>', methods=['GET'])
+def sleep(seconds:str=None):
+    """ Sleep for the specified number of seconds. This is used for testing. """
+    try:
+        seconds = int(seconds)
+    except Exception as e:
+        seconds = 1
+    time.sleep(seconds)
+    return redirect(url_for(PAGE_INDEX))
 
 
 # Endpoint for AJAX calls to validate XML

@@ -38,7 +38,7 @@ import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.home_utils import log_error, log_info
+from webapp.home.home_utils import log_error, log_info, log_available_memory
 
 import csv
 
@@ -145,7 +145,8 @@ def log_request():
         return
 
     referrer = request.referrer
-    # log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
+    log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
+    log_available_memory()
 
 
 @home_bp.after_app_request
@@ -157,10 +158,11 @@ def log_response(response):
     if '/static/' in url or 'youtube.png' in url or 'favicon.ico' in url or 'logo.png' in url:
         return response
 
-    # if response:
-    #     log_info(f'**** OUTGOING RESPONSE: {request.remote_addr}  [{request.method}]  {request.full_path}  {response.status}')
-    # else:
-    #     log_info('**** OUTGOING RESPONSE: None')
+    if response:
+        log_info(f'**** OUTGOING RESPONSE: {request.remote_addr}  [{request.method}]  {request.full_path}  {response.status}')
+    else:
+        log_info('**** OUTGOING RESPONSE: None')
+    log_available_memory()
     return response
 
 

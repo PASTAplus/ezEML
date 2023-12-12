@@ -44,7 +44,7 @@ from flask import Blueprint
 
 from webapp.home.utils.node_utils import new_child_node, add_child, remove_child
 import webapp.home.views as views
-from webapp.home.home_utils import log_error, log_info
+from webapp.home.home_utils import log_error, log_info, log_available_memory
 
 from webapp.pages import PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED, PAGE_DATA_TABLE_SELECT, PAGE_DATA_TABLE
 
@@ -361,6 +361,8 @@ def check_column_name_uniqueness(csv_file_path, delimiter):
 def get_num_rows(csv_filepath, delimiter: str = ',', quote_char: str = '"'):
     """Return the number of rows in a CSV file. For efficiency, we use only the first column."""
     df = pd.read_csv(csv_filepath, encoding='utf8', usecols=[0], sep=delimiter, quotechar=quote_char)
+    log_info(f"Number of rows in {csv_filepath}: {df.shape[0]}")
+    log_available_memory()
     return df.shape[0]
 
 

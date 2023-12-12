@@ -48,7 +48,7 @@ from urllib.parse import unquote_plus
 import warnings
 
 import webapp.home.metapype_client
-from webapp.home.home_utils import log_error, log_info
+from webapp.home.home_utils import log_error, log_info, log_available_memory
 import webapp.home.utils.load_and_save
 from webapp.utils import path_exists, path_isdir, path_join
 
@@ -95,7 +95,7 @@ def load_eml_file(eml_file_url:str):
     return eml_node, nsmap_changed
 
 
-def load_df(eml_node, csv_url, data_table_name, max_rows=10**6):
+def load_df(eml_node, csv_url, data_table_name, max_rows=None):
     """
     Retrieve a data table CSV file from a URL and return:
      a Pandas data frame for it, and
@@ -134,6 +134,8 @@ def load_df(eml_node, csv_url, data_table_name, max_rows=10**6):
             delimiter = '\t'
 
         num_rows = load_data.get_num_rows(unquote_plus(csv_url), delimiter=delimiter, quote_char=quote_char)
+        if max_rows is None:
+            max_rows = num_rows
         truncated = num_rows > max_rows
         df = pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
                            keep_default_na=False, skiprows=range(1, num_header_lines), nrows=max_rows,
@@ -586,12 +588,18 @@ def check_data_table(eml_file_url:str=None,
     its contents based on the metadata specification for the column.
     """
     eml_node, _ = load_eml_file(eml_file_url)
-    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=5*10**6)
+    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=None)
+
+    import sys
+    foo = sys.getsizeof(df)
 
     if truncated:
         flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than 5 million. ezEML checks '
               f'only the first 5 million rows. Often this suffices to indicate the kinds of errors that are present. The full '
               f'file will be checked when you submit the data package to the EDI repository.', 'warning')
+
+    log_info('After loading the data table')
+    log_available_memory()
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
@@ -616,6 +624,8 @@ def check_data_table(eml_file_url:str=None,
             #  reported above by check_columns_existence_against_metadata().
             continue
         variable_type = get_variable_type(attribute_node)
+        from datetime import date, datetime
+        start = datetime.now()
         if variable_type == 'CATEGORICAL':
             columns_checked.append(column_name)
             errors.extend(check_categorical_column(df, data_table_node, column_name, max_errs_per_column))
@@ -625,8 +635,17 @@ def check_data_table(eml_file_url:str=None,
         elif variable_type == 'NUMERICAL':
             columns_checked.append(column_name)
             errors.extend(check_numerical_column(df, data_table_node, column_name, max_errs_per_column))
+        end = datetime.now()
+        elapsed = (end - start).total_seconds()
+        log_info(f'After checking column: {column_name}... elapsed time: {elapsed:.1f} seconds')
+        log_available_memory()
 
-    return create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
+    results = create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
+
+    log_info(f'After creating result JSON')
+    log_available_memory()
+
+    return results
 
 
 def load_date_time_format_files(strings_filename=DATE_TIME_FORMAT_STRINGS_FILENAME,

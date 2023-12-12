@@ -64,3 +64,12 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
     return status
 
 
+def log_available_memory():
+    """
+    Log the available system memory.
+    """
+    import psutil
+    available_memory = psutil.virtual_memory().available / 1024 / 1024
+    process_usage = psutil.Process().memory_info().rss / 1024 / 1024
+    log_info(f"Memory usage:   available system memory:{available_memory:.1f} MB   process usage:{process_usage:.1f} MB")
+

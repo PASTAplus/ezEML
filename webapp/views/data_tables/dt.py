@@ -94,6 +94,10 @@ def data_table_select(filename=None):
     """
     form = DataTableSelectForm(filename=filename)
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     # Process POST
     if request.method == 'POST':
         form_value = request.form
@@ -133,6 +137,10 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         return ', '.join(atts)
 
     form = DataTableForm(filename=filename)
+
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -441,9 +449,8 @@ def load_data(filename=None):
     if request.method == 'POST' and form.validate_on_submit():
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_LOAD_DATA)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         # Check if the post request has the file part
         if 'file' not in request.files:
@@ -572,6 +579,9 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
         return redirect(url)
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=document))
 
     if request.method == 'POST':
         if dt_node:
@@ -797,6 +807,10 @@ def attribute_select(filename=None, dt_node_id=None):
     form = AttributeSelectForm(filename=filename)
     # dt_node_id = request.args.get('dt_node_id')  # alternate way to get the id
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     # Process POST
     if request.method == 'POST':
         form_value = request.form
@@ -845,6 +859,10 @@ def attribute_measurement_scale(filename=None, dt_node_id=None, node_id=None, ms
 
     form = AttributeMeasurementScaleForm(filename=filename)
     att_node_id = node_id
+
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST':
@@ -1101,6 +1119,10 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -1317,8 +1339,10 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
-    # Determine POST type
-    # if request.method == 'POST' and form.validate_on_submit():
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST':
 
         if is_dirty_form(form):
@@ -1613,6 +1637,10 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
+
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Determine POST type
     if request.method == 'POST':
@@ -1938,6 +1966,10 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
     nom_ord_node_id = node_id
     form = CodeDefinitionSelectForm(filename=filename)
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     # Process POST
     if request.method == 'POST':
         form_value = request.form
@@ -2030,6 +2062,10 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
         if not mscale:
             mscale = mscale_from_attribute(att_node)
     form = CodeDefinitionForm(filename=filename, node_id=node_id, attribute_name=attribute_name)
+
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -2158,6 +2194,10 @@ def clone_attributes(filename, dt_node_id):
     form = OpenDocumentForm()
     form.filename.choices = list_data_packages(True, True, current_user_directory_only=False)
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -2179,6 +2219,10 @@ def clone_attributes_2(target_filename, target_dt_id, source_filename):
     Second page for Clone attributes from another data table. We ask the user to select the source data table.
     """
     form = SelectDataTableForm()
+
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # When cloning, we know the source and target have the same owner. We get the login for that owner and
     # pass it along to load_eml() to make sure we're pulling in the right package.
@@ -2233,6 +2277,10 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
     """
     form = SelectDataTableColumnsForm()
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     source_eml_node = load_eml(source_filename, owner_login=owner_login)
     source_dt_node = Node.get_node_instance(source_dt_id)
 
@@ -2279,6 +2327,10 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
     Then, we're ready to clone.
     """
     form = SelectDataTableColumnsForm()
+
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     source_eml_node = load_eml(source_filename, do_not_lock=True, owner_login=owner_login)
     source_attr_ids_list = source_attr_ids.strip('][').split(', ')

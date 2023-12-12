@@ -56,6 +56,8 @@ import webapp.auth.user_data as user_data
 from webapp.config import Config
 from webapp.home.fetch_data import convert_file_size
 
+import webapp.views.data_tables.load_data as load_data
+
 from metapype.eml import names
 from webapp.exceptions import ezEMLXMLError
 from metapype.model import metapype_io
@@ -93,9 +95,11 @@ def load_eml_file(eml_file_url:str):
     return eml_node, nsmap_changed
 
 
-def load_df(eml_node, csv_url, data_table_name):
+def load_df(eml_node, csv_url, data_table_name, max_rows=10**6):
     """
-    Retrieve a data table CSV file from a URL and return a Pandas data frame for it.
+    Retrieve a data table CSV file from a URL and return:
+     a Pandas data frame for it, and
+     a flag indicating whether the data frame was truncated.
     """
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
@@ -128,11 +132,15 @@ def load_df(eml_node, csv_url, data_table_name):
     try:
         if delimiter == '\\t':
             delimiter = '\t'
-        return pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
-                           keep_default_na=False, skiprows=range(1, num_header_lines),
+
+        num_rows = load_data.get_num_rows(unquote_plus(csv_url), delimiter=delimiter, quote_char=quote_char)
+        truncated = num_rows > max_rows
+        df = pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
+                           keep_default_na=False, skiprows=range(1, num_header_lines), nrows=max_rows,
                            skipfooter=num_footer_lines, low_memory=False, infer_datetime_format=True,
                            dtype=str)   # Set dtype to str to prevent pandas from converting empty strings to NaN,
                                         # whole numbers to floats, etc.
+        return df, truncated
 
     except Exception as err:
         log_info(f'Error loading CSV file: {err}')
@@ -578,7 +586,12 @@ def check_data_table(eml_file_url:str=None,
     its contents based on the metadata specification for the column.
     """
     eml_node, _ = load_eml_file(eml_file_url)
-    df = load_df(eml_node, csv_file_url, data_table_name)
+    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=5*10**6)
+
+    if truncated:
+        flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than 5 million. ezEML checks '
+              f'only the first 5 million rows. Often this suffices to indicate the kinds of errors that are present. The full '
+              f'file will be checked when you submit the data package to the EDI repository.', 'warning')
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
@@ -694,11 +707,9 @@ def check_for_empty_rows(df, data_table_name, num_header_lines):
     Check for empty rows in the data table.
     """
     errors = []
-    is_empty = lambda x: x == ''
-    empty_rows = df.applymap(is_empty).all(axis=1)
-    empty_row_indices = []
-    if empty_rows.any():
-        empty_row_indices = empty_rows[empty_rows].index.values
+    # Check for empty rows
+    empty_rows = df.eq('').all(axis=1)
+    empty_row_indices = empty_rows[empty_rows].index
     for index in empty_row_indices:
         # Make the index 1-based and take into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, None,

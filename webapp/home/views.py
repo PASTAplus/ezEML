@@ -23,7 +23,6 @@ import subprocess
 from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
 
-
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
     session, Markup, jsonify, send_file
@@ -402,9 +401,7 @@ def data_table_errors(data_table_name:str=None):
         raise FileNotFoundError
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DATA_TABLE_ERRORS)
-        if new_page != PAGE_DATA_TABLE_ERRORS:
-            return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     eml_node = load_eml(filename=current_document)
     data_table_nodes = []
@@ -788,8 +785,7 @@ def save():
 
     # If the user clicked a "hidden" button, we need to go there.
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SAVE)
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     eml_node = load_eml(filename=current_document)
     if not eml_node:
@@ -829,9 +825,8 @@ def manage_packages(to_delete=None, action=None):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_MANAGE_PACKAGES)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Set the default sort order. Other sort orders can be selected by clicking the column headers and are handled
     # in the template.
@@ -878,9 +873,8 @@ def manage_data_usage(action=None):
             flash(f'Garbage collection completed. Days={days}.')
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_MANAGE_DATA_USAGE)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Set the default sort order. Other sort orders can be selected by clicking the column headers and are handled
     # in the template.
@@ -938,8 +932,7 @@ def save_as():
                 return render_template('index.html')
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_SAVE_AS)
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             if not current_document:
@@ -1004,8 +997,7 @@ def check_data_tables():
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_CHECK_DATA_TABLES)
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     help = get_helps(['check_data_tables'])
     return render_template('check_data_tables.html', help=help, content=content)
@@ -1028,6 +1020,9 @@ def check_metadata(filename:str):
 
     log_usage(actions['CHECK_METADATA'])
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     # Process POST
     if request.method == 'POST':
         return redirect(url_for(PAGE_CHECK_METADATA, filename=current_document))
@@ -1046,9 +1041,8 @@ def datetime_formats():
     # Process POST
     if request.method == 'POST':
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_DATETIME_FORMATS)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         return redirect(url_for(PAGE_DATETIME_FORMATS))
 
@@ -1067,6 +1061,10 @@ def download_current():
     """
     current_document = user_data.get_active_document()
     if current_document:
+
+        if is_hidden_button():
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
         # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
@@ -1104,6 +1102,10 @@ def create():
 
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            current_document = current_user.get_filename()
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1205,6 +1207,10 @@ def open_eml_document():
 
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            current_document = current_user.get_filename()
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1320,7 +1326,8 @@ def new_from_template():
             return redirect(url_for(PAGE_NEW_FROM_TEMPLATE_2, template_filename=template_path))
         else:
             new_page = handle_hidden_buttons(PAGE_NEW_FROM_TEMPLATE_2)
-            return redirect(url_for(new_page))
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
 
     # Process GET
     output = '<ul class="directory-list">\n'
@@ -1375,9 +1382,8 @@ def new_from_template_2(template_filename):
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_NEW_FROM_TEMPLATE_2)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1418,9 +1424,8 @@ def import_parties(target=None):
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_PARTIES)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1489,9 +1494,8 @@ def import_parties_2(filename, template, is_template, target=None):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_PARTIES)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -1533,9 +1537,8 @@ def import_keywords():
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_KEYWORDS)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1596,9 +1599,8 @@ def import_keywords_2(filename, template, is_template):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_KEYWORDS)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -1627,9 +1629,8 @@ def import_geo_coverage():
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_GEO_COVERAGE)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1673,9 +1674,8 @@ def import_geo_coverage_2(filename, template, is_template):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_GEO_COVERAGE)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -1704,9 +1704,8 @@ def import_taxonomic_coverage():
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_TAXONOMIC_COVERAGE)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1750,9 +1749,8 @@ def import_taxonomic_coverage_2(filename, template, is_template):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_TAXONOMIC_COVERAGE)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -1782,9 +1780,8 @@ def import_funding_awards():
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_FUNDING_AWARDS)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1829,9 +1826,8 @@ def import_funding_awards_2(filename, template, is_template):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_FUNDING_AWARDS)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -1860,9 +1856,8 @@ def import_project():
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_PROJECT)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1914,9 +1909,8 @@ def import_project_2(filename, template, is_template):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_PROJECT)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_id_to_import = form.data['to_import']
@@ -1945,9 +1939,8 @@ def import_related_projects():
             return redirect(get_back_url())
 
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_RELATED_PROJECTS)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1984,9 +1977,8 @@ def import_related_projects_2(filename, template, is_template):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_RELATED_PROJECTS)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -2171,6 +2163,9 @@ def export_package_2(package_name, download_url):
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     return render_template('export_package_2.html', back_url=get_back_url(), title='Export Data Package',
                            package_name=package_name, download_url=download_url)
 
@@ -2286,13 +2281,12 @@ def share_submit_package(filename=None, success=None):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE)
-        return redirect(url_for(new_page, filename=filename))
-
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
     if not current_document:
         return redirect(url_for(PAGE_INDEX))
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST':
         # If the user has clicked Save in the EML Documents menu, for example, we need to ignore the
@@ -2370,6 +2364,9 @@ def import_xml():
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST' and form.validate_on_submit():
 
         # Check if the post request has the file part
@@ -2446,6 +2443,9 @@ def import_xml_2(package_name, filename, fetched=False):
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
@@ -2603,6 +2603,9 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(url_for(PAGE_TITLE, filename=filename))
 
@@ -2685,8 +2688,7 @@ def import_xml_4(filename=None, fetched=False):
         form = request.form
         if is_hidden_button():
             # Have a hidden button, so short-circuit out of here without importing the data
-            current_document = user_data.get_active_document()
-            return redirect(url_for(handle_hidden_buttons(PAGE_TITLE), filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
         try:
             total_size = import_data(filename, eml_node)
         except (AuthTokenExpired, Unauthorized) as e:
@@ -2739,6 +2741,9 @@ def fetch_xml():
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
         if filename:
@@ -2781,6 +2786,9 @@ def fetch_xml_2(scope=''):
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
         if filename:
@@ -2821,6 +2829,9 @@ def fetch_xml_2a(scope_identifier=''):
     # Process POST
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2866,6 +2877,9 @@ def fetch_xml_3(scope_identifier='', revision=''):
     # Process POST
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2962,9 +2976,8 @@ def preview_data_portal():
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_PREVIEW_DATA_PORTAL)
-        current_document = user_data.get_active_document()
-        return redirect(url_for(new_page, filename=current_document))
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     return render_template('preview_data_portal.html', form=form, help=get_helps(['preview_data_portal']))
 
@@ -2976,13 +2989,12 @@ def preview_data_portal_2():
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
+    current_document = current_user.get_filename()
+
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_PREVIEW_DATA_PORTAL_2)
-        current_document = user_data.get_active_document()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'GET':
-        current_document = user_data.get_active_document()
         pathname = get_pathname(current_document, file_extension='xml')
         with open(pathname, 'rb') as f:
             xml = f.read()
@@ -3005,6 +3017,9 @@ def import_package():
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -3077,6 +3092,9 @@ def import_package_2(package_name):
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
         # If the user wants to copy the package, add a version number to the package name and copy the package
@@ -3114,18 +3132,22 @@ def get_data_file():
     if BTN_CANCEL in request.form:
         return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST':
         user = form.user.data
-        return redirect(url_for('home.get_data_file_2', user=user))
+        if user:
+            return redirect(url_for('home.get_data_file_2', user=user))
 
-    if request.method == 'GET':
-        # Get the list of users
-        user_data_dir = Config.USER_DATA_DIR
-        filelist = glob.glob(f'{user_data_dir}/*')
-        files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
-        # print(files)
-        form.user.choices = files
-        return render_template('get_data_file.html', form=form)
+    # Get the list of users
+    user_data_dir = Config.USER_DATA_DIR
+    filelist = glob.glob(f'{user_data_dir}/*')
+    files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
+    # print(files)
+    form.user.choices = files
+    return render_template('get_data_file.html', form=form)
 
 
 @home_bp.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
@@ -3149,28 +3171,32 @@ def get_data_file_2(user):
     if BTN_CANCEL in request.form:
         return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST':
         data_file = form.data_file.data
         # Get the data file
-        return download_data_file(data_file, user)
+        if data_file:
+            return download_data_file(data_file, user)
 
-    if request.method == 'GET':
-        # Get the list of data files for the user
-        csv_list = []
-        user_data_dir = Config.USER_DATA_DIR
-        dir_list = glob.glob(f'{user_data_dir}/{user}/uploads/*')
-        dirs = sorted(dir_list, key=str.casefold)
-        for dir in dirs:
-            if os.path.isdir(dir):
-                _, dir_name = dir.split('uploads/')
-                csv_paths = glob.glob(f'{dir}/*.csv')
-                csvs = sorted([os.path.basename(x) for x in csv_paths], key=str.casefold)
-                qualified_csvs = []
-                for csv in csvs:
-                    qualified_csvs.append(f'{dir_name}/{csv}')
-                csv_list.extend(qualified_csvs)
-        form.data_file.choices = csv_list
-        return render_template('get_data_file_2.html', form=form)
+    # Get the list of data files for the user
+    csv_list = []
+    user_data_dir = Config.USER_DATA_DIR
+    dir_list = glob.glob(f'{user_data_dir}/{user}/uploads/*')
+    dirs = sorted(dir_list, key=str.casefold)
+    for dir in dirs:
+        if os.path.isdir(dir):
+            _, dir_name = dir.split('uploads/')
+            csv_paths = glob.glob(f'{dir}/*.csv')
+            csvs = sorted([os.path.basename(x) for x in csv_paths], key=str.casefold)
+            qualified_csvs = []
+            for csv in csvs:
+                qualified_csvs.append(f'{dir_name}/{csv}')
+            csv_list.extend(qualified_csvs)
+    form.data_file.choices = csv_list
+    return render_template('get_data_file_2.html', form=form)
 
 
 @home_bp.route('/get_eml_file/', methods=['GET', 'POST'])
@@ -3188,18 +3214,22 @@ def get_eml_file():
     if BTN_CANCEL in request.form:
         return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST':
         user = form.user.data
-        return redirect(url_for('home.get_eml_file_2', user=user))
+        if user:
+            return redirect(url_for('home.get_eml_file_2', user=user))
 
-    if request.method == 'GET':
-        # Get the list of users
-        user_data_dir = Config.USER_DATA_DIR
-        filelist = glob.glob(f'{user_data_dir}/*')
-        files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
-        # print(files)
-        form.user.choices = files
-        return render_template('get_eml_file.html', form=form)
+    # Get the list of users
+    user_data_dir = Config.USER_DATA_DIR
+    filelist = glob.glob(f'{user_data_dir}/*')
+    files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
+    # print(files)
+    form.user.choices = files
+    return render_template('get_eml_file.html', form=form)
 
 
 @home_bp.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
@@ -3243,19 +3273,22 @@ def get_eml_file_2(user):
     if BTN_CANCEL in request.form:
         return redirect(url_for(PAGE_MANAGE_DATA_USAGE))
 
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     if request.method == 'POST':
         eml_file = form.eml_file.data
-        # Get the data file
-        return download_eml_file(eml_file, user)
+        if eml_file:
+            # Get the data file
+            return download_eml_file(eml_file, user)
 
-    if request.method == 'GET':
-        # Get the list of eml files for the user
-        csv_list = []
-        user_data_dir = Config.USER_DATA_DIR
-        xml_files = glob.glob(f'{user_data_dir}/{user}/*.xml')
-        xml_files = sorted([os.path.basename(x) for x in xml_files], key=str.casefold)
-        form.eml_file.choices = xml_files
-        return render_template('get_eml_file_2.html', form=form)
+    # Get the list of eml files for the user
+    user_data_dir = Config.USER_DATA_DIR
+    xml_files = glob.glob(f'{user_data_dir}/{user}/*.xml')
+    xml_files = sorted([os.path.basename(x) for x in xml_files], key=str.casefold)
+    form.eml_file.choices = xml_files
+    return render_template('get_eml_file_2.html', form=form)
 
 
 @home_bp.route('/get_collaboration_database/', methods=['GET', 'POST'])
@@ -3288,6 +3321,9 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
 
+        if is_hidden_button():
+            return redirect(url_for(handle_hidden_buttons(), filename=document))
+
         if BTN_CONTINUE in request.form:
             return redirect(url_for(PAGE_REUPLOAD, filename=document, dt_node_id=dt_node_id, saved_filename=saved_filename, name_chg_ok=True), code=307) # 307 keeps it a POST
 
@@ -3317,6 +3353,9 @@ def reupload_other_entity(filename, node_id):
             if not other_entity_name:
                 raise ValueError("Other entity's name not found")
 
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=document))
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename)
         return redirect(url)
@@ -3339,6 +3378,9 @@ def load_entity(node_id=None):
     form = LoadOtherEntityForm()
     document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=document))
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -3402,7 +3444,10 @@ def close_document():
 @login_required
 def close():
     current_document = current_user.get_filename()
-    
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     log_usage(actions['CLOSE_DOCUMENT'])
     close_document()
     aux_msg = request.args.get('aux_msg', '')

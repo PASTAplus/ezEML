@@ -45,26 +45,6 @@
                 <br/>
                 {{ macros.item_start() }}{{ wtf.form_field(form.number_type) }}{{ macros.item_end(help_attribute_number_type_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.precision) }}{{ macros.item_end(help_attribute_numerical_precision_btn) }}
-
-                <label class="control-label">Bounds (Optional):</label>
-                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
-                    <tr>
-                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 15px 20px 1px;">
-                    <table width="100%">
-                    <tr>
-                    <td width="48%">{{ wtf.form_field(form.bounds_minimum) }}</td>
-                    <td width="4%">&nbsp;</td>
-                    <td width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.bounds_minimum_exclusive) }}</td>
-                    </tr>
-                    <tr>
-                    <td width="48%">{{ wtf.form_field(form.bounds_maximum) }}</td>
-                    <td width="4%">&nbsp;</td>
-                    <td width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.bounds_maximum_exclusive) }}</td>
-                    </tr>
-                    </table></td>
-                    </tr>
-                </table>
-                <br>
                 <label class="control-label">Optionally, enter up to 3 missing value codes with accompanying explanations:</label>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
@@ -84,6 +64,26 @@
                     <td>{{ wtf.form_field(form.code_3) }}</td>
                     <td width="5%">&nbsp;</td>
                     <td style="padding-bottom: 5px;">{{ wtf.form_field(form.code_explanation_3) }}</td>
+                    </tr>
+                    </table></td>
+                    </tr>
+                </table>
+                <br>
+
+                <label class="control-label">Bounds (Optional):</label>
+                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                    <tr>
+                    <td style="border: 1px solid steelblue;border-collapse: collapse;padding: 15px 20px 1px;">
+                    <table width="100%">
+                    <tr>
+                    <td width="48%">{{ wtf.form_field(form.bounds_minimum) }}</td>
+                    <td width="4%">&nbsp;</td>
+                    <td width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.bounds_minimum_exclusive) }}</td>
+                    </tr>
+                    <tr>
+                    <td width="48%">{{ wtf.form_field(form.bounds_maximum) }}</td>
+                    <td width="4%">&nbsp;</td>
+                    <td width="48%" style="padding-bottom: 5px;">{{ wtf.form_field(form.bounds_maximum_exclusive) }}</td>
                     </tr>
                     </table></td>
                     </tr>

@@ -350,13 +350,22 @@ def get_number_type(attribute_node):
     return number_type
 
 
-def match_with_regex(col_values, regex, empty_is_ok=True):
+def match_with_regex(col_values, regex, mvc, empty_is_ok=True):
     """
     Return a boolean Series indicating whether each value in a column matches a given regex.
     """
-    if empty_is_ok:
-        regex = f'^({regex})?$'
     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    # If regex starts with a ^, remove it temporarily
+    if regex.startswith('^'):
+        regex = regex[1:]
+    # If regex ends with a $, remove it temporarily
+    if regex.endswith('$'):
+        regex = regex[:-1]
+    if mvc:
+        regex = f"({regex})" + '|' + f"{'|'.join(mvc)}"
+    if empty_is_ok:
+        regex = '$|' + regex
+    regex = f"^{regex}$"
     matches = col_values.str.contains(regex)
     return matches
 
@@ -426,23 +435,23 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
         regex = '^[0-9]+$'
     else:
         regex = '^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$'
-    # Allow empty string
-    regex = '^$|' + regex
+    mvc = get_missing_value_codes(data_table_node, column_name)
     try:
-        matches = match_with_regex(col_values, regex)
+        matches = match_with_regex(col_values, regex, mvc)
     except KeyError:
         # This indicates the column name was not found in the data table.
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in data table', column_name, 'Not found')]
-    mvc = get_missing_value_codes(data_table_node, column_name)
-    if len(mvc) > 0:
-        mvc_regex = '^' + '|'.join(mvc) + '$'
-        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
-        mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with both matches == False and mvc_matches == False
-        result = ~(matches | mvc_matches)
-    else:
-        result = ~matches
+    # mvc = get_missing_value_codes(data_table_node, column_name)
+    # if len(mvc) > 0:
+    #     mvc_regex = '^' + '|'.join(mvc) + '$'
+    #     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    #     mvc_matches = col_values.str.contains(mvc_regex)
+    #     # Errors are rows with both matches == False and mvc_matches == False
+    #     result = ~(matches | mvc_matches)
+    # else:
+    #     result = ~matches
+    result = ~matches
     error_indices = result[result].index.values
 
     data_table_name = get_data_table_name(data_table_node)
@@ -487,22 +496,22 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
 
     codes = list(map(re.escape, get_categorical_codes(attribute_node)))
     codes_regex = '^' + '|'.join(codes) + '$'
-    # Allow empty string
-    codes_regex = '^$|' + codes_regex
+    mvc = get_missing_value_codes(data_table_node, column_name)
     try:
-        matches = match_with_regex(col_values, codes_regex)
+        matches = match_with_regex(col_values, codes_regex, mvc)
     except KeyError:
         return []   # This indicates the column is missing, but that type of error is reported via
                     # check_columns_existence_against_metadata()
-    mvc = get_missing_value_codes(data_table_node, column_name)
-    if len(mvc) > 0:
-        mvc_regex = '^' + '|'.join(mvc) + '$'
-        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
-        mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with both matches == False and mvc_matches == False
-        result = ~(matches | mvc_matches)
-    else:
-        result = ~matches
+    # mvc = get_missing_value_codes(data_table_node, column_name)
+    # if len(mvc) > 0:
+    #     mvc_regex = '^' + '|'.join(mvc) + '$'
+    #     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    #     mvc_matches = col_values.str.contains(mvc_regex)
+    #     # Errors are rows with both matches == False and mvc_matches == False
+    #     result = ~(matches | mvc_matches)
+    # else:
+    #     result = ~matches
+    result = ~matches
     error_indices = result[result].index.values
     data_table_name = get_data_table_name(data_table_node)
     expected = 'A defined code'
@@ -542,20 +551,24 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
                                  'The specified DateTime Format String is not supported.',
                                   'A <a href="../datetime_formats">supported</a> format',
                                   date_time_format)]
+    mvc = get_missing_value_codes(data_table_node, column_name)
     try:
-        matches = match_with_regex(col_values, regex)
+        matches = match_with_regex(col_values, regex, mvc)
+    # try:
+    #     matches = match_with_regex(col_values, regex)
     except KeyError:
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in table', (column_name), 'Not found')]
-    mvc = get_missing_value_codes(data_table_node, column_name)
-    if len(mvc) > 0:
-        mvc_regex = '^' + '|'.join(mvc) + '$'
-        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
-        mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with both matches == False and mvc_matches == False
-        result = ~(matches | mvc_matches)
-    else:
-        result = ~matches
+    # mvc = get_missing_value_codes(data_table_node, column_name)
+    # if len(mvc) > 0:
+    #     mvc_regex = '^' + '|'.join(mvc) + '$'
+    #     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    #     mvc_matches = col_values.str.contains(mvc_regex)
+    #     # Errors are rows with both matches == False and mvc_matches == False
+    #     result = ~(matches | mvc_matches)
+    # else:
+    #     result = ~matches
+    result = ~matches
     error_indices = result[result].index.values
     data_table_name = get_data_table_name(data_table_node)
     expected = get_date_time_format_specification(data_table_node, column_name)

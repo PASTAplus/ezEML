@@ -896,6 +896,9 @@ def check_method_steps(eml_node, doc_name, validation_errs=None, evaluation_warn
         if find_err_code(evaluation_warnings, EvaluationWarning.METHOD_STEP_DESCRIPTION_MISSING, names.DESCRIPTION):
             add_to_evaluation('methods_02', link)
 
+        if find_min_unmet(validation_errs, names.METHODSTEP, names.DESCRIPTION):
+            add_to_evaluation('methods_02', link)
+
     link = url_for(PAGE_METHOD_STEP_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:

@@ -19,7 +19,7 @@ from webapp.home.views import (
     AUTH_TOKEN_FLASH_MSG
 )
 from webapp.home.utils.node_utils import remove_child, new_child_node, add_child
-from webapp.home.utils.hidden_buttons import check_val_for_hidden_buttons
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.import_nodes import compose_rp_label
 from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_method_steps
@@ -64,6 +64,7 @@ data_sources_marker_end = '=====================================================
 
 @md_bp.route('/method_step_select/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def method_step_select(filename=None):
     form = MethodStepSelectForm(filename=filename)
 
@@ -110,8 +111,6 @@ def method_step_select(filename=None):
                 elif val == '[  ]':
                     new_page = this_page
                     node_id = key
-                else:
-                    new_page = check_val_for_hidden_buttons(val, new_page)
 
         if form.validate_on_submit():
             if new_page in [edit_page, this_page]:
@@ -171,6 +170,9 @@ def method_step(filename=None, node_id=None):
     if request.method == 'POST' and form.validate_on_submit():
         new_page = PAGE_METHOD_STEP_SELECT  # Save or Back sends us back to the list of method steps
 
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
+        new_page = handle_hidden_buttons(new_page)
+
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         if form_dict:
@@ -197,8 +199,6 @@ def method_step(filename=None, node_id=None):
                                       'POST', PAGE_METHOD_STEP_SELECT, PAGE_METHOD_STEP_SELECT,
                                       PAGE_PROJECT, PAGE_DATA_SOURCE)
                     return redirect(url)
-
-                new_page = check_val_for_hidden_buttons(val, new_page)
 
         submit_type = None
         if is_dirty_form(form):
@@ -308,8 +308,8 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
 
 @md_bp.route('/fetch_data_source/<node_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_data_source(node_id=None):
-
     form = EDIForm()
 
     # Process POST
@@ -350,8 +350,8 @@ def fetch_data_source(node_id=None):
 
 @md_bp.route('/fetch_data_source_2/<node_id>/<scope>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_data_source_2(node_id=None, scope=''):
-
     form = EDIForm()
 
     # Process POST
@@ -387,8 +387,8 @@ def fetch_data_source_2(node_id=None, scope=''):
 
 @md_bp.route('/fetch_data_source_2a/<node_id>/<scope_identifier>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_data_source_2a(node_id=None, scope_identifier=''):
-
     form = EDIForm()
 
     # Process POST
@@ -430,8 +430,8 @@ def fetch_data_source_2a(node_id=None, scope_identifier=''):
 
 @md_bp.route('/fetch_data_source_3/<method_step_node_id>/<scope_identifier>/<revision>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=''):
-
     form = EDIForm()
 
     # Process POST
@@ -454,7 +454,7 @@ def fetch_data_source_3(method_step_node_id=None, scope_identifier='', revision=
     scope, identifier = scope_identifier.split('.')
 
     try:
-        fetch_provenance_info_from_edi(method_step_node_id, scope, identifier, revision)
+        method_step_node_id = fetch_provenance_info_from_edi(method_step_node_id, scope, identifier, revision)
         return redirect(url_for(PAGE_METHOD_STEP, filename=user_data.get_active_document(), node_id=method_step_node_id))
         # log_usage(actions['FETCH_FROM_EDI'], f"{scope}.{identifier}.{revision}")
     except (AuthTokenExpired, Unauthorized) as e:
@@ -481,6 +481,14 @@ def fetch_provenance_info_from_edi(method_step_node_id, scope, identifier, revis
 
     active_eml_node = load_eml(filename=user_data.get_active_document())
     method_step_node = Node.get_node_instance(method_step_node_id)
+    if method_step_node is None:
+        dataset_node = active_eml_node.find_child(names.DATASET)
+        methods_node = dataset_node.find_child(names.METHODS)
+        if methods_node is None:
+            methods_node = Node(names.METHODS, parent=dataset_node)
+            add_child(dataset_node, methods_node)
+        method_step_node = Node(names.METHODSTEP, parent=methods_node)
+        add_child(methods_node, method_step_node)
 
     # This may raise exceptions AuthTokenExpired, Unauthorized, or some other
     revision, metadata = get_metadata_revision_from_pasta(scope, identifier, revision)
@@ -536,6 +544,9 @@ def fetch_provenance_info_from_edi(method_step_node_id, scope, identifier, revis
 
     # Save the EML
     save_both_formats(filename=user_data.get_active_document(), eml_node=active_eml_node)
+
+    # If we've created the method step node, the caller needs to know its ID
+    return method_step_node.id
 
 
 def guarantee_data_source_existence(form, filename, ms_node_id=None, data_source_node_id=None):

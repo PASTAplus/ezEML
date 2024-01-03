@@ -24,6 +24,7 @@ import webapp.views.data_tables.load_data
 from webapp.config import Config
 
 from webapp.home import views, exceptions, check_data_table_contents, standard_units
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
 
 from webapp.views.data_tables.load_data import (
     cull_data_files
@@ -88,15 +89,12 @@ def log_error(msg):
 
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def data_table_select(filename=None):
     """
     Display a list of data tables in the EML document.  The user can select a data table to edit or create a new one.
     """
     form = DataTableSelectForm(filename=filename)
-
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST':
@@ -138,10 +136,6 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
 
     form = DataTableForm(filename=filename)
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
-
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_DATA_TABLE_SELECT, filename=filename)
@@ -169,6 +163,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
 
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
         next_page = handle_hidden_buttons(next_page)
 
     if form.validate_on_submit():
@@ -427,6 +422,7 @@ def populate_data_table_form(form: DataTableForm, node: Node):
 
 @dt_bp.route('/load_data/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def load_data(filename=None):
     """
     Route to handle loading a data table from a CSV file.
@@ -448,9 +444,9 @@ def load_data(filename=None):
 
     if request.method == 'POST' and form.validate_on_submit():
 
-        if is_hidden_button():
-            current_document = current_user.get_filename()
-            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+        # if is_hidden_button():
+        #     current_document = current_user.get_filename()
+        #     return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         # Check if the post request has the file part
         if 'file' not in request.files:
@@ -552,6 +548,7 @@ def load_data(filename=None):
 @dt_bp.route('/reupload_data/<filename>/<dt_node_id>', methods=['GET', 'POST'])
 @dt_bp.route('/reupload_data/<filename>/<dt_node_id>/<saved_filename>/<name_chg_ok>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_ok=False):
     """
     Route to handle re-uploading a data table from a CSV file.
@@ -580,8 +577,8 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
         url = url_for(PAGE_DATA_TABLE_SELECT, filename=document)
         return redirect(url)
 
-    if is_hidden_button():
-        return redirect(url_for(handle_hidden_buttons(), filename=document))
+    # if is_hidden_button():
+    #     return redirect(url_for(handle_hidden_buttons(), filename=document))
 
     if request.method == 'POST':
         if dt_node:
@@ -629,6 +626,7 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
 # <dt_node_id> identifies the dataTable node that this attribute is a part of (within its attributeList)
 @dt_bp.route('/attribute_select/<filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def attribute_select(filename=None, dt_node_id=None):
     """
     Route to display a list of attributes (columns) in a data table and allow the user to select one to edit.
@@ -807,9 +805,9 @@ def attribute_select(filename=None, dt_node_id=None):
     form = AttributeSelectForm(filename=filename)
     # dt_node_id = request.args.get('dt_node_id')  # alternate way to get the id
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+    # if is_hidden_button():
+    #     current_document = current_user.get_filename()
+    #     return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST':
@@ -826,6 +824,7 @@ def attribute_select(filename=None, dt_node_id=None):
 
 @dt_bp.route('/attribute_measurement_scale/<filename>/<dt_node_id>/<node_id>/<mscale>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def attribute_measurement_scale(filename=None, dt_node_id=None, node_id=None, mscale=None):
     """
     Route to handle Change Type for a data table attribute (column).
@@ -860,9 +859,9 @@ def attribute_measurement_scale(filename=None, dt_node_id=None, node_id=None, ms
     form = AttributeMeasurementScaleForm(filename=filename)
     att_node_id = node_id
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+    # if is_hidden_button():
+    #     current_document = current_user.get_filename()
+    #     return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST':
@@ -1119,10 +1118,6 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
-
     # Determine POST type
     if request.method == 'POST' and form.validate_on_submit():
 
@@ -1131,6 +1126,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         else:
             submit_type = 'Back'
 
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
         next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
 
         if submit_type == 'Save Changes':
@@ -1339,10 +1335,6 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
-
     if request.method == 'POST':
 
         if is_dirty_form(form):
@@ -1352,6 +1344,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
             submit_type = 'Back'
             # flash(f"is_dirty_form: False")
 
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
         next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
 
         if submit_type == 'Save Changes':
@@ -1638,10 +1631,6 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
         return redirect(url)
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
-
     # Determine POST type
     if request.method == 'POST':
 
@@ -1658,6 +1647,8 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             next_page = PAGE_CODE_DEFINITION_SELECT
         else:
             next_page = PAGE_ATTRIBUTE_CATEGORICAL
+
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
         next_page = handle_hidden_buttons(next_page)
 
         if submit_type == 'Save Changes':
@@ -1884,6 +1875,7 @@ def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node
 @dt_bp.route('/code_definition_select/<filename>/<dt_node_id>/<att_node_id>/<node_id>/<mscale>',
              methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, node_id=None, mscale=None):
     """
     Route to handle the selection of a categorical code definition for editing.
@@ -1937,8 +1929,6 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
                 elif val == '[  ]':
                     new_page = this_page
                     node_id = key
-                else:
-                    new_page = handle_hidden_buttons(new_page)
 
         if form.validate_on_submit():
             if new_page == back_page:  # attribute_nominal_ordinal
@@ -1966,9 +1956,9 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
     nom_ord_node_id = node_id
     form = CodeDefinitionSelectForm(filename=filename)
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+    # if is_hidden_button():
+    #     current_document = current_user.get_filename()
+    #     return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST':
@@ -2063,10 +2053,6 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
             mscale = mscale_from_attribute(att_node)
     form = CodeDefinitionForm(filename=filename, node_id=node_id, attribute_name=attribute_name)
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
-
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_CODE_DEFINITION_SELECT,
@@ -2078,6 +2064,8 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
+
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
         next_page = handle_hidden_buttons(PAGE_CODE_DEFINITION_SELECT)
 
         if is_dirty_form(form):
@@ -2182,6 +2170,7 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
 
 @dt_bp.route('/clone_attributes/<filename>/<dt_node_id>/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def clone_attributes(filename, dt_node_id):
     """
     Initial page for Clone attributes from another data table. We ask the user to select the source package/document.
@@ -2194,9 +2183,9 @@ def clone_attributes(filename, dt_node_id):
     form = OpenDocumentForm()
     form.filename.choices = list_data_packages(True, True, current_user_directory_only=False)
 
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+    # if is_hidden_button():
+    #     current_document = current_user.get_filename()
+    #     return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # Process POST
     if request.method == 'POST':
@@ -2214,15 +2203,12 @@ def clone_attributes(filename, dt_node_id):
 
 @dt_bp.route('/clone_attributes_2/<target_filename>/<target_dt_id>/<source_filename>/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def clone_attributes_2(target_filename, target_dt_id, source_filename):
     """
     Second page for Clone attributes from another data table. We ask the user to select the source data table.
     """
     form = SelectDataTableForm()
-
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     # When cloning, we know the source and target have the same owner. We get the login for that owner and
     # pass it along to load_eml() to make sure we're pulling in the right package.
@@ -2271,15 +2257,12 @@ def clone_attributes_2(target_filename, target_dt_id, source_filename):
 
 @dt_bp.route('/clone_attributes_3/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>/<owner_login>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, owner_login):
     """
     Third page for Clone attributes from another data table. We ask the user to select the source columns in the source data table.
     """
     form = SelectDataTableColumnsForm()
-
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     source_eml_node = load_eml(source_filename, owner_login=owner_login)
     source_dt_node = Node.get_node_instance(source_dt_id)
@@ -2321,16 +2304,13 @@ def clone_attributes_3(target_filename, target_dt_id, source_filename, source_dt
 @dt_bp.route('/clone_attributes_4/<target_filename>/<target_dt_id>/<source_filename>/<source_dt_id>/<table_name_in>/<table_name_out>/<source_attr_ids>/<owner_login>',
              methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt_id, table_name_in, table_name_out, source_attr_ids, owner_login):
     """
     Fourth page for Clone attributes from another data table. We ask the user to map the source columns to the target columns.
     Then, we're ready to clone.
     """
     form = SelectDataTableColumnsForm()
-
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     source_eml_node = load_eml(source_filename, do_not_lock=True, owner_login=owner_login)
     source_attr_ids_list = source_attr_ids.strip('][').split(', ')

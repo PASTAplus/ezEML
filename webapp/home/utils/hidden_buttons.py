@@ -13,7 +13,10 @@ button. E.g., if they clicked "Open" while on the Title page, we post to the Tit
 so the Title method can save the title data and then go to the Open page.
 """
 
-from flask import request
+from flask import request, redirect, url_for
+from flask_login import current_user
+
+from functools import wraps
 
 from webapp.buttons import *
 from webapp.pages import *
@@ -107,3 +110,19 @@ def check_val_for_hidden_buttons(val, target_page):
         if val == button:
             return HIDDEN_TARGETS[button]
     return target_page
+
+
+def non_saving_hidden_buttons_decorator(func):
+    """
+    Decorator to check for hidden buttons and handle them for routes that do not save changes to the document,
+    i.e., routes that don't involve the user filling out a form whose contents need to be saved.
+    For routes that do save changes, we need to go to the route and save the changes before handling the hidden
+    buttons.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if is_hidden_button():
+            current_document = current_user.get_filename()
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+        return func(*args, **kwargs)
+    return wrapper

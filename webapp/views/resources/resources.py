@@ -13,12 +13,14 @@ from webapp.auth.user_data import (
 )
 
 from webapp.home.utils.node_utils import remove_child, add_child
-from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.node_store import dump_node_store
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import UP_ARROW, DOWN_ARROW, NO_OP, list_keywords
 from webapp.home.utils.create_nodes import create_title, create_data_package_id, create_pubinfo, create_abstract, \
     create_intellectual_rights, create_keyword
+from webapp.home.utils.hidden_buttons import (
+	is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons, non_saving_hidden_buttons_decorator
+)
 
 from webapp.home.forms import is_dirty_form, init_form_md5
 from webapp.views.resources.forms import (
@@ -82,10 +84,8 @@ def title(filename=None):
             create_title(title=form.title.data, filename=filename)
             init_form_md5(form)
 
-        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = handle_hidden_buttons(PAGE_DATA_TABLE_SELECT)
-
-        return redirect(url_for(new_page, filename=filename))
+        next_page = handle_hidden_buttons(PAGE_DATA_TABLE_SELECT)
+        return redirect(url_for(next_page, filename=filename))
 
     # Process GET
     try:
@@ -132,10 +132,8 @@ def data_package_id(filename=None):
             set_active_packageid(data_package_id)
             init_form_md5(form)
 
-        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = handle_hidden_buttons(PAGE_CHECK_METADATA)
-
-        return redirect(url_for(new_page, filename=filename))
+        next_page = handle_hidden_buttons(PAGE_CHECK_METADATA)
+        return redirect(url_for(next_page, filename=filename))
 
     # Process GET
     eml_node = load_eml(filename=filename)
@@ -159,16 +157,14 @@ def publication_info(filename=None):
     # Process POST
     if request.method == 'POST':
 
-        # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = handle_hidden_buttons(PAGE_METHOD_STEP_SELECT)
-
         # If the form is dirty, then save the data.
         if is_dirty_form(form):
             pubplace = form.pubplace.data
             pubdate = form.pubdate.data
             create_pubinfo(pubplace=pubplace, pubdate=pubdate, filename=filename)
 
-        return redirect(url_for(new_page, filename=filename))
+        next_page = handle_hidden_buttons(PAGE_METHOD_STEP_SELECT)
+        return redirect(url_for(next_page, filename=filename))
 
     # Process GET
     eml_node = load_eml(filename=filename)
@@ -204,8 +200,7 @@ def abstract(filename=None):
                 return get_abstract(filename, form)
 
         # Decide which page to go to next: the next page in the sequence, unless the user clicked on a hidden button.
-        new_page = PAGE_KEYWORD_SELECT
-        new_page = handle_hidden_buttons(new_page)
+        new_page = handle_hidden_buttons(PAGE_KEYWORD_SELECT)
 
         if form.validate_on_submit():
             # If the form is dirty, then save the data.
@@ -358,6 +353,7 @@ def populate_keyword_form(form: KeywordForm, kw_node: Node, keyword_thesaurus_no
 
 @res_bp.route('/keyword_select/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def keyword_select(filename=None):
     """Handle the page for the Keywords item in the Contents menu. It allows selection of a keyword from the list."""
 

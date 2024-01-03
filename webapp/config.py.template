@@ -99,3 +99,6 @@ class Config(object):
     COLLABORATION_BETA_TESTERS = []
 
     LOG_FILE_HANDLING_DETAILS = False
+    LOG_MEMORY_USAGE = False
+    LOG_REQUESTS = False
+    LOG_RESPONSES = False

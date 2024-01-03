@@ -19,7 +19,6 @@ import webapp.mimemail as mimemail
 
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info, get_check_metadata_status
-from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
 from webapp.home.utils.load_and_save import load_eml
 from webapp.home.utils.lists import list_data_packages
 from webapp.buttons import *
@@ -29,7 +28,7 @@ from webapp.home.log_usage import (
     actions,
     log_usage,
 )
-
+from webapp.home.utils.hidden_buttons import non_saving_hidden_buttons_decorator
 from webapp.home.views import get_helps, set_current_page, open_document, close_document, get_back_url
 from webapp.home.exceptions import (
     CollaboratingWithGroupAlready,
@@ -70,15 +69,11 @@ collab_bp = Blueprint('collab', __name__, template_folder='templates')
 @collab_bp.route('/collaborate/<filename>', methods=['GET', 'POST'])
 @collab_bp.route('/collaborate/<filename>/<dev>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def collaborate(filename=None, dev=None):
     """
     Handle display of the collaborate page.
     """
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_COLLABORATE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     form = CollaborateForm()
 
     # Process POST
@@ -144,11 +139,8 @@ def collaborate(filename=None, dev=None):
 
 @collab_bp.route('/enable_edi_curation/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def enable_edi_curation(filename=None):
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
 
     form = EnableEDICurationForm()
 
@@ -233,12 +225,8 @@ def enable_edi_curation_mail_body(server=None, package_id=None, filename=None, n
 @collab_bp.route('/enable_edi_curation_2/<filename>/<name>/<email_address>/<is_update>/<update_package>', methods=['GET', 'POST'])
 @collab_bp.route('/enable_edi_curation_2/<filename>/<name>/<email_address>/<notes>/<is_update>/<update_package>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=None, is_update:bool=False, update_package=None):
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     try:
         owner_login = user_data.get_active_document_owner_login()
 
@@ -290,12 +278,8 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
 @collab_bp.route('/accept_invitation/<filename>', methods=['GET', 'POST'])
 @collab_bp.route('/accept_invitation/<filename>/<invitation_code>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def accept_invitation(filename=None, invitation_code=None):
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     form = AcceptInvitationForm()
     if request.method == 'POST' and form.validate_on_submit():
         if request.form.get(BTN_SUBMIT):
@@ -390,12 +374,8 @@ def compose_invite_collaborator_email(name, sender_name, sender_email, title, in
 # @collab_bp.route('/invite_collaborator', methods=['GET', 'POST'])
 @collab_bp.route('/invite_collaborator/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def invite_collaborator(filename=None):
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DELETE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     eml_node = load_eml(filename=filename)
     title_node = eml_node.find_single_node_by_path([names.DATASET, names.TITLE])
     if not title_node or not title_node.content:
@@ -460,6 +440,7 @@ def invite_collaborator(filename=None):
 @collab_bp.route('/remove_collaboration/<collab_id>', methods=['GET', 'POST'])
 @collab_bp.route('/remove_collaboration/<collab_id>/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def remove_collaboration(collab_id, filename=None):
     if not collab_id.startswith('G'):
         collaborations.remove_collaboration(collab_id)
@@ -475,6 +456,7 @@ def remove_collaboration(collab_id, filename=None):
 
 @collab_bp.route('/open_by_collaborator/<collaborator_id>/<package_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def open_by_collaborator(collaborator_id, package_id):
     collaborator_id = int(collaborator_id)
     package_id = int(package_id)
@@ -506,6 +488,7 @@ def open_by_collaborator(collaborator_id, package_id):
 
 @collab_bp.route('/apply_group_lock/<package_id>/<group_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def apply_group_lock(package_id, group_id):
     collaborations.add_group_lock(int(package_id), group_id)
     current_document = user_data.get_active_document()
@@ -514,6 +497,7 @@ def apply_group_lock(package_id, group_id):
 
 @collab_bp.route('/release_group_lock/<package_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def release_group_lock(package_id):
     # user_login = current_user.get_user_login()
     package_id = int(package_id)
@@ -526,6 +510,7 @@ def release_group_lock(package_id):
 
 @collab_bp.route('/release_lock/<package_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def release_lock(package_id):
     user_login = current_user.get_user_login()
     package_id = int(package_id)
@@ -539,6 +524,7 @@ def release_lock(package_id):
 @collab_bp.route('/cancel_invitation/<invitation_id>', methods=['GET', 'POST'])
 @collab_bp.route('/cancel_invitation/<invitation_id>/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def cancel_invitation(invitation_id, filename=None):
     collaborations.cancel_invitation(invitation_id)
     if not filename:
@@ -548,6 +534,7 @@ def cancel_invitation(invitation_id, filename=None):
 
 @collab_bp.route('/save_backup', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def save_backup():
     # current_document = current_user.get_filename()
     user_login = current_user.get_user_login()
@@ -563,12 +550,9 @@ def save_backup():
 @collab_bp.route('/show_backups/<filename>', methods=['GET', 'POST'])
 @collab_bp.route('/show_backups/<filename>/<action>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def show_backups(filename=None, action=None):
     current_document = current_user.get_filename()
-
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHOW_BACKUPS)
-        return redirect(url_for(new_page, filename=current_document))
 
     # The action parameter is used to signal we want to
     #  return to the previous page.
@@ -581,6 +565,7 @@ def show_backups(filename=None, action=None):
 
 @collab_bp.route('/oreview_backup/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def preview_backup(filename=None):
     # Load the backup into the logged in user's session
     #  and then open the document for review.
@@ -605,6 +590,7 @@ def preview_backup(filename=None):
 
 @collab_bp.route('/restore_backup/<filename>/<owner>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def restore_backup(filename=None, owner=None):
     # Copy the backup into the collaboration owner's account
     # Load the backup into the logged in user's session
@@ -624,6 +610,7 @@ def restore_backup(filename=None, owner=None):
 
 @collab_bp.route('/delete_backup/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def delete_backup(filename=None):
     # Remove the backup file from the server
     filename = unquote(filename)
@@ -634,6 +621,7 @@ def delete_backup(filename=None):
 
 @collab_bp.route('/patch_db/<package_id>/<owner_id>/<new_package_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def patch_db(package_id=None, owner_id=None, new_package_id=None):
     import webapp.views.collaborations.collaborations as collaborations
     from webapp import db

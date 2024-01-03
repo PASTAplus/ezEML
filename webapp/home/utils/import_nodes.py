@@ -300,7 +300,7 @@ def import_related_project_nodes(target_package, node_ids_to_import):
     load_and_save.save_both_formats(target_package, target_eml_node)
 
 
-def compose_rp_label(rp_node:Node=None):
+def compose_rp_label(rp_node:Node=None, last_name_first:bool=False):
     """
     Compose a label for a responsible party node. The label is a string that can be displayed to the user.
 
@@ -308,7 +308,7 @@ def compose_rp_label(rp_node:Node=None):
     organization, or position. We also display the role, if any.
     """
 
-    def compose_individual_name_label(rp_node: Node = None):
+    def compose_individual_name_label(rp_node: Node = None, last_name_first: bool = False):
         label = ''
         if rp_node:
             salutation_nodes = rp_node.find_all_children(names.SALUTATION)
@@ -317,17 +317,22 @@ def compose_rp_label(rp_node:Node=None):
                     if salutation_node and salutation_node.content:
                         label = label + " " + salutation_node.content
 
+            given_name = ''
             given_name_nodes = rp_node.find_all_children(names.GIVENNAME)
             if given_name_nodes:
                 for given_name_node in given_name_nodes:
                     if given_name_node and given_name_node.content:
-                        label = label + " " + given_name_node.content
+                        given_name = given_name + " " + given_name_node.content
 
+            surname = ''
             surname_node = rp_node.find_child(names.SURNAME)
             if surname_node and surname_node.content:
-                label = label + " " + surname_node.content
+                surname = surname_node.content
 
-        return label
+            if last_name_first:
+                return surname + "," + given_name
+            else:
+                return given_name + " " + surname
 
     def compose_simple_label(rp_node: Node = None, child_node_name: str = ''):
         label = ''
@@ -341,7 +346,7 @@ def compose_rp_label(rp_node:Node=None):
     if rp_node:
         individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
         individual_name_label = (
-            compose_individual_name_label(individual_name_node))
+            compose_individual_name_label(individual_name_node, last_name_first))
         role_node = rp_node.find_child(names.ROLE)
         if role_node:
             role_label = role_node.content

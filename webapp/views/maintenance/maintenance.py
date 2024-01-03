@@ -5,8 +5,12 @@ Routes for handling the Maintenance page.
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
+from flask_login import current_user, login_required
 
-from webapp.home.utils.hidden_buttons import handle_hidden_buttons
+from webapp.home.utils.hidden_buttons import (
+	is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons, non_saving_hidden_buttons_decorator
+)
+
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.create_nodes import create_maintenance
 from webapp.home.utils.node_utils import add_child
@@ -36,6 +40,7 @@ maint_bp = Blueprint('maint', __name__, template_folder='templates')
 
 
 @maint_bp.route('/maintenance/<filename>', methods=['GET', 'POST'])
+@login_required
 def maintenance(filename=None):
     """
     Display the Maintenance page and process edits to the description and updateFrequency.
@@ -69,6 +74,7 @@ def maintenance(filename=None):
         init_form_md5(form)
 
     form = MaintenanceForm(filename=filename)
+
     eml_node = load_eml(filename=filename)
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)

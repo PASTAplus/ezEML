@@ -7,7 +7,7 @@ from flask import session
 from flask_login import current_user
 
 import psutil
-from pympler import muppy, summary
+from pympler import muppy, summary, asizeof
 
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
 
@@ -108,8 +108,6 @@ def log_available_memory():
 
 
 def log_profile_details(all_objects_before, all_objects_after):
-    from pympler import asizeof
-
     ids_before = {id(obj) for obj in all_objects_before}
     ids_after = {id(obj) for obj in all_objects_after}
 

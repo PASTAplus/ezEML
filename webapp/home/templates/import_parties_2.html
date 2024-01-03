@@ -39,7 +39,7 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <table>
+                <table width="100%">
 
     <script>
         function choose_options(all) {
@@ -97,9 +97,9 @@
         }
     </script>
                     <tr><h5>Select responsible parties to import from "{{ source_filename }}":
-                &nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<button class="link" type="button" onclick="choose_options(true); return false;">Select All</button>&nbsp;]
-                &nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<button class="link" type="button" onclick="choose_options(false); return false;">Clear All</button>&nbsp;]
-                &nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<button class="link" type="button" onclick="toggle_order(); return false;">Toggle Sort</button>&nbsp;]
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="white-space: nowrap;">[ <button class="link" type="button" onclick="choose_options(true); return false;">Select All</button>&nbsp;]</span>
+                        &nbsp;&nbsp;<span style="white-space: nowrap;">[&nbsp;<button class="link" type="button" onclick="choose_options(false); return false;">Clear All</button>&nbsp;]</span>
+                        &nbsp;&nbsp;<span style="white-space: nowrap;">[&nbsp;<button class="link" type="button" onclick="toggle_order(); return false;">Toggle Sort</button>&nbsp;]</span>
                         <input type="hidden" id="sorted" value="false" >
                     </h5>
                     </tr>

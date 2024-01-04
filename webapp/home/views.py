@@ -410,7 +410,8 @@ def check_data_table():
     csv_file_url = request.headers.get('csv_file_url')
     data_table_name = request.headers.get('data_table_name')
     column_names = request.headers.get('column_names').split(',')
-    return profile_and_save("check_data_table", check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names))
+    # return profile_and_save("check_data_table", check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names))
+    return check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names)
 
 
 @home_bp.route('/data_table_errors/<data_table_name>', methods=['GET', 'POST'])
@@ -451,11 +452,15 @@ def data_table_errors(data_table_name:str=None):
     errors = check_data_table_contents.get_data_file_eval(current_document, csv_filename, metadata_hash)
     if not errors:
         try:
+            errors = check_data_table_contents.check_data_table(eml_file_url,
+                                                                csv_file_url,
+                                                                data_table_name,
+                                                                max_errs_per_column=None)
             # start = datetime.now()
-            errors =  profile_and_save(#"check_data_table",
-                                       check_data_table_contents.check_data_table(eml_file_url, csv_file_url,
-                                                                                  data_table_name,
-                                                                                  max_errs_per_column=None))
+            # errors =  profile_and_save(#"check_data_table",
+            #                            check_data_table_contents.check_data_table(eml_file_url, csv_file_url,
+            #                                                                       data_table_name,
+            #                                                                       max_errs_per_column=None))
             # log_info(f'check_data_table() returned {errors[:1000]}')
             # end = datetime.now()
             # elapsed = (end - start).total_seconds()

@@ -603,9 +603,6 @@ def check_data_table(eml_file_url:str=None,
     eml_node, _ = load_eml_file(eml_file_url)
     df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=None)
 
-    import sys
-    foo = sys.getsizeof(df)
-
     if truncated:
         flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than 5 million. ezEML checks '
               f'only the first 5 million rows. Often this suffices to indicate the kinds of errors that are present. The full '

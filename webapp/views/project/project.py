@@ -13,8 +13,11 @@ from flask_login import (
 )
 
 from webapp.home.home_utils import log_error, log_info
+from webapp.home.utils.hidden_buttons import (
+	is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons, non_saving_hidden_buttons_decorator
+)
+
 from webapp.home.utils.node_utils import remove_child, add_child
-from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.node_store import dump_node_store
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_funding_awards
@@ -95,8 +98,6 @@ def project(filename=None, project_node_id=None):
             # doing_related_project = True
         elif BTN_IMPORT in request.form:
             new_page = PAGE_IMPORT_PROJECT
-        else:
-            new_page = handle_hidden_buttons(new_page)
 
         if save:
             abstract = form.abstract.data
@@ -119,6 +120,8 @@ def project(filename=None, project_node_id=None):
                 related_project_node = create_related_project(dataset_node, title, abstract, funding, project_node_id)
                 project_node_id = related_project_node.id
             save_both_formats(filename=filename, eml_node=eml_node)
+
+        new_page = handle_hidden_buttons(new_page)
 
         # if not node_id:
         if not doing_related_project:
@@ -183,6 +186,7 @@ def populate_project_form(form: ProjectForm, project_node: Node):
 @proj_bp.route('/project_personnel_select/<filename>/<node_id>', methods=['GET', 'POST'])
 @proj_bp.route('/project_personnel_select/<filename>/<node_id>/<project_node_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def project_personnel_select(filename=None, node_id=None, project_node_id=None):
     form = ResponsiblePartySelectForm(filename=filename)
 
@@ -213,6 +217,7 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
 @proj_bp.route('/funding_award_select/<filename>', methods=['GET', 'POST'])
 @proj_bp.route('/funding_award_select/<filename>/<project_node_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def funding_award_select(filename=None, project_node_id=None):
     form = AwardSelectForm(filename=filename)
 
@@ -255,8 +260,6 @@ def funding_award_select(filename=None, project_node_id=None):
                     new_page = PAGE_IMPORT_FUNDING_AWARDS
                     if node_id is None:
                         node_id = '1'
-                else:
-                    new_page = check_val_for_hidden_buttons(val, new_page)
 
         if form.validate_on_submit():
             if node_id and project_node_id:
@@ -312,6 +315,7 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
             dataset_node.add_child(project_node)
     else:
         project_node = Node.get_node_instance(project_node_id)
+
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
@@ -433,6 +437,7 @@ def populate_award_form(form: AwardForm, award_node: Node):
 
 @proj_bp.route('/related_project_select/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def related_project_select(filename=None):
     form = RelatedProjectSelectForm(filename=filename)
 
@@ -477,7 +482,7 @@ def remove_related_project(filename:str=None, node_id:str=None):
                 if eml_node:
                     save_both_formats(filename=filename, eml_node=eml_node)
             except Exception as e:
-                logger.error(e)
+                log_error(e)
 
 
 
@@ -518,8 +523,6 @@ def related_project_select_post(filename=None, form=None, form_dict=None,
             elif val[0:4] == BTN_BACK:
                 new_page = edit_page
                 project_node_id = None
-            else:
-                new_page = check_val_for_hidden_buttons(val, new_page)
 
     if form.validate_on_submit():
         if new_page == edit_page:

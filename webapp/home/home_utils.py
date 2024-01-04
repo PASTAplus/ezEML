@@ -1,13 +1,19 @@
 """ Basic utility functions. """
 
-import sys, daiquiri
+import sys
+import daiquiri
 
 from flask import session
 from flask_login import current_user
 
+import psutil
+from pympler import muppy, summary, asizeof
+
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
+
 from metapype.model.node import Node
 
-RELEASE_NUMBER = '2023.11.29'
+RELEASE_NUMBER = '2024.01.03'
 
 
 def extract_caller_module_name():
@@ -62,5 +68,110 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
         status = "green"
     session["check_metadata_status"] = status
     return status
+
+
+def log_available_memory():
+    """
+    Log the available system memory.
+    """
+    available_memory = psutil.virtual_memory().available / 1024 / 1024
+    process_usage = psutil.Process().memory_info().rss / 1024 / 1024
+    log_info(f"Memory usage:   available system memory:{available_memory:.1f} MB   process usage:{process_usage:.1f} MB")
+
+
+# def profile_and_save(func, *args, **kwargs):
+#     # Profile the function and get memory usage
+#     mem_usage = memory_usage((func, args, kwargs))
+#
+#     # Save the results to a file
+#     with open('memory_profile.txt', 'a') as file:
+#         file.write("Memory usage (in MB):\n")
+#         for point in mem_usage:
+#             file.write(f"{point}\n")
+#
+#
+# def profile_and_save_with_return(func, *args, **kwargs):
+#     # Function to wrap the original function and capture its return value
+#     def wrapper():
+#         return func(*args, **kwargs)
+#
+#     # Profile the memory usage of the wrapper function
+#     mem_usage, retval = memory_usage((wrapper,), retval=True, max_usage=True)
+#
+#     # Save the memory usage data to a file
+#     with open('memory_profile.txt', 'w') as file:
+#         file.write("Memory usage (in MB):\n")
+#         file.write(f"{mem_usage}\n")
+#
+#     # Return the original function's return value
+#     return retval
+
+
+def log_profile_details(all_objects_before, all_objects_after):
+    ids_before = {id(obj) for obj in all_objects_before}
+    ids_after = {id(obj) for obj in all_objects_after}
+
+    # Find new object IDs
+    new_ids = ids_after - ids_before
+
+    # Retrieve new objects
+    new_objects = [obj for obj in all_objects_after if id(obj) in new_ids]
+
+    # Optionally, filter by type (e.g., list)
+    new_lists = [obj for obj in new_objects if isinstance(obj, list)]
+
+    # Sort by size and save the results to a file
+    # original_stdout = sys.stdout
+    with open('memory_profile.txt', 'a') as file:
+        sys.stdout = file
+        file.write("*********** Details ***********\n")
+        obj = new_lists[0]
+        print(f"List size: {asizeof.asizeof(obj)} bytes, Length: {len(obj)}, Example content: {str(obj[:10])}...")
+
+        for obj in sorted(new_lists, key=lambda x: asizeof.asizeof(x), reverse=True)[:5]:
+            print(f"List size: {asizeof.asizeof(obj)} bytes, Length: {len(obj)}, Example content: {str(obj[:10])}...")
+        file.write("*********** End of details ***********\n")
+        # sys.stdout = original_stdout
+
+
+def profile_and_save(func, *args, **kwargs):
+    # Profile the function and get memory usage
+
+    # Start tracking memory
+    all_objects_before = muppy.get_objects()
+    summary_1 = summary.summarize(all_objects_before)
+
+    # Execute the function
+    retval = func(*args, **kwargs)
+
+    # Check memory after the function execution
+    all_objects_after = muppy.get_objects()
+    summary_2 = summary.summarize(all_objects_after)
+
+    # Compare before and after snapshots
+    diff = summary.get_diff(summary_1, summary_2)
+
+    original_stdout = sys.stdout
+
+    try:
+        # Save the results to a file
+        with open('memory_profile.txt', 'a') as file:
+            sys.stdout = file
+            file.write(f"*********** Summary of memory usage: {func_name} ***********\n")
+            summary.print_(diff)
+            file.write("*********** End of summary ***********\n")
+
+        # Log details about the new objects
+        # log_profile_details(all_objects_before, all_objects_after)
+    except Exception as e:
+        log_error(f"Error writing memory profile: {e}")
+        raise
+    finally:
+        sys.stdout = original_stdout
+
+    return retval
+
+
+
 
 

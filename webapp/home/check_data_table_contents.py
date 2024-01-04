@@ -48,13 +48,15 @@ from urllib.parse import unquote_plus
 import warnings
 
 import webapp.home.metapype_client
-from webapp.home.home_utils import log_error, log_info
+from webapp.home.home_utils import log_error, log_info, log_available_memory
 import webapp.home.utils.load_and_save
 from webapp.utils import path_exists, path_isdir, path_join
 
 import webapp.auth.user_data as user_data
 from webapp.config import Config
 from webapp.home.fetch_data import convert_file_size
+
+import webapp.views.data_tables.load_data as load_data
 
 from metapype.eml import names
 from webapp.exceptions import ezEMLXMLError
@@ -93,9 +95,11 @@ def load_eml_file(eml_file_url:str):
     return eml_node, nsmap_changed
 
 
-def load_df(eml_node, csv_url, data_table_name):
+def load_df(eml_node, csv_url, data_table_name, max_rows=None):
     """
-    Retrieve a data table CSV file from a URL and return a Pandas data frame for it.
+    Retrieve a data table CSV file from a URL and return:
+     a Pandas data frame for it, and
+     a flag indicating whether the data frame was truncated.
     """
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
@@ -128,11 +132,17 @@ def load_df(eml_node, csv_url, data_table_name):
     try:
         if delimiter == '\\t':
             delimiter = '\t'
-        return pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
-                           keep_default_na=False, skiprows=range(1, num_header_lines),
+
+        num_rows = load_data.get_num_rows(unquote_plus(csv_url), delimiter=delimiter, quote_char=quote_char)
+        if max_rows is None:
+            max_rows = num_rows
+        truncated = num_rows > max_rows
+        df = pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
+                           keep_default_na=False, skiprows=range(1, num_header_lines), nrows=max_rows,
                            skipfooter=num_footer_lines, low_memory=False, infer_datetime_format=True,
                            dtype=str)   # Set dtype to str to prevent pandas from converting empty strings to NaN,
                                         # whole numbers to floats, etc.
+        return df, truncated
 
     except Exception as err:
         log_info(f'Error loading CSV file: {err}')
@@ -340,13 +350,22 @@ def get_number_type(attribute_node):
     return number_type
 
 
-def match_with_regex(col_values, regex, empty_is_ok=True):
+def match_with_regex(col_values, regex, mvc, empty_is_ok=True):
     """
     Return a boolean Series indicating whether each value in a column matches a given regex.
     """
-    if empty_is_ok:
-        regex = f'^({regex})?$'
     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    # If regex starts with a ^, remove it temporarily
+    if regex.startswith('^'):
+        regex = regex[1:]
+    # If regex ends with a $, remove it temporarily
+    if regex.endswith('$'):
+        regex = regex[:-1]
+    if mvc:
+        regex = f"({regex})" + '|' + f"{'|'.join(mvc)}"
+    if empty_is_ok:
+        regex = '$|' + regex
+    regex = f"^{regex}$"
     matches = col_values.str.contains(regex)
     return matches
 
@@ -416,23 +435,23 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
         regex = '^[0-9]+$'
     else:
         regex = '^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$'
-    # Allow empty string
-    regex = '^$|' + regex
+    mvc = get_missing_value_codes(data_table_node, column_name)
     try:
-        matches = match_with_regex(col_values, regex)
+        matches = match_with_regex(col_values, regex, mvc)
     except KeyError:
         # This indicates the column name was not found in the data table.
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in data table', column_name, 'Not found')]
-    mvc = get_missing_value_codes(data_table_node, column_name)
-    if len(mvc) > 0:
-        mvc_regex = '^' + '|'.join(mvc) + '$'
-        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
-        mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with both matches == False and mvc_matches == False
-        result = ~(matches | mvc_matches)
-    else:
-        result = ~matches
+    # mvc = get_missing_value_codes(data_table_node, column_name)
+    # if len(mvc) > 0:
+    #     mvc_regex = '^' + '|'.join(mvc) + '$'
+    #     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    #     mvc_matches = col_values.str.contains(mvc_regex)
+    #     # Errors are rows with both matches == False and mvc_matches == False
+    #     result = ~(matches | mvc_matches)
+    # else:
+    #     result = ~matches
+    result = ~matches
     error_indices = result[result].index.values
 
     data_table_name = get_data_table_name(data_table_node)
@@ -477,22 +496,22 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
 
     codes = list(map(re.escape, get_categorical_codes(attribute_node)))
     codes_regex = '^' + '|'.join(codes) + '$'
-    # Allow empty string
-    codes_regex = '^$|' + codes_regex
+    mvc = get_missing_value_codes(data_table_node, column_name)
     try:
-        matches = match_with_regex(col_values, codes_regex)
+        matches = match_with_regex(col_values, codes_regex, mvc)
     except KeyError:
         return []   # This indicates the column is missing, but that type of error is reported via
                     # check_columns_existence_against_metadata()
-    mvc = get_missing_value_codes(data_table_node, column_name)
-    if len(mvc) > 0:
-        mvc_regex = '^' + '|'.join(mvc) + '$'
-        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
-        mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with both matches == False and mvc_matches == False
-        result = ~(matches | mvc_matches)
-    else:
-        result = ~matches
+    # mvc = get_missing_value_codes(data_table_node, column_name)
+    # if len(mvc) > 0:
+    #     mvc_regex = '^' + '|'.join(mvc) + '$'
+    #     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    #     mvc_matches = col_values.str.contains(mvc_regex)
+    #     # Errors are rows with both matches == False and mvc_matches == False
+    #     result = ~(matches | mvc_matches)
+    # else:
+    #     result = ~matches
+    result = ~matches
     error_indices = result[result].index.values
     data_table_name = get_data_table_name(data_table_node)
     expected = 'A defined code'
@@ -532,20 +551,24 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
                                  'The specified DateTime Format String is not supported.',
                                   'A <a href="../datetime_formats">supported</a> format',
                                   date_time_format)]
+    mvc = get_missing_value_codes(data_table_node, column_name)
     try:
-        matches = match_with_regex(col_values, regex)
+        matches = match_with_regex(col_values, regex, mvc)
+    # try:
+    #     matches = match_with_regex(col_values, regex)
     except KeyError:
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'Column not found in table', (column_name), 'Not found')]
-    mvc = get_missing_value_codes(data_table_node, column_name)
-    if len(mvc) > 0:
-        mvc_regex = '^' + '|'.join(mvc) + '$'
-        warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
-        mvc_matches = col_values.str.contains(mvc_regex)
-        # Errors are rows with both matches == False and mvc_matches == False
-        result = ~(matches | mvc_matches)
-    else:
-        result = ~matches
+    # mvc = get_missing_value_codes(data_table_node, column_name)
+    # if len(mvc) > 0:
+    #     mvc_regex = '^' + '|'.join(mvc) + '$'
+    #     warnings.filterwarnings("ignore", 'This pattern is interpreted as a regular expression, and has match groups.')
+    #     mvc_matches = col_values.str.contains(mvc_regex)
+    #     # Errors are rows with both matches == False and mvc_matches == False
+    #     result = ~(matches | mvc_matches)
+    # else:
+    #     result = ~matches
+    result = ~matches
     error_indices = result[result].index.values
     data_table_name = get_data_table_name(data_table_node)
     expected = get_date_time_format_specification(data_table_node, column_name)
@@ -578,7 +601,18 @@ def check_data_table(eml_file_url:str=None,
     its contents based on the metadata specification for the column.
     """
     eml_node, _ = load_eml_file(eml_file_url)
-    df = load_df(eml_node, csv_file_url, data_table_name)
+    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=None)
+
+    import sys
+    foo = sys.getsizeof(df)
+
+    if truncated:
+        flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than 5 million. ezEML checks '
+              f'only the first 5 million rows. Often this suffices to indicate the kinds of errors that are present. The full '
+              f'file will be checked when you submit the data package to the EDI repository.', 'warning')
+
+    log_info('After loading the data table')
+    log_available_memory()
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
@@ -603,6 +637,8 @@ def check_data_table(eml_file_url:str=None,
             #  reported above by check_columns_existence_against_metadata().
             continue
         variable_type = get_variable_type(attribute_node)
+        from datetime import date, datetime
+        start = datetime.now()
         if variable_type == 'CATEGORICAL':
             columns_checked.append(column_name)
             errors.extend(check_categorical_column(df, data_table_node, column_name, max_errs_per_column))
@@ -612,8 +648,17 @@ def check_data_table(eml_file_url:str=None,
         elif variable_type == 'NUMERICAL':
             columns_checked.append(column_name)
             errors.extend(check_numerical_column(df, data_table_node, column_name, max_errs_per_column))
+        end = datetime.now()
+        elapsed = (end - start).total_seconds()
+        log_info(f'After checking column: {column_name}... elapsed time: {elapsed:.1f} seconds')
+        log_available_memory()
 
-    return create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
+    results = create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
+
+    log_info(f'After creating result JSON')
+    log_available_memory()
+
+    return results
 
 
 def load_date_time_format_files(strings_filename=DATE_TIME_FORMAT_STRINGS_FILENAME,
@@ -694,11 +739,9 @@ def check_for_empty_rows(df, data_table_name, num_header_lines):
     Check for empty rows in the data table.
     """
     errors = []
-    is_empty = lambda x: x == ''
-    empty_rows = df.applymap(is_empty).all(axis=1)
-    empty_row_indices = []
-    if empty_rows.any():
-        empty_row_indices = empty_rows[empty_rows].index.values
+    # Check for empty rows
+    empty_rows = df.eq('').all(axis=1)
+    empty_row_indices = empty_rows[empty_rows].index
     for index in empty_row_indices:
         # Make the index 1-based and take into account the number of header rows. I.e., make it match what they'd see in Excel.
         errors.append(create_error_json(data_table_name, None,

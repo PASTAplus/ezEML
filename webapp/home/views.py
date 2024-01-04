@@ -20,9 +20,9 @@ from pathlib import Path
 import pickle
 from shutil import copyfile, move, rmtree
 import subprocess
+import time
 from urllib.parse import urlencode, urlparse, quote, unquote
 from zipfile import ZipFile
-
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
@@ -39,7 +39,7 @@ import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.home_utils import log_error, log_info
+from webapp.home.home_utils import log_error, log_info, log_available_memory, profile_and_save
 
 import csv
 
@@ -57,7 +57,7 @@ from webapp.home.forms import (
     CreateEMLForm, ImportPackageForm,
     OpenEMLDocumentForm, SaveAsForm,
     LoadMetadataForm, LoadDataForm, LoadOtherEntityForm,
-    ImportEMLForm, ImportEMLItemsForm,
+    ImportEMLForm, ImportEMLItemsForm, ImportPartiesFromTemplateForm,
     ImportItemsForm, ImportSingleItemForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm
@@ -81,6 +81,8 @@ from webapp.home.log_usage import (
 from webapp.home.manage_packages import get_data_packages, get_data_usage
 
 from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status
+from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
+
 from webapp.home.utils.node_utils import remove_child, new_child_node
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.load_and_save import get_pathname, load_eml, load_template, save_old_to_new, \
@@ -141,12 +143,16 @@ def log_request():
     """
     Log the incoming request.
     """
+    if not Config.LOG_REQUESTS:
+        return
+
     url = request.url
     if '/static/' in url or 'youtube.png' in url or 'favicon.ico' in url or 'logo.png' in url:
         return
 
     referrer = request.referrer
-    # log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
+    log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
+    log_available_memory()
 
 
 @home_bp.after_app_request
@@ -154,14 +160,18 @@ def log_response(response):
     """
     Log the outgoing response.
     """
+    if not Config.LOG_RESPONSES:
+        return response
+
     url = request.url
     if '/static/' in url or 'youtube.png' in url or 'favicon.ico' in url or 'logo.png' in url:
         return response
 
-    # if response:
-    #     log_info(f'**** OUTGOING RESPONSE: {request.remote_addr}  [{request.method}]  {request.full_path}  {response.status}')
-    # else:
-    #     log_info('**** OUTGOING RESPONSE: None')
+    if response:
+        log_info(f'**** OUTGOING RESPONSE: {request.remote_addr}  [{request.method}]  {request.full_path}  {response.status}')
+    else:
+        log_info('**** OUTGOING RESPONSE: None')
+    log_available_memory()
     return response
 
 
@@ -307,6 +317,17 @@ def reload_metadata():
     return current_document, eml_node
 
 
+@home_bp.route('/sleep/<seconds>', methods=['GET'])
+def sleep(seconds:str=None):
+    """ Sleep for the specified number of seconds. This is used for testing. """
+    try:
+        seconds = int(seconds)
+    except Exception as e:
+        seconds = 1
+    time.sleep(seconds)
+    return redirect(url_for(PAGE_INDEX))
+
+
 # Endpoint for AJAX calls to validate XML
 @home_bp.route('/check_xml/<xml>/<parent_name>', methods=['GET'])
 def check_xml(xml:str=None, parent_name:str=None):
@@ -389,11 +410,12 @@ def check_data_table():
     csv_file_url = request.headers.get('csv_file_url')
     data_table_name = request.headers.get('data_table_name')
     column_names = request.headers.get('column_names').split(',')
-    return check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names)
+    return profile_and_save("check_data_table", check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names))
 
 
 @home_bp.route('/data_table_errors/<data_table_name>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def data_table_errors(data_table_name:str=None):
     """Handle the Check data table link or Show errors link for a table on the Check Data Tables page."""
 
@@ -402,9 +424,7 @@ def data_table_errors(data_table_name:str=None):
         raise FileNotFoundError
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_DATA_TABLE_ERRORS)
-        if new_page != PAGE_DATA_TABLE_ERRORS:
-            return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     eml_node = load_eml(filename=current_document)
     data_table_nodes = []
@@ -432,8 +452,10 @@ def data_table_errors(data_table_name:str=None):
     if not errors:
         try:
             # start = datetime.now()
-            errors = check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name,
-                                                                max_errs_per_column=None)
+            errors =  profile_and_save(#"check_data_table",
+                                       check_data_table_contents.check_data_table(eml_file_url, csv_file_url,
+                                                                                  data_table_name,
+                                                                                  max_errs_per_column=None))
             # log_info(f'check_data_table() returned {errors[:1000]}')
             # end = datetime.now()
             # elapsed = (end - start).total_seconds()
@@ -597,6 +619,7 @@ def get_helps(ids):
 
 
 @home_bp.route('/')
+@non_saving_hidden_buttons_decorator
 def index():
     """Handle the index (Home) page."""
 
@@ -756,12 +779,14 @@ def restore_welcome_dialog():
 
 
 @home_bp.route('/encoding_error/<filename>')
+@non_saving_hidden_buttons_decorator
 def encoding_error(filename=None, errors=None):
     """Handle the error page that displays errors when characters are encountered that are not UTF-8 encoded."""
     return render_template('encoding_error.html', filename=filename, errors=errors, title='Encoding Errors')
 
 
 @home_bp.route('/file_error/<filename>')
+@non_saving_hidden_buttons_decorator
 def file_error(filename=None):
     """Handle the error page that displays a generic error when a file cannot be loaded."""
     return render_template('file_error.html', filename=filename, title='File Error')
@@ -769,6 +794,7 @@ def file_error(filename=None):
 
 @home_bp.route('/save', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def save():
     """
     Handle the save route. Note, however, that when the Save item is selected in the EML Documents menu, what
@@ -786,11 +812,6 @@ def save():
         flash('No document currently open')
         return render_template('index.html')
 
-    # If the user clicked a "hidden" button, we need to go there.
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SAVE)
-        return redirect(url_for(new_page, filename=current_document))
-
     eml_node = load_eml(filename=current_document)
     if not eml_node:
         flash(f'Unable to open {current_document}')
@@ -807,6 +828,7 @@ def save():
 @home_bp.route('/manage_packages/<to_delete>', methods=['GET', 'POST'])
 @home_bp.route('/manage_packages/<to_delete>/<action>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def manage_packages(to_delete=None, action=None):
     """Handle the Manage Packages page."""
 
@@ -828,11 +850,6 @@ def manage_packages(to_delete=None, action=None):
     if action == '____back____':
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_MANAGE_PACKAGES)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     # Set the default sort order. Other sort orders can be selected by clicking the column headers and are handled
     # in the template.
     sort_by = 'package_name'
@@ -850,6 +867,7 @@ def manage_packages(to_delete=None, action=None):
 @home_bp.route('/manage_data_usage', methods=['GET', 'POST'])
 @home_bp.route('/manage_data_usage/<action>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def manage_data_usage(action=None):
     """
     Handle the Manage Data Usage page.
@@ -877,11 +895,6 @@ def manage_data_usage(action=None):
                             f'--logonly={Config.GC_LOG_ONLY}'])
             flash(f'Garbage collection completed. Days={days}.')
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_MANAGE_DATA_USAGE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     # Set the default sort order. Other sort orders can be selected by clicking the column headers and are handled
     # in the template.
     sort_by = 'user_name'
@@ -906,6 +919,7 @@ def manage_data_usage(action=None):
 
 @home_bp.route('/save_as', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def save_as():
     """
     Handle the Save As item in the EML Documents menu.
@@ -936,10 +950,6 @@ def save_as():
                 return redirect(get_back_url())
             else:
                 return render_template('index.html')
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_SAVE_AS)
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             if not current_document:
@@ -986,6 +996,7 @@ def save_as():
 
 @home_bp.route('/check_data_tables', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def check_data_tables():
     """Handle the Check Data Tables item in the main Contents menu."""
     if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
@@ -1003,16 +1014,13 @@ def check_data_tables():
 
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_CHECK_DATA_TABLES)
-        return redirect(url_for(new_page, filename=current_document))
-
     help = get_helps(['check_data_tables'])
     return render_template('check_data_tables.html', help=help, content=content)
 
 
 @home_bp.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def check_metadata(filename:str):
     """Handle the Check Metadata item in the main Contents menu."""
     if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
@@ -1039,6 +1047,7 @@ def check_metadata(filename:str):
 
 @home_bp.route('/datetime_formats', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def datetime_formats():
     """Display the list of acceptable datetime formats."""
     content = format_date_time_formats_list()
@@ -1046,9 +1055,8 @@ def datetime_formats():
     # Process POST
     if request.method == 'POST':
         if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_DATETIME_FORMATS)
             current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
+            return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
         return redirect(url_for(PAGE_DATETIME_FORMATS))
 
@@ -1058,6 +1066,7 @@ def datetime_formats():
 
 @home_bp.route('/download_current', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def download_current():
     """
     Handle the Download EML File (XML) page.
@@ -1067,6 +1076,7 @@ def download_current():
     """
     current_document = user_data.get_active_document()
     if current_document:
+
         # Force the document to be saved, so it gets cleaned
         eml_node = load_eml(filename=current_document)
         save_both_formats(filename=current_document, eml_node=eml_node)
@@ -1093,6 +1103,7 @@ def allowed_data_file(filename):
 
 @home_bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def create():
     """Handle the New... page in EML Documents menu."""
 
@@ -1129,6 +1140,7 @@ def create():
 
 @home_bp.route('/display_tables', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def display_tables():
     """
     For development purposes only. Display the contents of the database tables used for collaboration.
@@ -1194,6 +1206,7 @@ def open_document(filename, owner=None, owner_login=None):
 
 @home_bp.route('/open_eml_document', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def open_eml_document():
     """Handle the Open... page in EML Documents menu."""
 
@@ -1220,6 +1233,7 @@ def open_eml_document():
 @home_bp.route('/open_package/<package_name>', methods=['GET', 'POST'])
 @home_bp.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def open_package(package_name, owner=None):
     """Handle a link to open a document via the Manage Packages page."""
 
@@ -1250,6 +1264,7 @@ def open_package(package_name, owner=None):
 
 @home_bp.route('/new_from_template', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def new_from_template():
     """
     Handle the New from Template... item in EML Documents menu.
@@ -1320,7 +1335,8 @@ def new_from_template():
             return redirect(url_for(PAGE_NEW_FROM_TEMPLATE_2, template_filename=template_path))
         else:
             new_page = handle_hidden_buttons(PAGE_NEW_FROM_TEMPLATE_2)
-            return redirect(url_for(new_page))
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
 
     # Process GET
     output = '<ul class="directory-list">\n'
@@ -1333,6 +1349,7 @@ def new_from_template():
 
 @home_bp.route('/new_from_template_2/<template_filename>/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def new_from_template_2(template_filename):
     """Handle the New from Template... item in EML Documents menu after a template has been selected."""
 
@@ -1374,11 +1391,6 @@ def new_from_template_2(template_filename):
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
 
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_NEW_FROM_TEMPLATE_2)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
-
         if form.validate_on_submit():
             filename = form.filename.data
             user_filenames = user_data.get_user_document_list()
@@ -1405,6 +1417,7 @@ def new_from_template_2(template_filename):
 @home_bp.route('/import_parties', methods=['GET', 'POST'])
 @home_bp.route('/import_parties/<target>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_parties(target=None):
     """Handle the Import Responsible Parties item in Import/Export menu."""
 
@@ -1416,11 +1429,6 @@ def import_parties(target=None):
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_PARTIES)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1437,6 +1445,7 @@ def import_parties(target=None):
 @home_bp.route('/import_parties_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @home_bp.route('/import_parties_2/<filename>/<template>/<is_template>/<target>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_parties_2(filename, template, is_template, target=None):
     """Handle the Import Responsible Parties item in Import/Export menu after a source document has been selected."""
 
@@ -1462,9 +1471,37 @@ def import_parties_2(filename, template, is_template, target=None):
             parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
         return parties
 
-    form = ImportEMLItemsForm()
+    def get_sorted_parties(eml_node):
+        def sort_key(item):
+            return item[1].lower()
+
+        sorted_parties = []
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
+            label = compose_rp_label(node, last_name_first=True)
+            sorted_parties.append(('Creator', f'{label} (Creator)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
+            label = compose_rp_label(node, last_name_first=True)
+            sorted_parties.append(('Contact', f'{label} (Contact)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
+            label = compose_rp_label(node, last_name_first=True)
+            sorted_parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
+            label = compose_rp_label(node, last_name_first=True)
+            sorted_parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
+            label = compose_rp_label(node, last_name_first=True)
+            sorted_parties.append(('Publisher', f'{label} (Publisher)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
+            label = compose_rp_label(node, last_name_first=True)
+            sorted_parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
+        return sorted(sorted_parties, key=sort_key)
 
     is_template = ast.literal_eval(is_template)
+    if True or is_template:
+        form = ImportPartiesFromTemplateForm()
+    else:
+        form = ImportEMLItemsForm()
+
     if not is_template:
         source_filename = filename
         user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
@@ -1476,6 +1513,11 @@ def import_parties_2(filename, template, is_template, target=None):
     parties = get_responsible_parties_for_import(eml_node)
     choices = [[party[2], party[1]] for party in parties]
     form.to_import.choices = choices
+
+    sorted_parties = get_sorted_parties(eml_node)
+    sorted_choices = [[party[2], party[1]] for party in sorted_parties]
+    form.to_import_sorted.choices = sorted_choices
+
     targets = [
         ("Creators", "Creators"),
         ("Contacts", "Contacts"),
@@ -1489,9 +1531,8 @@ def import_parties_2(filename, template, is_template, target=None):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_PARTIES)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -1515,11 +1556,13 @@ def import_parties_2(filename, template, is_template, target=None):
 
     # Process GET
     help = get_helps(['import_responsible_parties_2'])
-    return render_template('import_parties_2.html', source_filename=source_filename, target=target, help=help, form=form)
+    return render_template('import_parties_2.html', is_template=is_template,
+                           source_filename=source_filename, target=target, help=help, form=form)
 
 
 @home_bp.route('/import_keywords', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_keywords():
     """Handle the Import Keywords item in Import/Export menu."""
 
@@ -1531,11 +1574,6 @@ def import_keywords():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_KEYWORDS)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1551,6 +1589,7 @@ def import_keywords():
 
 @home_bp.route('/import_keywords_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_keywords_2(filename, template, is_template):
     """Handle the Import Keywords item in Import/Export menu after a source document has been selected."""
 
@@ -1596,9 +1635,8 @@ def import_keywords_2(filename, template, is_template):
         return redirect(get_back_url())
 
     if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_KEYWORDS)
         current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -1614,6 +1652,7 @@ def import_keywords_2(filename, template, is_template):
 
 @home_bp.route('/import_geo_coverage', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_geo_coverage():
     """Handle the Import Geographic Coverage item in Import/Export menu."""
 
@@ -1625,11 +1664,6 @@ def import_geo_coverage():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_GEO_COVERAGE)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1644,6 +1678,7 @@ def import_geo_coverage():
 
 @home_bp.route('/import_geo_coverage_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_geo_coverage_2(filename, template, is_template):
     """Handle the Import Geographic Coverage item in Import/Export menu after a source document has been selected."""
 
@@ -1672,11 +1707,6 @@ def import_geo_coverage_2(filename, template, is_template):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_GEO_COVERAGE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1691,6 +1721,7 @@ def import_geo_coverage_2(filename, template, is_template):
 
 @home_bp.route('/import_taxonomic_coverage', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_taxonomic_coverage():
     """Handle the Import Taxonomic Coverage item in Import/Export menu."""
 
@@ -1702,11 +1733,6 @@ def import_taxonomic_coverage():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_TAXONOMIC_COVERAGE)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1721,6 +1747,7 @@ def import_taxonomic_coverage():
 
 @home_bp.route('/import_taxonomic_coverage_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_taxonomic_coverage_2(filename, template, is_template):
     """Handle the Import Taxonomic Coverage item in Import/Export menu after a source document has been selected."""
 
@@ -1749,11 +1776,6 @@ def import_taxonomic_coverage_2(filename, template, is_template):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_TAXONOMIC_COVERAGE)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1769,6 +1791,7 @@ def import_taxonomic_coverage_2(filename, template, is_template):
 
 @home_bp.route('/import_funding_awards', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_funding_awards():
     """Handle the Import Funding Awards item in Import/Export menu."""
 
@@ -1780,11 +1803,6 @@ def import_funding_awards():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_FUNDING_AWARDS)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1799,6 +1817,7 @@ def import_funding_awards():
 
 @home_bp.route('/import_funding_awards_2/<filename>//<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_funding_awards_2(filename, template, is_template):
     """Handle the Import Funding Awards item in Import/Export menu after a source document has been selected."""
 
@@ -1828,11 +1847,6 @@ def import_funding_awards_2(filename, template, is_template):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_FUNDING_AWARDS)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1847,6 +1861,7 @@ def import_funding_awards_2(filename, template, is_template):
 
 @home_bp.route('/import_project', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_project():
     """Handle the Import Project item in Import/Export menu."""
 
@@ -1858,11 +1873,6 @@ def import_project():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_PROJECT)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1892,6 +1902,7 @@ def get_projects_for_import(eml_node):
 
 @home_bp.route('/import_project_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_project_2(filename, template, is_template):
     """Handle the Import Project item in Import/Export menu after a source document has been selected."""
 
@@ -1913,11 +1924,6 @@ def import_project_2(filename, template, is_template):
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_PROJECT)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
-
     if form.validate_on_submit():
         node_id_to_import = form.data['to_import']
         target_package = current_user.get_filename()
@@ -1932,6 +1938,7 @@ def import_project_2(filename, template, is_template):
 
 @home_bp.route('/import_related_projects', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_related_projects():
     """Handle the Import Related Projects item in Import/Export menu."""
 
@@ -1943,11 +1950,6 @@ def import_related_projects():
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
             return redirect(get_back_url())
-
-        if is_hidden_button():
-            new_page = handle_hidden_buttons(PAGE_IMPORT_RELATED_PROJECTS)
-            current_document = current_user.get_filename()
-            return redirect(url_for(new_page, filename=current_document))
 
         if form.validate_on_submit():
             filename = form.filename.data
@@ -1962,6 +1964,7 @@ def import_related_projects():
 
 @home_bp.route('/import_related_projects_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_related_projects_2(filename, template, is_template):
     """Handle the Import Related Projects item in Import/Export menu after a source document has been selected."""
 
@@ -1982,11 +1985,6 @@ def import_related_projects_2(filename, template, is_template):
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
-
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_IMPORT_RELATED_PROJECTS)
-        current_document = current_user.get_filename()
-        return redirect(url_for(new_page, filename=current_document))
 
     if form.validate_on_submit():
         node_ids_to_import = form.data['to_import']
@@ -2131,6 +2129,7 @@ def save_as_ezeml_package_export(archive_file):
 
 @home_bp.route('/export_package', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def export_package():
     """Handle the Export ezEML Data Package item in the Import/Export menu."""
 
@@ -2163,6 +2162,7 @@ def export_package():
 
 @home_bp.route('/export_package_2/<package_name>/<path:download_url>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def export_package_2(package_name, download_url):
     """Handle the Export ezEML Data Package item in the Import/Export menu."""
 
@@ -2278,6 +2278,7 @@ def insert_upload_urls(current_document, eml_node, clear_existing_urls=False):
 @home_bp.route('/share_submit_package/<filename>', methods=['GET', 'POST'])
 @home_bp.route('/share_submit_package/<filename>/<success>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def share_submit_package(filename=None, success=None):
     """Handle the Submit/Share Package page."""
 
@@ -2285,10 +2286,6 @@ def share_submit_package(filename=None, success=None):
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
-
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_SHARE_SUBMIT_PACKAGE)
-        return redirect(url_for(new_page, filename=filename))
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
     if not current_document:
@@ -2358,6 +2355,7 @@ def decode_from_query_string(param):
 
 @home_bp.route('/import_xml', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_xml():
     """Handle the Import EML File (XML)... item in the Import/Export menu."""
 
@@ -2435,6 +2433,7 @@ def import_xml():
 @home_bp.route('/import_xml_2/<package_name>/<filename>', methods=['GET', 'POST'])
 @home_bp.route('/import_xml_2/<package_name>/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_xml_2(package_name, filename, fetched=False):
     """Handle the Import EML File (XML)... item in the Import/Export menu after an XML file has been selected."""
 
@@ -2446,6 +2445,9 @@ def import_xml_2(package_name, filename, fetched=False):
         return redirect(get_back_url())
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
@@ -2513,6 +2515,7 @@ def get_data_size(filename):
 @home_bp.route('/import_xml_3/<nsmap_changed>/<unknown_nodes>/<attr_errs>/<child_errs>/<other_errs>/<pruned_nodes>/<filename>/<fetched>',
             methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_errs=None,
                  other_errs=None, pruned_nodes=None, filename=None, fetched=False):
     """ Handle reporting XML parsing errors after an XML file has been imported. """
@@ -2608,10 +2611,6 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
-        if is_hidden_button():
-            # Have a hidden button, so short-circuit out of here without importing the data
-            current_document = user_data.get_active_document()
-            return redirect(url_for(handle_hidden_buttons(PAGE_TITLE), filename=current_document))
 
         try:
             total_size = import_data(filename, eml_node)
@@ -2668,6 +2667,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
 
 @home_bp.route('/import_xml_4/<filename>/<fetched>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_xml_4(filename=None, fetched=False):
     """ Handle XML import/fetch in case with no XML parsing errors. """
 
@@ -2683,10 +2683,6 @@ def import_xml_4(filename=None, fetched=False):
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
-        if is_hidden_button():
-            # Have a hidden button, so short-circuit out of here without importing the data
-            current_document = user_data.get_active_document()
-            return redirect(url_for(handle_hidden_buttons(PAGE_TITLE), filename=current_document))
         try:
             total_size = import_data(filename, eml_node)
         except (AuthTokenExpired, Unauthorized) as e:
@@ -2730,6 +2726,7 @@ def import_xml_4(filename=None, fetched=False):
 
 @home_bp.route('/fetch_xml/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_xml():
     """Handle the Fetch a Package from EDI... item in the Import/Export menu."""
 
@@ -2738,6 +2735,9 @@ def fetch_xml():
     # Process POST
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2772,6 +2772,7 @@ def fetch_xml():
 
 @home_bp.route('/fetch_xml_2/<scope>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_xml_2(scope=''):
     """Handle the Fetch a Package from EDI... item in the Import/Export menu after a scope has been selected."""
 
@@ -2809,6 +2810,7 @@ def fetch_xml_2(scope=''):
 
 @home_bp.route('/fetch_xml_2a/<scope_identifier>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_xml_2a(scope_identifier=''):
     """
     Handle the Fetch a Package from EDI... item in the Import/Export menu after an identifier within scope
@@ -2854,6 +2856,7 @@ def fetch_xml_2a(scope_identifier=''):
 
 @home_bp.route('/fetch_xml_3/<scope_identifier>/<revision>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def fetch_xml_3(scope_identifier='', revision=''):
     """
     Handle the Fetch a Package from EDI... item in the Import/Export menu after a package has been selected.
@@ -2866,6 +2869,9 @@ def fetch_xml_3(scope_identifier='', revision=''):
     # Process POST
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
@@ -2954,6 +2960,7 @@ def fetch_xml_3(scope_identifier='', revision=''):
 
 @home_bp.route('/preview_data_portal', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def preview_data_portal():
     """Handle the Preview in EDI Data Portal item from the Import/Export menu."""
     form = EDIForm()
@@ -2961,28 +2968,20 @@ def preview_data_portal():
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_PREVIEW_DATA_PORTAL)
-        current_document = user_data.get_active_document()
-        return redirect(url_for(new_page, filename=current_document))
-
     return render_template('preview_data_portal.html', form=form, help=get_helps(['preview_data_portal']))
 
 
 @home_bp.route('/preview_data_portal_2', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def preview_data_portal_2():
     """Handle the Preview in EDI Data Portal item from the Import/Export menu."""
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
-    if is_hidden_button():
-        new_page = handle_hidden_buttons(PAGE_PREVIEW_DATA_PORTAL_2)
-        current_document = user_data.get_active_document()
-        return redirect(url_for(new_page, filename=current_document))
+    current_document = current_user.get_filename()
 
     if request.method == 'GET':
-        current_document = user_data.get_active_document()
         pathname = get_pathname(current_document, file_extension='xml')
         with open(pathname, 'rb') as f:
             xml = f.read()
@@ -2992,6 +2991,7 @@ def preview_data_portal_2():
 
 @home_bp.route('/import_package', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_package():
     """Handle the Import ezEML Data Package... item from the Import/Export menu."""
 
@@ -3063,6 +3063,7 @@ def import_package():
 
 @home_bp.route('/import_package_2/<package_name>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_package_2(package_name):
     """Handle the Import ezEML Data Package... item from the Import/Export menu after a file has been selected
     and a file with that filename already exists. Let the user choose whether to replace the existing file or
@@ -3101,6 +3102,7 @@ def import_package_2(package_name):
 
 @home_bp.route('/get_data_file/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def get_data_file():
     """
     This route is an admin tool for use by the EDI team to download an uploaded data file from any user's account.
@@ -3116,20 +3118,21 @@ def get_data_file():
 
     if request.method == 'POST':
         user = form.user.data
-        return redirect(url_for('home.get_data_file_2', user=user))
+        if user:
+            return redirect(url_for('home.get_data_file_2', user=user))
 
-    if request.method == 'GET':
-        # Get the list of users
-        user_data_dir = Config.USER_DATA_DIR
-        filelist = glob.glob(f'{user_data_dir}/*')
-        files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
-        # print(files)
-        form.user.choices = files
-        return render_template('get_data_file.html', form=form)
+    # Get the list of users
+    user_data_dir = Config.USER_DATA_DIR
+    filelist = glob.glob(f'{user_data_dir}/*')
+    files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
+    # print(files)
+    form.user.choices = files
+    return render_template('get_data_file.html', form=form)
 
 
 @home_bp.route('/get_data_file_2/<user>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def get_data_file_2(user):
     """
     This route is an admin tool for use by the EDI team to download an uploaded data file from any user's account.
@@ -3152,29 +3155,30 @@ def get_data_file_2(user):
     if request.method == 'POST':
         data_file = form.data_file.data
         # Get the data file
-        return download_data_file(data_file, user)
+        if data_file:
+            return download_data_file(data_file, user)
 
-    if request.method == 'GET':
-        # Get the list of data files for the user
-        csv_list = []
-        user_data_dir = Config.USER_DATA_DIR
-        dir_list = glob.glob(f'{user_data_dir}/{user}/uploads/*')
-        dirs = sorted(dir_list, key=str.casefold)
-        for dir in dirs:
-            if os.path.isdir(dir):
-                _, dir_name = dir.split('uploads/')
-                csv_paths = glob.glob(f'{dir}/*.csv')
-                csvs = sorted([os.path.basename(x) for x in csv_paths], key=str.casefold)
-                qualified_csvs = []
-                for csv in csvs:
-                    qualified_csvs.append(f'{dir_name}/{csv}')
-                csv_list.extend(qualified_csvs)
-        form.data_file.choices = csv_list
-        return render_template('get_data_file_2.html', form=form)
+    # Get the list of data files for the user
+    csv_list = []
+    user_data_dir = Config.USER_DATA_DIR
+    dir_list = glob.glob(f'{user_data_dir}/{user}/uploads/*')
+    dirs = sorted(dir_list, key=str.casefold)
+    for dir in dirs:
+        if os.path.isdir(dir):
+            _, dir_name = dir.split('uploads/')
+            csv_paths = glob.glob(f'{dir}/*.csv')
+            csvs = sorted([os.path.basename(x) for x in csv_paths], key=str.casefold)
+            qualified_csvs = []
+            for csv in csvs:
+                qualified_csvs.append(f'{dir_name}/{csv}')
+            csv_list.extend(qualified_csvs)
+    form.data_file.choices = csv_list
+    return render_template('get_data_file_2.html', form=form)
 
 
 @home_bp.route('/get_eml_file/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def get_eml_file():
     """
     This route is an admin tool for use by the EDI team to download an EML file from any user's account.
@@ -3190,20 +3194,21 @@ def get_eml_file():
 
     if request.method == 'POST':
         user = form.user.data
-        return redirect(url_for('home.get_eml_file_2', user=user))
+        if user:
+            return redirect(url_for('home.get_eml_file_2', user=user))
 
-    if request.method == 'GET':
-        # Get the list of users
-        user_data_dir = Config.USER_DATA_DIR
-        filelist = glob.glob(f'{user_data_dir}/*')
-        files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
-        # print(files)
-        form.user.choices = files
-        return render_template('get_eml_file.html', form=form)
+    # Get the list of users
+    user_data_dir = Config.USER_DATA_DIR
+    filelist = glob.glob(f'{user_data_dir}/*')
+    files = sorted([os.path.basename(x) for x in filelist if '-' in os.path.basename(x)], key=str.casefold)
+    # print(files)
+    form.user.choices = files
+    return render_template('get_eml_file.html', form=form)
 
 
 @home_bp.route('/get_eml_file_2/<user>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def get_eml_file_2(user):
     """
     This route is an admin tool for use by the EDI team to download an EML file from any user's account.
@@ -3245,21 +3250,21 @@ def get_eml_file_2(user):
 
     if request.method == 'POST':
         eml_file = form.eml_file.data
-        # Get the data file
-        return download_eml_file(eml_file, user)
+        if eml_file:
+            # Get the data file
+            return download_eml_file(eml_file, user)
 
-    if request.method == 'GET':
-        # Get the list of eml files for the user
-        csv_list = []
-        user_data_dir = Config.USER_DATA_DIR
-        xml_files = glob.glob(f'{user_data_dir}/{user}/*.xml')
-        xml_files = sorted([os.path.basename(x) for x in xml_files], key=str.casefold)
-        form.eml_file.choices = xml_files
-        return render_template('get_eml_file_2.html', form=form)
+    # Get the list of eml files for the user
+    user_data_dir = Config.USER_DATA_DIR
+    xml_files = glob.glob(f'{user_data_dir}/{user}/*.xml')
+    xml_files = sorted([os.path.basename(x) for x in xml_files], key=str.casefold)
+    form.eml_file.choices = xml_files
+    return render_template('get_eml_file_2.html', form=form)
 
 
 @home_bp.route('/get_collaboration_database/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def get_collaboration_database():
     """
     This route is an admin tool for use by the EDI team to download the database used to track collaboration status.
@@ -3274,6 +3279,7 @@ def get_collaboration_database():
 
 @home_bp.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
     """
     When a user uploads a data table with column names that are different from the original data table, we need to
@@ -3298,6 +3304,7 @@ def reupload_data_with_col_names_changed(saved_filename, dt_node_id):
 
 @home_bp.route('/reupload_other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def reupload_other_entity(filename, node_id):
     """
     Route to handle reupload of an other data entity.
@@ -3331,6 +3338,7 @@ def reupload_other_entity(filename, node_id):
 
 @home_bp.route('/load_other_entity/<node_id>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def load_entity(node_id=None):
     """
     Route to handle uploading of an other data entity.
@@ -3400,9 +3408,13 @@ def close_document():
 
 @home_bp.route('/close', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def close():
     current_document = current_user.get_filename()
-    
+
+    if is_hidden_button():
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
+
     log_usage(actions['CLOSE_DOCUMENT'])
     close_document()
     aux_msg = request.args.get('aux_msg', '')
@@ -3633,6 +3645,7 @@ def slow_poke():
 
 @home_bp.route('/import_temporal_coverage', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_temporal_coverage():
     """Handle the Import Temporal Coverage item in Import/Export menu. Not currently used."""
 
@@ -3659,6 +3672,7 @@ def import_temporal_coverage():
 
 @home_bp.route('/import_temporal_coverage_2/<filename>/', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def import_temporal_coverage_2(filename):
     """Handle the Import Temporal Coverage item in Import/Export menu after a source document has been selected.
     Not currently used."""

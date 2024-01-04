@@ -6,13 +6,26 @@
     {% set help_import_responsible_parties_2_btn = help_import_responsible_parties_2_id ~ '_btn' %}
     {% set help_import_responsible_parties_2_dialog = help_import_responsible_parties_2_id ~ '_dialog' %}
 
-    <body onload="setTarget('{{ target }}');">
+    <body onload="setTarget('{{ target }};');hideSorted(true);">
     <script>
         function setTarget(target) {
             let target_list = document.getElementsByName('target');
             for (let i = 0; i < target_list.length; i++) {
                 if (target_list[i].value == target) {
                     target_list[i].checked = true;
+                }
+            }
+        }
+        function hideSorted(val) {
+            let unsorted = document.getElementById('to_import');
+            let sorted = document.getElementById('to_import_sorted');
+            if (sorted) {
+                if (val) {
+                    unsorted.style.display = 'block';
+                    sorted.style.display = 'none';
+                } else {
+                    unsorted.style.display = 'none';
+                    sorted.style.display = 'block';
                 }
             }
         }
@@ -26,8 +39,79 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <table>
-                    {{ macros.import_selection(form, source_filename, "responsible parties") }}
+                <table width="100%">
+
+    <script>
+        function choose_options(all) {
+            $('input:checkbox').not(this).prop('checked', all);
+        }
+        function reconcile_checkbox_statuses(sorted) {
+            // sorted is a boolean indicating whether the sorted list is the one displayed, i.e., the one whose
+            // checkbox statuses should be copied to the other list.
+            let from_items = null;
+            let to_items = null;
+            if (sorted) {
+                from_items = Array.from(document.getElementById('to_import_sorted').getElementsByTagName('li'));
+                to_items = Array.from(document.getElementById('to_import').getElementsByTagName('li'));
+            } else {
+                from_items = Array.from(document.getElementById('to_import').getElementsByTagName('li'));
+                to_items = Array.from(document.getElementById('to_import_sorted').getElementsByTagName('li'));
+            }
+            from_items.forEach(function(item, index) {
+                let checkbox = item.querySelector('input[type="checkbox"]');
+                checked = from_items[index].querySelector('input[type="checkbox"]').checked;
+                default_value = checkbox.defaultValue;
+                // Find the item in the other list
+                let other_item = to_items.find(function(element) {
+                    return element.querySelector('input[type="checkbox"]').defaultValue == default_value;
+                });
+                if (other_item) {
+                    other_item.querySelector('input[type="checkbox"]').checked = checked;
+                }
+            });
+        }
+        function toggle_order() {
+            let sorted = document.getElementById('sorted');
+
+            let to_import = document.getElementById('to_import');
+            let to_import_sorted = document.getElementById('to_import_sorted');
+            let items = null;
+
+            reconcile_checkbox_statuses(sorted.value == 'true');
+
+            if (sorted.value == 'false') {
+                items = Array.from(to_import.getElementsByTagName('li'));
+                to_import.style.display = 'none';
+                to_import_sorted.style.display = 'block';
+                sorted.value = 'true';
+            } else {
+                items = Array.from(to_import_sorted.getElementsByTagName('li'));
+                to_import.style.display = 'block';
+                to_import_sorted.style.display = 'none';
+                sorted.value = 'false';
+            }
+        }
+        function sort_state() {
+            let sorted = document.getElementById('sorted');
+            return sorted.value;
+        }
+    </script>
+                    <tr><h5>Select responsible parties to import from "{{ source_filename }}":
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="white-space: nowrap;">[ <button class="link" type="button" onclick="choose_options(true); return false;">Select All</button>&nbsp;]</span>
+                        &nbsp;&nbsp;<span style="white-space: nowrap;">[&nbsp;<button class="link" type="button" onclick="choose_options(false); return false;">Clear All</button>&nbsp;]</span>
+                        &nbsp;&nbsp;<span style="white-space: nowrap;">[&nbsp;<button class="link" type="button" onclick="toggle_order(); return false;">Toggle Sort</button>&nbsp;]</span>
+                        <input type="hidden" id="sorted" value="false" >
+                    </h5>
+                    </tr>
+                    {% if form.to_import.choices %}
+                        <tr>{{ form.to_import(style="list-style:none;") }}</tr>
+                        {% if form.to_import_sorted.choices %}
+                            <tr>{{ form.to_import_sorted(style="list-style:none;") }}</tr>
+                        {% endif %}
+                    {% else %}
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ target_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
+                    {% endif %}
+
                     {% if form.to_import.choices %}
                     <tr><h5>Import as:</h5></tr>
                     <tr>{{ form.target(style="list-style:none;") }}</tr>

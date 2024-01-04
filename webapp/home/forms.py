@@ -161,6 +161,12 @@ class ImportEMLItemsForm(FlaskForm):
     target = RadioField('Target', choices=[], validators=[])
 
 
+class ImportPartiesFromTemplateForm(FlaskForm):
+    to_import = MultiCheckboxField('Import', choices=[], validators=[])
+    to_import_sorted = MultiCheckboxField('Import', choices=[], validators=[])
+    target = RadioField('Target', choices=[], validators=[])
+
+
 class SelectUserForm(FlaskForm):
     user = RadioField('User', choices=[], validators=[])
 

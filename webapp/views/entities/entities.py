@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
 )
 from flask_login import (
-    login_required
+    current_user, login_required
 )
 
 import webapp.home.utils.node_utils
@@ -48,7 +48,9 @@ from webapp.home.forms import (
 
 from webapp.views.data_tables.dt import entity_name_from_data_table
 from webapp.home.utils.node_utils import remove_child, add_child
-from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
+from webapp.home.utils.hidden_buttons import (
+    is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons, non_saving_hidden_buttons_decorator
+)
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import list_other_entities, list_geographic_coverages, list_temporal_coverages, \
     list_taxonomic_coverages, UP_ARROW, DOWN_ARROW, list_method_steps, list_access_rules
@@ -69,6 +71,7 @@ ent_bp = Blueprint('ent', __name__, template_folder='templates')
 
 @ent_bp.route('/other_entity_select/<filename>', methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def other_entity_select(filename=None):
     form = OtherEntitySelectForm(filename=filename)
 
@@ -106,6 +109,9 @@ def other_entity(filename=None, node_id=None):
     if request.method == 'POST' and form.validate_on_submit():
         next_page = PAGE_OTHER_ENTITY_SELECT
 
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
+        next_page = handle_hidden_buttons(next_page)
+
         auto_save = False  # if user clicked to edit, we need to save other entity first
         if 'Access' in request.form:
             next_page = PAGE_ENTITY_ACCESS_SELECT
@@ -121,7 +127,6 @@ def other_entity(filename=None, node_id=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
             auto_save = True
-        next_page = handle_hidden_buttons(next_page)
 
         eml_node = load_eml(filename=filename)
 
@@ -290,6 +295,7 @@ def populate_other_entity_form(form: OtherEntityForm, node: Node):
 @ent_bp.route('/entity_access_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def entity_access_select(filename: str = None, dt_element_name: str = None, dt_node_id: str = None):
     form = AccessSelectForm(filename=filename)
 
@@ -420,6 +426,9 @@ def entity_access(filename=None, dt_element_name=None, dt_node_id=None, node_id=
     if request.method == 'POST':
         next_page = PAGE_ENTITY_ACCESS_SELECT  # Save or Back sends us back to the list of access rules
 
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
+        next_page = handle_hidden_buttons(next_page)
+
         if is_dirty_form(form):
             submit_type = 'Save Changes'
         else:
@@ -518,6 +527,7 @@ def entity_access(filename=None, dt_element_name=None, dt_node_id=None, node_id=
 @ent_bp.route('/entity_method_step_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def entity_method_step_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = MethodStepSelectForm(filename=filename)
 
@@ -589,6 +599,9 @@ def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, nod
     # Determine POST type
     if request.method == 'POST':
         next_page = PAGE_ENTITY_METHOD_STEP_SELECT  # Save or Back sends us back to the list of method steps
+
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
+        next_page = handle_hidden_buttons(next_page)
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -680,6 +693,7 @@ def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, nod
 @ent_bp.route('/entity_geographic_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def entity_geographic_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = GeographicCoverageSelectForm(filename=filename)
 
@@ -744,6 +758,9 @@ def entity_geographic_coverage(filename=None, dt_element_name=None, dt_node_id=N
     # Determine POST type
     if request.method == 'POST':
         next_page = PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT  # Save or Back sends us back to the list of method steps
+
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
+        next_page = handle_hidden_buttons(next_page)
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -913,6 +930,7 @@ def entity_select_post(filename=None, form=None, form_dict=None,
 @ent_bp.route('/entity_temporal_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def entity_temporal_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = TemporalCoverageSelectForm(filename=filename)
 
@@ -977,6 +995,9 @@ def entity_temporal_coverage(filename=None, dt_element_name=None, dt_node_id=Non
     # Determine POST type
     if request.method == 'POST':
         next_page = PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT  # Save or Back sends us back to the list of method steps
+
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
+        next_page = handle_hidden_buttons(next_page)
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'
@@ -1073,6 +1094,7 @@ def entity_temporal_coverage(filename=None, dt_element_name=None, dt_node_id=Non
 @ent_bp.route('/entity_taxonomic_coverage_select/<filename>/<dt_element_name>/<dt_node_id>',
             methods=['GET', 'POST'])
 @login_required
+@non_saving_hidden_buttons_decorator
 def entity_taxonomic_coverage_select(filename=None, dt_element_name: str = None, dt_node_id: str = None):
     form = TaxonomicCoverageSelectForm(filename=filename)
 
@@ -1137,6 +1159,9 @@ def entity_taxonomic_coverage(filename=None, dt_element_name=None, dt_node_id=No
     # Determine POST type
     if request.method == 'POST':
         next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT  # Save or Back sends us back to the list of method steps
+
+        # If we have a hidden button, we note that fact but we may need to save changes before going there.
+        next_page = handle_hidden_buttons(next_page)
 
         if is_dirty_form(form):
             submit_type = 'Save Changes'

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_settings_text_editing_id, help_settings_text_editing_title, help_settings_text_editing_content = help[0] %}
+    {% set help_settings_text_editing_btn = help_settings_text_editing_id ~ '_btn' %}
+    {% set help_settings_text_editing_dialog = help_settings_text_editing_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Settings</h2></td>
+{#        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_settings_text_editing_btn) }}</td>#}
+    </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
+                {{ form.csrf_token }}
+                <p></p>
+                <table>
+                    <tr>
+                    <td colspan="2"><h4>Enable Complex Text Element Editing:</h4></td>
+                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_settings_text_editing_btn) }}</td>
+                    </tr>
+                    <tr><td style="width: 10%">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.complex_text_editing_document) }}</td></tr>
+                    <tr><td style="width: 10%">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.complex_text_editing_global) }}</td></tr>
+                </table>
+
+                <br>
+                <p></p><br>
+                <input class="btn btn-primary" style="width: 150px;" name="Save" type="submit" value="Save Settings"/>&nbsp;&nbsp;&nbsp;
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_settings_text_editing_dialog, help_settings_text_editing_title, help_settings_text_editing_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_settings_text_editing_id, help_settings_text_editing_title, help_settings_text_editing_content = help[0] %}
+    {% set help_settings_text_editing_btn = help_settings_text_editing_id ~ '_btn' %}
+    {% set help_settings_text_editing_dialog = help_settings_text_editing_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_settings_text_editing_dialog, help_settings_text_editing_btn) }}
+    });
+    </script>
+{% endblock %}

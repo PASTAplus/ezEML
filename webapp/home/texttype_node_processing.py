@@ -105,6 +105,10 @@ def model_has_complex_texttypes(eml_node):
     For each TextType node, check if it has any children other than para. So, for example, if Project Abstract contains
     a section, then it is complex, so the model has complex texttypes.
     """
+    if user_data.get_enable_complex_text_element_editing_global():
+        return True
+    if user_data.get_enable_complex_text_element_editing_document():
+        return True
     if not eml_node:
         raise ValueError
     for texttype_node_name in TEXTTYPE_NODES:

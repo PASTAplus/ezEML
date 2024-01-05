@@ -60,7 +60,8 @@ from webapp.home.forms import (
     ImportEMLForm, ImportEMLItemsForm, ImportPartiesFromTemplateForm,
     ImportItemsForm, ImportSingleItemForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
-    SelectUserForm, SelectDataFileForm, SelectEMLFileForm
+    SelectUserForm, SelectDataFileForm, SelectEMLFileForm,
+    SettingsForm
 )
 
 import webapp.utils as utils
@@ -997,6 +998,30 @@ def save_as():
     else:
         flash("No document currently open")
         return render_template('index.html')
+
+
+@home_bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def settings():
+    form = SettingsForm()
+
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if form.validate_on_submit():
+            current_document = current_user.get_filename()
+            user_data.set_enable_complex_text_element_editing_document(current_document, form.complex_text_editing_document.data)
+            user_data.set_enable_complex_text_element_editing_global(form.complex_text_editing_global.data)
+            log_usage(actions['SETTINGS'])
+            return redirect(get_back_url())
+
+    if request.method == 'GET':
+        form.complex_text_editing_document.data = user_data.get_enable_complex_text_element_editing_document()
+        form.complex_text_editing_global.data = user_data.get_enable_complex_text_element_editing_global()
+    help = get_helps(['settings_text'])
+    return render_template('settings.html', form=form, help=help)
 
 
 @home_bp.route('/check_data_tables', methods=['GET', 'POST'])

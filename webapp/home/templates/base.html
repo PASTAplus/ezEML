@@ -42,7 +42,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package', 'import_xml',
-        'export_package'] %}
+        'export_package', 'settings'] %}
 {% set non_saving_contains = ['_select', '/check_metadata/', '/check_data_tables/',
         '/data_table_errors/', '/fetch_xml', '/manage_packages',
         '/import_parties_2/', '/import_geo_coverage_2/',
@@ -120,6 +120,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                         {{ macros.toolbar_menu_item(url_for('home.save'), 'hidden_save', 'Save', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.save_as'), 'hidden_save_as', 'Save As...', ns.is_non_saving) }}
                     {% endif %}
+                        {{ macros.toolbar_menu_item(url_for('home.settings'), 'hidden_settings', 'Settings...', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.manage_packages'), 'hidden_manage', 'Manage...', ns.is_non_saving) }}
                     </ul>
                 </li>

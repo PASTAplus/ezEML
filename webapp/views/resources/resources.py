@@ -205,17 +205,14 @@ def abstract(filename=None):
         if form.validate_on_submit():
             # If the form is dirty, then save the data.
             abstract = form.abstract.data
+            # We do this before checking is_dirty because is_valid_xml_fragment may change the form data (e.g.,
+            #  replacing \r\n with \n) and the initial md5 hash will have been applied to that modified data.
+            valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
+            if not valid:
+                flash(invalid_xml_error_message(msg), 'error')
+                return render_get_abstract_page(form, filename)
             if is_dirty_form(form):
-                # Abstract can use complex text types, so we need to validate it as XML if it's expressed that way.
-                # We do this before checking is_dirty because is_valid_xml_fragment may change the form data (e.g.,
-                #  replacing \r\n with \n) and the initial md5 hash will have been applied to that modified data.
-                valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
-                if valid:
-                    create_abstract(filename=filename, abstract=abstract)
-                    return redirect(url_for(new_page, filename=filename))
-                else:
-                    flash(invalid_xml_error_message(msg), 'error')
-                    return render_get_abstract_page(form, filename)
+                create_abstract(filename=filename, abstract=abstract)
             else:
                 return redirect(url_for(new_page, filename=filename))
 

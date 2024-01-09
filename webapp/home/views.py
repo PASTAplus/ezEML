@@ -40,6 +40,7 @@ import webapp.mimemail as mimemail
 
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info, log_available_memory, profile_and_save
+import webapp.home.texttype_node_processing as texttype_node_processing
 
 import csv
 
@@ -1012,8 +1013,18 @@ def settings():
 
         if form.validate_on_submit():
             current_document = current_user.get_filename()
+            setting_changed = False
+            document_setting = user_data.get_enable_complex_text_element_editing_document(current_document)
+            global_setting = user_data.get_enable_complex_text_element_editing_global()
+            if document_setting != form.complex_text_editing_document.data or global_setting != form.complex_text_editing_global.data:
+                setting_changed = True
             user_data.set_enable_complex_text_element_editing_document(current_document, form.complex_text_editing_document.data)
             user_data.set_enable_complex_text_element_editing_global(form.complex_text_editing_global.data)
+            if setting_changed:
+                eml_node = load_eml(filename=current_document)
+                if eml_node:
+                    # Setting has changed, so we need to re-process the document
+                    user_data.set_model_has_complex_texttypes(texttype_node_processing.model_has_complex_texttypes(eml_node))
             log_usage(actions['SETTINGS'])
             return redirect(get_back_url())
 

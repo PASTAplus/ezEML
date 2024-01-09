@@ -55,8 +55,8 @@ TEXTTYPE_CHILDREN = [
 
 
 INVALID_XML_MESSAGE_1 = 'XML error: '
-INVALID_XML_MESSAGE_2 = 'The XML is invalid. Please make corrections before continuing.\nError details: '
-INVALID_XML_MESSAGE_3 = ' element contains invalid XML. Please make corrections before continuing.\nError details: '
+INVALID_XML_MESSAGE_2 = 'The XML is invalid. Please make corrections before continuing. Error details:\n'
+INVALID_XML_MESSAGE_3 = ' element contains invalid XML. Please make corrections before continuing. Error details:\n'
 INVALID_XML_MESSAGE_4 = 'The XML is invalid.\nError details: '
 
 
@@ -70,7 +70,7 @@ def invalid_xml_error_message(msg, reset_changes_available=True, node_name=None,
     if is_ajax_request:
         return f"{msg}."
     elif reset_changes_available:
-        return f"{INVALID_XML_MESSAGE_1} {msg}."
+        return f"{INVALID_XML_MESSAGE_2} {msg}."
     elif not node_name:
         return f"{INVALID_XML_MESSAGE_2} {msg}."
     else:
@@ -236,9 +236,12 @@ def is_valid_xml_fragment(text, parent_name=None, is_ajax_request=False):
             return True, None
         try:
             # Raises an InvalidXMLError exception if invalid
-            construct_texttype_node(text, parent_name=parent_name)
+            _, errs = construct_texttype_node(text, parent_name=parent_name)
         except InvalidXMLError as e:
             return False, str(e)
+        if errs:
+            # We have validation/evaluation errs. Return them as a string.
+            return False, '\n'.join([x[1] for x in errs])
     return True, None
 
 
@@ -271,7 +274,7 @@ def construct_texttype_node(text, parent_name=None):
         subtree = metapype_io.from_xml(remove_escapes(text), clean=True, literals=['literalLayout', 'markdown'])
         errs = []
         validate.tree(subtree, errs)
-        return subtree
+        return subtree, errs
     except Exception as e:
         if e.__class__.__name__ == 'XMLSyntaxError':
             if str(e).startswith('Start tag expected'):
@@ -341,7 +344,7 @@ def post_process_texttype_node(text_node:Node=None, displayed_text:str=None):
     if displayed_text != original_text:
         # We're saving a node that's been modified. We remake the children.
         if use_complex_representation and text_node.name in TEXTTYPE_NODES:
-            new_node = construct_texttype_node(displayed_text, text_node.name)
+            new_node, _ = construct_texttype_node(displayed_text, text_node.name)
             text_node.content = new_node.content
             text_node.tail = new_node.tail
             text_node.children = new_node.children

@@ -470,6 +470,8 @@ def get_model_has_complex_texttypes():
 def set_enable_complex_text_element_editing_global(enable_complex_text_element_editing_global=False):
     user_properties = get_user_properties()
     user_properties['enable_complex_text_element_editing_global'] = enable_complex_text_element_editing_global
+    # If the global setting is changed, we need to update the model_has_complex_texttypes setting.
+    set_model_has_complex_texttypes()
     save_user_properties(user_properties)
 
 

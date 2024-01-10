@@ -1641,8 +1641,7 @@ def import_keywords_2(filename, template, is_template):
 
     def get_keywords_for_import(eml_node):
         keyword_tuples = []
-        # Returns a list of tuples
-        #    (keyword_node_id, keyword)
+        keyword_groups = {}
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
             return []
@@ -1658,12 +1657,14 @@ def import_keywords_2(filename, template, is_template):
                 thesaurus_node = keyword_set_node.find_child(names.KEYWORDTHESAURUS)
                 thesaurus = thesaurus_node.content if thesaurus_node else ''
                 if thesaurus:
-                    thesaurus = f'[{thesaurus}]'
+                    thesaurus = f'{thesaurus}'
                 keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}', keyword, thesaurus))
-        return [(a, b) for a, b, _, _ in keyword_tuples], \
+                keyword_groups[thesaurus] = keyword_groups.get(thesaurus, []) + [(keyword_node.id, keyword)]
+        for key in keyword_groups:
+            keyword_groups[key].sort(key=lambda x: x[1].lower())
+        return keyword_groups, \
                [(a, b) for a, b, _, _ in sorted(keyword_tuples, key=lambda x: (x[3].lower(), x[2].lower()))]
 
-    # form = ImportKeywordsForm()
     form = ImportItemsForm()
 
     is_template = ast.literal_eval(is_template)
@@ -1675,9 +1676,8 @@ def import_keywords_2(filename, template, is_template):
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
 
-    choices, sorted_choices = get_keywords_for_import(eml_node)
+    keyword_groups, sorted_choices = get_keywords_for_import(eml_node)
     form.to_import.choices = sorted_choices
-    # form.to_import.sorted_choices = sorted_choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
@@ -1695,7 +1695,8 @@ def import_keywords_2(filename, template, is_template):
 
     # Process GET
     help = get_helps(['import_keywords_2'])
-    return render_template('import_keywords_2.html', help=help, source_filename=source_filename, form=form)
+    return render_template('import_keywords_2.html', help=help, source_filename=source_filename,
+                           keyword_groups=keyword_groups, form=form)
 
 
 @home_bp.route('/import_geo_coverage', methods=['GET', 'POST'])

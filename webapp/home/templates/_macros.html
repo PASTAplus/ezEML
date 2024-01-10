@@ -83,7 +83,33 @@
                     {% if form.to_import.choices %}
                     <tr>{{ form.to_import(style="list-style:none;") }}</tr>
                     {% else %}
-                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ target_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ source_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
+                    {% endif %}
+{% endmacro %}
+{% macro import_selection_grouped(form, source_filename, option_groups, item_name) %}
+    <script>
+        function choose_options(all) {
+            $('input:checkbox').not(this).prop('checked', all);
+        }
+    </script>
+                    <tr><h5>Select {{ item_name }} to import from "{{ source_filename }}":
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(true); return false;">Select All</button> ]
+                &nbsp;&nbsp;&nbsp;&nbsp;[ <button class="link" type="button" onclick="choose_options(false); return false;">Clear All</button> ]</h5>
+                    </tr>
+                    {% if form.to_import.choices %}
+                    <tr>
+                        {% for group, options in option_groups.items() %}
+                            <h5 style="color: #006699">{{ group }}</h5> <!-- Group header -->
+                            {% for option in options %}
+                            <div>
+                            &nbsp;&nbsp;&nbsp;<input type="checkbox" name="to_import" value="{{ option[0] }}">
+                                <label for="{{ option[0] }}">{{ option[1] }}</label>
+                            </div>
+                            {% endfor %}
+                        {% endfor %}
+                    </tr>
+                    {% else %}
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ source_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
                     {% endif %}
 {% endmacro %}
 {% macro import_selection_sortable(form, source_filename, item_name) %}
@@ -155,7 +181,7 @@
                             <tr>{{ form.to_import_sorted(style="list-style:none;") }}</tr>
                         {% endif %}
                     {% else %}
-                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ target_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
+                    <tr><span style="font-style: italic;">&nbsp;&nbsp;"{{ source_filename }}" contains no {{ item_name }}.<p></p></span><br></tr>
                     {% endif %}
 {% endmacro %}
 {% macro import_buttons(form) %}

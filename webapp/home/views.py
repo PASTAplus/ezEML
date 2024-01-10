@@ -1662,7 +1662,8 @@ def import_keywords_2(filename, template, is_template):
                 keyword_groups[thesaurus] = keyword_groups.get(thesaurus, []) + [(keyword_node.id, keyword)]
         for key in keyword_groups:
             keyword_groups[key].sort(key=lambda x: x[1].lower())
-        return keyword_groups, \
+        sorted_dict = {key: keyword_groups[key] for key in sorted(keyword_groups)}
+        return sorted_dict, \
                [(a, b) for a, b, _, _ in sorted(keyword_tuples, key=lambda x: (x[3].lower(), x[2].lower()))]
 
     form = ImportItemsForm()

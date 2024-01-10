@@ -1568,6 +1568,11 @@ def import_parties_2(filename, template, is_template, target=None):
         ("Project Personnel", "Project Personnel")]
     form.target.choices = targets
 
+    if target:
+        # If the target is specified, set the target to the specified value
+        # This is used, for example, when the user clicks "Import Creator" from the Creator Select page
+        form.target.data = target
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 

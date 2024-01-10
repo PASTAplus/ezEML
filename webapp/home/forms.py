@@ -167,6 +167,11 @@ class ImportPartiesFromTemplateForm(FlaskForm):
     target = RadioField('Target', choices=[], validators=[])
 
 
+class ImportKeywordsForm(FlaskForm):
+    to_import = MultiCheckboxField('Import', choices=[], validators=[])
+    to_import_sorted = MultiCheckboxField('Import', choices=[], validators=[])
+
+
 class SelectUserForm(FlaskForm):
     user = RadioField('User', choices=[], validators=[])
 

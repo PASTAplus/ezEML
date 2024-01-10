@@ -59,7 +59,7 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, SaveAsForm,
     LoadMetadataForm, LoadDataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportPartiesFromTemplateForm,
-    ImportItemsForm, ImportSingleItemForm,
+    ImportItemsForm, ImportSingleItemForm, ImportKeywordsForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm,
     SettingsForm
@@ -1654,9 +1654,11 @@ def import_keywords_2(filename, template, is_template):
                 thesaurus = thesaurus_node.content if thesaurus_node else ''
                 if thesaurus:
                     thesaurus = f'[{thesaurus}]'
-                keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}'))
-        return keyword_tuples
+                keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}', keyword, thesaurus))
+        return [(a, b) for a, b, _, _ in keyword_tuples], \
+               [(a, b) for a, b, _, _ in sorted(keyword_tuples, key=lambda x: (x[3].lower(), x[2].lower()))]
 
+    # form = ImportKeywordsForm()
     form = ImportItemsForm()
 
     is_template = ast.literal_eval(is_template)
@@ -1668,9 +1670,9 @@ def import_keywords_2(filename, template, is_template):
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
 
-    keyword_tuples = get_keywords_for_import(eml_node)
-    choices = [keyword_tuple for keyword_tuple in keyword_tuples]
-    form.to_import.choices = choices
+    choices, sorted_choices = get_keywords_for_import(eml_node)
+    form.to_import.choices = sorted_choices
+    # form.to_import.sorted_choices = sorted_choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())

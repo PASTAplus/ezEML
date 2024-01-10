@@ -787,14 +787,31 @@ def list_keywords(eml_node:Node=None):
                     downval = NO_OP
         return downval
 
+    def get_sorted_keywords(eml_node):
+        keywords = []
+        keyword_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.KEYWORDSET, names.KEYWORD])
+        for keyword_node in keyword_nodes:
+            keyword_set = keyword_node.parent
+            thesaurus_node = keyword_set.find_child(names.KEYWORDTHESAURUS)
+            if thesaurus_node:
+                thesaurus = thesaurus_node.content
+            else:
+                thesaurus = ''
+            keywords.append((keyword_node, keyword_node.content, thesaurus))
+        # We want to sort the thesauri, but not the keywords within a thesaurus, because we want the user to have
+        #  control over the order of the keywords within a thesaurus.
+        sorted_keywords = sorted(keywords, key=lambda x: (x[2].lower()))
+        return [x[0] for x in sorted_keywords]
+
     """
     Returns a list of namedtuples of type KW_Entry for the keywords for a dataset, across all keywordSets.
     """
     kw_list = []
     if eml_node:
-        kw_nodes = eml_node.find_all_nodes_by_path([
-            names.DATASET, names.KEYWORDSET, names.KEYWORD
-        ])
+        # kw_nodes = eml_node.find_all_nodes_by_path([
+        #     names.DATASET, names.KEYWORDSET, names.KEYWORD
+        # ])
+        kw_nodes = get_sorted_keywords(eml_node)
         if kw_nodes:
             KW_Entry = collections.namedtuple(
                 'KW_Entry',

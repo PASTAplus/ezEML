@@ -40,6 +40,7 @@ import webapp.mimemail as mimemail
 
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info, log_available_memory, profile_and_save
+import webapp.home.texttype_node_processing as texttype_node_processing
 
 import csv
 
@@ -58,9 +59,10 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, SaveAsForm,
     LoadMetadataForm, LoadDataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportPartiesFromTemplateForm,
-    ImportItemsForm, ImportSingleItemForm,
+    ImportItemsForm, ImportSingleItemForm, ImportKeywordsForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
-    SelectUserForm, SelectDataFileForm, SelectEMLFileForm
+    SelectUserForm, SelectDataFileForm, SelectEMLFileForm,
+    SettingsForm
 )
 
 import webapp.utils as utils
@@ -999,6 +1001,40 @@ def save_as():
         return render_template('index.html')
 
 
+@home_bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def settings():
+    form = SettingsForm()
+
+    if request.method == 'POST':
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if form.validate_on_submit():
+            current_document = current_user.get_filename()
+            setting_changed = False
+            document_setting = user_data.get_enable_complex_text_element_editing_document(current_document)
+            global_setting = user_data.get_enable_complex_text_element_editing_global()
+            if document_setting != form.complex_text_editing_document.data or global_setting != form.complex_text_editing_global.data:
+                setting_changed = True
+            user_data.set_enable_complex_text_element_editing_document(current_document, form.complex_text_editing_document.data)
+            user_data.set_enable_complex_text_element_editing_global(form.complex_text_editing_global.data)
+            if setting_changed:
+                eml_node = load_eml(filename=current_document)
+                if eml_node:
+                    # Setting has changed, so we need to re-process the document
+                    user_data.set_model_has_complex_texttypes(texttype_node_processing.model_has_complex_texttypes(eml_node))
+            log_usage(actions['SETTINGS'])
+            return redirect(get_back_url())
+
+    if request.method == 'GET':
+        form.complex_text_editing_document.data = user_data.get_enable_complex_text_element_editing_document()
+        form.complex_text_editing_global.data = user_data.get_enable_complex_text_element_editing_global()
+    help = get_helps(['settings_text'])
+    return render_template('settings.html', form=form, help=help)
+
+
 @home_bp.route('/check_data_tables', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
@@ -1532,6 +1568,11 @@ def import_parties_2(filename, template, is_template, target=None):
         ("Project Personnel", "Project Personnel")]
     form.target.choices = targets
 
+    if target:
+        # If the target is specified, set the target to the specified value
+        # This is used, for example, when the user clicks "Import Creator" from the Creator Select page
+        form.target.data = target
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
@@ -1600,8 +1641,7 @@ def import_keywords_2(filename, template, is_template):
 
     def get_keywords_for_import(eml_node):
         keyword_tuples = []
-        # Returns a list of tuples
-        #    (keyword_node_id, keyword)
+        keyword_groups = {}
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
             return []
@@ -1617,9 +1657,14 @@ def import_keywords_2(filename, template, is_template):
                 thesaurus_node = keyword_set_node.find_child(names.KEYWORDTHESAURUS)
                 thesaurus = thesaurus_node.content if thesaurus_node else ''
                 if thesaurus:
-                    thesaurus = f'[{thesaurus}]'
-                keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}'))
-        return keyword_tuples
+                    thesaurus = f'{thesaurus}'
+                keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}', keyword, thesaurus))
+                keyword_groups[thesaurus] = keyword_groups.get(thesaurus, []) + [(keyword_node.id, keyword)]
+        for key in keyword_groups:
+            keyword_groups[key].sort(key=lambda x: x[1].lower())
+        sorted_dict = {key: keyword_groups[key] for key in sorted(keyword_groups)}
+        return sorted_dict, \
+               [(a, b) for a, b, _, _ in sorted(keyword_tuples, key=lambda x: (x[3].lower(), x[2].lower()))]
 
     form = ImportItemsForm()
 
@@ -1632,9 +1677,8 @@ def import_keywords_2(filename, template, is_template):
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
 
-    keyword_tuples = get_keywords_for_import(eml_node)
-    choices = [keyword_tuple for keyword_tuple in keyword_tuples]
-    form.to_import.choices = choices
+    keyword_groups, sorted_choices = get_keywords_for_import(eml_node)
+    form.to_import.choices = sorted_choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
@@ -1652,7 +1696,8 @@ def import_keywords_2(filename, template, is_template):
 
     # Process GET
     help = get_helps(['import_keywords_2'])
-    return render_template('import_keywords_2.html', help=help, source_filename=source_filename, form=form)
+    return render_template('import_keywords_2.html', help=help, source_filename=source_filename,
+                           keyword_groups=keyword_groups, form=form)
 
 
 @home_bp.route('/import_geo_coverage', methods=['GET', 'POST'])

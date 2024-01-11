@@ -13,7 +13,7 @@ from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_but
 
 from metapype.model.node import Node
 
-RELEASE_NUMBER = '2024.01.03'
+RELEASE_NUMBER = '2024.01.10'
 
 
 def extract_caller_module_name():

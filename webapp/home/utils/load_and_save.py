@@ -12,7 +12,6 @@ from flask_login import current_user
 
 import webapp.home.utils.import_nodes as import_nodes
 import webapp.home.utils.node_utils as node_utils
-import webapp.home.texttype_node_processing as texttype_node_processing
 
 from webapp import Config
 from webapp.auth import user_data as user_data
@@ -167,6 +166,8 @@ def load_eml(filename:str=None,
     :param log_the_details: If True, log the details of the document that was loaded. For debugging purposes.
     :return: The root node of the Metapype model.
     """
+    import webapp.home.texttype_node_processing as texttype_node_processing
+
     if not log_the_details and hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
         log_the_details = Config.LOG_FILE_HANDLING_DETAILS
 

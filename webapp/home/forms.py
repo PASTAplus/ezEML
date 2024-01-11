@@ -6,7 +6,7 @@ import hashlib
 from flask_wtf import FlaskForm
 
 from wtforms import (
-    StringField, SelectField, SelectMultipleField, HiddenField, RadioField, widgets
+    StringField, SelectField, SelectMultipleField, HiddenField, BooleanField, RadioField, widgets
 )
 
 from wtforms.validators import (
@@ -167,6 +167,11 @@ class ImportPartiesFromTemplateForm(FlaskForm):
     target = RadioField('Target', choices=[], validators=[])
 
 
+class ImportKeywordsForm(FlaskForm):
+    to_import = MultiCheckboxField('Import', choices=[], validators=[])
+    to_import_sorted = MultiCheckboxField('Import', choices=[], validators=[])
+
+
 class SelectUserForm(FlaskForm):
     user = RadioField('User', choices=[], validators=[])
 
@@ -251,3 +256,9 @@ class InviteCollaboratorForm(FlaskForm):
     user_email = StringField("Your Email Address *", validators=[DataRequired()])
     collaborator_name = StringField("Collaborator's Name *", validators=[DataRequired()])
     email_address = StringField("Collaborator's Email Address *", validators=[Email(), DataRequired()])
+
+
+class SettingsForm(FlaskForm):
+    complex_text_editing_document = BooleanField('For the current EML document')
+    complex_text_editing_global = BooleanField('For all EML documents')
+    pass

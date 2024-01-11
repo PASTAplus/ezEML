@@ -1232,6 +1232,41 @@ The backslash "escape" characters before the &lt; and &gt; in each XML tag let e
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=PNhiBPXWAdA&t=348s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
+settings_text
+Enable Complex Text Element Editing
+The EML standard allows for substantial complexity in text elements like abstracts and method step descriptions. Such text elements may contain itemized lists, subscripts, markdown, etc.
+
+Most users of ezEML will not need to employ these features, and ezEML does not enable them by default. You can, however, enable them for the current EML document or for all EML documents in your account. This will let you enter markdown tags, for example.
+
+When complex text element editing is enabled, ezEML supports the editing of the relevant text elements as follows. Suppose, for example, the dataset's abstract element consists of the following XML:<br>
+<pre>
+&lt;abstract&gt;<br>
+&nbsp;&nbsp;&lt;section&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;title&gt;Hypothetical Abstract&lt;/title&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;para&gt;This is &lt;emphasis&gt;only&lt;emphasis&gt; an example.&lt;/para&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;para&gt;Please note that 1 &amp;lt; 2.&lt;/para&gt;<br>
+&nbsp;&nbsp;&lt;/section&gt;<br>
+&lt;/abstract&gt;<br>
+</pre>
+
+When you go to the Abstract page when complex text element editing is enabled, what you would see is the following:<br>
+<pre>
+\&lt;abstract\&gt;<br>
+&nbsp;&nbsp;\&lt;section\&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;\&lt;title\&gt;Hypothetical Abstract\&lt;/title\&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;\&lt;para\&gt;This is \&lt;emphasis\&gt;only\&lt;emphasis\&gt; an example.\&lt;/para\&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;\&lt;para\&gt;Please note that 1 &lt; 2.\&lt;/para\&gt;<br>
+&nbsp;&nbsp;\&lt;/section\&gt;<br>
+\&lt;/abstract\&gt;<br>
+</pre>
+
+The backslash "escape" characters before the &lt; and &gt; in each XML tag let ezEML distinguish XML tags from normal text that happens to contain &lt; or &gt; characters. If you edit the XML, you must adhere to this convention. Text elements requiring such handling are visually distinguished in two ways: 1) the text is displayed in a different (monospace) font, and 2) a checkmark button <svg style="position: relative;top:4px;" width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16.5163 8.93451L11.0597 14.7023L8.0959 11.8984" stroke="black" stroke-width="2"/><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="black" stroke-width="1"/></svg> appears to the right of the element. Clicking the checkmark button causes the XML validity of the element's content to be checked. See also <a style="color: steelblue;" href="/static/user_guide/complex_text.pdf" target="_user_guide_ezeml">Editing Complex Text Elements in Imported XML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+
+Note: if a document contains complex text elements, complex text element editing will be enabled automatically, regardless of the setting of this option.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=PNhiBPXWAdA&t=348s" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
+--------------------
 taxonomy_imported_from_xml
 Imported Taxonomy
 

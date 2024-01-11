@@ -59,6 +59,7 @@ actions = {
     'SAVE_DOCUMENT': 'Save',
     'SEND_TO_EDI': 'Send to EDI',
     'SEND_TO_COLLEAGUE': 'Send to Colleague',
+    'SETTINGS': 'Settings',
     'USER_GUIDE': 'User Guide'
 }
 

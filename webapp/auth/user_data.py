@@ -450,12 +450,54 @@ def get_auth_token():
     return user_properties.get('auth_token', '')
 
 
+##############################################
+# Handle complex text element editing settings
+##############################################
+
 def set_model_has_complex_texttypes(model_has_complex_texttypes=False):
     user_properties = get_user_properties()
-    user_properties['model_has_complex_texttypes'] = model_has_complex_texttypes
+    user_properties['model_has_complex_texttypes'] = model_has_complex_texttypes or \
+        get_enable_complex_text_element_editing_global() or \
+        get_enable_complex_text_element_editing_document()
     save_user_properties(user_properties)
 
 
 def get_model_has_complex_texttypes():
     user_properties = get_user_properties()
     return user_properties.get('model_has_complex_texttypes', False)
+
+
+def set_enable_complex_text_element_editing_global(enable_complex_text_element_editing_global=False):
+    user_properties = get_user_properties()
+    user_properties['enable_complex_text_element_editing_global'] = enable_complex_text_element_editing_global
+    # If the global setting is changed, we need to update the model_has_complex_texttypes setting.
+    set_model_has_complex_texttypes()
+    save_user_properties(user_properties)
+
+
+def get_enable_complex_text_element_editing_global():
+    user_properties = get_user_properties()
+    return user_properties.get('enable_complex_text_element_editing_global', False)
+
+
+def set_enable_complex_text_element_editing_document(filename=None, enable_complex_text_element_editing_document=False):
+    user_properties = get_user_properties()
+    enabled_files = user_properties.get('enable_complex_text_element_editing_documents', [])
+    if filename is None:
+        filename = get_active_document()
+    if enable_complex_text_element_editing_document:
+        if filename not in enabled_files:
+            enabled_files.append(filename)
+    else:
+        if filename in enabled_files:
+            enabled_files.remove(filename)
+    user_properties['enable_complex_text_element_editing_documents'] = enabled_files
+    save_user_properties(user_properties)
+
+
+def get_enable_complex_text_element_editing_document(filename=None):
+    user_properties = get_user_properties()
+    enabled_files = user_properties.get('enable_complex_text_element_editing_documents', [])
+    if filename is None:
+        filename = get_active_document()
+    return filename in enabled_files

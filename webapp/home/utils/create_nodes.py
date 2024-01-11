@@ -22,15 +22,13 @@ from webapp.config import Config
 from metapype.model.node import Node
 from webapp.home import exceptions as exceptions
 from webapp.home.intellectual_rights import INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
-from webapp.home.texttype_node_processing import is_valid_xml_fragment, invalid_xml_error_message, \
-    post_process_texttype_node
 
 from webapp.utils import null_string
 from webapp.home.home_utils import RELEASE_NUMBER, log_error, log_info
 from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_utils import new_child_node, remove_child, add_node, Optionality
 
-from webapp.home.utils.load_and_save import save_both_formats, handle_custom_unit_additional_metadata
+import webapp.home.utils.load_and_save as load_and_save
 
 from metapype.eml import names
 
@@ -289,7 +287,7 @@ def create_numerical_attribute(
             custom_unit_node = new_child_node(names.CUSTOMUNIT, parent=unit_node)
             custom_unit_node.content = custom_unit
             # need additional nodes under additionalMetadata
-            handle_custom_unit_additional_metadata(eml_node, custom_unit, custom_unit_description)
+            load_and_save.handle_custom_unit_additional_metadata(eml_node, custom_unit, custom_unit_description)
         elif standard_unit:
             standard_unit_node = new_child_node(names.STANDARDUNIT, parent=unit_node)
             standard_unit_node.content = standard_unit
@@ -438,7 +436,7 @@ def create_title(title=None, filename=None):
     title_node.content = title
 
     try:
-        save_both_formats(filename=filename, eml_node=eml_node)
+        load_and_save.save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         log_error(e)
 
@@ -457,7 +455,7 @@ def create_data_package_id(data_package_id=None, filename=None):
         eml_node.remove_attribute('packageId')
 
     try:
-        save_both_formats(filename=filename, eml_node=eml_node)
+        load_and_save.save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         log_error(e)
 
@@ -497,7 +495,7 @@ def create_pubinfo(pubplace=None, pubdate=None, filename=None):
         dataset_node.remove_child(pubdate_node)
 
     try:
-        save_both_formats(filename=filename, eml_node=eml_node)
+        load_and_save.save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         log_error(e)
 
@@ -579,6 +577,8 @@ def create_abstract(filename:str=None, abstract:str=None):
     the document is saved.
     """
     from webapp.home.utils.load_and_save import load_eml
+    import webapp.home.texttype_node_processing as texttype_node_processing
+
     eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
@@ -594,20 +594,20 @@ def create_abstract(filename:str=None, abstract:str=None):
     displayed_text = abstract
     # The abstract node is one that supports TextType content, so we need to check its validity and post-process it
     #  to handle para tags properly, etc.
-    valid, msg = is_valid_xml_fragment(abstract, names.ABSTRACT)
+    valid, msg = texttype_node_processing.is_valid_xml_fragment(abstract, names.ABSTRACT)
     if valid:
         try:
-            post_process_texttype_node(abstract_node, displayed_text)
+            texttype_node_processing.post_process_texttype_node(abstract_node, displayed_text)
             try:
-                save_both_formats(filename=filename, eml_node=eml_node)
+                load_and_save.save_both_formats(filename=filename, eml_node=eml_node)
             except Exception as e:
                 log_error(e)
         except exceptions.InvalidXMLError as e:
             log_error(e)
-            flash(invalid_xml_error_message(str(e)), 'error')
+            flash(texttype_node_processing.invalid_xml_error_message(str(e)), 'error')
             return
     else:
-        flash(invalid_xml_error_message(msg), 'error')
+        flash(texttype_node_processing.invalid_xml_error_message(msg), 'error')
 
 
 def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
@@ -617,6 +617,8 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
     exists -- and the document is saved.
     """
     from webapp.home.utils.load_and_save import load_eml
+    import webapp.home.texttype_node_processing as texttype_node_processing
+
     eml_node = load_eml(filename=filename)
 
     dataset_node = eml_node.find_child(names.DATASET)
@@ -633,18 +635,18 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
     # The intellectualRights node is one that supports TextType content, so we need to check its validity and
     # post-process it to handle para tags properly, etc.
     intellectual_rights_node.children = []
-    valid, msg = is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
+    valid, msg = texttype_node_processing.is_valid_xml_fragment(intellectual_rights, names.INTELLECTUALRIGHTS)
     if valid:
         try:
-            post_process_texttype_node(intellectual_rights_node, displayed_text)
+            texttype_node_processing.post_process_texttype_node(intellectual_rights_node, displayed_text)
         except exceptions.InvalidXMLError as e:
             log_error(e)
-            flash(invalid_xml_error_message(str(e)), 'error')
+            flash(texttype_node_processing.invalid_xml_error_message(str(e)), 'error')
             return
     else:
-        flash(invalid_xml_error_message(msg), 'error')
+        flash(texttype_node_processing.invalid_xml_error_message(msg), 'error')
     try:
-        save_both_formats(filename=filename, eml_node=eml_node)
+        load_and_save.save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:
         log_error(e)
 
@@ -654,13 +656,15 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
     Create a maintenance node in the EML document, filling it in with the provided values. Or, if the node already
     exists, update its values.
     """
+    import webapp.home.texttype_node_processing as texttype_node_processing
+
     try:
         if dataset_node:
             # add_node either creates a new node or returns an existing one, so we don't need to check for existence
             #  or remove the old one.
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
             description_node = add_node(maintenance_node, names.DESCRIPTION)
-            post_process_texttype_node(description_node, description)
+            texttype_node_processing.post_process_texttype_node(description_node, description)
 
             if update_frequency:
                 update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
@@ -689,7 +693,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if not abstract_node:
             abstract_node = new_child_node(names.ABSTRACT, parent=project_node)
         if abstract:
-            post_process_texttype_node(abstract_node, abstract)
+            texttype_node_processing.post_process_texttype_node(abstract_node, abstract)
         else:
             project_node.remove_child(abstract_node)
 
@@ -697,7 +701,7 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
         if not funding_node:
             funding_node = new_child_node(names.FUNDING, parent=project_node)
         if funding:
-            post_process_texttype_node(funding_node, funding)
+            texttype_node_processing.post_process_texttype_node(funding_node, funding)
         else:
             project_node.remove_child(funding_node)
 
@@ -721,6 +725,7 @@ def create_related_project(dataset_node:Node=None,
      existing one, identified by the related_project_node_id.
     The dataset node is assumed to have already been created and is passed in as an argument.
     """
+    import webapp.home.texttype_node_processing as texttype_node_processing
 
     try:
         if related_project_node_id != '1':
@@ -742,7 +747,7 @@ def create_related_project(dataset_node:Node=None,
         if not abstract_node:
             abstract_node = new_child_node(names.ABSTRACT, parent=related_project_node)
         if abstract:
-            post_process_texttype_node(abstract_node, abstract)
+            texttype_node_processing.post_process_texttype_node(abstract_node, abstract)
         else:
             related_project_node.remove_child(abstract_node)
 
@@ -750,7 +755,7 @@ def create_related_project(dataset_node:Node=None,
         if not funding_node:
             funding_node = new_child_node(names.FUNDING, parent=related_project_node)
         if funding:
-            post_process_texttype_node(funding_node, funding)
+            texttype_node_processing.post_process_texttype_node(funding_node, funding)
         else:
             related_project_node.remove_child(funding_node)
 
@@ -1085,7 +1090,7 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
             description = f"{description}\n{data_sources_marker_begin}\n{data_sources}\n{data_sources_marker_end}"
 
         if description:
-            post_process_texttype_node(description_node, description)
+            texttype_node_processing.post_process_texttype_node(description_node, description)
 
         if instrumentation:
             instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)

@@ -679,6 +679,8 @@ def create_project(dataset_node:Node=None, title:str=None, abstract:str=None, fu
     exists, update its values.
     The parent node is the dataset node, which is assumed to have already been created and is passed in as an argument.
     """
+    import webapp.home.texttype_node_processing as texttype_node_processing
+
     try:
         project_node = dataset_node.find_child(names.PROJECT)
         if not project_node:
@@ -1078,6 +1080,7 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
     The caller is responsible for creating the node (i.e., a node is passed in as an argument), and for adding
     the created methodStep node to the parent node, replacing an existing methodStep node if necessary.
     """
+    import webapp.home.texttype_node_processing as texttype_node_processing
 
     if method_step_node:
         description_node = method_step_node.find_child(names.DESCRIPTION)

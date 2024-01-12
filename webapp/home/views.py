@@ -1510,6 +1510,9 @@ def import_parties_2(filename, template, is_template, target=None):
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
             label = compose_rp_label(node)
             parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
+            label = compose_rp_label(node)
+            parties.append(('Related Project Personnel', f'{label} (Project Personnel)', node.id))
         return parties
 
     def get_sorted_parties(eml_node):
@@ -1537,11 +1540,48 @@ def import_parties_2(filename, template, is_template, target=None):
             sorted_parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
         return sorted(sorted_parties, key=sort_key)
 
+    def add_related_project_personnel_targets():
+        target_filename = current_user.get_filename()
+        target_eml_node = load_eml(target_filename)
+        related_project_personnel_targets = []
+        related_project_nodes = target_eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
+        for related_project_node in related_project_nodes:
+            title = ''
+            title_node = related_project_node.find_child(names.TITLE)
+            if title_node:
+                title = title_node.content
+            related_project_personnel_targets.append((f'Related Project Personnel for {title}',
+                                                      f'Related Project Personnel for {title}'))
+        return related_project_personnel_targets
+
+    def get_project_node_id_for_target(eml_node, target_class):
+        target_eml_node = load_eml(current_user.get_filename())
+        if target_class == 'Project Personnel':
+            project_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+            if project_node:
+                return project_node.id
+            else:
+                return None
+        related_project_nodes = target_eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
+        for related_project_node in related_project_nodes:
+            title_node = related_project_node.find_child(names.TITLE)
+            if title_node:
+                if target_class == f'Related Project Personnel for {title_node.content}':
+                    return related_project_node.id
+        return None
+
     is_template = ast.literal_eval(is_template)
     if True or is_template:
         form = ImportPartiesFromTemplateForm()
     else:
         form = ImportEMLItemsForm()
+
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if is_hidden_button():
+        current_document = current_user.get_filename()
+        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
 
     if not is_template:
         source_filename = filename
@@ -1566,41 +1606,39 @@ def import_parties_2(filename, template, is_template, target=None):
         ("Metadata Providers", "Metadata Providers"),
         ("Publisher", "Publisher"),
         ("Project Personnel", "Project Personnel")]
+    targets.extend(add_related_project_personnel_targets())
     form.target.choices = targets
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            node_ids_to_import = form.data['to_import']
+            target_class = form.data['target']
+            target_filename = current_user.get_filename()
+            import_responsible_parties(target_filename, node_ids_to_import, target_class)
+            log_usage(actions['IMPORT_RESPONSIBLE_PARTIES'], filename, target_class)
+            if target_class == 'Creators':
+                new_page = PAGE_CREATOR_SELECT
+            elif target_class == 'Metadata Providers':
+                new_page = PAGE_METADATA_PROVIDER_SELECT
+            elif target_class == 'Associated Parties':
+                new_page = PAGE_ASSOCIATED_PARTY_SELECT
+            elif target_class == 'Contacts':
+                new_page = PAGE_CONTACT_SELECT
+            elif target_class == 'Publisher':
+                new_page = PAGE_PUBLISHER
+            elif target_class == 'Project Personnel' or target_class.startswith('Related Project Personnel'):
+                new_page = PAGE_PROJECT_PERSONNEL_SELECT
+                return redirect(url_for(new_page, filename=target_filename,
+                                        project_node_id=get_project_node_id_for_target(eml_node, target_class)))
+            return redirect(url_for(new_page, filename=target_filename, target=target))
+
+    # Process GET
 
     if target:
         # If the target is specified, set the target to the specified value
         # This is used, for example, when the user clicks "Import Creator" from the Creator Select page
         form.target.data = target
 
-    if request.method == 'POST' and BTN_CANCEL in request.form:
-        return redirect(get_back_url())
-
-    if is_hidden_button():
-        current_document = current_user.get_filename()
-        return redirect(url_for(handle_hidden_buttons(), filename=current_document))
-
-    if form.validate_on_submit():
-        node_ids_to_import = form.data['to_import']
-        target_class = form.data['target']
-        target_filename = current_user.get_filename()
-        import_responsible_parties(target_filename, node_ids_to_import, target_class)
-        log_usage(actions['IMPORT_RESPONSIBLE_PARTIES'], filename, target_class)
-        if target_class == 'Creators':
-            new_page = PAGE_CREATOR_SELECT
-        elif target_class == 'Metadata Providers':
-            new_page = PAGE_METADATA_PROVIDER_SELECT
-        elif target_class == 'Associated Parties':
-            new_page = PAGE_ASSOCIATED_PARTY_SELECT
-        elif target_class == 'Contacts':
-            new_page = PAGE_CONTACT_SELECT
-        elif target_class == 'Publisher':
-            new_page = PAGE_PUBLISHER
-        elif target_class == 'Project Personnel':
-            new_page = PAGE_PROJECT_PERSONNEL_SELECT
-        return redirect(url_for(new_page, filename=target_filename, target=target))
-
-    # Process GET
     help = get_helps(['import_responsible_parties_2'])
     return render_template('import_parties_2.html', is_template=is_template,
                            source_filename=source_filename, target=target, help=help, form=form)
@@ -3524,15 +3562,15 @@ def select_post(filename=None, form=None, form_dict=None,
                 node_id, secondary_node_id = extract_ids(key)
                 eml_node = load_eml(filename=filename)
                 # Get the data table filename, if any, so we can remove it from the uploaded list
-                dt_node = Node.get_node_instance(node_id)
-                if dt_node and dt_node.name == names.DATATABLE:
-                    object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+                node = Node.get_node_instance(node_id)
+                if node and node.name == names.DATATABLE:
+                    object_name_node = node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
                     if object_name_node:
                         object_name = object_name_node.content
                         if object_name:
                             user_data.discard_data_table_upload_filename(object_name)
                             remove_from_uploads(object_name)
-                remove_child(dt_node)
+                remove_child(node)
                 # node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)
             elif val == BTN_REUPLOAD:
@@ -3583,7 +3621,7 @@ def select_post(filename=None, form=None, form_dict=None,
             return url_for(new_page, filename=filename, ms_node_id=node_id, data_source_node_id=secondary_node_id)
         elif new_page in [PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT]:
             return url_for(new_page, filename=filename, project_node_id=project_node_id)
-        elif new_page == PAGE_PROJECT_PERSONNEL:
+        elif new_page in [PAGE_PROJECT_PERSONNEL, PAGE_PROJECT_PERSONNEL_SELECT]:
             return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
         elif new_page == PAGE_IMPORT_PARTIES:
             return url_for(new_page, filename=filename, target=import_target)

@@ -190,6 +190,8 @@ def populate_project_form(form: ProjectForm, project_node: Node):
 def project_personnel_select(filename=None, node_id=None, project_node_id=None):
     form = ResponsiblePartySelectForm(filename=filename)
 
+    eml_node = load_eml(filename)
+
     # If the request has a project_node_id and no node_id, url_for puts the project_node_id in
     #  a query string
     if request.args.get('node_id'):
@@ -201,10 +203,22 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
+        # Figure out the import target
+        import_target = 'Project Personnel'
+        project_node = Node.get_node_instance(project_node_id)
+        if project_node:
+            if project_node.parent.name == names.DATASET:
+                # This is the primary project
+                import_target = 'Project Personnel'
+            elif project_node.parent.name == names.PROJECT:
+                # This is a related project
+                title_node = project_node.find_child(names.TITLE)
+                if title_node:
+                    import_target = 'Related Project Personnel for ' + title_node.content
         url = select_post(filename, form, form_dict,
                           'POST', PAGE_PROJECT_PERSONNEL_SELECT, PAGE_PROJECT,
                           PAGE_PROJECT, PAGE_PROJECT_PERSONNEL, project_node_id=project_node_id,
-                          import_page=PAGE_IMPORT_PARTIES, import_target='Project Personnel')
+                          import_page=PAGE_IMPORT_PARTIES, import_target=import_target)
         return redirect(url)
 
     # Process GET

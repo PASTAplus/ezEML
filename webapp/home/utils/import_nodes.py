@@ -50,12 +50,22 @@ def import_responsible_parties(target_package, node_ids_to_import, target_class)
     if target_class in ['Creators', 'Metadata Providers', 'Associated Parties', 'Contacts', 'Publisher']:
         parent_node = dataset_node
     else:
-        # Remaining case is 'Project Personnel'. This is treated differently because the personnel are children
-        # of the project node, not the dataset node.
-        project_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
-        if not project_node:
-            project_node = new_child_node(names.PROJECT, dataset_node)
+        # Remaining cases are 'Project Personnel' and 'Related Project Personnel'. These are treated differently
+        # because the personnel are children of the project node, not the dataset node.
+        if target_class == 'Project Personnel':
+            project_node = target_eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
+            if not project_node:
+                project_node = new_child_node(names.PROJECT, dataset_node)
+        else:
+            related_project_nodes = target_eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
+            for related_project_node in related_project_nodes:
+                title_node = related_project_node.find_child(names.TITLE)
+                if title_node:
+                    if target_class == f'Related Project Personnel for {title_node.content}':
+                        project_node = related_project_node
+                        break
         parent_node = project_node
+
     new_name = None
     if target_class == 'Creators':
         new_name = names.CREATOR
@@ -67,7 +77,7 @@ def import_responsible_parties(target_package, node_ids_to_import, target_class)
         new_name = names.CONTACT
     elif target_class == 'Publisher':
         new_name = names.PUBLISHER
-    elif target_class == 'Project Personnel':
+    elif target_class == 'Project Personnel' or target_class.startswith('Related Project Personnel'):
         new_name = names.PERSONNEL
     # For each responsible party to import, create a new node and add it to the target package under the parent node
     #  identified above.

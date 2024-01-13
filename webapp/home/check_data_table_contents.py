@@ -55,6 +55,7 @@ from webapp.utils import path_exists, path_isdir, path_join
 import webapp.auth.user_data as user_data
 from webapp.config import Config
 from webapp.home.fetch_data import convert_file_size
+from webapp.config import Config
 
 import webapp.views.data_tables.load_data as load_data
 
@@ -436,12 +437,13 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
     else:
         regex = '^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$'
     mvc = get_missing_value_codes(data_table_node, column_name)
+    truncated = False
     try:
         matches = match_with_regex(col_values, regex, mvc)
     except KeyError:
         # This indicates the column name was not found in the data table.
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
-                                 'Column not found in data table', column_name, 'Not found')]
+                                 'Column not found in data table', column_name, 'Not found')], truncated
     # mvc = get_missing_value_codes(data_table_node, column_name)
     # if len(mvc) > 0:
     #     mvc_regex = '^' + '|'.join(mvc) + '$'
@@ -474,9 +476,10 @@ def check_numerical_column(df, data_table_node, column_name, max_errs_per_column
                                         'Numerical element not of the expected type',
                                         expected, col_values[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
+            truncated = True
             break
 
-    return errors
+    return errors, truncated
 
 
 def check_categorical_column(df, data_table_node, column_name, max_errs_per_column):
@@ -486,13 +489,14 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     """
 
     errors = []
+    truncated = False
     attribute_node = get_attribute_node(data_table_node, column_name)
     col_values = df[column_name].astype(str)
 
     # If the metadata says codes values are not "enforced" to be the defined codes, then there cannot be errors
     enumerated_domain_node = attribute_node.find_descendant(names.ENUMERATEDDOMAIN)
     if enumerated_domain_node and enumerated_domain_node.attribute_value('enforced') == 'no':
-        return []
+        return [], truncated
 
     codes = list(map(re.escape, get_categorical_codes(attribute_node)))
     codes_regex = '^' + '|'.join(codes) + '$'
@@ -500,8 +504,8 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
     try:
         matches = match_with_regex(col_values, codes_regex, mvc)
     except KeyError:
-        return []   # This indicates the column is missing, but that type of error is reported via
-                    # check_columns_existence_against_metadata()
+        return [], truncated   # This indicates the column is missing, but that type of error is reported via
+                               # check_columns_existence_against_metadata()
     # mvc = get_missing_value_codes(data_table_node, column_name)
     # if len(mvc) > 0:
     #     mvc_regex = '^' + '|'.join(mvc) + '$'
@@ -523,9 +527,10 @@ def check_categorical_column(df, data_table_node, column_name, max_errs_per_colu
                                         'Categorical element is not a defined code',
                                         expected, col_values[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
+            truncated = True
             break
 
-    return errors
+    return errors, truncated
 
 
 def check_date_time_column(df, data_table_node, column_name, max_errs_per_column):
@@ -552,13 +557,14 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
                                   'A <a href="../datetime_formats">supported</a> format',
                                   date_time_format)]
     mvc = get_missing_value_codes(data_table_node, column_name)
+    truncated = False
     try:
         matches = match_with_regex(col_values, regex, mvc)
     # try:
     #     matches = match_with_regex(col_values, regex)
     except KeyError:
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
-                                 'Column not found in table', (column_name), 'Not found')]
+                                 'Column not found in table', (column_name), 'Not found')], truncated
     # mvc = get_missing_value_codes(data_table_node, column_name)
     # if len(mvc) > 0:
     #     mvc_regex = '^' + '|'.join(mvc) + '$'
@@ -581,16 +587,17 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
                                         'DateTime element does not have expected format',
                                         expected, col_values[index]))
         if max_errs_per_column and len(errors) > max_errs_per_column:
+            truncated = True
             break
 
-    return errors
+    return errors, truncated
 
 
 def check_data_table(eml_file_url:str=None,
                      csv_file_url:str=None,
                      data_table_name:str=None,
                      column_names:List[str]=None,
-                     max_errs_per_column=100,
+                     max_errs_per_column=Config.MAX_ERRS_PER_COLUMN,
                      collapse_errs:bool=False):
     """
     Check a data table and return JSON with information about what was checked and a list of any errors found.
@@ -601,11 +608,12 @@ def check_data_table(eml_file_url:str=None,
     its contents based on the metadata specification for the column.
     """
     eml_node, _ = load_eml_file(eml_file_url)
-    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=10**6)
+    max_rows = Config.MAX_DATA_ROWS_TO_CHECK
+    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=max_rows)
 
     if truncated:
-        flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than 1 million. ezEML checks '
-              f'only the first 1 million rows. Often this suffices to indicate the kinds of errors that are present. The full '
+        flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than {max_rows}. ezEML checks '
+              f'only the first {max_rows} rows. Often this suffices to indicate the kinds of errors that are present.\nThe full '
               f'file will be checked when you submit the data package to the EDI repository.', 'warning')
 
     log_info('After loading the data table')
@@ -624,6 +632,7 @@ def check_data_table(eml_file_url:str=None,
         # names, for example if there are spaces at the end of column names.
         column_names = data_table_column_names
     columns_checked = []
+    truncated = False
     for column_name in column_names:
         if column_name not in data_table_column_names:
             continue
@@ -638,19 +647,26 @@ def check_data_table(eml_file_url:str=None,
         start = datetime.now()
         if variable_type == 'CATEGORICAL':
             columns_checked.append(column_name)
-            errors.extend(check_categorical_column(df, data_table_node, column_name, max_errs_per_column))
+            new_errors, truncated = check_categorical_column(df, data_table_node, column_name, max_errs_per_column)
+            errors.extend(new_errors)
         elif variable_type == 'DATETIME':
             columns_checked.append(column_name)
-            errors.extend(check_date_time_column(df, data_table_node, column_name, max_errs_per_column))
+            new_errors, truncated = check_date_time_column(df, data_table_node, column_name, max_errs_per_column)
+            errors.extend(new_errors)
         elif variable_type == 'NUMERICAL':
             columns_checked.append(column_name)
-            errors.extend(check_numerical_column(df, data_table_node, column_name, max_errs_per_column))
+            new_errors, truncated = check_numerical_column(df, data_table_node, column_name, max_errs_per_column)
+            errors.extend(new_errors)
         end = datetime.now()
         elapsed = (end - start).total_seconds()
         log_info(f'After checking column: {column_name}... elapsed time: {elapsed:.1f} seconds')
         log_available_memory()
 
     results = create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
+
+    if truncated:
+        flash('Only partial results are shown below because the number of errors has exceeded the maximum allowed.\n' \
+              'To find any additional errors, correct these errors, re-upload the table, and run the check again.')
 
     log_info(f'After creating result JSON')
     log_available_memory()
@@ -970,7 +986,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         if status == 'yellow':
             onclick = ''
             size = get_data_table_size(data_table_node)
-            if size and int(size) > 10**8:
+            if size and int(size) > 10**7:
                 kb, mb, gb = convert_file_size(size)
                 mb = round(mb)
                 onclick = f'onclick="return confirm(\'This data table may take up to several minutes to check. Continue?\');"'

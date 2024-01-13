@@ -456,8 +456,7 @@ def data_table_errors(data_table_name:str=None):
         try:
             errors = check_data_table_contents.check_data_table(eml_file_url,
                                                                 csv_file_url,
-                                                                data_table_name,
-                                                                max_errs_per_column=None)
+                                                                data_table_name)
             # start = datetime.now()
             # errors =  profile_and_save(#"check_data_table",
             #                            check_data_table_contents.check_data_table(eml_file_url, csv_file_url,

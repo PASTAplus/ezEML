@@ -449,17 +449,19 @@ def load_data_table(uploads_path: str = None,
     # log_info('pd.read_csv')
     try:
         num_rows = get_num_rows(full_path, delimiter=delimiter, quote_char=quote_char)
-        # If the number of rows is greater than a million, we will base the metadata on what we see in the
-        #  first million rows.
-        if num_rows > 10**6:
-            flash(f'The number of rows in {os.path.basename(full_path)} is greater than 1 million. ezEML uses the '
-                  f'first million rows to determine the data types of the columns and the codes used in categorical '
-                  f'columns. If the first million rows are not representative of the entire file, you may need to '
-                  f'manually correct the data types and categorical codes.')
-        data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=min(num_rows, 10**6))
+        # If the number of rows is greater than Config.MAX_DATA_ROWS_TO_CHECK, we will base the metadata on what we
+        #  see in the first Config.MAX_DATA_ROWS_TO_CHECK rows.
+        if num_rows > Config.MAX_DATA_ROWS_TO_CHECK:
+            flash(f'The number of rows in {os.path.basename(full_path)} is greater than {Config.MAX_DATA_ROWS_TO_CHECK:,}. '
+                  f'ezEML uses the first {Config.MAX_DATA_ROWS_TO_CHECK:,} rows to determine the data types of the columns '
+                  f'and the codes used in categorical columns. If the first {Config.MAX_DATA_ROWS_TO_CHECK:,} rows are not '
+                  f'representative of the entire file, you may need to manually correct the data types and categorical codes.')
+        data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char,
+                                 nrows=min(num_rows, Config.MAX_DATA_ROWS_TO_CHECK))
         # Load the CSV file without conversions. Used when getting the categorical codes and missing value codes.
         data_frame_raw = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char,
-                                     keep_default_na=False, na_values=[], dtype=str, nrows=min(num_rows, 10**6))
+                                     keep_default_na=False, na_values=[], dtype=str,
+                                     nrows=min(num_rows, Config.MAX_DATA_ROWS_TO_CHECK))
 
     except pd.errors.ParserError as e:
         raise DataTableError(e.args[0])

@@ -452,9 +452,9 @@ def load_data_table(uploads_path: str = None,
         # If the number of rows is greater than Config.MAX_DATA_ROWS_TO_CHECK, we will base the metadata on what we
         #  see in the first Config.MAX_DATA_ROWS_TO_CHECK rows.
         if num_rows > Config.MAX_DATA_ROWS_TO_CHECK:
-            flash(f'The number of rows in {os.path.basename(full_path)} is greater than {Config.MAX_DATA_ROWS_TO_CHECK}. '
-                  f'ezEML uses the first {Config.MAX_DATA_ROWS_TO_CHECK} rows to determine the data types of the columns '
-                  f'and the codes used in categorical columns. If the first {Config.MAX_DATA_ROWS_TO_CHECK} rows are not '
+            flash(f'The number of rows in {os.path.basename(full_path)} is greater than {Config.MAX_DATA_ROWS_TO_CHECK:,}. '
+                  f'ezEML uses the first {Config.MAX_DATA_ROWS_TO_CHECK:,} rows to determine the data types of the columns '
+                  f'and the codes used in categorical columns. If the first {Config.MAX_DATA_ROWS_TO_CHECK:,} rows are not '
                   f'representative of the entire file, you may need to manually correct the data types and categorical codes.')
         data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char,
                                  nrows=min(num_rows, Config.MAX_DATA_ROWS_TO_CHECK))

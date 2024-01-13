@@ -601,11 +601,11 @@ def check_data_table(eml_file_url:str=None,
     its contents based on the metadata specification for the column.
     """
     eml_node, _ = load_eml_file(eml_file_url)
-    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=None)
+    df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=10**6)
 
     if truncated:
-        flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than 5 million. ezEML checks '
-              f'only the first 5 million rows. Often this suffices to indicate the kinds of errors that are present. The full '
+        flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than 1 million. ezEML checks '
+              f'only the first 1 million rows. Often this suffices to indicate the kinds of errors that are present. The full '
               f'file will be checked when you submit the data package to the EDI repository.', 'warning')
 
     log_info('After loading the data table')

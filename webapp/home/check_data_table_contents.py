@@ -666,7 +666,7 @@ def check_data_table(eml_file_url:str=None,
 
     if truncated:
         flash('Only partial results are shown below because the number of errors has exceeded the maximum allowed.\n' \
-              'To find any additional errors, correct these errors, re-upload the table, and run the check again.')
+              'To find additional errors, correct the errors shown below, re-upload the table, and run the check again.')
 
     log_info(f'After creating result JSON')
     log_available_memory()

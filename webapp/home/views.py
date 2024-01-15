@@ -2398,9 +2398,10 @@ def share_submit_package(filename=None, success=None):
 
 def make_tiny(url):
     """Helper function to generate a tiny URL."""
-    request_url = ('http://tinyurl.com/api-create.php?' + urlencode({'url':url}))
-    with contextlib.closing(urlopen(request_url)) as response:
-        return response.read().decode('utf-8 ')
+    import requests
+    params = {'url': quote(url, safe=':/')}
+    response = requests.post('http://tinyurl.com/api-create.php', params=params)
+    return response.text
 
 
 def backup_metadata(filename):

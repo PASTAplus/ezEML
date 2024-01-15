@@ -131,11 +131,13 @@ def responsible_party(filename=None, rp_node_id=None,
     is_data_source = False
     project_node_id = None
     data_source_node_id = None
+    parent_node = None
     if parent_node_id:
         parent_node = Node.get_node_instance(parent_node_id)
-        is_project = parent_node.name in [names.PROJECT, names.RELATED_PROJECT]
-        is_data_source = parent_node.name == names.DATASOURCE
-    else:
+        if parent_node:
+            is_project = parent_node.name in [names.PROJECT, names.RELATED_PROJECT]
+            is_data_source = parent_node.name == names.DATASOURCE
+    if not parent_node:
         dataset_node = eml_node.find_child(names.DATASET)
         parent_node_id = dataset_node.id
         parent_node = dataset_node

@@ -39,7 +39,7 @@ class TaxonomySource:
         pruned = []
         for rank_name, taxon_name, taxon_id, link, provider in hierarchy:
             if rank_name.capitalize() not in (
-                    'Subspecies', 'Species', 'Subgenus', 'Genus', 'Subfamily', 'Family', 'Superfamily',
+                    'Varietas', 'Subspecies', 'Species', 'Subgenus', 'Genus', 'Subfamily', 'Family', 'Superfamily',
                     'Infraorder', 'Suborder', 'Order', 'Superorder', 'Infraclass', 'Subclass', 'Class',
                     'Superclass', 'Infraphylum', 'Subphylum', 'Subdivision', 'Subphylum (Subdivision)',
                     'Phylum', 'Division', 'Phylum (Division)', 'Superphylum', 'Infrakingdom', 'Subkingdom',

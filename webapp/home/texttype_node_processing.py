@@ -21,6 +21,7 @@ from webapp.home.exceptions import InvalidXMLError
 from metapype.eml import export, evaluate, validate, names, rule
 from metapype.model.node import Node, Shift
 from metapype.model import mp_io, metapype_io
+from webapp.home.home_utils import log_error
 
 EML_FILES_PATH = '/Users/jide/git/umbra/eml_files'
 
@@ -110,7 +111,9 @@ def model_has_complex_texttypes(eml_node):
     if user_data.get_enable_complex_text_element_editing_document():
         return True
     if not eml_node:
-        raise ValueError
+        log_error('**** model_has_complex_texttypes: eml_node is None ****')
+        return False # This should never happen, but we don't want to raise an exception here.
+        # raise ValueError
     for texttype_node_name in TEXTTYPE_NODES:
         texttype_nodes = []
         eml_node.find_all_descendants(texttype_node_name, texttype_nodes)

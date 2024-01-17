@@ -360,7 +360,7 @@ def check_column_name_uniqueness(csv_file_path, delimiter):
 
 def get_num_rows(csv_filepath, delimiter: str = ',', quote_char: str = '"'):
     """Return the number of rows in a CSV file. For efficiency, we use only the first column."""
-    df = pd.read_csv(csv_filepath, encoding='utf8', usecols=[0], sep=delimiter, quotechar=quote_char)
+    df = pd.read_csv(csv_filepath, encoding='utf8', usecols=[0], sep=delimiter, quotechar=quote_char, comment='#')
     log_info(f"Number of rows in {csv_filepath}: {df.shape[0]}")
     log_available_memory()
     return df.shape[0]
@@ -456,15 +456,18 @@ def load_data_table(uploads_path: str = None,
                   f'ezEML uses the first {Config.MAX_DATA_ROWS_TO_CHECK:,} rows to determine the data types of the columns '
                   f'and the codes used in categorical columns. If the first {Config.MAX_DATA_ROWS_TO_CHECK:,} rows are not '
                   f'representative of the entire file, you may need to manually correct the data types and categorical codes.')
-        data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char,
+        data_frame = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, comment='#',
                                  nrows=min(num_rows, Config.MAX_DATA_ROWS_TO_CHECK))
         # Load the CSV file without conversions. Used when getting the categorical codes and missing value codes.
-        data_frame_raw = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char,
+        data_frame_raw = pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char, comment='#',
                                      keep_default_na=False, na_values=[], dtype=str,
                                      nrows=min(num_rows, Config.MAX_DATA_ROWS_TO_CHECK))
 
     except pd.errors.ParserError as e:
         raise DataTableError(e.args[0])
+    except Exception as e:
+        # So we can set a breakpoint here when debugging
+        raise e
 
     column_vartypes = []
     column_names = []
@@ -693,7 +696,7 @@ def column_names_changed(filepath, delimiter, quote_char, dt_node):
 
     Assumes CSV file has been saved to the file system.
     """
-    data_frame = pd.read_csv(filepath, encoding='utf8', sep=delimiter, quotechar=quote_char, nrows=1)
+    data_frame = pd.read_csv(filepath, encoding='utf8', sep=delimiter, quotechar=quote_char, comment='#', nrows=1)
     columns = data_frame.columns
     new_column_names = []
     for col in columns:

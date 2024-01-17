@@ -549,15 +549,15 @@ def check_date_time_column(df, data_table_node, column_name, max_errs_per_column
         return get_regex_for_format(date_time_format)
 
     col_values = df[column_name].astype(str)
+    truncated = False
     regex = get_date_time_format_regex(data_table_node, column_name)
     if not regex:
         date_time_format = get_date_time_format_specification(data_table_node, column_name)
         return [create_error_json(get_data_table_name(data_table_node), column_name, None,
                                  'The specified DateTime Format String is not supported.',
                                   'A <a href="../datetime_formats">supported</a> format',
-                                  date_time_format)]
+                                  date_time_format)], truncated
     mvc = get_missing_value_codes(data_table_node, column_name)
-    truncated = False
     try:
         matches = match_with_regex(col_values, regex, mvc)
     # try:

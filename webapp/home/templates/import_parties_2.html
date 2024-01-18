@@ -118,7 +118,15 @@
                     <tr>{{ form.target(style="list-style:none;") }}</tr>
                     <tr>&nbsp;<p/></tr>
                     {% endif %}
-                    {{ macros.import_buttons(form) }}
+{#                    {{ macros.import_buttons(form) }}#}
+                    <tr>
+                    {% if form.to_import.choices %}
+                    <input class="btn btn-primary" name="Import" type="submit" onclick="reconcile_checkbox_statuses(sort_state());return true;" value="Import"/>&nbsp;&nbsp;
+                    {% else %}
+                    <input class="btn btn-primary" name="Import" disabled type="submit" value="Import"/>&nbsp;&nbsp;
+                    {% endif %}
+                    <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                    </tr>
                 </table>
                 {{ macros.hidden_buttons() }}
             </form>

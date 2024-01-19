@@ -213,8 +213,8 @@ def abstract(filename=None):
                 return render_get_abstract_page(form, filename)
             if is_dirty_form(form):
                 create_abstract(filename=filename, abstract=abstract)
-            else:
-                return redirect(url_for(new_page, filename=filename))
+
+            return redirect(url_for(new_page, filename=filename))
 
     # Process GET
     return get_abstract(filename, form)

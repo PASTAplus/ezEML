@@ -190,19 +190,12 @@ def display_texttype_node(texttype_node):
     use_complex_representation = user_data.get_model_has_complex_texttypes()
     if use_complex_representation:
         # Get the XML representation of the node and its subtree
-        output = metapype_io.to_xml(texttype_node)
         # Suppress the xmlns from the opening tag. It won't make sense to users.
-        lines = output.splitlines()
-        if 'xmlns:' in lines[0]:
-            open_tag = lines[0].split('xmlns:')[0][:-1] + '>'
-        else:
-            open_tag = lines[0].split('>')[0][:] + '>'
+        output = metapype_io.to_xml(texttype_node, skip_ns=True)
+        open_tag = f'<{texttype_node.name}>'
         close_tag = open_tag.replace('<', '</')
         if texttype_node.content:
             output = open_tag + texttype_node.content + close_tag
-        elif 'xmlns:' in lines[0]:
-            # We replace line 0 with the open_tag. This gets rid of the xmlns.
-            output = open_tag + '\n' + '\n'.join(lines[1:])
         return add_escapes(output).replace('&lt;', '<').replace('&gt;', '>')
     else:
         return display_simple_texttype_node(texttype_node)
@@ -274,9 +267,11 @@ def construct_texttype_node(text, parent_name=None):
     if parent_name and parent_name not in TEXTTYPE_NODES:
         return text
     try:
-        subtree = metapype_io.from_xml(remove_escapes(text), clean=True, literals=['literalLayout', 'markdown'])
+        subtree = None
         errs = []
-        validate.tree(subtree, errs)
+        if text:
+            subtree = metapype_io.from_xml(remove_escapes(text), clean=True, literals=['literalLayout', 'markdown'])
+            validate.tree(subtree, errs)
         return subtree, errs
     except Exception as e:
         if e.__class__.__name__ == 'XMLSyntaxError':
@@ -287,7 +282,7 @@ def construct_texttype_node(text, parent_name=None):
                     text = f"<{parent_name}>{introduce_paras(text)}</{parent_name}>"
                     subtree = metapype_io.from_xml(text, clean=True, literals=['literalLayout', 'markdown'])
                     validate.tree(subtree)
-                    return subtree
+                    return subtree, []
                 except Exception as e2:
                     raise InvalidXMLError(str(e2))
         raise InvalidXMLError(str(e))
@@ -348,9 +343,14 @@ def post_process_texttype_node(text_node:Node=None, displayed_text:str=None):
         # We're saving a node that's been modified. We remake the children.
         if use_complex_representation and text_node.name in TEXTTYPE_NODES:
             new_node, _ = construct_texttype_node(displayed_text, text_node.name)
-            text_node.content = new_node.content
-            text_node.tail = new_node.tail
-            text_node.children = new_node.children
+            if new_node:
+                text_node.content = new_node.content
+                text_node.tail = new_node.tail
+                text_node.children = new_node.children
+            else:
+                # The node needs to be deleted. This makes it possible for the user to get rid of a text element
+                #  altogether by deleting all the text in the text box.
+                text_node.parent.remove_child(text_node)
         else:
             # If we have para children, we're handling text that has been modified but that originally used
             #  para tags (e.g., a package imported from XML). Presumably, the user wants paras, so let's

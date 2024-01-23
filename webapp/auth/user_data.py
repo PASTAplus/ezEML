@@ -232,7 +232,9 @@ def get_uploaded_table_properties_dict():
     properties_file = f'{user_folder}/{table_props_filename}'
     try:
         with open(properties_file, 'rb') as f:
-            return pickle.load(f)
+            properties = pickle.load(f)
+            # print(properties)
+            return properties
     except FileNotFoundError:
         return dict()
     except Exception as e:
@@ -255,12 +257,28 @@ def add_uploaded_table_properties(filename, vartypes, colnames, categorical_code
     save_uploaded_table_properties_dict(uploaded_table_properties)
 
 
+def discard_uploaded_table_properties(package_name, filename):
+    uploaded_table_properties = get_uploaded_table_properties_dict()
+    to_discard = (package_name, filename.lower())
+    if to_discard in uploaded_table_properties:
+        del uploaded_table_properties[to_discard]
+        save_uploaded_table_properties_dict(uploaded_table_properties)
+
+
 def discard_uploaded_table_properties_for_package(package_name):
-    user_properties = get_user_properties()
-    uploaded_table_properties = user_properties.get('uploaded_table_properties', {})
-    uploaded_table_properties = list(filter(lambda x: x[0] != package_name, uploaded_table_properties))
-    user_properties['uploaded_table_properties'] = uploaded_table_properties
-    save_user_properties(user_properties)
+    uploaded_table_properties = get_uploaded_table_properties_dict()
+    tables_to_discard = list(filter(lambda x: x[0] == package_name, uploaded_table_properties.keys()))
+    for table in tables_to_discard:
+        del uploaded_table_properties[table]
+    save_uploaded_table_properties_dict(uploaded_table_properties)
+
+
+# def discard_uploaded_table_properties_for_package(package_name):
+#     user_properties = get_user_properties()
+#     uploaded_table_properties = user_properties.get('uploaded_table_properties', [])
+#     uploaded_table_properties = list(filter(lambda x: x[0] != package_name, uploaded_table_properties))
+#     user_properties['uploaded_table_properties'] = uploaded_table_properties
+#     save_user_properties(user_properties)
 
 
 def get_uploaded_table_column_properties(filename):
@@ -280,13 +298,14 @@ def remove_file_from_collaborations(filename):
     collaborations.remove_package(user_login, filename)
 
 
-def delete_eml(filename:str=''):
+def delete_package(filename:str=''):
     if filename:
         user_folder = get_user_folder_name(current_user_directory_only=True)
         discard_data_table_upload_filenames_for_package(filename)
         json_filename = f'{user_folder}/{filename}.json'
         xml_filename = f'{user_folder}/{filename}.xml'
         eval_filename = f'{user_folder}/{filename}_eval.pkl'
+
         # if we're deleting the current document, clear the active file
         if filename == get_active_document():
             # Careful! Make sure we're not being fooled by a collaborator's file with same filename
@@ -295,32 +314,32 @@ def delete_eml(filename:str=''):
             if active_document_owner_login == user_login:
                 remove_active_file()
         remove_file_from_collaborations(filename)
-        exception = None
-        if os.path.exists(json_filename):
-            try:
-                os.remove(json_filename)
-                try:
-                    os.remove(xml_filename)
-                except FileNotFoundError as e:
-                    pass
-                try:
-                    os.remove(eval_filename)
-                except FileNotFoundError as e:
-                    pass
-            except Exception as e:
-                exception = str(e)
-                pass
-            try:
-                uploads_path = os.path.join(user_folder, "uploads")
-                if os.path.isdir(os.path.join(uploads_path, filename)):
-                    shutil.rmtree(os.path.join(uploads_path, filename))
-            except Exception as e:
-                exception = str(e)
-                pass
-            return exception
-        else:
-            msg = f'Data package not found: {filename}'
-            return msg
+
+        try:
+            os.remove(json_filename)
+        except FileNotFoundError as e:
+            pass
+
+        try:
+            os.remove(xml_filename)
+        except FileNotFoundError as e:
+            pass
+
+        try:
+            os.remove(eval_filename)
+        except FileNotFoundError as e:
+            pass
+
+        try:
+            uploads_path = os.path.join(user_folder, "uploads")
+            if os.path.isdir(os.path.join(uploads_path, filename)):
+                shutil.rmtree(os.path.join(uploads_path, filename))
+        except FileNotFoundError as e:
+            pass
+
+        discard_uploaded_table_properties_for_package(filename)
+        discard_data_table_upload_filenames_for_package(filename)
+
     else:
         msg = f'No package ID was specified'
         return msg

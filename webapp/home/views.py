@@ -849,7 +849,7 @@ def manage_packages(to_delete=None, action=None):
         elif action != '____back____':
             user_data.is_document_locked(filename=to_delete)
             # This is where the delete is done.
-            user_data.delete_eml(filename=to_delete)
+            user_data.delete_package(filename=to_delete)
             log_usage(actions['MANAGE_PACKAGES'], 'delete', to_delete)
             flash(f'Deleted {to_delete}') # TO DO - handle error cases
 
@@ -2409,6 +2409,7 @@ def backup_metadata(filename):
     When doing Clone Column Properties or Reupload, we backup the metadata. This is done purely in case our code
     messes up the metadata. I.e., it's a safety net, one that can be removed once we're confident in the code.
     """
+    return
     user_folder = user_data.get_user_folder_name()
     if not user_folder:
         flash('User folder not found', 'error')
@@ -2539,8 +2540,13 @@ def import_xml_2(package_name, filename, fetched=False):
 
     if request.method == 'POST' and form.validate_on_submit():
         form = request.form
+
         if form['replace_copy'] == 'copy':
             package_name = determine_package_name_for_copy(package_name)
+        else:
+            # We need to delete the existing package, if any, before we can import the new one.
+            # We don't want old versions of data tables hanging around, for example.
+            user_data.delete_package(package_name)
 
         user_path = user_data.get_user_folder_name()
         work_path = os.path.join(user_path, 'zip_temp')

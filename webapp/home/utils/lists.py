@@ -130,13 +130,13 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
                 if to_skip and id == to_skip:
                     continue
                 label, object_name = compose_entity_label(dt_node)
-                was_uploaded = user_data.data_table_was_uploaded(object_name)
+                # was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
                 dt_entry = DT_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
-                                    was_uploaded=was_uploaded,
+                                    was_uploaded=True,
                                     upval=upval,
                                     downval=downval)
                 dt_list.append(dt_entry)
@@ -174,13 +174,13 @@ def list_other_entities(eml_node:Node=None):
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
                 label, object_name = compose_entity_label(oe_node)
-                was_uploaded = user_data.data_table_was_uploaded(object_name)
+                # was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
                 oe_entry = OE_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
-                                    was_uploaded=was_uploaded,
+                                    was_uploaded=True,
                                     upval=upval,
                                     downval=downval)
                 oe_list.append(oe_entry)

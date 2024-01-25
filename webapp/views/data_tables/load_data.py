@@ -30,6 +30,8 @@ import webapp.home.utils.node_utils
 from metapype.eml import names
 from metapype.model.node import Node
 
+from webapp.home.metapype_client import VariableType
+
 from webapp.home import exceptions, check_data_table_contents
 
 from webapp.home.exceptions import DataTableError, UnicodeDecodeErrorInternal, ExtraWhitespaceInColumnNames
@@ -48,7 +50,7 @@ from webapp.home.home_utils import log_error, log_info, log_available_memory
 
 from webapp.pages import PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED, PAGE_DATA_TABLE_SELECT, PAGE_DATA_TABLE
 
-MAX_ROWS_TO_CHECK = 10 ** 5
+MAX_ROWS_TO_CHECK = 10 ** 6
 
 
 def get_file_size(full_path: str = ''):
@@ -366,12 +368,44 @@ def get_num_rows(csv_filepath, delimiter: str = ',', quote_char: str = '"'):
     return df.shape[0]
 
 
+def get_column_type_and_codes(existing_dt_node, data_frame_raw, col):
+    var_type = None
+    codes = None
+    if not existing_dt_node:
+        return var_type, codes
+    attribute_list_node = existing_dt_node.find_child(names.ATTRIBUTELIST)
+    for attribute_node in attribute_list_node.find_all_children(names.ATTRIBUTE):
+        attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+        if attribute_name_node and attribute_name_node.content == col:
+            measurement_scale_node = attribute_node.find_child(names.MEASUREMENTSCALE)
+            if measurement_scale_node:
+                if measurement_scale_node.find_descendant(names.ENUMERATEDDOMAIN):
+                    var_type = VariableType.CATEGORICAL
+                    # Get the codes. We get the codes anew rather than take what's in the EML, since the re-upload
+                    #  might have added/removed codes.
+                    codes = sort_codes(data_frame_raw[col].unique().tolist())
+                elif measurement_scale_node.find_descendant(names.TEXTDOMAIN):
+                    var_type = VariableType.TEXT
+                elif measurement_scale_node.find_child(names.INTERVAL) or \
+                   measurement_scale_node.find_child(names.RATIO):
+                   var_type = VariableType.NUMERICAL
+                elif measurement_scale_node.find_child(names.DATETIME):
+                   var_type = VariableType.DATETIME
+                   # Get the format string
+                   format_node = measurement_scale_node.find_descendant(names.FORMATSTRING)
+                   if format_node and format_node.content:
+                       codes = [format_node.content]
+            break
+    return var_type, codes
+
+
 def load_data_table(uploads_path: str = None,
                     data_file: str = '',
                     num_header_rows: str = '1',
                     delimiter: str = ',',
                     quote_char: str = '"',
-                    check_column_names: bool = False):
+                    check_column_names: bool = False,
+                    existing_dt_node: Node = None):
     """
     Load a data table CSV file and infer the corresponding metadata.
 
@@ -384,6 +418,7 @@ def load_data_table(uploads_path: str = None,
         data_frame - the pandas data_frame for the table,
         missing_value_code - a list of missing value codes per column.
     """
+
     if Config.LOG_DEBUG:
         log_info(f'Entering load_data_table: {data_file}')
 
@@ -446,7 +481,6 @@ def load_data_table(uploads_path: str = None,
                                            parent=text_format_node,
                                            content=line_terminator)
 
-    # log_info('pd.read_csv')
     try:
         num_rows = get_num_rows(full_path, delimiter=delimiter, quote_char=quote_char)
         # If the number of rows is greater than Config.MAX_DATA_ROWS_TO_CHECK, we will base the metadata on what we
@@ -499,7 +533,13 @@ def load_data_table(uploads_path: str = None,
         for col in columns:
             dtype = data_frame[col][1:].infer_objects().dtype
 
-            var_type, codes = infer_col_type(data_frame, data_frame_raw, col)
+            var_type = None
+            if existing_dt_node:
+                # Use the existing data table node to get the column names and types. This is used when the user
+                #  is re-uploading a data table and has already created the metadata for it.
+                var_type, codes = get_column_type_and_codes(existing_dt_node, data_frame_raw, col)
+            if not var_type:
+                var_type, codes = infer_col_type(data_frame, data_frame_raw, col)
             if Config.LOG_DEBUG:
                 log_info(f'col: {col}  var_type: {var_type}')
 
@@ -748,6 +788,14 @@ def get_column_properties(eml_node, document, dt_node, object_name):
         new_dt_node, new_column_vartypes, new_column_names, new_column_codes, *_ = load_data_table(
             uploads_folder, data_file, num_header_rows, delimiter, quote_char)
 
+        # # Convert the column vartype strings to VariableType objects; e.g., 'NUMERIC' to VariableType.NUMERIC.
+        # new_column_vartypes = []
+        # for column_vartype in new_column_vartype_strings:
+        #     if isinstance(column_vartype, VariableType):
+        #         new_column_vartypes.append(column_vartype)
+        #     else:
+        #         new_column_vartypes.append(VariableType[column_vartype])
+
         # Save the column properties to the user data.
         user_data.add_uploaded_table_properties(data_file,
                                                 new_column_vartypes,
@@ -757,16 +805,24 @@ def get_column_properties(eml_node, document, dt_node, object_name):
         return new_column_vartypes
 
     except FileNotFoundError:
-        raise FileNotFoundError(
-            'The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
-
-    except Exception as err:
-        raise exceptions.InternalError('Internal error 103')
+        # Here we need to get the column properties from the data table in the EML document.
+        attribute_list_node = dt_node.find_child(names.ATTRIBUTELIST)
+        column_vartypes = []
+        if attribute_list_node:
+            import webapp.home.utils.lists as lists
+            for attribute_node in attribute_list_node.children:
+                column_vartypes.append(VariableType[lists.mscale_from_attribute(attribute_node)])
+        return column_vartypes
+        # raise FileNotFoundError(
+        #     'The older version of the data table is missing from our server. Please use "Load Data Table from CSV File" instead of "Re-upload".')
 
     except UnicodeDecodeError as err:
         fullpath = os.path.join(uploads_folder, data_file)
         errors = views.display_decode_error_lines(fullpath)
         return render_template('encoding_error.html', filename=data_file, errors=errors)
+
+    except Exception as err:
+        raise exceptions.InternalError('Internal error 103')
 
 
 def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, new_column_names, new_column_codes):
@@ -817,14 +873,17 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
     Also, we need to re-use existing nodes where possible so that we don't lose any user edits for attribute
     descriptions and the like.
     """
-    dataset_node = eml_node.find_child(names.DATASET)
-    if not dataset_node:
-        dataset_node = new_child_node(names.DATASET, eml_node)
 
     # saved_filename is the name of the file on the server. It is not the same as the original filename because
     #  we've saved the file as a temp file so we have both files and can compare them.
     if not saved_filename:
         raise exceptions.MissingFileError('Unexpected error: file not found')
+
+    dataset_node = eml_node.find_child(names.DATASET)
+    if not dataset_node:
+        dataset_node = new_child_node(names.DATASET, eml_node)
+
+    data_file = saved_filename.replace('.ezeml_tmp', '')
 
     dt_node = Node.get_node_instance(dt_node_id)
 
@@ -851,9 +910,10 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
             errors = views.display_decode_error_lines(filepath)
             filename = os.path.basename(filepath)
             return render_template('encoding_error.html', filename=filename, errors=errors)
+
     try:
         new_dt_node, new_column_vartypes, new_column_names, new_column_codes, *_ = load_data_table(
-            uploads_folder, saved_filename, num_header_rows, delimiter, quote_char)
+            uploads_folder, saved_filename, num_header_rows, delimiter, quote_char, existing_dt_node=dt_node)
 
         types_changed = None
         try:
@@ -885,14 +945,14 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
             # rename the temp file
             os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
 
-            if types_changed:
-                err_string = 'Please note: One or more columns in the new table have a different data type than they '\
-                             'had in the old table.<ul>'
-                for col_name, old_type, new_type, attr_node in types_changed:
-                    data_tables.dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
-                    err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
-                err_string += '</ul>'
-                flash(Markup(err_string))
+            # if types_changed:
+            #     err_string = 'Please note: One or more columns in the new table have a different data type than they '\
+            #                  'had in the old table.<ul>'
+            #     for col_name, old_type, new_type, attr_node in types_changed:
+            #         data_tables.dt.change_measurement_scale(attr_node, old_type.name, new_type.name)
+            #         err_string += f'<li><b>{col_name}</b> changed from {old_type.name} to {new_type.name}'
+            #     err_string += '</ul>'
+            #     flash(Markup(err_string))
 
         except Exception as err:
             # display error
@@ -913,12 +973,10 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         flash(f'Data table has an error: {err.message}', 'error')
         return redirect(request.url)
 
-    data_file = saved_filename.replace('.ezeml_tmp', '')
     flash(f"Loaded {data_file}")
 
     dt_node.parent = dataset_node
-    object_name_node = dt_node.find_descendant(names.OBJECTNAME)
-    if object_name_node:
+    if object_name_node := dt_node.find_descendant(names.OBJECTNAME):
         object_name_node.content = data_file
 
     user_data.add_data_table_upload_filename(data_file)
@@ -932,8 +990,6 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
 
     views.clear_distribution_url(dt_node)
     views.insert_upload_urls(document, eml_node)
-
-    views.backup_metadata(filename=document)  # FIXME - what is this doing? is it obsolete?
 
     check_data_table_contents.reset_data_file_eval_status(document, data_file)
     check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
@@ -974,8 +1030,8 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cod
                         # A NaN, so append 'NAN'. That way, we can compare the old and new codes and not be fooled
                         #   by NaNs expressed differently.
                         substituted.append('NAN')
-            else:
-                substituted.append(None)
+            # else:
+            #     substituted.append(None)
             return substituted
 
         old_substituted = substitute_nans(old_codes)
@@ -1038,10 +1094,14 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cod
         remove_child(old_quote_char_node)
 
     # If we're fetching the package, we take the metadata as given. But if we're doing re-upload, we need to update
-    #   the metadata as needed. We don't want to lost things like column definitions that have been entered by the user.
+    #   the metadata as needed. We don't want to lose things like column definitions that have been entered by the user.
 
     if not doing_xml_import:
         _, old_column_names, old_column_codes = user_data.get_uploaded_table_column_properties(old_object_name)
+        if not old_column_names:
+            old_column_names = []
+        if not old_column_codes:
+            old_column_codes = []
         if old_column_names and old_column_names != new_column_names:
             # substitute the new column names
             old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)

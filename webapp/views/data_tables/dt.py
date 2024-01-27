@@ -1541,9 +1541,9 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                 if custom_unit_node:
                     custom_unit_name = custom_unit_node.content
                     form.custom_unit.data = custom_unit_name
-                    # get description, if any, from the additionaMetadata section
-                    additional_metadata_node = eml_node.find_child(names.ADDITIONALMETADATA)
-                    if additional_metadata_node:
+                    # get description, if any, from an additionaMetadata section
+                    additional_metadata_nodes = eml_node.find_all_children(names.ADDITIONALMETADATA)
+                    for additional_metadata_node in additional_metadata_nodes:
                         metadata_node = additional_metadata_node.find_child(names.METADATA)
                         if metadata_node:
                             unit_list_node = metadata_node.find_child(names.UNITLIST)
@@ -1558,6 +1558,7 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                                     description_node = unit_node.find_child(names.DESCRIPTION)
                                     if description_node:
                                         form.custom_unit_description.data = description_node.content
+                                    break
 
             precision_node = ir_node.find_child(names.PRECISION)
             if precision_node:

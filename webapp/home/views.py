@@ -2480,38 +2480,41 @@ def import_xml():
             if package_name in user_data.get_user_document_list():
                 return redirect(url_for('home.import_xml_2', package_name=package_name, filename=filename))
 
-            # Parse the XML file and return errors, if any.
-            eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
-                parse_xml_file(filename, filepath)
-            eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+            try:
+                # Parse the XML file and return errors, if any.
+                eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
+                    parse_xml_file(filename, filepath)
+                eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
-            # We're done with the temp file
-            utils.remove_zip_temp_folder()
+                # We're done with the temp file
+                utils.remove_zip_temp_folder()
 
-            if eml_node:
-                add_imported_from_xml_metadata(eml_node, filename, package_name)
-                has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
-                log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
-                save_both_formats(filename=package_name, eml_node=eml_node)
-                current_user.set_filename(filename=package_name)
-                # If we have errors...
-                if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
-                    # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
-                    #  string representations.
-                    return redirect(url_for(PAGE_IMPORT_XML_3,
-                                            nsmap_changed=nsmap_changed,
-                                            unknown_nodes=encode_for_query_string(unknown_nodes),
-                                            attr_errs=encode_for_query_string(attr_errs),
-                                            child_errs=encode_for_query_string(child_errs),
-                                            other_errs=encode_for_query_string(other_errs),
-                                            pruned_nodes=encode_for_query_string(pruned_nodes),
-                                            filename=package_name,
-                                            fetched=False))
+                if eml_node:
+                    add_imported_from_xml_metadata(eml_node, filename, package_name)
+                    has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
+                    log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
+                    save_both_formats(filename=package_name, eml_node=eml_node)
+                    current_user.set_filename(filename=package_name)
+                    # If we have errors...
+                    if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
+                        # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
+                        #  string representations.
+                        return redirect(url_for(PAGE_IMPORT_XML_3,
+                                                nsmap_changed=nsmap_changed,
+                                                unknown_nodes=encode_for_query_string(unknown_nodes),
+                                                attr_errs=encode_for_query_string(attr_errs),
+                                                child_errs=encode_for_query_string(child_errs),
+                                                other_errs=encode_for_query_string(other_errs),
+                                                pruned_nodes=encode_for_query_string(pruned_nodes),
+                                                filename=package_name,
+                                                fetched=False))
+                    else:
+                        flash(f"Metadata for {package_name} was imported without errors")
+                        return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=False))
                 else:
-                    flash(f"Metadata for {package_name} was imported without errors")
-                    return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=False))
-            else:
-                raise Exception  # TODO: Error handling
+                    raise Exception  # TODO: Error handling
+            except Exception as e:
+                flash(e, 'error')
 
     # Process GET
     help = get_helps(['import_xml'])
@@ -2552,40 +2555,43 @@ def import_xml_2(package_name, filename, fetched=False):
         work_path = os.path.join(user_path, 'zip_temp')
         filepath = os.path.join(work_path, filename)
 
-        # Parse the XML file and return errors, if any.
-        eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
-            parse_xml_file(filename, filepath)
-        eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+        try:
+            # Parse the XML file and return errors, if any.
+            eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
+                parse_xml_file(filename, filepath)
+            eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
-        # We're done with the temp file
-        utils.remove_zip_temp_folder()
+            # We're done with the temp file
+            utils.remove_zip_temp_folder()
 
-        if eml_node:
-            # save fact that EML was imported from XML in additional metadata
-            add_imported_from_xml_metadata(eml_node, filename, package_name)
-            has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
-            log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
-            save_both_formats(filename=package_name, eml_node=eml_node)
-            current_user.set_filename(filename=package_name)
+            if eml_node:
+                # save fact that EML was imported from XML in additional metadata
+                add_imported_from_xml_metadata(eml_node, filename, package_name)
+                has_errors = unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes
+                log_usage(actions['IMPORT_EML_XML_FILE'], filename, has_errors, model_has_complex_texttypes(eml_node))
+                save_both_formats(filename=package_name, eml_node=eml_node)
+                current_user.set_filename(filename=package_name)
 
-            if has_errors:
-                # The parameters are actually lists, but Flask drops parameters that are empty lists, so we pass the
-                #  string representations.
-                return redirect(url_for(PAGE_IMPORT_XML_3,
-                                        nsmap_changed=nsmap_changed,
-                                        unknown_nodes=encode_for_query_string(unknown_nodes),
-                                        attr_errs=encode_for_query_string(attr_errs),
-                                        child_errs=encode_for_query_string(child_errs),
-                                        other_errs=encode_for_query_string(other_errs),
-                                        pruned_nodes=encode_for_query_string(pruned_nodes),
-                                        filename=package_name,
-                                        fetched=fetched))
+                if has_errors:
+                    # The parameters are actually lists, but Flask drops parameters that are empty lists, so we pass the
+                    #  string representations.
+                    return redirect(url_for(PAGE_IMPORT_XML_3,
+                                            nsmap_changed=nsmap_changed,
+                                            unknown_nodes=encode_for_query_string(unknown_nodes),
+                                            attr_errs=encode_for_query_string(attr_errs),
+                                            child_errs=encode_for_query_string(child_errs),
+                                            other_errs=encode_for_query_string(other_errs),
+                                            pruned_nodes=encode_for_query_string(pruned_nodes),
+                                            filename=package_name,
+                                            fetched=fetched))
 
+                else:
+                    flash(f"Metadata for {package_name} was imported without errors")
+                    return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=fetched))
             else:
-                flash(f"Metadata for {package_name} was imported without errors")
-                return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=fetched))
-        else:
-            raise Exception  # TODO: Error handling
+                raise Exception  # TODO: Error handling
+        except Exception as e:
+            flash(e, 'error')
 
     # Process GET
     help = get_helps(['import_xml_2'])
@@ -3017,36 +3023,39 @@ def fetch_xml_3(scope_identifier='', revision=''):
     work_path = os.path.join(user_data_dir, 'zip_temp')
     filepath = os.path.join(work_path, filename)
 
-    eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
-        parse_xml_file(filename, filepath)
-    eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+    try:
+        eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
+            parse_xml_file(filename, filepath)
+        eml_node = strip_elements_added_by_pasta(package_name, eml_node)
 
-    # We're done with the temp file
-    utils.remove_zip_temp_folder()
+        # We're done with the temp file
+        utils.remove_zip_temp_folder()
 
-    if eml_node:
-        # save fact that EML was fetched from EDI in additional metadata
-        add_fetched_from_edi_metadata(eml_node, package_name)
-        add_imported_from_xml_metadata(eml_node, filename, package_name)
-        save_both_formats(filename=package_name, eml_node=eml_node)
-        current_user.set_filename(filename=package_name)
-        if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
-            # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
-            #  string representations.
-            return redirect(url_for(PAGE_IMPORT_XML_3,
-                                    nsmap_changed=nsmap_changed,
-                                    unknown_nodes=encode_for_query_string(unknown_nodes),
-                                    attr_errs=encode_for_query_string(attr_errs),
-                                    child_errs=encode_for_query_string(child_errs),
-                                    other_errs=encode_for_query_string(other_errs),
-                                    pruned_nodes=encode_for_query_string(pruned_nodes),
-                                    filename=package_name,
-                                    fetched=True))
+        if eml_node:
+            # save fact that EML was fetched from EDI in additional metadata
+            add_fetched_from_edi_metadata(eml_node, package_name)
+            add_imported_from_xml_metadata(eml_node, filename, package_name)
+            save_both_formats(filename=package_name, eml_node=eml_node)
+            current_user.set_filename(filename=package_name)
+            if unknown_nodes or attr_errs or child_errs or other_errs or pruned_nodes:
+                # The parameters are actually lists, but Flask drops parameters that are empty lists, so what's passed are the
+                #  string representations.
+                return redirect(url_for(PAGE_IMPORT_XML_3,
+                                        nsmap_changed=nsmap_changed,
+                                        unknown_nodes=encode_for_query_string(unknown_nodes),
+                                        attr_errs=encode_for_query_string(attr_errs),
+                                        child_errs=encode_for_query_string(child_errs),
+                                        other_errs=encode_for_query_string(other_errs),
+                                        pruned_nodes=encode_for_query_string(pruned_nodes),
+                                        filename=package_name,
+                                        fetched=True))
+            else:
+                flash(f"Metadata for {package_name} was imported without errors")
+                return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=True))
         else:
-            flash(f"Metadata for {package_name} was imported without errors")
-            return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=True))
-    else:
-        raise Exception  # TODO: Error handling
+            raise Exception  # TODO: Error handling
+    except Exception as e:
+        flash(e, 'error')
 
     help = get_helps(['import_xml_3'])
     return render_template('fetch_xml_3.html', package_links=package_links, form=form, help=help)

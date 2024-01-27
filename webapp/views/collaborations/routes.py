@@ -155,9 +155,9 @@ def enable_edi_curation(filename=None):
     if package:
         package_id = package.package_id
         if package_is_under_edi_curation(package_id):
-            flash(Markup('A collaboration with EDI Curators has already been established for this package.<p><p> ' \
-                  'To make the package available to EDI Curators again, click the <b>Make available</b> link for ' \
-                  'the package, below.'))
+            flash(Markup('A collaboration with EDI Curators is already underway for this package.<p><p> '
+                         'To make the package available to EDI Curators again, click the <b>Make available</b> link for '
+                         'the package, below. Please email <b>support@edirepository.org</b> to let the curators know you have made the package available.'))
             return redirect(url_for(PAGE_COLLABORATE, filename=filename))
 
     # Process POST
@@ -263,10 +263,9 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         flash('Only the owner of the package can submit it to EDI.', 'error')
         # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
     except CollaboratingWithGroupAlready:
-        flash('A collaboration with EDI Curators has already been established for this package.\n\n ' \
-                'To make the package available to EDI Curators again, click the "Make available" link for the ' \
-                'package, below.')
-        # return redirect(url_for(PAGE_COLLABORATE, filename=filename))
+        flash(Markup('A collaboration with EDI Curators is already underway for this package.<p><p> '
+                     'To make the package available to EDI Curators again, click the <b>Make available</b> link for '
+                     'the package, below. Please email <b>support@edirepository.org</b> to let the curators know you have made the package available.'))
     except Exception as e:
         flash('An error occurred while enabling EDI curation for this package. Please report this to support@edirepository.org.', 'error')
         log_error(e)

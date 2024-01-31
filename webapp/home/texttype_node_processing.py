@@ -265,7 +265,7 @@ def construct_texttype_node(text, parent_name=None):
         return ''
 
     if parent_name and parent_name not in TEXTTYPE_NODES:
-        return text
+        return text, []
     try:
         subtree = None
         errs = []

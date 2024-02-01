@@ -517,11 +517,13 @@ def keyword(filename=None, node_id=None):
                 if keyword_thesaurus:
                     keyword_thesaurus_node = Node(names.KEYWORDTHESAURUS, parent=keyword_set_node)
                     keyword_thesaurus_node.content = keyword_thesaurus
+                    keyword_thesaurus.nsmap = keyword_set_node.nsmap
                     keyword_set_node.add_child(keyword_thesaurus_node, index=-1)
 
             keyword_node = Node(names.KEYWORD, parent=keyword_set_node)
             create_keyword(keyword_node, keyword, keyword_type)
 
+            keyword_node.nsmap = keyword_set_node.nsmap
             keyword_set_node.add_child(keyword_node, index=-1)
 
             if node_id and len(node_id) != 1:

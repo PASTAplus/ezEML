@@ -528,6 +528,8 @@ def clean_model(eml_node):
     # Collect keywords for a given thesaurus into a single keywordSet node.
     import_nodes.consolidate_keyword_sets(eml_node)
 
+    fixup_namespaces(eml_node)
+
 
 # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []
@@ -642,6 +644,29 @@ def fixup_field_delimiters(eml_node):
     for field_delimiter_node in field_delimiter_nodes:
         if field_delimiter_node.content and field_delimiter_node.content == '\t':
             field_delimiter_node.content = '\\t'
+
+
+def fixup_namespaces(eml_node):
+    """
+    When a package is fetched, all of the generated nodes have nsmap set to values inherited from the root node.
+
+    Formerly, we had situations like the following: e.g., in consolidate_keyword_sets, we create a new keywordSet node
+    and add, as children to the keywordSet node, existing keyword nodes from the fetched package. The existing keyword
+    nodes have nsmap set to the root node's nsmap, but the new keywordSet node had an empty nsmap. When the XML was
+    generated, the keyword elements were explicitly showing the namespaces. We don't want this. We want the inserted
+    keywordSet node to have the same namespaces as the other nodes in the tree.
+
+    This function fixes up such cases in existing packages.
+    """
+    def fix_node(node):
+        if node.parent:
+            if not node.nsmap:
+                node.nsmap = node.parent.nsmap
+        for child in node.children:
+            fix_node(child)
+        return node
+
+    return fix_node(eml_node)
 
 
 def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=None):

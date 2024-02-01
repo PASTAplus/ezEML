@@ -51,6 +51,8 @@ def add_node(parent_node:Node, child_name:str, content:str=None, optionality=Opt
             # When we add to additionalMetadata, for example, we sidestep rule checking
             parent_node.add_child(child_node)
     child_node.content = content
+    if not child_node.nsmap:
+        child_node.nsmap = parent_node.nsmap
     return child_node
 
 
@@ -62,6 +64,8 @@ def add_child(parent_node:Node, child_node:Node):
     if parent_node and child_node:
         parent_rule = rule.get_rule(parent_node.name)
         index = parent_rule.child_insert_index(parent_node, child_node)
+        if not child_node.nsmap:
+            child_node.nsmap = parent_node.nsmap
         parent_node.add_child(child_node, index=index)
 
 

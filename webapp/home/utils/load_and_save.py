@@ -6,6 +6,7 @@ import json
 import os
 import pickle
 from datetime import date
+from urllib.parse import urlencode, urlparse, quote, unquote
 
 from flask import flash, request, session
 from flask_login import current_user
@@ -530,6 +531,8 @@ def clean_model(eml_node):
 
     fixup_namespaces(eml_node)
 
+    fixup_distribution_urls(eml_node)
+
 
 # # Some documents have both a <funding> node and an <award> node. Remove the <funding> node.
     # funding_nodes = []
@@ -667,6 +670,50 @@ def fixup_namespaces(eml_node):
         return node
 
     return fix_node(eml_node)
+
+
+def fixup_distribution_urls(eml_node):
+    """
+    If the user has changed the document name via "Save As..." after creating the document, the distribution URLs need to
+    be updated to reflect the new document name. We do this by scanning all documents because we want to fix up existing
+    documents that have this problem. I.e., we don't rely on correcting the document names at the point that Save As is done.
+    """
+
+    def parse_upload_url(url):
+        """
+        Given a URL, parse it into three parts: the part up to and including the rightmost occurrence of '/uploads/',
+        the path after '/uploads/', and the filename.
+        For example, given 'https://ezeml.edirepository.org/user-data/cvpia-9db0588ee81e2040e14807c59aafc537/uploads/edi.1365.8/catch.csv'
+        return ('https://ezeml.edirepository.org/user-data/cvpia-9db0588ee81e2040e14807c59aafc537/uploads/', 'edi.1365.8', 'catch.csv')
+        """
+        index = url.rfind('/uploads/')
+        if index != -1:
+            # Split the string into before and after the rightmost occurrence of '/uploads/'.
+            part1 = url[:index + len('/uploads/')]
+            part2 = url[index + len('/uploads/'):]
+            # Split the second string into head and tail.
+            head, tail = os.path.split(part2)
+            return part1, head, tail
+        else:
+            # This should not happen
+            log_error(f'parse_upload_url: could not find "/uploads/" in URL: {url}')
+            return None, None, None
+
+    url_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE, names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
+    url_nodes = url_nodes + eml_node.find_all_nodes_by_path([names.DATASET, names.OTHERENTITY, names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
+
+    # Get the current server. We only want to fix up URLs that point to the current server.
+    current_netloc = urlparse(request.base_url).netloc
+    # Get the desired uploads subdirectory based on the user's active document.
+    _, desired_subdir = os.path.split(user_data.get_document_uploads_folder_name())
+
+    for url_node in url_nodes:
+        if url_node.content:
+            parsed_url = urlparse(url_node.content)
+            if parsed_url.netloc == current_netloc and 'uploads' in parsed_url.path:
+                found_base, found_subdir, found_filename = parse_upload_url(url_node.content)
+                if found_subdir and found_subdir != desired_subdir:
+                    url_node.content = f'{found_base}{desired_subdir}/{found_filename}'
 
 
 def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=None):

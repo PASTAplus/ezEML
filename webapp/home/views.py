@@ -88,7 +88,7 @@ from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_but
 from webapp.home.utils.node_utils import remove_child, new_child_node
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.load_and_save import get_pathname, load_eml, load_template, save_old_to_new, \
-    strip_elements_added_by_pasta, save_eml, \
+    strip_elements_added_by_pasta, save_eml, fixup_distribution_urls, \
     package_contains_elements_unhandled_by_ezeml, save_both_formats, create_eml, add_imported_from_xml_metadata, \
     get_imported_from_xml_metadata, clear_taxonomy_imported_from_xml_flag
 from webapp.home.utils.import_nodes import import_responsible_parties, import_keyword_nodes, import_coverage_nodes, \
@@ -981,6 +981,8 @@ def save_as():
                 copy_uploads(current_document, new_document)
                 log_usage(actions['SAVE_AS_DOCUMENT'], new_document)
                 current_user.set_filename(filename=new_document)
+                fixup_distribution_urls(eml_node)
+                save_both_formats(filename=new_document, eml_node=eml_node)
                 flash(f'Saved as {new_document}')
             new_page = PAGE_TITLE   # Return the Response object
 

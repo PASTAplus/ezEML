@@ -695,8 +695,6 @@ def fixup_distribution_urls(eml_node):
             head, tail = os.path.split(part2)
             return part1, head, tail
         else:
-            # This should not happen
-            log_error(f'parse_upload_url: could not find "/uploads/" in URL: {url}')
             return None, None, None
 
     url_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE, names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
@@ -705,7 +703,10 @@ def fixup_distribution_urls(eml_node):
     # Get the current server. We only want to fix up URLs that point to the current server.
     current_netloc = urlparse(request.base_url).netloc
     # Get the desired uploads subdirectory based on the user's active document.
-    _, desired_subdir = os.path.split(user_data.get_document_uploads_folder_name())
+    document_uploads_folder = user_data.get_document_uploads_folder_name()
+    if not document_uploads_folder:
+        return
+    _, desired_subdir = os.path.split(document_uploads_folder)
 
     for url_node in url_nodes:
         if url_node.content:

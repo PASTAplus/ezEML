@@ -247,6 +247,7 @@ def check_data_package_id(eml_node, doc_name, validation_errs=None):
     def check_id_for_EDI(package_id):
         """ Check whether the package_id is in the correct format for EDI. """
         scopes = [
+            'cos-spu',
             'ecotrends',
             'edi',
             'knb-lter-and',

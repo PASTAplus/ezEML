@@ -1392,6 +1392,18 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
 
             att_node = Node(names.ATTRIBUTE, parent=attribute_list_node)
 
+            if node_id and len(node_id) != 1:
+                old_att_node = Node.get_node_instance(att_node_id)
+                if old_att_node:
+                    if standard_unit and custom_unit:
+                        # User is changing from one unit type to another. We need to decide which one is the new one.
+                        if old_att_node.find_descendant(names.STANDARDUNIT):
+                            # The old unit was a standard unit. We must be switching to a custom unit.
+                            standard_unit = None
+                        elif old_att_node.find_descendant(names.CUSTOMUNIT):
+                            # The old unit was a custom unit. We must be switching to a standard unit.
+                            custom_unit = None
+
             """ Create the attribute node using the form values """
             create_numerical_attribute(
                 eml_node,
@@ -1541,7 +1553,7 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                 if custom_unit_node:
                     custom_unit_name = custom_unit_node.content
                     form.custom_unit.data = custom_unit_name
-                    # get description, if any, from an additionaMetadata section
+                    # get description, if any, from an additionalMetadata section
                     additional_metadata_nodes = eml_node.find_all_children(names.ADDITIONALMETADATA)
                     for additional_metadata_node in additional_metadata_nodes:
                         metadata_node = additional_metadata_node.find_child(names.METADATA)

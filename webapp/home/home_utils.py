@@ -10,10 +10,11 @@ import psutil
 from pympler import muppy, summary, asizeof
 
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
+from webapp.config import Config
 
 from metapype.model.node import Node
 
-RELEASE_NUMBER = '2024.01.24'
+RELEASE_NUMBER = '2024.02.07'
 
 
 def extract_caller_module_name():
@@ -74,6 +75,8 @@ def log_available_memory():
     """
     Log the available system memory.
     """
+    if not Config.LOG_MEMORY_USAGE:
+        return
     available_memory = psutil.virtual_memory().available / 1024 / 1024
     process_usage = psutil.Process().memory_info().rss / 1024 / 1024
     log_info(f"Memory usage:   available system memory:{available_memory:.1f} MB   process usage:{process_usage:.1f} MB")

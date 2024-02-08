@@ -21,6 +21,7 @@ from webapp.home.home_utils import log_error, log_info, get_check_metadata_statu
 from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_store import calculate_node_store_checksum
 from webapp.home.utils.node_utils import add_node, Optionality
+from webapp.home.utils.node_utils import add_node, Optionality
 from webapp.utils import null_string
 from webapp.views.collaborations import collaborations as collaborations
 
@@ -678,6 +679,7 @@ def fixup_distribution_urls(eml_node):
     be updated to reflect the new document name. We do this by scanning all documents because we want to fix up existing
     documents that have this problem. I.e., we don't rely on correcting the document names at the point that Save As is done.
     """
+    from webapp.home.views import encode_distribution_url
 
     def parse_upload_url(url):
         """
@@ -715,6 +717,7 @@ def fixup_distribution_urls(eml_node):
                 found_base, found_subdir, found_filename = parse_upload_url(url_node.content)
                 if found_subdir and found_subdir != desired_subdir:
                     url_node.content = f'{found_base}{desired_subdir}/{found_filename}'
+                    encode_distribution_url(url_node)
 
 
 def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=None):

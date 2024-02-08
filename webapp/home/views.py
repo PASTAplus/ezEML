@@ -5,8 +5,6 @@ Routes for the home blueprint, and functions for initializing a session or a req
 import ast
 
 import contextlib
-from urllib.parse import urlencode
-from urllib.request import urlopen
 
 import urllib.parse
 
@@ -2274,6 +2272,19 @@ def clear_distribution_url(entity_node):
             url_node.content = None
 
 
+def encode_distribution_url(url_node):
+    """Helper function to encode a distribution URL for use in the EML."""
+    url = url_node.content
+    if url:
+        subs = url.split('/uploads/')
+        if len(subs) > 1:
+            # The reason we do the convoluted replace, unquote, quote is that the URL may have been encoded
+            #  incorrectly by a previous version of ezEML. We want to make sure we encode it correctly.
+            url = subs[0] + '/uploads/' + quote(unquote(subs[1].replace('%20', ' ')))
+        url_node.content = url
+    return url
+
+
 def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
     """
     Helper function to insert distribution URLs into the EML for the specified node type (either names.DATATABLE
@@ -2282,18 +2293,6 @@ def insert_urls(uploads_url_prefix, uploads_folder, eml_node, node_type):
     Logically, this function should be nested within insert_upload_urls, but it's a separate function so
     insert_upload_urls is more readable.
     """
-    def encode_distribution_url(url_node):
-        """Helper function to encode a distribution URL for use in the EML."""
-        url = url_node.content
-        if url:
-            subs = url.split('/uploads/')
-            if len(subs) > 1:
-                # The reason we do the convoluted replace, unquote, quote is that the URL may have been encoded
-                #  incorrectly by a previous version of ezEML. We want to make sure we encode it correctly.
-                url = subs[0] + '/uploads/' + quote(unquote(subs[1].replace('%20', ' ')))
-            url_node.content = url
-        return url
-
     def keep_existing_url(distribution_node, uploads_folder, file_exists):
         # If a distribution node exists, check to see if there's a URL and, if so, whether it points to a different
         #  user's account or a different package. The case we want to guard against is one where we've imported a

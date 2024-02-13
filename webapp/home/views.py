@@ -2402,7 +2402,7 @@ def make_tiny(url):
     import requests
     params = {'url': quote(url, safe=':/')}
     response = requests.post('http://tinyurl.com/api-create.php', params=params)
-    return response.text
+    return response.text.replace('http://', 'https://')
 
 
 def backup_metadata(filename):

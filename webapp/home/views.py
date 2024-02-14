@@ -487,10 +487,23 @@ def data_table_errors(data_table_name:str=None):
                            back_url=get_back_url())
 
 
+def init_status_badges(color="white"):
+    def init_status_badge(badge_name, color="white"):
+        badge_name = badge_name + "_status"
+        session[badge_name] = color
+    status_names = ["title", "data_tables", "creators", "contacts", "associated_parties", "metadata_providers",
+                    "abstract", "keywords", "intellectual_rights", "geographic_coverage", "temporal_coverage",
+                    "taxonomic_coverage", "maintenance", "publisher", "publication_info", "methods", "projects",
+                    "other_entities", "data_package_id"]
+    [init_status_badge(status_name, color) for status_name in status_names]
+
+
 @home_bp.before_app_request
 def init_session_vars():
+
     """ Initialize session variables. """
     init_db()
+    init_status_badges()
 
     if not session.get("check_metadata_status"):
         session["check_metadata_status"] = "green"
@@ -1050,12 +1063,18 @@ def check_data_tables():
     log_usage(actions['CHECK_DATA_TABLES'])
     set_current_page('check_data_tables')
 
-    content = check_data_table_contents.create_check_data_tables_status_page_content(current_document, eml_node)
+    # Process POST
+    if request.method == 'POST':
+        if BTN_CHECK_ALL_TABLES in request.form:
+            check_data_table_contents.check_all_tables(current_document, eml_node)
+
+    content, btn_disabled = check_data_table_contents.create_check_data_tables_status_page_content(
+        current_document, eml_node)
 
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
 
     help = get_helps(['check_data_tables'])
-    return render_template('check_data_tables.html', help=help, content=content)
+    return render_template('check_data_tables.html', help=help, content=content, btn_disabled=btn_disabled)
 
 
 @home_bp.route('/check_metadata/<filename>', methods=['GET', 'POST'])

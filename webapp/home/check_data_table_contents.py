@@ -45,6 +45,7 @@ from requests_file import FileAdapter
 from typing import List
 import urllib.parse
 from urllib.parse import unquote_plus
+import urllib.request
 import warnings
 
 import webapp.home.metapype_client
@@ -608,6 +609,12 @@ def check_data_table(eml_file_url:str=None,
     its contents based on the metadata specification for the column.
     """
     eml_node, _ = load_eml_file(eml_file_url)
+
+    if not check_table_headers(csv_file_url=csv_file_url):
+        flash(f'A column header in table {data_table_name} contains a "#" character, which is not allowed. '
+              'Please remove this character and re-upload the file.', 'error')
+        return False
+
     max_rows = Config.MAX_DATA_ROWS_TO_CHECK
     df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=max_rows)
 
@@ -970,12 +977,73 @@ def get_data_file_eval(document_name, csv_file_name, metadata_hash):
         return eval_file.read()
 
 
+def check_table_headers(current_document=None, data_table_node=None, csv_file_url=None):
+    """
+        Check for special chars in table headers. Currently, we check only for '#' chars.
+        We need to look directly in the CSV file rather than the EML, since if a header contains
+        a '#' char, loading it will fail.
+    """
+    if csv_file_url is None:
+        assert(current_document and data_table_node)
+        csv_file_url = get_csv_file_url(current_document, data_table_node)
+    for line in urllib.request.urlopen(csv_file_url):
+        if '#' in line.decode('utf-8'):
+            return False
+        break
+    return True
+
+
+def check_all_tables(current_document, eml_node):
+    def check_all_table_headers(current_document, eml_node):
+        data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
+        for data_table_node in data_table_nodes:
+            if not check_table_headers(current_document=current_document, data_table_node=data_table_node):
+                data_table_name = get_data_table_name(data_table_node)
+                flash(f'A column header in table {data_table_name} contains a "#" character, which is not allowed. '
+                      'Please remove this character and re-upload the file.', 'error')
+                return False
+        return True
+
+    def check_a_table(current_document, eml_node, data_table_node, data_table_name):
+        eml_file_url = get_eml_file_url(current_document, eml_node)
+        csv_file_url = get_csv_file_url(current_document, data_table_node)
+        csv_filename = get_data_table_filename(data_table_node)
+        csv_filepath = get_csv_filepath(current_document, csv_filename)
+        data_table_size = get_data_table_size(data_table_node)
+
+        metadata_hash = hash_data_table_metadata_settings(eml_node, data_table_name)
+
+        errors = get_data_file_eval(current_document, csv_filename, metadata_hash)
+        if not errors:
+            errors = check_data_table(eml_file_url, csv_file_url, data_table_name)
+
+        row_errs, column_errs, has_blanks = generate_error_info_for_webpage(data_table_node, errors)
+        collapsed_errors = collapse_error_info_for_webpage(row_errs, column_errs)
+
+        save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
+        set_check_data_tables_badge_status(current_document, eml_node)
+
+    if not check_all_table_headers(current_document, eml_node):
+        return
+
+    data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
+    for data_table_node in data_table_nodes:
+        data_table_name = get_data_table_name(data_table_node)
+        csv_file_name = get_data_table_filename(data_table_node)
+        metadata_hash = hash_data_table_metadata_settings(eml_node, data_table_name)
+        status = get_data_file_eval_status(current_document, csv_file_name, metadata_hash)
+        if status == 'yellow':
+            check_a_table(current_document, eml_node, data_table_node, data_table_name)
+
+
 def create_check_data_tables_status_page_content(document_name, eml_node):
     """
     Create the HTML content for the Check Data Tables page. This lists the tables and their badges and has links to
     check the table or show errors for the table, or if no errors, simple say "No errors found".
-    """
 
+    In addition, it returns a string indicating whether the Check All Tables button should be enabled or disabled.
+    """
+    btn_status = 'disabled'
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
     output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th></th><th>Data Table Name</th><th></th></tr>'
     for data_table_node in data_table_nodes:
@@ -984,6 +1052,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         metadata_hash = hash_data_table_metadata_settings(eml_node, data_table_name)
         status = get_data_file_eval_status(document_name, csv_file_name, metadata_hash)
         if status == 'yellow':
+            btn_status = ''
             onclick = ''
             size = get_data_table_size(data_table_node)
             if size and int(size) > 10**7:
@@ -1002,7 +1071,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         output += f'<td width=63%>{data_table_name}</td>'
         output += f'<td width=35%>{action}</td></tr>'
     output += '</table>'
-    return output
+    return output, btn_status
 
 
 def error_as_dict(error_info):

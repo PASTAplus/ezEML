@@ -399,6 +399,20 @@ def get_column_type_and_codes(existing_dt_node, data_frame_raw, col):
     return var_type, codes
 
 
+def check_table_headers(full_path):
+    """
+        Check for special chars in table headers. Currently, we check only for '#' chars.
+        We need to look directly in the CSV file rather than the EML, since if a header contains
+        a '#' char, loading it will fail.
+    """
+    with open(full_path, 'r', encoding='utf-8-sig') as csv_file:
+        for line in csv_file:
+            if '#' in line:
+                return False
+            break
+    return True
+
+
 def load_data_table(uploads_path: str = None,
                     data_file: str = '',
                     num_header_rows: str = '1',
@@ -482,6 +496,14 @@ def load_data_table(uploads_path: str = None,
                                            content=line_terminator)
 
     try:
+        if not check_table_headers(full_path):
+            from webapp.home.check_data_table_contents import get_data_table_name
+            data_table_name = get_data_table_name(datatable_node)
+            # flash(f'A column header in table {data_table_name} contains a "#" character, which is not allowed. '
+            #       'Please remove this character and re-upload the file.', 'error')
+            raise DataTableError(f'A column header in table "{data_table_name}" contains a "#" character, which is not allowed. '
+                  'Please remove this character and try again.')
+
         num_rows = get_num_rows(full_path, delimiter=delimiter, quote_char=quote_char)
         # If the number of rows is greater than Config.MAX_DATA_ROWS_TO_CHECK, we will base the metadata on what we
         #  see in the first Config.MAX_DATA_ROWS_TO_CHECK rows.

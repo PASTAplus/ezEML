@@ -617,7 +617,7 @@ def check_data_table(eml_file_url:str=None,
 
     max_rows = Config.MAX_DATA_ROWS_TO_CHECK
     df, truncated = load_df(eml_node, csv_file_url, data_table_name, max_rows=max_rows)
-
+    log_info('check_data_table: After loading the data table')
     if truncated:
         flash(f'The number of rows in {os.path.basename(unquote_plus(csv_file_url))} is greater than {max_rows:,}. ezEML checks '
               f'only the first {max_rows:,} rows. Often this suffices to indicate the kinds of errors that are present.\nThe full '

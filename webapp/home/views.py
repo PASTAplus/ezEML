@@ -450,6 +450,7 @@ def data_table_errors(data_table_name:str=None):
     metadata_hash = check_data_table_contents.hash_data_table_metadata_settings(eml_node, data_table_name)
 
     errors = check_data_table_contents.get_data_file_eval(current_document, csv_filename, metadata_hash)
+    log_info(f'get_data_file_eval() returned {errors[:1000]}')
     if not errors:
         try:
             errors = check_data_table_contents.check_data_table(eml_file_url,

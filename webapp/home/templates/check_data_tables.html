@@ -20,6 +20,11 @@
                 {{ macros.hidden_buttons() }}
 
                 <p>&nbsp;</p>
+                <input class="btn btn-primary" style="width: 180px;" {{ btn_disabled }}
+                       onclick="return confirm('This operation may be time-consuming. Okay to proceed?') && stand_by();"
+                       name="Check All Data Tables" type="submit" value="Check All Data Tables"/>
+                    &nbsp;&nbsp;
+                    {{ macros.please_stand_by() }}
                 <p>&nbsp;</p>
                 <table width=100% style="padding: 10px;">
                 <th></th><th>Color Key</th>
@@ -29,7 +34,6 @@
                 </table>
             </form>
         </div>
-{#    </div>#}
     {{ macros.help_dialog(help_check_data_tables_dialog, help_check_data_tables_title, help_check_data_tables_content) }}
 {% endblock %}
 

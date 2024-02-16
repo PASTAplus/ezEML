@@ -871,16 +871,16 @@ def get_eml_file_url(document_name, eml_node):
 def get_eml_external_url(document_name):
     """ Return the EML's URL for use in the explore data tables code. """
     parsed_url = urllib.parse.urlparse(request.base_url)
-    path = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), urllib.parse.quote(document_name))}.xml'
-    return f"{parsed_url.scheme}://{parsed_url.netloc}{path}"
+    path = f'{os.path.join(user_data.get_user_download_folder_name(), urllib.parse.quote(document_name))}.xml'
+    return f"{parsed_url.scheme}://{parsed_url.netloc}/{path}"
 
 
-def get_csv_external_url(data_table_node):
+def get_csv_external_url(document_name, data_table_node):
     """ Return the CSV's URL for use in the explore data tables code. """
     csv_file_name = get_data_table_filename(data_table_node)
     parsed_url = urllib.parse.urlparse(request.base_url)
-    path = f"{os.path.join(Config.BASE_DIR, user_data.get_document_uploads_folder_name(encoded_for_url=True), urllib.parse.quote(csv_file_name))}"
-    return f"{parsed_url.scheme}://{parsed_url.netloc}{path}"
+    path = f"{os.path.join(user_data.get_user_uploads_folder_name(), urllib.parse.quote(document_name), urllib.parse.quote(csv_file_name))}"
+    return f"{parsed_url.scheme}://{parsed_url.netloc}/{path}"
 
 
 def get_csv_file_url(document_name, data_table_node):
@@ -1144,7 +1144,7 @@ window.onload = function () {
     script_output = ''
     for data_table_node in data_table_nodes:
         data_table_name = get_data_table_name(data_table_node)
-        csv_url = get_csv_external_url(data_table_node)
+        csv_url = get_csv_external_url(current_document, data_table_node)
         action, script = create_output_for_data_table(eml_node, eml_url, csv_url, data_table_node)
         script_output += script + '\n'
         output += f'<td width=63%>{data_table_name}</td>'

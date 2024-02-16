@@ -34,7 +34,7 @@ import os
 
 from collections import OrderedDict
 import csv
-from flask import session, flash
+from flask import session, flash, request
 import glob
 import hashlib
 import json
@@ -44,6 +44,7 @@ import requests
 from requests_file import FileAdapter
 from typing import List
 import urllib.parse
+
 from urllib.parse import unquote_plus
 import urllib.request
 import warnings
@@ -867,6 +868,21 @@ def get_eml_file_url(document_name, eml_node):
     return None
 
 
+def get_eml_external_url(document_name):
+    """ Return the EML's URL for use in the explore data tables code. """
+    parsed_url = urllib.parse.urlparse(request.base_url)
+    path = f'{path_join(Config.BASE_DIR, user_data.get_user_folder_name(), urllib.parse.quote(document_name))}.xml'
+    return f"{parsed_url.scheme}://{parsed_url.netloc}{path}"
+
+
+def get_csv_external_url(data_table_node):
+    """ Return the CSV's URL for use in the explore data tables code. """
+    csv_file_name = get_data_table_filename(data_table_node)
+    parsed_url = urllib.parse.urlparse(request.base_url)
+    path = f"{os.path.join(Config.BASE_DIR, user_data.get_document_uploads_folder_name(encoded_for_url=True), urllib.parse.quote(csv_file_name))}"
+    return f"{parsed_url.scheme}://{parsed_url.netloc}{path}"
+
+
 def get_csv_file_url(document_name, data_table_node):
     """ Return the CSV file location as a URL for use in the check data tables code. """
     csv_file_name = get_data_table_filename(data_table_node)
@@ -1071,6 +1087,70 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         output += f'<td width=35%>{action}</td></tr>'
     output += '</table>'
     return output, btn_status
+
+
+def create_explore_data_tables_page_content(current_document, eml_node):
+    def create_output_for_data_table(eml_node, eml_file_url, csv_file_url, data_table_node):
+        id = f'open-dex-{data_table_node.id}'
+        dex_base_url = 'https://dex-d.edirepository.org'
+        link = f'<a class="button link" id="{id}">Explore with DeX</a>\n'
+        dist_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
+        dist_url = dist_url_node.content if dist_url_node else ''
+        script = """
+window.onload = function () {
+  document.getElementById('__OPEN-DEX-ID__').addEventListener('click', function () {
+    // Base URL for the DeX instance to use
+    let dexBaseUrl = '__DEX-BASE-URL__';
+    // dist_url = '__DIST-URL__';
+    let data = {
+      eml: '__EML-URL__',
+      csv: '__CSV-URL__',
+      dist: '__DIST-URL__',
+    };
+
+    let options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    };
+    
+    alert(dexBaseUrl);
+    alert(data.eml);
+    alert(data.csv);
+    alert(data.dist);
+
+    fetch(`${dexBaseUrl}/dex/api/preview`, options)
+        .then(response => {
+          return response.text()
+        })
+        .then(body => {
+          // Open DeX in new tab
+          window.open(`${dexBaseUrl}/dex/profile/${body}`);
+        })
+        .catch(error => alert(error))
+    ;
+  });
+};        
+        """
+        script = script.replace('__OPEN-DEX-ID__', id).replace('__DEX-BASE-URL__', dex_base_url)\
+            .replace('__EML-URL__', eml_file_url).replace('__CSV-URL__', csv_file_url).replace('__DIST-URL__', dist_url)
+        return link, script
+
+    eml_url = get_eml_external_url(current_document)
+    data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
+    output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th>Data Table Name</th><th></th></tr>'
+    script_output = ''
+    for data_table_node in data_table_nodes:
+        data_table_name = get_data_table_name(data_table_node)
+        csv_url = get_csv_external_url(data_table_node)
+        action, script = create_output_for_data_table(eml_node, eml_url, csv_url, data_table_node)
+        script_output += script + '\n'
+        output += f'<td width=63%>{data_table_name}</td>'
+        output += f'<td width=35%>{action}</td></tr>'
+    output += '</table>'
+    return output, script_output
 
 
 def error_as_dict(error_info):

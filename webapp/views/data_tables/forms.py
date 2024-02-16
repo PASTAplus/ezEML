@@ -223,7 +223,8 @@ class DataTableForm(EDIForm):
     )
     case_sensitive = SelectField('Case Sensitive', choices=[("no", "no"), ("yes", "yes")])
     number_of_records = StringField('Number of Records *', validators=[validate_integer])
-    online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
+    # online_url = StringField('Online Distribution URL (Optional)', validators=[Optional(), URL()])
+    online_url = StringField('Online Distribution URL (Optional)', validators=[Optional()])
     md5 = HiddenField('')
     init_str = '"column,no'
 

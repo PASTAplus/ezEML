@@ -1077,6 +1077,28 @@ def check_data_tables():
     return render_template('check_data_tables.html', help=help, content=content, btn_disabled=btn_disabled)
 
 
+@home_bp.route('/explore_data_tables', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def explore_data_tables():
+    """Handle the Explore Data Tables item in the main Contents menu."""
+    current_document = user_data.get_active_document()
+    if not current_document:
+        raise FileNotFoundError
+    eml_node = load_eml(filename=current_document)
+    log_usage(actions['EXPLORE_DATA_TABLES'])
+    set_current_page('explore_data_tables')
+
+    # Process POST
+    content, scripts = check_data_table_contents.create_explore_data_tables_page_content(
+        current_document, eml_node)
+
+    # check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
+
+    help = get_helps(['check_data_tables']) # FIXME
+    return render_template('explore_data_tables.html', help=help, content=content, scripts=scripts)
+
+
 @home_bp.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
@@ -2373,7 +2395,7 @@ def insert_upload_urls(current_document, eml_node, clear_existing_urls=False):
     parsed_url = urlparse(request.base_url)
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{quote(uploads_folder)}"
 
-    if 'localhost:5000' not in uploads_url_prefix:
+    if True or 'localhost:5000' not in uploads_url_prefix:
         # When developing locally, the generated URL will point to localhost:5000 and be flagged by Flask as invalid.
         # This is a pain in the neck, since we can't leave the page without clearing the URL. So, we'll just skip the
         # URL insertion when working locally. Hence, the check above.

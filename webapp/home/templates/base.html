@@ -43,7 +43,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package', 'import_xml',
         'export_package', 'settings'] %}
-{% set non_saving_contains = ['_select', '/check_metadata/', '/check_data_tables/',
+{% set non_saving_contains = ['_select', '/check_metadata/', '/check_data_tables/', '/explore_data_tables/',
         '/data_table_errors/', '/fetch_xml', '/manage_packages',
         '/import_parties_2/', '/import_geo_coverage_2/',
         '/import_taxonomic_coverage_2/', '/import_funding_awards_2/',
@@ -280,6 +280,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             {% set data_package_id_style = '""'|safe %}
             {% set check_metadata_style = '""'|safe %}
             {% set check_data_tables_style = '""'|safe %}
+            {% set explore_data_tables_style = '""'|safe %}
             {% set share_submit_package_style = '""'|safe %}
             {% set submit_package_style = '""'|safe %}
             {% set send_to_other_style = '""'|safe %}
@@ -310,6 +311,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             {% if page == 'data_package_id' %}{% set data_package_id_style = current %}{% endif %}
             {% if page == 'check_metadata' %}{% set check_metadata_style = current %}{% endif %}
             {% if page == 'check_data_tables' %}{% set check_data_tables_style = current %}{% endif %}
+            {% if page == 'explore_data_tables' %}{% set explore_data_tables_style = current %}{% endif %}
             {% if page == 'share_submit_package' %}{% set share_submit_package_style = current %}{% endif %}
             {% if page == 'submit_package' %}{% set submit_package_style = current %}{% endif %}
             {% if page == 'send_to_other' %}{% set send_to_other_style = current %}{% endif %}
@@ -345,6 +347,9 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         <a class="nav_link" style={{ check_data_tables_style }}; href="{{ url_for('home.edit', page='home.check_data_tables') }}" title="Edit">Check Data Tables</a>&nbsp;
             <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
             <br>
+        <a class="nav_link" style={{ explore_data_tables_style }}; href="{{ url_for('home.edit', page='home.explore_data_tables') }}" title="Edit">Explore Data Tables</a>&nbsp;
+            <div class="nav_link white_circle"></div>
+{#            <br>#}
         {% endif %}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ share_submit_package_style }}; href="{{ url_for('home.edit', page='home.share_submit_package') }}" title="Edit">Submit/Share Package</a><br>

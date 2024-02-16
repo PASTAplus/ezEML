@@ -1098,7 +1098,6 @@ def create_explore_data_tables_page_content(current_document, eml_node):
         dist_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
         dist_url = dist_url_node.content if dist_url_node else ''
         script = """
-window.onload = function () {
   document.getElementById('__OPEN-DEX-ID__').addEventListener('click', function () {
     // Base URL for the DeX instance to use
     let dexBaseUrl = '__DEX-BASE-URL__';
@@ -1133,7 +1132,6 @@ window.onload = function () {
         .catch(error => alert(error))
     ;
   });
-};        
         """
         script = script.replace('__OPEN-DEX-ID__', id).replace('__DEX-BASE-URL__', dex_base_url)\
             .replace('__EML-URL__', eml_file_url).replace('__CSV-URL__', csv_file_url).replace('__DIST-URL__', dist_url)
@@ -1151,6 +1149,8 @@ window.onload = function () {
         output += f'<td width=63%>{data_table_name}</td>'
         output += f'<td width=35%>{action}</td></tr>'
     output += '</table>'
+    if script_output:
+        script_output = 'window.onload = function () {\n' + script_output + '\n};\n'
     return output, script_output
 
 

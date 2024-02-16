@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_exploredata_tables_id, help_exploredata_tables_title, help_exploredata_tables_content = help[0] %}
+    {% set help_exploredata_tables_btn = help_exploredata_tables_id ~ '_btn' %}
+    {% set help_exploredata_tables_dialog = help_exploredata_tables_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Explore Data Tables</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_exploredata_tables_btn) }}</td>
+    </table>
+
+{#    <div class="row">#}
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                <a href="{{ request.referrer }}">Back</a>
+                <p>&nbsp;</p>
+                {{ content|safe }}
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    {{ macros.help_dialog(help_exploredata_tables_dialog, help_exploredata_tables_title, help_exploredata_tables_content) }}
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    {% set help_exploredata_tables_id, help_exploredata_tables_title, help_exploredata_tables_content = help[0] %}
+    {% set help_exploredata_tables_btn = help_exploredata_tables_id ~ '_btn' %}
+    {% set help_exploredata_tables_dialog = help_exploredata_tables_id ~ '_dialog' %}
+
+    <script>
+    $(document).ready(function()
+    {
+      $(".eval_table tr:odd").css("background", "#f4f4f4");
+      $(".eval_table tr:even").css("background", "#fff");
+      $(".eval_table").css("padding", "3px");
+    });
+    $(function()
+    {
+        {{ macros.help_script(help_exploredata_tables_dialog, help_exploredata_tables_btn) }}
+    });
+    {{ scripts|safe }}
+    </script>
+{% endblock %}

@@ -1095,7 +1095,7 @@ def explore_data_tables():
 
     # check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
 
-    help = get_helps(['check_data_tables']) # FIXME
+    help = get_helps(['explore_data_tables'])
     return render_template('explore_data_tables.html', help=help, content=content, scripts=scripts)
 
 

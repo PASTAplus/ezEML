@@ -16,7 +16,11 @@
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 <a href="{{ request.referrer }}">Back</a>
                 <p>&nbsp;</p>
+                {% if content %}
                 {{ content|safe }}
+                {% else %}
+                    <p><i>No data tables found</i></p>
+                {% endif %}
                 {{ macros.hidden_buttons() }}
 
                 <p>&nbsp;</p>

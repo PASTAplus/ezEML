@@ -1061,7 +1061,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
     """
     btn_status = 'disabled'
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
-    output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th></th><th>Data Table Name</th><th></th></tr>'
+    output = ''
     for data_table_node in data_table_nodes:
         data_table_name = get_data_table_name(data_table_node)
         csv_file_name = get_data_table_filename(data_table_node)
@@ -1086,7 +1086,8 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         output += f'<tr><td width=2%><span class ="nav_link {status}_circle"></span></td>'
         output += f'<td width=63%>{data_table_name}</td>'
         output += f'<td width=35%>{action}</td></tr>'
-    output += '</table>'
+    if output:
+        output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th></th><th>Data Table Name</th><th></th></tr>' + output + '</table>'
     return output, btn_status
 
 
@@ -1139,7 +1140,7 @@ def create_explore_data_tables_page_content(current_document, eml_node):
 
     eml_url = get_eml_external_url(current_document)
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
-    output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th>Data Table Name</th><th></th></tr>'
+    output = ''
     script_output = ''
     for data_table_node in data_table_nodes:
         data_table_name = get_data_table_name(data_table_node)
@@ -1148,7 +1149,8 @@ def create_explore_data_tables_page_content(current_document, eml_node):
         script_output += script + '\n'
         output += f'<td width=63%>{data_table_name}</td>'
         output += f'<td width=35%>{action}</td></tr>'
-    output += '</table>'
+    if output:
+        output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th>Data Table Name</th><th></th></tr>\n' + output + '\n</table>\n'
     if script_output:
         script_output = 'window.onload = function () {\n' + script_output + '\n};\n'
     return output, script_output

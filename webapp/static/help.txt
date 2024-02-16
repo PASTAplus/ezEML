@@ -529,6 +529,14 @@ Please include:<br>
    - Your affiliation, if any: for example, whether you are affiliated with an LTER site or other organization, since that may necessitate special handling of your data package,<br>
    - Any other special instructions for the data curation team.
 --------------------
+explore_data_tables
+Explore Data Tables
+<b>Explore Data Tables</b> lets you view your data tables in EDI's Data Explorer (DeX) app.
+
+DeX lets you get an overview of your data and perform various "sanity checks" on the data. You can slice the data, view plots, and do many other things.
+
+Clicking <b>Explore with DeX</b> opens the table in DeX in a new browser tab.
+--------------------
 export_package
 Export ezEML Data Package
 When you have entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you're ready to export the data package.

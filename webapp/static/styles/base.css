@@ -95,7 +95,6 @@ html {
 }
 .button.link:hover{
     text-decoration:underline;
-    color:red;
 }
 
 .eval_table td {

@@ -879,7 +879,7 @@ def get_csv_external_url(document_name, data_table_node):
     """ Return the CSV's URL for use in the explore data tables code. """
     csv_file_name = get_data_table_filename(data_table_node)
     parsed_url = urllib.parse.urlparse(request.base_url)
-    path = f"{os.path.join(user_data.get_user_uploads_folder_name(), urllib.parse.quote(document_name), urllib.parse.quote(csv_file_name))}"
+    path = f"{os.path.join(user_data.get_document_uploads_folder_name(), urllib.parse.quote(csv_file_name))}"
     return f"{parsed_url.scheme}://{parsed_url.netloc}/{path}"
 
 

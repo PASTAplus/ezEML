@@ -54,6 +54,8 @@ class Config(object):
     USER_DATA_DIR = f"{BASE_DIR}/user-data"
     TEMPLATE_DIR = f"{BASE_DIR}/templates"
 
+    DEX_BASE_URL = "https://dex.edirepository.org"
+
     # Garbage collection
     GC_BUTTON_ENABLED = True
     GC_DAYS_TO_LIVE = 90

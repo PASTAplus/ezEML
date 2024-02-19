@@ -99,6 +99,7 @@ html {
 
 .eval_table td {
     padding:3px;
+    vertical-align:top;
 }
 
 .eval_table tr:hover {

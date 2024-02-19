@@ -932,10 +932,6 @@ def set_check_data_tables_badge_status(document_name, eml_node):
 def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
     """ Determine the color of the badge for an individual data table in the Check Data Tables page."""
 
-    def csv_file_exists(document_name, csv_file_name):
-        csv_filepath = get_csv_filepath(document_name, csv_file_name)
-        return path_exists(csv_filepath)
-
     if not csv_file_exists(document_name, csv_file_name):
         return 'black'
     # Returns green, yellow, red, or black.
@@ -1084,12 +1080,17 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
             status = 'red'
             action = 'CSV file missing. Upload via the Data Tables page.'
         output += f'<tr><td width=2%><span class ="nav_link {status}_circle"></span></td>'
-        output += f'<td width=73%>{data_table_name}</td>'
+        output += f'<td width=68%>{data_table_name}</td>'
         output += f'<td width=5%></td>'
-        output += f'<td width=20%>{action}</td></tr>'
+        output += f'<td width=25%>{action}</td></tr>'
     if output:
         output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th></th><th>Data Table Name</th><th></th></tr>' + output + '</table>'
     return output, btn_status
+
+
+def csv_file_exists(document_name, csv_file_name):
+    csv_filepath = get_csv_filepath(document_name, csv_file_name)
+    return path_exists(csv_filepath)
 
 
 def create_explore_data_tables_page_content(current_document, eml_node):
@@ -1145,12 +1146,16 @@ def create_explore_data_tables_page_content(current_document, eml_node):
     script_output = ''
     for data_table_node in data_table_nodes:
         data_table_name = get_data_table_name(data_table_node)
-        csv_url = get_csv_external_url(current_document, data_table_node)
-        action, script = create_output_for_data_table(eml_node, eml_url, csv_url, data_table_node)
+        if csv_file_exists(current_document, data_table_name):
+            csv_url = get_csv_external_url(current_document, data_table_node)
+            action, script = create_output_for_data_table(eml_node, eml_url, csv_url, data_table_node)
+        else:
+            action = 'CSV file missing. Upload via the Data Tables page.'
+            script = ''
         script_output += script + '\n'
-        output += f'<td width=73%>{data_table_name}</td>'
+        output += f'<td width=68%>{data_table_name}</td>'
         output += f'<td width=5%></td>'
-        output += f'<td width=20%>{action}</td></tr>'
+        output += f'<td width=25%>{action}</td></tr>'
     if output:
         output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th>Data Table Name</th><th></th></tr>\n' + output + '\n</table>\n'
     if script_output:

@@ -55,7 +55,6 @@ import webapp.home.utils.load_and_save
 from webapp.utils import path_exists, path_isdir, path_join
 
 import webapp.auth.user_data as user_data
-from webapp.config import Config
 from webapp.home.fetch_data import convert_file_size
 from webapp.config import Config
 
@@ -167,6 +166,23 @@ def find_data_table_node(eml_node, data_table_name):
         if name_found == data_table_name:
             return data_table_node
     raise ValueError(f'Data table "{data_table_name}" not found in EML')
+
+
+def find_data_table_node_by_csv_filename(eml_node, csv_filename):
+    """
+    Find the data table node in an EML document, based on its csv filename. If there are multiple data tables with the same
+    name, raise ValueError. Likewise, if the named table is not found in the EML, raise ValueError.
+    """
+    data_table_nodes = []
+    names_found = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    for data_table_node in data_table_nodes:
+        name_found = get_data_table_filename(data_table_node)
+        if name_found in names_found:
+            raise ValueError(f'Duplicate data table "{name_found}" found in EML')
+        if name_found == csv_filename:
+            return data_table_node
+    raise ValueError(f'Data table "{csv_filename}" not found in EML')
 
 
 def get_attribute_name(attribute_node):
@@ -875,9 +891,8 @@ def get_eml_external_url(document_name):
     return f"{parsed_url.scheme}://{parsed_url.netloc}/{path}"
 
 
-def get_csv_external_url(document_name, data_table_node):
+def get_csv_external_url(document_name, csv_file_name):
     """ Return the CSV's URL for use in the explore data tables code. """
-    csv_file_name = get_data_table_filename(data_table_node)
     parsed_url = urllib.parse.urlparse(request.base_url)
     uploads = 'uploads'
     path = f"{os.path.join(user_data.get_user_download_folder_name(), uploads, urllib.parse.quote(document_name), urllib.parse.quote(csv_file_name))}"
@@ -944,7 +959,28 @@ def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
     return "yellow"
 
 
-def reset_data_file_eval_status(document_name, csv_file_name):
+def flush_dex_cache(eml_node, current_document, csv_file_name):
+    eml_url = get_eml_external_url(current_document)
+    if csv_file_exists(current_document, csv_file_name):
+        csv_url = get_csv_external_url(current_document, csv_file_name)
+    else:
+        csv_url = ''
+    data_table_node = find_data_table_node_by_csv_filename(eml_node, csv_file_name)
+    dist_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
+    dist_url = dist_url_node.content if dist_url_node else ''
+    if eml_url and csv_url and dist_url:
+        dex_base_url = Config.DEX_BASE_URL
+        data = {
+            'eml': eml_url,
+            'csv': csv_url,
+            'dist': dist_url
+        }
+        response = requests.delete(dex_base_url, data=data)
+        if response.status_code != 200:
+            log_error(f"flush_dex_cache: {response.status_code}, {response.text}")
+
+
+def reset_data_file_eval_status(eml_node, document_name, csv_file_name):
     """ Reset the data table to unevaluated state, for example because a Reupload has been done. """
 
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
@@ -957,12 +993,13 @@ def reset_data_file_eval_status(document_name, csv_file_name):
     filelist = glob.glob(ok_wildcard_filepath)
     for filepath in filelist:
         os.remove(filepath)
+    flush_dex_cache(eml_node, document_name, csv_file_name)
 
 
-def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
+def save_data_file_eval(eml_node, document_name, csv_file_name, metadata_hash, errors):
     """ Save the results of the data table evaluation. """
 
-    reset_data_file_eval_status(document_name, csv_file_name)
+    reset_data_file_eval_status(eml_node, document_name, csv_file_name)
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
         get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     errs_obj = json.loads(errors)
@@ -1032,7 +1069,7 @@ def check_all_tables(current_document, eml_node):
         row_errs, column_errs, has_blanks = generate_error_info_for_webpage(data_table_node, errors)
         collapsed_errors = collapse_error_info_for_webpage(row_errs, column_errs)
 
-        save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
+        save_data_file_eval(eml_node, current_document, csv_filename, metadata_hash, errors)
         set_check_data_tables_badge_status(current_document, eml_node)
 
     if not check_all_table_headers(current_document, eml_node):
@@ -1096,7 +1133,7 @@ def csv_file_exists(document_name, csv_file_name):
 def create_explore_data_tables_page_content(current_document, eml_node):
     def create_output_for_data_table(eml_node, eml_file_url, csv_file_url, data_table_node):
         id = f'open-dex-{data_table_node.id}'
-        dex_base_url = 'https://dex-d.edirepository.org'
+        dex_base_url = Config.DEX_BASE_URL
         link = f'<a class="button link" id="{id}">Explore with DeX</a>\n'
         dist_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
         dist_url = dist_url_node.content if dist_url_node else ''
@@ -1148,7 +1185,7 @@ def create_explore_data_tables_page_content(current_document, eml_node):
         data_table_name = get_data_table_name(data_table_node)
         csv_file_name = get_data_table_filename(data_table_node)
         if csv_file_exists(current_document, csv_file_name):
-            csv_url = get_csv_external_url(current_document, data_table_node)
+            csv_url = get_csv_external_url(current_document, csv_file_name)
             action, script = create_output_for_data_table(eml_node, eml_url, csv_url, data_table_node)
         else:
             action = 'CSV file missing. Upload via the Data Tables page.'

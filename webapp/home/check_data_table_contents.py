@@ -975,9 +975,12 @@ def flush_dex_cache(eml_node, current_document, csv_file_name):
             'csv': csv_url,
             'dist': dist_url
         }
+        log_info(f"flush_dex_cache: {data}")
         response = requests.delete(dex_base_url, data=data)
         if response.status_code != 200:
             log_error(f"flush_dex_cache: {response.status_code}, {response.text}")
+        else:
+            log_info(f"flush_dex_cache: {response.status_code}, {response.text}")
 
 
 def reset_data_file_eval_status(eml_node, document_name, csv_file_name):
@@ -993,6 +996,7 @@ def reset_data_file_eval_status(eml_node, document_name, csv_file_name):
     filelist = glob.glob(ok_wildcard_filepath)
     for filepath in filelist:
         os.remove(filepath)
+
     flush_dex_cache(eml_node, document_name, csv_file_name)
 
 

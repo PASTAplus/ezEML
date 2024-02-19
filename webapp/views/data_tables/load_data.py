@@ -90,7 +90,7 @@ def format_name_from_data_file(filename: str = ''):
         else:
             return os.path.splitext(filename)[1] # use the file extension
     else:
-        return ''
+        return None
 
 
 # def is_datetime_column(col: str = None):

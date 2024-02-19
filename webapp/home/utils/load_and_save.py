@@ -521,7 +521,9 @@ def clean_model(eml_node):
                 object_name = object_name_node.content
                 if object_name:
                     old_content = format_name_node.content
-                    format_name_node.content = load_data.format_name_from_data_file(object_name)
+                    new_content = load_data.format_name_from_data_file(object_name)
+                    if new_content:
+                        format_name_node.content = new_content
                     if old_content != format_name_node.content:
                         changed = True
     if changed:

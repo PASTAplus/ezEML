@@ -969,18 +969,16 @@ def flush_dex_cache(eml_node, current_document, csv_file_name):
     dist_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
     dist_url = dist_url_node.content if dist_url_node else ''
     if eml_url and csv_url and dist_url:
-        dex_base_url = Config.DEX_BASE_URL
+        dex_url = Config.DEX_BASE_URL + '/dex/api/preview'
         data = {
             'eml': eml_url,
             'csv': csv_url,
             'dist': dist_url
         }
-        log_info(f"flush_dex_cache: {data}")
-        response = requests.delete(dex_base_url, data=data)
+        headers = {'Content-Type': 'application/json'}
+        response = requests.delete(dex_url, headers=headers, json=data)
         if response.status_code != 200:
             log_error(f"flush_dex_cache: {response.status_code}, {response.text}")
-        else:
-            log_info(f"flush_dex_cache: {response.status_code}, {response.text}")
 
 
 def reset_data_file_eval_status(eml_node, document_name, csv_file_name):
@@ -1160,11 +1158,6 @@ def create_explore_data_tables_page_content(current_document, eml_node):
       body: JSON.stringify(data),
     };
     
-    alert(dexBaseUrl);
-    alert(data.eml);
-    alert(data.csv);
-    alert(data.dist);
-
     fetch(`${dexBaseUrl}/dex/api/preview`, options)
         .then(response => {
           return response.text()

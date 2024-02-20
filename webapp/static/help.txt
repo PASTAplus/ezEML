@@ -531,11 +531,13 @@ Please include:<br>
 --------------------
 explore_data_tables
 Explore Data Tables
-<b>Explore Data Tables</b> lets you view your data tables in EDI's Data Explorer (DeX) app.
+<b>Explore Data Tables</b> lets you examine your data tables using EDI's <b>Data Explorer (DeX)</b> app.
 
-DeX lets you get an overview of your data and perform various "sanity checks" on the data. You can slice the data, view plots, and do many other things.
+Using DeX, you can get an overview of your data and perform various "sanity checks" on the data. You can profile the data, subset it, view plots, etc.
 
-Clicking <b>Explore with DeX</b> opens the table in DeX in a new browser tab.
+Click a table's <b>Explore with DeX</b> link to open the table in DeX in a new browser tab.
+
+Watch an in-depth discussion and demo of DeX here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=4ZZaLQ72GPc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 export_package
 Export ezEML Data Package

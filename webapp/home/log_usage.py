@@ -25,6 +25,7 @@ actions = {
     'ENABLE_EDI_CURATION': 'Enable EDI Curation',
     'END_COLLABORATION': 'End Collaboration',
     'END_GROUP_COLLABORATION': 'End Group Collaboration',
+    'EXPLORE_DATA_TABLES': 'Explore Data Tables',
     'EXPORT_EZEML_DATA_PACKAGE': 'Export ezEML Data Package',
     'FETCH_FROM_EDI': 'Fetch from EDI',
     'FETCH_PROVENANCE_INFO': 'Fetch Provenance Info from EDI',

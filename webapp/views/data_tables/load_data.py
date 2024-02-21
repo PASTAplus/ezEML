@@ -1013,7 +1013,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
     views.clear_distribution_url(dt_node)
     views.insert_upload_urls(document, eml_node)
 
-    check_data_table_contents.reset_data_file_eval_status(document, data_file)
+    check_data_table_contents.reset_data_file_eval_status(eml_node, document, data_file)
     check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
 
     webapp.home.utils.load_and_save.save_both_formats(filename=document, eml_node=eml_node)

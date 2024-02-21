@@ -476,7 +476,7 @@ def data_table_errors(data_table_name:str=None):
     row_errs, column_errs, has_blanks = check_data_table_contents.generate_error_info_for_webpage(data_table_node, errors)
     collapsed_errors = check_data_table_contents.collapse_error_info_for_webpage(row_errs, column_errs)
 
-    check_data_table_contents.save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
+    check_data_table_contents.save_data_file_eval(eml_node, current_document, csv_filename, metadata_hash, errors)
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
     help = get_helps(['data_table_errors'])
     return render_template('data_table_errors.html',
@@ -1075,6 +1075,28 @@ def check_data_tables():
 
     help = get_helps(['check_data_tables'])
     return render_template('check_data_tables.html', help=help, content=content, btn_disabled=btn_disabled)
+
+
+@home_bp.route('/explore_data_tables', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def explore_data_tables():
+    """Handle the Explore Data Tables item in the main Contents menu."""
+    current_document = user_data.get_active_document()
+    if not current_document:
+        raise FileNotFoundError
+    eml_node = load_eml(filename=current_document)
+    log_usage(actions['EXPLORE_DATA_TABLES'])
+    set_current_page('explore_data_tables')
+
+    # Process POST
+    content, scripts = check_data_table_contents.create_explore_data_tables_page_content(
+        current_document, eml_node)
+
+    # check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
+
+    help = get_helps(['explore_data_tables'])
+    return render_template('explore_data_tables.html', help=help, content=content, scripts=scripts)
 
 
 @home_bp.route('/check_metadata/<filename>', methods=['GET', 'POST'])
@@ -3483,17 +3505,16 @@ def load_entity(node_id=None):
 
         file = request.files['file']
         if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
             filename = file.filename
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             else:
-                # Make sure we don't already have a data table or other entity with this name
+                doing_reupload = node_id is not None and node_id != '1'
                 eml_node = load_eml(filename=document)
-                if not data_filename_is_unique(eml_node, filename):
+
+                # Make sure we don't already have a data table or other entity with this name
+                if not data_filename_is_unique(eml_node, filename, node_id):
                     flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
                     return redirect(request.url)
 
@@ -3501,11 +3522,9 @@ def load_entity(node_id=None):
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {data_file}')
-                eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file, node_id=node_id)
 
-                doing_reupload = node_id is not None and node_id != '1'
                 if not doing_reupload:
                     log_usage(actions['LOAD_OTHER_ENTITY'], data_file)
                 else:

@@ -1171,6 +1171,8 @@ def create_explore_data_tables_page_content(current_document, eml_node):
     ;
   });
         """
+        if not dist_url:
+            return "Distribution URL missing", ''
         script = script.replace('__OPEN-DEX-ID__', id).replace('__DEX-BASE-URL__', dex_base_url)\
             .replace('__EML-URL__', eml_file_url).replace('__CSV-URL__', csv_file_url).replace('__DIST-URL__', dist_url)
         return link, script

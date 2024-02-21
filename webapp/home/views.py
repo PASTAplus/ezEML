@@ -2395,7 +2395,7 @@ def insert_upload_urls(current_document, eml_node, clear_existing_urls=False):
     parsed_url = urlparse(request.base_url)
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{quote(uploads_folder)}"
 
-    if 'localhost:5000' not in uploads_url_prefix:
+    if True or 'localhost:5000' not in uploads_url_prefix:
         # When developing locally, the generated URL will point to localhost:5000 and be flagged by Flask as invalid.
         # This is a pain in the neck, since we can't leave the page without clearing the URL. So, we'll just skip the
         # URL insertion when working locally. Hence, the check above.

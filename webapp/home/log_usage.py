@@ -6,6 +6,7 @@ from datetime import date, datetime
 from flask_login import current_user
 
 from webapp.home.fetch_data import convert_file_size
+from webapp.home.home_utils import log_info
 
 
 USAGE_LOG_FILE = 'usage.log'
@@ -115,5 +116,6 @@ def log_usage(action, *args):
             i += 1
     with open(USAGE_LOG_FILE, 'a') as log:
         data = ','.join(data_cols)
-        line = f"{date},{time},{username},{action},{current_document},{data}\n"
-        log.write(line)
+        line = f"{date},{time},{username},{action},{current_document},{data}"
+        log.write(f"{line}\n")
+        log_info(line)

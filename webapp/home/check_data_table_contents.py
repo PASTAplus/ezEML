@@ -960,6 +960,7 @@ def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
 
 
 def flush_dex_cache(eml_node, current_document, csv_file_name):
+    log_info(f"flush_dex_cache: {current_document}, {csv_file_name}")
     eml_url = get_eml_external_url(current_document)
     if csv_file_exists(current_document, csv_file_name):
         csv_url = get_csv_external_url(current_document, csv_file_name)
@@ -1170,6 +1171,8 @@ def create_explore_data_tables_page_content(current_document, eml_node):
     ;
   });
         """
+        if not dist_url:
+            return "Distribution URL missing", ''
         script = script.replace('__OPEN-DEX-ID__', id).replace('__DEX-BASE-URL__', dex_base_url)\
             .replace('__EML-URL__', eml_file_url).replace('__CSV-URL__', csv_file_url).replace('__DIST-URL__', dist_url)
         return link, script

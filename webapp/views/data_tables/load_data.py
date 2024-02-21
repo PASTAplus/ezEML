@@ -643,6 +643,7 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     if doing_reupload:
         other_entity_node = Node.get_node_instance(node_id)
         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+        object_name_node.content = data_file
     else:
         other_entity_node = new_child_node(names.OTHERENTITY, parent=dataset_node)
 
@@ -723,29 +724,42 @@ def cull_data_files(data_folder: str = None):
                 print(e)
 
 
-def data_filename_is_unique(eml_node, data_filename):
+def data_filename_is_unique(eml_node, data_filename, node_id=None):
     """
     Check if the data filename is unique across both data tables and other entities. Uniqueness is required.
+    If we're reuploading a file, we need to allow the same file to be uploaded again. This is the case when
+    node_id is not None and not '1', in which case we allow the name to be the same as the name in that node.
     """
+    if node_id is not None and node_id != '1':
+        # node_id points to a data table or other entity node that we're reuploading. We need to allow the same name.
+        existing_node = Node.get_node_instance(node_id)
+    else:
+        existing_node = None
+
     data_entity_name, _ = os.path.splitext(os.path.basename(data_filename))
     data_table_nodes = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     for data_table_node in data_table_nodes:
         entity_name_node = data_table_node.find_child(names.ENTITYNAME)
         if entity_name_node and entity_name_node.content == data_entity_name:
-            return False
+            if existing_node is None or data_table_node is not existing_node:
+                return False
         object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
         if object_name_node and object_name_node.content == data_filename:
-            return False
+            if existing_node is None or data_table_node is not existing_node:
+                return False
+
     other_entity_nodes = []
     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
     for other_entity_node in other_entity_nodes:
         entity_name_node = other_entity_node.find_child(names.ENTITYNAME)
         if entity_name_node and entity_name_node.content == data_entity_name:
-            return False
+            if existing_node is None or other_entity_node is not existing_node:
+                return False
         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
         if object_name_node and object_name_node.content == data_filename:
-            return False
+            if existing_node is None or other_entity_node is not existing_node:
+                return False
     return True
 
 
@@ -906,6 +920,13 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         dataset_node = new_child_node(names.DATASET, eml_node)
 
     data_file = saved_filename.replace('.ezeml_tmp', '')
+
+    # Make sure we don't already have a data table or other entity with this name
+    if not webapp.views.data_tables.load_data.data_filename_is_unique(eml_node, data_file, node_id=dt_node_id):
+        flash(
+            'The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.',
+            'error')
+        return redirect(request.url)
 
     dt_node = Node.get_node_instance(dt_node_id)
 

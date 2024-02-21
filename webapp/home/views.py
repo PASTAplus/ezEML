@@ -2395,7 +2395,7 @@ def insert_upload_urls(current_document, eml_node, clear_existing_urls=False):
     parsed_url = urlparse(request.base_url)
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{quote(uploads_folder)}"
 
-    if True or 'localhost:5000' not in uploads_url_prefix:
+    if 'localhost:5000' not in uploads_url_prefix:
         # When developing locally, the generated URL will point to localhost:5000 and be flagged by Flask as invalid.
         # This is a pain in the neck, since we can't leave the page without clearing the URL. So, we'll just skip the
         # URL insertion when working locally. Hence, the check above.
@@ -3505,17 +3505,16 @@ def load_entity(node_id=None):
 
         file = request.files['file']
         if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
             filename = file.filename
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             else:
-                # Make sure we don't already have a data table or other entity with this name
+                doing_reupload = node_id is not None and node_id != '1'
                 eml_node = load_eml(filename=document)
-                if not data_filename_is_unique(eml_node, filename):
+
+                # Make sure we don't already have a data table or other entity with this name
+                if not data_filename_is_unique(eml_node, filename, node_id):
                     flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
                     return redirect(request.url)
 
@@ -3523,11 +3522,9 @@ def load_entity(node_id=None):
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {data_file}')
-                eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file, node_id=node_id)
 
-                doing_reupload = node_id is not None and node_id != '1'
                 if not doing_reupload:
                     log_usage(actions['LOAD_OTHER_ENTITY'], data_file)
                 else:

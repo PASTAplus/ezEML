@@ -3856,7 +3856,7 @@ def import_temporal_coverage_2(filename):
 def submit_package(filename=None, success=None):
     """Handle the former version of Submit to EDI page. Not currently used."""
 
-    raise DeprecatedCodeError('sbmit_package()')
+    raise DeprecatedCodeError('submit_package()')
 
     def submit_package_mail_body(name=None, email_address=None, archive_name=None, encoded_url=None,
                                  encoded_url_without_data=None, notes=None):

@@ -71,12 +71,14 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
     return status
 
 
-def log_available_memory():
+def log_available_memory(msg:str=None):
     """
     Log the available system memory.
     """
     if not Config.LOG_MEMORY_USAGE:
         return
+    if msg:
+        log_info(msg)
     available_memory = psutil.virtual_memory().available / 1024 / 1024
     process_usage = psutil.Process().memory_info().rss / 1024 / 1024
     log_info(f"Memory usage:   available system memory:{available_memory:.1f} MB   process usage:{process_usage:.1f} MB")

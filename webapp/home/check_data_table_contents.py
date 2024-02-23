@@ -639,8 +639,7 @@ def check_data_table(eml_file_url:str=None,
               f'only the first {max_rows:,} rows. Often this suffices to indicate the kinds of errors that are present.\nThe full '
               f'file will be checked when you submit the data package to the EDI repository.', 'warning')
 
-    log_info('After loading the data table')
-    log_available_memory()
+    log_available_memory('After loading the data table')
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
@@ -682,8 +681,7 @@ def check_data_table(eml_file_url:str=None,
             errors.extend(new_errors)
         end = datetime.now()
         elapsed = (end - start).total_seconds()
-        log_info(f'After checking column: {column_name}... elapsed time: {elapsed:.1f} seconds')
-        log_available_memory()
+        log_available_memory(f'After checking column: {column_name}... elapsed time: {elapsed:.1f} seconds')
 
     results = create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
 
@@ -691,8 +689,7 @@ def check_data_table(eml_file_url:str=None,
         flash('Only partial results are shown below because the number of errors has exceeded the maximum allowed.\n' \
               'To find additional errors, correct the errors shown below, re-upload the table, and run the check again.')
 
-    log_info(f'After creating result JSON')
-    log_available_memory()
+    log_available_memory(f'After creating result JSON')
 
     return results
 

@@ -587,7 +587,9 @@ def fixup_eml_namespaces_on_import(eml_node):
     """
 
     def fix_node(node, nsmap):
-        node.nsmap = nsmap
+        for prefix, uri in nsmap.items():
+            if prefix in ['eml', 'stmml'] and prefix in nsmap:
+                node.nsmap[prefix] = nsmap[prefix]
         for child in node.children:
             fix_node(child, nsmap)
         return node

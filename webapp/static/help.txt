@@ -299,8 +299,17 @@ Contents
 You can use ezEML as a "wizard" (i.e., by proceeding through the sections in sequence, filling out the metadata as you go), or you can click on any of the links under <b>Contents</b> to jump directly to that section of the metadata.
 
 For more information on navigating in ezEML, see <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_user_guide_ezeml">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
+<br>
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
+<p>&nbsp;</p>
+
+<table style="width:100%;border 1px solid;">
+<th></th><th>Color Key for Status Badges</th>
+    <tr><td width=3%><span class ="nav_link red_circle"></span></td><td width=97%>Metadata errors found. Click the badge for details.</td></tr>
+    <tr><td><span class ="nav_link yellow_circle"></span></td><td>Metadata warnings found. Click the badge for details.</td></tr>
+    <tr><td><span class ="nav_link green_circle"></span></td><td>Metadata was entered, but no errors or warnings found.</td></tr>
+</table>
 --------------------
 creator
 Creator

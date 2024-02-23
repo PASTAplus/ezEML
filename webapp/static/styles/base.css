@@ -16,6 +16,7 @@ html {
 .table_cell {
     width: 500px;
 }
+
 #taxonomy tr:nth-child(even) {
     background-color: #f2f2f2;
 }
@@ -62,6 +63,10 @@ html {
     -webkit-border-radius:50%;
     width:8px;
     height:8px;
+    margin-bottom: 1px;
+}
+.red_circle:hover {
+    text-decoration: none;
 }
 .yellow_circle {
     display:inline-block;
@@ -72,6 +77,10 @@ html {
     -webkit-border-radius:50%;
     width:8px;
     height:8px;
+    margin-bottom: 1px;
+}
+.yellow_circle:hover {
+    text-decoration: none;
 }
 .green_circle {
     display:inline-block;
@@ -82,6 +91,18 @@ html {
     -webkit-border-radius:50%;
     width:8px;
     height:8px;
+    margin-bottom: 1px;
+}
+.white_circle {
+    display:inline-block;
+    background-color:white;
+    border:1px solid white;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:8px;
+    height:8px;
+    margin-bottom: 1px;
 }
 
 .button.link {
@@ -95,6 +116,10 @@ html {
 }
 .button.link:hover{
     text-decoration:underline;
+}
+
+a.no-underline:hover {
+  text-decoration: none;
 }
 
 .eval_table td {

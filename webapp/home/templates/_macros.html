@@ -197,6 +197,50 @@
 {% macro contents_menu_item(url, style, hidden_name, display_name, is_non_saving) %}
                             {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
 {% endmacro %}
+{% macro contents_menu_item_with_status(url, style, hidden_name, display_name, is_non_saving, badge) %}
+    {{ contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) }}
+{#    {{ contents_menu_item_with_status_right(url, style, hidden_name, display_name, is_non_saving, badge) }}#}
+{#    {{ contents_menu_item_with_status_none(url, style, hidden_name, display_name, is_non_saving, badge) }}#}
+{% endmacro %}
+{% macro contents_menu_item_with_status_right(url, style, hidden_name, display_name, is_non_saving, badge) %}
+                            {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
+                            {% set badge_status = badge + '_status' %}
+                            &nbsp;<div class="nav_link {{ session[badge_status] }}_circle"></div><br>
+{% endmacro %}
+{% macro contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) %}
+                            {% set badge_status = badge + '_status' %}
+                            {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
+                                {% set url_string = '/eml/check_metadata#' + badge %}
+                                <a class="no-underline" title="Click for details" href="{{ url_string }}">
+                            {% endif %}
+                            <div class="{{ session[badge_status] }}_circle" style="margin-right: 3px;"></div>
+                            {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
+                                </a>
+                            {% endif %}
+                            {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}<br>
+{% endmacro %}
+{% macro contents_menu_item_with_status_none(url, style, hidden_name, display_name, is_non_saving, badge) %}
+                            {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}<br>
+{% endmacro %}
+{% macro select_list_item_with_status_badge(id, url_prefix, item) %}
+                        <td width="80%">
+                            {% set node_status = id + '_status' %}
+                            {% set color = session[node_status] %}
+                            {% if not color %}
+                                {% set color = 'green' %}
+                            {% endif %}
+
+                            {% if color == 'yellow' or color == 'red' %}
+                                {% set url_string = url_prefix + item %}
+                            <a class="no-underline" title="Click for details" href="{{ url_string }}">
+                            {% endif %}
+                        &nbsp;<div class="nav_link {{ color }}_circle"></div>&nbsp;
+                            {% if color == 'yellow' or color == 'red' %}
+                            </a>
+                            {% endif %}
+                        {{ item }}
+                        </td>
+{% endmacro %}
 {% macro toolbar_menu_item(url, hidden_name, display_name, is_non_saving) %}
                         <li>
                             {{ button_link(url, '', '', hidden_name, display_name, is_non_saving) }}

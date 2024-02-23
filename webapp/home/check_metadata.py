@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from flask import (
     Blueprint, Flask, url_for, session, current_app
 )
+from flask_login import current_user
 
 import webapp.home.utils.load_and_save
 from webapp.home.home_utils import log_error, log_info
@@ -36,7 +37,7 @@ from metapype.model.node import Node
 from webapp.pages import *
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
-
+import webapp.home.views as views
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -46,6 +47,7 @@ class EvalSeverity(Enum):
     ERROR = 1
     WARNING = 2
     INFO = 3
+    OK = 4
 
 
 class EvalType(Enum):
@@ -1056,7 +1058,7 @@ def format_output(evaluation, eml_node):
         data_table_names = get_data_table_names(eml_node)
         if not data_table_names:
             return ''
-        output = f'<h3>Data Tables</h3>'
+        output = f'<h3 id="data_tables">Data Tables</h3>'
         for data_table_name in data_table_names:
             for entry in entries:
                 if entry.data_table_name != data_table_name:
@@ -1066,7 +1068,7 @@ def format_output(evaluation, eml_node):
                         output += '</table><p>&nbsp;</p>'
                     else:
                         output += '<br>'
-                    output += f'<table class="eval_table" width=100% style="padding: 10px;"><tr><b>Data Table: </b>{entry.data_table_name}</tr><tr><th class="eval_table" align="left" width=20%>Item</th>' \
+                    output += f'<table class="eval_table" width=100% style="padding: 10px;"><tr><b id="data_table:{data_table_name}">Data Table: </b>{entry.data_table_name}</tr><tr><th class="eval_table" align="left" width=20%>Item</th>' \
                               f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
                     previous_data_table_name = entry.data_table_name
                 output += format_entry(entry)
@@ -1076,10 +1078,27 @@ def format_output(evaluation, eml_node):
         """ Collect the entries in the evaluation that are in the given section. """
         return [entry for entry in evaluation if entry.section == section]
 
-    sections = ['Title', 'Data Tables', 'Creators', 'Contacts', 'Associated Parties', 'Metadata Providers', 'Abstract',
-                'Keywords', 'Intellectual Rights', 'Coverage', 'Geographic Coverage', 'Temporal Coverage',
-                'Taxonomic Coverage', 'Maintenance', 'Publisher', 'Methods', 'Data Sources', 'Project', 'Other Entities',
-                'Data Package ID']
+    sections = {
+        'Title': 'title',
+        'Data Tables': 'data_tables',
+        'Creators': 'creators',
+        'Contacts': 'contacts',
+        'Associated Parties': 'associated_parties',
+        'Metadata Providers': 'metadata_providers',
+        'Abstract': 'abstract',
+        'Keywords': 'keywords',
+        'Intellectual Rights': 'intellectual_rights',
+        'Coverage': 'coverage',
+        'Geographic Coverage': 'geographic_coverage',
+        'Temporal Coverage': 'temporal_coverage',
+        'Taxonomic Coverage': 'taxonomic_coverage',
+        'Maintenance': 'maintenance',
+        'Publisher': 'publisher',
+        'Methods': 'methods',
+        'Data Sources': 'data_sources',
+        'Project': 'project',
+        'Other Entities': 'other_entities',
+        'Data Package ID': 'data_package_id'}
 
     severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
@@ -1087,6 +1106,8 @@ def format_output(evaluation, eml_node):
     output = '<span style="font-family: Helvetica,Arial,sans-serif;">'
     """ Format the sections, with headings, in order. """
     for section in sections:
+        anchor = sections[section]
+
         entries = collect_entries(evaluation, section)
         if not entries:
             continue
@@ -1098,7 +1119,7 @@ def format_output(evaluation, eml_node):
                 #  aggregate errors/warnings by data table
                 output += format_data_table_output(entries, output, eml_node)
                 continue
-        output += f'<h3>{section}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
+        output += f'<h3 id="{anchor}">{section}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
                   f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
         for severity in severities:
             for entry in entries:
@@ -1120,7 +1141,9 @@ def check_evaluation_memo(json_filename, eml_node):
     eval_filename = json_filename.replace('.json', '_eval.pkl')
     try:
         # start = datetime.now()
+        # Get the memoized results
         old_md5, validation_errs, evaluation_warnings, evaluation = pickle.load(open(eval_filename, 'rb'))
+        # Compute the current MD5 hash to see if it has changed
         with open(json_filename, 'rt') as json_file:
             json = json_file.read()
         new_md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
@@ -1129,7 +1152,7 @@ def check_evaluation_memo(json_filename, eml_node):
         # print('**** check_evaluation_memo', elapsed)
         if new_md5 == old_md5:
             # print(f'**** new_md5={new_md5}')
-            return new_md5, validation_errs, evaluation_warnings, evaluation
+            return old_md5, validation_errs, evaluation_warnings, evaluation
         else:
             # print(f'**** new_md5={new_md5}, old_md5={old_md5}')
             return new_md5, None, None, None
@@ -1181,6 +1204,7 @@ def perform_evaluation(eml_node, doc_name):
 
     if not need_to_memoize:
         display_elapsed(start, '**** perform_evaluation')
+        set_session_info(evaluation, eml_node)
         return evaluation
 
     display_elapsed(start, '**** starting checks')
@@ -1206,6 +1230,8 @@ def perform_evaluation(eml_node, doc_name):
         memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings, evaluation)
 
     display_elapsed(start, '**** perform_evaluation')
+
+    set_session_info(evaluation, eml_node)
 
     return evaluation
 
@@ -1263,7 +1289,206 @@ def evaluate_via_metapype(node):
         print(f'evaluate_via_metapype: node={node.name} exception={e}')
     return eval
 
+########### Support for badges ###########
 
+import re
+uuid_regex = r"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$"
+
+def is_valid_uuid(string):
+    """
+    Checks if a string is a valid UUID based on RFC 4122.
+
+    Args:
+      string: The string to validate.
+
+    Returns:
+      True if the string is a valid UUID, False otherwise.
+    """
+    return re.match(uuid_regex, string) is not None
+
+
+def section_to_name(section):
+    if section == 'title':
+        return names.TITLE
+    if section == 'data_tables':
+        return names.DATATABLE
+    if section == 'creators':
+        return names.CREATOR
+    if section == 'contacts':
+        return names.CONTACT
+    if section == 'associated_parties':
+        return names.ASSOCIATEDPARTY
+    if section == 'metadata_providers':
+        return names.METADATAPROVIDER
+    if section == 'abstract':
+        return names.ABSTRACT
+    if section == 'keywords':
+        return names.KEYWORD
+    if section == 'intellectual_rights':
+        return names.INTELLECTUALRIGHTS
+    if section == 'geographic_coverage':
+        return names.GEOGRAPHICCOVERAGE
+    if section == 'temporal_coverage':
+        return names.TEMPORALCOVERAGE
+    if section == 'taxonomic_coverage':
+        return names.TAXONOMICCOVERAGE
+    if section == 'maintenance':
+        return names.MAINTENANCE
+    if section == 'publisher':
+        return names.PUBLISHER
+    if section == 'publication_info':
+        return names.PUBPLACE
+    if section == 'methods':
+        return names.METHODS
+    if section == 'project':
+        return names.PROJECT
+    if section == 'other_entities':
+        return names.OTHERENTITY
+    # if section == 'data_package_id':
+    #     return names.DATAPACKAGEID
+    return None
+
+
+def empty_subtree(eml_node, subtree_name):
+    if eml_node is None:
+        return True
+    subtree = eml_node.find_descendant(subtree_name)
+    if subtree is None:
+        return True
+    if (subtree.content is None or len(subtree.content) == 0) and len(subtree.attributes) == 0 and len(subtree.children) == 0:
+        return True
+    return False
+
+
+def set_session_info(evaluation, eml_node):
+    def init_section_links_found(section_links_found):
+        section_links_found['title'] = EvalSeverity.OK
+        section_links_found['data_tables'] = EvalSeverity.OK
+        section_links_found['creators'] = EvalSeverity.OK
+        section_links_found['contacts'] = EvalSeverity.OK
+        section_links_found['associated_parties'] = EvalSeverity.OK
+        section_links_found['metadata_providers'] = EvalSeverity.OK
+        section_links_found['abstract'] = EvalSeverity.OK
+        section_links_found['keywords'] = EvalSeverity.OK
+        section_links_found['intellectual_rights'] = EvalSeverity.OK
+        section_links_found['geographic_coverage'] = EvalSeverity.OK
+        section_links_found['temporal_coverage'] = EvalSeverity.OK
+        section_links_found['taxonomic_coverage'] = EvalSeverity.OK
+        section_links_found['maintenance'] = EvalSeverity.OK
+        section_links_found['publisher'] = EvalSeverity.OK
+        section_links_found['publication_info'] = EvalSeverity.OK
+        section_links_found['methods'] = EvalSeverity.OK
+        section_links_found['project'] = EvalSeverity.OK
+        section_links_found['other_entities'] = EvalSeverity.OK
+        section_links_found['data_package_id'] = EvalSeverity.OK
+
+        for key, value in section_links_found.items():
+            if key == 'data_package_id':
+                ijk = 123
+            name = section_to_name(key)
+            if name and not empty_subtree(eml_node, name):
+                session[key + '_status'] = 'green'
+            else:
+                session[key + '_status'] = 'white'
+
+    def severity_to_status(severity):
+        if severity == EvalSeverity.OK:
+            return 'green'
+        if severity == EvalSeverity.WARNING:
+            return 'yellow'
+        if severity == EvalSeverity.ERROR:
+            return 'red'
+        return 'green'
+
+    def find_node_ids(link):
+        """
+        Finds the node ids in a link.
+
+        Args:
+          link: The link to search for node ids.
+
+        Returns:
+          A list of node ids found in the link.
+        """
+        substrs = link.split('/')
+        node_ids = []
+        for substr in substrs:
+            if is_valid_uuid(substr):
+                node_ids.append(substr)
+        return node_ids
+
+    def decode_link(link):
+        if '/eml/title/' in link:
+            return 'title'
+        if '/eml/data_table_select/' in link or \
+            '/eml/data_table/' in link or \
+            '/eml/attribute_categorical/' in link or \
+            '/eml/attribute_dateTime/' in link or \
+            '/eml/attribute_numerical/' in link or \
+            '/eml/attribute_text/' in link or \
+            '/eml/code_definition' in link:
+            return 'data_tables'
+        if '/eml/creator_select/' in link or '/eml/creator/' in link:
+            return 'creators'
+        if '/eml/contact_select/' in link or '/eml/contact/' in link:
+            return 'contacts'
+        if '/eml/associated_party/' in link:
+            return 'associated_parties'
+        if '/eml/metadata_provider/' in link:
+            return 'metadata_providers'
+        if '/eml/abstract/' in link:
+            return 'abstract'
+        if '/eml/keyword_select/' in link:
+            return 'keywords'
+        if '/eml/intellectual_rights/' in link:
+            return 'intellectual_rights'
+        if '/eml/geographic_coverage_select/' in link or '/eml/geographic_coverage/' in link:
+            return 'geographic_coverage'
+        if '/eml/temporal_coverage_select/' in link or '/eml/temporal_coverage/' in link:
+            return 'temporal_coverage'
+        if '/eml/publisher/' in link:
+            return 'publisher'
+        if '/eml/publication_info/' in link:
+            return 'publication_info'
+        if '/eml/method_step_select/' in link or '/eml/method_step/' in link:
+            return 'methods'
+        if '/eml/project_select/' in link or '/eml/project/' in link or '/eml/project_personnel/' in link:
+            return 'project'
+        return None
+
+
+    if not (current_user and (current_user.is_admin())):
+        return
+
+    # views.init_status_badges("green")
+    section_links_found = {}
+    node_links_found = {}
+    init_section_links_found(section_links_found)
+
+    for entry in evaluation:
+        severity = entry.severity
+        if entry.link:
+            which = decode_link(entry.link)
+            if which is not None:
+                current_severity = section_links_found.get(which, EvalSeverity.OK)
+                if severity.value < current_severity.value:
+                    section_links_found[which] = severity
+            node_ids = find_node_ids(entry.link)
+            for node_id in node_ids:
+                current_severity = node_links_found.get(node_id, EvalSeverity.OK)
+                if severity.value < current_severity.value:
+                    node_links_found[node_id] = severity
+
+    for key, value in section_links_found.items():
+        color = severity_to_status(value)
+        if color == 'green':
+            name = section_to_name(key)
+            if name and empty_subtree(eml_node, name):
+                color = 'white'
+        session[key + '_status'] = color
+
+    for key, value in node_links_found.items():
+        session[key + '_status'] = severity_to_status(value)
 
 
 

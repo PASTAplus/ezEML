@@ -488,6 +488,7 @@ def data_table_errors(data_table_name:str=None):
 
 
 def init_status_badges(color="white"):
+    from webapp.home.check_metadata import is_valid_uuid
     def init_status_badge(badge_name, color="white"):
         badge_name = badge_name + "_status"
         session[badge_name] = color
@@ -496,6 +497,16 @@ def init_status_badges(color="white"):
                     "taxonomic_coverage", "maintenance", "publisher", "publication_info", "methods", "projects",
                     "other_entities", "data_package_id"]
     [init_status_badge(status_name, color) for status_name in status_names]
+
+    # Get rid of status badges for specific nodes (data tables, etc.). They will be re-initialized in the
+    # check_metadata_status function, and we want ones that are not re-initialized to be green.
+    items_to_delete = []
+    for item in session:
+        substrs = item.split("_")
+        if len(substrs)== 2 and is_valid_uuid(substrs[0]) and substrs[-1] == "status":
+            items_to_delete.append(item)
+    for item in items_to_delete:
+        del session[item]
 
 
 @home_bp.before_app_request
@@ -1099,10 +1110,11 @@ def explore_data_tables():
     return render_template('explore_data_tables.html', help=help, content=content, scripts=scripts)
 
 
+@home_bp.route('/check_metadata', methods=['GET', 'POST'])
 @home_bp.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
-def check_metadata(filename:str):
+def check_metadata(filename:str = None):
     """Handle the Check Metadata item in the main Contents menu."""
     if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
         log_the_details = Config.LOG_FILE_HANDLING_DETAILS
@@ -1113,7 +1125,7 @@ def check_metadata(filename:str):
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)
 
-    content = check_eml(eml_node, filename)
+    content = check_eml(eml_node, current_document)
 
     log_usage(actions['CHECK_METADATA'])
 

@@ -55,7 +55,6 @@ import webapp.home.utils.load_and_save
 from webapp.utils import path_exists, path_isdir, path_join
 
 import webapp.auth.user_data as user_data
-from webapp.config import Config
 from webapp.home.fetch_data import convert_file_size
 from webapp.config import Config
 
@@ -943,6 +942,28 @@ def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
         return "green"
     return "yellow"
 
+#
+# def flush_dex_cache_entry(eml_url, csv_url, dist_url):
+#     requests.delete()
+#     let dexBaseUrl = '__DEX-BASE-URL__';
+#     // dist_url = '__DIST-URL__';
+#     data = {
+#         'eml': '__EML-URL__',
+#          csv: '__CSV-URL__',
+#     dist: '__DIST-URL__',
+#     };
+#
+#     let
+#     options = {
+#         method: 'POST',
+#         headers: {
+#             'Content-Type': 'application/json'
+#         },
+#         body: JSON.stringify(data),
+#     };
+#
+#     pass
+
 
 def reset_data_file_eval_status(document_name, csv_file_name):
     """ Reset the data table to unevaluated state, for example because a Reupload has been done. """
@@ -1096,7 +1117,7 @@ def csv_file_exists(document_name, csv_file_name):
 def create_explore_data_tables_page_content(current_document, eml_node):
     def create_output_for_data_table(eml_node, eml_file_url, csv_file_url, data_table_node):
         id = f'open-dex-{data_table_node.id}'
-        dex_base_url = 'https://dex-d.edirepository.org'
+        dex_base_url = Config.DEX_BASE_URL
         link = f'<a class="button link" id="{id}">Explore with DeX</a>\n'
         dist_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
         dist_url = dist_url_node.content if dist_url_node else ''

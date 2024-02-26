@@ -537,7 +537,7 @@ Using DeX, you can get an overview of your data and perform various "sanity chec
 
 Click a table's <b>Explore with DeX</b> link to open the table in DeX in a new browser tab.
 
-The first time you use DeX for a given table, it can take up to several minutes to generate the profile. Results are cached, however, so if open the same table again, it will load immediately, provided the table and its metadata have not changed.
+The first time you use DeX for a given table, it can take up to several minutes to generate the profile. Results are cached, however, so if you open the same table again, it will load quickly, provided the table and its metadata have not changed. If the table or its metadata have changed, DeX will regenerate the profile.
 
 Watch an in-depth discussion and demo of DeX here:&nbsp;&nbsp;<a href="https://www.youtube.com/watch?v=4ZZaLQ72GPc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------

@@ -162,7 +162,7 @@ def profile_and_save(func, *args, **kwargs):
         # Save the results to a file
         with open('memory_profile.txt', 'a') as file:
             sys.stdout = file
-            file.write(f"*********** Summary of memory usage: {func_name} ***********\n")
+            file.write(f"*********** Summary of memory usage: ***********\n")
             summary.print_(diff)
             file.write("*********** End of summary ***********\n")
 

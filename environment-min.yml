@@ -4,6 +4,8 @@ channels:
   - defaults
 dependencies:
   - python=3.11
+  - cryptography>=42.0.5
+  - werkzeug<=2.3.8
   - daiquiri
   - pandas
   - lxml
@@ -20,7 +22,9 @@ dependencies:
   - email_validator
   - requests-file
   - pytest
+  - psutil
+  - pympler
   - pip
   - pip:
-      - metapype==0.0.25
+      - metapype
 prefix: /home/servilla/anaconda3/envs/ezeml

@@ -20,6 +20,7 @@ from webapp.home.home_utils import log_info
 from webapp.home.metapype_client import VariableType
 from webapp.home.texttype_node_processing import excerpt_text
 from webapp.home.utils.import_nodes import compose_rp_label
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 NO_OP = ''
 UP_ARROW = html.unescape('&#x2B06;')
@@ -118,12 +119,15 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
     """
     dt_list = []
     if eml_node:
+        current_document = current_user.get_filename()
+        init_evaluation(eml_node, current_document)
+
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             DT_Entry = collections.namedtuple(
                 'DT_Entry',
-                ["id", "label", "object_name", "was_uploaded", "upval", "downval"],
+                ["id", "label", "object_name", "was_uploaded", "upval", "downval", "tooltip"],
                  rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
@@ -133,12 +137,14 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
                 # was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
+                tooltip = format_tooltip(dt_node)
                 dt_entry = DT_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
                                     was_uploaded=True,
                                     upval=upval,
-                                    downval=downval)
+                                    downval=downval,
+                                    tooltip=tooltip)
                 dt_list.append(dt_entry)
     return dt_list
 
@@ -164,12 +170,15 @@ def list_other_entities(eml_node:Node=None):
 
     oe_list = []
     if eml_node:
+        current_document = current_user.get_filename()
+        init_evaluation(eml_node, current_document)
+
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             oe_nodes = dataset_node.find_all_children(names.OTHERENTITY)
             OE_Entry = collections.namedtuple(
                 'OE_Entry',
-                ["id", "label", "object_name", "was_uploaded", "upval", "downval"],
+                ["id", "label", "object_name", "was_uploaded", "upval", "downval", "tooltip"],
                 rename=False)
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
@@ -177,12 +186,14 @@ def list_other_entities(eml_node:Node=None):
                 # was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
+                tooltip = format_tooltip(oe_node)
                 oe_entry = OE_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
                                     was_uploaded=True,
                                     upval=upval,
-                                    downval=downval)
+                                    downval=downval,
+                                    tooltip=tooltip)
                 oe_list.append(oe_entry)
     return oe_list
 
@@ -323,6 +334,9 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None, project_nod
     """
     rp_list = []
     if eml_node:
+        current_document = current_user.get_filename()
+        init_evaluation(eml_node, current_document)
+
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             # Usually the parent node is the dataset node, but if the node name is "personnel", then the parent node
@@ -342,38 +356,43 @@ def list_responsible_parties(eml_node:Node=None, node_name:str=None, project_nod
 
             rp_nodes = parent_node.find_all_children(node_name)
             RP_Entry = collections.namedtuple(
-                'RP_Entry', ["id", "label", "upval", "downval"],
+                'RP_Entry', ["id", "label", "upval", "downval", "tooltip"],
                  rename=False)
             for i, rp_node in enumerate(rp_nodes):
                 label = compose_rp_label(rp_node)
                 id = f"{rp_node.id}|{project_node_id}"
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(rp_nodes))
-                rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval)
+                tooltip = format_tooltip(rp_node)
+                rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval, tooltip=tooltip)
                 rp_list.append(rp_entry)
     return rp_list
 
 
-def list_geographic_coverages(parent_node:Node=None):
+def list_geographic_coverages(eml_node:Node, parent_node:Node=None):
     """
     Returns a list of all geographic coverages in the specified EML document, as namedtuples of type GC_Entry.
     """
     gc_list = []
     max_len = 40
     if parent_node:
+        current_document = current_user.get_filename()
+        init_evaluation(eml_node, current_document)
+
         coverage_node = parent_node.find_child(names.COVERAGE)
         if coverage_node:
             gc_nodes = \
                 coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
             GC_Entry = collections.namedtuple(
                 'GC_Entry',
-                ["id", "geographic_description", "label", "upval", "downval"],
+                ["id", "geographic_description", "label", "upval", "downval", "tooltip"],
                 rename=False)
             for i, gc_node in enumerate(gc_nodes):
                 description = ''
                 id = gc_node.id
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(gc_nodes))
+                tooltip = format_tooltip(gc_node)
                 geographic_description_node = \
                     gc_node.find_child(names.GEOGRAPHICDESCRIPTION)
                 if geographic_description_node:
@@ -387,7 +406,7 @@ def list_geographic_coverages(parent_node:Node=None):
                 gc_entry = GC_Entry(id=id,
                             geographic_description=description,
                             label=label,
-                            upval=upval, downval=downval)
+                            upval=upval, downval=downval, tooltip=tooltip)
                 gc_list.append(gc_entry)
     return gc_list
 
@@ -455,24 +474,28 @@ def compose_full_gc_label(gc_node:Node=None):
     return ': '.join([description, bounding_coordinates_label])
 
 
-def list_temporal_coverages(parent_node:Node=None):
+def list_temporal_coverages(eml_node:Node, parent_node:Node=None):
     """
     Returns a list of all temporal coverages under the specified parent node, as namedtuples of type TC_Entry.
     """
     tc_list = []
     if parent_node:
+        current_document = current_user.get_filename()
+        init_evaluation(eml_node, current_document)
+
         # Find the coverage node, if any, as child of the given parent node.
         coverage_node = parent_node.find_child(names.COVERAGE)
         if coverage_node:
             # Find all temporal coverage nodes under the coverage node.
             tc_nodes = coverage_node.find_all_children(names.TEMPORALCOVERAGE)
             TC_Entry = collections.namedtuple(
-                'TC_Entry', ["id", "begin_date", "end_date", "upval", "downval"],
+                'TC_Entry', ["id", "begin_date", "end_date", "upval", "downval", "tooltip"],
                     rename=False)
             for i, tc_node in enumerate(tc_nodes):
                 id = tc_node.id
                 upval = get_upval(i)
                 downval = get_downval(i + 1, len(tc_nodes))
+                tooltip = format_tooltip(tc_node)
 
                 # The temporal coverage node may contain either a single date/time or a range of dates/times. Handle
                 # each case separately.
@@ -484,7 +507,7 @@ def list_temporal_coverages(parent_node:Node=None):
                         if calendar_date_node:
                             begin_date = calendar_date_node.content
                             end_date = ''
-                            tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
+                            tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval, tooltip=tooltip)
                             tc_list.append(tc_entry)
 
                 range_of_dates_nodes = tc_node.find_all_children(names.RANGEOFDATES)
@@ -502,32 +525,36 @@ def list_temporal_coverages(parent_node:Node=None):
                             calendar_date_node = end_date_node.find_child(names.CALENDARDATE)
                             if calendar_date_node:
                                 end_date = calendar_date_node.content
-                        tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval)
+                        tc_entry = TC_Entry(id=id, begin_date=begin_date, end_date=end_date, upval=upval, downval=downval, tooltip=tooltip)
                         tc_list.append(tc_entry)
     return tc_list
 
 
-def list_taxonomic_coverages(parent_node:Node=None):
+def list_taxonomic_coverages(eml_node:Node, parent_node:Node=None):
     """
     Returns a list of all taxonomic coverages under the specified parent node, as namedtuples of type TXC_Entry.
     """
     txc_list = []
     if parent_node:
+        current_document = current_user.get_filename()
+        init_evaluation(eml_node, current_document)
+
         # Find the coverage node, if any, as child of the given parent node.
         coverage_node = parent_node.find_child(names.COVERAGE)
         if coverage_node:
             # Find all taxonomic coverage nodes under the coverage node.
             txc_nodes = coverage_node.find_all_children(names.TAXONOMICCOVERAGE)
             TXC_Entry = collections.namedtuple(
-                'TXC_Entry', ["id", "label", "upval", "downval"],
+                'TXC_Entry', ["id", "label", "upval", "downval", "tooltip"],
                 rename=False)
             for i, txc_node in enumerate(txc_nodes):
                 id = txc_node.id
                 upval = get_upval(i)
                 downval = get_downval(i + 1, len(txc_nodes))
+                tooltip = format_tooltip(txc_node)
                 label = truncate_middle(compose_taxonomic_label(txc_node, label=''), 70, ' ... ')
                 txc_entry = TXC_Entry(
-                    id=id, label=label, upval=upval, downval=downval)
+                    id=id, label=label, upval=upval, downval=downval, tooltip=tooltip)
                 txc_list.append(txc_entry)
 
     return txc_list
@@ -702,7 +729,7 @@ def list_funding_awards(eml_node:Node=None, node_id=None):
     return award_list
 
 
-def list_method_steps(parent_node:Node=None):
+def list_method_steps(eml_node:Node, parent_node:Node=None):
     """
     Returns a list of namedtuples of type MS_Entry for the method steps for a dataset or data entity.
     Currently, we expose only the method steps for a dataset, not for a data entity, but the code is written
@@ -740,6 +767,9 @@ def list_method_steps(parent_node:Node=None):
 
         return instrumentation
 
+    current_document = current_user.get_filename()
+    init_evaluation(eml_node, current_document)
+
     ms_list = []
     if parent_node:
         methods_node = parent_node.find_child(names.METHODS)
@@ -747,7 +777,7 @@ def list_method_steps(parent_node:Node=None):
             method_step_nodes = methods_node.find_all_children(names.METHODSTEP)
             MS_Entry = collections.namedtuple(
                 'MS_Entry',
-                ["id", "description", "instrumentation", "upval", "downval"],
+                ["id", "description", "instrumentation", "upval", "downval", "tooltip"],
                 rename=False)
             for i, method_step_node in enumerate(method_step_nodes):
                 id = method_step_node.id
@@ -755,11 +785,13 @@ def list_method_steps(parent_node:Node=None):
                 method_step_instrumentation = compose_method_step_instrumentation(method_step_node)
                 upval = get_upval(i)
                 downval = get_downval(i + 1, len(method_step_nodes))
+                tooltip = format_tooltip(method_step_node)
                 ms_entry = MS_Entry(id=id,
                                     description=method_step_description,
                                     instrumentation=method_step_instrumentation,
                                     upval=upval,
-                                    downval=downval)
+                                    downval=downval,
+                                    tooltip=tooltip)
                 ms_list.append(ms_entry)
     return ms_list
 

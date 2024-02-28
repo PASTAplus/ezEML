@@ -27,7 +27,11 @@
                     </tr>
                     {% for txc_entry in txc_list %}
                     <tr>
-                        <td>{{ txc_entry.label }}</td>
+                        <td>
+                        {% set node_id = txc_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], txc_entry.tooltip) }}
+                        {{ txc_entry.label }}</td>
                         {{ macros.up_down_arrow(txc_entry.id, txc_entry.upval) }}
                         {{ macros.up_down_arrow(txc_entry.id, txc_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ txc_entry.id }}" type="submit" value="Edit"/>&nbsp;
@@ -119,5 +123,7 @@
         {% endif %}
     });    
     </script>
-    
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

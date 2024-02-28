@@ -26,7 +26,11 @@
                     </tr>
                     {% for tc_entry in tc_list %}
                     <tr>
-                        <td>{{ tc_entry.begin_date }}</td>
+                        <td>
+                        {% set node_id = tc_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], tc_entry.tooltip) }}
+                        {{ tc_entry.begin_date }}</td>
                         <td>{{ tc_entry.end_date }}</td>
                         {{ macros.up_down_arrow(tc_entry.id, tc_entry.upval) }}
                         {{ macros.up_down_arrow(tc_entry.id, tc_entry.downval) }}
@@ -70,4 +74,7 @@
         {{ macros.help_script(help_temporal_coverage_dialog, help_temporal_coverage_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

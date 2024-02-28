@@ -22,7 +22,11 @@
                     </tr>
                     {% for ms_entry in method_step_list %}
                     <tr>
-                        <td>{{ ms_entry.description }}</td>
+                        <td>
+                        {% set node_id = ms_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], ms_entry.tooltip) }}
+                        {{ ms_entry.description }}</td>
 {#                        <td>{{ ms_entry.instrumentation }}</td>#}
                         {{ macros.up_down_arrow(ms_entry.id, ms_entry.upval) }}
                         {{ macros.up_down_arrow(ms_entry.id, ms_entry.downval) }}
@@ -64,4 +68,7 @@
         {{ macros.help_script(help_methods_dialog, help_methods_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

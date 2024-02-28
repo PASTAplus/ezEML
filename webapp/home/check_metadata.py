@@ -66,12 +66,15 @@ class EvalEntry:
     explanation: str
     data_table_name: str = None
     link: str = None
+    node: Node = None
+
+severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
 
-def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None):
+def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None, node=None):
     """ Add an EvalEntry for an error or warning to the evaluation list that is being built up. """
 
-    def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None):
+    def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None, node=None):
         """ Return the EvalEntry object for the given id. """
         try:
             vals = current_app.config.get(f'__eval__{id}')
@@ -80,11 +83,11 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
             if item:
                 vals[1] = item
             return EvalEntry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
-                             explanation=vals[4], data_table_name=data_table_name, link=link)
+                             explanation=vals[4], data_table_name=data_table_name, link=link, node=vals[6] if 6 < len(vals) else None)
         except Exception as exc:
             return None
 
-    entry = get_eval_entry(id, link, section, item, data_table_name)
+    entry = get_eval_entry(id, link, section, item, data_table_name, node)
     if entry:
         evaluation.append(entry)
 
@@ -1027,18 +1030,48 @@ def to_string(evaluation):
         return "OK!"
 
 
+def format_entry(entry: EvalEntry):
+    """ Format a single evaluation entry as HTML. """
+    output = '<tr>'
+    output += f'<td class="eval_table" valign="top"><a href="{entry.link}">{entry.item}</a></td>'
+    output += f'<td class="eval_table" valign="top">{entry.severity.name.title()}</td>'
+    output += f'<td class="eval_table" valign="top">{entry.type.name.title()}</td>'
+    output += f'<td class="eval_table" valign="top">{entry.explanation}</td>'
+    output += '</tr>'
+    return output
+
+
+evaluations = []
+def init_evaluation(eml_node, doc_name):
+    """ Initialize the evaluation process. """
+    global evaluations
+    evaluations = perform_evaluation(eml_node, doc_name)
+
+
+def format_tooltip(node):
+    """ Format the evaluation output pertaining to a node as a tooltip. """
+    tooltip = f'<table width=100% style="padding: 30px;"><tr><td colspan=3><i>Click any item to edit:</i></td></tr>'
+    all_ok = True
+    for severity in severities:
+        for entry in evaluations:
+            if entry.severity == severity:
+                if node.id in entry.link:
+                    tooltip += f'<tr><td class="'
+                    if severity == EvalSeverity.ERROR:
+                        tooltip += 'red'
+                    else:
+                        tooltip += 'yellow'
+                    tooltip += f'_circle"></td><td>&nbsp;&nbsp;</td><td><a class="popup link" href="{entry.link}">{entry.explanation.replace(" ", " ")}</a></td></tr>\n'
+                all_ok = False
+    if all_ok:
+        tooltip = ''
+    else:
+        tooltip += '</table>'
+    return tooltip
+
+
 def format_output(evaluation, eml_node):
     """ Format the evaluation output for display. """
-
-    def format_entry(entry: EvalEntry):
-        """ Format a single evaluation entry as HTML. """
-        output = '<tr>'
-        output += f'<td class="eval_table" valign="top"><a href="{entry.link}">{entry.item}</a></td>'
-        output += f'<td class="eval_table" valign="top">{entry.severity.name.title()}</td>'
-        output += f'<td class="eval_table" valign="top">{entry.type.name.title()}</td>'
-        output += f'<td class="eval_table" valign="top">{entry.explanation}</td>'
-        output += '</tr>'
-        return output
 
     def get_data_table_names(eml_node):
         """ Get the names of all data tables in the EML document. """
@@ -1100,8 +1133,6 @@ def format_output(evaluation, eml_node):
         'Other Entities': 'other_entities',
         'Data Package ID': 'data_package_id'}
 
-    severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
-
     all_ok = True
     output = '<span style="font-family: Helvetica,Arial,sans-serif;">'
     """ Format the sections, with headings, in order. """
@@ -1127,7 +1158,7 @@ def format_output(evaluation, eml_node):
                     output += format_entry(entry)
         output += '</table><br>'
     if all_ok:
-        output += '<h4>Everything looks good!</h4>'
+        output += '<h4>No errors or warnings found!</h4>'
     output += '</span>'
     return output
 
@@ -1383,8 +1414,6 @@ def set_session_info(evaluation, eml_node):
         section_links_found['data_package_id'] = EvalSeverity.OK
 
         for key, value in section_links_found.items():
-            if key == 'data_package_id':
-                ijk = 123
             name = section_to_name(key)
             if name and not empty_subtree(eml_node, name):
                 session[key + '_status'] = 'green'
@@ -1454,11 +1483,12 @@ def set_session_info(evaluation, eml_node):
             return 'methods'
         if '/eml/project_select/' in link or '/eml/project/' in link or '/eml/project_personnel/' in link:
             return 'project'
+        if '/eml/other_entity_select/' in link or '/eml/other_entity/' in link:
+            return 'other_entities'
         return None
 
-
-    if not (current_user and (current_user.is_admin())):
-        return
+    # if not (current_user and (current_user.is_admin())):
+    #     return
 
     # views.init_status_badges("green")
     section_links_found = {}

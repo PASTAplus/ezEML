@@ -106,7 +106,7 @@ def geographic_coverage_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            gc_list = list_geographic_coverages(dataset_node)
+            gc_list = list_geographic_coverages(eml_node, dataset_node)
 
     set_current_page('geographic_coverage')
     help = get_helps(['geographic_coverages', 'geographic_coverages_csv_file'])
@@ -434,7 +434,7 @@ def temporal_coverage_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            tc_list = list_temporal_coverages(dataset_node)
+            tc_list = list_temporal_coverages(eml_node, dataset_node)
 
     set_current_page('temporal_coverage')
     help = [get_help('temporal_coverages')]
@@ -591,7 +591,7 @@ def taxonomic_coverage_select(filename=None):
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             if not taxonomy_inconsistent_with_ezeml(eml_node, filename):
-                txc_list = list_taxonomic_coverages(dataset_node)
+                txc_list = list_taxonomic_coverages(eml_node, dataset_node)
 
     set_current_page('taxonomic_coverage')
     help = [get_help('taxonomic_coverages'), get_help('taxonomy_imported_from_xml')]

@@ -556,7 +556,7 @@ def entity_method_step_select(filename=None, dt_element_name: str = None, dt_nod
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            method_step_list = list_method_steps(data_table_node)
+            method_step_list = list_method_steps(eml_node, data_table_node)
 
     init_form_md5(form)
 
@@ -715,13 +715,13 @@ def entity_geographic_coverage_select(filename=None, dt_element_name: str = None
     gc_list = []
     title = "Geographic Coverage"
     entity_name = ''
-    load_eml(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            gc_list = list_geographic_coverages(data_table_node)
+            gc_list = list_geographic_coverages(eml_node, data_table_node)
 
     init_form_md5(form)
 
@@ -952,13 +952,13 @@ def entity_temporal_coverage_select(filename=None, dt_element_name: str = None, 
     tc_list = []
     title = "Temporal Coverage"
     entity_name = ''
-    load_eml(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            tc_list = list_temporal_coverages(data_table_node)
+            tc_list = list_temporal_coverages(eml_node, data_table_node)
 
     init_form_md5(form)
 
@@ -1116,13 +1116,13 @@ def entity_taxonomic_coverage_select(filename=None, dt_element_name: str = None,
     txc_list = []
     title = "Taxonomic Coverage"
     entity_name = ''
-    load_eml(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            txc_list = list_taxonomic_coverages(data_table_node)
+            txc_list = list_taxonomic_coverages(eml_node, data_table_node)
 
     init_form_md5(form)
 

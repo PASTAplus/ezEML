@@ -82,24 +82,24 @@
             </table>
         <p>&nbsp;</p>
         {% endif %}
-{#        <p>&nbsp;</p>#}
+
         {% if not session['collaboration_enabled_for_user'] %}
+            <span class="button-wrapper" data-toggle="tooltip" data-placement="top"
+                   title="This feature is currently available to beta testers only. If you would like to participate in beta testing, please contact us at support@edirepository.org.">
             <input class="btn btn-primary" style="width: 160px;" disabled
-                   title="This feature is currently available to beta testers only. If you would like to participate in beta testing, please contact us at support@edirepository.org."
                    name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
+            </span>
         {% elif invitation_disabled %}
+            <span class="button-wrapper" data-toggle="tooltip" data-placement="top"
+                  title="You can only invite collaborators if you have a document open and it is one that you own.">
             <input class="btn btn-primary" style="width: 160px;" disabled
-                   title="You can only invite collaborators if you have a document open and it is one that you own."
                    name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
+            </span>
         {% else %}
             <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Invite a Collaborator"/>&nbsp;&nbsp;
         {% endif %}&nbsp;&nbsp;
             <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Accept an Invitation"/>&nbsp;&nbsp;
-{#    <table>#}
-{#        <td><h2>Collaborate</h2></td>#}
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_collaborate_invite_accept_btn) }}</td>
-{#    </table>#}
-{#            <input class="btn btn-primary" style="width: 120px;margin-left: 200px;" name="Submit" type="submit" value="Refresh"/>&nbsp;&nbsp;#}
 
         {% if is_edi_curator %}
             <p></p><br>
@@ -108,9 +108,11 @@
             {% if not save_backup_disabled %}
                 <input class="btn btn-primary" style="width: 160px;" name="Submit" type="submit" value="Save a Backup"/>&nbsp;&nbsp;
             {% else %}
+                <span class="button-wrapper" data-toggle="tooltip" data-placement="top"
+                       title="You can only Save a Backup if you have a document open and it is under EDI Curation.">
                 <input class="btn btn-primary" style="width: 160px;" disabled
-                       title="You can only Save a Backup if you have a document open and it is under EDI Curation."
                        name="Submit" type="submit" value="Save a Backup"/>&nbsp;&nbsp;
+                </span>
             {% endif %}&nbsp;&nbsp;
         {% endif %}
 

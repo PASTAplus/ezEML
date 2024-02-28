@@ -29,7 +29,11 @@
                     </tr>
                     {% for gc_entry in gc_list %}
                     <tr>
-                        <td>{{ gc_entry.geographic_description }}</td>
+                        <td>
+                        {% set node_id = gc_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], gc_entry.tooltip) }}
+                        {{ gc_entry.geographic_description }}</td>
                         <td>{{ gc_entry.label }}</td>
                         {{ macros.up_down_arrow(gc_entry.id, gc_entry.upval) }}
                         {{ macros.up_down_arrow(gc_entry.id, gc_entry.downval) }}
@@ -85,4 +89,7 @@
         {{ macros.help_script(help_geographic_coverage_csv_file_dialog, help_geographic_coverage_csv_file_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

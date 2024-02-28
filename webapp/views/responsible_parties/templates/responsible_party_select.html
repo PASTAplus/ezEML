@@ -22,16 +22,19 @@
                     </tr>
                     {% for rp_entry in rp_list %}
                     <tr>
-{#                        {{ macros.select_list_item_with_status_badge(dt_entry.id, '/eml/check_metadata#data_table:', dt_entry.label) }}#}
-
-                        <td style="width:60%">{{ rp_entry.label }}
-                            {% set node_status = rp_entry.id.split("|")[0] + '_status' %}
-                            {% if session[node_status] %}
-                            &nbsp;<div class="nav_link {{ session[node_status] }}_circle"></div>
-                            {% else %}
-                            &nbsp;<div class="nav_link green_circle"></div>
-                            {% endif %}
-{#                        &nbsp;<div class="nav_link {{ session[node_status] }}_circle"></div>#}
+                        <td style="width:60%">
+                            {% set node_id = rp_entry.id.split("|")[0] %}
+                            {% set node_status = node_id + '_status' %}
+                                {{ macros.status_badge_with_popup(session[node_status], rp_entry.tooltip) }}
+{#                            {% if session[node_status] %}#}
+{#                            <span class="popup" data-toggle="popover" data-trigger="click focus focusout" data-placement="bottom"#}
+{#                                 data-container="body" data-content="{{ rp_entry.tooltip }}">&nbsp;#}
+{#                                <span class="nav_link {{ session[node_status] }}_circle" title="Click for details"></span>&nbsp;</span>#}
+{#                            {% else %}#}
+{#                            <span >&nbsp;#}
+{#                                <span class="nav_link green_circle"></span>&nbsp;</span>#}
+{#                            {% endif %}#}
+                            {{ rp_entry.label }}
                         </td>
                         {{ macros.up_down_arrow(rp_entry.id, rp_entry.upval) }}
                         {{ macros.up_down_arrow(rp_entry.id, rp_entry.downval) }}
@@ -55,7 +58,6 @@
             </form>
         </div>
     </div>
-
     {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
 {% endblock %}
 
@@ -72,5 +74,34 @@
     {
         {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
     });
+    </script>
+
+    {{ macros.popup_support() }}
+
+    {#$(document).ready(function() {#}
+    {#    const popups = document.getElementsByClassName('popup');#}
+    {#    for (let i = 0; i < popups.length; i++) {#}
+    {#        const my_popover = new bootstrap.Popover(popups[i], {#}
+    {#            content: "Loading...",#}
+    {#            trigger: 'click focus focusout',#}
+    {#            placement: 'bottom',#}
+    {#            sanitize: false,#}
+    {#            html: true,#}
+    {#            delay: {show: 200, hide: 0},#}
+    {#            container: popups[i],#}
+    {#            title: "",#}
+    {#            dismiss: 'click'#}
+                {#customClass: 'd-inline',#}
+    {#        });#}
+    {#    }#}
+    {##}
+    {#    $(function() {#}
+    {#        $('[data-toggle="popover"]').popover({#}
+    {#            html: true,#}
+    {#            sanitize: false,#}
+    {#            dismiss: 'click'#}
+    {#        })#}
+    {#    })#}
+    {#})#}
     </script>
 {% endblock %}

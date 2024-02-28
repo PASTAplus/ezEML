@@ -130,7 +130,7 @@ def method_step_select(filename=None):
     if eml_node:
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
-            method_step_list = list_method_steps(dataset_node)
+            method_step_list = list_method_steps(eml_node, dataset_node)
 
     set_current_page('method_step')
     help = [get_help('methods')]

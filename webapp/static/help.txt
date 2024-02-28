@@ -308,7 +308,8 @@ Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ"
 <th></th><th>Color Key for Status Badges</th>
     <tr><td width=3%><span class ="nav_link red_circle"></span></td><td width=97%>Metadata errors found. Click the badge for details.</td></tr>
     <tr><td><span class ="nav_link yellow_circle"></span></td><td>Metadata warnings found. Click the badge for details.</td></tr>
-    <tr><td><span class ="nav_link green_circle"></span></td><td>Metadata was entered, but no errors or warnings found.</td></tr>
+    <tr><td><span class ="nav_link green_circle"></span></td><td>Metadata entered; no errors or warnings found.</td></tr>
+    <tr><td><span class ="nav_link white_key_circle"></span></td><td>No metadata entered; metadata not required.</td></tr>
 </table>
 --------------------
 creator

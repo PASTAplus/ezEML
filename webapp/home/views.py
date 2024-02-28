@@ -232,6 +232,14 @@ def url_of_interest():
     return True
 
 
+@home_bp.route('/test_page')
+def test_page():
+    """
+    A basically empty page for testing purposes.
+    """
+    return render_template('test_page.html')
+
+
 @home_bp.before_app_request
 def post_debug_info_to_session():
     """
@@ -494,7 +502,7 @@ def init_status_badges(color="white"):
         session[badge_name] = color
     status_names = ["title", "data_tables", "creators", "contacts", "associated_parties", "metadata_providers",
                     "abstract", "keywords", "intellectual_rights", "geographic_coverage", "temporal_coverage",
-                    "taxonomic_coverage", "maintenance", "publisher", "publication_info", "methods", "projects",
+                    "taxonomic_coverage", "maintenance", "publisher", "publication_info", "methods", "project",
                     "other_entities", "data_package_id"]
     [init_status_badge(status_name, color) for status_name in status_names]
 

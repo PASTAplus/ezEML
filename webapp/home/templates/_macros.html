@@ -67,7 +67,7 @@
                             {% if is_non_saving %}
                             <a class="{{ class }}" style={{ style }}; href="{{ url }}" title="{{ display_name }}">{{ display_name }}</a>
                             {% else %}
-                            <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();">{{ display_name }}</a>
+                            <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();" title="{{ display_name }}">{{ display_name }}</a>
                             {% endif %}
 {% endmacro %}
 {% macro import_selection(form, source_filename, item_name) %}
@@ -211,9 +211,9 @@
                             {% set badge_status = badge + '_status' %}
                             {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
                                 {% set url_string = '/eml/check_metadata#' + badge %}
-                                <a class="no-underline" title="Click for details" href="{{ url_string }}">
+                                <a class="no-underline" href="{{ url_string }}">
                             {% endif %}
-                            <div class="{{ session[badge_status] }}_circle" style="margin-right: 3px;"></div>
+                            <div class="{{ session[badge_status] }}_circle nav_link" title="Click for errors/warnings" style="margin-right: 3px;"></div>
                             {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
                                 </a>
                             {% endif %}
@@ -232,7 +232,7 @@
 
                             {% if color == 'yellow' or color == 'red' %}
                                 {% set url_string = url_prefix + item %}
-                            <a class="no-underline" title="Click for details" href="{{ url_string }}">
+                            <a class="no-underline" title="Click for errors/warnings" href="{{ url_string }}">
                             {% endif %}
                         &nbsp;<div class="nav_link {{ color }}_circle"></div>&nbsp;
                             {% if color == 'yellow' or color == 'red' %}
@@ -397,5 +397,49 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         let x = document.getElementById("stand_by_hint");
         x.style.visibility = "visible";
     }
+    </script>
+{% endmacro %}
+{% macro status_badge_with_popup(color, tooltip) %}
+                            {% if color %}
+                            <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
+                                  title="" data-container="body" data-content="{{ tooltip }}">&nbsp;
+                                <span class="nav_link {{ color }}_circle" title="Click for errors/warnings"></span>&nbsp;</span>
+                            {% else %}
+                            <span >&nbsp;
+                                <span class="nav_link green_circle"></span>&nbsp;</span>
+                            {% endif %}
+{% endmacro %}
+{% macro popup_support() %}
+{#    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css') }}">#}
+{#    <!-- Bootstrap CSS -->#}
+{#    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">#}
+{#    <!-- jQuery -->#}
+{#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>#}
+{#    <!-- Bootstrap JS -->#}
+{#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>#}
+
+    <script>
+    $(document).ready(function(){
+        // Initialize popovers with HTML content
+        $('.popup').popover({
+            html: true, // Enable HTML content
+            trigger: 'manual' // Manually trigger popover
+        }).on('click', function(e) {
+            e.stopPropagation(); // Prevent event from propagating
+            let $currentPopover = $(this);
+            // Close any open popover except the current one
+            $('.popup').not($currentPopover).popover('hide');
+
+            // Toggle the current popover
+            $currentPopover.popover('toggle');
+        });
+
+        // Close popover when clicking outside
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.popover').length && !$(e.target).is('.popup')) {
+                $('.popup').popover('hide');
+            }
+        });
+    });
     </script>
 {% endmacro %}

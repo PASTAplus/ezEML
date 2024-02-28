@@ -15,11 +15,6 @@
     {% set ns=namespace(reupload_help_displayed=false) %}
     {% endif %}
 
-{#    {% for item in session %}#}
-{#    {% if item.endswith('_status') %}#}
-{#        {{ item }}#}
-{#    {% endif %}#}
-{#    {% endfor %}#}
     <table>
         <td><h2>Data Tables</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
@@ -34,28 +29,14 @@
                     </tr>
                     {% for dt_entry in dt_list %}
                     <tr>
-{#                        <td width="4%">#}
-{#                            {% set node_status = dt_entry.id + '_status' %}#}
-{#                            &nbsp;<div class="nav_link {{ session[node_status] }}_circle"></div>#}
-{#                        </td>#}
-                        {{ macros.select_list_item_with_status_badge(dt_entry.id, '/eml/check_metadata#data_table:', dt_entry.label) }}
-{#                        <td width="80%">#}
-{#                            {% set node_status = dt_entry.id + '_status' %}#}
-{#                            {% set color = session[node_status] %}#}
-{#                            {% if not color %}#}
-{#                                {% set color = 'green' %}#}
-{#                            {% endif %}#}
-{##}
-{#                            {% if color == 'yellow' or color == 'red' %}#}
-{#                                {% set url_string = '/eml/check_metadata#data_table:' + dt_entry.label %}#}
-{#                            <a class="no-underline" title="Click for details" href="{{ url_string }}">#}
-{#                            {% endif %}#}
-{#                        &nbsp;<div class="nav_link {{ color }}_circle"></div>&nbsp;#}
-{#                            {% if color == 'yellow' or color == 'red' %}#}
-{#                            </a>#}
-{#                            {% endif %}#}
-{#                        {{ dt_entry.label }}#}
-{#                        </td>#}
+{#                        {{ macros.select_list_item_with_status_badge(dt_entry.id, '/eml/check_metadata#data_table:', dt_entry.label) }}#}
+                        <td width="80%">
+                        {% set node_id = dt_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], dt_entry.tooltip) }}
+                        {{ dt_entry.label }}
+                        </td>
+
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.upval) }}
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>
@@ -119,4 +100,7 @@
         {{ macros.help_script(help_data_tables_reupload_dialog, help_data_tables_reupload_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

@@ -49,8 +49,14 @@
     {% set help_clone_attributes_general_dialog = help_clone_attributes_general_id ~ '_dialog' %}
 
     <table>
-        <td><h2>Data Table</h2></td>
-        <td valign="middle" style="padding-top: 15px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = dt_node_id.split("|")[0] %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td style="vertical-align:middle;"><h2>Data Table</h2></td>
+        <td style="vertical-align:middle;padding-top: 18px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
     </table>
     <div class="row">
         <div class="col-md-10">
@@ -251,7 +257,9 @@
         {{ macros.help_script(help_data_table_number_of_records_dialog, help_data_table_number_of_records_btn) }}
         {{ macros.help_script(help_data_table_online_url_dialog, help_data_table_online_url_btn) }}
         {{ macros.help_script(help_clone_attributes_general_dialog, help_clone_attributes_general_btn) }}
-
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

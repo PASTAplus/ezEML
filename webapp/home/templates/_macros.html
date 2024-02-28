@@ -409,15 +409,17 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                                 <span class="nav_link green_circle"></span>&nbsp;</span>
                             {% endif %}
 {% endmacro %}
+{% macro local_status_badge_with_popup(color, tooltip) %}
+                            {% if color %}
+                            <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
+                                  title="" data-container="body" data-content="{{ tooltip }}">&nbsp;
+                                <span class="{{ color }}_circle" title="Click for errors/warnings"></span>&nbsp;</span>
+                            {% else %}
+                            <span >&nbsp;
+                                <span class="green_circle"></span>&nbsp;</span>
+                            {% endif %}
+{% endmacro %}
 {% macro popup_support() %}
-{#    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css') }}">#}
-{#    <!-- Bootstrap CSS -->#}
-{#    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">#}
-{#    <!-- jQuery -->#}
-{#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>#}
-{#    <!-- Bootstrap JS -->#}
-{#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>#}
-
     <script>
     $(document).ready(function(){
         // Initialize popovers with HTML content

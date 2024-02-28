@@ -25,6 +25,7 @@ from webapp.config import Config
 
 from webapp.home import views, exceptions, check_data_table_contents, standard_units
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 from webapp.views.data_tables.load_data import (
     cull_data_files
@@ -135,6 +136,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         return ', '.join(atts)
 
     form = DataTableForm(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -167,8 +169,6 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         next_page = handle_hidden_buttons(next_page)
 
     if form.validate_on_submit():
-        eml_node = load_eml(filename=filename)
-
         if submit_type == 'Save Changes':
             # Make sure we have a dataset node
             dataset_node = eml_node.find_child(names.DATASET)
@@ -289,6 +289,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
     atts = 'No data table attributes have been added'
 
     was_uploaded = False
+    tooltip = ''
     if dt_node_id != '1':
         # Editing an existing data table, so we need to populate the form with the existing values.
         eml_node = load_eml(filename=filename)
@@ -306,6 +307,10 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
                             # Fill in the form with the data table's existing values
                             populate_data_table_form(form, dt_node)
 
+                            # Get the tooltip for the status badge
+                            init_evaluation(eml_node, filename)
+                            tooltip = format_tooltip(dt_node)
+
                             object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
                             if object_name_node:
                                 object_name = object_name_node.content
@@ -316,6 +321,13 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
 
         else:
             flash('eml_node is None')
+    # else:
+    #     dataset_node = eml_node.find_child(names.DATASET)
+    #     if not dataset_node:
+    #         dataset_node = Node(names.DATASET)
+    #     # Allocate a new data table node
+    #     dt_node = Node(names.DATATABLE, parent=dataset_node)
+    #     dt_node_id = dt_node.id
 
     init_form_md5(form)
 
@@ -338,7 +350,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         'clone_attributes_general'
     ])
     return render_template('data_table.html', title='Data Table', form=form,
-                           atts=atts, help=help, was_uploaded=was_uploaded)
+                           atts=atts, help=help, was_uploaded=was_uploaded, dt_node_id=dt_node_id, tooltip=tooltip)
 
 
 def populate_data_table_form(form: DataTableForm, node: Node):

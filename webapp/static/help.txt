@@ -1237,7 +1237,6 @@ The yellow and red badges are usually clickable, as indicated by a tooltip that 
 <script>
 localStorage.getItem("do_not_show_badges_dialog");
 function do_not_show_change_clicked(checkbox) {
-    alert('click');
     localStorage.setItem("do_not_show_badges_dialog", checkbox.checked);
 }
 </script>

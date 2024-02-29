@@ -1089,11 +1089,13 @@ def check_data_tables():
 
     content, btn_disabled = check_data_table_contents.create_check_data_tables_status_page_content(
         current_document, eml_node)
+    tooltip = 'Nothing to check' if btn_disabled else ''
 
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
 
     help = get_helps(['check_data_tables'])
-    return render_template('check_data_tables.html', help=help, content=content, btn_disabled=btn_disabled)
+    return render_template('check_data_tables.html', help=help, content=content,
+                           btn_disabled=btn_disabled, tooltip=tooltip)
 
 
 @home_bp.route('/explore_data_tables', methods=['GET', 'POST'])

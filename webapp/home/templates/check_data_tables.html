@@ -24,11 +24,14 @@
                 {{ macros.hidden_buttons() }}
 
                 <p>&nbsp;</p>
+            <span class="button-wrapper" data-toggle="tooltip" data-placement="top"
+                   title="{{ tooltip }}">
                 <input class="btn btn-primary" style="width: 180px;" {{ btn_disabled }}
                        onclick="return confirm('This operation may be time-consuming. Okay to proceed?') && stand_by();"
                        name="Check All Data Tables" type="submit" value="Check All Data Tables"/>
                     &nbsp;&nbsp;
                     {{ macros.please_stand_by() }}
+            </span>
                 <p>&nbsp;</p>
                 <table width=100% style="padding: 10px;">
                 <th></th><th>Color Key</th>

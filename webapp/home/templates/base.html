@@ -342,11 +342,11 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         {{ macros.contents_menu_item_with_status(url_for('home.edit', page='ent.other_entity_select'), other_entity_style, 'hidden_other_entities', 'Other Entities', ns.is_non_saving, 'other_entities') }}
         {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.data_package_id'), data_package_id_style, 'hidden_data_package_id', 'Data Package ID', ns.is_non_saving, 'data_package_id') }}
             <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>&nbsp;
+        <a class="nav_link {{ session['check_metadata_status'] }}_circle" href="{{ url_for('home.check_metadata') }}"></a>&nbsp;
             <a class="nav_link" style={{ check_metadata_style }}; href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <br>
         {% if current_user and current_user.is_authenticated %}
-            <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>&nbsp;
+            <a class="nav_link {{ session['check_data_tables_status'] }}_circle" href="{{ url_for('home.check_data_tables') }}"></a>&nbsp;
             <a class="nav_link" style={{ check_data_tables_style }}; href="{{ url_for('home.edit', page='home.check_data_tables') }}" title="Edit">Check Data Tables</a>&nbsp;
             <br>
             <div class="nav_link white_circle"></div>&nbsp;

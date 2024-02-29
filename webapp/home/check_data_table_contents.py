@@ -1140,10 +1140,10 @@ def create_explore_data_tables_page_content(current_document, eml_node):
       body: JSON.stringify(data),
     };
     
-    # alert(dexBaseUrl);
-    # alert(data.eml);
-    # alert(data.csv);
-    # alert(data.dist);
+    //alert(dexBaseUrl);
+    //alert(data.eml);
+    //alert(data.csv);
+    //alert(data.dist);
 
     fetch(`${dexBaseUrl}/dex/api/preview`, options)
         .then(response => {

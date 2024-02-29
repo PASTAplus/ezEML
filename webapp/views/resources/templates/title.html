@@ -11,6 +11,9 @@
     {% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
     {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
     {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
+    {% set help_badges_id, help_badges_title, help_badges_content = help[3] %}
+    {% set help_badges_btn = help_badges_id ~ '_btn' %}
+    {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
 
     <h2>Title</h2>
         <div class="col-md-12">
@@ -28,6 +31,7 @@
                         <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/></td>
                     <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_nav_btn) }}
                         <span hidden="hidden">{{ macros.help_button(help_welcome_btn) }}</span>
+                        <span hidden="hidden">{{ macros.help_button(help_badges_btn) }}</span>
                     </td>
                 </table>
                 {{ macros.hidden_buttons() }}
@@ -40,6 +44,7 @@
     {{ macros.help_dialog(help_title_dialog, help_title_title, help_title_content) }}
     {{ macros.help_dialog(help_nav_dialog, help_nav_title, help_nav_content) }}
     {{ macros.help_dialog(help_welcome_dialog, help_welcome_title, help_welcome_content) }}
+    {{ macros.help_dialog(help_badges_dialog, help_badges_title, help_badges_content) }}
 
 {% endblock %}
 
@@ -54,12 +59,17 @@
     {% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
     {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
     {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
+    {% set help_badges_id, help_badges_title, help_badges_content = help[3] %}
+    {% set help_badges_btn = help_badges_id ~ '_btn' %}
+    {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
     <script>
+
     $(function()
     {
         {{ macros.help_script(help_title_dialog, help_title_btn) }}
         {{ macros.help_script(help_nav_dialog, help_nav_btn) }}
         {{ macros.help_script(help_welcome_dialog, help_welcome_btn) }}
+        {{ macros.help_script(help_badges_dialog, help_badges_btn) }}
         let do_not_show = localStorage.getItem("do_not_show_ezeml_welcome_dialog") == 'true';
         if (!do_not_show) {
             let welcome_dialog = $('#{{ help_welcome_dialog }}').dialog({
@@ -69,7 +79,6 @@
             });
             $('#{{ help_welcome_btn }}').button().on('click', function () {
                 if (welcome_dialog.dialog('isOpen')) {
-                    {#alert('{{ dns_ns.do_not_show_cb }}');#}
                     welcome_dialog.dialog('close');
                 } else {
                     welcome_dialog.dialog('open');
@@ -77,7 +86,25 @@
             });
             $('#{{ help_welcome_btn }}').click();
             document.activeElement.blur();
-        };
+        } else {
+            let do_not_show = localStorage.getItem("do_not_show_badges_dialog") == 'true';
+            if (!do_not_show) {
+                let badges_dialog = $('#{{ help_badges_dialog }}').dialog({
+                    autoOpen: true,
+                    width: 500,
+                    position: {my: "center", at: "center", of: window}
+                });
+                $('#{{ help_badges_btn }}').button().on('click', function () {
+                    if (badges_dialog.dialog('isOpen')) {
+                        badges_dialog.dialog('close');
+                    } else {
+                        badges_dialog.dialog('open');
+                    }
+                });
+                $('#{{ help_badges_btn }}').click();
+                document.activeElement.blur();
+            }
+        }
     });
     </script>
 {% endblock %}

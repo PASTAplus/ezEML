@@ -360,7 +360,13 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
             autoOpen: false,
             width: 600,
-            position: {my: "left top", at: "right center", of: "#{{ btn_id }}"}
+            position: {my: "left top", at: "right center", of: "#{{ btn_id }}"},
+            open: function() {
+                $(this).closest(".ui-dialog")
+                .find(".ui-dialog-titlebar-close")
+                .removeClass("ui-dialog-titlebar-close")
+                .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+            }
         });
         $( '#{{ btn_id }}' ).button().on('click', function() {
             if ({{ dialog_id }}.dialog('isOpen')) {

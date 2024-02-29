@@ -110,9 +110,10 @@ def title(filename=None):
     init_form_md5(form)
 
     set_current_page('title')
-    help = get_helps(['title', 'nav', 'welcome'])
+    help = get_helps(['title', 'nav', 'welcome', 'badges'])
     first_usage = is_first_usage()  # If this is the first time the user has used ezEML, we'll show the welcome popup.
-    return render_template('title.html', title='Title', form=form, help=help, is_first_usage=first_usage)
+    return render_template('title.html', title='Title', form=form, help=help,
+                           is_first_usage=first_usage)
 
 
 @res_bp.route('/data_package_id/<filename>', methods=['GET', 'POST'])

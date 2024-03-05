@@ -666,18 +666,22 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
         size_node = other_entity_node.find_descendant(names.SIZE)
         if size_node is None:
             size_node = new_child_node(names.SIZE,
-                                                                    parent=physical_node,
-                                                                    content=str(file_size),
-                                                                    attribute=('unit', 'byte'))
+                                       parent=physical_node,
+                                       content=str(file_size),
+                                       attribute=('unit', 'byte'))
+        else:
+            size_node.content = str(file_size)
 
     md5_hash = get_md5_hash(full_path)
     if md5_hash is not None:
         hash_node = physical_node.find_descendant(names.AUTHENTICATION)
         if hash_node is None:
             hash_node = new_child_node(names.AUTHENTICATION,
-                                                                    parent=physical_node,
-                                                                    content=str(md5_hash),
-                                                                    attribute=('method', 'MD5'))
+                                       parent=physical_node,
+                                       content=str(md5_hash),
+                                       attribute=('method', 'MD5'))
+        else:
+            hash_node.content = str(md5_hash)
 
     data_format_node = physical_node.find_descendant(names.DATAFORMAT)
     if data_format_node is None:
@@ -690,8 +694,8 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
 
     format_name_node = new_child_node(names.FORMATNAME,
-                                                                   parent=externally_defined_format_node,
-                                                                   content=format_name_from_data_file(data_file))
+                                      parent=externally_defined_format_node,
+                                      content=format_name_from_data_file(data_file))
 
     if not doing_reupload:
         entity_type_node = new_child_node(names.ENTITYTYPE, parent=other_entity_node)

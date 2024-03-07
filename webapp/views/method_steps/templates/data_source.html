@@ -24,9 +24,16 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = node_id %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Data Source</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_data_source_btn) }}</td>
     </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate>
@@ -57,7 +64,13 @@
                     </tr>
                     {% for creator_entry in creator_list %}
                     <tr>
-                        <td style="width:60%">{{ creator_entry.label }}</td>
+                        <td style="width:60%">
+                            {% set node_id = creator_entry.rp_node_id.split("|")[0] %}
+                            {% set node_status = node_id + '_status' %}
+                                {{ macros.status_badge_with_popup(session[node_status], creator_entry.tooltip) }}
+                            {{ creator_entry.label }}
+                        </td>
+{#                        <td style="width:60%">{{ creator_entry.label }}</td>#}
                         {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.upval) }}
                         {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.downval) }}
                         <td align="right"><input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" type="submit" value="Edit"/>
@@ -83,7 +96,13 @@
                     </tr>
                     {% for contact_entry in contact_list %}
                     <tr>
-                        <td style="width:60%">{{ contact_entry.label }}</td>
+                        <td style="width:60%">
+                            {% set node_id = contact_entry.rp_node_id.split("|")[0] %}
+                            {% set node_status = node_id + '_status' %}
+                                {{ macros.status_badge_with_popup(session[node_status], contact_entry.tooltip) }}
+                            {{ contact_entry.label }}
+                        </td>
+{#                        <td style="width:60%">{{ contact_entry.label }}</td>#}
                         {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.upval) }}
                         {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.downval) }}
                         <td align="right"><input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" type="submit" value="Edit"/>
@@ -147,4 +166,7 @@
         {{ macros.help_script(help_data_source_contacts_dialog, help_data_source_contacts_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

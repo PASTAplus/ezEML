@@ -16,7 +16,16 @@
     {% set help_deprecated_data_source_dialog = help_deprecated_data_source_id ~ '_dialog' %}
     {% set deprecated_data_source = deprecated_data_source %}
 
-    <h2>Method Step</h2>
+    <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = node_id %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td><h2>Method Step</h2></td>
+    </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
@@ -131,5 +140,7 @@
     <script>
         {{ macros.check_xml_btn_handler('#check_xml', '#description', 'description') }}
     </script>
+
+    {{ macros.popup_support() }}
 
 {% endblock %}

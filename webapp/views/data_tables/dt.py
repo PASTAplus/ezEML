@@ -711,7 +711,7 @@ def attribute_select(filename=None, dt_node_id=None):
                     new_page = this_page
                     node_id = key
                     views.process_down_button(filename, node_id)
-                elif val.startswith('Add Attribute'):
+                elif val.startswith('Add Column'):
                     if 'Numerical' in val:
                         mscale = 'NUMERICAL'
                         new_page = PAGE_ATTRIBUTE_NUMERICAL

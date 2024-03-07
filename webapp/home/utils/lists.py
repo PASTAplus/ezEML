@@ -253,6 +253,21 @@ def mscale_from_attribute(att_node: Node = None):
     return None
 
 
+def compose_attribute_mscale(att_node: Node = None):
+    mscale = ''
+    if att_node:
+        mscale = mscale_from_attribute(att_node)
+        if mscale == VariableType.CATEGORICAL.name:
+            mscale = 'Categorical'
+        elif mscale == VariableType.NUMERICAL.name:
+            mscale = 'Numerical'
+        elif mscale == VariableType.TEXT.name:
+            mscale = 'Text'
+        elif mscale == VariableType.DATETIME.name:
+            mscale = 'DateTime'
+    return mscale
+
+
 def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=None):
     """
     Returns a list of all attributes (columns) in the specified data table (according to its metadata),
@@ -267,21 +282,6 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
                 attribute_name = attribute_name_node.content
                 label = attribute_name
         return label
-
-    def compose_attribute_mscale(att_node: Node = None):
-
-        mscale = ''
-        if att_node:
-            mscale = mscale_from_attribute(att_node)
-            if mscale == VariableType.CATEGORICAL.name:
-                mscale = 'Categorical'
-            elif mscale == VariableType.NUMERICAL.name:
-                mscale = 'Numerical'
-            elif mscale == VariableType.TEXT.name:
-                mscale = 'Text'
-            elif mscale == VariableType.DATETIME.name:
-                mscale = 'DateTime'
-        return mscale
 
     att_list = []
     if data_table_node:

@@ -9,6 +9,16 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% if node_name == 'publisher' %}
+            {% set node_status = 'publisher_status' %}
+        {% else %}
+            {% set node_id = rp_node_id.split("|")[0] %}
+            {% set node_status = node_id + '_status' %}
+        {% endif %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>{{ title }}</h2></td>
         <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
     </table>
@@ -173,4 +183,7 @@
         {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

@@ -21,7 +21,7 @@ import pickle
 from dataclasses import dataclass
 
 from flask import (
-    Blueprint, Flask, url_for, session, current_app
+    Blueprint, Flask, url_for, request, session, current_app
 )
 from flask_login import current_user
 
@@ -317,14 +317,21 @@ def check_data_package_id(eml_node, doc_name, validation_errs=None):
 
 def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
                             page:str=None, doc_name:str=None, node_id:str=None,
-                            related_project_node_id:str=None, is_data_source=False):
+                            related_project_node_id:str=None, is_data_source=False,
+                            data_source_node_id:str=None):
     """
     Check a responsible party (creator, contact, etc.) for missing required/recommended elements.
     """
-    if not related_project_node_id:
-        link = url_for(page, filename=doc_name, node_id=node_id)
-    else:
+    if related_project_node_id:
         link = url_for(page, filename=doc_name, node_id=node_id, project_node_id=related_project_node_id)
+    elif is_data_source:
+        data_source_node = Node.get_node_instance(data_source_node_id)
+        method_step_node = data_source_node.parent
+        link = url_for('rp.data_source_personnel', filename=doc_name, rp_type=rp_node.name, rp_node_id=node_id,
+                       method_step_node_id=method_step_node.id, data_source_node_id=data_source_node_id)
+    else:
+        link = url_for(page, filename=doc_name, node_id=node_id)
+
     validation_errs = validate_via_metapype(rp_node)
 
     # Last name is required if other parts of name are given
@@ -354,7 +361,8 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
         add_to_evaluation('responsible_party_05', link, section, item)
 
 
-def check_creators(eml_node, doc_name, validation_errs=None, evaluation_warnings=None, is_data_source=False):
+def check_creators(eml_node, doc_name, validation_errs=None, evaluation_warnings=None,
+                   is_data_source=False, data_source_node_id=None):
     """
     Check that a dataset creator is present and all dataset creators are valid.
 
@@ -362,9 +370,12 @@ def check_creators(eml_node, doc_name, validation_errs=None, evaluation_warnings
     """
     if not is_data_source:
         data_source_node = None
+        data_source_node_id = None
         link = url_for(PAGE_CREATOR_SELECT, filename=doc_name)
     else:
+        # In the data_source case, the eml_node passed in is the data source node
         data_source_node = eml_node
+        data_source_node_id = data_source_node.id
         ms_node = eml_node.parent
         link = url_for(PAGE_DATA_SOURCE,
                        filename=doc_name,
@@ -372,17 +383,26 @@ def check_creators(eml_node, doc_name, validation_errs=None, evaluation_warnings
                        data_source_node_id=data_source_node.id)
 
     if validation_errs is None:
-        dataset_node = eml_node.find_child(names.DATASET)
-        validation_errs = validate_via_metapype(dataset_node)
+        if not is_data_source:
+            dataset_node = eml_node.find_child(names.DATASET)
+            validation_errs = validate_via_metapype(dataset_node)
+        else:
+            validation_errs = validate_via_metapype(data_source_node)
 
     if find_min_unmet(validation_errs, names.DATASET if not is_data_source else names.DATASOURCE, names.CREATOR,
                       data_source_node_id=data_source_node.id if is_data_source else None):
         add_to_evaluation(eval_code('creators_01', is_data_source), link)
     if not is_data_source:
         creator_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR])
-        for creator_node in creator_nodes:
-            check_responsible_party(creator_node, 'Creators', 'Creator', PAGE_CREATOR, doc_name, creator_node.id,
-                                    is_data_source=is_data_source)
+        section = 'Creators'
+        item = 'Creator'
+    else:
+        creator_nodes = data_source_node.find_all_children(names.CREATOR)
+        section = 'Methods'
+        item = 'Data Source Creator'
+    for creator_node in creator_nodes:
+        check_responsible_party(creator_node, section, item, PAGE_CREATOR, doc_name, creator_node.id,
+                                is_data_source=is_data_source, data_source_node_id=data_source_node_id)
 
 
 def check_metadata_providers(eml_node, doc_name):
@@ -491,13 +511,13 @@ def check_coverage(eml_node, doc_name, evaluation_warnings=None):
     geographic_coverage_node = eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE])
     if not geographic_coverage_node:
         link = url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=doc_name)
-        add_to_evaluation('coverage_02', link)
+        add_to_evaluation('geographic_coverage_00', link)
 
     # Warn if no temporal coverage
     temporal_coverage_node = eml_node.find_single_node_by_path([names.DATASET, names.COVERAGE, names.TEMPORALCOVERAGE])
     if not temporal_coverage_node:
         link = url_for(PAGE_TEMPORAL_COVERAGE_SELECT, filename=doc_name)
-        add_to_evaluation('coverage_03', link)
+        add_to_evaluation('temporal_coverage_00', link)
 
     # if find_err_code(evaluation_warnings, EvaluationWarning.DATASET_COVERAGE_MISSING, names.DATASET):
     #     add_to_evaluation('coverage_01', link)
@@ -790,9 +810,12 @@ def check_contacts(eml_node, doc_name, validation_errs=None, evaluation_warnings
     """ Check the contacts in the EML document. """
     if not is_data_source:
         data_source_node = None
+        data_source_node_id = None
         link = url_for(PAGE_CONTACT_SELECT, filename=doc_name)
     else:
+        # In the data_source case, the eml_node passed in is the data source node
         data_source_node = eml_node
+        data_source_node_id = data_source_node.id
         ms_node = eml_node.parent
         link = url_for(PAGE_DATA_SOURCE,
                        filename=doc_name,
@@ -806,13 +829,17 @@ def check_contacts(eml_node, doc_name, validation_errs=None, evaluation_warnings
                       data_source_node_id=data_source_node.id if is_data_source else None):
         add_to_evaluation(eval_code('contacts_01', is_data_source), link=link)
     if not is_data_source:
-        contact_nodes = eml_node.find_all_nodes_by_path([
-            names.DATASET,
-            names.CONTACT
-        ])
-        for contact_node in contact_nodes:
-            check_responsible_party(contact_node, 'Contacts', 'Contact', PAGE_CONTACT,
-                                    doc_name, contact_node.id, is_data_source=is_data_source)
+        contact_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT])
+        section = 'Contacts'
+        item = 'Contact'
+    else:
+        contact_nodes = data_source_node.find_all_children(names.CONTACT)
+        section = 'Methods'
+        item = 'Data Source Contact'
+
+    for contact_node in contact_nodes:
+        check_responsible_party(contact_node, section, item, PAGE_CONTACT, doc_name, contact_node.id,
+                                is_data_source=is_data_source, data_source_node_id=data_source_node_id)
 
 
 def check_publisher(eml_node, doc_name):
@@ -1048,21 +1075,30 @@ def init_evaluation(eml_node, doc_name):
     evaluations = perform_evaluation(eml_node, doc_name)
 
 
-def format_tooltip(node):
+def format_tooltip(node, section=None):
     """ Format the evaluation output pertaining to a node as a tooltip. """
+    def parse_link(link):
+        """ Parse a link to extract the route being referenced. """
+        if link:
+            parts = link.split('/')
+            for part in parts:
+                if part == 'eml':
+                    return parts[parts.index(part) + 1]
+        return ''
+
     tooltip = f'<table width=100% style="padding: 30px;"><tr><td colspan=3><i>Click any item to edit:</i></td></tr>'
     all_ok = True
     for severity in severities:
         for entry in evaluations:
             if entry.severity == severity:
-                if node.id in entry.link:
+                if (node and node.id in entry.link) or (section and section in parse_link(entry.link)):
                     tooltip += f'<tr><td class="'
                     if severity == EvalSeverity.ERROR:
                         tooltip += 'red'
                     else:
                         tooltip += 'yellow'
                     tooltip += f'_circle"></td><td>&nbsp;&nbsp;</td><td><a class="popup link" href="{entry.link}">{entry.explanation.replace(" ", " ")}</a></td></tr>\n'
-                all_ok = False
+                    all_ok = False
     if all_ok:
         tooltip = ''
     else:
@@ -1091,7 +1127,12 @@ def format_output(evaluation, eml_node):
         data_table_names = get_data_table_names(eml_node)
         if not data_table_names:
             return ''
-        output = f'<h3 id="data_tables">Data Tables</h3>'
+        offset = get_query_string()
+        if offset == 'data_tables':
+            section_output = f'<mark style="background-color:#ffffa0;">Data Tables</mark>'
+        else:
+            section_output = 'Data Tables'
+        output = f'<h3 id="data_tables">{section_output}</h3>'
         for data_table_name in data_table_names:
             for entry in entries:
                 if entry.data_table_name != data_table_name:
@@ -1109,7 +1150,13 @@ def format_output(evaluation, eml_node):
 
     def collect_entries(evaluation, section):
         """ Collect the entries in the evaluation that are in the given section. """
-        return [entry for entry in evaluation if entry.section == section]
+        """ Data Sources are a special case. We want to lump them in with Methods."""
+        if section == 'Data Sources':
+            return []
+        elif section == 'Methods':
+            return [entry for entry in evaluation if entry.section == section or entry.section == 'Data Sources']
+        else:
+            return [entry for entry in evaluation if entry.section == section]
 
     sections = {
         'Title': 'title',
@@ -1133,11 +1180,22 @@ def format_output(evaluation, eml_node):
         'Other Entities': 'other_entities',
         'Data Package ID': 'data_package_id'}
 
+    def get_query_string():
+        return request.query_string.decode('utf-8')
+
     all_ok = True
+    # See if we're following a link to a specific section in the check_metadata page
+    offset = get_query_string()
     output = '<span style="font-family: Helvetica,Arial,sans-serif;">'
     """ Format the sections, with headings, in order. """
     for section in sections:
+        if section == 'Data Sources':
+            continue
         anchor = sections[section]
+        if offset == anchor:
+            section_output = f'<mark style="background-color:#ffffa0;">{section}</mark>'
+        else:
+            section_output = f'{section}'
 
         entries = collect_entries(evaluation, section)
         if not entries:
@@ -1150,7 +1208,8 @@ def format_output(evaluation, eml_node):
                 #  aggregate errors/warnings by data table
                 output += format_data_table_output(entries, output, eml_node)
                 continue
-        output += f'<h3 id="{anchor}">{section}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
+        """ Data Sources are a special case. We want to lump them in with Methods."""
+        output += f'<h3 id="{anchor}">{section_output}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
                   f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
         for severity in severities:
             for entry in entries:
@@ -1320,7 +1379,8 @@ def evaluate_via_metapype(node):
         print(f'evaluate_via_metapype: node={node.name} exception={e}')
     return eval
 
-########### Support for badges ###########
+
+########### Remainder of file is support for badges ###########
 
 import re
 uuid_regex = r"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$"
@@ -1475,11 +1535,15 @@ def set_session_info(evaluation, eml_node):
             return 'geographic_coverage'
         if '/eml/temporal_coverage_select/' in link or '/eml/temporal_coverage/' in link:
             return 'temporal_coverage'
+        if '/eml/taxonomic_coverage_select/' in link or '/eml/taxonomic_coverage/' in link:
+            return 'taxonomic_coverage'
+        if '/eml/maintenance/' in link:
+            return 'maintenance'
         if '/eml/publisher/' in link:
             return 'publisher'
         if '/eml/publication_info/' in link:
             return 'publication_info'
-        if '/eml/method_step_select/' in link or '/eml/method_step/' in link:
+        if '/eml/method_step_select/' in link or '/eml/method_step/' in link or '/eml/data_source' in link:
             return 'methods'
         if '/eml/project_select/' in link or '/eml/project/' in link or '/eml/project_personnel/' in link:
             return 'project'
@@ -1490,7 +1554,6 @@ def set_session_info(evaluation, eml_node):
     # if not (current_user and (current_user.is_admin())):
     #     return
 
-    # views.init_status_badges("green")
     section_links_found = {}
     node_links_found = {}
     init_section_links_found(section_links_found)

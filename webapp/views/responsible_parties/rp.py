@@ -26,6 +26,7 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, set_current_page, get_help, get_helps
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 
 rp_bp = Blueprint('rp', __name__, template_folder='templates')
@@ -267,14 +268,21 @@ def responsible_party(filename=None, rp_node_id=None,
     if rp_node_id != '1':
         rp_node = Node.get_node_instance(rp_node_id)
         populate_responsible_party_form(form, rp_node)
+
+        # Get the tooltip for the status badge
+        init_evaluation(eml_node, filename)
+        tooltip = format_tooltip(rp_node)
+
     else:
         init_form_md5(form)
+        tooltip = ''
 
     if parent_node and parent_node.name == names.RELATED_PROJECT:
         title = 'Related ' + title
     help = get_helps([node_name])
-    return render_template('responsible_party.html', title=title, node_name=node_name,
-                           form=form, role=role, next_page=next_page, save_and_continue=save_and_continue, help=help)
+    return render_template('responsible_party.html', title=title, node_name=node_name, rp_node_id=rp_node_id,
+                           form=form, role=role, next_page=next_page, save_and_continue=save_and_continue,
+                           tooltip=tooltip, help=help)
 
 
 @rp_bp.route('/metadata_provider_select/<filename>', methods=['GET', 'POST'])
@@ -400,6 +408,11 @@ def publisher(filename=None):
             publisher_node = dataset_node.find_child(names.PUBLISHER)
             if publisher_node:
                 node_id = publisher_node.id
+
+    # Get the tooltip for the status badge
+    # init_evaluation(eml_node, filename)
+    # tooltip = format_tooltip(None, 'publisher')
+
     set_current_page('publisher')
     help = [get_help('publisher')]
     return responsible_party(filename=filename, rp_node_id=node_id,
@@ -407,7 +420,8 @@ def publisher(filename=None):
                              back_page=PAGE_CONTACT_SELECT,
                              next_page=PAGE_PUBLICATION_INFO,
                              title='Publisher',
-                             save_and_continue=True, help=help)
+                             save_and_continue=True,
+                             help=help)
 
 
 def normalize_directory_for_user_id(directory):
@@ -536,9 +550,11 @@ def project_personnel(filename=None, node_id=None, project_node_id=None):
                              parent_node_id=project_node_id)
 
 
-@rp_bp.route('/data_source_personnel/<filename>/<rp_type>/<rp_node_id>/<data_source_node_id>', methods=['GET', 'POST'])
+@rp_bp.route('/data_source_personnel/<filename>/<rp_type>/<rp_node_id>/<method_step_node_id>/<data_source_node_id>', methods=['GET', 'POST'])
 @login_required
-def data_source_personnel(filename=None, rp_type=None, rp_node_id=None, data_source_node_id=None):
+def data_source_personnel(filename=None, rp_type=None, rp_node_id=None, method_step_node_id=None, data_source_node_id=None):
+    # The reason we need the method_step_node_id in the route is so that when we look at the error links produced by check_metadata,
+    #  we can recognize the error as pertaining to that method step.
     method = request.method
     set_current_page('data_source')
     return responsible_party(filename=filename, rp_node_id=rp_node_id,

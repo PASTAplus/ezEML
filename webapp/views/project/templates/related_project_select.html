@@ -23,7 +23,12 @@
                     </tr>
                     {% for project_entry in project_list %}
                     <tr>
-                        <td width="50%">{{ project_entry.label }}</td>
+                        <td width="50%">
+                        {% set node_id = project_entry.id %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], project_entry.tooltip) }}
+                        {{ project_entry.label }}
+                        </td>
                         {{ macros.up_down_arrow(project_entry.id, project_entry.upval) }}
                         {{ macros.up_down_arrow(project_entry.id, project_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ project_entry.id }}" type="submit" value="Edit"/>
@@ -57,4 +62,7 @@
         {{ macros.help_script(help_related_projects_dialog, help_related_projects_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

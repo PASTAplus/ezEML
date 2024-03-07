@@ -7,9 +7,16 @@
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = dt_node_id %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Other Entity</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entity_btn) }}</td>
     </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
@@ -78,4 +85,7 @@
         {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

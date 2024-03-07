@@ -15,10 +15,18 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'maintenance_status' %}
+        {% if session[node_status] != 'white' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%">
+        {% endif %}
+        </td>
         <td><h2>Maintenance</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_maintenance_btn) }}</td>
     </table>
-    
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate>
@@ -86,4 +94,7 @@
     <script>
         {{ macros.check_xml_btn_handler('#check_xml', '#description', 'description') }}
     </script>
+
+        {{ macros.popup_support() }}
+
 {% endblock %}

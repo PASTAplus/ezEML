@@ -39,6 +39,7 @@ from webapp.home.utils.lists import list_geographic_coverages, list_temporal_cov
 from webapp.home.utils.create_nodes import create_geographic_coverage, create_temporal_coverage, \
     create_taxonomic_coverage
 from webapp.home.utils.node_utils import add_child
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 from webapp.views.coverage.taxonomy import (
     TaxonomySourceEnum, ITISTaxonomy, NCBITaxonomy, WORMSTaxonomy,
@@ -108,10 +109,14 @@ def geographic_coverage_select(filename=None):
         if dataset_node:
             gc_list = list_geographic_coverages(eml_node, dataset_node)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, 'geographic_coverage')
+
     set_current_page('geographic_coverage')
     help = get_helps(['geographic_coverages', 'geographic_coverages_csv_file'])
     return render_template('geographic_coverage_select.html', title=title,
-                           gc_list=gc_list, form=form, help=help)
+                           gc_list=gc_list, form=form, help=help, tooltip=tooltip)
 
 
 @cov_bp.route('/load_geo_coverage/<filename>', methods=['GET', 'POST'])
@@ -342,9 +347,17 @@ def geographic_coverage(filename=None, node_id=None):
                         if node_id == gc_node.id:
                             populate_geographic_coverage_form(form, gc_node)
 
+    # Get the tooltip for the status badge
+    if gc_node:
+        init_evaluation(eml_node, filename)
+        tooltip = format_tooltip(gc_node)
+    else:
+        tooltip = ''
+
     set_current_page('geographic_coverage')
     help = get_helps(['geographic_coverages', 'geographic_description', 'bounding_coordinates', 'bounding_altitudes'])
-    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, help=help)
+    return render_template('geographic_coverage.html', title='Geographic Coverage', form=form, help=help,
+                           node_id=node_id, tooltip=tooltip)
 
 
 def populate_geographic_coverage_form(form: GeographicCoverageForm, node: Node):
@@ -436,10 +449,14 @@ def temporal_coverage_select(filename=None):
         if dataset_node:
             tc_list = list_temporal_coverages(eml_node, dataset_node)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, 'temporal_coverage')
+
     set_current_page('temporal_coverage')
     help = [get_help('temporal_coverages')]
     return render_template('temporal_coverage_select.html', title=title,
-                           tc_list=tc_list, form=form, help=help)
+                           tc_list=tc_list, form=form, help=help, tooltip=tooltip)
 
 
 @cov_bp.route('/temporal_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
@@ -593,12 +610,16 @@ def taxonomic_coverage_select(filename=None):
             if not taxonomy_inconsistent_with_ezeml(eml_node, filename):
                 txc_list = list_taxonomic_coverages(eml_node, dataset_node)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, section='taxonomic_coverage')
+
     set_current_page('taxonomic_coverage')
     help = [get_help('taxonomic_coverages'), get_help('taxonomy_imported_from_xml')]
     return render_template('taxonomic_coverage_select.html', title=title,
                            txc_list=txc_list,
                            imported_from_xml=taxonomy_inconsistent_with_ezeml(eml_node, filename),
-                           form=form, help=help)
+                           form=form, help=help, tooltip=tooltip)
 
 
 def clear_taxonomic_coverage(package_name):
@@ -966,11 +987,19 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    if txc_node:
+        init_evaluation(eml_node, filename)
+        tooltip = format_tooltip(txc_node)
+    else:
+        tooltip = ''
+
     help = get_helps(['taxonomic_coverage_fill_hierarchy'])
 
     set_current_page('taxonomic_coverage')
     return render_template('taxonomic_coverage.html', title='Taxonomic Coverage', form=form,
-                           hierarchy=form.hierarchy.data, have_links=have_links, help=help)
+                           hierarchy=form.hierarchy.data, have_links=have_links, help=help,
+                           node_id=node_id, tooltip=tooltip)
 
 
 def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):

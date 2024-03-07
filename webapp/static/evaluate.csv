@@ -22,8 +22,7 @@ keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be prov
 keywords_02,Keywords,Keywords,WARNING,RECOMMENDED,Consider adding more <b>Keywords</b> to make the dataset more discoverable.,
 intellectual_rights_01,Intellectual Rights,Intellectual Rights,WARNING,RECOMMENDED,An <b>Intellectual Rights</b> policy should be specified.,
 coverage_01,Coverage,Coverage,WARNING,RECOMMENDED,"At least one coverage element should be present in a dataset. I.e., at least one of <b>Geographic Coverage</b>, <b>Temporal Coverage</b>, or <b>Taxonomic Coverage</b> should be specified.",
-coverage_02,Coverage,Geographic Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Geographic Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular geographic location.",
-coverage_03,Coverage,Temporal Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Temporal Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular time period.",
+geographic_coverage_00,Geographic Coverage,Geographic Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Geographic Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular geographic location.",
 geographic_coverage_01,Geographic Coverage,Geographic Description,ERROR,REQUIRED,<b>Geographic Description</b> is required.,Applies if geographic coverage is present.
 geographic_coverage_02,Geographic Coverage,Bounding Coordinates,ERROR,REQUIRED,<b>Bounding Coordinates</b> are required and must be decimal values.,Applies if geographic coverage is present.
 geographic_coverage_03,Geographic Coverage,West Bounding Coordinate,ERROR,REQUIRED,<b>West Bounding Coordinate</b> must be a decimal value between -180.0 and +180.0.,
@@ -34,6 +33,7 @@ geographic_coverage_07,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,If <
 geographic_coverage_08,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,An invalid value was encountered for <b>Altitude Units</b>. See the Help for a list of permitted values.,
 taxonomic_coverage_01,Taxonomic Coverage,Taxon Rank,ERROR,REQUIRED,Taxon Rank is required,
 taxonomic_coverage_02,Taxonomic Coverage,Taxon Scientific Name,ERROR,REQUIRED,Taxon Scientific Name is required,
+temporal_coverage_00,Temporal Coverage,Temporal Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Temporal Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular time period.",
 data_table_01,Data Tables,Name,ERROR,REQUIRED,A data table <b>Name</b> is required.,
 data_table_02,Data Tables,Description,WARNING,RECOMMENDED,A data table <b>Description</b> is highly recommended.,
 data_table_03,Data Tables,Data Object Name,ERROR,REQUIRED,A <b>Data Object Name</b> is required.,

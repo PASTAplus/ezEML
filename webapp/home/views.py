@@ -237,6 +237,11 @@ def test_page():
     """
     A basically empty page for testing purposes.
     """
+    # from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
+    # eml_node = load_eml('A sample data package')
+    # data_table_node = eml_node.find_descendant('dataTable')
+    # generate_data_entry_spreadsheet(data_table_node)
+
     return render_template('test_page.html')
 
 
@@ -506,7 +511,7 @@ def init_status_badges(color="white"):
                     "other_entities", "data_package_id"]
     [init_status_badge(status_name, color) for status_name in status_names]
 
-    # Get rid of status badges for specific nodes (data tables, etc.). They will be re-initialized in the
+    # Get rid of status badges for specific nodes (data tables, etc., with node IDs). They will be re-initialized in the
     # check_metadata_status function, and we want ones that are not re-initialized to be green.
     items_to_delete = []
     for item in session:
@@ -1528,6 +1533,8 @@ def import_parties(target=None):
     form.filename.choices = list_data_packages(True, True)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1638,6 +1645,8 @@ def import_parties_2(filename, template, is_template, target=None):
     else:
         form = ImportEMLItemsForm()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
@@ -1716,6 +1725,8 @@ def import_keywords():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1768,6 +1779,8 @@ def import_keywords_2(filename, template, is_template):
 
     form = ImportItemsForm()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
@@ -1810,6 +1823,8 @@ def import_geo_coverage():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1840,6 +1855,8 @@ def import_geo_coverage_2(filename, template, is_template):
         return coverages
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -1879,6 +1896,8 @@ def import_taxonomic_coverage():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1909,6 +1928,8 @@ def import_taxonomic_coverage_2(filename, template, is_template):
         return coverages
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -1949,6 +1970,8 @@ def import_funding_awards():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1980,6 +2003,8 @@ def import_funding_awards_2(filename, template, is_template):
         return awards
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -2018,6 +2043,8 @@ def import_project():
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     # Process POST
     if request.method == 'POST':
@@ -2058,6 +2085,8 @@ def import_project_2(filename, template, is_template):
 
     form = ImportSingleItemForm()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
@@ -2096,6 +2125,8 @@ def import_related_projects():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -2119,6 +2150,8 @@ def import_related_projects_2(filename, template, is_template):
     """Handle the Import Related Projects item in Import/Export menu after a source document has been selected."""
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -3131,6 +3164,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
 def preview_data_portal():
     """Handle the Preview in EDI Data Portal item from the Import/Export menu."""
     form = EDIForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())

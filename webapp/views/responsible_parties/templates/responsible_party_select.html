@@ -26,14 +26,6 @@
                             {% set node_id = rp_entry.id.split("|")[0] %}
                             {% set node_status = node_id + '_status' %}
                                 {{ macros.status_badge_with_popup(session[node_status], rp_entry.tooltip) }}
-{#                            {% if session[node_status] %}#}
-{#                            <span class="popup" data-toggle="popover" data-trigger="click focus focusout" data-placement="bottom"#}
-{#                                 data-container="body" data-content="{{ rp_entry.tooltip }}">&nbsp;#}
-{#                                <span class="nav_link {{ session[node_status] }}_circle" title="Click for details"></span>&nbsp;</span>#}
-{#                            {% else %}#}
-{#                            <span >&nbsp;#}
-{#                                <span class="nav_link green_circle"></span>&nbsp;</span>#}
-{#                            {% endif %}#}
                             {{ rp_entry.label }}
                         </td>
                         {{ macros.up_down_arrow(rp_entry.id, rp_entry.upval) }}

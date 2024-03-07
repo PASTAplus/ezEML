@@ -64,6 +64,7 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
@@ -100,6 +101,7 @@ def other_entity_select(filename=None):
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
     form = OtherEntityForm(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename, dt_node_id=dt_node_id)
@@ -234,12 +236,18 @@ def other_entity(filename=None, node_id=None):
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
                         populate_other_entity_form(form, dt_node)
+    else:
+        dt_node = None
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(dt_node) if dt_node else ''
+
     set_current_page('other_entity')
     help = [get_help('other_entity')]
-    return render_template('other_entity.html', title='Other Entity', form=form, help=help)
+    return render_template('other_entity.html', title='Other Entity', form=form, help=help, dt_node_id=dt_node_id, tooltip=tooltip)
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):

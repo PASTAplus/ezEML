@@ -23,6 +23,7 @@ from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_but
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.import_nodes import compose_rp_label
 from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_method_steps
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 from webapp.home.exceptions import (
     ezEMLError,
@@ -242,25 +243,41 @@ def method_step(filename=None, node_id=None):
         method_step_node = Node.get_node_instance(node_id)
         if method_step_node:
             populate_method_step_form(form, method_step_node)
+    else:
+        method_step_node = None
+        
     if form.description.data:
         deprecated_data_source = (data_sources_marker_begin in form.description.data)
     else:
         deprecated_data_source = False
+
     init_form_md5(form)
-    return render_get_method_step_page(eml_node, form, filename,
+    return render_get_method_step_page(eml_node, form, filename, method_step_node,
                                        deprecated_data_source=deprecated_data_source)
 
 
-def render_get_method_step_page(eml_node, form, filename, deprecated_data_source=False):
+def render_get_method_step_page(eml_node, form, filename, method_step_node, deprecated_data_source=False):
     set_current_page('method_step')
+
+    if method_step_node:
+        # Get the tooltip for the status badge
+        init_evaluation(eml_node, filename)
+        tooltip = format_tooltip(method_step_node)
+        node_id = method_step_node.id
+    else:
+        tooltip = ''
+        node_id = ''
+
     help = get_helps(['method_step_description',
                       'method_step_instrumentation',
                       'method_step_data_sources',
                       'deprecated_data_source'])
+
     return render_template('method_step.html', title='Method Step',
                            model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
                            deprecated_data_source=deprecated_data_source,
-                           form=form, filename=filename, help=help)
+                           form=form, filename=filename, help=help,
+                           node_id=node_id, tooltip=tooltip)
 
 
 def populate_method_step_form(form: MethodStepForm, ms_node: Node):
@@ -576,6 +593,10 @@ def data_source(filename, ms_node_id, data_source_node_id):
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
+    if is_hidden_button():
+        new_page = handle_hidden_buttons(PAGE_DATA_SOURCE)
+        return redirect(url_for(new_page, filename=current_document))
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         filename = user_data.get_active_document()
         return redirect(url_for(PAGE_METHOD_STEP, filename=filename, node_id=ms_node_id))
@@ -587,7 +608,8 @@ def data_source(filename, ms_node_id, data_source_node_id):
                 for key, val in request.form.items():
                     if val == BTN_EDIT:
                         rp_type, rp_node_id, data_source_node_id = key.split('|')
-                        return redirect(url_for(PAGE_DATA_SOURCE_PERSONNEL, filename=filename, rp_type=rp_type, rp_node_id=rp_node_id, data_source_node_id=data_source_node_id))
+                        return redirect(url_for(PAGE_DATA_SOURCE_PERSONNEL, filename=filename, rp_type=rp_type, rp_node_id=rp_node_id,
+                                                method_step_node_id=ms_node_id, data_source_node_id=data_source_node_id))
             if BTN_REMOVE in request.form.values():
                 for key, val in request.form.items():
                     if val == BTN_REMOVE:
@@ -601,15 +623,21 @@ def data_source(filename, ms_node_id, data_source_node_id):
                 data_source_node_id = guarantee_data_source_existence(form, filename, ms_node_id, data_source_node_id)
                 return redirect(
                     url_for(PAGE_DATA_SOURCE_PERSONNEL, filename=filename, rp_type='creator', rp_node_id=1,
-                            data_source_node_id=data_source_node_id))
+                            method_step_node_id=ms_node_id, data_source_node_id=data_source_node_id))
             if BTN_ADD_CONTACT in request.form.values():
                 data_source_node_id = guarantee_data_source_existence(form, filename, ms_node_id, data_source_node_id)
                 return redirect(
                     url_for(PAGE_DATA_SOURCE_PERSONNEL, filename=filename, rp_type='contact', rp_node_id=1,
-                            data_source_node_id=data_source_node_id))
+                            method_step_node_id=ms_node_id, data_source_node_id=data_source_node_id))
             if BTN_SAVE_AND_CONTINUE in request.form.values():
                 guarantee_data_source_existence(form, filename, ms_node_id, data_source_node_id)
                 return redirect(url_for(PAGE_METHOD_STEP, filename=filename, node_id=ms_node_id))
+
+    # Get the tooltip for the status badge
+    data_source_node = Node.get_node_instance(data_source_node_id)
+    eml_node = load_eml(filename, skip_metadata_check=True)
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(data_source_node)
 
     # Process GET
     init_form_md5(form)
@@ -620,22 +648,25 @@ def data_source(filename, ms_node_id, data_source_node_id):
 
     return render_template('data_source.html', data_source_node_id=data_source_node_id,
                            creator_list=creator_list, contact_list=contact_list,
-                           form=form, help=help)
+                           form=form, help=help, node_id=data_source_node_id, tooltip=tooltip)
 
 
 def list_responsible_parties(rp_nodes, node_name:str=None):
     rp_list = []
 
     RP_Entry = collections.namedtuple(
-        'RP_Entry', ["rp_node_id", "data_source_node_id", "label", "upval", "downval"],
+        'RP_Entry', ["rp_node_id", "data_source_node_id", "label", "upval", "downval", "tooltip"],
          rename=False)
+    # Note: init_evaluation has been called upstream of this, in data_source()
     for i, rp_node in enumerate(rp_nodes):
         label = compose_rp_label(rp_node)
         rp_node_id = f"{rp_node.id}"
         data_source_node_id = f"{rp_node.parent.id}"
         upval = get_upval(i)
         downval = get_downval(i+1, len(rp_nodes))
-        rp_entry = RP_Entry(rp_node_id=rp_node_id, data_source_node_id=data_source_node_id, label=label, upval=upval, downval=downval)
+        tooltip = format_tooltip(rp_node)
+        rp_entry = RP_Entry(rp_node_id=rp_node_id, data_source_node_id=data_source_node_id, label=label,
+                            upval=upval, downval=downval, tooltip=tooltip)
         rp_list.append(rp_entry)
     return rp_list
 

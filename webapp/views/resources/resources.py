@@ -21,6 +21,7 @@ from webapp.home.utils.create_nodes import create_title, create_data_package_id,
 from webapp.home.utils.hidden_buttons import (
 	is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons, non_saving_hidden_buttons_decorator
 )
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 from webapp.home.forms import is_dirty_form, init_form_md5
 from webapp.views.resources.forms import (
@@ -109,10 +110,14 @@ def title(filename=None):
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, section='title')
+
     set_current_page('title')
     help = get_helps(['title', 'nav', 'welcome', 'badges'])
     first_usage = is_first_usage()  # If this is the first time the user has used ezEML, we'll show the welcome popup.
-    return render_template('title.html', title='Title', form=form, help=help,
+    return render_template('title.html', title='Title', form=form, help=help, tooltip=tooltip,
                            is_first_usage=first_usage)
 
 
@@ -121,6 +126,7 @@ def title(filename=None):
 def data_package_id(filename=None):
     """Handle the page for the Data Package ID item in the Contents menu."""
 
+    form = DataPackageIDForm()
     form = DataPackageIDForm()
 
     # Process POST
@@ -226,11 +232,15 @@ def render_get_abstract_page(form, filename):
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, section='abstract')
+
     set_current_page('abstract')
     help = [get_help('abstract'), get_help('nav')]
     return render_template('abstract.html',
                            title='Abstract', model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
-                           filename=filename, form=form, help=help)
+                           filename=filename, form=form, help=help, tooltip=tooltip)
 
 
 def get_abstract(filename, form):
@@ -298,13 +308,17 @@ def render_get_intellectual_rights_page(form, filename, font_family):
     eml_node=load_eml(filename)
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, section='intellectual_rights')
+
     set_current_page('intellectual_rights')
     help = [get_help('intellectual_rights')]
 
     return render_template('intellectual_rights.html',
                            title='Intellectual Rights', font_family=font_family,
                            model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
-                           filename=filename, form=form, help=help)
+                           filename=filename, form=form, help=help, tooltip=tooltip)
 
 
 def get_intellectual_rights(filename, form):
@@ -381,12 +395,16 @@ def keyword_select_get(filename=None, form=None):
     if eml_node:
         kw_list = list_keywords(eml_node)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, section='keyword')
+
     set_current_page('keyword')
     help = [get_help('keywords')]
     return render_template('keyword_select.html', title=title,
                            filename=filename,
                            kw_list=kw_list,
-                           form=form, help=help)
+                           form=form, help=help, tooltip=tooltip)
 
 
 def keyword_select_post(filename=None, form=None, form_dict=None,

@@ -45,6 +45,7 @@ from webapp.buttons import *
 from webapp.pages import *
 from metapype.eml import names
 from metapype.model.node import Node
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 
 proj_bp = Blueprint('proj', __name__, template_folder='templates')
@@ -141,10 +142,17 @@ def project(filename=None, project_node_id=None):
 
     init_form_md5(form)
 
-    return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id)
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    if project_node_id is None:
+        project_node = dataset_node.find_child(names.PROJECT)
+        project_node_id = project_node.id
+    tooltip = format_tooltip(project_node, section='project')
+
+    return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id, tooltip)
 
 
-def render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id):
+def render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id, tooltip):
     set_current_page('project')
     if not doing_related_project:
         help = [get_help('project'), get_help('project_title'), get_help('project_funding')]
@@ -158,7 +166,9 @@ def render_get_project_page(eml_node, form, filename, doing_related_project, pro
                            filename=filename,
                            model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
                            form=form,
-                           help=help)
+                           help=help,
+                           project_node_id=project_node_id,
+                           tooltip=tooltip)
 
 
 def populate_project_form(form: ProjectForm, project_node: Node):
@@ -556,8 +566,12 @@ def list_related_projects(eml_node):
         related_projects_nodes = project_node.find_all_children(names.RELATED_PROJECT)
         if related_projects_nodes:
             RP_Entry = collections.namedtuple(
-                'RP_Entry', ["id", "label", "upval", "downval"],
+                'RP_Entry', ["id", "label", "upval", "downval", "tooltip"],
                 rename=False)
+
+            current_document = current_user.get_filename()
+            init_evaluation(eml_node, current_document)
+
             for i, rp_node in enumerate(related_projects_nodes):
                 title_node = rp_node.find_child(names.TITLE)
                 if not title_node:
@@ -566,6 +580,7 @@ def list_related_projects(eml_node):
                 id = rp_node.id
                 upval = get_upval(i)
                 downval = get_downval(i + 1, len(related_projects_nodes))
-                rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval)
+                tooltip = format_tooltip(rp_node)
+                rp_entry = RP_Entry(id=id, label=label, upval=upval, downval=downval, tooltip=tooltip)
                 related_projects.append(rp_entry)
     return related_projects

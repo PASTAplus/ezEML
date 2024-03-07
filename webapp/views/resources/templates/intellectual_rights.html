@@ -7,10 +7,15 @@
     {% set help_intellectual_rights_dialog = help_intellectual_rights_id ~ '_dialog' %}
     
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'intellectual_rights_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Intellectual Rights</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_intellectual_rights_btn) }}</td>
     </table>
-{#    <div class="row">#}
+
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 <h5>Choose from one of the intellectual rights options shown below:</h5>
@@ -52,4 +57,7 @@
     <script>
         {{ macros.check_xml_btn_handler('#check_xml', '#intellectual_rights', 'intellectualRights') }}
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

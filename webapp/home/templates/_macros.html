@@ -210,7 +210,7 @@
 {% macro contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) %}
                             {% set badge_status = badge + '_status' %}
                             {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
-                                {% set url_string = '/eml/check_metadata#' + badge %}
+                                {% set url_string = '/eml/check_metadata?' + badge %}
                                 <a class="no-underline" href="{{ url_string }}">
                             {% endif %}
                             <div class="{{ session[badge_status] }}_circle nav_link" title="Click for errors/warnings" style="margin-right: 3px;"></div>

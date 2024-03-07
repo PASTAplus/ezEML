@@ -16,9 +16,16 @@
     {% set help_bounding_altitudes_dialog = help_bounding_altitudes_id ~ '_dialog' %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = node_id %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Geographic Coverage</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
     </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
@@ -126,4 +133,7 @@
         {{ macros.help_script(help_bounding_altitudes_dialog, help_bounding_altitudes_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

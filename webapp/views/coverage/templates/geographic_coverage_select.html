@@ -12,10 +12,15 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'geographic_coverage_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Geographic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
     </table>
-{#    <div class="row">#}
+
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}

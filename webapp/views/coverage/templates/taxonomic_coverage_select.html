@@ -12,6 +12,14 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'taxonomic_coverage_status' %}
+        {% if session[node_status] != 'white' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%">
+        {% endif %}
+        </td>
         <td><h2>Taxonomic Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_taxonomic_coverage_btn) }}</td>
     </table>

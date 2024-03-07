@@ -15,7 +15,15 @@
     {% set help_badges_btn = help_badges_id ~ '_btn' %}
     {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
 
-    <h2>Title</h2>
+    <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'title_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td><h2>Title</h2></td>
+    </table>
+
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter a title for the data package:</h5>
@@ -107,4 +115,7 @@
         }
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

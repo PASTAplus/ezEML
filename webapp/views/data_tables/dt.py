@@ -289,6 +289,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
     atts = 'No data table attributes have been added'
 
     was_uploaded = False
+    init_evaluation(eml_node, filename)
     tooltip = ''
     if dt_node_id != '1':
         # Editing an existing data table, so we need to populate the form with the existing values.
@@ -308,7 +309,6 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
                             populate_data_table_form(form, dt_node)
 
                             # Get the tooltip for the status badge
-                            init_evaluation(eml_node, filename)
                             tooltip = format_tooltip(dt_node)
 
                             object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
@@ -650,7 +650,9 @@ def attribute_select(filename=None, dt_node_id=None):
         """
         Helper function to handle selection of an attribute to edit or change variable type.
         """
-        load_eml(filename)
+        eml_node = load_eml(filename)
+        init_evaluation(eml_node, filename)
+
         node_id = ''
         new_page = ''
         mscale = ''
@@ -773,7 +775,8 @@ def attribute_select(filename=None, dt_node_id=None):
         title = 'Attributes'
         entity_name = ''
         was_uploaded = False
-        load_eml(filename=filename)
+        eml_node = load_eml(filename=filename)
+        init_evaluation(eml_node, filename)
 
         if dt_node_id != '1':
             data_table_node = Node.get_node_instance(dt_node_id)

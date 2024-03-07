@@ -23,13 +23,18 @@
                     {% for att_entry in att_list %}
                     <tr>
                         <td width="5%">{{ att_entry.column_number }}</td>
-                        <td width="30%" style="white-space:pre;">{{ att_entry.label }}</td>
+                        <td width="30%">
+                        {% set node_id = att_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], att_entry.tooltip) }}
+                        {{ att_entry.label }}
+                        </td>
                         <td width="15%">{{ att_entry.mscale }}</td>
                         {% if not was_uploaded %}
                             {{ macros.up_down_arrow(att_entry.id, att_entry.upval) }}
                             {{ macros.up_down_arrow(att_entry.id, att_entry.downval) }}
                         {% endif %}
-                        <td width="45%">
+                        <td width="50%">
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Edit Properties"/>
                             {% if not was_uploaded %}
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Remove"/>
@@ -68,4 +73,7 @@
         {{ macros.help_script(help_measurement_scale_dialog, help_measurement_scale_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

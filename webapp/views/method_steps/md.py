@@ -245,7 +245,7 @@ def method_step(filename=None, node_id=None):
             populate_method_step_form(form, method_step_node)
     else:
         method_step_node = None
-        
+
     if form.description.data:
         deprecated_data_source = (data_sources_marker_begin in form.description.data)
     else:

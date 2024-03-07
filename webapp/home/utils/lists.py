@@ -290,7 +290,7 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
             att_nodes = attribute_list_node.find_all_children(names.ATTRIBUTE)
             ATT_Entry = collections.namedtuple(
                 'ATT_Entry',
-                ["id", "column_number", "label", "mscale", "upval", "downval"],
+                ["id", "column_number", "label", "mscale", "upval", "downval", "tooltip"],
                  rename=False)
             for i, att_node in enumerate(att_nodes):
                 id = att_node.id
@@ -299,12 +299,14 @@ def list_attributes(data_table_node:Node=None, caller:str=None, dt_node_id:str=N
                 mscale = compose_attribute_mscale(att_node)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(att_nodes))
+                tooltip = format_tooltip(att_node)
                 att_entry = ATT_Entry(id=id,
                                       column_number=column_number,
                                       label=label,
                                       mscale=mscale,
                                       upval=upval,
-                                      downval=downval)
+                                      downval=downval,
+                                      tooltip=tooltip)
                 att_list.append(att_entry)
 
     if Config.LOG_DEBUG:

@@ -236,7 +236,13 @@ def compose_funding_award_label(award_node:Node=None):
     funder_name_node = award_node.find_child(names.FUNDERNAME)
     if funder_name_node:
         funder_name = funder_name_node.content
-    return f'{title}: {funder_name}'
+    award_number = ''
+    award_number_node = award_node.find_child(names.AWARDNUMBER)
+    if award_number_node:
+        award_number = award_number_node.content
+        if award_number:
+            award_number = f' ({award_number})'
+    return f'{title}: {funder_name}{award_number}'
 
 
 def compose_project_label(project_node:Node=None):

@@ -242,7 +242,7 @@ def compose_funding_award_label(award_node:Node=None):
         award_number = award_number_node.content
         if award_number:
             award_number = f' ({award_number})'
-    return f'{title}: {funder_name}{award_number}'
+    return f'{title}{award_number}'
 
 
 def compose_project_label(project_node:Node=None):

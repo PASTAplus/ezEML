@@ -3157,8 +3157,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
     except Exception as e:
         flash(e, 'error')
 
-    help = get_helps(['import_xml_3'])
-    return render_template('fetch_xml_3.html', package_links=package_links, form=form, help=help)
+    flash(f"Metadata for {package_name} was imported without errors")
+    return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=True))
 
 
 @home_bp.route('/preview_data_portal', methods=['GET', 'POST'])

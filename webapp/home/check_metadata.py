@@ -375,8 +375,10 @@ def check_creators(eml_node, doc_name, validation_errs=None, evaluation_warnings
     else:
         # In the data_source case, the eml_node passed in is the data source node
         data_source_node = eml_node
+        # We'll need the eml_node below, however
+        eml_node = data_source_node.get_ancestry()[0]
         data_source_node_id = data_source_node.id
-        ms_node = eml_node.parent
+        ms_node = data_source_node.parent
         link = url_for(PAGE_DATA_SOURCE,
                        filename=doc_name,
                        ms_node_id=ms_node.id,
@@ -815,8 +817,10 @@ def check_contacts(eml_node, doc_name, validation_errs=None, evaluation_warnings
     else:
         # In the data_source case, the eml_node passed in is the data source node
         data_source_node = eml_node
+        # We'll need the eml_node below, however
+        eml_node = data_source_node.get_ancestry()[0]
         data_source_node_id = data_source_node.id
-        ms_node = eml_node.parent
+        ms_node = data_source_node.parent
         link = url_for(PAGE_DATA_SOURCE,
                        filename=doc_name,
                        ms_node_id=ms_node.id,

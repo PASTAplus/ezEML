@@ -793,6 +793,7 @@ def get_back_url(success=False):
 @home_bp.route('/about')
 def about():
     """Handle the About page."""
+    reload_metadata()
     return render_template('about.html', back_url=get_back_url(), title='About')
 
 
@@ -804,12 +805,14 @@ def user_guide():
     Logging usage of User Guide is done via AJAX endpoint log_user_guide_usage, which is invoked when
     one of the chapter links is clicked.
     """
+    reload_metadata()
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
 @home_bp.route('/news')
 def news():
     """Handle the News page."""
+    reload_metadata()
     return render_template('news.html', back_url=get_back_url(), title="What's New")
 
 
@@ -3547,8 +3550,9 @@ def load_entity(node_id=None):
     """
 
     form = LoadOtherEntityForm()
-    document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
+
+    document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -3571,7 +3575,6 @@ def load_entity(node_id=None):
                 flash('No selected file', 'error')
             else:
                 # Make sure we don't already have a data table or other entity with this name
-                eml_node = load_eml(filename=document)
                 if not data_filename_is_unique(eml_node, filename):
                     flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
                     return redirect(request.url)

@@ -17,7 +17,7 @@ from enum import Enum
 import hashlib
 import os
 import pickle
-
+from urllib.parse import urlparse, urlunparse
 from dataclasses import dataclass
 
 from flask import (
@@ -382,15 +382,15 @@ def check_creators(eml_node, doc_name, validation_errs=None, evaluation_warnings
                        ms_node_id=ms_node.id,
                        data_source_node_id=data_source_node.id)
 
+    dataset_node = eml_node.find_child(names.DATASET)
     if validation_errs is None:
         if not is_data_source:
-            dataset_node = eml_node.find_child(names.DATASET)
             validation_errs = validate_via_metapype(dataset_node)
         else:
             validation_errs = validate_via_metapype(data_source_node)
 
     if find_min_unmet(validation_errs, names.DATASET if not is_data_source else names.DATASOURCE, names.CREATOR,
-                      data_source_node_id=data_source_node.id if is_data_source else None):
+                      data_source_node_id=data_source_node.id if is_data_source else None) or len(dataset_node.children) == 0:
         add_to_evaluation(eval_code('creators_01', is_data_source), link)
     if not is_data_source:
         creator_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR])
@@ -822,11 +822,11 @@ def check_contacts(eml_node, doc_name, validation_errs=None, evaluation_warnings
                        ms_node_id=ms_node.id,
                        data_source_node_id=data_source_node.id)
 
+    dataset_node = eml_node.find_child(names.DATASET)
     if validation_errs is None:
-        dataset_node = eml_node.find_child(names.DATASET)
         validation_errs = validate_via_metapype(dataset_node)
     if find_min_unmet(validation_errs, names.DATASET if not is_data_source else names.DATASOURCE, names.CONTACT,
-                      data_source_node_id=data_source_node.id if is_data_source else None):
+                      data_source_node_id=data_source_node.id if is_data_source else None) or len(dataset_node.children) == 0:
         add_to_evaluation(eval_code('contacts_01', is_data_source), link=link)
     if not is_data_source:
         contact_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT])
@@ -1499,6 +1499,9 @@ def set_session_info(evaluation, eml_node):
         Returns:
           A list of node ids found in the link.
         """
+         # Get rid of any query string
+        parsed = urlparse(link)
+        link = urlunparse(parsed._replace(query=''))
         substrs = link.split('/')
         node_ids = []
         for substr in substrs:

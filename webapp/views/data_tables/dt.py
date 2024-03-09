@@ -446,7 +446,7 @@ def load_data(filename=None):
     filename = None
 
     form = LoadDataForm()
-    document = current_user.get_filename()
+    document, eml_node = views.reload_metadata()  # So check_metadata status is correct
     uploads_folder = user_data.get_document_uploads_folder_name()
 
     # Process POST

@@ -66,7 +66,8 @@ from webapp.pages import *
 
 from webapp.home.views import (
     select_post, compare_begin_end_dates, get_help, get_helps, set_current_page,
-    secure_filename, allowed_data_file, encode_for_query_string, decode_from_query_string
+    secure_filename, allowed_data_file, encode_for_query_string, decode_from_query_string,
+    reload_metadata
 )
 from webapp.home.log_usage import (
     actions,
@@ -247,6 +248,7 @@ def load_geo_coverage(filename):
                 return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
 
     # Process GET
+    reload_metadata()  # So check_metadata status is correct
     help = [get_help('geographic_coverages_csv_file')]
     return render_template('load_geo_coverage.html',
                            form=form,
@@ -714,7 +716,7 @@ def load_taxonomic_coverage(filename):
                 global_authority)
 
     form = LoadTaxonomicCoverageForm()
-    document = current_user.get_filename()
+    document, eml_node = reload_metadata()
     uploads_folder = get_document_uploads_folder_name()
 
     # Process POST
@@ -813,6 +815,7 @@ def load_taxonomic_coverage_2():
         pass
     shutil.rmtree(work_path, ignore_errors=True)
 
+    reload_metadata()
     return render_template('load_taxonomic_coverage_2.html',
                            errors=errors)
 

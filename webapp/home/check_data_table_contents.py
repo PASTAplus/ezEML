@@ -385,7 +385,7 @@ def match_with_regex(col_values, regex, mvc, empty_is_ok=True):
     if empty_is_ok:
         regex = '$|' + regex
     regex = f"^{regex}$"
-    matches = col_values.str.contains(regex)
+    matches = col_values.str.match(regex)
     return matches
 
 

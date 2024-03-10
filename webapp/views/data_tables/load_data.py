@@ -807,7 +807,7 @@ def get_column_properties(eml_node, document, dt_node, object_name):
     """
     data_file = object_name
     # If we have already uploaded this file, we can get the column properties from the user data.
-    column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(data_file)
+    column_vartypes, *_ = user_data.get_uploaded_table_column_properties(data_file)
     if column_vartypes:
         return column_vartypes
 
@@ -891,7 +891,7 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     old_object_name = old_object_name_node.content
     if not old_object_name:
         raise exceptions.InternalError('Internal error 102')
-    old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
+    old_column_vartypes, *_ = user_data.get_uploaded_table_column_properties(old_object_name)
     if not old_column_vartypes:
         # column properties weren't saved. compute them anew.
         eml_node = webapp.home.utils.load_and_save.load_eml(filename=document)
@@ -1020,6 +1020,10 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         flash(f'Data table has an error: {err.message}', 'error')
         return redirect(request.url)
 
+    except Exception as err:
+        flash(f'Data table has an error: {err.message}', 'error')
+        return redirect(request.url)
+
     flash(f"Loaded {data_file}")
 
     dt_node.parent = dataset_node
@@ -1144,7 +1148,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cod
     #   the metadata as needed. We don't want to lose things like column definitions that have been entered by the user.
 
     if not doing_xml_import:
-        _, old_column_names, old_column_codes = user_data.get_uploaded_table_column_properties(old_object_name)
+        _, old_column_names, old_column_codes, *_ = user_data.get_uploaded_table_column_properties(old_object_name)
         if not old_column_names:
             old_column_names = []
         if not old_column_codes:

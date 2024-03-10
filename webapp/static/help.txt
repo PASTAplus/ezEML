@@ -1221,7 +1221,7 @@ Color Key for Badges in ezEML
 
 In the <b>Contents</b> menu on the left, and in various other places in ezEML, you'll see round colored "badges." These badges indicate the presence of errors (<span style="color:red;font-weight:bold;">red</span>) or warnings (<span style="color:orange;font-weight:bold;">yellow</span>), or their absence (<span style="color:mediumseagreen;font-weight:bold;">green</span>).
 
-The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the errors/warnings to be displayed. For green badges, there's nothing to display, so they're not clickable.
+The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the relevant errors/warnings to be displayed. For green badges, there's nothing to display, so they're not clickable.
 <p>&nbsp;</p>
 
 <table style="width:100%;border 1px solid;">

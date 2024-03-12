@@ -183,6 +183,8 @@ def load_eml(filename:str=None,
     lock = None
     if not do_not_lock:
         try:
+            if not owner_login:
+                owner_login = user_data.get_active_document_owner_login()
             lock = user_data.is_document_locked(filename, owner_login=owner_login)
         except Exception as e:
             # Log the exception and re-raise it to be handled in webapp/errors/handler.py.
@@ -737,6 +739,9 @@ def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=Non
     fixup_categorical_variables(eml_node)
     fixup_field_delimiters(eml_node)
     create_nodes.add_eml_editor_metadata(eml_node)
+
+    if not owner_login:
+        owner_login = user_data.get_active_document_owner_login()
     save_eml(filename=filename, eml_node=eml_node, format='json', owner_login=owner_login)
     save_eml(filename=filename, eml_node=eml_node, format='xml', owner_login=owner_login)
 

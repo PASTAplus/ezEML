@@ -521,7 +521,9 @@ def clean_model(eml_node):
                 object_name = object_name_node.content
                 if object_name:
                     old_content = format_name_node.content
-                    format_name_node.content = load_data.format_name_from_data_file(object_name)
+                    new_content = load_data.format_name_from_data_file(object_name)
+                    if new_content:
+                        format_name_node.content = new_content
                     if old_content != format_name_node.content:
                         changed = True
     if changed:
@@ -585,7 +587,9 @@ def fixup_eml_namespaces_on_import(eml_node):
     """
 
     def fix_node(node, nsmap):
-        node.nsmap = nsmap
+        for prefix, uri in nsmap.items():
+            if prefix in ['eml', 'stmml'] and prefix in nsmap:
+                node.nsmap[prefix] = nsmap[prefix]
         for child in node.children:
             fix_node(child, nsmap)
         return node

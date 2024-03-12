@@ -489,7 +489,7 @@ def data_table_errors(data_table_name:str=None):
     row_errs, column_errs, has_blanks = check_data_table_contents.generate_error_info_for_webpage(data_table_node, errors)
     collapsed_errors = check_data_table_contents.collapse_error_info_for_webpage(row_errs, column_errs)
 
-    check_data_table_contents.save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
+    check_data_table_contents.save_data_file_eval(eml_node, current_document, csv_filename, metadata_hash, errors)
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
     help = get_helps(['data_table_errors'])
     return render_template('data_table_errors.html',
@@ -3566,16 +3566,16 @@ def load_entity(node_id=None):
 
         file = request.files['file']
         if file:
-            # TODO: Possibly reconsider whether to use secure_filename in the future. It would require
-            #  separately keeping track of the original filename and the possibly modified filename.
-            # filename = secure_filename(file.filename)
             filename = file.filename
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
             else:
+                doing_reupload = node_id is not None and node_id != '1'
+                eml_node = load_eml(filename=document)
+
                 # Make sure we don't already have a data table or other entity with this name
-                if not data_filename_is_unique(eml_node, filename):
+                if not data_filename_is_unique(eml_node, filename, node_id):
                     flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
                     return redirect(request.url)
 
@@ -3583,11 +3583,9 @@ def load_entity(node_id=None):
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {data_file}')
-                eml_node = load_eml(filename=document)
                 dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file, node_id=node_id)
 
-                doing_reupload = node_id is not None and node_id != '1'
                 if not doing_reupload:
                     log_usage(actions['LOAD_OTHER_ENTITY'], data_file)
                 else:
@@ -3919,7 +3917,7 @@ def import_temporal_coverage_2(filename):
 def submit_package(filename=None, success=None):
     """Handle the former version of Submit to EDI page. Not currently used."""
 
-    raise DeprecatedCodeError('sbmit_package()')
+    raise DeprecatedCodeError('submit_package()')
 
     def submit_package_mail_body(name=None, email_address=None, archive_name=None, encoded_url=None,
                                  encoded_url_without_data=None, notes=None):

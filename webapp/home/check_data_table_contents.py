@@ -168,6 +168,23 @@ def find_data_table_node(eml_node, data_table_name):
     raise ValueError(f'Data table "{data_table_name}" not found in EML')
 
 
+def find_data_table_node_by_csv_filename(eml_node, csv_filename):
+    """
+    Find the data table node in an EML document, based on its csv filename. If there are multiple data tables with the same
+    name, raise ValueError. Likewise, if the named table is not found in the EML, raise ValueError.
+    """
+    data_table_nodes = []
+    names_found = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    for data_table_node in data_table_nodes:
+        name_found = get_data_table_filename(data_table_node)
+        if name_found in names_found:
+            raise ValueError(f'Duplicate data table "{name_found}" found in EML')
+        if name_found == csv_filename:
+            return data_table_node
+    raise ValueError(f'Data table "{csv_filename}" not found in EML')
+
+
 def get_attribute_name(attribute_node):
     """
     Get the name of an attribute (column) from an attribute node. If attribute_node doesn't have an
@@ -368,7 +385,7 @@ def match_with_regex(col_values, regex, mvc, empty_is_ok=True):
     if empty_is_ok:
         regex = '$|' + regex
     regex = f"^{regex}$"
-    matches = col_values.str.contains(regex)
+    matches = col_values.str.match(regex)
     return matches
 
 
@@ -622,8 +639,7 @@ def check_data_table(eml_file_url:str=None,
               f'only the first {max_rows:,} rows. Often this suffices to indicate the kinds of errors that are present.\nThe full '
               f'file will be checked when you submit the data package to the EDI repository.', 'warning')
 
-    log_info('After loading the data table')
-    log_available_memory()
+    log_available_memory('After loading the data table')
 
     data_table_node = find_data_table_node(eml_node, data_table_name)
     errors, data_table_column_names, metadata_column_names = check_columns_existence_against_metadata(data_table_node, df)
@@ -665,8 +681,7 @@ def check_data_table(eml_file_url:str=None,
             errors.extend(new_errors)
         end = datetime.now()
         elapsed = (end - start).total_seconds()
-        log_info(f'After checking column: {column_name}... elapsed time: {elapsed:.1f} seconds')
-        log_available_memory()
+        log_available_memory(f'After checking column: {column_name}... elapsed time: {elapsed:.1f} seconds')
 
     results = create_result_json(eml_file_url, csv_file_url, columns_checked, errors, max_errs_per_column)
 
@@ -674,8 +689,7 @@ def check_data_table(eml_file_url:str=None,
         flash('Only partial results are shown below because the number of errors has exceeded the maximum allowed.\n' \
               'To find additional errors, correct the errors shown below, re-upload the table, and run the check again.')
 
-    log_info(f'After creating result JSON')
-    log_available_memory()
+    log_available_memory(f'After creating result JSON')
 
     return results
 
@@ -874,9 +888,8 @@ def get_eml_external_url(document_name):
     return f"{parsed_url.scheme}://{parsed_url.netloc}/{path}"
 
 
-def get_csv_external_url(document_name, data_table_node):
+def get_csv_external_url(document_name, csv_file_name):
     """ Return the CSV's URL for use in the explore data tables code. """
-    csv_file_name = get_data_table_filename(data_table_node)
     parsed_url = urllib.parse.urlparse(request.base_url)
     uploads = 'uploads'
     path = f"{os.path.join(user_data.get_user_download_folder_name(), uploads, urllib.parse.quote(document_name), urllib.parse.quote(csv_file_name))}"
@@ -965,7 +978,30 @@ def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
 #     pass
 
 
-def reset_data_file_eval_status(document_name, csv_file_name):
+def flush_dex_cache(eml_node, current_document, csv_file_name):
+    log_info(f"flush_dex_cache: {current_document}, {csv_file_name}")
+    eml_url = get_eml_external_url(current_document)
+    if csv_file_exists(current_document, csv_file_name):
+        csv_url = get_csv_external_url(current_document, csv_file_name)
+    else:
+        csv_url = ''
+    data_table_node = find_data_table_node_by_csv_filename(eml_node, csv_file_name)
+    dist_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
+    dist_url = dist_url_node.content if dist_url_node else ''
+    if eml_url and csv_url and dist_url:
+        dex_url = Config.DEX_BASE_URL + '/dex/api/preview'
+        data = {
+            'eml': eml_url,
+            'csv': csv_url,
+            'dist': dist_url
+        }
+        headers = {'Content-Type': 'application/json'}
+        response = requests.delete(dex_url, headers=headers, json=data)
+        if response.status_code != 200:
+            log_error(f"flush_dex_cache: {response.status_code}, {response.text}")
+
+
+def reset_data_file_eval_status(eml_node, document_name, csv_file_name):
     """ Reset the data table to unevaluated state, for example because a Reupload has been done. """
 
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
@@ -979,11 +1015,13 @@ def reset_data_file_eval_status(document_name, csv_file_name):
     for filepath in filelist:
         os.remove(filepath)
 
+    flush_dex_cache(eml_node, document_name, csv_file_name)
 
-def save_data_file_eval(document_name, csv_file_name, metadata_hash, errors):
+
+def save_data_file_eval(eml_node, document_name, csv_file_name, metadata_hash, errors):
     """ Save the results of the data table evaluation. """
 
-    reset_data_file_eval_status(document_name, csv_file_name)
+    reset_data_file_eval_status(eml_node, document_name, csv_file_name)
     archive_filepath, ok_filepath, wildcard_filepath, ok_wildcard_filepath = \
         get_csv_errors_archive_filepath(document_name, csv_file_name, metadata_hash)
     errs_obj = json.loads(errors)
@@ -1053,7 +1091,7 @@ def check_all_tables(current_document, eml_node):
         row_errs, column_errs, has_blanks = generate_error_info_for_webpage(data_table_node, errors)
         collapsed_errors = collapse_error_info_for_webpage(row_errs, column_errs)
 
-        save_data_file_eval(current_document, csv_filename, metadata_hash, errors)
+        save_data_file_eval(eml_node, current_document, csv_filename, metadata_hash, errors)
         set_check_data_tables_badge_status(current_document, eml_node)
 
     if not check_all_table_headers(current_document, eml_node):
@@ -1140,11 +1178,6 @@ def create_explore_data_tables_page_content(current_document, eml_node):
       body: JSON.stringify(data),
     };
     
-    //alert(dexBaseUrl);
-    //alert(data.eml);
-    //alert(data.csv);
-    //alert(data.dist);
-
     fetch(`${dexBaseUrl}/dex/api/preview`, options)
         .then(response => {
           return response.text()
@@ -1157,6 +1190,8 @@ def create_explore_data_tables_page_content(current_document, eml_node):
     ;
   });
         """
+        if not dist_url:
+            return "Distribution URL missing", ''
         script = script.replace('__OPEN-DEX-ID__', id).replace('__DEX-BASE-URL__', dex_base_url)\
             .replace('__EML-URL__', eml_file_url).replace('__CSV-URL__', csv_file_url).replace('__DIST-URL__', dist_url)
         return link, script
@@ -1169,7 +1204,7 @@ def create_explore_data_tables_page_content(current_document, eml_node):
         data_table_name = get_data_table_name(data_table_node)
         csv_file_name = get_data_table_filename(data_table_node)
         if csv_file_exists(current_document, csv_file_name):
-            csv_url = get_csv_external_url(current_document, data_table_node)
+            csv_url = get_csv_external_url(current_document, csv_file_name)
             action, script = create_output_for_data_table(eml_node, eml_url, csv_url, data_table_node)
         else:
             action = 'CSV file missing. Upload via the Data Tables page.'

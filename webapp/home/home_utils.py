@@ -14,7 +14,7 @@ from webapp.config import Config
 
 from metapype.model.node import Node
 
-RELEASE_NUMBER = '2024.02.19'
+RELEASE_NUMBER = '2024.02.21'
 
 
 def extract_caller_module_name():
@@ -71,12 +71,14 @@ def get_check_metadata_status(eml_node:Node=None, filename:str=None):
     return status
 
 
-def log_available_memory():
+def log_available_memory(msg:str=None):
     """
     Log the available system memory.
     """
     if not Config.LOG_MEMORY_USAGE:
         return
+    if msg:
+        log_info(msg)
     available_memory = psutil.virtual_memory().available / 1024 / 1024
     process_usage = psutil.Process().memory_info().rss / 1024 / 1024
     log_info(f"Memory usage:   available system memory:{available_memory:.1f} MB   process usage:{process_usage:.1f} MB")
@@ -160,7 +162,7 @@ def profile_and_save(func, *args, **kwargs):
         # Save the results to a file
         with open('memory_profile.txt', 'a') as file:
             sys.stdout = file
-            file.write(f"*********** Summary of memory usage: {func_name} ***********\n")
+            file.write(f"*********** Summary of memory usage: ***********\n")
             summary.print_(diff)
             file.write("*********** End of summary ***********\n")
 

@@ -90,7 +90,7 @@ def format_name_from_data_file(filename: str = ''):
         else:
             return os.path.splitext(filename)[1] # use the file extension
     else:
-        return ''
+        return None
 
 
 # def is_datetime_column(col: str = None):
@@ -643,6 +643,7 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     if doing_reupload:
         other_entity_node = Node.get_node_instance(node_id)
         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
+        object_name_node.content = data_file
     else:
         other_entity_node = new_child_node(names.OTHERENTITY, parent=dataset_node)
 
@@ -665,18 +666,22 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
         size_node = other_entity_node.find_descendant(names.SIZE)
         if size_node is None:
             size_node = new_child_node(names.SIZE,
-                                                                    parent=physical_node,
-                                                                    content=str(file_size),
-                                                                    attribute=('unit', 'byte'))
+                                       parent=physical_node,
+                                       content=str(file_size),
+                                       attribute=('unit', 'byte'))
+        else:
+            size_node.content = str(file_size)
 
     md5_hash = get_md5_hash(full_path)
     if md5_hash is not None:
         hash_node = physical_node.find_descendant(names.AUTHENTICATION)
         if hash_node is None:
             hash_node = new_child_node(names.AUTHENTICATION,
-                                                                    parent=physical_node,
-                                                                    content=str(md5_hash),
-                                                                    attribute=('method', 'MD5'))
+                                       parent=physical_node,
+                                       content=str(md5_hash),
+                                       attribute=('method', 'MD5'))
+        else:
+            hash_node.content = str(md5_hash)
 
     data_format_node = physical_node.find_descendant(names.DATAFORMAT)
     if data_format_node is None:
@@ -689,8 +694,8 @@ def load_other_entity(dataset_node: Node = None, uploads_path: str = None, data_
     externally_defined_format_node = new_child_node(names.EXTERNALLYDEFINEDFORMAT, parent=data_format_node)
 
     format_name_node = new_child_node(names.FORMATNAME,
-                                                                   parent=externally_defined_format_node,
-                                                                   content=format_name_from_data_file(data_file))
+                                      parent=externally_defined_format_node,
+                                      content=format_name_from_data_file(data_file))
 
     if not doing_reupload:
         entity_type_node = new_child_node(names.ENTITYTYPE, parent=other_entity_node)
@@ -723,29 +728,42 @@ def cull_data_files(data_folder: str = None):
                 print(e)
 
 
-def data_filename_is_unique(eml_node, data_filename):
+def data_filename_is_unique(eml_node, data_filename, node_id=None):
     """
     Check if the data filename is unique across both data tables and other entities. Uniqueness is required.
+    If we're reuploading a file, we need to allow the same file to be uploaded again. This is the case when
+    node_id is not None and not '1', in which case we allow the name to be the same as the name in that node.
     """
+    if node_id is not None and node_id != '1':
+        # node_id points to a data table or other entity node that we're reuploading. We need to allow the same name.
+        existing_node = Node.get_node_instance(node_id)
+    else:
+        existing_node = None
+
     data_entity_name, _ = os.path.splitext(os.path.basename(data_filename))
     data_table_nodes = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     for data_table_node in data_table_nodes:
         entity_name_node = data_table_node.find_child(names.ENTITYNAME)
         if entity_name_node and entity_name_node.content == data_entity_name:
-            return False
+            if existing_node is None or data_table_node is not existing_node:
+                return False
         object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
         if object_name_node and object_name_node.content == data_filename:
-            return False
+            if existing_node is None or data_table_node is not existing_node:
+                return False
+
     other_entity_nodes = []
     eml_node.find_all_descendants(names.OTHERENTITY, other_entity_nodes)
     for other_entity_node in other_entity_nodes:
         entity_name_node = other_entity_node.find_child(names.ENTITYNAME)
         if entity_name_node and entity_name_node.content == data_entity_name:
-            return False
+            if existing_node is None or other_entity_node is not existing_node:
+                return False
         object_name_node = other_entity_node.find_descendant(names.OBJECTNAME)
         if object_name_node and object_name_node.content == data_filename:
-            return False
+            if existing_node is None or other_entity_node is not existing_node:
+                return False
     return True
 
 
@@ -789,7 +807,7 @@ def get_column_properties(eml_node, document, dt_node, object_name):
     """
     data_file = object_name
     # If we have already uploaded this file, we can get the column properties from the user data.
-    column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(data_file)
+    column_vartypes, *_ = user_data.get_uploaded_table_column_properties(data_file)
     if column_vartypes:
         return column_vartypes
 
@@ -873,7 +891,7 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
     old_object_name = old_object_name_node.content
     if not old_object_name:
         raise exceptions.InternalError('Internal error 102')
-    old_column_vartypes, _, _ = user_data.get_uploaded_table_column_properties(old_object_name)
+    old_column_vartypes, *_ = user_data.get_uploaded_table_column_properties(old_object_name)
     if not old_column_vartypes:
         # column properties weren't saved. compute them anew.
         eml_node = webapp.home.utils.load_and_save.load_eml(filename=document)
@@ -906,6 +924,13 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         dataset_node = new_child_node(names.DATASET, eml_node)
 
     data_file = saved_filename.replace('.ezeml_tmp', '')
+
+    # Make sure we don't already have a data table or other entity with this name
+    if not webapp.views.data_tables.load_data.data_filename_is_unique(eml_node, data_file, node_id=dt_node_id):
+        flash(
+            'The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.',
+            'error')
+        return redirect(request.url)
 
     dt_node = Node.get_node_instance(dt_node_id)
 
@@ -995,6 +1020,10 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         flash(f'Data table has an error: {err.message}', 'error')
         return redirect(request.url)
 
+    except Exception as err:
+        flash(f'Data table has an error: {err.message}', 'error')
+        return redirect(request.url)
+
     flash(f"Loaded {data_file}")
 
     dt_node.parent = dataset_node
@@ -1013,7 +1042,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
     views.clear_distribution_url(dt_node)
     views.insert_upload_urls(document, eml_node)
 
-    check_data_table_contents.reset_data_file_eval_status(document, data_file)
+    check_data_table_contents.reset_data_file_eval_status(eml_node, document, data_file)
     check_data_table_contents.set_check_data_tables_badge_status(document, eml_node)
 
     webapp.home.utils.load_and_save.save_both_formats(filename=document, eml_node=eml_node)
@@ -1119,7 +1148,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cod
     #   the metadata as needed. We don't want to lose things like column definitions that have been entered by the user.
 
     if not doing_xml_import:
-        _, old_column_names, old_column_codes = user_data.get_uploaded_table_column_properties(old_object_name)
+        _, old_column_names, old_column_codes, *_ = user_data.get_uploaded_table_column_properties(old_object_name)
         if not old_column_names:
             old_column_names = []
         if not old_column_codes:

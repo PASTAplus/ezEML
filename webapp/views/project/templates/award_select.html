@@ -22,13 +22,13 @@
                 {{ form.csrf_token }}
                 <table class="table table-striped">
                     <tr>
-                        <th colspan="1">Funder Name</th>
-                        <th colspan="5">Award Title</th>
+                        <th colspan="1">Award Title</th>
+                        <th colspan="5">Award Number</th>
                     </tr>
                     {% for award_entry in award_list %}
                     <tr>
-                        <td width="40%">{{ award_entry.funder_name }}</td>
-                        <td width="40%">{{ award_entry.award_title }}</td>
+                        <td width="60%">{{ award_entry.award_title }}</td>
+                        <td width="20%">{{ award_entry.award_number }}</td>
                         {{ macros.up_down_arrow(award_entry.id, award_entry.upval) }}
                         {{ macros.up_down_arrow(award_entry.id, award_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ award_entry.id }}" type="submit" value="Edit"/></td>

@@ -146,7 +146,10 @@ def project(filename=None, project_node_id=None):
     init_evaluation(eml_node, filename)
     if project_node_id is None:
         project_node = dataset_node.find_child(names.PROJECT)
-        project_node_id = project_node.id
+        if project_node:
+            project_node_id = project_node.id
+        else:
+            project_node_id = None
     tooltip = format_tooltip(project_node, section='project')
 
     return render_get_project_page(eml_node, form, filename, doing_related_project, project_node_id, tooltip)

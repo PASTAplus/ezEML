@@ -38,7 +38,7 @@ data_table_01,Data Tables,Name,ERROR,REQUIRED,A data table <b>Name</b> is requir
 data_table_02,Data Tables,Description,WARNING,RECOMMENDED,A data table <b>Description</b> is highly recommended.,,entity_description
 data_table_03,Data Tables,Data Object Name,ERROR,REQUIRED,A <b>Data Object Name</b> is required.,,object_name
 data_table_04,Data Tables,Columns,ERROR,REQUIRED,A data table is required to have one or more <b>Columns</b>.,
-data_table_05,Data Tables,Data Tables,WARNING,RECOMMENDED,A dataset should contain at least one <b>Data Table</b>.,
+data_table_05,Data Tables,Data Tables,WARNING,RECOMMENDED,A dataset should contain at least one <b>Data Table</b>.,,add_data_table
 data_table_06,Data Tables,Data Table File,ERROR,REQUIRED,A data table has changed since it was uploaded. Please re-upload.
 data_table_07,Data Tables,Data Table File,ERROR,REQUIRED,A data table CSV file is missing. Please re-upload.
 data_table_08,Data Tables,Record Delimiter,ERROR,REQUIRED,<b>Record Delimiter</b> (e.g. \r\n) is required by EDI.,,record_delimiter

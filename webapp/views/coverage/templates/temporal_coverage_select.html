@@ -46,7 +46,7 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Temporal Coverage"/>
+                <input class="btn btn-primary" id="add_coverage" name="1" type="submit" value="Add Temporal Coverage"/>
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}
@@ -82,5 +82,6 @@
     </script>
 
     {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
 
 {% endblock %}

@@ -51,7 +51,7 @@
                 <table>
                     <tr>
                     <td>
-                        <input class="btn btn-primary" name="1" type="submit" value="Add Geographic Coverage"/>&nbsp;&nbsp;
+                        <input class="btn btn-primary" id="add_coverage" name="1" type="submit" value="Add Geographic Coverage"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="2" type="submit" value="Import Geographic Coverage"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="3" type="submit" value="Load Geographic Coverage from CSV File"/></td>
                     <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_geographic_coverage_csv_file_btn) }}</td>
@@ -96,5 +96,6 @@
     </script>
 
     {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
 
 {% endblock %}

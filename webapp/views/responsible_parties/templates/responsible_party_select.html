@@ -36,7 +36,7 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add {{ rp_singular }}"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" id="add_rp" name="1" type="submit" value="Add {{ rp_singular }}"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="1" type="submit" value="Import {{ rp_singular }}"/>
                 <br/><br/>
                 {% if session['current_page'] != 'project' %}
@@ -69,31 +69,6 @@
     </script>
 
     {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
 
-    {#$(document).ready(function() {#}
-    {#    const popups = document.getElementsByClassName('popup');#}
-    {#    for (let i = 0; i < popups.length; i++) {#}
-    {#        const my_popover = new bootstrap.Popover(popups[i], {#}
-    {#            content: "Loading...",#}
-    {#            trigger: 'click focus focusout',#}
-    {#            placement: 'bottom',#}
-    {#            sanitize: false,#}
-    {#            html: true,#}
-    {#            delay: {show: 200, hide: 0},#}
-    {#            container: popups[i],#}
-    {#            title: "",#}
-    {#            dismiss: 'click'#}
-                {#customClass: 'd-inline',#}
-    {#        });#}
-    {#    }#}
-    {##}
-    {#    $(function() {#}
-    {#        $('[data-toggle="popover"]').popover({#}
-    {#            html: true,#}
-    {#            sanitize: false,#}
-    {#            dismiss: 'click'#}
-    {#        })#}
-    {#    })#}
-    {#})#}
-    </script>
 {% endblock %}

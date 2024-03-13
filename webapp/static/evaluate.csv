@@ -2,8 +2,8 @@
 title_01,Title,Title,ERROR,REQUIRED,A dataset <b>Title</b> is required.,,title
 title_02,Title,Title,WARNING,RECOMMENDED,The dataset's <b>Title</b> should be at least five words long. Between 7 and 20 words are recommended.,,title
 title_01_ds,Data Sources,Title,ERROR,REQUIRED,A data source <b>Title</b> is required.,,title
-creators_01,Creators,Creators,ERROR,REQUIRED,At least one dataset <b>Creator</b> is required.,,
-creators_01_ds,Data Sources,Creators,ERROR,REQUIRED,At least one data source <b>Creator</b> is required.,,
+creators_01,Creators,Creators,ERROR,REQUIRED,At least one dataset <b>Creator</b> is required.,,add_rp
+creators_01_ds,Data Sources,Creators,ERROR,REQUIRED,At least one data source <b>Creator</b> is required.,,add_rp
 responsible_party_01,Party,Party,ERROR,REQUIRED,"At least one of <b>Last Name</b>, <b>Organization</b>, or <b>Position Name</b> is required.",,sn
 responsible_party_02,Party,Party,WARNING,RECOMMENDED,An <b>ORCID ID</b> is recommended.,,user_id
 responsible_party_03,Party,Party,ERROR,REQUIRED,A <b>Role</b> is required.,Applies only to parties that require Role.,role
@@ -18,11 +18,11 @@ responsible_party_05_ds,Data Sources,Party,WARNING,RECOMMENDED,An <b>Email</b> a
 responsible_party_06_ds,Data Sources,Party,ERROR,REQUIRED,An <b>Org ID Type</b> is required if an Org ID is provided.,,org_id_type
 abstract_01,Abstract,Abstract,WARNING,RECOMMENDED,A dataset <b>Abstract</b> should be provided.,,abstract
 abstract_02,Abstract,Abstract,WARNING,RECOMMENDED,Consider increasing the length of the dataset's <b>Abstract</b>. 20 or more words is a recommended length.,"Currently, shown if number of words < 20.",abstract
-keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be provided to make the dataset more discoverable.,
-keywords_02,Keywords,Keywords,WARNING,RECOMMENDED,Consider adding more <b>Keywords</b> to make the dataset more discoverable.,
+keywords_01,Keywords,Keywords,WARNING,RECOMMENDED,<b>Keywords</b> should be provided to make the dataset more discoverable.,,add_keyword
+keywords_02,Keywords,Keywords,WARNING,RECOMMENDED,Consider adding more <b>Keywords</b> to make the dataset more discoverable.,,add_keyword
 intellectual_rights_01,Intellectual Rights,Intellectual Rights,WARNING,RECOMMENDED,An <b>Intellectual Rights</b> policy should be specified.,
 coverage_01,Coverage,Coverage,WARNING,RECOMMENDED,"At least one coverage element should be present in a dataset. I.e., at least one of <b>Geographic Coverage</b>, <b>Temporal Coverage</b>, or <b>Taxonomic Coverage</b> should be specified.",
-geographic_coverage_00,Geographic Coverage,Geographic Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Geographic Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular geographic location.",
+geographic_coverage_00,Geographic Coverage,Geographic Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Geographic Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular geographic location.",,add_coverage
 geographic_coverage_01,Geographic Coverage,Geographic Description,ERROR,REQUIRED,<b>Geographic Description</b> is required.,Applies if geographic coverage is present.,geographic_description
 geographic_coverage_02,Geographic Coverage,Bounding Coordinates,ERROR,REQUIRED,<b>Bounding Coordinates</b> are required and must be decimal values.,Applies if geographic coverage is present.,wbc
 geographic_coverage_03,Geographic Coverage,West Bounding Coordinate,ERROR,REQUIRED,<b>West Bounding Coordinate</b> must be a decimal value between -180.0 and +180.0.,,wbc
@@ -33,7 +33,7 @@ geographic_coverage_07,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,If <
 geographic_coverage_08,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,An invalid value was encountered for <b>Altitude Units</b>. See the Help for a list of permitted values.,,aunits
 taxonomic_coverage_01,Taxonomic Coverage,Taxon Rank,ERROR,REQUIRED,Taxon Rank is required,,taxon_rank
 taxonomic_coverage_02,Taxonomic Coverage,Taxon Scientific Name,ERROR,REQUIRED,Taxon Scientific Name is required,,taxon_value
-temporal_coverage_00,Temporal Coverage,Temporal Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Temporal Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular time period.",
+temporal_coverage_00,Temporal Coverage,Temporal Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Temporal Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular time period.",,add_coverage
 data_table_01,Data Tables,Name,ERROR,REQUIRED,A data table <b>Name</b> is required.,,entity_name
 data_table_02,Data Tables,Description,WARNING,RECOMMENDED,A data table <b>Description</b> is highly recommended.,,entity_description
 data_table_03,Data Tables,Data Object Name,ERROR,REQUIRED,A <b>Data Object Name</b> is required.,,object_name
@@ -53,9 +53,9 @@ attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is requi
 attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables,definition
 attributes_07,Data Tables,Explanation,ERROR,REQUIRED,A Missing Value Code <b>Explanation</b> is required.,For Missing Value Codes,code_explanation_1
 attributes_08,Data Tables,DateTime Format,WARNING,RECOMMENDED,The DateTime <b>Format String</b> is not one that is recommended by the EDI data repository. A list of recommended formats is available <b><a href='../datetime_formats'>here</a></b>.,For DateTime variables,format_string
-methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,,code
+methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,,add_ms
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,,description
-methods_03,Methods,Methods,ERROR,REQUIRED,The metadata contains an empty <b>Methods</b> section. EML does not permit a Methods section to be empty.,
+methods_03,Methods,Methods,ERROR,REQUIRED,The metadata contains an empty <b>Methods</b> section. EML does not permit a Methods section to be empty.,,add_ms
 methods_04,Data Sources,Online,ERROR,REQUIRED,If either an <b>Online Description</b> or <b>URL</b> is given for a data source then both are required.,,online_description
 project_01,Project,Project Title,ERROR,REQUIRED,The <b>Project Title</b> is required.,,title
 project_02,Project,Project Personnel,ERROR,REQUIRED,At least one <b>Project Personnel</b> is required.,
@@ -65,8 +65,8 @@ project_05,Project,Award Title,ERROR,REQUIRED,<b>Award Title</b> is required.,,a
 other_entity_01,Other Entities,Name,ERROR,REQUIRED,Entity <b>Name</b> is required.,,entity_name
 other_entity_02,Other Entities,Entity Type,ERROR,REQUIRED,<b>Entity Type</b> is required.,,entity_type
 other_entity_03,Other Entities,Entity Description,WARNING,RECOMMENDED,Entity <b>Description</b> is highly recommended.,,entity_description
-contacts_01,Contacts,Contacts,ERROR,REQUIRED,At least one dataset <b>Contact</b> is required.,
-contacts_01_ds,Data Sources,Contacts,ERROR,REQUIRED,At least one data source <b>Contact</b> is required.,
+contacts_01,Contacts,Contacts,ERROR,REQUIRED,At least one dataset <b>Contact</b> is required.,,add_rp
+contacts_01_ds,Data Sources,Contacts,ERROR,REQUIRED,At least one data source <b>Contact</b> is required.,,add_rp
 maintenance_01,Maintenance,Maintenance,ERROR,REQUIRED,Maintenance <b>Description</b> is required.,,description
 data_package_id_01,Data Package ID,Data Package ID,WARNING,OPTIONAL,A <b>Data Package ID</b> is required by EML but if you are going to submit your data to EDI you may leave it blank and we will provide one.,,data_package_id
 data_package_id_02,Data Package ID,Data Package ID,WARNING,RECOMMENDED,The <b>Data Package ID</b> does not conform to EDI's requirements.,,data_package_id

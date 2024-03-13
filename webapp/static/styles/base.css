@@ -157,3 +157,10 @@ a.no-underline:hover {
 .eval_table tr:hover td {
     background: transparent;
 }
+
+.highlight_error {
+    border: 2px solid red !important;
+}
+.highlight_warning {
+    border: 2px solid orange !important;
+}

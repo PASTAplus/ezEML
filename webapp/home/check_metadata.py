@@ -66,9 +66,25 @@ class EvalEntry:
     explanation: str
     data_table_name: str = None
     link: str = None
+    ui_element_id: str = None
     node: Node = None
 
 severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
+
+
+def annotate_link(eval_entry):
+    parsed = urlparse(eval_entry.link)
+    level = 'error' if eval_entry.severity == EvalSeverity.ERROR else 'warning'
+    ui_element_id = f"{eval_entry.ui_element_id}|{level}"
+    if not parsed.query:
+        eval_entry.link = urlunparse(parsed._replace(query=f'ui_element_id={ui_element_id}'))
+    else:
+        # Append to existing query string
+        existing_query = parsed.query
+        if 'ui_element_id=' in existing_query or not eval_entry.ui_element_id:
+            return
+        new_query = f"{existing_query}&ui_element_id={ui_element_id}"
+        eval_entry.link = urlunparse(parsed._replace(query=new_query))
 
 
 def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None, node=None):
@@ -82,12 +98,16 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
                 vals[0] = section
             if item:
                 vals[1] = item
+            ui_element_id = vals[6] if 6 < len(vals) else None
+            node = vals[7] if 7 < len(vals) else None
             return EvalEntry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
-                             explanation=vals[4], data_table_name=data_table_name, link=link, node=vals[6] if 6 < len(vals) else None)
+                             explanation=vals[4], data_table_name=data_table_name, link=link,
+                             ui_element_id=ui_element_id, node=node)
         except Exception as exc:
             return None
 
     entry = get_eval_entry(id, link, section, item, data_table_name, node)
+    annotate_link(entry)
     if entry:
         evaluation.append(entry)
 
@@ -1064,6 +1084,8 @@ def to_string(evaluation):
 def format_entry(entry: EvalEntry):
     """ Format a single evaluation entry as HTML. """
     output = '<tr>'
+    # if entry.ui_element_id:
+    #     entry.link = f'{entry.link}?ui_element_id={entry.ui_element_id}'
     output += f'<td class="eval_table" valign="top"><a href="{entry.link}">{entry.item}</a></td>'
     output += f'<td class="eval_table" valign="top">{entry.severity.name.title()}</td>'
     output += f'<td class="eval_table" valign="top">{entry.type.name.title()}</td>'
@@ -1101,6 +1123,8 @@ def format_tooltip(node, section=None):
                         tooltip += 'red'
                     else:
                         tooltip += 'yellow'
+                    # if entry.ui_element_id:
+                    #     entry.link = f'{entry.link}?ui_element_id={entry.ui_element_id}'
                     tooltip += f'_circle"></td><td>&nbsp;&nbsp;</td><td><a class="popup link" href="{entry.link}">{entry.explanation.replace(" ", " ")}</a></td></tr>\n'
                     all_ok = False
     if all_ok:

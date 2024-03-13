@@ -1805,6 +1805,10 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(att_node)
+
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
     if mscale == VariableType.CATEGORICAL.name:
@@ -1812,20 +1816,24 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                                title='Categorical Attribute',
                                form=form,
                                attribute_name=attribute_name,
+                               att_node_id=att_node_id,
                                mscale=mscale,
                                codes=codes,
                                column_name=attribute_name,
                                table_name=data_table_name,
-                               help=help)
+                               help=help,
+                               tooltip=tooltip)
     else:
         return render_template('attribute_text.html',
                                title='Text Attribute',
                                form=form,
                                attribute_name=attribute_name,
+                               att_node_id=att_node_id,
                                mscale=mscale,
                                column_name=attribute_name,
                                table_name=data_table_name,
-                               help=help)
+                               help=help,
+                               tooltip=tooltip)
 
 
 def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node: Node = None,
@@ -2024,8 +2032,10 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
             data_table_name = entity_name_node.content
 
     views.set_current_page('data_table')
-    return render_template('code_definition_select.html', title=title,
-                           attribute_name=attribute_name, codes_list=codes_list,
+    return render_template('code_definition_select.html',
+                           title=title,
+                           attribute_name=attribute_name,
+                           codes_list=codes_list,
                            column_name=attribute_name,
                            table_name=data_table_name,
                            form=form)

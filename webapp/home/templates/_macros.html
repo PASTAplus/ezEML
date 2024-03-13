@@ -425,6 +425,21 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                                 <span class="green_circle"></span>&nbsp;</span>
                             {% endif %}
 {% endmacro %}
+{% macro highlight_element(elt_id) %}
+    <script>
+    $(document).ready(function(){
+        {% if session['highlight_id'] %}
+            {#alert("{{ session['highlight_id'] }}");#}
+            const substrs = '{{ session['highlight_id'] }}'.split('|');
+            let highlight_class = 'highlight_warning';
+            if (substrs.length > 1 && substrs[1] == 'error') {
+                highlight_class = 'highlight_error';
+            }
+            document.getElementById(substrs[0]).classList.add(highlight_class);
+        {% endif %}
+    });
+    </script>
+{% endmacro %}
 {% macro popup_support() %}
     <script>
     $(document).ready(function(){

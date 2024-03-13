@@ -242,6 +242,7 @@ def method_step(filename=None, node_id=None):
     if node_id != '1':
         method_step_node = Node.get_node_instance(node_id)
         if method_step_node:
+            init_evaluation(eml_node, filename)
             populate_method_step_form(form, method_step_node)
     else:
         method_step_node = None
@@ -292,7 +293,7 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
             description = display_texttype_node(description_node)
             # The following code is now obsolete. It has been retained here for reference.
             # We now display the data sources info inline with the description in the relatively small number of
-            #  data packages that entered data sources is this way. The current way is to display the data sources
+            #  data packages that entered data sources in this way. The current way is to display the data sources
             #  in a separate, structured section.
             # if data_sources_marker_begin in description and data_sources_marker_end in description:
             #     begin = description.find(data_sources_marker_begin)
@@ -307,6 +308,11 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
 
         ms_node_id = ms_node.id
         data_sources_nodes = ms_node.find_all_children(names.DATASOURCE)
+
+        Data_Source_Entry = collections.namedtuple(
+            'Data_Source_Entry', ["title", "ms_node_id", "ds_node_id", "tooltip"],
+            rename=False)
+
         if data_sources_nodes:
             for ds_node in data_sources_nodes:
                 title = ''  # If we have a data source with no title, we still want to list it so it can be removed
@@ -314,7 +320,11 @@ def populate_method_step_form(form: MethodStepForm, ms_node: Node):
                 if title_node:
                     title = title_node.content
                     title = (title[:67] + '...') if len(title) > 70 else title
-                data_sources_list.append((title, f'{ms_node_id}|{ds_node.id}'))
+                data_source_entry = Data_Source_Entry(title=title,
+                                                      ms_node_id=ms_node_id,
+                                                      ds_node_id=ds_node.id,
+                                                      tooltip=format_tooltip(ds_node))
+                data_sources_list.append(data_source_entry)
 
         form.description.data = description
         form.instrumentation.data = instrumentation

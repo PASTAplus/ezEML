@@ -98,7 +98,7 @@ from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fe
 
 import webapp.home.check_data_table_contents as check_data_table_contents
 from webapp.home.check_data_table_contents import format_date_time_formats_list
-from webapp.home.check_metadata import check_eml
+from webapp.home.check_metadata import check_eml, is_valid_uuid
 from webapp.home.forms import init_form_md5
 from webapp.home.standard_units import init_standard_units
 from webapp.views.collaborations.collaborations import (
@@ -520,6 +520,40 @@ def init_status_badges(color="white"):
             items_to_delete.append(item)
     for item in items_to_delete:
         del session[item]
+
+
+@home_bp.before_app_request
+def handle_highlight_id():
+    def handle_special_cases(highlight_id):
+        if highlight_id is not None:
+            substrs = highlight_id.split("|")
+            if substrs[0] == 'code_explanation_1':
+                current_document = user_data.get_active_document()
+                if current_document:
+                    # We need to hydrate the node store
+                    eml_node = load_eml(filename=current_document)
+                # There are 3 missing value code explanations. Find the first missing one.
+                url = request.url
+                url_substrs = url.split("/")
+                for substr in url_substrs:
+                    if is_valid_uuid(substr):
+                        node = Node.get_node_instance(substr)
+                        if node and node.name == names.ATTRIBUTE:
+                            missing_value_code_nodes = node.find_all_children(names.MISSINGVALUECODE)
+                            for i, missing_value_code_node in enumerate(missing_value_code_nodes):
+                                code_node = missing_value_code_node.find_child(names.CODE)
+                                explanation_node = missing_value_code_node.find_child(names.CODEEXPLANATION)
+                                if code_node and code_node.content:
+                                    if not explanation_node or not explanation_node.content:
+                                        highlight_id = f"code_explanation_{i+1}|{substrs[1]}"
+                                        break
+        return highlight_id
+
+    highlight_id = handle_special_cases(request.args.get("ui_element_id"))
+    if highlight_id:
+        session["highlight_id"] = highlight_id
+    else:
+        session["highlight_id"] = None
 
 
 @home_bp.before_app_request

@@ -337,6 +337,7 @@ def geographic_coverage(filename=None, node_id=None):
         return redirect(url)
 
     # Process GET
+    gc_node = None
     if node_id != '1':
         eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
@@ -886,6 +887,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                                    taxon_rank=form.taxon_rank.data,
                                    taxon_value=form.taxon_value.data,
                                    taxonomic_authority=form.taxonomic_authority.data,
+                                   node_id=node_id,
                                    help=help,
                                    have_links=have_links)
 
@@ -973,6 +975,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
 
     # Process GET
     have_links = False
+    txc_node = None
     if node_id == '1':
         if taxon:
             form.taxon_value.data = taxon

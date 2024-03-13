@@ -15,7 +15,16 @@
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
 
-    <h2>Categorical Column</h2>
+    <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = att_node_id.split("|")[0] %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td style="vertical-align:middle;"><h2>Categorical Column</h2></td><td style="vertical-align:middle;padding-top: 18px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
+    </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -25,7 +34,7 @@
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_definition) }}{{ macros.item_end(help_attribute_definition_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_label) }}{{ macros.item_end(help_attribute_label_btn) }}
                 <label class="control-label">Define coded values and their definitions:</label>
-                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                <table id="codes_entry" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
                         <td style="padding: 10px 25px 0px;" width="100%"><label class="control-label">Codes:&nbsp;&nbsp;</label>{{ codes }}</td>
                     </tr>
@@ -110,4 +119,8 @@
         {{ macros.help_script(help_attribute_storage_type_dialog, help_attribute_storage_type_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+
 {% endblock %}

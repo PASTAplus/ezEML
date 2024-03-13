@@ -732,6 +732,8 @@ def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=Non
     """
     import webapp.home.utils.create_nodes as create_nodes
 
+    if not owner_login:
+        owner_login = user_data.get_active_document_owner_login()
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI

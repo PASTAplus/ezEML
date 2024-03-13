@@ -685,6 +685,7 @@ def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, nod
                             if method_step_nodes:
                                 for ms_node in method_step_nodes:
                                     if node_id == ms_node.id:
+                                        init_evaluation(eml_node, filename)
                                         populate_method_step_form(form, ms_node)
                                         break
 

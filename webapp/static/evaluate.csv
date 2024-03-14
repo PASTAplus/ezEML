@@ -3,7 +3,7 @@ title_01,Title,Title,ERROR,REQUIRED,A dataset <b>Title</b> is required.,,title
 title_02,Title,Title,WARNING,RECOMMENDED,The dataset's <b>Title</b> should be at least five words long. Between 7 and 20 words are recommended.,,title
 title_01_ds,Data Sources,Title,ERROR,REQUIRED,A data source <b>Title</b> is required.,,title
 creators_01,Creators,Creators,ERROR,REQUIRED,At least one dataset <b>Creator</b> is required.,,add_rp
-creators_01_ds,Data Sources,Creators,ERROR,REQUIRED,At least one data source <b>Creator</b> is required.,,add_rp
+creators_01_ds,Data Sources,Creators,ERROR,REQUIRED,At least one data source <b>Creator</b> is required.,,add_creator
 responsible_party_01,Party,Party,ERROR,REQUIRED,"At least one of <b>Last Name</b>, <b>Organization</b>, or <b>Position Name</b> is required.",,sn
 responsible_party_02,Party,Party,WARNING,RECOMMENDED,An <b>ORCID ID</b> is recommended.,,user_id
 responsible_party_03,Party,Party,ERROR,REQUIRED,A <b>Role</b> is required.,Applies only to parties that require Role.,role
@@ -66,7 +66,7 @@ other_entity_01,Other Entities,Name,ERROR,REQUIRED,Entity <b>Name</b> is require
 other_entity_02,Other Entities,Entity Type,ERROR,REQUIRED,<b>Entity Type</b> is required.,,entity_type
 other_entity_03,Other Entities,Entity Description,WARNING,RECOMMENDED,Entity <b>Description</b> is highly recommended.,,entity_description
 contacts_01,Contacts,Contacts,ERROR,REQUIRED,At least one dataset <b>Contact</b> is required.,,add_rp
-contacts_01_ds,Data Sources,Contacts,ERROR,REQUIRED,At least one data source <b>Contact</b> is required.,,add_rp
+contacts_01_ds,Data Sources,Contacts,ERROR,REQUIRED,At least one data source <b>Contact</b> is required.,,add_contact
 maintenance_01,Maintenance,Maintenance,ERROR,REQUIRED,Maintenance <b>Description</b> is required.,,description
 data_package_id_01,Data Package ID,Data Package ID,WARNING,OPTIONAL,A <b>Data Package ID</b> is required by EML but if you are going to submit your data to EDI you may leave it blank and we will provide one.,,data_package_id
 data_package_id_02,Data Package ID,Data Package ID,WARNING,RECOMMENDED,The <b>Data Package ID</b> does not conform to EDI's requirements.,,data_package_id

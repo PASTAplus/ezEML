@@ -83,7 +83,7 @@
             <td valign="top" style="padding-top: 5px;padding-left: 5px;">{{ macros.help_button(help_data_source_creators_btn) }}</td>
             </table>
 
-                <input class="btn btn-primary" name="{{ data_source_node_id }}" type="submit" value="Add Creator"/>
+                <input class="btn btn-primary" id="add_creator" name="{{ data_source_node_id }}" type="submit" value="Add Creator"/>
                 <br/><br/>
 
             {#                <h4>Contacts</h4>#}
@@ -114,7 +114,7 @@
             <td valign="top" style="padding-top: 5px;padding-left: 5px;">{{ macros.help_button(help_data_source_contacts_btn) }}</td>
             </table>
 
-                <input class="btn btn-primary" name="{{ data_source_node_id }}" type="submit" value="Add Contact"/>
+                <input class="btn btn-primary" id="add_contact" name="{{ data_source_node_id }}" type="submit" value="Add Contact"/>
                 <p>&nbsp;</p>
 
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
@@ -168,5 +168,6 @@
     </script>
 
     {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
 
 {% endblock %}

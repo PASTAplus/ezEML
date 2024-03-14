@@ -1262,13 +1262,18 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(att_node)
+
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
                       'attribute_datetime_precision', 'attribute_datetime_format'])
     return render_template('attribute_datetime.html', title='Attribute', form=form,
                            column_name=attribute_name,
+                           att_node_id=att_node_id,
                            table_name=data_table_name,
-                           help=help)
+                           help=help, tooltip=tooltip)
 
 
 def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
@@ -1500,18 +1505,23 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(att_node)
+
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
                       'attribute_number_type', 'attribute_numerical_precision'])
     return render_template('attribute_numerical.html',
                            title='Attribute: Numerical',
                            form=form,
                            attribute_name=attribute_name,
+                           att_node_id=att_node_id,
                            mscale=mscale,
                            custom_unit_names=custom_unit_names,
                            custom_unit_descriptions=custom_unit_descriptions,
                            column_name=attribute_name,
                            table_name=data_table_name,
-                           help=help)
+                           help=help, tooltip=tooltip)
 
 
 def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,

@@ -21,7 +21,16 @@
     {% set help_attribute_numerical_precision_btn = help_attribute_numerical_precision_id ~ '_btn' %}
     {% set help_attribute_numerical_precision_dialog = help_attribute_numerical_precision_id ~ '_dialog' %}
 
-    <h2>Numerical Column</h2>
+    <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = att_node_id.split("|")[0] %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td style="vertical-align:middle;"><h2>Numerical Column</h2></td>
+    </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -170,6 +179,7 @@
     });
     </script>
 
+    {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
 
 {% endblock %}

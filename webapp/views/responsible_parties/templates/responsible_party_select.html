@@ -9,9 +9,19 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = rp_plural | lower + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>{{ rp_plural }}</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
     </table>
+
+{#    <table>#}
+{#        <td><h2>{{ rp_plural }}</h2></td>#}
+{#        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>#}
+{#    </table>#}
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">

@@ -14,9 +14,15 @@
     {% set ns=namespace(reupload_help_displayed=false) %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'other_entities_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Other Entities</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entities_btn) }}</td>
     </table>
+
     <div class="row">
         <div class="col-md-11">
             <form method="POST" action="" class="form" role="form">

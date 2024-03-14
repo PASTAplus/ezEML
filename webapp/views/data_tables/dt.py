@@ -114,10 +114,14 @@ def data_table_select(filename=None):
     dt_list = list_data_tables(eml_node)
     title = 'Data Tables'
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, 'data_tables')
+
     views.set_current_page('data_table')
     help = [views.get_help('data_tables'), views.get_help('add_load_data_tables'), views.get_help('data_table_reupload')]
     return render_template('data_table_select.html', title=title,
-                           dt_list=dt_list, form=form, help=help)
+                           dt_list=dt_list, form=form, help=help, tooltip=tooltip)
 
 
 @dt_bp.route('/data_table/<filename>/<dt_node_id>', methods=['GET', 'POST'])

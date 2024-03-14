@@ -1103,13 +1103,16 @@ def init_evaluation(eml_node, doc_name):
 
 def format_tooltip(node, section=None):
     """ Format the evaluation output pertaining to a node as a tooltip. """
-    def parse_link(link):
+    def get_route_from_link(link):
         """ Parse a link to extract the route being referenced. """
         if link:
             parts = link.split('/')
             for part in parts:
                 if part == 'eml':
-                    return parts[parts.index(part) + 1]
+                    route = parts[parts.index(part) + 1]
+                    if route == 'data_table_select':
+                        return 'data_tables'
+                    return route
         return ''
 
     tooltip = f'<table width=100% style="padding: 30px;"><tr><td colspan=3><i>Click any item to edit:</i></td></tr>'
@@ -1117,7 +1120,9 @@ def format_tooltip(node, section=None):
     for severity in severities:
         for entry in evaluations:
             if entry.severity == severity:
-                if (node and node.id in entry.link) or (section and section in parse_link(entry.link)):
+                if (node and node.id in entry.link) or (section and
+                                                        (section in get_route_from_link(entry.link) or
+                                                         section in get_section_from_link(entry.link))):
                     tooltip += f'<tr><td class="'
                     if severity == EvalSeverity.ERROR:
                         tooltip += 'red'
@@ -1479,6 +1484,54 @@ def empty_subtree(eml_node, subtree_name):
     return False
 
 
+def get_section_from_link(link):
+    if '/eml/title/' in link:
+        return 'title'
+    if '/eml/data_table_select/' in link or \
+        '/eml/data_table/' in link or \
+        '/eml/attribute_categorical/' in link or \
+        '/eml/attribute_dateTime/' in link or \
+        '/eml/attribute_numerical/' in link or \
+        '/eml/attribute_text/' in link or \
+        '/eml/code_definition' in link:
+        return 'data_tables'
+    if '/eml/creator_select/' in link or '/eml/creator/' in link:
+        return 'creators'
+    if '/eml/contact_select/' in link or '/eml/contact/' in link:
+        return 'contacts'
+    if '/eml/associated_party/' in link:
+        return 'associated_parties'
+    if '/eml/metadata_provider/' in link:
+        return 'metadata_providers'
+    if '/eml/abstract/' in link:
+        return 'abstract'
+    if '/eml/keyword_select/' in link:
+        return 'keywords'
+    if '/eml/intellectual_rights/' in link:
+        return 'intellectual_rights'
+    if '/eml/geographic_coverage_select/' in link or '/eml/geographic_coverage/' in link:
+        return 'geographic_coverage'
+    if '/eml/temporal_coverage_select/' in link or '/eml/temporal_coverage/' in link:
+        return 'temporal_coverage'
+    if '/eml/taxonomic_coverage_select/' in link or '/eml/taxonomic_coverage/' in link:
+        return 'taxonomic_coverage'
+    if '/eml/maintenance/' in link:
+        return 'maintenance'
+    if '/eml/publisher/' in link:
+        return 'publisher'
+    if '/eml/publication_info/' in link:
+        return 'publication_info'
+    if '/eml/method_step_select/' in link or '/eml/method_step/' in link or '/eml/data_source' in link:
+        return 'methods'
+    if '/eml/project_select/' in link or '/eml/project/' in link or '/eml/project_personnel/' in link:
+        return 'project'
+    if '/eml/other_entity_select/' in link or '/eml/other_entity/' in link:
+        return 'other_entities'
+    if '/eml/data_package_id/' in link:
+        return 'data_package_id'
+    return None
+
+
 def set_session_info(evaluation, eml_node):
     def init_section_links_found(section_links_found):
         section_links_found['title'] = EvalSeverity.OK
@@ -1537,54 +1590,6 @@ def set_session_info(evaluation, eml_node):
                 node_ids.append(substr)
         return node_ids
 
-    def decode_link(link):
-        if '/eml/title/' in link:
-            return 'title'
-        if '/eml/data_table_select/' in link or \
-            '/eml/data_table/' in link or \
-            '/eml/attribute_categorical/' in link or \
-            '/eml/attribute_dateTime/' in link or \
-            '/eml/attribute_numerical/' in link or \
-            '/eml/attribute_text/' in link or \
-            '/eml/code_definition' in link:
-            return 'data_tables'
-        if '/eml/creator_select/' in link or '/eml/creator/' in link:
-            return 'creators'
-        if '/eml/contact_select/' in link or '/eml/contact/' in link:
-            return 'contacts'
-        if '/eml/associated_party/' in link:
-            return 'associated_parties'
-        if '/eml/metadata_provider/' in link:
-            return 'metadata_providers'
-        if '/eml/abstract/' in link:
-            return 'abstract'
-        if '/eml/keyword_select/' in link:
-            return 'keywords'
-        if '/eml/intellectual_rights/' in link:
-            return 'intellectual_rights'
-        if '/eml/geographic_coverage_select/' in link or '/eml/geographic_coverage/' in link:
-            return 'geographic_coverage'
-        if '/eml/temporal_coverage_select/' in link or '/eml/temporal_coverage/' in link:
-            return 'temporal_coverage'
-        if '/eml/taxonomic_coverage_select/' in link or '/eml/taxonomic_coverage/' in link:
-            return 'taxonomic_coverage'
-        if '/eml/maintenance/' in link:
-            return 'maintenance'
-        if '/eml/publisher/' in link:
-            return 'publisher'
-        if '/eml/publication_info/' in link:
-            return 'publication_info'
-        if '/eml/method_step_select/' in link or '/eml/method_step/' in link or '/eml/data_source' in link:
-            return 'methods'
-        if '/eml/project_select/' in link or '/eml/project/' in link or '/eml/project_personnel/' in link:
-            return 'project'
-        if '/eml/other_entity_select/' in link or '/eml/other_entity/' in link:
-            return 'other_entities'
-        return None
-
-    # if not (current_user and (current_user.is_admin())):
-    #     return
-
     section_links_found = {}
     node_links_found = {}
     init_section_links_found(section_links_found)
@@ -1592,7 +1597,7 @@ def set_session_info(evaluation, eml_node):
     for entry in evaluation:
         severity = entry.severity
         if entry.link:
-            which = decode_link(entry.link)
+            which = get_section_from_link(entry.link)
             if which is not None:
                 current_severity = section_links_found.get(which, EvalSeverity.OK)
                 if severity.value < current_severity.value:

@@ -90,10 +90,18 @@ def other_entity_select(filename=None):
     oe_list = list_other_entities(eml_node)
     title = 'Other Entities'
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, 'other_entities')
+
     set_current_page('other_entity')
     help = [get_help('other_entities'), get_help('add_load_other_entities'), get_help('other_entity_reupload')]
-    return render_template('other_entity_select.html', title=title,
-                           oe_list=oe_list, form=form, help=help)
+    return render_template('other_entity_select.html',
+                           title=title,
+                           oe_list=oe_list,
+                           form=form,
+                           help=help,
+                           tooltip=tooltip)
 
 
 @ent_bp.route('/other_entity/<filename>/<node_id>', methods=['GET', 'POST'])

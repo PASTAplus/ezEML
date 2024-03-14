@@ -133,12 +133,19 @@ def method_step_select(filename=None):
         if dataset_node:
             method_step_list = list_method_steps(eml_node, dataset_node)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, 'methods')
+
     set_current_page('method_step')
     help = [get_help('methods')]
-    return render_template('method_step_select.html', title=title,
+    return render_template('method_step_select.html',
+                           title=title,
                            filename=filename,
                            method_step_list=method_step_list,
-                           form=form, help=help)
+                           form=form,
+                           help=help,
+                           tooltip=tooltip)
 
 
 # node_id is the id of the methodStep node being edited. If the value is

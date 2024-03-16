@@ -1272,7 +1272,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
 
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
-                      'attribute_datetime_precision', 'attribute_datetime_format'])
+                      'attribute_datetime_precision', 'attribute_datetime_format', 'save_changes'])
     return render_template('attribute_datetime.html', title='Attribute', form=form,
                            column_name=attribute_name,
                            att_node_id=att_node_id,
@@ -1519,7 +1519,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
     tooltip = format_tooltip(att_node)
 
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
-                      'attribute_number_type', 'attribute_numerical_precision'])
+                      'attribute_number_type', 'attribute_numerical_precision', 'save_changes'])
     return render_template('attribute_numerical.html',
                            title='Attribute: Numerical',
                            form=form,
@@ -1833,7 +1833,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
     tooltip = format_tooltip(att_node)
 
     views.set_current_page('data_table')
-    help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
+    help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type', 'save_changes'])
     if mscale == VariableType.CATEGORICAL.name:
         return render_template('attribute_categorical.html',
                                title='Categorical Attribute',

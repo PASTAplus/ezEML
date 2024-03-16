@@ -1,6 +1,6 @@
 abstract
 Abstract
-The <b>Abstract</b> will be used for full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
+The <b>Abstract</b> will be used by full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
 
 In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the data package is ongoing or completed.
 
@@ -417,6 +417,8 @@ The purpose of <b>Re-upload Data Table</b> is to let you update a data table's c
 Moreover, if you later use <b>Export ezEML Data Package</b>, <b>Submit Package to EDI</b>, or <b>Collaborate with Colleagues</b> to share your package with others, <b>it is essential that the final, corrected versions of all files have been uploaded to ezEML</b>, because it is the versions that have been uploaded to ezEML that will be included in the shared data package.
 
 <b>Re-upload Data Table</b> requires the number of columns in the table to be the same as in the original table, but it allows column names and variable types to change.
+
+If the number of columns has changed, use <b>Load Data Table from CSV File</b> and then use <b>Clone Column Properties from Another Data Table</b> to copy relevant metadata from the original table to the new one.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/QLRbCqQZt20" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
@@ -887,7 +889,9 @@ methods
 Method Steps
 Method steps are descriptions of specific steps of the method employed when collecting data. They are intended to be descriptive, i.e., human-readable rather than machine-readable.
 
-The method steps document a series of procedures followed to produce a data object. These may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data and any quality control measures taken.
+A dataset should define at least one Method Step. The methods for a data publication should include, at a high-level of description, where the data were collected, how they were collected, and why they were collected. Future users of your data should be able to look at this methods section and understand entirely how the data were collected, as well as understand any caveats to the collection that may affect interpretation.
+
+I.e., the method steps document the procedures followed to produce a data object. These may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data and any quality control measures taken.
 
 An additional use of method steps is to specify data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package. Provenance metadata is important in making research transparent and reproducible. To specify provenance for your data package, create a method step and add to it one or more Data Sources that refer to the data package(s) that were used to create the current data package. It is customary to place such provenance method steps at the end of the method steps list. For more on data provenance, see <a style="color: steelblue;" href="/static/user_guide/documenting_data_provenance.pdf" target="_user_guide_ezeml">Documenting Data Provenance</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
@@ -1187,7 +1191,7 @@ The <b>Title</b> field provides a description of the data package. It should be 
 
 It should be descriptive and should mention the data collected, geographic context, research site, and time frame (i.e., what, where, and when).
 
-Example: <i>Vernal pool amphibian density data, Isla Vista, 1990-1996.</i>
+Example: <i>California Department of Fish and Wildlife Adult Sturgeon Study, Sacramento-San Joaquin River Watershed, 1954-2022.</i>
 --------------------
 welcome
 Welcome to ezEML
@@ -1222,11 +1226,14 @@ function do_not_change_clicked(checkbox) {
 --------------------
 badges
 Color Key for Badges in ezEML
+In the <b>Contents</b> menu on the left, and elsewhere in ezEML, you'll see round colored "badges." These badges indicate the presence of errors (<span style="color:red;font-weight:bold;">red</span>) or warnings (<span style="color:orange;font-weight:bold;">yellow</span>), or their absence (<span style="color:mediumseagreen;font-weight:bold;">green</span>).
 
-In the <b>Contents</b> menu on the left, and in various other places in ezEML, you'll see round colored "badges." These badges indicate the presence of errors (<span style="color:red;font-weight:bold;">red</span>) or warnings (<span style="color:orange;font-weight:bold;">yellow</span>), or their absence (<span style="color:mediumseagreen;font-weight:bold;">green</span>).
+The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the relevant errors/warnings to be displayed, and the errors/warnings themselves are clickable, taking you directly to the item in question.
 
-The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the relevant errors/warnings to be displayed. For green badges, there's nothing to display, so they're not clickable.
-<p>&nbsp;</p>
+Your goal should be to enter required and recommended metadata and make corrections until, at the minimum, no red badges remain. Even better would be to make all badges green.
+
+For green badges, there's nothing to display, so they're not clickable.
+
 
 <table style="width:100%;border 1px solid;">
 <th></th><th>Color Key for Status Badges</th>
@@ -1244,6 +1251,14 @@ function do_not_show_change_clicked(checkbox) {
     localStorage.setItem("do_not_show_badges_dialog", checkbox.checked);
 }
 </script>
+--------------------
+save_changes
+Save Changes
+When you pick an item in the errors/warnings list, it causes this page to refresh. If you have unsaved changes, they will be lost unless you first click <b>Save Changes</b>.
+
+Click <b>Save Changes</b>, and then you can safely pick an item to edit.
+
+So, each time you make a change, click <b>Save Changes</b> before clicking on the badge to open the errors/warnings list again.
 --------------------
 complex_xml
 Editing Text Elements in Imported XML

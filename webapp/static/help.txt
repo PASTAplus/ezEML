@@ -1258,7 +1258,7 @@ When you pick an item in the errors/warnings list, it causes this page to refres
 
 Click <b>Save Changes</b>, and then you can safely pick an item to edit.
 
-So, each time you make a change, click <b>Save Changes</b> before clicking on the badge to open the errors/warnings list again.
+So, after you make a change, click <b>Save Changes</b> before clicking on the badge to open the errors/warnings list again.
 --------------------
 complex_xml
 Editing Text Elements in Imported XML

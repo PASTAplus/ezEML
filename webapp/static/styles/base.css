@@ -64,6 +64,7 @@ html {
     width:9px;
     height:9px;
     /*margin-bottom: 1px;*/
+    pointer-events: auto;
 }
 .red_circle:hover {
     text-decoration: none;
@@ -163,4 +164,27 @@ a.no-underline:hover {
 }
 .highlight_warning {
     border: 2px solid orange !important;
+}
+
+.badged_page_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.whitespace {
+    width: 2%;
+    height: 0;
+}
+.right_justified {
+    margin-right: auto;
+}
+
+@keyframes pulsate {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pulsate {
+  animation: pulsate 0.2s 10;
 }

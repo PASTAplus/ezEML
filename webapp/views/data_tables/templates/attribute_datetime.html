@@ -21,20 +21,10 @@
     {% set help_attribute_datetime_format_btn = help_attribute_datetime_format_id ~ '_btn' %}
     {% set help_attribute_datetime_format_dialog = help_attribute_datetime_format_id ~ '_dialog' %}
 
-    <table>
-        <td style="vertical-align:middle;padding-top: 12px;">
-        {% set node_id = att_node_id.split("|")[0] %}
-        {% set node_status = node_id + '_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
-        </td>
-        <td style="width:3%"></td>
-        <td style="vertical-align:middle;"><h2>DateTime Column</h2></td>
-    </table>
-
-{#    <h2>DateTime Column</h2>#}
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" id="main_form" role="form">
+            {{ macros.page_heading_with_status_popup('DateTime Column', att_node_id, tooltip, session) }}
                 {{ form.csrf_token }}
                 {{ macros.column_table_header(column_name, table_name) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_name) }}{{ macros.item_end(help_attribute_name_btn) }}
@@ -144,5 +134,6 @@
 
     {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
+    {{ macros.save_changes_button_support() }}
 
 {% endblock %}

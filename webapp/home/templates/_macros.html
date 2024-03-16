@@ -199,8 +199,6 @@
 {% endmacro %}
 {% macro contents_menu_item_with_status(url, style, hidden_name, display_name, is_non_saving, badge) %}
     {{ contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) }}
-{#    {{ contents_menu_item_with_status_right(url, style, hidden_name, display_name, is_non_saving, badge) }}#}
-{#    {{ contents_menu_item_with_status_none(url, style, hidden_name, display_name, is_non_saving, badge) }}#}
 {% endmacro %}
 {% macro contents_menu_item_with_status_right(url, style, hidden_name, display_name, is_non_saving, badge) %}
                             {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
@@ -418,14 +416,14 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
 {% macro local_status_badge_with_popup(color, tooltip) %}
                             {% if color %}
                             <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
-                                  title="" data-container="body" data-content="{{ tooltip }}">&nbsp;
-                                <span class="{{ color }}_circle" title="Click for errors/warnings"></span>&nbsp;</span>
+                                  title="" data-container="body" data-content="{{ tooltip }}">
+                                <span class="{{ color }}_circle" style="padding-left: 0;vertical-align: bottom;" title="Click for errors/warnings"></span></span>
                             {% else %}
-                            <span >&nbsp;
-                                <span class="green_circle"></span>&nbsp;</span>
+                            <span>
+                                <span class="green_circle" style="padding-left: 0;horiz-align: left;vertical-align: bottom;"></span></span>
                             {% endif %}
 {% endmacro %}
-{% macro highlight_element(elt_id) %}
+{% macro highlight_element() %}
     <script>
     $(document).ready(function(){
         {% if session['highlight_id'] %}
@@ -436,7 +434,7 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 highlight_class = 'highlight_error';
             }
             document.getElementById(substrs[0]).classList.add(highlight_class);
-            {#document.getElementById(substrs[0]).scrollIntoView();#}
+            document.getElementById(substrs[0]).scrollIntoView({behavior: "smooth", block: "center"});
         {% endif %}
     });
     </script>
@@ -465,5 +463,72 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
             }
         });
     });
+    </script>
+{% endmacro %}
+{% macro page_heading_with_status_popup(page_heading, node_id, tooltip, session) %}
+    <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;">
+        {% set node_id = node_id.split("|")[0] %}
+        {% set node_status = node_id + '_status' %}
+        {{ local_status_badge_with_popup(session[node_status], tooltip) }}
+        <div class="whitespace"></div>
+        <h2 class="right_justified">{{ page_heading }}</h2>
+        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}
+        <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/><br>
+{#            <span id="save_changes_2" style="visibility:hidden;">Save your unsaved changes.</span>#}
+        {% endif %}
+    </div>
+{% endmacro %}
+{% macro save_changes_button_support() %}
+    <script type="text/javascript">
+        {#document.addEventListener('DOMContentLoaded', function() {#}
+        $(document).ready(function(){
+            let formIsDirty = false;
+            let warnBeforeUnload = false;
+
+            // Detect click on submit button and disable the warning
+            $('form').submit(function() {
+                console.log('form submit event');
+                warnBeforeUnload = false;
+                console.log('warnBeforeUnload=' + warnBeforeUnload);
+            });
+
+            $('#save_changes').click(function() {
+                console.log('save_changes click event');
+                warnBeforeUnload = false;
+                formIsDirty = false;
+                $('#save_changes').css('visibility', 'hidden');
+                $('#save_changes_2').css('visibility', 'hidden');
+                console.log('warnBeforeUnload=' + warnBeforeUnload);
+            });
+
+            let form = document.getElementById('main_form');
+            form.addEventListener('change', function() {
+                console.log('change event... making save_changes visible');
+                formIsDirty = true;
+                warnBeforeUnload = true;
+                $('#save_changes').css('visibility', 'visible');
+                console.log('warnBeforeUnload=' + warnBeforeUnload);
+            });
+
+            $('[data-toggle="popover"]').popover().on('shown.bs.popover', function() {
+                console.log('Popover is shown');
+                if (formIsDirty) {
+                    triggerPulsate();
+                    $('#save_changes_2').css('visibility', 'visible');
+                }
+            }).on('hidden.bs.popover', function() {
+                console.log('Popover is hidden');
+            });
+
+            function triggerPulsate() {
+                let save_changes = document.getElementById('save_changes');
+                {#save_changes.classList.add('highlight_error');#}
+                save_changes.classList.add('pulsate');
+                setTimeout(function() {
+                    {#save_changes.classList.remove('highlight_error');#}
+                    save_changes.classList.remove('pulsate');
+                }, 2000);
+            }
+        });
     </script>
 {% endmacro %}

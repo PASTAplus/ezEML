@@ -1223,8 +1223,12 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
             save_both_formats(filename=filename, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, filename=filename,
-                      dt_node_id=dt_node_id, node_id=att_node_id)
+        if BTN_DONE in request.form:
+            next_page = PAGE_ATTRIBUTE_SELECT
+        else:
+            next_page = PAGE_ATTRIBUTE_DATETIME
+
+        url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
 
         return redirect(url)
 
@@ -1464,8 +1468,13 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
             save_both_formats(filename=filename, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, filename=filename,
-                      dt_node_id=dt_node_id, node_id=att_node_id)
+        if BTN_DONE in request.form:
+            next_page = PAGE_ATTRIBUTE_SELECT
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
+        else:
+            if next_page == PAGE_ATTRIBUTE_SELECT: # We didn't have a hidden button
+                next_page = PAGE_ATTRIBUTE_NUMERICAL
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
 
         return redirect(url)
 
@@ -1779,7 +1788,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, att_node_id=att_node_id,
                           node_id=cd_node_id, mscale=mscale)
         else:
-            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
 
         return redirect(url)
 

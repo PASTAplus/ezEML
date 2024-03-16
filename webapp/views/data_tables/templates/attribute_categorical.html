@@ -15,19 +15,32 @@
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
 
-    <table>
-        <td style="vertical-align:middle;padding-top: 12px;">
-        {% set node_id = att_node_id.split("|")[0] %}
-        {% set node_status = node_id + '_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
-        </td>
-        <td style="width:3%"></td>
-        <td style="vertical-align:middle;"><h2>Categorical Column</h2></td>
-    </table>
+{#    <table>#}
+{#        <td style="vertical-align:middle;padding-top: 12px;">#}
+{#        {% set node_id = att_node_id.split("|")[0] %}#}
+{#        {% set node_status = node_id + '_status' %}#}
+{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
+{#        </td>#}
+{#        <td style="width:3%"></td>#}
+{#        <td style="vertical-align:middle;"><h2>Categorical Column</h2></td>#}
+{#    </table>#}
 
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" id="main_form" role="form">
+
+{#    <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;">#}
+{#        {% set node_id = att_node_id.split("|")[0] %}#}
+{#        {% set node_status = node_id + '_status' %}#}
+{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
+{#        <div class="whitespace"></div>#}
+{#        <h2 class="right_justified">Categorical Column</h2>#}
+{#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
+{#        <input class="btn btn-primary" id="save_changes" style="visibility:visible;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>#}
+{#        {% endif %}#}
+{#    </div>#}
+
+            {{ macros.page_heading_with_status_popup('Categorical Column', att_node_id, tooltip, session) }}
                 {{ form.csrf_token }}
                 {{ macros.column_table_header(column_name, table_name) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_name) }}{{ macros.item_end(help_attribute_name_btn) }}
@@ -122,5 +135,6 @@
 
     {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
+    {{ macros.save_changes_button_support() }}
 
 {% endblock %}

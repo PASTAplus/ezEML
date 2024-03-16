@@ -417,7 +417,7 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                             {% if color %}
                             <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
                                   title="" data-container="body" data-content="{{ tooltip }}">
-                                <span class="{{ color }}_circle" style="padding-left: 0;vertical-align: bottom;" title="Click for errors/warnings"></span></span>
+                                <span class="{{ color }}_circle" style="padding-left: 0;margin-right: 0px;vertical-align: center;" title="Click for errors/warnings"></span></span>
                             {% else %}
                             <span>
                                 <span class="green_circle" style="padding-left: 0;horiz-align: left;vertical-align: bottom;"></span></span>
@@ -465,7 +465,7 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     });
     </script>
 {% endmacro %}
-{% macro page_heading_with_status_popup(page_heading, node_id, tooltip, session) %}
+{% macro page_heading_with_status_popup(page_heading, node_id, tooltip, session, help_btn) %}
     <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;">
         {% set node_id = node_id.split("|")[0] %}
         {% set node_status = node_id + '_status' %}
@@ -473,8 +473,9 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         <div class="whitespace"></div>
         <h2 class="right_justified">{{ page_heading }}</h2>
         {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}
-        <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/><br>
-{#            <span id="save_changes_2" style="visibility:hidden;">Save your unsaved changes.</span>#}
+        <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
+                <span id="save_changes_help" style="visibility:hidden;vertical-align: center; margin-top:25px;">{{ help_button(help_btn) }}</span>
+            </span>
         {% endif %}
     </div>
 {% endmacro %}
@@ -497,7 +498,7 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 warnBeforeUnload = false;
                 formIsDirty = false;
                 $('#save_changes').css('visibility', 'hidden');
-                $('#save_changes_2').css('visibility', 'hidden');
+                $('#save_changes_help').css('visibility', 'hidden');
                 console.log('warnBeforeUnload=' + warnBeforeUnload);
             });
 
@@ -514,7 +515,6 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 console.log('Popover is shown');
                 if (formIsDirty) {
                     triggerPulsate();
-                    $('#save_changes_2').css('visibility', 'visible');
                 }
             }).on('hidden.bs.popover', function() {
                 console.log('Popover is hidden');
@@ -523,6 +523,7 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
             function triggerPulsate() {
                 let save_changes = document.getElementById('save_changes');
                 {#save_changes.classList.add('highlight_error');#}
+                $('#save_changes_help').css('visibility', 'visible');
                 save_changes.classList.add('pulsate');
                 setTimeout(function() {
                     {#save_changes.classList.remove('highlight_error');#}

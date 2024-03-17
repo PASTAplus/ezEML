@@ -355,7 +355,7 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     {% endif %}
 {% endmacro %}
 {% macro help_script(dialog_id, btn_id) %}
-        var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
+        let {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
             autoOpen: false,
             width: 600,
             position: {my: "left top", at: "right center", of: "#{{ btn_id }}"},
@@ -474,8 +474,8 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         <h2 class="right_justified">{{ page_heading }}</h2>
         {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}
         <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
-                <span id="save_changes_help" style="visibility:hidden;vertical-align: center; margin-top:25px;">{{ help_button(help_btn) }}</span>
-            </span>
+            <span id="save_changes_help" style="visibility:hidden;vertical-align: center; margin-top:25px;">{{ help_button(help_btn) }}</span>
+{#            </span>#}
         {% endif %}
     </div>
 {% endmacro %}

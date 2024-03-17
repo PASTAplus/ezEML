@@ -14,6 +14,9 @@
     {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
+    {% set help_attribute_save_changes_id, help_attribute_save_changes_title, help_attribute_save_changes_content = help[4] %}
+    {% set help_attribute_save_changes_btn = help_attribute_save_changes_id ~ '_btn' %}
+    {% set help_attribute_save_changes_dialog = help_attribute_save_changes_id ~ '_dialog' %}
 
 {#    <table>#}
 {#        <td style="vertical-align:middle;padding-top: 12px;">#}
@@ -43,7 +46,7 @@
 {#        {% endif %}#}
 {#    </div>#}
 
-            {{ macros.page_heading_with_status_popup('Text Column', att_node_id, tooltip, session) }}
+            {{ macros.page_heading_with_status_popup('Text Column', att_node_id, tooltip, session, help_attribute_save_changes_btn) }}
                 {{ form.csrf_token }}
                 {{ macros.column_table_header(column_name, table_name) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_name) }}{{ macros.item_end(help_attribute_name_btn) }}
@@ -94,6 +97,7 @@
     {{ macros.help_dialog(help_attribute_definition_dialog, help_attribute_definition_title, help_attribute_definition_content) }}
     {{ macros.help_dialog(help_attribute_label_dialog, help_attribute_label_title, help_attribute_label_content) }}
     {{ macros.help_dialog(help_attribute_storage_type_dialog, help_attribute_storage_type_title, help_attribute_storage_type_content) }}
+    {{ macros.help_dialog(help_attribute_save_changes_dialog, help_attribute_save_changes_title, help_attribute_save_changes_content) }}
 {% endblock %}
 
 
@@ -111,13 +115,17 @@
     {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
-    <script>
+    {% set help_attribute_save_changes_id, help_attribute_save_changes_title, help_attribute_save_changes_content = help[4] %}
+    {% set help_attribute_save_changes_btn = help_attribute_save_changes_id ~ '_btn' %}
+    {% set help_attribute_save_changes_dialog = help_attribute_save_changes_id ~ '_dialog' %}
+<script>
     $(function()
     {
         {{ macros.help_script(help_attribute_name_dialog, help_attribute_name_btn) }}
         {{ macros.help_script(help_attribute_definition_dialog, help_attribute_definition_btn) }}
         {{ macros.help_script(help_attribute_label_dialog, help_attribute_label_btn) }}
         {{ macros.help_script(help_attribute_storage_type_dialog, help_attribute_storage_type_btn) }}
+        {{ macros.help_script(help_attribute_save_changes_dialog, help_attribute_save_changes_btn) }}
     });
     </script>
 

@@ -1254,11 +1254,9 @@ function do_not_show_change_clicked(checkbox) {
 --------------------
 save_changes
 Save Changes
-When you pick an item in the errors/warnings list, it causes this page to refresh. If you have unsaved changes, they will be lost unless you first click <b>Save Changes</b>.
+When you pick an item in the errors/warnings list, it will cause this page to refresh. If you have unsaved changes, they will be lost unless you first click <b>Save Changes</b>.
 
-Click <b>Save Changes</b>, and then you can safely pick an item to edit.
-
-So, after you make a change, click <b>Save Changes</b> before clicking on the badge to open the errors/warnings list again.
+Click <b>Save Changes</b>, and then you can safely pick an item from the list to edit.
 --------------------
 complex_xml
 Editing Text Elements in Imported XML

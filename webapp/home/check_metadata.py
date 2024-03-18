@@ -1085,9 +1085,9 @@ def format_entry(entry: EvalEntry):
     """ Format a single evaluation entry as HTML. """
     def severity_explanation(entry):
         if entry.severity == EvalSeverity.ERROR:
-            badge = '<span class="red_circle" title="Error"></span>'
+            badge = f'<a href="{entry.link}"><span class="red_circle" title="Error"></span></a>'
         else:
-            badge = '<span class="yellow_circle" title="Warning"></span>'
+            badge = f'<a href="{entry.link}"><span class="yellow_circle" title="Warning"></span></a>'
         return f"{badge}&nbsp;&nbsp;{entry.explanation}"
 
     output = '<tr>'

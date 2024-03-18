@@ -1183,7 +1183,7 @@ def format_output(evaluation, eml_node):
                     else:
                         output += '<br>'
                     output += f'<table class="eval_table" width=100% style="padding: 10px;"><tr><b id="data_table:{data_table_name}">Data Table: </b>{entry.data_table_name}</tr><tr><th class="eval_table" align="left" width=20%>Item</th>' \
-                              f'<th class="eval_table" align="left" width=80%>Error/Warning</th></tr>'
+                              f'<th class="eval_table" align="left" width=80%>Issue</th></tr>'
                     previous_data_table_name = entry.data_table_name
                 output += format_entry(entry)
         return output + '</table><p>&nbsp;</p>'
@@ -1250,7 +1250,7 @@ def format_output(evaluation, eml_node):
                 continue
         """ Data Sources are a special case. We want to lump them in with Methods."""
         output += f'<h3 id="{anchor}">{section_output}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
-                  f'<th class="eval_table" align="left" width=80%>Error/Warning</th></tr>'
+                  f'<th class="eval_table" align="left" width=80%>Issue</th></tr>'
         for severity in severities:
             for entry in entries:
                 if entry.severity == severity:

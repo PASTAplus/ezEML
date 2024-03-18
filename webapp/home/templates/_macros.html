@@ -479,10 +479,10 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
             </td>
         {% endif %}
         </tr></table>
-        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}
+{#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
         <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
             <span id="save_changes_help" style="visibility:hidden;vertical-align: center; margin-top:25px;">{{ help_button(help_btn) }}</span>
-        {% endif %}
+{#        {% endif %}#}
     </div>
 {% endmacro %}
 {% macro save_changes_button_support() %}

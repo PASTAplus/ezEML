@@ -173,7 +173,7 @@ a.no-underline:hover {
     width: 100%;
 }
 .whitespace {
-    width: 2%;
+    width: 3px;
     height: 0;
 }
 .right_justified {

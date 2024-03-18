@@ -164,6 +164,8 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
             next_page = PAGE_ENTITY_METHOD_STEP_SELECT
         elif 'Geographic' in request.form:
             next_page = PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT
+        elif 'Save Changes' in request.form:
+            next_page = PAGE_DATA_TABLE
         elif 'Temporal' in request.form:
             next_page = PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT
         elif 'Taxonomic' in request.form:
@@ -351,7 +353,8 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         'data_table_case_sensitive',
         'data_table_number_of_records',
         'data_table_online_url',
-        'clone_attributes_general'
+        'clone_attributes_general',
+        'save_changes'
     ])
     return render_template('data_table.html', title='Data Table', form=form,
                            atts=atts, help=help, was_uploaded=was_uploaded, dt_node_id=dt_node_id, tooltip=tooltip)

@@ -1083,13 +1083,20 @@ def to_string(evaluation):
 
 def format_entry(entry: EvalEntry):
     """ Format a single evaluation entry as HTML. """
+    def severity_explanation(entry):
+        if entry.severity == EvalSeverity.ERROR:
+            badge = '<span class="red_circle" title="Error"></span>'
+        else:
+            badge = '<span class="yellow_circle" title="Warning"></span>'
+        return f"{badge}&nbsp;&nbsp;{entry.explanation}"
+
     output = '<tr>'
     # if entry.ui_element_id:
     #     entry.link = f'{entry.link}?ui_element_id={entry.ui_element_id}'
     output += f'<td class="eval_table" valign="top"><a href="{entry.link}">{entry.item}</a></td>'
-    output += f'<td class="eval_table" valign="top">{entry.severity.name.title()}</td>'
-    output += f'<td class="eval_table" valign="top">{entry.type.name.title()}</td>'
-    output += f'<td class="eval_table" valign="top">{entry.explanation}</td>'
+    output += f'<td class="eval_table" valign="top">{severity_explanation(entry)}</td>'
+    # output += f'<td class="eval_table" valign="top">{entry.type.name.title()}</td>'
+    # output += f'<td class="eval_table" valign="top">{entry.explanation}</td>'
     output += '</tr>'
     return output
 
@@ -1176,7 +1183,7 @@ def format_output(evaluation, eml_node):
                     else:
                         output += '<br>'
                     output += f'<table class="eval_table" width=100% style="padding: 10px;"><tr><b id="data_table:{data_table_name}">Data Table: </b>{entry.data_table_name}</tr><tr><th class="eval_table" align="left" width=20%>Item</th>' \
-                              f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
+                              f'<th class="eval_table" align="left" width=80%>Error/Warning</th></tr>'
                     previous_data_table_name = entry.data_table_name
                 output += format_entry(entry)
         return output + '</table><p>&nbsp;</p>'
@@ -1243,7 +1250,7 @@ def format_output(evaluation, eml_node):
                 continue
         """ Data Sources are a special case. We want to lump them in with Methods."""
         output += f'<h3 id="{anchor}">{section_output}</h3><table class="eval_table" width=100% style="padding: 10px;"><tr><th class="eval_table" align="left" width=20%>Item</th>' \
-                  f'<th class="eval_table" align="left" width=8%>Severity</th><th class="eval_table" align="left" width=14%>Reason</th><th align="left" width=61%>Explanation</th></tr>'
+                  f'<th class="eval_table" align="left" width=80%>Error/Warning</th></tr>'
         for severity in severities:
             for entry in entries:
                 if entry.severity == severity:

@@ -237,10 +237,10 @@ def test_page():
     """
     A basically empty page for testing purposes.
     """
-    # from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
-    # eml_node = load_eml('A sample data package')
-    # data_table_node = eml_node.find_descendant('dataTable')
-    # generate_data_entry_spreadsheet(data_table_node)
+    from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
+    eml_node = load_eml('A sample data package')
+    data_table_node = eml_node.find_descendant('dataTable')
+    generate_data_entry_spreadsheet(data_table_node)
 
     return render_template('test_page.html')
 

@@ -499,18 +499,13 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
 
             $('#save_changes').click(function() {
                 console.log('save_changes click event');
-                {#warnBeforeUnload = false;#}
                 formIsDirty = false;
-                {#$('#save_changes').css('visibility', 'hidden');#}
-                {#$('#save_changes_help').css('visibility', 'hidden');#}
-                {#console.log('warnBeforeUnload=' + warnBeforeUnload);#}
             });
 
             let form = document.getElementById('main_form');
             form.addEventListener('change', function() {
                 console.log('change event... making save_changes visible');
                 formIsDirty = true;
-                {#warnBeforeUnload = true;#}
                 $('#save_changes').css('visibility', 'visible');
                 {#console.log('warnBeforeUnload=' + warnBeforeUnload);#}
             });

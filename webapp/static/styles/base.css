@@ -160,10 +160,10 @@ a.no-underline:hover {
 }
 
 .highlight_error {
-    border: 2px solid red !important;
+    border: 2px solid #DD1111 !important;
 }
 .highlight_warning {
-    border: 2px solid orange !important;
+    border: 2px solid #FFA500 !important;
 }
 
 .badged_page_header {

@@ -56,8 +56,8 @@ html {
 
 .red_circle {
     display:inline-block;
-    background-color:red;
-    border:1px solid red;
+    background-color:#B22222;
+    border:1px solid #B22222;
     border-radius:50%;
     -moz-border-radius:50%;
     -webkit-border-radius:50%;
@@ -71,8 +71,8 @@ html {
 }
 .yellow_circle {
     display:inline-block;
-    background-color:orange;
-    border:1px solid orange;
+    background-color:#FFA500;
+    border:1px solid #FFA500;
     border-radius:50%;
     -moz-border-radius:50%;
     -webkit-border-radius:50%;
@@ -85,8 +85,8 @@ html {
 }
 .green_circle {
     display:inline-block;
-    background-color:mediumseagreen;
-    border:1px solid mediumseagreen;
+    background-color:#009E60;
+    border:1px solid #009E60;
     border-radius:50%;
     -moz-border-radius:50%;
     -webkit-border-radius:50%;

@@ -1100,6 +1100,8 @@ def _calculate_actions(logged_in_user_id,
             elif lock_status == LockStatus.LOCKED_BY_LOGGED_IN_USER:
                 # The logged-in user can release the individual lock
                 actions.append(CollaborationAction.RELEASE_INDIVIDUAL_LOCK)
+                # If the user is the only collaborator, they can end the collaboration
+                actions.append(CollaborationAction.END_COLLABORATION)
             # If the package is locked by the group and the logged-in user (who is a group member)
             elif lock_status == LockStatus.LOCKED_BY_GROUP_AND_LOGGED_IN_USER:
                 # The logged-in user can release the individual lock and end the group collaboration

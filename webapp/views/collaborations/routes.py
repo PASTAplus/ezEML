@@ -442,6 +442,11 @@ def invite_collaborator(filename=None):
 @non_saving_hidden_buttons_decorator
 def remove_collaboration(collab_id, filename=None):
     if not collab_id.startswith('G'):
+        # If not the owner, the file needs to be closed because we are removing our right to view the document
+        owner_login = user_data.get_active_document_owner_login()
+        user_login = current_user.get_user_org()
+        if owner_login != user_login:
+            close_document()
         collaborations.remove_collaboration(collab_id)
         log_usage(actions['END_COLLABORATION'], collab_id)
         return redirect(url_for(PAGE_COLLABORATE, filename=filename))

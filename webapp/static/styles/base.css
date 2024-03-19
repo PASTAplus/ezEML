@@ -188,3 +188,13 @@ a.no-underline:hover {
 .pulsate {
   animation: pulsate 0.2s 10;
 }
+
+.modal-dialog {
+    display: flex;
+    align-items: center; /* This centers the modal vertically in the viewport */
+    min-height: calc(100vh - 60px); /* Adjust 60px to account for margin you want above and below the modal */
+}
+
+.modal {
+    overflow-y: auto;
+}

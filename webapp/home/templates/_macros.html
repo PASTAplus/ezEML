@@ -480,8 +480,8 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         {% endif %}
         </tr></table>
 {#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
-        <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
-            <span id="save_changes_help" style="visibility:hidden;vertical-align: center; margin-top:25px;">{{ help_button(help_btn) }}</span>
+        <input class="btn btn-primary" id="save_changes" style="visibility:visible;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
+            <span id="save_changes_help" style="visibility:visible;vertical-align: center; margin-top:25px;">{{ help_button(help_btn) }}</span>
 {#        {% endif %}#}
     </div>
 {% endmacro %}
@@ -490,37 +490,37 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         {#document.addEventListener('DOMContentLoaded', function() {#}
         $(document).ready(function(){
             let formIsDirty = false;
-            let warnBeforeUnload = false;
 
             // Detect click on submit button and disable the warning
             $('form').submit(function() {
+                formIsDirty = false;
                 console.log('form submit event');
-                warnBeforeUnload = false;
-                console.log('warnBeforeUnload=' + warnBeforeUnload);
             });
 
             $('#save_changes').click(function() {
                 console.log('save_changes click event');
-                warnBeforeUnload = false;
+                {#warnBeforeUnload = false;#}
                 formIsDirty = false;
-                $('#save_changes').css('visibility', 'hidden');
-                $('#save_changes_help').css('visibility', 'hidden');
-                console.log('warnBeforeUnload=' + warnBeforeUnload);
+                {#$('#save_changes').css('visibility', 'hidden');#}
+                {#$('#save_changes_help').css('visibility', 'hidden');#}
+                {#console.log('warnBeforeUnload=' + warnBeforeUnload);#}
             });
 
             let form = document.getElementById('main_form');
             form.addEventListener('change', function() {
                 console.log('change event... making save_changes visible');
                 formIsDirty = true;
-                warnBeforeUnload = true;
+                {#warnBeforeUnload = true;#}
                 $('#save_changes').css('visibility', 'visible');
-                console.log('warnBeforeUnload=' + warnBeforeUnload);
+                {#console.log('warnBeforeUnload=' + warnBeforeUnload);#}
             });
 
             $('[data-toggle="popover"]').popover().on('shown.bs.popover', function() {
                 console.log('Popover is shown');
                 if (formIsDirty) {
-                    triggerPulsate();
+                    $('.popup').popover('hide');
+                    {#triggerPulsate();#}
+                    $("#saveChangesModal").modal('show');
                 }
             }).on('hidden.bs.popover', function() {
                 console.log('Popover is hidden');
@@ -534,8 +534,34 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
                 setTimeout(function() {
                     {#save_changes.classList.remove('highlight_error');#}
                     save_changes.classList.remove('pulsate');
-                }, 2000);
+                },1000);
             }
+
+        $('#saveChangesModal').on('hidden.bs.modal', function () {
+            console.log('Popover is hidden');
+            triggerPulsate();
         });
+    });
     </script>
+{% endmacro %}
+{% macro save_changes_modal() %}
+    <div class="modal" id="saveChangesModal" tabindex="-1" aria-labelledby="" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="modal-title" id="saveChangesModalLabel" style="font-weight: bold">Unsaved Changes</span>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            You have unsaved changes. Click the <b>Save Changes</b> button to save them before selecting an item from the Errors/Warnings list.
+              Otherwise, your changes will be lost.
+              <p></p>
+              In the future, when using the Errors/Warnings list to navigate, you can avoid this popup message by clicking the <b>Save Changes</b>
+              button to save each new change before clicking on the colored badge to open the Errors/Warnings list.
+          </div>
+        </div>
+      </div>
+    </div>
 {% endmacro %}

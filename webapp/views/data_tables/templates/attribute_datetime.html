@@ -92,6 +92,8 @@
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons_with_no_contents_menu() }}
                 {{ wtf.form_field(form.md5) }}
+                {{ macros.save_changes_modal() }}
+
             </form>
         </div>
     </div>

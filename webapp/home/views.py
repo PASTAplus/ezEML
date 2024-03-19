@@ -1512,7 +1512,7 @@ def import_parties(target=None):
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
+            filename = form.filename.data or current_user.get_filename()
             template = form.template.data
             is_template = 'Open Template' in request.form
             return redirect(url_for('home.import_parties_2', filename=filename, template=quote(template, safe=''),
@@ -1700,7 +1700,7 @@ def import_keywords():
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
+            filename = form.filename.data or current_user.get_filename()
             template = form.template.data
             is_template = 'Open Template' in request.form
             return redirect(url_for('home.import_keywords_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
@@ -1794,7 +1794,7 @@ def import_geo_coverage():
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
+            filename = form.filename.data or current_user.get_filename()
             template = form.template.data
             is_template = 'Open Template' in request.form
             return redirect(url_for('home.import_geo_coverage_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
@@ -1863,7 +1863,7 @@ def import_taxonomic_coverage():
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
+            filename = form.filename.data or current_user.get_filename()
             template = form.template.data
             is_template = 'Open Template' in request.form
             return redirect(url_for('home.import_taxonomic_coverage_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
@@ -1933,7 +1933,7 @@ def import_funding_awards():
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
+            filename = form.filename.data or current_user.get_filename()
             template = form.template.data
             is_template = 'Open Template' in request.form
             return redirect(url_for('home.import_funding_awards_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
@@ -2003,7 +2003,7 @@ def import_project():
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
+            filename = form.filename.data or current_user.get_filename()
             template = form.template.data
             is_template = 'Open Template' in request.form
             return redirect(url_for('home.import_project_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
@@ -2080,7 +2080,7 @@ def import_related_projects():
             return redirect(get_back_url())
 
         if form.validate_on_submit():
-            filename = form.filename.data
+            filename = form.filename.data or current_user.get_filename()
             template = form.template.data
             is_template = 'Open Template' in request.form
             return redirect(url_for('home.import_related_projects_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
@@ -3805,8 +3805,10 @@ def import_temporal_coverage():
             # url = url_for(new_page, filename=current_user.get_filename())
             # return redirect(url)
         if form.validate_on_submit():
-            filename = form.filename.data
-            return redirect(url_for('home.import_temporal_coverage_2', filename=filename))
+            filename = form.filename.data or current_user.get_filename()
+            template = form.template.data
+            is_template = 'Open Template' in request.form
+            return redirect(url_for('home.import_temporal_coverage_2', filename=filename, template=quote(template, safe=''), is_template=is_template))
 
     # Process GET
     return render_template('import_temporal_coverage.html', form=form)

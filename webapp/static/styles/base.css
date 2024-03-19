@@ -56,8 +56,8 @@ html {
 
 .red_circle {
     display:inline-block;
-    background-color:#B21111;
-    border:1px solid #B21111;
+    background-color:#DD1111;
+    border:1px solid #DD1111;
     border-radius:50%;
     -moz-border-radius:50%;
     -webkit-border-radius:50%;

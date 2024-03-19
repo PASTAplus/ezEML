@@ -6,11 +6,11 @@ import hashlib
 from flask_wtf import FlaskForm
 
 from wtforms import (
-    StringField, SelectField, SelectMultipleField, HiddenField, BooleanField, RadioField, widgets
+    StringField, SelectField, SelectMultipleField, HiddenField, BooleanField, RadioField, widgets, validators
 )
 
 from wtforms.validators import (
-    DataRequired, Email, Optional, ValidationError
+    DataRequired, Email, Optional, ValidationError, StopValidation
 )
 
 from wtforms.widgets import TextArea
@@ -138,6 +138,15 @@ class OpenDocumentForm(FlaskForm):
 class ImportEMLForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
     template = SelectField('Template', choices=[])
+
+    def validate_filename(form, field):
+        if not form.filename.choices:
+            if form.template.data:
+                # It's okay for the filename to be empty if the template is not empty.
+                # This happens, for example, when a new user is working on their first and only document.
+                return
+        else:
+            validators.AnyOf([value for value, _ in form.filename.choices])(form, field)
 
 
 class ImportPackageForm(FlaskForm):

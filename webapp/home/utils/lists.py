@@ -101,6 +101,10 @@ def list_data_packages(flag_current=False, include_current=True, current_user_di
             # Add the (possibly empty) annotation for the current package.
             choice_tuple = (document, f'{document}{current_annotation}')
         choices.append(choice_tuple)
+    # If there are no choices, add an empty choice. This will make it possible for the user to import
+    #  from a template when they're creating their first document. Otherwise, form validation will fail.
+    if not choices:
+        choices.append(('', ''))
     return choices
 
 

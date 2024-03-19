@@ -41,7 +41,7 @@ class KeywordSelectForm(EDIForm):
 
 class KeywordForm(EDIForm):
     keyword = StringField('Keyword *', validators=[])
-    lter_keyword_select = SelectField('', choices=[], validators=[])
+    lter_keyword_select = SelectField('LTER Controlled Vocabulary keyword list', choices=[], validators=[])
     keyword_thesaurus = StringField('Keyword Thesaurus (Optional)', validators=[])
     keyword_type = SelectField('Keyword Type (Optional)',
                                choices=[("", ""),

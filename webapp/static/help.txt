@@ -1226,7 +1226,7 @@ function do_not_change_clicked(checkbox) {
 --------------------
 badges
 Color Key for Badges in ezEML
-In the <b>Contents</b> menu on the left, and elsewhere in ezEML, you'll see round colored "badges." These badges indicate the presence of errors (<span style="color:red;font-weight:bold;">red</span>) or warnings (<span style="color:orange;font-weight:bold;">yellow</span>), or their absence (<span style="color:mediumseagreen;font-weight:bold;">green</span>).
+In the <b>Contents</b> menu on the left, and elsewhere in ezEML, you'll see round colored "badges." These badges indicate the presence of errors (<span style="color:#DD1111;font-weight:bold;">red</span>) or warnings (<span style="color:#FFA500;font-weight:bold;">yellow</span>), or their absence (<span style="color:#009E60;font-weight:bold;">green</span>).
 
 The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the relevant errors/warnings to be displayed, and the errors/warnings themselves are clickable, taking you directly to the item in question.
 

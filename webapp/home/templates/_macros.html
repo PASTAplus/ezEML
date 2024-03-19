@@ -466,12 +466,12 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     </script>
 {% endmacro %}
 {% macro page_heading_with_status_popup(page_heading, node_id, tooltip, session, help_btn, inner_help_btn) %}
-    <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;">
+    <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;border:0px solid red;">
         {% set node_id = node_id.split("|")[0] %}
         {% set node_status = node_id + '_status' %}
         {{ local_status_badge_with_popup(session[node_status], tooltip) }}
         <div class="whitespace"></div>
-        <table class="right_justified"><tr>
+        <table class="right_justified" style="height:0px;margin-top:0px;margin-bottom: 0px;"><tr>
         <td><h2>{{ page_heading }}</h2></td>
         {% if inner_help_btn %}
             <td style="vertical-align:middle;padding-top: 18px;">
@@ -480,8 +480,8 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         {% endif %}
         </tr></table>
 {#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
-        <input class="btn btn-primary" id="save_changes" style="visibility:visible;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
-            <span id="save_changes_help" style="visibility:visible;vertical-align: center; margin-top:25px;">{{ help_button(help_btn) }}</span>
+        <input class="btn btn-primary" id="save_changes" style="visibility:visible;margin-top:0px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
+            <span id="save_changes_help" style="visibility:visible;vertical-align: center; margin-top:10px;">{{ help_button(help_btn) }}</span>
 {#        {% endif %}#}
     </div>
 {% endmacro %}

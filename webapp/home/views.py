@@ -3677,7 +3677,7 @@ def remove_from_uploads(filename):
 def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
                 next_page=None, edit_page=None, project_node_id=None, reupload_page=None,
-                import_page=None, import_target=None):
+                import_page=None, import_target=None, rp_node_id=None):
 
     def extract_ids(key):
         if '|' not in key:
@@ -3729,6 +3729,9 @@ def select_post(filename=None, form=None, form_dict=None,
                 else:
                     # node_id = key
                     new_page = PAGE_REUPLOAD
+            elif val == BTN_SAVE_CHANGES:
+                new_page = this_page
+                node_id = rp_node_id
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id, secondary_node_id = extract_ids(key)

@@ -1796,10 +1796,10 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
         return redirect(url)
 
     # Process GET
+    eml_node = load_eml(filename=filename)
     attribute_name = ''
     codes = 'No codes have been defined yet'
     if node_id != '1':
-        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)

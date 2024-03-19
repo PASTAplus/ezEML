@@ -113,6 +113,9 @@ def select_new_page(back_page=None, next_page=None, edit_page=None):
             elif val in (BTN_NEXT, BTN_SAVE_AND_CONTINUE):
                 new_page = next_page
                 break
+            elif val == BTN_SAVE_CHANGES:
+                new_page = edit_page
+                break
             else:
                 new_page = check_val_for_hidden_buttons(val, new_page)
 
@@ -123,15 +126,31 @@ def responsible_party(filename=None, rp_node_id=None,
                       node_name=None, title=None, back_page=None,
                       next_page=None, save_and_continue=False, help=None,
                       parent_node_id=None):
+    '''
+    Create or edit a responsible party node. This is called in a variety of settings, and the input
+    parameters are used to determine the context and the behavior of the function.
 
+    node_name: The name of the responsible party node. In some cases, e.g., project personnel, the node name
+    establishes the context of the responsible party node.
+
+    parent_node_id: The id of the parent node of the responsible party node. This is used to determine
+    the context of the responsible party node. If the parent node is a project, then the responsible
+    party is a project personnel. If the parent node is a data source, then the responsible party is
+    a data source personnel. If the parent node is a dataset, then the responsible party is a creator, contact, etc.
+
+
+    '''
     eml_node = load_eml(filename=filename)
     form = ResponsiblePartyForm(filename=filename)
 
     if node_name == names.PERSONNEL:
+        # Personnel nodes are children of project or data source nodes.
+        # Get the parent node id so we can tell which case we're in.
         if parent_node_id is None:
             parent_node = eml_node.find_single_node_by_path(['dataset', 'project'])
             parent_node_id = parent_node.id
 
+    # Set up some flags that will indicate the context of the responsible party node
     is_project = False
     is_data_source = False
     project_node_id = None
@@ -154,7 +173,7 @@ def responsible_party(filename=None, rp_node_id=None,
 
     role = False
     # If this is an associatedParty or a project personnel element,
-    # set role to True so it will appear as a form field.
+    #   set role to True so it will appear as a form field.
     if node_name == names.ASSOCIATEDPARTY or node_name == names.PERSONNEL:
         role = True
 
@@ -162,6 +181,7 @@ def responsible_party(filename=None, rp_node_id=None,
     if request.method == 'POST':
 
         if BTN_CANCEL in request.form:
+            # Where we go back to and what parameters are required after a cancel depends on the context
             if is_project:
                 url = url_for(back_page, filename=filename, project_node_id=parent_node_id)
             elif is_data_source:
@@ -172,16 +192,31 @@ def responsible_party(filename=None, rp_node_id=None,
                 url = url_for(back_page, filename=filename)
             return redirect(url)
 
-        role = False
-        new_page = select_new_page(back_page, next_page)
+        # Use the request endpoint to determine the page we're on. This is used to determine where to go on Save Changes.
+        endpoint = request.endpoint
+        if endpoint == 'rp.creator':
+            this_page = PAGE_CREATOR
+        elif endpoint == 'rp.contact':
+            this_page = PAGE_CONTACT
+        elif endpoint == 'rp.metadata_provider':
+            this_page = PAGE_METADATA_PROVIDER
+        elif endpoint == 'rp.associated_party':
+            this_page = PAGE_ASSOCIATED_PARTY
+        elif endpoint == 'rp.publisher':
+            this_page = PAGE_PUBLISHER
+        elif endpoint == 'rp.personnel':
+            this_page = PAGE_PROJECT_PERSONNEL
+
+        # role = False
+        new_page = select_new_page(back_page, next_page, this_page)
 
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
-                          'POST', PAGE_PUBLISHER,
+                          'POST', this_page,
                           PAGE_MAINTENANCE, PAGE_PUBLICATION_INFO,
                           PAGE_PUBLISHER, project_node_id=project_node_id,
-                          import_page=PAGE_IMPORT_PARTIES)
+                          import_page=PAGE_IMPORT_PARTIES, rp_node_id=rp_node_id)
 
         save = False
         if is_dirty_form(form):
@@ -210,6 +245,17 @@ def responsible_party(filename=None, rp_node_id=None,
                 online_url = form.online_url.data
                 role = form.role.data
 
+                """
+                If a responsibleParty node already exists, we still create a new one and pass it in as an argument to
+                create_responsible_party. Upon return, we need to replace the existing responsibleParty node with the 
+                new one. The reason for doing it this way is that the responsibleParty node is a complex node with many 
+                child nodes, and it is easier to create a new one from scratch than to try to modify an existing one. 
+                The responsibleParty node has a number of child nodes that have cardinality 0..infinity, which makes 
+                it a lot more complicated to find and modify the appropriate children to modify.
+                
+                A complication, though, is that the node ID will change, which we need to allow for if Save Changes is
+                clicked, bringing us back to the same page. I.e., we want the generated URL to use the new node ID.
+                """
                 rp_node = Node(node_name, parent=parent_node)
 
                 create_responsible_party(
@@ -247,6 +293,9 @@ def responsible_party(filename=None, rp_node_id=None,
                 else:
                     add_child(parent_node, rp_node)
 
+                # We want generated URLs, below, to point to the new responsibleParty node
+                rp_node_id = rp_node.id
+
                 save_both_formats(filename=filename, eml_node=eml_node)
                 # flash(f"Changes to the '{node_name}' element have been saved.")
 
@@ -266,7 +315,7 @@ def responsible_party(filename=None, rp_node_id=None,
                 method_step_node = data_source_node.parent
                 return redirect(url_for(PAGE_DATA_SOURCE, filename=filename, ms_node_id=method_step_node.id, data_source_node_id=data_source_node_id))
             else:
-                return redirect(url_for(new_page, filename=filename, node_id=parent_node_id))
+                return redirect(url_for(new_page, filename=filename, node_id=rp_node_id)) # node_id=parent_node_id))
 
     # Process GET
     if rp_node_id != '1':
@@ -283,7 +332,7 @@ def responsible_party(filename=None, rp_node_id=None,
 
     if parent_node and parent_node.name == names.RELATED_PROJECT:
         title = 'Related ' + title
-    help = get_helps([node_name])
+    help = get_helps([node_name, 'save_changes'])
     return render_template('responsible_party.html', title=title, node_name=node_name, rp_node_id=rp_node_id,
                            form=form, role=role, next_page=next_page, save_and_continue=save_and_continue,
                            tooltip=tooltip, help=help)

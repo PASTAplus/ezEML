@@ -988,8 +988,14 @@ def create_responsible_party(responsible_party_node:Node=None,
     Populate a responsibleParty node, filling it in with the provided values and creating child nodes as needed.
     The caller is responsible for creating the node (i.e., a node is passed in as an argument), and for adding
     the created responsibleParty node to the parent node, replacing an existing responsibleParty node if necessary.
-    """
 
+    If a responsibleParty node already exists, the caller should still create a new one and pass it in as an argument,
+    and upon return, the caller should replace the existing responsibleParty node with the new one. The reason for doing
+    it this way is that the responsibleParty node is a complex node with many child nodes, and it is easier to create a
+    new one from scratch than to try to modify an existing one. The responsibleParty node has a number of child nodes
+    that have cardinality 0..infinity, which makes it a lot more complicated to find and modify the appropriate children
+    to modify.
+    """
     try:
         if salutation or gn or mn or sn:
             individual_name_node = new_child_node(names.INDIVIDUALNAME, parent=responsible_party_node)

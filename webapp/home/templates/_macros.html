@@ -416,9 +416,11 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
 {% macro local_status_badge_with_popup(color, tooltip, list_length=0) %}
                         {% if list_length == 0 %}
                             {% if color %}
-                            <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
-                                  title="" data-container="body" data-content="{{ tooltip }}">
-                                <span class="{{ color }}_circle" style="padding-left: 0;margin-top:5px;margin-right: 3px;vertical-align: center;" title="Click for errors/warnings"></span></span>
+                                {% if color != 'white' %}
+                                <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
+                                      title="" data-container="body" data-content="{{ tooltip }}">
+                                    <span class="{{ color }}_circle" style="padding-left: 0;margin-top:5px;margin-right: 3px;vertical-align: center;" title="Click for errors/warnings"></span></span>
+                                {% endif %}
                             {% else %}
                             <span>
                                 <span class="green_circle" style="padding-left: 0;margin-top:5px;margin-right: 3px;vertical-align: center;"></span></span>

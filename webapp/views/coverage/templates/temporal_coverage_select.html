@@ -11,7 +11,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'temporal_coverage_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, tc_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Temporal Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>

@@ -238,7 +238,12 @@ def test_page():
     A basically empty page for testing purposes.
     """
     from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
-    eml_node = load_eml('A sample data package')
+
+    # eml_node = load_eml('knb-lter-hbr.393.2')
+    # eml_node = load_eml('knb-lter-hbr.392.1')
+    # eml_node = load_eml('knb-lter-hbr.120.5') # Has custom units
+    eml_node = load_eml('knb-lter-ntl.300.3')
+
     data_table_node = eml_node.find_descendant('dataTable')
     generate_data_entry_spreadsheet(data_table_node)
 

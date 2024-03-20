@@ -9,7 +9,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'methods_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, method_step_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Method Steps{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>

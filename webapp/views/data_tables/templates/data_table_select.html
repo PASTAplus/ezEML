@@ -18,7 +18,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'data_tables_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, dt_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Data Tables</h2></td>

@@ -16,7 +16,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'other_entities_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, oe_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Other Entities</h2></td>

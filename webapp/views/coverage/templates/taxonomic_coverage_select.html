@@ -15,7 +15,7 @@
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'taxonomic_coverage_status' %}
         {% if session[node_status] != 'white' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, txc_list | length) }}
         </td>
         <td style="width:3%">
         {% endif %}

@@ -1,3 +1,4 @@
+import html
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
@@ -91,12 +92,13 @@ def rp_select_get(filename=None, form=None, rp_name=None,
 
     # Get the tooltip for the status badge
     init_evaluation(eml_node, filename)
-    tooltip = format_tooltip(None, rp_plural.lower())
+    section = rp_plural.lower().replace(html.unescape('&nbsp;'), '_')
+    tooltip = format_tooltip(None, section)
 
     return render_template('responsible_party_select.html', title=title,
                            rp_list=rp_list, form=form,
                            rp_singular=rp_singular, rp_plural=rp_plural,
-                           help=help, tooltip=tooltip, relatedProject=related_project)
+                           help=help, tooltip=tooltip, section=section, relatedProject=related_project)
 
 
 def select_new_page(back_page=None, next_page=None, edit_page=None):

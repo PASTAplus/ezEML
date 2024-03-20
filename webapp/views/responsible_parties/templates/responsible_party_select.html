@@ -10,7 +10,7 @@
 
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
-        {% set node_status = rp_plural | lower + '_status' %}
+        {% set node_status = section ~ '_status' %}
         {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
         </td>
         <td style="width:3%"></td>

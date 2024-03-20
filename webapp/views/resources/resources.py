@@ -115,7 +115,7 @@ def title(filename=None):
     tooltip = format_tooltip(None, section='title')
 
     set_current_page('title')
-    help = get_helps(['title', 'nav', 'welcome', 'badges'])
+    help = get_helps(['title', 'nav', 'welcome'])
     first_usage = is_first_usage()  # If this is the first time the user has used ezEML, we'll show the welcome popup.
     return render_template('title.html', title='Title', form=form, help=help, tooltip=tooltip,
                            is_first_usage=first_usage)

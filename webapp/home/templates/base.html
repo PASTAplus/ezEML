@@ -369,7 +369,38 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
     </div>
 </div>
 
+    {% set help_badges_id, help_badges_title, help_badges_content = ('badges', 'Colored Badges in ezEML',
+'In the <b>Contents</b> menu on the left, and elsewhere in ezEML, you\'ll see round colored "badges." These badges indicate the presence of errors (<span style="color:#DD1111;font-weight:bold;">red</span>) or warnings (<span style="color:#FFA500;font-weight:bold;">yellow</span>), or their absence (<span style="color:#009E60;font-weight:bold;">green</span>).
+<p style="height:10px;margin:0;"></p>
+The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the relevant errors/warnings to be displayed, and the errors/warnings themselves are clickable, taking you directly to the item in question.
+<p style="height:10px;margin:0;"></p>
+Your goal should be to enter required and recommended metadata and make corrections until, at the minimum, no red badges remain. Even better would be to make all badges green.
+<p style="height:10px;margin:0;"></p>
+For green badges, there\'s nothing to display, so they\'re not clickable.
+<p style="height:10px;margin:0;"></p>
+<p style="height:10px;margin:0;"></p>
+<table style="width:100%;border 1px solid;">
+<th></th><th>Color Key for Status Badges</th>
+    <tr><td width=3%><span class ="nav_link red_circle"></span></td><td width=97%>Metadata errors found. Click the badge for details.</td></tr>
+    <tr><td><span class ="nav_link yellow_circle"></span></td><td>Metadata warnings found. Click the badge for details.</td></tr>
+    <tr><td><span class ="nav_link green_circle"></span></td><td>Metadata entered; no errors or warnings found.</td></tr>
+    <tr><td><span class ="nav_link white_key_circle"></span></td><td>No metadata entered, and metadata is not required.</td></tr>
+</table>
+
+<hr style="border-top: 1px solid darkgray;">
+<input type="checkbox" id="do_not_show" name="do_not_show" onchange="do_not_show_change_clicked(this);">&nbsp;Got it. Don\'t show this dialog again.</input>
+<script>
+localStorage.getItem("do_not_show_badges_dialog_1");
+function do_not_show_change_clicked(checkbox) {
+    localStorage.setItem("do_not_show_badges_dialog_1", checkbox.checked);
+}
+</script>') %}
+    {% set help_badges_btn = help_badges_id ~ '_btn' %}
+    {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
+                        <span hidden="hidden">{{ macros.help_button(help_badges_btn) }}</span>
+
     {{ macros.help_dialog('__help__contents_dialog', session['__help__contents'][0], session['__help__contents'][1]) }}
+    {{ macros.help_dialog(help_badges_dialog, help_badges_title, help_badges_content) }}
 
 {% endblock %}
 
@@ -433,6 +464,37 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         {{ macros.help_script('__help__contents_dialog', '__help__contents_btn') }}
     });
     </script>
+
+    {% set help_badges_id = 'badges' %}
+    {% set help_badges_btn = help_badges_id ~ '_btn' %}
+    {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
+    <script>
+
+    $(function()
+    {
+        {{ macros.help_script(help_badges_dialog, help_badges_btn) }}
+        let do_not_show = localStorage.getItem("do_not_show_badges_dialog_1") == 'true';
+        if (!do_not_show && $('.nav_link').is(':visible')) {
+            let badges_dialog = $('#{{ help_badges_dialog }}').dialog({
+                autoOpen: true,
+                width: 500,
+                position: {my: "center", at: "center", of: window}
+            });
+            $('#{{ help_badges_btn }}').button().on('click', function () {
+                if (badges_dialog.dialog('isOpen')) {
+                    badges_dialog.dialog('close');
+                } else {
+                    badges_dialog.dialog('open');
+                }
+            });
+            $('#{{ help_badges_btn }}').click();
+            document.activeElement.blur();
+        }
+    });
+    </script>
+
+
+
 
     {% endblock %}
 {% endblock %}

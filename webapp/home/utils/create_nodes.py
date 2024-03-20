@@ -1105,8 +1105,7 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
                 description = ''  # TODO: Handle cases with empty description but non-empty data_sources
             description = f"{description}\n{data_sources_marker_begin}\n{data_sources}\n{data_sources_marker_end}"
 
-        if description:
-            texttype_node_processing.post_process_texttype_node(description_node, description)
+        texttype_node_processing.post_process_texttype_node(description_node, description)
 
         if instrumentation:
             instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)

@@ -469,7 +469,6 @@ function do_not_show_change_clicked(checkbox) {
     {% set help_badges_btn = help_badges_id ~ '_btn' %}
     {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
     <script>
-
     $(function()
     {
         {{ macros.help_script(help_badges_dialog, help_badges_btn) }}
@@ -493,8 +492,27 @@ function do_not_show_change_clicked(checkbox) {
     });
     </script>
 
+    <script>
+    // Function to check if there are unsaved changes
+    function hasUnsavedChanges() {
+        return sessionStorage.getItem('unsavedChanges') === 'true';
+    }
 
+    // Function to set the flag indicating unsaved changes
+    function setUnsavedChanges(flag) {
+        sessionStorage.setItem('unsavedChanges', flag ? 'true' : 'false');
+    }
 
+    // Optionally, a function to clear the flag
+    function clearUnsavedChanges() {
+        sessionStorage.removeItem('unsavedChanges');
+    }
+    </script>
 
+    <script>
+    $(document).ready(function() {
+        clearUnsavedChanges();
+    });
+    </script>
     {% endblock %}
 {% endblock %}

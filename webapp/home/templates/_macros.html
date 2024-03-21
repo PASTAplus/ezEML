@@ -452,6 +452,10 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
             trigger: 'manual' // Manually trigger popover
         }).on('click', function(e) {
             e.stopPropagation(); // Prevent event from propagating
+            if (hasUnsavedChanges()) {
+                $("#saveChangesModal").modal('show');
+                return;
+            }
             let $currentPopover = $(this);
             // Close any open popover except the current one
             $('.popup').not($currentPopover).popover('hide');
@@ -493,30 +497,35 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     <script type="text/javascript">
         {#document.addEventListener('DOMContentLoaded', function() {#}
         $(document).ready(function(){
-            let formIsDirty = false;
+            {#let formIsDirty = false;#}
+            clearUnsavedChanges();
 
             // Detect click on submit button and disable the warning
             $('form').submit(function() {
-                formIsDirty = false;
+                {#formIsDirty = false;#}
+                clearUnsavedChanges();
                 console.log('form submit event');
             });
 
             $('#save_changes').click(function() {
                 console.log('save_changes click event');
-                formIsDirty = false;
+                {#formIsDirty = false;#}
+                clearUnsavedChanges();
             });
 
             let form = document.getElementById('main_form');
             form.addEventListener('change', function() {
                 console.log('change event... making save_changes visible');
-                formIsDirty = true;
+                {#formIsDirty = true;#}
+                setUnsavedChanges('true');
                 $('#save_changes').css('visibility', 'visible');
                 {#console.log('warnBeforeUnload=' + warnBeforeUnload);#}
             });
 
             $('[data-toggle="popover"]').popover().on('shown.bs.popover', function() {
                 console.log('Popover is shown');
-                if (formIsDirty) {
+                {#if (hasUnsavedChanges() || formIsDirty) {#}
+                if (hasUnsavedChanges()) {
                     $('.popup').popover('hide');
                     {#triggerPulsate();#}
                     $("#saveChangesModal").modal('show');

@@ -17,7 +17,7 @@ from enum import Enum
 import hashlib
 import os
 import pickle
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse, parse_qs
 from dataclasses import dataclass
 
 from flask import (
@@ -1595,6 +1595,13 @@ def set_session_info(evaluation, eml_node):
         for substr in substrs:
             if is_valid_uuid(substr):
                 node_ids.append(substr)
+        # Now look at the query string
+        query_string = parsed.query
+        query_params = parse_qs(query_string)
+        for key, value in query_params.items():
+            for val in value:
+                if is_valid_uuid(val):
+                    node_ids.append(val)
         return node_ids
 
     section_links_found = {}

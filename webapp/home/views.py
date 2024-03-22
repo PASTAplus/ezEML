@@ -37,7 +37,7 @@ import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.home_utils import log_error, log_info, log_available_memory, profile_and_save
+from webapp.home.home_utils import log_error, log_info, log_available_memory, url_without_ui_element_id_query_string
 import webapp.home.texttype_node_processing as texttype_node_processing
 
 import csv
@@ -232,22 +232,31 @@ def url_of_interest():
     return True
 
 
-@home_bp.route('/test_page')
-def test_page():
-    """
-    A basically empty page for testing purposes.
-    """
-    from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
-
-    # eml_node = load_eml('knb-lter-hbr.393.2')
-    # eml_node = load_eml('knb-lter-hbr.392.1')
-    # eml_node = load_eml('knb-lter-hbr.120.5') # Has custom units
-    eml_node = load_eml('knb-lter-ntl.300.3')
-
-    data_table_node = eml_node.find_descendant('dataTable')
-    generate_data_entry_spreadsheet(data_table_node)
-
-    return render_template('test_page.html')
+# @home_bp.route('/test_page')
+# def test_page():
+#     """
+#     A basically empty page for testing purposes.
+#     """
+#     from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
+#
+#     # eml_node = load_eml('knb-lter-hbr.393.2')
+#     # eml_node = load_eml('knb-lter-hbr.392.1')
+#
+#     package_name = 'knb-lter-hbr.11.17'
+#     # package_name = 'knb-lter-hbr.120.5'
+#     eml_node = load_eml(package_name)
+#
+#     data_table_name = 'ws9_stream_monthly_flux_gHa'
+#     data_table_nodes = []
+#     eml_node.find_all_descendants('dataTable', data_table_nodes)
+#     for data_table_node in data_table_nodes:
+#         entity_name_node = data_table_node.find_descendant('entityName')
+#         if entity_name_node.content == data_table_name:
+#             break
+#
+#     generate_data_entry_spreadsheet(data_table_node, package_name, data_table_name)
+#
+#     return render_template('test_page.html')
 
 
 @home_bp.before_app_request
@@ -3735,8 +3744,9 @@ def select_post(filename=None, form=None, form_dict=None,
                     # node_id = key
                     new_page = PAGE_REUPLOAD
             elif val == BTN_SAVE_CHANGES:
-                new_page = this_page
-                node_id = rp_node_id
+                # We'll go back to the same page with the same URL, minus the ui_element_id query string, if any
+                url = request.url
+                return url_without_ui_element_id_query_string(url)
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id, secondary_node_id = extract_ids(key)
@@ -3774,7 +3784,7 @@ def select_post(filename=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page in [PAGE_DATA_TABLE, PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
             return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
-        elif new_page == PAGE_DATA_SOURCE:
+        elif new_page in [PAGE_DATA_SOURCE, PAGE_DATA_SOURCE_PERSONNEL]:
             return url_for(new_page, filename=filename, ms_node_id=node_id, data_source_node_id=secondary_node_id)
         elif new_page in [PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT]:
             return url_for(new_page, filename=filename, project_node_id=project_node_id)

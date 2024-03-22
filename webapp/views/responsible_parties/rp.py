@@ -1,4 +1,5 @@
 import html
+
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
 )
@@ -611,8 +612,7 @@ def project_personnel(filename=None, node_id=None, project_node_id=None):
 @login_required
 def data_source_personnel(filename=None, rp_type=None, rp_node_id=None, method_step_node_id=None, data_source_node_id=None):
     # The reason we need the method_step_node_id in the route is so that when we look at the error links produced by check_metadata,
-    #  we can recognize the error as pertaining to that method step.
-    method = request.method
+    #  we can recognize the error as pertaining to that method step. rp_type is creator or contact.
     set_current_page('data_source')
     return responsible_party(filename=filename, rp_node_id=rp_node_id,
                              node_name=rp_type,

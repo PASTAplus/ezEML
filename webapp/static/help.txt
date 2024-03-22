@@ -1232,7 +1232,7 @@ The yellow and red badges are usually clickable, as indicated by a tooltip that 
 
 Your goal should be to enter required and recommended metadata and make corrections until, at the minimum, no red badges remain. Even better would be to make all badges green.
 
-For green badges, there's nothing to display, so they're not clickable.
+For green badges, there are no errors or warnings to display, so they're not clickable.
 
 
 <table style="width:100%;border 1px solid;">
@@ -1256,9 +1256,9 @@ save_changes
 Save Changes
 Click <b>Save Changes</b> to save your changes without moving to a new page.
 
-This is particularly important if you are using the Errors/Warnings list to navigate to problematic items. Clicking an item from the list causes the page to refresh, and if you have unsaved changes, they will be lost unless you first click <b>Save Changes</b>.
+This is particularly important if you are using the badge's Errors/Warnings list to navigate to problematic items. Clicking an item from the list causes the page to refresh, and if you have unsaved changes, they will be lost unless you first click <b>Save Changes</b>.
 
-So, when you make a change, you can click <b>Save Changes</b> before moving on to another item in the Errors/Warnings list.
+So, when you make a change, click <b>Save Changes</b> before moving on to another item in the Errors/Warnings list.
 --------------------
 complex_xml
 Editing Text Elements in Imported XML

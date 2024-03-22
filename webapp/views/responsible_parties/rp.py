@@ -208,6 +208,8 @@ def responsible_party(filename=None, rp_node_id=None,
             this_page = PAGE_PUBLISHER
         elif endpoint == 'rp.personnel':
             this_page = PAGE_PROJECT_PERSONNEL
+        elif endpoint == 'rp.data_source_personnel':
+            this_page = PAGE_DATA_SOURCE_PERSONNEL
 
         # role = False
         new_page = select_new_page(back_page, next_page, this_page)

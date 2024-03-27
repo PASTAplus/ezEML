@@ -15,14 +15,13 @@
 import logging
 import os
 
-import daiquiri
 import daiquiri.formatter
 
-from flask import Flask, g
+from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 from webapp.config import Config
 
@@ -36,11 +35,6 @@ daiquiri.setup(level=logging.INFO,
                                                 fmt=("%(asctime)s [PID %(process)d] [%(levelname)s]" +
                                                      "%(extras)s %(name)s -> %(message)s"),
                                                 keywords=None)), 'stdout'
-                   # daiquiri.output.File(logfile,
-                   #                           formatter=daiquiri.formatter.ExtrasFormatter(
-                   #                              fmt=("%(asctime)s [PID %(process)d] [%(threadName)s] [%(levelname)s]" +
-                   #                                   "%(extras)s %(name)s -> %(message)s"),
-                   #                              keywords=None)), 'stdout'
                 ])
 logger = daiquiri.getLogger(__name__)
 

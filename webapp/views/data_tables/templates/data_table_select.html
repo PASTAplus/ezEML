@@ -16,9 +16,15 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'data_tables_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, dt_list | length) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Data Tables</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
     </table>
+
     <div class="row">
         <div class="col-md-11">
             <form method="POST" action="" class="form" role="form">
@@ -29,7 +35,14 @@
                     </tr>
                     {% for dt_entry in dt_list %}
                     <tr>
-                        <td width="80%">{{ dt_entry.label }}</td>
+{#                        {{ macros.select_list_item_with_status_badge(dt_entry.id, '/eml/check_metadata#data_table:', dt_entry.label) }}#}
+                        <td width="80%">
+                        {% set node_id = dt_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], dt_entry.tooltip) }}
+                        {{ dt_entry.label }}
+                        </td>
+
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.upval) }}
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>
@@ -39,7 +52,7 @@
                         </td>
 {#                            {{ ns.reupload_help_displayed }}#}
                             {% if not ns.reupload_help_displayed %}
-                            <td style="padding-top: 15px;">{{ macros.help_button(help_data_tables_reupload_btn, "ui-button ui-corner-all ui-widget") }}</td>
+                            <td style="padding-top: 10px;">{{ macros.help_button(help_data_tables_reupload_btn, "ui-button ui-corner-all ui-widget") }}</td>
                             {% set ns.reupload_help_displayed = true %}
                             {% else %}
                             <td></td>
@@ -54,7 +67,7 @@
                 <br/>
                 <table>
                     <td>
-                        <input class="btn btn-primary" name="1" type="submit" value="Load Data Table from CSV File"/>&nbsp;
+                        <input class="btn btn-primary" id="add_data_table" name="1" type="submit" value="Load Data Table from CSV File"/>&nbsp;
                         <input class="btn btn-primary" name="1" type="submit" value="Add Data Table from Scratch"/></td>
                     <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_add_load_data_tables_btn) }}</td>
                 </table>
@@ -93,4 +106,8 @@
         {{ macros.help_script(help_data_tables_reupload_dialog, help_data_tables_reupload_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+
 {% endblock %}

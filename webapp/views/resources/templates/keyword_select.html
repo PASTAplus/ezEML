@@ -7,9 +7,15 @@
     {% set help_keywords_dialog = help_keywords_id ~ '_dialog' %}
     
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'keywords_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Keywords</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_keywords_btn) }}</td>
     </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -34,7 +40,7 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Keyword"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" id="add_keyword" name="1" type="submit" value="Add Keyword"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="2" type="submit" value="Import Keyword"/>
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
@@ -59,4 +65,8 @@
         {{ macros.help_script(help_keywords_dialog, help_keywords_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+
 {% endblock %}

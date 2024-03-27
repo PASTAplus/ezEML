@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+{#    <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">#}
+    <meta charset="UTF-8">
+    <title>Test Page</title>
+{#    <link rel="stylesheet" type="text/css" href="/static/styles/base.css">#}
+      <style>
+.finger-icon {
+  position: absolute; /* Position near target row */
+  top: 50%; /* Adjust based on your needs */
+  left: -20px; /* Adjust based on your needs */
+  transform: translateY(-50%); /* Center vertically */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+}
+
+.finger-icon > span:first-child { /* Palm */
+  background-color: #f0e6d6;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+}
+
+.finger-icon > span:last-child { /* Finger */
+  background-color: #d9b044;
+  border-radius: 50% 50% 0 0; /* Rounded top, sharp bottom */
+  width: 10px;
+  height: 30px;
+}
+
+.finger-icon > span:last-child::after { /* Nail */
+  content: "";
+  display: block;
+  background-color: #fff;
+  border-radius: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -5px; /* Position nail on top of finger */
+}
+.arrow {
+  width: 0;
+  height: 0;
+  border: 10px solid transparent; /* Transparent border for size */
+  border-bottom-color: blue; /* Color the bottom edge */
+  transform: rotate(-45deg); /* Rotate the element */
+}
+
+.arrow::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the element */
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent; /* Left border, transparent */
+  border-top: 10px solid blue; /* Top border, main color */
+}
+
+      </style>
+  </head>
+  <body>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="finger-icon">&nbsp;</span> Hello, World!<p></p>
+
+<div class="arrow">
+</div>
+Hello, World!<p></p>
+
+  </body>
+</html>

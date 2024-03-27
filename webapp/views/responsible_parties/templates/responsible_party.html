@@ -6,24 +6,39 @@
     {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
     {% set help_rp_btn = help_rp_id ~ '_btn' %}
     {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% set help_rp_save_changes_id, help_rp_save_changes_title, help_rp_save_changes_content = help[1] %}
+    {% set help_rp_save_changes_btn = help_rp_save_changes_id ~ '_btn' %}
+    {% set help_rp_save_changes_dialog = help_rp_save_changes_id ~ '_dialog' %}
     {% endif %}
 
     <table>
-        <td><h2>{{ title }}</h2></td>
-        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = rp_node_id.split("|")[0] %}
+        {% if node_name == 'publisher' %}
+            {% set node_status = 'publisher_status' %}
+        {% else %}
+            {% set node_status = node_id + '_status' %}
+        {% endif %}
+{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
+{#        </td>#}
+{#        <td style="width:3%"></td>#}
+{#        <td><h2>{{ title }}</h2></td>#}
+{#        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>#}
     </table>
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" id="main_form" role="form">
+    {{ macros.page_heading_with_status_popup(title, node_id, tooltip, session, help_rp_save_changes_btn, help_rp_btn) }}
+
     {% if node_name == 'publisher' %}
-    <div class="col-md-10" style="border: 2px solid steelblue;color: steelblue;padding: 15px;">
+    <div class="col-md-10" style="width:100%;border: 2px solid steelblue;color: steelblue;padding: 15px;margin-bottom: 15px;">
         Please note: if you plan to submit your data package to the data repository hosted by the
         Environmental Data Initiative (EDI), you should leave this page blank unless you will also
         be using the EML metadata for some other purpose. EDI will replace these entries in the submitted EML
         when the data package is submitted.
     </div>
     {% endif %}
-    <div class="row">
-        <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
-
+{#<br>&nbsp;</br>#}
                 {% if not role %}
                     <h5 style="color: steelblue;font-style: italic">At least one of the following is required: Last Name, Organization, or Position Name.</h5>
                 {% else %}
@@ -151,12 +166,14 @@
 
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
+                {{ macros.save_changes_modal() }}
             </form>
             <p>&nbsp;</p>
         </div>
     </div>
 
     {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
+    {{ macros.help_dialog(help_rp_save_changes_dialog, help_rp_save_changes_title, help_rp_save_changes_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -165,12 +182,21 @@
     {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
     {% set help_rp_btn = help_rp_id ~ '_btn' %}
     {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% set help_rp_save_changes_id, help_rp_save_changes_title, help_rp_save_changes_content = help[1] %}
+    {% set help_rp_save_changes_btn = help_rp_save_changes_id ~ '_btn' %}
+    {% set help_rp_save_changes_dialog = help_rp_save_changes_id ~ '_dialog' %}
     {% endif %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
+        {{ macros.help_script(help_rp_save_changes_dialog, help_rp_save_changes_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+    {{ macros.save_changes_button_support() }}
+
 {% endblock %}

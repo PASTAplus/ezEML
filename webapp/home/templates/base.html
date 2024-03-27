@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2024.02.21' %}
+{% set release_number = '2024.03.27' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -24,6 +24,8 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/directory-list.css', version=release_number) }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 {% endblock %}
 
 {% block title %}
@@ -320,35 +322,35 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
 
         {# Handle clicks on the main Contents menu.#}
-        {{ macros.contents_menu_item(url_for('home.edit', page='res.title'), title_style, 'hidden_title', 'Title', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='dt.data_table_select'), data_table_style, 'hidden_data_tables', 'Data Tables', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='rp.creator_select'), creator_style, 'hidden_creators', 'Creators', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='rp.contact_select'), contact_style, 'hidden_contacts', 'Contacts', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='rp.associated_party_select'), associated_party_style, 'hidden_associated_parties', 'Associated Parties', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='rp.metadata_provider_select'), metadata_provider_style, 'hidden_metadata_providers', 'Metadata Providers', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='res.abstract'), abstract_style, 'hidden_abstract', 'Abstract', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='res.keyword_select'), keyword_style, 'hidden_keywords', 'Keywords', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='res.intellectual_rights'), intellectual_rights_style, 'hidden_intellectual_rights', 'Intellectual Rights', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='cov.geographic_coverage_select'), geographic_coverage_style, 'hidden_geographic_coverage', 'Geographic Coverage', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='cov.temporal_coverage_select'), temporal_coverage_style, 'hidden_temporal_coverage', 'Temporal Coverage', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='cov.taxonomic_coverage_select'), taxonomic_coverage_style, 'hidden_taxonomic_coverage', 'Taxonomic Coverage', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='maint.maintenance'), maintenance_style, 'hidden_maintenance', 'Maintenance', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='rp.publisher'), publisher_style, 'hidden_publisher', 'Publisher', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='res.publication_info'), publication_info_style, 'hidden_publication_info', 'Publication Info', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='md.method_step_select'), method_step_style, 'hidden_methods', 'Methods', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='proj.project'), project_style, 'hidden_project', 'Project', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='ent.other_entity_select'), other_entity_style, 'hidden_other_entities', 'Other Entities', ns.is_non_saving) }}<br>
-        {{ macros.contents_menu_item(url_for('home.edit', page='res.data_package_id'), data_package_id_style, 'hidden_data_package_id', 'Data Package ID', ns.is_non_saving) }}<br>
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.title'), title_style, 'hidden_title', 'Title', ns.is_non_saving, 'title') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='dt.data_table_select'), data_table_style, 'hidden_data_tables', 'Data Tables', ns.is_non_saving, 'data_tables') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='rp.creator_select'), creator_style, 'hidden_creators', 'Creators', ns.is_non_saving, 'creators') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='rp.contact_select'), contact_style, 'hidden_contacts', 'Contacts', ns.is_non_saving, 'contacts') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='rp.associated_party_select'), associated_party_style, 'hidden_associated_parties', 'Associated Parties', ns.is_non_saving, 'associated_parties') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='rp.metadata_provider_select'), metadata_provider_style, 'hidden_metadata_providers', 'Metadata Providers', ns.is_non_saving, 'metadata_providers') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.abstract'), abstract_style, 'hidden_abstract', 'Abstract', ns.is_non_saving, 'abstract') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.keyword_select'), keyword_style, 'hidden_keywords', 'Keywords', ns.is_non_saving, 'keywords') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.intellectual_rights'), intellectual_rights_style, 'hidden_intellectual_rights', 'Intellectual Rights', ns.is_non_saving, 'intellectual_rights') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='cov.geographic_coverage_select'), geographic_coverage_style, 'hidden_geographic_coverage', 'Geographic Coverage', ns.is_non_saving, 'geographic_coverage') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='cov.temporal_coverage_select'), temporal_coverage_style, 'hidden_temporal_coverage', 'Temporal Coverage', ns.is_non_saving, 'temporal_coverage') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='cov.taxonomic_coverage_select'), taxonomic_coverage_style, 'hidden_taxonomic_coverage', 'Taxonomic Coverage', ns.is_non_saving, 'taxonomic_coverage') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='maint.maintenance'), maintenance_style, 'hidden_maintenance', 'Maintenance', ns.is_non_saving, 'maintenance') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='rp.publisher'), publisher_style, 'hidden_publisher', 'Publisher', ns.is_non_saving, 'publisher') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.publication_info'), publication_info_style, 'hidden_publication_info', 'Publication Info', ns.is_non_saving, 'publication_info') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='md.method_step_select'), method_step_style, 'hidden_methods', 'Methods', ns.is_non_saving, 'methods') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='proj.project'), project_style, 'hidden_project', 'Project', ns.is_non_saving, 'project') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='ent.other_entity_select'), other_entity_style, 'hidden_other_entities', 'Other Entities', ns.is_non_saving, 'other_entities') }}
+        {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.data_package_id'), data_package_id_style, 'hidden_data_package_id', 'Data Package ID', ns.is_non_saving, 'data_package_id') }}
             <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
-        <a class="nav_link" style={{ check_metadata_style }}; href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
-            <div class="nav_link {{ session['check_metadata_status'] }}_circle"></div>
+        <a class="nav_link {{ session['check_metadata_status'] }}_circle" href="{{ url_for('home.check_metadata') }}"></a>&nbsp;
+            <a class="nav_link" style={{ check_metadata_style }}; href="{{ url_for('home.edit', page='home.check_metadata') }}" title="Edit">Check Metadata</a>&nbsp;
             <br>
         {% if current_user and current_user.is_authenticated %}
-        <a class="nav_link" style={{ check_data_tables_style }}; href="{{ url_for('home.edit', page='home.check_data_tables') }}" title="Edit">Check Data Tables</a>&nbsp;
-            <div class="nav_link {{ session['check_data_tables_status'] }}_circle"></div>
+            <a class="nav_link {{ session['check_data_tables_status'] }}_circle" href="{{ url_for('home.check_data_tables') }}"></a>&nbsp;
+            <a class="nav_link" style={{ check_data_tables_style }}; href="{{ url_for('home.edit', page='home.check_data_tables') }}" title="Edit">Check Data Tables</a>&nbsp;
             <br>
+            <div class="nav_link white_circle"></div>&nbsp;
         <a class="nav_link" style={{ explore_data_tables_style }}; href="{{ url_for('home.edit', page='home.explore_data_tables') }}" title="Edit">Explore Data Tables</a>&nbsp;
-            <div class="nav_link white_circle"></div>
 {#            <br>#}
         {% endif %}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
@@ -367,7 +369,39 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
     </div>
 </div>
 
+    {% set help_badges_id, help_badges_title, help_badges_content = ('badges', 'Colored Badges in ezEML',
+'In the <b>Contents</b> menu on the left, and elsewhere in ezEML, you\'ll see round colored "badges." These badges indicate the presence of errors (<span style="color:#DD1111;font-weight:bold;">red</span>) or warnings (<span style="color:#FFA500;font-weight:bold;">yellow</span>), or their absence (<span style="color:#009E60;font-weight:bold;">green</span>).
+<p style="height:10px;margin:0;"></p>
+The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the relevant errors/warnings to be displayed, and the errors/warnings themselves are clickable, taking you directly to the item in question.
+<p style="height:10px;margin:0;"></p>
+Your goal should be to enter required and recommended metadata and make corrections until, at the minimum, no red badges remain. Even better would be to make all badges green.
+<p style="height:10px;margin:0;"></p>
+For green badges, there\'s nothing to display, so they\'re not clickable.
+<p style="height:10px;margin:0;"></p>
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/_FoRUJ7DqIc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
+<p style="height:10px;margin:0;"></p>
+<table style="width:100%;border 1px solid;">
+<th></th><th>Color Key for Status Badges</th>
+    <tr><td width=3%><span class ="nav_link red_circle"></span></td><td width=97%>Metadata errors found. Click the badge for details.</td></tr>
+    <tr><td><span class ="nav_link yellow_circle"></span></td><td>Metadata warnings found. Click the badge for details.</td></tr>
+    <tr><td><span class ="nav_link green_circle"></span></td><td>Metadata entered; no errors or warnings found.</td></tr>
+    <tr><td><span class ="nav_link white_key_circle"></span></td><td>No metadata entered, and metadata is not required.</td></tr>
+</table>
+
+<hr style="border-top: 1px solid darkgray;">
+<input type="checkbox" id="do_not_show" name="do_not_show" onchange="do_not_show_change_clicked(this);">&nbsp;Got it. Don\'t show this dialog again.</input>
+<script>
+localStorage.getItem("do_not_show_badges_dialog_1");
+function do_not_show_change_clicked(checkbox) {
+    localStorage.setItem("do_not_show_badges_dialog_1", checkbox.checked);
+}
+</script>') %}
+    {% set help_badges_btn = help_badges_id ~ '_btn' %}
+    {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
+                        <span hidden="hidden">{{ macros.help_button(help_badges_btn) }}</span>
+
     {{ macros.help_dialog('__help__contents_dialog', session['__help__contents'][0], session['__help__contents'][1]) }}
+    {{ macros.help_dialog(help_badges_dialog, help_badges_title, help_badges_content) }}
 
 {% endblock %}
 
@@ -397,21 +431,88 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 
     <script>
     $(document).ready(function() {
-      document.getElementsByTagName("html")[0].style.visibility = "visible";
+        // html has had visibility set to hidden (see base.css) until the page has finish loading. make visible.
+        document.getElementsByTagName("html")[0].style.visibility = "visible";
+        $(".yellow_circle").tooltip({
+            // No additional options needed for immediate display
+        });
+        $(".red_circle").tooltip({
+        // No additional options needed for immediate display
+        });
+        $(".popup").tooltip({
+        // No additional options needed for immediate display
+        });
     });
     </script>
 
     {% block app_scripts %}
-    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.js"></script>
+
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css', version=release_number) }}">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
     <script>
     $(function()
     {
         {{ macros.help_script('__help__contents_dialog', '__help__contents_btn') }}
+    });
+    </script>
+
+    {% set help_badges_id = 'badges' %}
+    {% set help_badges_btn = help_badges_id ~ '_btn' %}
+    {% set help_badges_dialog = help_badges_id ~ '_dialog' %}
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_badges_dialog, help_badges_btn) }}
+        let do_not_show = localStorage.getItem("do_not_show_badges_dialog_1") == 'true';
+        if (!do_not_show && $('.nav_link').is(':visible')) {
+            let badges_dialog = $('#{{ help_badges_dialog }}').dialog({
+                autoOpen: true,
+                width: 500,
+                position: {my: "center", at: "center", of: window}
+            });
+            $('#{{ help_badges_btn }}').button().on('click', function () {
+                if (badges_dialog.dialog('isOpen')) {
+                    badges_dialog.dialog('close');
+                } else {
+                    badges_dialog.dialog('open');
+                }
+            });
+            $('#{{ help_badges_btn }}').click();
+            document.activeElement.blur();
+        }
+    });
+    </script>
+
+    <script>
+    // Function to check if there are unsaved changes
+    function hasUnsavedChanges() {
+        return sessionStorage.getItem('unsavedChanges') === 'true';
+    }
+
+    // Function to set the flag indicating unsaved changes
+    function setUnsavedChanges(flag) {
+        sessionStorage.setItem('unsavedChanges', flag ? 'true' : 'false');
+    }
+
+    // Optionally, a function to clear the flag
+    function clearUnsavedChanges() {
+        sessionStorage.removeItem('unsavedChanges');
+    }
+    </script>
+
+    <script>
+    $(document).ready(function() {
+        clearUnsavedChanges();
     });
     </script>
     {% endblock %}

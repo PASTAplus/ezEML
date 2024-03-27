@@ -25,4 +25,14 @@
       $(".eval_table").css("padding", "3px");
     });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Check if there's a query string
+        if (window.location.search) {
+            // Convert query string to hash
+            let queryString = window.location.search.substring(1); // Remove the "?" prefix
+            window.location.hash = queryString; // Set hash
+        }
+    });
+</script>
 {% endblock %}

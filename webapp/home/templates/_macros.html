@@ -67,7 +67,7 @@
                             {% if is_non_saving %}
                             <a class="{{ class }}" style={{ style }}; href="{{ url }}" title="{{ display_name }}">{{ display_name }}</a>
                             {% else %}
-                            <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();">{{ display_name }}</a>
+                            <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();" title="{{ display_name }}">{{ display_name }}</a>
                             {% endif %}
 {% endmacro %}
 {% macro import_selection(form, source_filename, item_name) %}
@@ -197,6 +197,48 @@
 {% macro contents_menu_item(url, style, hidden_name, display_name, is_non_saving) %}
                             {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
 {% endmacro %}
+{% macro contents_menu_item_with_status(url, style, hidden_name, display_name, is_non_saving, badge) %}
+    {{ contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) }}
+{% endmacro %}
+{% macro contents_menu_item_with_status_right(url, style, hidden_name, display_name, is_non_saving, badge) %}
+                            {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
+                            {% set badge_status = badge + '_status' %}
+                            &nbsp;<div class="nav_link {{ session[badge_status] }}_circle"></div><br>
+{% endmacro %}
+{% macro contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) %}
+                            {% set badge_status = badge + '_status' %}
+                            {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
+                                {% set url_string = '/eml/check_metadata?' + badge %}
+                                <a class="no-underline" href="{{ url_string }}">
+                            {% endif %}
+                            <div class="{{ session[badge_status] }}_circle nav_link" title="Click for errors/warnings" style="margin-right: 3px;"></div>
+                            {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
+                                </a>
+                            {% endif %}
+                            {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}<br>
+{% endmacro %}
+{% macro contents_menu_item_with_status_none(url, style, hidden_name, display_name, is_non_saving, badge) %}
+                            {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}<br>
+{% endmacro %}
+{% macro select_list_item_with_status_badge(id, url_prefix, item) %}
+                        <td width="80%">
+                            {% set node_status = id + '_status' %}
+                            {% set color = session[node_status] %}
+                            {% if not color %}
+                                {% set color = 'green' %}
+                            {% endif %}
+
+                            {% if color == 'yellow' or color == 'red' %}
+                                {% set url_string = url_prefix + item %}
+                            <a class="no-underline" title="Click for errors/warnings" href="{{ url_string }}">
+                            {% endif %}
+                        &nbsp;<div class="nav_link {{ color }}_circle"></div>&nbsp;
+                            {% if color == 'yellow' or color == 'red' %}
+                            </a>
+                            {% endif %}
+                        {{ item }}
+                        </td>
+{% endmacro %}
 {% macro toolbar_menu_item(url, hidden_name, display_name, is_non_saving) %}
                         <li>
                             {{ button_link(url, '', '', hidden_name, display_name, is_non_saving) }}
@@ -313,10 +355,16 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     {% endif %}
 {% endmacro %}
 {% macro help_script(dialog_id, btn_id) %}
-        var {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
+        let {{ dialog_id }} = $( '#{{ dialog_id }}' ).dialog({
             autoOpen: false,
             width: 600,
-            position: {my: "left top", at: "right center", of: "#{{ btn_id }}"}
+            position: {my: "left top", at: "right center", of: "#{{ btn_id }}"},
+            open: function() {
+                $(this).closest(".ui-dialog")
+                .find(".ui-dialog-titlebar-close")
+                .removeClass("ui-dialog-titlebar-close")
+                .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+            }
         });
         $( '#{{ btn_id }}' ).button().on('click', function() {
             if ({{ dialog_id }}.dialog('isOpen')) {
@@ -354,4 +402,174 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
         x.style.visibility = "visible";
     }
     </script>
+{% endmacro %}
+{% macro status_badge_with_popup(color, tooltip) %}
+                            {% if color %}
+                            <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
+                                  title="" data-container="body" data-content="{{ tooltip }}">&nbsp;
+                                <span class="nav_link {{ color }}_circle" title="Click for errors/warnings"></span>&nbsp;</span>
+                            {% else %}
+                            <span >&nbsp;
+                                <span class="nav_link green_circle"></span>&nbsp;</span>
+                            {% endif %}
+{% endmacro %}
+{% macro local_status_badge_with_popup(color, tooltip, list_length=0) %}
+                        {% if list_length == 0 %}
+                            {% if color %}
+                                {% if color != 'white' %}
+                                <span class="popup" data-toggle="popover" data-placement="bottom" data-html="true"
+                                      title="" data-container="body" data-content="{{ tooltip }}">
+                                    <span class="{{ color }}_circle" style="padding-left: 0;margin-top:5px;margin-right: 3px;vertical-align: center;" title="Click for errors/warnings"></span></span>
+                                {% endif %}
+                            {% else %}
+                            <span>
+                                <span class="green_circle" style="padding-left: 0;margin-top:5px;margin-right: 3px;vertical-align: center;"></span></span>
+                            {% endif %}
+                        {% endif %}
+{% endmacro %}
+{% macro highlight_element() %}
+    <script>
+    $(document).ready(function(){
+        {% if session['highlight_id'] %}
+            {#alert("{{ session['highlight_id'] }}");#}
+            const substrs = '{{ session['highlight_id'] }}'.split('|');
+            let highlight_class = 'highlight_warning';
+            if (substrs.length > 1 && substrs[1] == 'error') {
+                highlight_class = 'highlight_error';
+            }
+            document.getElementById(substrs[0]).classList.add(highlight_class);
+            document.getElementById(substrs[0]).scrollIntoView({behavior: "smooth", block: "center"});
+        {% endif %}
+    });
+    </script>
+{% endmacro %}
+{% macro popup_support() %}
+    <script>
+    $(document).ready(function(){
+        // Initialize popovers with HTML content
+        $('.popup').popover({
+            html: true, // Enable HTML content
+            trigger: 'manual' // Manually trigger popover
+        }).on('click', function(e) {
+            e.stopPropagation(); // Prevent event from propagating
+            if (hasUnsavedChanges()) {
+                $("#saveChangesModal").modal('show');
+                return;
+            }
+            let $currentPopover = $(this);
+            // Close any open popover except the current one
+            $('.popup').not($currentPopover).popover('hide');
+
+            // Toggle the current popover
+            $currentPopover.popover('toggle');
+        });
+
+        // Close popover when clicking outside
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.popover').length && !$(e.target).is('.popup')) {
+                $('.popup').popover('hide');
+            }
+        });
+    });
+    </script>
+{% endmacro %}
+{% macro page_heading_with_status_popup(page_heading, node_id, tooltip, session, help_btn, inner_help_btn) %}
+    <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;border:0px solid red;">
+        {% set node_id = node_id.split("|")[0] %}
+        {% set node_status = node_id + '_status' %}
+        {{ local_status_badge_with_popup(session[node_status], tooltip) }}
+        <div class="whitespace"></div>
+        <table class="right_justified" style="height:0px;margin-top:0px;margin-bottom: 0px;"><tr>
+        <td><h2>{{ page_heading }}</h2></td>
+        {% if inner_help_btn %}
+            <td style="vertical-align:middle;padding-top: 18px;">
+            <span style="padding-left: 10px;">{{ help_button(inner_help_btn) }}</span>
+            </td>
+        {% endif %}
+        </tr></table>
+{#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
+        <input class="btn btn-primary" id="save_changes" style="visibility:visible;margin-top:0px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;
+            <span id="save_changes_help" style="visibility:visible;vertical-align: center; margin-top:10px;">{{ help_button(help_btn) }}</span>
+{#        {% endif %}#}
+    </div>
+{% endmacro %}
+{% macro save_changes_button_support() %}
+    <script type="text/javascript">
+        {#document.addEventListener('DOMContentLoaded', function() {#}
+        $(document).ready(function(){
+            {#let formIsDirty = false;#}
+            clearUnsavedChanges();
+
+            // Detect click on submit button and disable the warning
+            $('form').submit(function() {
+                {#formIsDirty = false;#}
+                clearUnsavedChanges();
+                console.log('form submit event');
+            });
+
+            $('#save_changes').click(function() {
+                console.log('save_changes click event');
+                {#formIsDirty = false;#}
+                clearUnsavedChanges();
+            });
+
+            let form = document.getElementById('main_form');
+            form.addEventListener('change', function() {
+                console.log('change event... making save_changes visible');
+                {#formIsDirty = true;#}
+                setUnsavedChanges('true');
+                $('#save_changes').css('visibility', 'visible');
+                {#console.log('warnBeforeUnload=' + warnBeforeUnload);#}
+            });
+
+            $('[data-toggle="popover"]').popover().on('shown.bs.popover', function() {
+                console.log('Popover is shown');
+                {#if (hasUnsavedChanges() || formIsDirty) {#}
+                if (hasUnsavedChanges()) {
+                    $('.popup').popover('hide');
+                    {#triggerPulsate();#}
+                    $("#saveChangesModal").modal('show');
+                }
+            }).on('hidden.bs.popover', function() {
+                console.log('Popover is hidden');
+            });
+
+            function triggerPulsate() {
+                let save_changes = document.getElementById('save_changes');
+                {#save_changes.classList.add('highlight_error');#}
+                $('#save_changes_help').css('visibility', 'visible');
+                save_changes.classList.add('pulsate');
+                setTimeout(function() {
+                    {#save_changes.classList.remove('highlight_error');#}
+                    save_changes.classList.remove('pulsate');
+                },1000);
+            }
+
+        $('#saveChangesModal').on('hidden.bs.modal', function () {
+            console.log('Popover is hidden');
+            triggerPulsate();
+        });
+    });
+    </script>
+{% endmacro %}
+{% macro save_changes_modal() %}
+    <div class="modal" id="saveChangesModal" tabindex="-1" aria-labelledby="" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <span class="modal-title" id="saveChangesModalLabel" style="font-weight: bold">Unsaved Changes</span>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            You have unsaved changes. Click the <b>Save Changes</b> button to save them before selecting an item from the Errors/Warnings list.
+              Otherwise, your changes will be lost.
+              <p></p>
+              In the future, when using the Errors/Warnings list to navigate, you can avoid this popup message by clicking the <b>Save Changes</b>
+              button to save each new change before clicking on the colored badge to open the Errors/Warnings list.
+          </div>
+        </div>
+      </div>
+    </div>
 {% endmacro %}

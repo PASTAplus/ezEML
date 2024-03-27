@@ -14,18 +14,43 @@
     {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
+    {% set help_attribute_save_changes_id, help_attribute_save_changes_title, help_attribute_save_changes_content = help[4] %}
+    {% set help_attribute_save_changes_btn = help_attribute_save_changes_id ~ '_btn' %}
+    {% set help_attribute_save_changes_dialog = help_attribute_save_changes_id ~ '_dialog' %}
 
-    <h2>Categorical Column</h2>
+{#    <table>#}
+{#        <td style="vertical-align:middle;padding-top: 12px;">#}
+{#        {% set node_id = att_node_id.split("|")[0] %}#}
+{#        {% set node_status = node_id + '_status' %}#}
+{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
+{#        </td>#}
+{#        <td style="width:3%"></td>#}
+{#        <td style="vertical-align:middle;"><h2>Categorical Column</h2></td>#}
+{#    </table>#}
+
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" action="" class="form" id="main_form" role="form">
+
+{#    <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;">#}
+{#        {% set node_id = att_node_id.split("|")[0] %}#}
+{#        {% set node_status = node_id + '_status' %}#}
+{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
+{#        <div class="whitespace"></div>#}
+{#        <h2 class="right_justified">Categorical Column</h2>#}
+{#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
+{#        <input class="btn btn-primary" id="save_changes" style="visibility:visible;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>#}
+{#        {% endif %}#}
+{#    </div>#}
+
+            {{ macros.page_heading_with_status_popup('Categorical Column', att_node_id, tooltip, session, help_attribute_save_changes_btn) }}
                 {{ form.csrf_token }}
                 {{ macros.column_table_header(column_name, table_name) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_name) }}{{ macros.item_end(help_attribute_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_definition) }}{{ macros.item_end(help_attribute_definition_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_label) }}{{ macros.item_end(help_attribute_label_btn) }}
                 <label class="control-label">Define coded values and their definitions:</label>
-                <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
+                <table id="codes_entry" style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr>
                         <td style="padding: 10px 25px 0px;" width="100%"><label class="control-label">Codes:&nbsp;&nbsp;</label>{{ codes }}</td>
                     </tr>
@@ -77,6 +102,8 @@
                 {{ macros.hidden_buttons_with_no_contents_menu() }}
                 {{ wtf.form_field(form.md5) }}
                 {{ wtf.form_field(form.mscale) }}
+                {{ macros.save_changes_modal() }}
+
             </form>
         </div>
     </div>
@@ -84,6 +111,7 @@
     {{ macros.help_dialog(help_attribute_definition_dialog, help_attribute_definition_title, help_attribute_definition_content) }}
     {{ macros.help_dialog(help_attribute_label_dialog, help_attribute_label_title, help_attribute_label_content) }}
     {{ macros.help_dialog(help_attribute_storage_type_dialog, help_attribute_storage_type_title, help_attribute_storage_type_content) }}
+    {{ macros.help_dialog(help_attribute_save_changes_dialog, help_attribute_save_changes_title, help_attribute_save_changes_content) }}
 {% endblock %}
 
 
@@ -101,6 +129,9 @@
     {% set help_attribute_storage_type_id, help_attribute_storage_type_title, help_attribute_storage_type_content = help[3] %}
     {% set help_attribute_storage_type_btn = help_attribute_storage_type_id ~ '_btn' %}
     {% set help_attribute_storage_type_dialog = help_attribute_storage_type_id ~ '_dialog' %}
+    {% set help_attribute_save_changes_id, help_attribute_save_changes_title, help_attribute_save_changes_content = help[4] %}
+    {% set help_attribute_save_changes_btn = help_attribute_save_changes_id ~ '_btn' %}
+    {% set help_attribute_save_changes_dialog = help_attribute_save_changes_id ~ '_dialog' %}
     <script>
     $(function()
     {
@@ -108,6 +139,12 @@
         {{ macros.help_script(help_attribute_definition_dialog, help_attribute_definition_btn) }}
         {{ macros.help_script(help_attribute_label_dialog, help_attribute_label_btn) }}
         {{ macros.help_script(help_attribute_storage_type_dialog, help_attribute_storage_type_btn) }}
+        {{ macros.help_script(help_attribute_save_changes_dialog, help_attribute_save_changes_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+    {{ macros.save_changes_button_support() }}
+
 {% endblock %}

@@ -63,6 +63,7 @@ BTN_REUSE = "Reuse a Responsible Party"
 BTN_SAVE = 'Save'
 BTN_SAVE_AND_CONTINUE = 'Save and Continue'
 BTN_SAVE_BACKUP = 'Save a Backup'
+BTN_SAVE_CHANGES = 'Save Changes'
 BTN_SEND_INVITATION = 'Send Invitation'
 BTN_SEND_TO_OTHER = 'Prepare Package for Colleague'
 BTN_SETTINGS = 'Settings'

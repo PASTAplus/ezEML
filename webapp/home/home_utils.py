@@ -2,6 +2,7 @@
 
 import sys
 import daiquiri
+from urllib.parse import urlparse, urlunparse, urlencode, parse_qs
 
 from flask import session
 from flask_login import current_user
@@ -14,7 +15,7 @@ from webapp.config import Config
 
 from metapype.model.node import Node
 
-RELEASE_NUMBER = '2024.02.21'
+RELEASE_NUMBER = '2024.03.27'
 
 
 def extract_caller_module_name():
@@ -53,6 +54,31 @@ def log_info(msg):
         logger.info(msg, USER=current_user.get_username())
     else:
         logger.info(msg)
+
+
+def url_without_ui_element_id_query_string(url):
+    # Parse the URL
+    parsed_url = urlparse(url)
+
+    # Parse the query string parameters
+    query_params = parse_qs(parsed_url.query)
+
+    # Remove the 'ui_element_id' parameter if it exists
+    query_params.pop('ui_element_id', None)
+
+    # Re-encode the query string without 'ui_element_id'
+    new_query_string = urlencode(query_params, doseq=True)
+
+    # Construct the new URL without the 'ui_element_id' parameter
+    new_url = urlunparse((
+        parsed_url.scheme,
+        parsed_url.netloc,
+        parsed_url.path,
+        parsed_url.params,
+        new_query_string,
+        parsed_url.fragment
+    ))
+    return new_url
 
 
 def get_check_metadata_status(eml_node:Node=None, filename:str=None):

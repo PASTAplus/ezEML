@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from flask import (
-    Blueprint, Flask, flash, Markup, render_template, redirect, request, session, url_for, current_app
+    Blueprint, Flask, flash, Markup, render_template, redirect, request, session, url_for, current_app, send_file
 )
 
 from flask_login import (
@@ -25,6 +25,7 @@ from webapp.config import Config
 
 from webapp.home import views, exceptions, check_data_table_contents, standard_units
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 from webapp.views.data_tables.load_data import (
     cull_data_files
@@ -87,6 +88,86 @@ def log_error(msg):
         current_app.logger.error(msg)
 
 
+@dt_bp.route('/upload_data_table_sheet', methods=['GET', 'POST'])
+@dt_bp.route('/upload_data_table_sheet/<filename>', methods=['GET', 'POST'])
+def upload_data_table_sheet(filename=None):
+    pass
+
+
+def download_sheet(data_table_node_id, filename):
+    import webapp.views.data_tables.table_templates as table_templates
+    load_eml(filename=filename)
+    data_table_node = Node.get_node_instance(data_table_node_id)
+    data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
+    data_table_name = data_table_name_node.content
+    return table_templates.generate_data_entry_spreadsheet(data_table_node, filename, data_table_name)
+
+
+def upload_sheet(filename, data_table_name):
+    import webapp.views.data_tables.table_templates as table_templates
+    user_folder = user_data.get_user_folder_name()
+    sheets_folder = os.path.join(user_folder, 'sheets')
+    Path(sheets_folder).mkdir(parents=True, exist_ok=True)
+    filepath = os.path.join(sheets_folder, f'{filename}_{data_table_name}.xlsx')
+    table_templates.read_data_table_sheet(filepath)
+
+
+@dt_bp.route('/data_table_sheets', methods=['GET', 'POST'])
+@dt_bp.route('/data_table_sheets/<filename>', methods=['GET', 'POST'])
+def data_table_sheets(filename=None):
+    def select_post(filename, form_dict):
+        # node_id = None
+        new_page = None
+
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+                if val == 'Download':
+                    data_table_node_id = key
+                    outfile = download_sheet(data_table_node_id, filename)
+                    return outfile, None
+                elif val == 'Upload':
+                    filename = 'knb-lter-hbr.164.2'
+                    data_table_name = 'melnhe_nmin'
+                    upload_sheet(filename, data_table_name)
+                    return None, None
+                elif val in [BTN_NEXT, BTN_SAVE_AND_CONTINUE]:
+                    pass
+
+                new_page = check_val_for_hidden_buttons(val, new_page)
+                if new_page:
+                    return None, url_for(new_page, filename=filename)
+
+    """
+    Display a list of data tables in the EML document.  The user can select a data table to edit or create a new one.
+    """
+    if not filename:
+        filename = current_user.get_filename()
+    form = DataTableSelectForm(filename=filename)
+
+    # Process POST
+    if request.method == 'POST':
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+
+        outfile, url = select_post(filename, form_dict)
+        if outfile:
+            return send_file(outfile, as_attachment=True, download_name=os.path.basename(outfile))
+
+        if url:
+            return redirect(url)
+
+    # Process GET
+    eml_node = load_eml(filename=filename)
+    dt_list = list_data_tables(eml_node)
+    title = 'Data Tables'
+
+    views.set_current_page('data_table')
+    help = [views.get_help('data_tables'), views.get_help('add_load_data_tables'), views.get_help('data_table_reupload')]
+    return render_template('data_table_sheets.html', title=title,
+                           dt_list=dt_list, form=form, help=help)
+
+
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
@@ -113,10 +194,14 @@ def data_table_select(filename=None):
     dt_list = list_data_tables(eml_node)
     title = 'Data Tables'
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, 'data_tables')
+
     views.set_current_page('data_table')
     help = [views.get_help('data_tables'), views.get_help('add_load_data_tables'), views.get_help('data_table_reupload')]
     return render_template('data_table_select.html', title=title,
-                           dt_list=dt_list, form=form, help=help)
+                           dt_list=dt_list, form=form, help=help, tooltip=tooltip)
 
 
 @dt_bp.route('/data_table/<filename>/<dt_node_id>', methods=['GET', 'POST'])
@@ -135,6 +220,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         return ', '.join(atts)
 
     form = DataTableForm(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -158,6 +244,8 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
             next_page = PAGE_ENTITY_METHOD_STEP_SELECT
         elif 'Geographic' in request.form:
             next_page = PAGE_ENTITY_GEOGRAPHIC_COVERAGE_SELECT
+        elif 'Save Changes' in request.form:
+            next_page = PAGE_DATA_TABLE
         elif 'Temporal' in request.form:
             next_page = PAGE_ENTITY_TEMPORAL_COVERAGE_SELECT
         elif 'Taxonomic' in request.form:
@@ -167,8 +255,6 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         next_page = handle_hidden_buttons(next_page)
 
     if form.validate_on_submit():
-        eml_node = load_eml(filename=filename)
-
         if submit_type == 'Save Changes':
             # Make sure we have a dataset node
             dataset_node = eml_node.find_child(names.DATASET)
@@ -289,6 +375,8 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
     atts = 'No data table attributes have been added'
 
     was_uploaded = False
+    init_evaluation(eml_node, filename)
+    tooltip = ''
     if dt_node_id != '1':
         # Editing an existing data table, so we need to populate the form with the existing values.
         eml_node = load_eml(filename=filename)
@@ -306,6 +394,9 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
                             # Fill in the form with the data table's existing values
                             populate_data_table_form(form, dt_node)
 
+                            # Get the tooltip for the status badge
+                            tooltip = format_tooltip(dt_node)
+
                             object_name_node = dt_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
                             if object_name_node:
                                 object_name = object_name_node.content
@@ -316,6 +407,13 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
 
         else:
             flash('eml_node is None')
+    # else:
+    #     dataset_node = eml_node.find_child(names.DATASET)
+    #     if not dataset_node:
+    #         dataset_node = Node(names.DATASET)
+    #     # Allocate a new data table node
+    #     dt_node = Node(names.DATATABLE, parent=dataset_node)
+    #     dt_node_id = dt_node.id
 
     init_form_md5(form)
 
@@ -335,10 +433,11 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
         'data_table_case_sensitive',
         'data_table_number_of_records',
         'data_table_online_url',
-        'clone_attributes_general'
+        'clone_attributes_general',
+        'save_changes'
     ])
     return render_template('data_table.html', title='Data Table', form=form,
-                           atts=atts, help=help, was_uploaded=was_uploaded)
+                           atts=atts, help=help, was_uploaded=was_uploaded, dt_node_id=dt_node_id, tooltip=tooltip)
 
 
 def populate_data_table_form(form: DataTableForm, node: Node):
@@ -428,13 +527,12 @@ def load_data(filename=None):
     Route to handle loading a data table from a CSV file.
     """
 
-    # log_info(f'Entering load_data: request.method={request.method}')
     # filename that's passed in is actually the document name, for historical reasons.
     # We'll clear it to avoid misunderstandings...
     filename = None
 
     form = LoadDataForm()
-    document = current_user.get_filename()
+    document, eml_node = views.reload_metadata()  # So check_metadata status is correct
     uploads_folder = user_data.get_document_uploads_folder_name()
 
     # Process POST
@@ -638,7 +736,9 @@ def attribute_select(filename=None, dt_node_id=None):
         """
         Helper function to handle selection of an attribute to edit or change variable type.
         """
-        load_eml(filename)
+        eml_node = load_eml(filename)
+        init_evaluation(eml_node, filename)
+
         node_id = ''
         new_page = ''
         mscale = ''
@@ -699,7 +799,7 @@ def attribute_select(filename=None, dt_node_id=None):
                     new_page = this_page
                     node_id = key
                     views.process_down_button(filename, node_id)
-                elif val.startswith('Add Attribute'):
+                elif val.startswith('Add Column'):
                     if 'Numerical' in val:
                         mscale = 'NUMERICAL'
                         new_page = PAGE_ATTRIBUTE_NUMERICAL
@@ -761,7 +861,8 @@ def attribute_select(filename=None, dt_node_id=None):
         title = 'Attributes'
         entity_name = ''
         was_uploaded = False
-        load_eml(filename=filename)
+        eml_node = load_eml(filename=filename)
+        init_evaluation(eml_node, filename)
 
         if dt_node_id != '1':
             data_table_node = Node.get_node_instance(dt_node_id)
@@ -1204,8 +1305,12 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
             save_both_formats(filename=filename, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, filename=filename,
-                      dt_node_id=dt_node_id, node_id=att_node_id)
+        if BTN_DONE in request.form:
+            next_page = PAGE_ATTRIBUTE_SELECT
+        else:
+            next_page = PAGE_ATTRIBUTE_DATETIME
+
+        url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
 
         return redirect(url)
 
@@ -1243,13 +1348,18 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(att_node)
+
     views.set_current_page('data_table')
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
-                      'attribute_datetime_precision', 'attribute_datetime_format'])
+                      'attribute_datetime_precision', 'attribute_datetime_format', 'save_changes'])
     return render_template('attribute_datetime.html', title='Attribute', form=form,
                            column_name=attribute_name,
+                           att_node_id=att_node_id,
                            table_name=data_table_name,
-                           help=help)
+                           help=help, tooltip=tooltip)
 
 
 def populate_attribute_datetime_form(form: AttributeDateTimeForm, node: Node):
@@ -1440,8 +1550,13 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
             save_both_formats(filename=filename, eml_node=eml_node)
             att_node_id = att_node.id
 
-        url = url_for(next_page, filename=filename,
-                      dt_node_id=dt_node_id, node_id=att_node_id)
+        if BTN_DONE in request.form:
+            next_page = PAGE_ATTRIBUTE_SELECT
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
+        else:
+            if next_page == PAGE_ATTRIBUTE_SELECT: # We didn't have a hidden button
+                next_page = PAGE_ATTRIBUTE_NUMERICAL
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
 
         return redirect(url)
 
@@ -1481,18 +1596,23 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(att_node)
+
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
-                      'attribute_number_type', 'attribute_numerical_precision'])
+                      'attribute_number_type', 'attribute_numerical_precision', 'save_changes'])
     return render_template('attribute_numerical.html',
                            title='Attribute: Numerical',
                            form=form,
                            attribute_name=attribute_name,
+                           att_node_id=att_node_id,
                            mscale=mscale,
                            custom_unit_names=custom_unit_names,
                            custom_unit_descriptions=custom_unit_descriptions,
                            column_name=attribute_name,
                            table_name=data_table_name,
-                           help=help)
+                           help=help, tooltip=tooltip)
 
 
 def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, eml_node: Node = None, att_node: Node = None,
@@ -1750,15 +1870,15 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, att_node_id=att_node_id,
                           node_id=cd_node_id, mscale=mscale)
         else:
-            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
+            url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
 
         return redirect(url)
 
     # Process GET
+    eml_node = load_eml(filename=filename)
     attribute_name = ''
     codes = 'No codes have been defined yet'
     if node_id != '1':
-        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
@@ -1790,27 +1910,35 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(att_node)
+
     views.set_current_page('data_table')
-    help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type'])
+    help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type', 'save_changes'])
     if mscale == VariableType.CATEGORICAL.name:
         return render_template('attribute_categorical.html',
                                title='Categorical Attribute',
                                form=form,
                                attribute_name=attribute_name,
+                               att_node_id=att_node_id,
                                mscale=mscale,
                                codes=codes,
                                column_name=attribute_name,
                                table_name=data_table_name,
-                               help=help)
+                               help=help,
+                               tooltip=tooltip)
     else:
         return render_template('attribute_text.html',
                                title='Text Attribute',
                                form=form,
                                attribute_name=attribute_name,
+                               att_node_id=att_node_id,
                                mscale=mscale,
                                column_name=attribute_name,
                                table_name=data_table_name,
-                               help=help)
+                               help=help,
+                               tooltip=tooltip)
 
 
 def populate_attribute_categorical_form(form: AttributeCategoricalForm, att_node: Node = None,
@@ -2009,8 +2137,10 @@ def code_definition_select(filename=None, dt_node_id=None, att_node_id=None, nod
             data_table_name = entity_name_node.content
 
     views.set_current_page('data_table')
-    return render_template('code_definition_select.html', title=title,
-                           attribute_name=attribute_name, codes_list=codes_list,
+    return render_template('code_definition_select.html',
+                           title=title,
+                           attribute_name=attribute_name,
+                           codes_list=codes_list,
                            column_name=attribute_name,
                            table_name=data_table_name,
                            form=form)

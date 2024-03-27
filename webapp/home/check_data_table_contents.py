@@ -955,6 +955,28 @@ def get_data_file_eval_status(document_name, csv_file_name, metadata_hash):
         return "green"
     return "yellow"
 
+#
+# def flush_dex_cache_entry(eml_url, csv_url, dist_url):
+#     requests.delete()
+#     let dexBaseUrl = '__DEX-BASE-URL__';
+#     // dist_url = '__DIST-URL__';
+#     data = {
+#         'eml': '__EML-URL__',
+#          csv: '__CSV-URL__',
+#     dist: '__DIST-URL__',
+#     };
+#
+#     let
+#     options = {
+#         method: 'POST',
+#         headers: {
+#             'Content-Type': 'application/json'
+#         },
+#         body: JSON.stringify(data),
+#     };
+#
+#     pass
+
 
 def flush_dex_cache(eml_node, current_document, csv_file_name):
     log_info(f"flush_dex_cache: {current_document}, {csv_file_name}")

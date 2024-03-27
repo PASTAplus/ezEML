@@ -64,6 +64,7 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.home.views import select_post, non_breaking, get_help
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
@@ -89,10 +90,18 @@ def other_entity_select(filename=None):
     oe_list = list_other_entities(eml_node)
     title = 'Other Entities'
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, 'other_entities')
+
     set_current_page('other_entity')
     help = [get_help('other_entities'), get_help('add_load_other_entities'), get_help('other_entity_reupload')]
-    return render_template('other_entity_select.html', title=title,
-                           oe_list=oe_list, form=form, help=help)
+    return render_template('other_entity_select.html',
+                           title=title,
+                           oe_list=oe_list,
+                           form=form,
+                           help=help,
+                           tooltip=tooltip)
 
 
 @ent_bp.route('/other_entity/<filename>/<node_id>', methods=['GET', 'POST'])
@@ -100,6 +109,7 @@ def other_entity_select(filename=None):
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
     form = OtherEntityForm(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename, dt_node_id=dt_node_id)
@@ -234,12 +244,18 @@ def other_entity(filename=None, node_id=None):
                 for dt_node in dt_nodes:
                     if dt_node_id == dt_node.id:
                         populate_other_entity_form(form, dt_node)
+    else:
+        dt_node = None
 
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(dt_node) if dt_node else ''
+
     set_current_page('other_entity')
     help = [get_help('other_entity')]
-    return render_template('other_entity.html', title='Other Entity', form=form, help=help)
+    return render_template('other_entity.html', title='Other Entity', form=form, help=help, dt_node_id=dt_node_id, tooltip=tooltip)
 
 
 def populate_other_entity_form(form: OtherEntityForm, node: Node):
@@ -556,7 +572,7 @@ def entity_method_step_select(filename=None, dt_element_name: str = None, dt_nod
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            method_step_list = list_method_steps(data_table_node)
+            method_step_list = list_method_steps(eml_node, data_table_node)
 
     init_form_md5(form)
 
@@ -677,6 +693,7 @@ def entity_method_step(filename=None, dt_element_name=None, dt_node_id=None, nod
                             if method_step_nodes:
                                 for ms_node in method_step_nodes:
                                     if node_id == ms_node.id:
+                                        init_evaluation(eml_node, filename)
                                         populate_method_step_form(form, ms_node)
                                         break
 
@@ -715,13 +732,13 @@ def entity_geographic_coverage_select(filename=None, dt_element_name: str = None
     gc_list = []
     title = "Geographic Coverage"
     entity_name = ''
-    load_eml(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            gc_list = list_geographic_coverages(data_table_node)
+            gc_list = list_geographic_coverages(eml_node, data_table_node)
 
     init_form_md5(form)
 
@@ -952,13 +969,13 @@ def entity_temporal_coverage_select(filename=None, dt_element_name: str = None, 
     tc_list = []
     title = "Temporal Coverage"
     entity_name = ''
-    load_eml(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            tc_list = list_temporal_coverages(data_table_node)
+            tc_list = list_temporal_coverages(eml_node, data_table_node)
 
     init_form_md5(form)
 
@@ -1116,13 +1133,13 @@ def entity_taxonomic_coverage_select(filename=None, dt_element_name: str = None,
     txc_list = []
     title = "Taxonomic Coverage"
     entity_name = ''
-    load_eml(filename=filename)
+    eml_node = load_eml(filename=filename)
 
     if dt_node_id != '1':
         data_table_node = Node.get_node_instance(dt_node_id)
         if data_table_node:
             entity_name = entity_name_from_data_table(data_table_node)
-            txc_list = list_taxonomic_coverages(data_table_node)
+            txc_list = list_taxonomic_coverages(eml_node, data_table_node)
 
     init_form_md5(form)
 

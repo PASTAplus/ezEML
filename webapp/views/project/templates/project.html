@@ -15,6 +15,13 @@
     {% endif %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+{#        {% set node_id = project_node_id %}#}
+{#        {% set node_status = node_id + '_status' %}#}
+        {% set node_status = 'project_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>{{ title }}</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_project_btn) }}</td>
     </table>
@@ -97,4 +104,7 @@
         {{ macros.check_xml_btn_handler('#check_xml_2', '#funding', 'funding') }}
     </script>
     {% endif %}
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

@@ -14,9 +14,15 @@
     {% set ns=namespace(reupload_help_displayed=false) %}
 
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'other_entities_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, oe_list | length) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Other Entities</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entities_btn) }}</td>
     </table>
+
     <div class="row">
         <div class="col-md-11">
             <form method="POST" action="" class="form" role="form">
@@ -27,7 +33,11 @@
                     </tr>
                     {% for oe_entry in oe_list %}
                     <tr>
-                        <td width="50%">{{ oe_entry.label }}</td>
+                        <td width="50%">
+                        {% set node_id = oe_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], oe_entry.tooltip) }}
+                        {{ oe_entry.label }}</td>
                         {{ macros.up_down_arrow(oe_entry.id, oe_entry.upval) }}
                         {{ macros.up_down_arrow(oe_entry.id, oe_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ oe_entry.id }}" type="submit" value="Edit"/></td>
@@ -91,4 +101,7 @@
         {{ macros.help_script(help_other_entities_reupload_dialog, help_other_entities_reupload_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+
 {% endblock %}

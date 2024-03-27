@@ -37,7 +37,7 @@ import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.home_utils import log_error, log_info, log_available_memory, profile_and_save
+from webapp.home.home_utils import log_error, log_info, log_available_memory, url_without_ui_element_id_query_string
 import webapp.home.texttype_node_processing as texttype_node_processing
 
 import csv
@@ -98,7 +98,7 @@ from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fe
 
 import webapp.home.check_data_table_contents as check_data_table_contents
 from webapp.home.check_data_table_contents import format_date_time_formats_list
-from webapp.home.check_metadata import check_eml
+from webapp.home.check_metadata import check_eml, is_valid_uuid
 from webapp.home.forms import init_form_md5
 from webapp.home.standard_units import init_standard_units
 from webapp.views.collaborations.collaborations import (
@@ -230,6 +230,33 @@ def url_of_interest():
             # We suppress logging for these two URLs because they are called every 5 minutes by uptime monitor
             return False
     return True
+
+
+# @home_bp.route('/test_page')
+# def test_page():
+#     """
+#     A basically empty page for testing purposes.
+#     """
+#     from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
+#
+#     # eml_node = load_eml('knb-lter-hbr.393.2')
+#     # eml_node = load_eml('knb-lter-hbr.392.1')
+#
+#     package_name = 'knb-lter-hbr.11.17'
+#     # package_name = 'knb-lter-hbr.120.5'
+#     eml_node = load_eml(package_name)
+#
+#     data_table_name = 'ws9_stream_monthly_flux_gHa'
+#     data_table_nodes = []
+#     eml_node.find_all_descendants('dataTable', data_table_nodes)
+#     for data_table_node in data_table_nodes:
+#         entity_name_node = data_table_node.find_descendant('entityName')
+#         if entity_name_node.content == data_table_name:
+#             break
+#
+#     generate_data_entry_spreadsheet(data_table_node, package_name, data_table_name)
+#
+#     return render_template('test_page.html')
 
 
 @home_bp.before_app_request
@@ -488,14 +515,59 @@ def data_table_errors(data_table_name:str=None):
 
 
 def init_status_badges(color="white"):
+    from webapp.home.check_metadata import is_valid_uuid
     def init_status_badge(badge_name, color="white"):
         badge_name = badge_name + "_status"
         session[badge_name] = color
     status_names = ["title", "data_tables", "creators", "contacts", "associated_parties", "metadata_providers",
                     "abstract", "keywords", "intellectual_rights", "geographic_coverage", "temporal_coverage",
-                    "taxonomic_coverage", "maintenance", "publisher", "publication_info", "methods", "projects",
+                    "taxonomic_coverage", "maintenance", "publisher", "publication_info", "methods", "project",
                     "other_entities", "data_package_id"]
     [init_status_badge(status_name, color) for status_name in status_names]
+
+    # Get rid of status badges for specific nodes (data tables, etc., with node IDs). They will be re-initialized in the
+    # check_metadata_status function, and we want ones that are not re-initialized to be green.
+    items_to_delete = []
+    for item in session:
+        substrs = item.split("_")
+        if len(substrs)== 2 and is_valid_uuid(substrs[0]) and substrs[-1] == "status":
+            items_to_delete.append(item)
+    for item in items_to_delete:
+        del session[item]
+
+
+@home_bp.before_app_request
+def handle_highlight_id():
+    def handle_special_cases(highlight_id):
+        if highlight_id is not None:
+            substrs = highlight_id.split("|")
+            if substrs[0] == 'code_explanation_1':
+                current_document = user_data.get_active_document()
+                if current_document:
+                    # We need to hydrate the node store
+                    eml_node = load_eml(filename=current_document)
+                # There are 3 missing value code explanations. Find the first missing one.
+                url = request.url
+                url_substrs = url.split("/")
+                for substr in url_substrs:
+                    if is_valid_uuid(substr):
+                        node = Node.get_node_instance(substr)
+                        if node and node.name == names.ATTRIBUTE:
+                            missing_value_code_nodes = node.find_all_children(names.MISSINGVALUECODE)
+                            for i, missing_value_code_node in enumerate(missing_value_code_nodes):
+                                code_node = missing_value_code_node.find_child(names.CODE)
+                                explanation_node = missing_value_code_node.find_child(names.CODEEXPLANATION)
+                                if code_node and code_node.content:
+                                    if not explanation_node or not explanation_node.content:
+                                        highlight_id = f"code_explanation_{i+1}|{substrs[1]}"
+                                        break
+        return highlight_id
+
+    highlight_id = handle_special_cases(request.args.get("ui_element_id"))
+    if highlight_id:
+        session["highlight_id"] = highlight_id
+    else:
+        session["highlight_id"] = None
 
 
 @home_bp.before_app_request
@@ -769,6 +841,7 @@ def get_back_url(success=False):
 @home_bp.route('/about')
 def about():
     """Handle the About page."""
+    reload_metadata()
     return render_template('about.html', back_url=get_back_url(), title='About')
 
 
@@ -780,12 +853,14 @@ def user_guide():
     Logging usage of User Guide is done via AJAX endpoint log_user_guide_usage, which is invoked when
     one of the chapter links is clicked.
     """
+    reload_metadata()
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
 @home_bp.route('/news')
 def news():
     """Handle the News page."""
+    reload_metadata()
     return render_template('news.html', back_url=get_back_url(), title="What's New")
 
 
@@ -1070,11 +1145,13 @@ def check_data_tables():
 
     content, btn_disabled = check_data_table_contents.create_check_data_tables_status_page_content(
         current_document, eml_node)
+    tooltip = 'Nothing to check' if btn_disabled else ''
 
     check_data_table_contents.set_check_data_tables_badge_status(current_document, eml_node)
 
     help = get_helps(['check_data_tables'])
-    return render_template('check_data_tables.html', help=help, content=content, btn_disabled=btn_disabled)
+    return render_template('check_data_tables.html', help=help, content=content,
+                           btn_disabled=btn_disabled, tooltip=tooltip)
 
 
 @home_bp.route('/explore_data_tables', methods=['GET', 'POST'])
@@ -1099,10 +1176,11 @@ def explore_data_tables():
     return render_template('explore_data_tables.html', help=help, content=content, scripts=scripts)
 
 
+@home_bp.route('/check_metadata', methods=['GET', 'POST'])
 @home_bp.route('/check_metadata/<filename>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
-def check_metadata(filename:str):
+def check_metadata(filename:str = None):
     """Handle the Check Metadata item in the main Contents menu."""
     if hasattr(Config, 'LOG_FILE_HANDLING_DETAILS'):
         log_the_details = Config.LOG_FILE_HANDLING_DETAILS
@@ -1113,7 +1191,7 @@ def check_metadata(filename:str):
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)
 
-    content = check_eml(eml_node, filename)
+    content = check_eml(eml_node, current_document)
 
     log_usage(actions['CHECK_METADATA'])
 
@@ -1506,6 +1584,8 @@ def import_parties(target=None):
     form.filename.choices = list_data_packages(True, True)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1616,6 +1696,8 @@ def import_parties_2(filename, template, is_template, target=None):
     else:
         form = ImportEMLItemsForm()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
 
@@ -1694,6 +1776,8 @@ def import_keywords():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1746,6 +1830,8 @@ def import_keywords_2(filename, template, is_template):
 
     form = ImportItemsForm()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
@@ -1788,6 +1874,8 @@ def import_geo_coverage():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1818,6 +1906,8 @@ def import_geo_coverage_2(filename, template, is_template):
         return coverages
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -1857,6 +1947,8 @@ def import_taxonomic_coverage():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1887,6 +1979,8 @@ def import_taxonomic_coverage_2(filename, template, is_template):
         return coverages
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -1927,6 +2021,8 @@ def import_funding_awards():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -1958,6 +2054,8 @@ def import_funding_awards_2(filename, template, is_template):
         return awards
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -1996,6 +2094,8 @@ def import_project():
     form = ImportEMLForm()
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     # Process POST
     if request.method == 'POST':
@@ -2036,6 +2136,8 @@ def import_project_2(filename, template, is_template):
 
     form = ImportSingleItemForm()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     is_template = ast.literal_eval(is_template)
     if not is_template:
         source_filename = filename
@@ -2074,6 +2176,8 @@ def import_related_projects():
     form.filename.choices = list_data_packages(False, False)
     form.template.choices = list_templates()
 
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
+
     # Process POST
     if request.method == 'POST':
         if BTN_CANCEL in request.form:
@@ -2097,6 +2201,8 @@ def import_related_projects_2(filename, template, is_template):
     """Handle the Import Related Projects item in Import/Export menu after a source document has been selected."""
 
     form = ImportItemsForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     is_template = ast.literal_eval(is_template)
     if not is_template:
@@ -2395,7 +2501,7 @@ def insert_upload_urls(current_document, eml_node, clear_existing_urls=False):
     parsed_url = urlparse(request.base_url)
     uploads_url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}/{quote(uploads_folder)}"
 
-    if True or 'localhost:5000' not in uploads_url_prefix:
+    if 'localhost:5000' not in uploads_url_prefix:
         # When developing locally, the generated URL will point to localhost:5000 and be flagged by Flask as invalid.
         # This is a pain in the neck, since we can't leave the page without clearing the URL. So, we'll just skip the
         # URL insertion when working locally. Hence, the check above.
@@ -3099,8 +3205,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
     except Exception as e:
         flash(e, 'error')
 
-    help = get_helps(['import_xml_3'])
-    return render_template('fetch_xml_3.html', package_links=package_links, form=form, help=help)
+    flash(f"Metadata for {package_name} was imported without errors")
+    return redirect(url_for(PAGE_IMPORT_XML_4, filename=package_name, fetched=True))
 
 
 @home_bp.route('/preview_data_portal', methods=['GET', 'POST'])
@@ -3109,6 +3215,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
 def preview_data_portal():
     """Handle the Preview in EDI Data Portal item from the Import/Export menu."""
     form = EDIForm()
+
+    current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())
@@ -3490,8 +3598,9 @@ def load_entity(node_id=None):
     """
 
     form = LoadOtherEntityForm()
-    document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
+
+    document, eml_node = reload_metadata()  # So check_metadata status is correct
 
     # Process POST
     if request.method == 'POST' and BTN_CANCEL in request.form:
@@ -3582,7 +3691,7 @@ def remove_from_uploads(filename):
 def select_post(filename=None, form=None, form_dict=None,
                 method=None, this_page=None, back_page=None, 
                 next_page=None, edit_page=None, project_node_id=None, reupload_page=None,
-                import_page=None, import_target=None):
+                import_page=None, import_target=None, rp_node_id=None):
 
     def extract_ids(key):
         if '|' not in key:
@@ -3634,6 +3743,10 @@ def select_post(filename=None, form=None, form_dict=None,
                 else:
                     # node_id = key
                     new_page = PAGE_REUPLOAD
+            elif val == BTN_SAVE_CHANGES:
+                # We'll go back to the same page with the same URL, minus the ui_element_id query string, if any
+                url = request.url
+                return url_without_ui_element_id_query_string(url)
             elif val == UP_ARROW:
                 new_page = this_page
                 node_id, secondary_node_id = extract_ids(key)
@@ -3671,7 +3784,7 @@ def select_post(filename=None, form=None, form_dict=None,
     if form.validate_on_submit():
         if new_page in [PAGE_DATA_TABLE, PAGE_LOAD_DATA, PAGE_REUPLOAD, PAGE_REUPLOAD_WITH_COL_NAMES_CHANGED ]:
             return url_for(new_page, filename=filename, dt_node_id=node_id, project_node_id=project_node_id)
-        elif new_page == PAGE_DATA_SOURCE:
+        elif new_page in [PAGE_DATA_SOURCE, PAGE_DATA_SOURCE_PERSONNEL]:
             return url_for(new_page, filename=filename, ms_node_id=node_id, data_source_node_id=secondary_node_id)
         elif new_page in [PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT]:
             return url_for(new_page, filename=filename, project_node_id=project_node_id)

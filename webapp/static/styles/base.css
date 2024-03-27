@@ -16,6 +16,7 @@ html {
 .table_cell {
     width: 500px;
 }
+
 #taxonomy tr:nth-child(even) {
     background-color: #f2f2f2;
 }
@@ -55,33 +56,65 @@ html {
 
 .red_circle {
     display:inline-block;
-    background-color:red;
-    border:1px solid red;
+    background-color:#DD1111;
+    border:1px solid #DD1111;
     border-radius:50%;
     -moz-border-radius:50%;
     -webkit-border-radius:50%;
-    width:8px;
-    height:8px;
+    width:9px;
+    height:9px;
+    /*margin-bottom: 1px;*/
+    pointer-events: auto;
+}
+.red_circle:hover {
+    text-decoration: none;
 }
 .yellow_circle {
     display:inline-block;
-    background-color:orange;
-    border:1px solid orange;
+    background-color:#FFA500;
+    border:1px solid #FFA500;
     border-radius:50%;
     -moz-border-radius:50%;
     -webkit-border-radius:50%;
-    width:8px;
-    height:8px;
+    width:9px;
+    height:9px;
+    /*margin-bottom: 1px;*/
+}
+.yellow_circle:hover {
+    text-decoration: none;
 }
 .green_circle {
     display:inline-block;
-    background-color:mediumseagreen;
-    border:1px solid mediumseagreen;
+    background-color:#009E60;
+    border:1px solid #009E60;
     border-radius:50%;
     -moz-border-radius:50%;
     -webkit-border-radius:50%;
-    width:8px;
-    height:8px;
+    width:9px;
+    height:9px;
+    /*margin-bottom: 1px;*/
+}
+.white_circle {
+    display:inline-block;
+    background-color:white;
+    border:1px solid white;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:9px;
+    height:9px;
+    /*margin-bottom: 1px;*/
+}
+.white_key_circle {
+    display:inline-block;
+    background-color:white;
+    border:1px solid lightgray;
+    border-radius:50%;
+    -moz-border-radius:50%;
+    -webkit-border-radius:50%;
+    width:9px;
+    height:9px;
+    margin-bottom: 1px;
 }
 
 .button.link {
@@ -97,15 +130,71 @@ html {
     text-decoration:underline;
 }
 
+.popup.link {
+    background:none;
+    border:none;
+    padding:0;
+    /*optional*/
+    font-family:arial,sans-serif; /*input has OS specific font-family*/
+    /*color:#515151;*/
+    cursor:pointer;
+}
+.popup.link:hover{
+    text-decoration:underline;
+}
+a.no-underline:hover {
+  text-decoration: none;
+}
+
 .eval_table td {
     padding:3px;
     vertical-align:top;
 }
 
 .eval_table tr:hover {
-    background-color: #e8e8e8 !important;
+    background-color:  #e8e8e8 !important;
 }
 
 .eval_table tr:hover td {
     background: transparent;
+}
+
+.highlight_error {
+    border: 2px solid #DD1111 !important;
+}
+.highlight_warning {
+    border: 2px solid #FFA500 !important;
+}
+
+.badged_page_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.whitespace {
+    width: 3px;
+    height: 0;
+}
+.right_justified {
+    margin-right: auto;
+}
+
+@keyframes pulsate {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pulsate {
+  animation: pulsate 0.2s 10;
+}
+
+.modal-dialog {
+    display: flex;
+    align-items: center; /* This centers the modal vertically in the viewport */
+    min-height: calc(100vh - 60px); /* Adjust 60px to account for margin you want above and below the modal */
+}
+
+.modal {
+    overflow-y: auto;
 }

@@ -12,7 +12,15 @@
     {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
     {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
 
-    <h2>Title</h2>
+    <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'title_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td><h2>Title</h2></td>
+    </table>
+
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 <h5>Enter a title for the data package:</h5>
@@ -55,6 +63,7 @@
     {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
     {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
     <script>
+
     $(function()
     {
         {{ macros.help_script(help_title_dialog, help_title_btn) }}
@@ -69,7 +78,6 @@
             });
             $('#{{ help_welcome_btn }}').button().on('click', function () {
                 if (welcome_dialog.dialog('isOpen')) {
-                    {#alert('{{ dns_ns.do_not_show_cb }}');#}
                     welcome_dialog.dialog('close');
                 } else {
                     welcome_dialog.dialog('open');
@@ -77,7 +85,11 @@
             });
             $('#{{ help_welcome_btn }}').click();
             document.activeElement.blur();
-        };
+        }
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+
 {% endblock %}

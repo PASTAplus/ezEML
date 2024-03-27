@@ -89,7 +89,7 @@ def import_responsible_parties(target_package, node_ids_to_import, target_class)
         new_node.name = new_name
         add_child(parent_node, new_node)
     # Save the changes to the target package.
-    load_and_save.save_both_formats(target_package, target_eml_node)
+    load_and_save.save_both_formats(target_package, target_eml_node, owner_login=owner_login)
 
 
 def consolidate_keyword_sets(eml_node):

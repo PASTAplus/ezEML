@@ -16,7 +16,16 @@
     {% set help_deprecated_data_source_dialog = help_deprecated_data_source_id ~ '_dialog' %}
     {% set deprecated_data_source = deprecated_data_source %}
 
-    <h2>Method Step</h2>
+    <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_id = node_id %}
+        {% set node_status = node_id + '_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td><h2>Method Step</h2></td>
+    </table>
+
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
@@ -42,18 +51,20 @@
                 <div  style="padding: 10px 0px 10px 25px;" width="100%">
                 <table class="table table-striped">
 
-{#                    <tr>#}
-{#                        <th>Data Source</th>#}
-{#                        <th colspan="2"></th>#}
-{#                    </tr>#}
                     {% for ds_entry in form.data_sources_list %}
                     <tr>
-                        <td>{{ ds_entry[0] }}</td>
+                        <td>
+                        {% set node_id = ds_entry.ds_node_id %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.local_status_badge_with_popup(session[node_status], ds_entry.tooltip) }}
+                        {{ ds_entry.title }}
+                        </td>
+
                         <td width="3%">&nbsp;</td>
                         <td>
                             <span style="float:right;">
-                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" type="submit" value="Edit"/>
-                            <input class="btn btn-primary" name="{{ ds_entry[1] }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/>
+                            <input class="btn btn-primary" name="{{ ds_entry.ms_node_id }}|{{ ds_entry.ds_node_id }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ ds_entry.ms_node_id }}|{{ ds_entry.ds_node_id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/>
                             </span></td>
                     </tr>
                     {% endfor %}
@@ -63,7 +74,7 @@
                 <p>
                 </div>
                 </td>
-                    <td valign="top" style="padding-top: 35px;">{{ macros.help_button(help_method_step_data_sources_btn) }}</td>
+                    <td valign="top" style="padding-top: 25px;">{{ macros.help_button(help_method_step_data_sources_btn) }}</td>
                 </table>
 {#            {% endif %}#}
 
@@ -131,5 +142,8 @@
     <script>
         {{ macros.check_xml_btn_handler('#check_xml', '#description', 'description') }}
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
 
 {% endblock %}

@@ -14,6 +14,7 @@ from webapp.home.utils.hidden_buttons import (
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.create_nodes import create_maintenance
 from webapp.home.utils.node_utils import add_child
+from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 from webapp.home.texttype_node_processing import display_texttype_node, post_process_texttype_node
 
@@ -48,13 +49,19 @@ def maintenance(filename=None):
 
     def render_get_maintenance_page(eml_node, form, filename):
         set_current_page('maintenance')
+
+        # Get the tooltip for the status badge
+        init_evaluation(eml_node, filename)
+        tooltip = format_tooltip(None, section='maintenance')
+
         help = [get_help('maintenance'), get_help('maintenance_description'), get_help('maintenance_freq')]
         return render_template('maintenance.html',
                                title='Maintenance',
                                filename=filename,
                                model_has_complex_texttypes=model_has_complex_texttypes(eml_node),
                                form=form,
-                               help=help)
+                               help=help,
+                               tooltip=tooltip)
 
     def populate_maintenance_form(form: MaintenanceForm, maintenance_node: Node):
         description = ''

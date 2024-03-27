@@ -47,19 +47,35 @@
     {% set help_clone_attributes_general_id, help_clone_attributes_general_title, help_clone_attributes_general_content = help[14] %}
     {% set help_clone_attributes_general_btn = help_clone_attributes_general_id ~ '_btn' %}
     {% set help_clone_attributes_general_dialog = help_clone_attributes_general_id ~ '_dialog' %}
+    {% set help_data_table_save_changes_id, help_data_table_save_changes_title, help_data_table_save_changes_content = help[15] %}
+    {% set help_data_table_save_changes_btn = help_data_table_save_changes_id ~ '_btn' %}
+    {% set help_data_table_save_changes_dialog = help_data_table_save_changes_id ~ '_dialog' %}
 
-    <table>
-        <td><h2>Data Table</h2></td>
-        <td valign="middle" style="padding-top: 15px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>
-    </table>
+{#    <table>#}
+{#        <td style="vertical-align:middle;padding-top: 12px;">#}
+{#        {% set node_id = dt_node_id.split("|")[0] %}#}
+{#        {% set node_status = node_id + '_status' %}#}
+{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
+{#        </td>#}
+{#        <td style="width:3%"></td>#}
+{#        <td style="vertical-align:middle;"><h2>Data Table</h2></td>#}
+{#        <td style="vertical-align:middle;padding-top: 18px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>#}
+{#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
+{#            <td>#}
+{#        <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;#}
+{#            <span id="save_changes_help" style="visibility:hidden;vertical-align: center; margin-top:25px;">{{ macros.help_button(help_data_table_save_changes_btn) }}</span>#}
+{#            </span>#}
+{#            </td>#}
+{#        {% endif %}#}
+{#    </table>#}
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form" novalidate="true">
+            <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
+                {{ macros.page_heading_with_status_popup('Data Table', dt_node_id, tooltip, session, help_data_table_save_changes_btn, help_data_tables_btn) }}
                 <h5>Enter information about the data table object:</h5>
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.object_name, readonly=was_uploaded) }}{{ macros.item_end(help_data_table_object_name_btn) }}
-
                 <table style="display: none;">
                 <tr>
                 <td class="table_cell">
@@ -164,6 +180,8 @@
                 {{ macros.hidden_buttons_with_no_contents_menu() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
+                {{ macros.save_changes_modal() }}
+
             </form>
             <p>&nbsp;</p>
         </div>
@@ -183,7 +201,7 @@
     {{ macros.help_dialog(help_data_table_number_of_records_dialog, help_data_table_number_of_records_title, help_data_table_number_of_records_content) }}
     {{ macros.help_dialog(help_data_table_online_url_dialog, help_data_table_online_url_title, help_data_table_online_url_content) }}
     {{ macros.help_dialog(help_clone_attributes_general_dialog, help_clone_attributes_general_title, help_clone_attributes_general_content) }}
-
+    {{ macros.help_dialog(help_data_table_save_changes_dialog, help_data_table_save_changes_title, help_data_table_save_changes_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -233,6 +251,10 @@
     {% set help_clone_attributes_general_id, help_clone_attributes_general_title, help_clone_attributes_general_content = help[14] %}
     {% set help_clone_attributes_general_btn = help_clone_attributes_general_id ~ '_btn' %}
     {% set help_clone_attributes_general_dialog = help_clone_attributes_general_id ~ '_dialog' %}
+    {% set help_data_table_save_changes_id, help_data_table_save_changes_title, help_data_table_save_changes_content = help[15] %}
+    {% set help_data_table_save_changes_btn = help_data_table_save_changes_id ~ '_btn' %}
+    {% set help_data_table_save_changes_dialog = help_data_table_save_changes_id ~ '_dialog' %}
+    
     <script>
     $(function()
     {
@@ -251,7 +273,12 @@
         {{ macros.help_script(help_data_table_number_of_records_dialog, help_data_table_number_of_records_btn) }}
         {{ macros.help_script(help_data_table_online_url_dialog, help_data_table_online_url_btn) }}
         {{ macros.help_script(help_clone_attributes_general_dialog, help_clone_attributes_general_btn) }}
-
+        {{ macros.help_script(help_data_table_save_changes_dialog, help_data_table_save_changes_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+    {{ macros.save_changes_button_support() }}
+
 {% endblock %}

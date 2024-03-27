@@ -27,7 +27,7 @@ def get_all_keywords():
     return keywords
 
 
-keywords = get_all_keywords()
+keywords = sorted(list(set(get_all_keywords())), key=str.lower)
 
 with open('webapp/static/lter_keywords.pkl', 'wb') as keyfile:
     pickle.dump(keywords, keyfile)

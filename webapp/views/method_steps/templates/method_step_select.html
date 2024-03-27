@@ -5,12 +5,17 @@
     {% set help_methods_id, help_methods_title, help_methods_content = help[0] %}
     {% set help_methods_btn = help_methods_id ~ '_btn' %}
     {% set help_methods_dialog = help_methods_id ~ '_dialog' %}
-    
+
     <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'methods_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, method_step_list | length) }}
+        </td>
+        <td style="width:3%"></td>
         <td><h2>Method Steps{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_methods_btn) }}</td>
     </table>
-{#    <div class="row">#}
+
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
@@ -22,7 +27,11 @@
                     </tr>
                     {% for ms_entry in method_step_list %}
                     <tr>
-                        <td>{{ ms_entry.description }}</td>
+                        <td>
+                        {% set node_id = ms_entry.id.split("|")[0] %}
+                        {% set node_status = node_id + '_status' %}
+                        {{ macros.status_badge_with_popup(session[node_status], ms_entry.tooltip) }}
+                        {{ ms_entry.description }}</td>
 {#                        <td>{{ ms_entry.instrumentation }}</td>#}
                         {{ macros.up_down_arrow(ms_entry.id, ms_entry.upval) }}
                         {{ macros.up_down_arrow(ms_entry.id, ms_entry.downval) }}
@@ -32,7 +41,7 @@
                     {% endfor %}
                 </table>
                 <br/>
-                <input class="btn btn-primary" name="1" type="submit" value="Add Method Step"/>
+                <input class="btn btn-primary" id="add_ms" name="1" type="submit" value="Add Method Step"/>
                 <br/><br/>
 {#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 {% if not suppress_next_btn %}
@@ -64,4 +73,8 @@
         {{ macros.help_script(help_methods_dialog, help_methods_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+
 {% endblock %}

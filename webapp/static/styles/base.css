@@ -3,7 +3,7 @@ html {
 }
 
 .error {
-    color: red
+    color: red !important;
 }
 
 .input_value {

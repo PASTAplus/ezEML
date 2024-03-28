@@ -121,10 +121,11 @@ def login():
 
 @auth_bp.route('/logout', methods=['GET'])
 def logout():
-    log_usage(actions['LOGOUT'])
-    user_login = current_user.get_user_login()
-    close_package(user_login)
-    logout_user()
+    if current_user.is_authenticated:
+        log_usage(actions['LOGOUT'])
+        user_login = current_user.get_user_login()
+        close_package(user_login)
+        logout_user()
     return redirect(url_for(PAGE_LOGIN))
 
 

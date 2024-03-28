@@ -334,7 +334,9 @@ def debug_None(x, msg):
 def reload_metadata():
     """ Reload the metadata to get the check_metadata badge status updated.
         NOTE: This updates eml_node, so callers should capture the return value.
-     """
+    """
+    if not current_user.is_authenticated:
+        return None, None
     current_document = current_user.get_filename()
     if not current_document:
         # if we've just deleted the current document, it won't exist

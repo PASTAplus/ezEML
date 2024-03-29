@@ -1,10 +1,8 @@
 from datetime import datetime
-from flask_login import (
-    current_user, login_required
-)
+from flask_login import current_user
 
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Border, Font, PatternFill, Side
+from openpyxl.styles import Border, Font, PatternFill, Protection, Side
 
 from webapp.home import exceptions as exceptions
 import webapp.home.utils.load_and_save as load_and_save
@@ -18,6 +16,7 @@ from metapype.eml import names
 # Globals
 wb = None
 ws = None
+# Row and column indices are 1-based
 row = None
 maxcol = None
 maxrow = None
@@ -190,11 +189,20 @@ def set_column_widths():
             ws.cell(row=j+1, column=i+1).number_format = '@'
 
 
+def remove_sheet_protection(first_row, last_row, first_col, last_col):
+    for row in range(first_row, last_row+1):
+        for col in range(first_col, last_col+1):
+            ws.cell(row=row, column=col).protection = Protection(locked=False)
+            ws.cell(row=row, column=col).font = Font(size=FONT_SIZE)
+
+
 def create_sheet():
     global wb, ws, row
     # Create a new workbook and select the active worksheet
     wb = Workbook()
     ws = wb.active
+    ws.protection.sheet = True
+    ws.protection.password = 'ezEML'
     ws.freeze_panes = 'B1'
     row = 1
 
@@ -322,7 +330,7 @@ def add_missing_value_codes(attribute_nodes):
 
 
 def add_numerical_columns(attribute_nodes, eml_node):
-
+    global row
     def get_custom_unit_description(eml_node, custom_unit_name):
         # get description, if any, from an additionalMetadata section
         additional_metadata_nodes = eml_node.find_all_children(names.ADDITIONALMETADATA)
@@ -348,6 +356,7 @@ def add_numerical_columns(attribute_nodes, eml_node):
         if not is_numerical(attribute_node):
             return
         row += 1
+        remove_sheet_protection(row, row, 2, 8)
         normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
         number_type_node = attribute_node.find_descendant(names.NUMBERTYPE)
         if number_type_node:
@@ -387,11 +396,13 @@ def add_numerical_columns(attribute_nodes, eml_node):
 
 
 def add_datetime_columns(attribute_nodes):
+    global row
     def add_datetime_column(attribute_node):
         global row
         if not is_datetime(attribute_node):
             return
         row += 1
+        remove_sheet_protection(row, row, 2, 5)
         normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
         format_node = attribute_node.find_single_node_by_path([names.MEASUREMENTSCALE, names.DATETIME, names.FORMATSTRING])
         required('B' + str(row), '')
@@ -412,11 +423,13 @@ def add_datetime_columns(attribute_nodes):
 
 
 def add_categorical_columns(attribute_nodes, header_row):
+    global row
     def add_categorical_column(attribute_node, column):
         global row
         if not is_categorical(attribute_node):
             return
         row += 1
+        remove_sheet_protection(row, row, 2, 100)
         normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
         code_definition_nodes = []
         attribute_node.find_all_descendants(names.CODEDEFINITION, code_definition_nodes)
@@ -482,6 +495,7 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
     add_storage_types(storage_types)
     add_storage_type_systems(storage_type_systems)
     add_missing_value_codes(attribute_nodes)
+    remove_sheet_protection(8, 8 + len(column_names) - 1, 3, 13)
 
     if 'Numerical' in column_types:
         row += 2
@@ -655,8 +669,9 @@ def ingest_data_table_sheet(filepath, dt_node_id):
             except ValueError:
                 pass
 
-    def set_missing_value(attribute_node, mvc, mvc_explanation):
-        missing_value_code_node = attribute_node.find_child(names.MISSINGVALUECODE)
+    def set_missing_value(attribute_node, which_mvc, mvc, mvc_explanation):
+        missing_value_code_nodes = attribute_node.find_all_children(names.MISSINGVALUECODE)
+        missing_value_code_node = missing_value_code_nodes[which_mvc] if which_mvc < len(missing_value_code_nodes) else None
         if mvc:
             if missing_value_code_node is None:
                 missing_value_code_node = new_child_node(names.MISSINGVALUECODE, attribute_node)
@@ -711,7 +726,7 @@ def ingest_data_table_sheet(filepath, dt_node_id):
             if not date_time_domain_node:
                 date_time_domain_node = new_child_node(names.DATETIMEDOMAIN, datetime_node)
             set_bounds(date_time_domain_node, bounds_min, bounds_max)
-        else:
+        elif date_time_domain_node:
             datetime_node.remove_child(date_time_domain_node)
 
     def set_categorical_variable(attribute_node, codes, definitions):
@@ -823,9 +838,9 @@ def ingest_data_table_sheet(filepath, dt_node_id):
     # Set missing value codes
     # mvc1, mvc_explanations_1, mvc2, mvc_explanations_2, mvc3, mvc_explanations_3 = get_missing_values(sheet, length=length)
     for i, attribute_node in enumerate(attribute_nodes):
-        set_missing_value(attribute_node, mvc1[i], mvc_explanations_1[i])
-        set_missing_value(attribute_node, mvc2[i], mvc_explanations_2[i])
-        set_missing_value(attribute_node, mvc3[i], mvc_explanations_3[i])
+        set_missing_value(attribute_node, 0, mvc1[i], mvc_explanations_1[i])
+        set_missing_value(attribute_node, 1, mvc2[i], mvc_explanations_2[i])
+        set_missing_value(attribute_node, 2, mvc3[i], mvc_explanations_3[i])
 
     # Handle numerical variables
     i = 0

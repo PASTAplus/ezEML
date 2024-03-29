@@ -37,7 +37,9 @@ import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.home_utils import log_error, log_info, log_available_memory, url_without_ui_element_id_query_string
+from webapp.home.home_utils import (
+    log_error, log_info, log_available_memory, url_without_query_string, url_without_ui_element_id_query_string
+)
 import webapp.home.texttype_node_processing as texttype_node_processing
 
 import csv
@@ -547,7 +549,7 @@ def handle_highlight_id():
                     # We need to hydrate the node store
                     eml_node = load_eml(filename=current_document)
                 # There are 3 missing value code explanations. Find the first missing one.
-                url = request.url
+                url = url_without_query_string(request.url)
                 url_substrs = url.split("/")
                 for substr in url_substrs:
                     if is_valid_uuid(substr):

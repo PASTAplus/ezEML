@@ -80,7 +80,7 @@ from webapp.home.log_usage import (
 )
 from webapp.home.manage_packages import get_data_packages, get_data_usage
 
-from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status
+from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status, url_without_query_string
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
 
 from webapp.home.utils.node_utils import remove_child, new_child_node
@@ -549,7 +549,7 @@ def handle_highlight_id():
                     # We need to hydrate the node store
                     eml_node = load_eml(filename=current_document)
                 # There are 3 missing value code explanations. Find the first missing one.
-                url = request.url
+                url = url_without_query_string(request.url)
                 url_substrs = url.split("/")
                 for substr in url_substrs:
                     if is_valid_uuid(substr):

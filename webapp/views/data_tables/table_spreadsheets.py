@@ -469,7 +469,7 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
         storage_type_node = attribute_node.find_child(names.STORAGETYPE)
         if storage_type_node:
             storage_types.append(storage_type_node.content)
-            storage_type_systems.append(storage_type_node.attributes.get(names.TYPESYSTEM))
+            storage_type_systems.append(storage_type_node.attributes.get(names.TYPESYSTEM if names.TYPESYSTEM else 'typeSystem')) # TODO
         else:
             storage_types.append('')
             storage_type_systems.append('')

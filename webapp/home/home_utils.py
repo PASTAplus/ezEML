@@ -56,6 +56,25 @@ def log_info(msg):
         logger.info(msg)
 
 
+def url_without_query_string(url):
+    """
+    Remove the query string from a URL.
+    """
+    # Parse the URL
+    parsed_url = urlparse(url)
+
+    # Construct the new URL without the query string
+    new_url = urlunparse((
+        parsed_url.scheme,
+        parsed_url.netloc,
+        parsed_url.path,
+        parsed_url.params,
+        '',
+        parsed_url.fragment
+    ))
+    return new_url
+
+
 def url_without_ui_element_id_query_string(url):
     # Parse the URL
     parsed_url = urlparse(url)

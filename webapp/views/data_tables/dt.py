@@ -1227,9 +1227,6 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         else:
             submit_type = 'Back'
 
-        # If we have a hidden button, we note that fact but we may need to save changes before going there.
-        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
-
         if submit_type == 'Save Changes':
             dt_node = None
             attribute_list_node = None
@@ -1309,6 +1306,8 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
             next_page = PAGE_ATTRIBUTE_SELECT
         else:
             next_page = PAGE_ATTRIBUTE_DATETIME
+
+        next_page = handle_hidden_buttons(next_page)
 
         url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
 

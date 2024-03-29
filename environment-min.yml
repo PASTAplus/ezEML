@@ -21,6 +21,7 @@ dependencies:
   - uwsgi
   - email_validator
   - requests-file
+  - openpyxl
   - pytest
   - psutil
   - pympler

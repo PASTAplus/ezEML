@@ -505,7 +505,7 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
     user_folder = user_data.get_user_folder_name()
     sheets_folder = os.path.join(user_folder, 'spreadsheets')
     Path(sheets_folder).mkdir(parents=True, exist_ok=True)
-    outfile = os.path.join(sheets_folder, f'{filename}_{data_table_name}.xlsx')
+    outfile = os.path.join(sheets_folder, f'{filename}__{data_table_name}.xlsx')
     wb.save(outfile)
     return outfile
 

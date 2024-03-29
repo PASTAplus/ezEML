@@ -92,27 +92,6 @@ def log_error(msg):
         current_app.logger.error(msg)
 
 
-# def download_sheet(data_table_node_id, filename):
-#     import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
-#     load_eml(filename=filename)
-#     data_table_node = Node.get_node_instance(data_table_node_id)
-#     data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
-#     data_table_name = data_table_name_node.content
-#     return table_spreadsheets.generate_data_entry_spreadsheet(data_table_node, filename, data_table_name)
-
-
-# def upload_sheet(filepath, data_table_node_id):
-#     import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
-#     # user_folder = user_data.get_user_folder_name()
-#     # sheets_folder = os.path.join(user_folder, 'spreadsheets')
-#     # Path(sheets_folder).mkdir(parents=True, exist_ok=True)
-#     # data_table_node = Node.get_node_instance(data_table_node_id)
-#     # data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
-#     # data_table_name = data_table_name_node.content
-#     # filepath = os.path.join(sheets_folder, f'{filename}_{data_table_name}.xlsx')
-#     table_spreadsheets.read_data_table_sheet(filepath)
-
-
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
@@ -666,9 +645,6 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
                            form=form, name=data_table_name, help=help)
 
 
-
-
-#blah
 @dt_bp.route('/upload_spreadsheet/<filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
@@ -691,11 +667,6 @@ def upload_spreadsheet(filename=None, dt_node_id=None):
         if 'file' not in request.files:
             flash('No file part', 'error')
             return redirect(request.url)
-
-        # eml_node = load_eml(filename=document)
-        # dataset_node = eml_node.find_child(names.DATASET)
-        # if not dataset_node:
-        #     dataset_node = new_child_node(names.DATASET, eml_node)
 
         file = request.files['file']
         if file:
@@ -726,81 +697,6 @@ def upload_spreadsheet(filename=None, dt_node_id=None):
     help = [get_help('geographic_coverages_csv_file')] # FIXME
     return render_template('upload_spreadsheet.html', data_table_name=data_table_name, form=form, help=help)
 
-#
-#
-# @home_bp.route('/import_keywords_2/<filename>/<template>/<is_template>', methods=['GET', 'POST'])
-# @login_required
-# @non_saving_hidden_buttons_decorator
-# def import_keywords_2(filename, template, is_template):
-#     """Handle the Import Keywords item in Import/Export menu after a source document has been selected."""
-#
-#     def get_keywords_for_import(eml_node):
-#         keyword_tuples = []
-#         keyword_groups = {}
-#         dataset_node = eml_node.find_child(names.DATASET)
-#         if not dataset_node:
-#             return []
-#         keyword_set_nodes = []
-#         dataset_node.find_all_descendants(names.KEYWORDSET, keyword_set_nodes)
-#         for keyword_set_node in keyword_set_nodes:
-#             keyword_nodes = []
-#             keyword_set_node.find_all_descendants(names.KEYWORD, keyword_nodes)
-#             for keyword_node in keyword_nodes:
-#                 keyword = keyword_node.content
-#                 if not keyword:
-#                     continue
-#                 thesaurus_node = keyword_set_node.find_child(names.KEYWORDTHESAURUS)
-#                 thesaurus = thesaurus_node.content if thesaurus_node else ''
-#                 if thesaurus:
-#                     thesaurus = f'{thesaurus}'
-#                 keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}', keyword, thesaurus))
-#                 keyword_groups[thesaurus] = keyword_groups.get(thesaurus, []) + [(keyword_node.id, keyword)]
-#         for key in keyword_groups:
-#             keyword_groups[key].sort(key=lambda x: x[1].lower())
-#         sorted_dict = {key: keyword_groups[key] for key in sorted(keyword_groups)}
-#         return sorted_dict, \
-#                [(a, b) for a, b, _, _ in sorted(keyword_tuples, key=lambda x: (x[3].lower(), x[2].lower()))]
-#
-#     form = ImportItemsForm()
-#
-#     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
-#
-#     is_template = ast.literal_eval(is_template)
-#     if not is_template:
-#         source_filename = filename
-#         user_login = current_user.get_user_org() # If I'm importing from a data package, I'm the owner
-#         eml_node = load_eml(source_filename, owner_login=user_login)
-#     else:
-#         source_filename = template_display_name(unquote(template))
-#         eml_node = load_template(unquote(template))
-#
-#     keyword_groups, sorted_choices = get_keywords_for_import(eml_node)
-#     form.to_import.choices = sorted_choices
-#
-#     if request.method == 'POST' and BTN_CANCEL in request.form:
-#         return redirect(get_back_url())
-#
-#     if is_hidden_button():
-#         current_document = current_user.get_filename()
-#         return redirect(url_for(handle_hidden_buttons(), filename=current_document))
-#
-#     if form.validate_on_submit():
-#         node_ids_to_import = form.data['to_import']
-#         target_package = current_user.get_filename()
-#         import_keyword_nodes(target_package, node_ids_to_import)
-#         log_usage(actions['IMPORT_KEYWORDS'], filename)
-#         return redirect(url_for(PAGE_KEYWORD_SELECT, filename=target_package))
-#
-#     # Process GET
-#     help = get_helps(['import_keywords_2'])
-#     return render_template('import_keywords_2.html', help=help, source_filename=source_filename,
-#                            keyword_groups=keyword_groups, form=form)
-#
-
-
-
-
-
 
 # <dt_node_id> identifies the dataTable node that this attribute is a part of (within its attributeList)
 @dt_bp.route('/attribute_select/<filename>/<dt_node_id>', methods=['GET', 'POST'])
@@ -810,6 +706,14 @@ def attribute_select(filename=None, dt_node_id=None):
     """
     Route to display a list of attributes (columns) in a data table and allow the user to select one to edit.
     """
+
+    def download_spreadsheet(data_table_node_id, filename):
+        import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
+        load_eml(filename=filename)
+        data_table_node = Node.get_node_instance(data_table_node_id)
+        data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = data_table_name_node.content
+        return table_spreadsheets.generate_data_entry_spreadsheet(data_table_node, filename, data_table_name)
 
     def attribute_select_post(filename=None, form=None, form_dict=None,
                               method=None, this_page=None, back_page=None,
@@ -874,7 +778,7 @@ def attribute_select(filename=None, dt_node_id=None):
                     new_page = PAGE_ATTRIBUTE_MEASUREMENT_SCALE
                 elif val == BTN_DOWNLOAD_COLUMN_PROPERTIES_SPREADSHEET:
                     try:
-                        outfile = download_sheet(dt_node_id, filename)
+                        outfile = download_spreadsheet(dt_node_id, filename)
                     except Exception as e:
                         log_error(f"Error generating data entry spreadsheet: {str(e)}")
                         flash(f"Error generating data entry spreadsheet: {str(e)}", 'error')
@@ -1406,7 +1310,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         else:
             next_page = PAGE_ATTRIBUTE_DATETIME
 
-        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
+        next_page = handle_hidden_buttons(next_page)
 
         url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
 

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_upload_spreadsheet_id, help_upload_spreadsheet_title, help_upload_spreadsheet_content = help[0] %}
+    {% set help_upload_spreadsheet_btn = help_upload_spreadsheet_id ~ '_btn' %}
+    {% set help_upload_spreadsheet_dialog = help_upload_spreadsheet_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Upload Column Properties Spreadsheet</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_upload_spreadsheet_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <h5>Data Table: {{ data_table_name }}</h5>
+                <h5>Select a column properties spreadsheet to upload:</h5>
+                <p></p>
+                <input class="file_select" type="file" name="file">
+                <p></p>
+                <br>
+
+                <input class="btn btn-primary" name="Open" type="submit" value="Upload"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_upload_spreadsheet_dialog, help_upload_spreadsheet_title, help_upload_spreadsheet_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_upload_spreadsheet_id, help_upload_spreadsheet_title, help_upload_spreadsheet_content = help[0] %}
+    {% set help_upload_spreadsheet_btn = help_upload_spreadsheet_id ~ '_btn' %}
+    {% set help_upload_spreadsheet_dialog = help_upload_spreadsheet_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_upload_spreadsheet_dialog, help_upload_spreadsheet_btn) }}
+    });
+    </script>
+{% endblock %}

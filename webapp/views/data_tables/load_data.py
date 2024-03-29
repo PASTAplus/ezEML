@@ -585,7 +585,8 @@ def load_data_table(uploads_path: str = None,
                 code_node = new_child_node(names.CODE, parent=mv_node, content=missing_value_code)
 
             storage_type_node = new_child_node(names.STORAGETYPE, parent=attribute_node)
-            storage_type_node.add_attribute(names.TYPESYSTEM, 'XML Schema Datatypes')
+            # storage_type_node.add_attribute(names.TYPESYSTEM, 'XML Schema Datatypes')
+            storage_type_node.add_attribute('typeSystem', 'XML Schema Datatypes') # TEMPORARY - waiting on Metapype update
 
             if var_type == webapp.home.metapype_client.VariableType.CATEGORICAL:
                 storage_type_node.content = 'string'

@@ -7,6 +7,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Border, Font, PatternFill, Side
 
 from webapp.home import exceptions as exceptions
+import webapp.home.utils.load_and_save as load_and_save
 from webapp.home.utils.load_and_save import load_eml, save_eml
 from webapp.home.utils.lists import compose_attribute_mscale
 from webapp.home.utils.node_utils import new_child_node
@@ -14,10 +15,12 @@ from metapype.model.node import Node
 from metapype.eml import names
 
 
+# Globals
 wb = None
 ws = None
 row = None
 maxcol = None
+maxrow = None
 
 def rgb_to_hex(rgb):
     return '{:02X}{:02X}{:02X}'.format(*rgb)
@@ -66,7 +69,7 @@ def is_categorical(attribute_node):
 
 
 def is_datetime(attribute_node):
-    datetime_node = attribute_node.find_child(names.DATETIME)
+    datetime_node = attribute_node.find_descendant(names.DATETIME)
     if datetime_node:
         return True
     return False
@@ -91,7 +94,7 @@ def is_numerical(attribute_node):
 
 
 ####################################################################################################
-# Functions for writing metadata to a spreadsheet
+# Functions for writing metadata to a spreadsheet (i.e., do download)
 ####################################################################################################
 
 def set_maxcol(cell):
@@ -102,6 +105,13 @@ def set_maxcol(cell):
         maxcol = col_num
 
 
+def set_maxrow(cell):
+    global maxrow
+    row_num = int(cell[1:])
+    if maxrow is None or row_num > maxrow:
+        maxrow = row_num
+
+
 def highlight_cell(cell, color):
     fill = PatternFill(start_color=color, end_color=color, fill_type='solid')
     border_side = Side(style='thin', color='000000')
@@ -110,18 +120,21 @@ def highlight_cell(cell, color):
     ws[cell].fill = fill
     ws[cell].border = border
     set_maxcol(cell)
+    set_maxrow(cell)
 
 
 def bold(cell, text):
     ws[cell].font = Font(size=FONT_SIZE, bold=True)
     ws[cell] = text
     set_maxcol(cell)
+    set_maxrow(cell)
 
 
 def normal(cell, text):
     ws[cell].font = Font(size=FONT_SIZE)
     ws[cell] = text
     set_maxcol(cell)
+    set_maxrow(cell)
 
 
 def required(cell, text):
@@ -169,9 +182,12 @@ def insert_color_key():
 
 def set_column_widths():
     global maxcol
+    global maxrow
     ws.column_dimensions['A'].width = 35
     for i in range(maxcol):
         ws.column_dimensions[next_spreadsheet_column('A', i + 1)].width = 25
+        for j in range(maxrow):
+            ws.cell(row=j+1, column=i+1).number_format = '@'
 
 
 def create_sheet():
@@ -286,8 +302,8 @@ def add_storage_type_systems(storage_type_systems):
 
 def add_missing_value_codes(attribute_nodes):
     def add_missing_value_code(missing_value_node, column):
-        code_node = missing_value_node.find_child('code')
-        explanation_node = missing_value_node.find_child('codeExplanation')
+        code_node = missing_value_node.find_child(names.CODE)
+        explanation_node = missing_value_node.find_child(names.CODEEXPLANATION)
         if code_node and code_node.content:
             normal(column + str(row), code_node.content)
             required(next_spreadsheet_column(column) + str(row), explanation_node.content if explanation_node else '')
@@ -295,7 +311,7 @@ def add_missing_value_codes(attribute_nodes):
     global row
     row = 8
     for attribute_node in attribute_nodes:
-        missing_value_nodes = attribute_node.find_all_children('missingValueCode')
+        missing_value_nodes = attribute_node.find_all_children(names.MISSINGVALUECODE)
         i = 0
         for missing_value_node in missing_value_nodes:
             add_missing_value_code(missing_value_node, next_spreadsheet_column('G', 2 * i))
@@ -332,18 +348,18 @@ def add_numerical_columns(attribute_nodes, eml_node):
         if not is_numerical(attribute_node):
             return
         row += 1
-        normal('A' + str(row), attribute_node.find_child('attributeName').content)
-        number_type_node = attribute_node.find_descendant('numberType')
+        normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
+        number_type_node = attribute_node.find_descendant(names.NUMBERTYPE)
         if number_type_node:
             required('B' + str(row), number_type_node.content)
 
-        measurement_scale_node = attribute_node.find_child('measurementScale')
-        interval_or_ratio_node = measurement_scale_node.find_child('interval') or measurement_scale_node.find_child('ratio')
+        measurement_scale_node = attribute_node.find_child(names.MEASUREMENTSCALE)
+        interval_or_ratio_node = measurement_scale_node.find_child(names.INTERVAL) or measurement_scale_node.find_child(names.RATIO)
         if interval_or_ratio_node:
-            unit_node = interval_or_ratio_node.find_child('unit')
+            unit_node = interval_or_ratio_node.find_child(names.UNIT)
             if unit_node:
-                standard_unit_node = unit_node.find_child('standardUnit')
-                custom_unit_node = unit_node.find_child('customUnit')
+                standard_unit_node = unit_node.find_child(names.STANDARDUNIT)
+                custom_unit_node = unit_node.find_child(names.CUSTOMUNIT)
                 if custom_unit_node:
                     required('D' + str(row), custom_unit_node.content)
                     description = get_custom_unit_description(eml_node, custom_unit_node.content)
@@ -356,17 +372,16 @@ def add_numerical_columns(attribute_nodes, eml_node):
             else:
                 required('C' + str(row), '')
                 normal('D' + str(row), '')
-            precision_node = interval_or_ratio_node.find_child('precision')
+            precision_node = interval_or_ratio_node.find_child(names.PRECISION)
             if precision_node:
                 normal('F' + str(row), precision_node.content)
-            minimum_node = interval_or_ratio_node.find_descendant('minimum')
+            minimum_node = interval_or_ratio_node.find_descendant(names.MINIMUM)
             if minimum_node:
                 normal('G' + str(row), minimum_node.content)
-            maximum_node = interval_or_ratio_node.find_descendant('maximum')
+            maximum_node = interval_or_ratio_node.find_descendant(names.MAXIMUM)
             if maximum_node:
                 normal('H' + str(row), maximum_node.content)
 
-    global row
     for attribute_node in attribute_nodes:
         add_numerical_column(attribute_node, eml_node)
 
@@ -377,42 +392,39 @@ def add_datetime_columns(attribute_nodes):
         if not is_datetime(attribute_node):
             return
         row += 1
-        normal('A' + str(row), attribute_node.find_child('attributeName').content)
-        format_node = attribute_node.find_single_node_by_path(['measurementScale', 'dateTime', 'formatString'])
+        normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
+        format_node = attribute_node.find_single_node_by_path([names.MEASUREMENTSCALE, names.DATETIME, names.FORMATSTRING])
         required('B' + str(row), '')
         if format_node:
             required('B' + str(row), format_node.content)
-        precision_node = attribute_node.find_descendant('precision')
+        precision_node = attribute_node.find_descendant(names.PRECISION)
         if precision_node:
             normal('C' + str(row), precision_node.content)
-        minimum_node = attribute_node.find_descendant('minimum')
+        minimum_node = attribute_node.find_descendant(names.MINIMUM)
         if minimum_node:
             normal('D' + str(row), minimum_node.content)
-        maximum_node = attribute_node.find_descendant('maximum')
+        maximum_node = attribute_node.find_descendant(names.MAXIMUM)
         if maximum_node:
             normal('E' + str(row), maximum_node.content)
 
-    global row
     for attribute_node in attribute_nodes:
         add_datetime_column(attribute_node)
 
 
 def add_categorical_columns(attribute_nodes, header_row):
-    global row
-
     def add_categorical_column(attribute_node, column):
         global row
         if not is_categorical(attribute_node):
             return
         row += 1
-        normal('A' + str(row), attribute_node.find_child('attributeName').content)
+        normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
         code_definition_nodes = []
-        attribute_node.find_all_descendants('codeDefinition', code_definition_nodes)
+        attribute_node.find_all_descendants(names.CODEDEFINITION, code_definition_nodes)
         for code_definition_node in code_definition_nodes:
-            bold(f'{column}{header_row}', 'Code')
-            bold(f'{next_spreadsheet_column(column)}{header_row}', 'Definition')
-            code_node = code_definition_node.find_child('code')
-            definition_node = code_definition_node.find_child('definition')
+            bold(f'{column}{header_row}', names.CODE)
+            bold(f'{next_spreadsheet_column(column)}{header_row}', names.DEFINITION)
+            code_node = code_definition_node.find_child(names.CODE)
+            definition_node = code_definition_node.find_child(names.DEFINITION)
             if code_node:
                 normal(f'{column}{row}', code_node.content if code_node else '')
                 required(f'{next_spreadsheet_column(column)}{row}', definition_node.content if definition_node else '')
@@ -425,7 +437,7 @@ def add_categorical_columns(attribute_nodes, header_row):
 
 def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
     global row
-    if not data_table_node:
+    if not data_table_node or not data_table_node.name:
         return None
 
     eml_node = load_eml(filename)
@@ -433,13 +445,15 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
     create_sheet()
     add_all_columns_headers()
 
-    if not data_table_node.name:
-        return None
+    entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+    entity_name = entity_name_node.content if entity_name_node else ''
+    if not entity_name:
+        msg = f'No entity name found for data table {data_table_name}'
+        raise exceptions.DataTableNameNotFound(msg)
 
-    entity_name_node = data_table_node.find_child('entityName')
     start_table(filename, entity_name_node.content if entity_name_node else '')
 
-    attribute_nodes = data_table_node.find_child('attributeList').children
+    attribute_nodes = data_table_node.find_child(names.ATTRIBUTELIST).children
     column_names = []
     column_types = []
     column_definitions = []
@@ -497,7 +511,7 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
 
 
 ####################################################################################################
-# Functions for reading metadata from a spreadsheet
+# Functions for reading metadata from a spreadsheet (i.e., do upload)
 ####################################################################################################
 
 def get_package_name(sheet):
@@ -519,7 +533,6 @@ def get_column_values(sheet, column, row=8, length=None):
         values.append(cell.value)
         if length and i - row >= length:
             break
-    row = i
     return values
 
 
@@ -604,58 +617,52 @@ def get_categorical_variables(sheet, num_categorical_variables):
     return codes_list, definitions_list
 
 
-def read_data_table_sheet(filepath):
+def ingest_data_table_sheet(filepath, dt_node_id):
     global row
 
-    def set_child_node(child_name, parent_node, content=None):
+    def set_child_node(child_name, parent_node, content=None, attribute=None):
+        # Find child node.
+        # If content, create child if it doesn't exist, otherwise, replace it. Set its content and, optionally, add an
+        #  attribute, return the child node.
+        # If no content, remove the child node if it exists. I.e., calling with content=None is a way to remove the
+        #  child node, dealing with the possibility that it doesn't exist.
         child_node = parent_node.find_child(child_name)
+        try:
+            # We remove the child node so we can replace it with an empty one. This way, any existing attributes
+            #  are removed.
+            parent_node.remove_child(child_node)
+        except ValueError:
+            pass
         if content:
-            if child_node is None:
-                child_node = new_child_node(child_name, parent_node, content=content)
-            else:
-                child_node.content = content
+            # Note: if content is None but attribute has a value, we don't create the child node. That's intentional.
+            child_node = new_child_node(child_name, parent_node, content=content, attribute=attribute)
             return child_node
-        else:
-            try:
-                parent_node.remove_child(child_node)
-            except ValueError:
-                pass
 
     def set_bounds(domain_node, bounds_min, bounds_max):
-        # Bounds
+        # Handle Bounds. Create bounds node as needed. If bounds_min or bounds_max, set the minimum or maximum,
+        #  respectively, and add an attribute to the minimum to indicate that it is exclusive. If bounds_min and
+        #  bounds_max are both None, remove the bounds node.
         bounds_node = domain_node.find_child(names.BOUNDS)
-        if bounds_min:
-            if bounds_node is None:
-                bounds_node = domain_node.add_child(names.BOUNDS)
-            set_child_node(names.MINIMUM, bounds_node, bounds_min)
-        else:
-            try:
-                domain_node.remove_child(bounds_node)
-            except ValueError:
-                pass
-        if bounds_max:
-            bounds_node = domain_node.find_child(names.BOUNDS)
-            if bounds_node is None:
-                bounds_node = domain_node.add_child(names.BOUNDS)
-            set_child_node(names.MAXIMUM, bounds_node, bounds_max)
-        elif not bounds_min:
+        if bounds_node is None and (bounds_min or bounds_max):
+            bounds_node = new_child_node(names.BOUNDS, domain_node)
+        if bounds_min or bounds_max:
+            set_child_node(names.MINIMUM, bounds_node, bounds_min, attribute=('exclusive', 'false'))
+            set_child_node(names.MAXIMUM, bounds_node, bounds_max, attribute=('exclusive', 'false'))
+        elif bounds_node:
             try:
                 domain_node.remove_child(bounds_node)
             except ValueError:
                 pass
 
     def set_missing_value(attribute_node, mvc, mvc_explanation):
-        # TODO - if no mvc, we need to remove the missing value code node if it exists
+        missing_value_code_node = attribute_node.find_child(names.MISSINGVALUECODE)
         if mvc:
-            missing_value_code_node = attribute_node.find_child(names.MISSINGVALUECODE)
             if missing_value_code_node is None:
                 missing_value_code_node = new_child_node(names.MISSINGVALUECODE, attribute_node)
-            code_node = missing_value_code_node.find_child(names.CODE)
-            if code_node is None:
-                code_node = new_child_node(names.CODE, missing_value_code_node, content=mvc)
-            code_explanation_node = missing_value_code_node.find_child(names.CODEEXPLANATION)
-            if code_explanation_node is None:
-                code_explanation_node = new_child_node(names.CODEEXPLANATION, missing_value_code_node, content=mvc_explanation)
+            set_child_node(names.CODE, missing_value_code_node, content=mvc)
+            set_child_node(names.CODEEXPLANATION, missing_value_code_node, content=mvc_explanation)
+        elif missing_value_code_node:
+            attribute_node.remove_child(missing_value_code_node)
 
     def set_numerical_variable(attribute_node, number_type, standard_unit, custom_unit, custom_unit_description, precision, bounds_min, bounds_max):
         if not is_numerical(attribute_node):
@@ -675,17 +682,16 @@ def read_data_table_sheet(filepath):
         set_bounds(numeric_domain_node, bounds_min, bounds_max)
 
         # Units
-        unit_node = attribute_node.find_descendant(names.UNIT)
-        if unit_node is None:
-            unit_node = new_child_node(names.UNIT, attribute_node)
-        standard_unit_node = set_child_node(names.STANDARDUNIT, unit_node, standard_unit)
-        custom_unit_node = set_child_node(names.CUSTOMUNIT, unit_node, custom_unit)
-        if custom_unit and not standard_unit:
-            if custom_unit_description:
-                custom_unit_description_node = unit_node.find_child(names.DESCRIPTION)
-                # TODO - handle custom unit description in additional metadata
-                # if custom_unit_description_node is None:
-                #     custom_unit_description_node = new_child_node(names.DESCRIPTION, unit_node, custom_unit_description)
+        try:
+            ir_node.remove_child(ir_node.find_child(names.UNIT))
+        except ValueError:
+            pass
+        if standard_unit or custom_unit:
+            unit_node = new_child_node(names.UNIT, ir_node)
+            set_child_node(names.STANDARDUNIT, unit_node, standard_unit)
+            set_child_node(names.CUSTOMUNIT, unit_node, custom_unit)
+            if custom_unit and not standard_unit and custom_unit_description:
+                load_and_save.handle_custom_unit_additional_metadata(eml_node, custom_unit, custom_unit_description)
 
     def set_datetime_variable(attribute_node, format_string, precision, bounds_min, bounds_max):
         if not is_datetime(attribute_node):
@@ -693,14 +699,19 @@ def read_data_table_sheet(filepath):
         datetime_node = attribute_node.find_descendant(names.DATETIME)
 
         # Format string
-        set_child_node(names.FORMAT, datetime_node, format_string)
+        set_child_node(names.FORMATSTRING, datetime_node, format_string)
 
         # Precision
-        set_child_node(names.PRECISION, datetime_node, precision)
+        set_child_node(names.DATETIMEPRECISION, datetime_node, precision)
 
         # Bounds
-        date_time_domain_node = datetime_node.find_child(names.DATETIMEDOMAIN)
-        set_bounds(date_time_domain_node, bounds_min, bounds_max)
+        date_time_domain_node = attribute_node.find_descendant(names.DATETIMEDOMAIN)
+        if bounds_min or bounds_max:
+            if not date_time_domain_node:
+                date_time_domain_node = new_child_node(names.DATETIMEDOMAIN, datetime_node)
+            set_bounds(date_time_domain_node, bounds_min, bounds_max)
+        else:
+            datetime_node.remove_child(date_time_domain_node)
 
     def set_categorical_variable(attribute_node, codes, definitions):
         if not is_categorical(attribute_node):
@@ -730,6 +741,22 @@ def read_data_table_sheet(filepath):
 
     package_name = get_package_name(sheet)
     data_table_name = get_data_table_name(sheet)
+
+    eml_node = load_eml(current_document)
+    data_table_node = Node.get_node_instance(dt_node_id)
+    if data_table_node is None:
+        msg = 'Data table node not found. This probably indicates a software bug. Please report this issue.'
+        raise exceptions.DataTableSpreadsheetError(msg)
+    entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+    if entity_name_node is None:
+        msg = 'Entity name node not found. This probably indicates a software bug. Please report this issue.'
+        raise exceptions.DataTableSpreadsheetError(msg)
+    entity_name = entity_name_node.content
+    if entity_name != data_table_name:
+        msg = 'Data table name in the spreadsheet does not match the name in the data table metadata. ' \
+            'Data table name changes must be performed in the ezEML editor, not in a spreadsheet.'
+        raise exceptions.DataTableNameMismatch(msg)
+
     column_names = get_column_names(sheet)
     length = len(column_names)
     row = length + 8
@@ -752,18 +779,17 @@ def read_data_table_sheet(filepath):
     # TODO - guard against an empty categorical code
     codes, code_definitions = get_categorical_variables(sheet, num_categorical_variables=num_categorical_variables)
 
-    eml_node = load_eml(current_document)
-    data_table_nodes = []
-    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-    for data_table_node in data_table_nodes:
-        entity_name_node =  data_table_node.find_child('entityName')
-        if entity_name_node and entity_name_node.content == data_table_name:
-            break
-        else:
-            data_table_node = None
-    if data_table_node is None:
-        msg = f'No data table with name {data_table_name} was found in {current_document}'
-        raise exceptions.DataTableNameNotFound(msg)
+    # data_table_nodes = []
+    # eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    # for data_table_node in data_table_nodes:
+    #     entity_name_node =  data_table_node.find_child('entityName')
+    #     if entity_name_node and entity_name_node.content == data_table_name:
+    #         break
+    #     else:
+    #         data_table_node = None
+    # if data_table_node is None:
+    #     msg = f'No data table with name {data_table_name} was found in {current_document}'
+    #     raise exceptions.DataTableNameNotFound(msg)
 
     # Check column names
     attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)
@@ -771,15 +797,19 @@ def read_data_table_sheet(filepath):
     for i, attribute_node in enumerate(attribute_nodes):
         attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
         if attribute_name_node.content != column_names[i]:
-            msg = f'Column name {attribute_name_node.content} found where column name {column_names[i]} was expected. ' \
-                    f'Changing column names needs to be done in the ezEML editor, not in a spreadsheet.'
+            msg = f'Column name "{column_names[i]}" was found in the spreadsheet where column name "{attribute_name_node.content}" was expected.<br> ' \
+                    f'Column name changes must be done in the ezEML editor, not via a spreadsheet.'
             raise exceptions.DataTableNameNotFound(msg)
 
     # Check column types
     for i, attribute_node in enumerate(attribute_nodes):
         if compose_attribute_mscale(attribute_node) != column_types[i]:
-            # TODO: error handling
-            return None
+            attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+            attribute_name = attribute_name_node.content
+            msg = f'Column "{attribute_name}" has type "{compose_attribute_mscale(attribute_node)}" in the metadata, but ' \
+                    f'type "{column_types[i]}" was found in the spreadsheet.\n Changes to column types must be performed in the ezEML ' \
+                    f'editor, not via a spreadsheet.'
+            raise exceptions.ColumnTypeMismatch(msg)
 
     # Set column definitions
     for i, attribute_node in enumerate(attribute_nodes):

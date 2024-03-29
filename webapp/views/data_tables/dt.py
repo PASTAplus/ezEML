@@ -92,25 +92,25 @@ def log_error(msg):
         current_app.logger.error(msg)
 
 
-def download_sheet(data_table_node_id, filename):
-    import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
-    load_eml(filename=filename)
-    data_table_node = Node.get_node_instance(data_table_node_id)
-    data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
-    data_table_name = data_table_name_node.content
-    return table_spreadsheets.generate_data_entry_spreadsheet(data_table_node, filename, data_table_name)
+# def download_sheet(data_table_node_id, filename):
+#     import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
+#     load_eml(filename=filename)
+#     data_table_node = Node.get_node_instance(data_table_node_id)
+#     data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
+#     data_table_name = data_table_name_node.content
+#     return table_spreadsheets.generate_data_entry_spreadsheet(data_table_node, filename, data_table_name)
 
 
-def upload_sheet(filepath, data_table_node_id):
-    import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
-    # user_folder = user_data.get_user_folder_name()
-    # sheets_folder = os.path.join(user_folder, 'spreadsheets')
-    # Path(sheets_folder).mkdir(parents=True, exist_ok=True)
-    # data_table_node = Node.get_node_instance(data_table_node_id)
-    # data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
-    # data_table_name = data_table_name_node.content
-    # filepath = os.path.join(sheets_folder, f'{filename}_{data_table_name}.xlsx')
-    table_spreadsheets.read_data_table_sheet(filepath)
+# def upload_sheet(filepath, data_table_node_id):
+#     import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
+#     # user_folder = user_data.get_user_folder_name()
+#     # sheets_folder = os.path.join(user_folder, 'spreadsheets')
+#     # Path(sheets_folder).mkdir(parents=True, exist_ok=True)
+#     # data_table_node = Node.get_node_instance(data_table_node_id)
+#     # data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
+#     # data_table_name = data_table_name_node.content
+#     # filepath = os.path.join(sheets_folder, f'{filename}_{data_table_name}.xlsx')
+#     table_spreadsheets.read_data_table_sheet(filepath)
 
 
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])
@@ -713,9 +713,9 @@ def upload_spreadsheet(filename=None, dt_node_id=None):
                 file.save(filepath)
                 # Process the uploaded spreadsheet
                 try:
-                    table_spreadsheets.read_data_table_sheet(filepath)
+                    table_spreadsheets.ingest_data_table_sheet(filepath, dt_node_id)
                 except exceptions.DataTableSpreadsheetError as e:
-                    flash(f'Error uploading the spreadsheet: {e}', 'error')
+                    flash(f'Error uploading the spreadsheet:\n {e}', 'error')
                 return redirect(url_for(PAGE_ATTRIBUTE_SELECT, filename=document_name, dt_node_id=dt_node_id))
 
     # Process GET
@@ -873,10 +873,16 @@ def attribute_select(filename=None, dt_node_id=None):
                         mscale = 'CATEGORICAL'
                     new_page = PAGE_ATTRIBUTE_MEASUREMENT_SCALE
                 elif val == BTN_DOWNLOAD_COLUMN_PROPERTIES_SPREADSHEET:
-                    outfile = download_sheet(dt_node_id, filename)
+                    try:
+                        outfile = download_sheet(dt_node_id, filename)
+                    except Exception as e:
+                        log_error(f"Error generating data entry spreadsheet: {str(e)}")
+                        flash(f"Error generating data entry spreadsheet: {str(e)}", 'error')
+                        outfile = None
                     if outfile:
                         return send_file(outfile, as_attachment=True, download_name=os.path.basename(outfile))
-                    return None # TODO - handle error
+                    else:
+                        return redirect(url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id))
                 elif val == BTN_UPLOAD_COLUMN_PROPERTIES_SPREADSHEET:
                     return redirect(url_for(PAGE_UPLOAD_SPREADSHEET, filename=filename, dt_node_id=dt_node_id))
                 elif val == UP_ARROW:
@@ -982,7 +988,7 @@ def attribute_select(filename=None, dt_node_id=None):
         init_form_md5(form)
 
         views.set_current_page('data_table')
-        help = [views.get_help('measurement_scale')]
+        help = views.get_helps(['measurement_scale', 'spreadsheets'])
         return render_template('attribute_select.html',
                                title=title,
                                entity_name=entity_name,
@@ -1320,9 +1326,6 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         else:
             submit_type = 'Back'
 
-        # If we have a hidden button, we note that fact but we may need to save changes before going there.
-        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
-
         if submit_type == 'Save Changes':
             dt_node = None
             attribute_list_node = None
@@ -1402,6 +1405,8 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
             next_page = PAGE_ATTRIBUTE_SELECT
         else:
             next_page = PAGE_ATTRIBUTE_DATETIME
+
+        next_page = handle_hidden_buttons(PAGE_ATTRIBUTE_SELECT)
 
         url = url_for(next_page, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
 

@@ -625,10 +625,10 @@ def get_categorical_variables(sheet, num_categorical_variables):
     codes_list = []
     definitions_list = []
     for i in range(num_categorical_variables):
-        row += 1
         codes, definitions = get_a_categorical_variable()
         codes_list.append(codes)
         definitions_list.append(definitions)
+        row += 1
     return codes_list, definitions_list
 
 
@@ -780,32 +780,22 @@ def ingest_data_table_sheet(filepath, dt_node_id):
     column_definitions = get_column_definitions(sheet, length=length)
     column_labels = get_column_labels(sheet, length=length)
     mvc1, mvc_explanations_1, mvc2, mvc_explanations_2, mvc3, mvc_explanations_3 = get_missing_values(sheet, length=length)
+    row += 4
 
     num_numerical_variables = column_types.count('Numerical')
-    row += 4
-    number_types, standard_units, custom_units, custom_unit_descriptions, num_precisions, num_bounds_minima, num_bounds_maxima = \
-        get_numerical_variables(sheet, num_numerical_variables=num_numerical_variables)
+    if num_numerical_variables > 0:
+        number_types, standard_units, custom_units, custom_unit_descriptions, num_precisions, num_bounds_minima, num_bounds_maxima = \
+            get_numerical_variables(sheet, num_numerical_variables=num_numerical_variables)
+        row += num_numerical_variables + 4
 
     num_datetime_variables = column_types.count('DateTime')
-    row += num_numerical_variables + 4
-    format_strings, dt_precisions, dt_bounds_minima, dt_bounds_maxima = get_datetime_variables(sheet, num_datetime_variables=num_datetime_variables)
+    if num_datetime_variables > 0:
+        format_strings, dt_precisions, dt_bounds_minima, dt_bounds_maxima = get_datetime_variables(sheet, num_datetime_variables=num_datetime_variables)
+        row += num_datetime_variables + 4
 
     num_categorical_variables = column_types.count('Categorical')
-    row += 4
-    # TODO - guard against an empty categorical code
-    codes, code_definitions = get_categorical_variables(sheet, num_categorical_variables=num_categorical_variables)
-
-    # data_table_nodes = []
-    # eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-    # for data_table_node in data_table_nodes:
-    #     entity_name_node =  data_table_node.find_child('entityName')
-    #     if entity_name_node and entity_name_node.content == data_table_name:
-    #         break
-    #     else:
-    #         data_table_node = None
-    # if data_table_node is None:
-    #     msg = f'No data table with name {data_table_name} was found in {current_document}'
-    #     raise exceptions.DataTableNameNotFound(msg)
+    if num_categorical_variables > 0:
+        codes, code_definitions = get_categorical_variables(sheet, num_categorical_variables=num_categorical_variables)
 
     # Check column names
     attribute_list_node = data_table_node.find_child(names.ATTRIBUTELIST)

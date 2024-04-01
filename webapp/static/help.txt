@@ -1135,9 +1135,9 @@ There, you can invite others to collaborate with you in editing this data packag
 --------------------
 spreadsheets
 Column Properties Spreadsheets
-When a table has a large number of columns, it can be tedious to edit the properties of each column individually, opening an <b>Edit Properties</b> page for each, one at a time.
+When a table has a large number of columns, it can be tedious to edit the properties of each column individually, opening an <b>Edit Properties</b> page for each one at a time.
 
-Instead, you can use <b>Download Column Properties Spreadsheet</b> to download a spreadsheet (.xlsx) file that you can then open and edit in a spreadsheet program like Microsoft Excel, Google Sheets, or Libre Office. The spreadsheet is pre-populated with the current properties of each column in the table, with spaces for you to enter missing values, and visual indications of which entries are required or recommended versus purely optional. You can edit the spreadsheet and then use <b>Upload Column Properties Spreadsheet</b> to upload the edited spreadsheet back to ezEML to apply the changes to the table, all at once.
+Instead, you can use <b>Download Column Properties Spreadsheet</b> to download a spreadsheet (.xlsx) file that you can then open and edit in a spreadsheet program like Microsoft Excel, Google Sheets, or Libre Office. The spreadsheet is pre-populated with the current properties of each column in the table, with spaces for you to enter missing values, and visual indications of which entries are required or recommended versus purely optional. You can edit the spreadsheet and then use <b>Upload Column Properties Spreadsheet</b> to upload the edited spreadsheet back to ezEML to apply the changes to the table all at once.
 
 Feel free to iterate this process. I.e., when you download the spreadsheet it will reflect the current state of the table; you won't have to start over. Download, edit, upload, repeat, as needed.
 --------------------

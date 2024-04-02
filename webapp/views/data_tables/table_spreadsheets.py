@@ -8,6 +8,7 @@ from openpyxl.styles import Border, Font, PatternFill, Protection, Side
 from openpyxl.utils import column_index_from_string, get_column_letter
 
 from webapp.home import exceptions as exceptions
+from webapp.home.home_utils import get_check_metadata_status
 import webapp.home.utils.load_and_save as load_and_save
 from webapp.home.utils.load_and_save import load_eml, save_eml
 from webapp.home.utils.lists import compose_attribute_mscale
@@ -849,5 +850,6 @@ def ingest_data_table_sheet(filepath, dt_node_id):
         i += 1
 
     save_eml(current_document, eml_node)
+    get_check_metadata_status(eml_node, current_document)
 
     return

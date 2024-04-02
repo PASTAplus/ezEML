@@ -184,7 +184,7 @@ def set_column_widths():
     global maxrow
     ws.column_dimensions['A'].width = 35
     for i in range(maxcol):
-        ws.column_dimensions[next_spreadsheet_column('A', i + 1)].width = 25
+        ws.column_dimensions[next_spreadsheet_column('A', i + 1)].width = 30
         for j in range(maxrow):
             ws.cell(row=j+1, column=i+1).number_format = '@'
 

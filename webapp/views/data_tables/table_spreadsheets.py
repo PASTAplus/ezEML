@@ -1,8 +1,11 @@
 from datetime import datetime
+import re
+
 from flask_login import current_user
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Border, Font, PatternFill, Protection, Side
+from openpyxl.utils import column_index_from_string, get_column_letter
 
 from webapp.home import exceptions as exceptions
 import webapp.home.utils.load_and_save as load_and_save
@@ -37,27 +40,12 @@ def next_spreadsheet_column(column, i=1):
     Given a spreadsheet column name (e.g., 'A', 'Z', 'AA') and an integer i,
     returns the column name i positions greater.
     """
-    def column_to_number(col):
-        """Convert a column code to a number."""
-        number = 0
-        for c in col:
-            number = number * 26 + (ord(c) - ord('A') + 1)
-        return number
-
-    def number_to_column(n):
-        """Convert a number back to a column code."""
-        col = []
-        while n > 0:
-            n, remainder = divmod(n - 1, 26)
-            col.append(chr(65 + remainder))
-        return ''.join(reversed(col))
-
     # Convert the current column to a number, add i, and convert back
-    current_col_num = column_to_number(column)
+    current_col_num = column_index_from_string(column)
     next_col_num = current_col_num + i
     if maxcol is None or next_col_num > maxcol:
         maxcol = next_col_num
-    return number_to_column(next_col_num)
+    return get_column_letter(next_col_num)
 
 
 def is_categorical(attribute_node):
@@ -96,19 +84,25 @@ def is_numerical(attribute_node):
 # Functions for writing metadata to a spreadsheet (i.e., do download)
 ####################################################################################################
 
-def set_maxcol(cell):
-    global maxcol
-    col = cell[0]
-    col_num = ord(col) - ord('A') + 1
+def extract_column_row(cell_str):
+    # Use regular expression to match the column letters and row numbers
+    match = re.match(r"([A-Z]+)([0-9]+)", cell_str, re.I)
+    if match:
+        # Extract the column and row parts
+        column, row = match.groups()
+        return column.upper(), int(row)  # Return column as uppercase and row as integer
+    else:
+        return None, None  # In case the input does not match the expected format
+
+
+def set_maxcolrow(cell):
+    global maxcol, maxrow
+    col, row = extract_column_row(cell)
+    col_num = column_index_from_string(col)
     if maxcol is None or col_num > maxcol:
         maxcol = col_num
-
-
-def set_maxrow(cell):
-    global maxrow
-    row_num = int(cell[1:])
-    if maxrow is None or row_num > maxrow:
-        maxrow = row_num
+    if maxrow is None or row > maxrow:
+        maxrow = row
 
 
 def highlight_cell(cell, color):
@@ -118,22 +112,19 @@ def highlight_cell(cell, color):
     ws[cell].font = Font(size=FONT_SIZE)
     ws[cell].fill = fill
     ws[cell].border = border
-    set_maxcol(cell)
-    set_maxrow(cell)
+    set_maxcolrow(cell)
 
 
 def bold(cell, text):
     ws[cell].font = Font(size=FONT_SIZE, bold=True)
     ws[cell] = text
-    set_maxcol(cell)
-    set_maxrow(cell)
+    set_maxcolrow(cell)
 
 
 def normal(cell, text):
     ws[cell].font = Font(size=FONT_SIZE)
     ws[cell] = text
-    set_maxcol(cell)
-    set_maxrow(cell)
+    set_maxcolrow(cell)
 
 
 def required(cell, text):

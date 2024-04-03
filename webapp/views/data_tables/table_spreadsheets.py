@@ -22,6 +22,7 @@ wb = None
 ws = None
 # Row and column indices are 1-based
 row = None
+col = None
 maxcol = None
 maxrow = None
 
@@ -163,18 +164,15 @@ def insert_color_key():
     bold('D1', 'COLOR KEY')
     normal('D2', 'Required')
     normal('D3', 'Recommended')
-    # normal('D4', 'Optional')
-    # normal('D5', 'Rarely Used')
     required('E2', '')
     recommended('E3', '')
-    # optional('E4')
-    # rarely_used('E5')
+    normal('L1', 'Spreadsheet format: 001')
 
 
 def set_column_widths():
     global maxcol
     global maxrow
-    ws.column_dimensions['A'].width = 35
+    ws.column_dimensions['A'].width = 30
     for i in range(maxcol):
         ws.column_dimensions[next_spreadsheet_column('A', i + 1)].width = 30
         for j in range(maxrow):
@@ -182,6 +180,7 @@ def set_column_widths():
 
 
 def remove_sheet_protection(first_row, last_row, first_col, last_col):
+    return
     for row in range(first_row, last_row+1):
         for col in range(first_col, last_col+1):
             ws.cell(row=row, column=col).protection = Protection(locked=False)
@@ -193,8 +192,9 @@ def create_sheet():
     # Create a new workbook and select the active worksheet
     wb = Workbook()
     ws = wb.active
-    ws.protection.sheet = True
-    ws.protection.password = 'ezEML'
+    # ws.protection.sheet = True
+    # ws.protection.formatColumns = True
+    # ws.protection.password = 'ezEML'
     ws.freeze_panes = 'B1'
     row = 1
 
@@ -250,9 +250,9 @@ def add_categorical_columns_headers():
     global row
     bold(f'A{str(row)}', 'CATEGORICAL')
     row += 1
-    bold(f'A{str(row)}', 'Column')
-    bold(f'B{str(row)}', 'Code')
-    bold(f'C{str(row)}', 'Definition')
+    # bold(f'A{str(row)}', 'Column')
+    # bold(f'B{str(row)}', 'Code')
+    # bold(f'C{str(row)}', 'Definition')
 
 
 def add_column(column, header, values, color=normal):
@@ -415,29 +415,41 @@ def add_datetime_columns(attribute_nodes):
 
 
 def add_categorical_columns(attribute_nodes, header_row):
-    global row
-    def add_categorical_column(attribute_node, column):
-        global row
+    global row, col
+
+    def add_categorical_column(attribute_node, start_row):
+        global row, col
         if not is_categorical(attribute_node):
             return
+        row = start_row
+        bold(f'{col}{row}', f'Column: {attribute_node.find_child(names.ATTRIBUTENAME).content}')
         row += 1
-        remove_sheet_protection(row, row, 2, 100)
-        normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
+        # remove_sheet_protection(row, row + 100, col, col + 1)
         code_definition_nodes = []
+        codes = []
+        definitions = []
         attribute_node.find_all_descendants(names.CODEDEFINITION, code_definition_nodes)
         for code_definition_node in code_definition_nodes:
-            bold(f'{column}{header_row}', names.CODE)
-            bold(f'{next_spreadsheet_column(column)}{header_row}', names.DEFINITION)
             code_node = code_definition_node.find_child(names.CODE)
             definition_node = code_definition_node.find_child(names.DEFINITION)
             if code_node:
-                normal(f'{column}{row}', code_node.content if code_node else '')
-                required(f'{next_spreadsheet_column(column)}{row}', definition_node.content if definition_node else '')
-            column = next_spreadsheet_column(column, 2)
+                codes.append(code_node.content)
+            else:
+                codes.append('')
+            if definition_node:
+                definitions.append(definition_node.content)
+            else:
+                definitions.append('')
+        row = start_row + 1
+        add_column(col, "Code", codes)
+        row = start_row + 1
+        add_column(next_spreadsheet_column(col), "Definition", definitions, required)
+        col = next_spreadsheet_column(col, 2)
 
+    start_row = row
+    col = 'A'
     for attribute_node in attribute_nodes:
-        column = 'B'
-        add_categorical_column(attribute_node, column)
+        add_categorical_column(attribute_node, start_row)
 
 
 def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
@@ -599,28 +611,30 @@ def get_datetime_variables(sheet, num_datetime_variables):
 
 def get_categorical_variables(sheet, num_categorical_variables):
     def get_a_categorical_variable():
+        global row, col
         codes = []
         definitions = []
-        column = 'B'
         while True:
-            cell = sheet[f'{column}{row}']
+            cell = sheet[f'{col}{row}']
             if cell.value is None:
                 break
             codes.append(cell.value)
-            column = next_spreadsheet_column(column)
-            cell = sheet[f'{column}{row}']
+            cell = sheet[f'{next_spreadsheet_column(col)}{row}']
             definitions.append(cell.value)
-            column = next_spreadsheet_column(column)
+            row += 1
         return codes, definitions
 
-    global row
+    global row, col
     codes_list = []
     definitions_list = []
+    col = 'A'
+    start_row = row + 1
     for i in range(num_categorical_variables):
+        row = start_row
         codes, definitions = get_a_categorical_variable()
         codes_list.append(codes)
         definitions_list.append(definitions)
-        row += 1
+        col = next_spreadsheet_column(col, 2)
     return codes_list, definitions_list
 
 

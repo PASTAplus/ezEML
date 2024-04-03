@@ -191,7 +191,9 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                 </li>
                         {{ macros.toolbar_menu_item(url_for('home.user_guide'), 'hidden_user_guide', 'User Guide', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.about'), 'hidden_about', 'About', ns.is_non_saving) }}
-                        {{ macros.toolbar_menu_item(url_for('home.news'), 'hidden_news', 'News', ns.is_non_saving) }}
+{#                        {{ macros.toolbar_menu_item(url_for('home.news'), 'hidden_news', 'News', ns.is_non_saving) }}#}
+                        {# News is a special case so we can highlight it when there are new items #}
+                        <li><a id="news_item" href="{{ url_for('home.news') }}" title="News">News</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
@@ -512,6 +514,17 @@ function do_not_show_change_clicked(checkbox) {
     <script>
     $(document).ready(function() {
         clearUnsavedChanges();
+    });
+    </script>
+
+    <script>
+    $(document).ready(function() {
+        let news_datetime = {{ session["news_datetime"] }};
+        let news_item = document.getElementById('news_item');
+        if (localStorage.getItem('news_viewed') == null || parseInt(localStorage.getItem('news_viewed')) < parseInt(news_datetime)) {
+            news_item.style.color = 'red';
+            news_item.style.fontWeight = 'bold';
+        };
     });
     </script>
     {% endblock %}

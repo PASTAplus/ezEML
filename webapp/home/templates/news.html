@@ -3,11 +3,29 @@
 {% block app_content %}
     <h4 align="left">What's New</h4>
 
+    <b><a href={{ back_url }}>Back</a></b>
+
+
     <p>&nbsp;</p>
     <table style="width:100%">
     <tr>
         <th style="width:15%">Date</th>
         <th style="width:85%">News</th>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;">&nbsp;</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;">2024.04.10</td>
+        <td>
+            <b>Added the Option to Bulk Edit Data Table Column Properties via a Spreadsheet</b><br>
+            The <b>Edit Column Properties</b> page for a data table now includes buttons <b>Download Column Properties Spreadsheet</b>
+            and <b>Upload Column Properties Spreadsheet</b>. The download button creates a spreadsheet pre-populated with the current
+            values of the column properties and downloads it to your computer. You can then edit the spreadsheet, changing the values
+            of the properties as needed. Use the upload button to upload the edited spreadsheet and update the column properties all
+            at once.
+        </td>
     </tr>
     <tr>
         <td style="vertical-align: top;">&nbsp;</td>
@@ -544,7 +562,11 @@ Previously, data table files had to be comma-separated. Now other field delimite
     </tr>
     </table>
 
-    <br>
-    <b><a href={{ back_url }}>Back</a></b>
-
+    <script>
+    $(document).ready(function() {
+        let news_datetime = {{ session["news_datetime"] }};
+        let news_item = document.getElementById('news_item');
+        localStorage.setItem('news_viewed', news_datetime);
+    });
+    </script>
 {% endblock %}

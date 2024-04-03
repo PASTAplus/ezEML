@@ -572,12 +572,20 @@ def handle_highlight_id():
         session["highlight_id"] = None
 
 
+def get_news_datetime():
+    news_filepath = os.path.join(Config.BASE_DIR, "webapp", "home", "templates", "news.html")
+    last_modified_ticks = os.path.getmtime(news_filepath)
+    return last_modified_ticks
+
+
 @home_bp.before_app_request
 def init_session_vars():
 
     """ Initialize session variables. """
     init_db()
     init_status_badges()
+
+    session["news_datetime"] = get_news_datetime()
 
     if not session.get("check_metadata_status"):
         session["check_metadata_status"] = "green"

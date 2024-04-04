@@ -444,7 +444,7 @@ def add_categorical_columns(attribute_nodes, header_row):
         add_column(col, "Code", codes)
         row = start_row + 1
         add_column(next_spreadsheet_column(col), "Definition", definitions, required)
-        col = next_spreadsheet_column(col, 2)
+        col = next_spreadsheet_column(col, 3)
 
     start_row = row
     col = 'A'

@@ -1107,8 +1107,9 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
 
         texttype_node_processing.post_process_texttype_node(description_node, description)
 
+
+        instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)
         if instrumentation:
-            instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)
             if len(instrumentation_nodes) > 1:
                 # The EML standard permits multiple instrumentation nodes, but the ezEML UI does not.
                 # If there are multiple instrumentation nodes, we will compromise by putting the
@@ -1128,6 +1129,9 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
                 instrumentation_node = new_child_node(names.INSTRUMENTATION, parent=method_step_node)
 
             instrumentation_node.content = instrumentation
+        else:
+            for instrumentation_node in instrumentation_nodes:
+                method_step_node.remove_child(instrumentation_node)
 
 
 def create_data_source(data_source_node:Node=None, title:str=None, online_description:str=None, online_url:str=None):

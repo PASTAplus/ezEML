@@ -311,6 +311,8 @@ Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/T2lhEBWzIPQ"
     <tr><td><span class ="nav_link green_circle"></span></td><td>Metadata entered; no errors or warnings found.</td></tr>
     <tr><td><span class ="nav_link white_key_circle"></span></td><td>No metadata entered, and metadata is not required.</td></tr>
 </table>
+
+Watch a short video about using status badges here:&nbsp;&nbsp;<a href="https://youtu.be/_FoRUJ7DqIc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 creator
 Creator
@@ -1240,10 +1242,11 @@ In the <b>Contents</b> menu on the left, and elsewhere in ezEML, you'll see roun
 
 The yellow and red badges are usually clickable, as indicated by a tooltip that appears when you hover on them. Clicking them causes the relevant errors/warnings to be displayed, and the errors/warnings themselves are clickable, taking you directly to the item in question.
 
-Your goal should be to enter required and recommended metadata and make corrections until, at the minimum, no red badges remain. Even better would be to make all badges green.
+Your goal should be to enter required and recommended metadata and make corrections until, at the minimum, no red badges remain. Even better would be to get rid of all warnings, as well, and thereby make all badges green.
 
 For green badges, there are no errors or warnings to display, so they're not clickable.
 
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/_FoRUJ7DqIc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 
 <table style="width:100%;border 1px solid;">
 <th></th><th>Color Key for Status Badges</th>
@@ -1252,6 +1255,8 @@ For green badges, there are no errors or warnings to display, so they're not cli
     <tr><td><span class ="nav_link green_circle"></span></td><td>Metadata entered; no errors or warnings found.</td></tr>
     <tr><td><span class ="nav_link white_key_circle"></span></td><td>No metadata entered, and metadata is not required.</td></tr>
 </table>
+
+Go here for a short video about using status badges :&nbsp;&nbsp;<a href="https://youtu.be/_FoRUJ7DqIc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 
 <hr style="border-top: 1px solid darkgray;">
 <input type="checkbox" id="do_not_show" name="do_not_show" onchange="do_not_show_change_clicked(this);">&nbsp;Got it. Don't show this dialog again.</input>

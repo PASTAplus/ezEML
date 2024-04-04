@@ -19,7 +19,7 @@ from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_fo
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import list_responsible_parties
 from webapp.home.utils.create_nodes import create_responsible_party
-from webapp.home.utils.node_utils import add_child
+from webapp.home.utils.node_utils import add_child, new_child_node
 
 from metapype.eml import names
 from metapype.model.node import Node
@@ -151,6 +151,11 @@ def responsible_party(filename=None, rp_node_id=None,
         # Get the parent node id so we can tell which case we're in.
         if parent_node_id is None:
             parent_node = eml_node.find_single_node_by_path(['dataset', 'project'])
+            if not parent_node:
+                dataset_node = eml_node.find_child(names.DATASET)
+                project_node = new_child_node(names.PROJECT, dataset_node)
+                parent_node = project_node
+
             parent_node_id = parent_node.id
 
     # Set up some flags that will indicate the context of the responsible party node
@@ -208,6 +213,8 @@ def responsible_party(filename=None, rp_node_id=None,
         elif endpoint == 'rp.publisher':
             this_page = PAGE_PUBLISHER
         elif endpoint == 'rp.personnel':
+            this_page = PAGE_PROJECT_PERSONNEL
+        elif endpoint == 'rp.project_personnel':
             this_page = PAGE_PROJECT_PERSONNEL
         elif endpoint == 'rp.data_source_personnel':
             this_page = PAGE_DATA_SOURCE_PERSONNEL

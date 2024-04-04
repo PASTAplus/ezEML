@@ -82,7 +82,7 @@ from webapp.home.log_usage import (
 )
 from webapp.home.manage_packages import get_data_packages, get_data_usage
 
-from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status
+from webapp.home.home_utils import RELEASE_NUMBER, get_check_metadata_status, url_without_query_string
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
 
 from webapp.home.utils.node_utils import remove_child, new_child_node
@@ -336,7 +336,9 @@ def debug_None(x, msg):
 def reload_metadata():
     """ Reload the metadata to get the check_metadata badge status updated.
         NOTE: This updates eml_node, so callers should capture the return value.
-     """
+    """
+    if not current_user.is_authenticated:
+        return None, None
     current_document = current_user.get_filename()
     if not current_document:
         # if we've just deleted the current document, it won't exist

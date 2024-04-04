@@ -524,6 +524,7 @@ function do_not_show_change_clicked(checkbox) {
         if (localStorage.getItem('news_viewed') == null || parseInt(localStorage.getItem('news_viewed')) < parseInt(news_datetime)) {
             news_item.style.color = 'red';
             news_item.style.fontWeight = 'bold';
+            news_item.style.fontStyle = 'italic';
         };
     });
     </script>

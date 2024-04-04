@@ -1109,7 +1109,6 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
 
         instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)
         if instrumentation:
-            instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)
             if len(instrumentation_nodes) > 1:
                 # The EML standard permits multiple instrumentation nodes, but the ezEML UI does not.
                 # If there are multiple instrumentation nodes, we will compromise by putting the

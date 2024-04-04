@@ -90,7 +90,8 @@ class Config(object):
         "Corinna_Gries-0cefc3d7c9858476b71dbb3ab442fca6",
         "gmaurer-a4d2d568283e74b5c4aa0f21b0b21dea",
         "jide-7a03c1e6f4528a6f9c4b1ae3cec24b39",
-        "jlemaire-33463893a66177fe46eb87acc9d20e71"
+        "jlemaire-33463893a66177fe46eb87acc9d20e71",
+        "sgrossmanclarke1-20a819fd9dd1ef6ba61a1174846d40ff"
         ]}
 
     COLLABORATION_LOCK_INACTIVITY_TIMEOUT_MINUTES = 30

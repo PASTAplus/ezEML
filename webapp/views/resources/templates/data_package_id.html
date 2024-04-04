@@ -6,7 +6,16 @@
     {% set help_data_package_id_btn = help_data_package_id_id ~ '_btn' %}
     {% set help_data_package_id_dialog = help_data_package_id_id ~ '_dialog' %}
 
-    <h2>Data Package ID</h2>
+    <table>
+        <td style="vertical-align:middle;padding-top: 12px;">
+        {% set node_status = 'data_package_id_status' %}
+        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        </td>
+        <td style="width:3%"></td>
+        <td><h2>Data Package ID</h2></td>
++    </table>
+
+{#    <h2>Data Package ID</h2>#}
 {#    <div class="row">#}
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -52,4 +61,8 @@
         {{ macros.help_script(help_data_package_id_dialog, help_data_package_id_btn) }}
     });
     </script>
+
+    {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
+
 {% endblock %}

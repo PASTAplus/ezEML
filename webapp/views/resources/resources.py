@@ -149,9 +149,13 @@ def data_package_id(filename=None):
     form.data_package_id.data = data_package_id if data_package_id else ''
     init_form_md5(form)
 
+    # Get the tooltip for the status badge
+    init_evaluation(eml_node, filename)
+    tooltip = format_tooltip(None, section='data_package_id')
+
     set_current_page('data_package_id')
     help = get_helps(['data_package_id'])
-    return render_template('data_package_id.html', form=form, help=help, title='Data Package ID')
+    return render_template('data_package_id.html', form=form, help=help, title='Data Package ID', tooltip=tooltip)
 
 
 @res_bp.route('/publication_info/<filename>', methods=['GET', 'POST'])

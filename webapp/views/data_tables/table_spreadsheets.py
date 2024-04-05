@@ -170,13 +170,15 @@ def insert_color_key():
 
 
 def set_column_widths():
-    global maxcol
-    global maxrow
     ws.column_dimensions['A'].width = 30
     for i in range(maxcol):
         ws.column_dimensions[next_spreadsheet_column('A', i + 1)].width = 30
         for j in range(maxrow):
             ws.cell(row=j+1, column=i+1).number_format = '@'
+
+    for i in range(maxrow):
+        for j in range(maxcol):
+            ws.cell(i + 1, j + 1).font = Font(size=FONT_SIZE)
 
 
 def remove_sheet_protection(first_row, last_row, first_col, last_col):

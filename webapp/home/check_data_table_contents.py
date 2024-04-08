@@ -419,7 +419,7 @@ def check_columns_existence_against_metadata(data_table_node, df):
         for i in range(maxlen):
             if not names_match(metadata_column_names[i], data_table_column_names[i]):
                 error = create_error_json(get_data_table_name(data_table_node), data_table_column_names[i], None,
-                                          'Metadata column name does not match column name in data table',
+                                          'Column name in the metadata does not match column name in the data table',
                                           display_nonprintable(metadata_column_names[i]),
                                           display_nonprintable(data_table_column_names[i]))
                 errors.append(error)

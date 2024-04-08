@@ -6,6 +6,9 @@
     {% set help_measurement_scale_id, help_measurement_scale_title, help_measurement_scale_content = help[0] %}
     {% set help_measurement_scale_btn = help_measurement_scale_id ~ '_btn' %}
     {% set help_measurement_scale_dialog = help_measurement_scale_id ~ '_dialog' %}
+    {% set help_spreadsheets_id, help_spreadsheets_title, help_spreadsheets_content = help[1] %}
+    {% set help_spreadsheets_btn = help_spreadsheets_id ~ '_btn' %}
+    {% set help_spreadsheets_dialog = help_spreadsheets_id ~ '_dialog' %}
     {% endif %}
     <h2>Columns of <i>{{ entity_name }}</i></h2>
 {#    <div class="row">#}
@@ -50,6 +53,14 @@
                     <input class="btn btn-primary" name="text" type="submit" value="Add Column - Text"/><br/><br/>
                     <input class="btn btn-primary" name="dateTime" type="submit" value="Add Column - Datetime"/><br/><br/><br/>
                 {% endif %}
+
+                <div class="bordered-div" style="width: 80%;">
+                    <div class="text-over-border">Optional: Bulk Editing of Column Properties via a Spreadsheet</div>
+                    <input class="btn btn-primary" name="Download" type="submit" value="Download Column Properties Spreadsheet"/>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input class="btn btn-primary" name="Upload" type="submit" value="Upload Column Properties Spreadsheet"/>&nbsp;&nbsp;
+                    {{ macros.help_button(help_spreadsheets_btn) }}
+                </div>
+                <p>&nbsp;</p>
                 <input class="btn btn-primary" name="Back" type="submit" value="Back to Data Table"/>
                 <p>&nbsp;</p>
                 {{ macros.hidden_buttons() }}
@@ -57,6 +68,7 @@
         </div>
 {#    </div>#}
     {{ macros.help_dialog(help_measurement_scale_dialog, help_measurement_scale_title, help_measurement_scale_content) }}
+    {{ macros.help_dialog(help_spreadsheets_dialog, help_spreadsheets_title, help_spreadsheets_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -65,12 +77,16 @@
     {% set help_measurement_scale_id, help_measurement_scale_title, help_measurement_scale_content = help[0] %}
     {% set help_measurement_scale_btn = help_measurement_scale_id ~ '_btn' %}
     {% set help_measurement_scale_dialog = help_measurement_scale_id ~ '_dialog' %}
+    {% set help_spreadsheets_id, help_spreadsheets_title, help_spreadsheets_content = help[1] %}
+    {% set help_spreadsheets_btn = help_spreadsheets_id ~ '_btn' %}
+    {% set help_spreadsheets_dialog = help_spreadsheets_id ~ '_dialog' %}
     {% endif %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_measurement_scale_dialog, help_measurement_scale_btn) }}
+        {{ macros.help_script(help_spreadsheets_dialog, help_spreadsheets_btn) }}
     });
     </script>
 

@@ -37,7 +37,9 @@ import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
-from webapp.home.home_utils import log_error, log_info, log_available_memory, url_without_ui_element_id_query_string
+from webapp.home.home_utils import (
+    log_error, log_info, log_available_memory, url_without_query_string, url_without_ui_element_id_query_string
+)
 import webapp.home.texttype_node_processing as texttype_node_processing
 
 import csv
@@ -572,12 +574,20 @@ def handle_highlight_id():
         session["highlight_id"] = None
 
 
+def get_news_datetime():
+    news_filepath = os.path.join(Config.BASE_DIR, "webapp", "home", "templates", "news.html")
+    last_modified_ticks = os.path.getmtime(news_filepath)
+    return last_modified_ticks
+
+
 @home_bp.before_app_request
 def init_session_vars():
 
     """ Initialize session variables. """
     init_db()
     init_status_badges()
+
+    session["news_datetime"] = get_news_datetime()
 
     if not session.get("check_metadata_status"):
         session["check_metadata_status"] = "green"

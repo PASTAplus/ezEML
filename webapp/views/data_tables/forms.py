@@ -264,3 +264,7 @@ class SelectDataTableForm(FlaskForm):
 
 class SelectDataTableColumnsForm(FlaskForm):
     source = MultiCheckboxField('Source Data Table Columns', choices=[])
+
+
+class UploadSpreadsheetForm(EDIForm):
+    dt_node_id = HiddenField('')

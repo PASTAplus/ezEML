@@ -84,6 +84,9 @@ class UnicodeDecodeErrorInternal(ezEMLError):
 class UnknownDistributionUrl(ezEMLError):
     pass
 
+############################################################################################################
+# Collaboration exceptions
+############################################################################################################
 
 class CollaborationError(ezEMLError):
     def __init__(self, message, user_name=None, package_name=None):
@@ -128,4 +131,31 @@ class UserIsNotTheOwner(CollaborationError):
 class UserNotFound(CollaborationError):
     pass
 
+
+############################################################################################################
+# Data table spreadsheet exceptions
+############################################################################################################
+
+class DataTableSpreadsheetError(ezEMLError):
+    pass
+
+
+class PackageNameMismatch(DataTableSpreadsheetError):
+    pass
+
+
+class DataTableNameMismatch(DataTableSpreadsheetError):
+    pass
+
+
+class DataTableNameNotFound(DataTableSpreadsheetError):
+    pass
+
+
+class ColumnNameMismatch(DataTableSpreadsheetError):
+    pass
+
+
+class ColumnTypeMismatch(DataTableSpreadsheetError):
+    pass
 

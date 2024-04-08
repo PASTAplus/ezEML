@@ -584,7 +584,13 @@ def load_data_table(uploads_path: str = None,
                 mv_node = new_child_node(names.MISSINGVALUECODE, parent=attribute_node)
                 code_node = new_child_node(names.CODE, parent=mv_node, content=missing_value_code)
 
+            storage_type_node = new_child_node(names.STORAGETYPE, parent=attribute_node)
+            # storage_type_node.add_attribute(names.TYPESYSTEM, 'XML Schema Datatypes')
+            storage_type_node.add_attribute('typeSystem', 'XML Schema Datatypes') # TEMPORARY - waiting on Metapype update
+
             if var_type == webapp.home.metapype_client.VariableType.CATEGORICAL:
+                storage_type_node.content = 'string'
+
                 codes = force_categorical_codes(attribute_node, dtype, codes)
                 codes = force_missing_value_code(missing_value_code, dtype, codes)
 
@@ -599,6 +605,8 @@ def load_data_table(uploads_path: str = None,
                     definition_node = new_child_node(names.DEFINITION, code_definition_node)
 
             elif var_type == webapp.home.metapype_client.VariableType.NUMERICAL:
+                storage_type_node.content = 'float'
+
                 # ratio / numericDomain
                 ratio_node = new_child_node(names.RATIO, ms_node)
                 numeric_domain_node = new_child_node(names.NUMERICDOMAIN, ratio_node)
@@ -609,6 +617,8 @@ def load_data_table(uploads_path: str = None,
                 numeric_domain_node = new_child_node(names.UNIT, ratio_node)
 
             elif var_type == webapp.home.metapype_client.VariableType.TEXT:
+                storage_type_node.content = 'string'
+
                 # nominal / nonNumericDomain / textDomain
                 nominal_node = new_child_node(names.NOMINAL, ms_node)
                 non_numeric_domain_node = new_child_node(names.NONNUMERICDOMAIN, nominal_node)
@@ -616,6 +626,8 @@ def load_data_table(uploads_path: str = None,
                 definition_node = new_child_node(names.DEFINITION, text_domain_node)
 
             elif var_type == webapp.home.metapype_client.VariableType.DATETIME:
+                storage_type_node.content = 'dateTime'
+
                 # dateTime / formatString
                 datetime_node = Node(names.DATETIME, parent=ms_node)
                 add_child(ms_node, datetime_node)

@@ -1107,7 +1107,6 @@ def create_method_step(method_step_node:Node=None, description:str=None, instrum
 
         texttype_node_processing.post_process_texttype_node(description_node, description)
 
-
         instrumentation_nodes = method_step_node.find_all_children(names.INSTRUMENTATION)
         if instrumentation:
             if len(instrumentation_nodes) > 1:

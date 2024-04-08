@@ -217,7 +217,7 @@ def enable_edi_curation_mail_body(server=None, package_id=None, filename=None, n
         msg += '\n\n' + \
             'ezEML-Generated Note to Curators:\n' + \
             '   Another package with the same name but a different owner is already under EDI curation.\n' + \
-            '   This may indicate that the package has been duplicated in multiple accounts amd the user is confused\n' + \
+            '   This may indicate that the package has been duplicated in multiple accounts and the user is confused\n' + \
             '   about how collaboration is intended to work. Please contact the user to clarify the situation.'
     return msg
 

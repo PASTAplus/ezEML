@@ -63,13 +63,6 @@
     {{ hidden_buttons() }}
                 <input id="hide_contents_menu" style="display: none;" name="Hide Contents Menu" type="submit" value="Hide Contents Menu"/>
 {% endmacro %}
-{% macro button_link(url, class, style, hidden_name, display_name, is_non_saving) %}
-                            {% if is_non_saving %}
-                            <a class="{{ class }}" style={{ style }}; href="{{ url }}" title="{{ display_name }}">{{ display_name }}</a>
-                            {% else %}
-                            <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();" title="{{ display_name }}">{{ display_name }}</a>
-                            {% endif %}
-{% endmacro %}
 {% macro import_selection(form, source_filename, item_name) %}
     <script>
         function choose_options(all) {
@@ -238,6 +231,13 @@
                             {% endif %}
                         {{ item }}
                         </td>
+{% endmacro %}
+{% macro button_link(url, class, style, hidden_name, display_name, is_non_saving) %}
+                            {% if is_non_saving %}
+                            <a class="{{ class }}" style={{ style }}; href="{{ url }}" title="{{ display_name }}">{{ display_name }}</a>
+                            {% else %}
+                            <a class="{{ class }}" style={{ style }}; href="#" onclick="$('#{{ hidden_name }}').click();" title="{{ display_name }}">{{ display_name }}</a>
+                            {% endif %}
 {% endmacro %}
 {% macro toolbar_menu_item(url, hidden_name, display_name, is_non_saving) %}
                         <li>

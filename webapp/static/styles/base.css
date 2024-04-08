@@ -198,3 +198,20 @@ a.no-underline:hover {
 .modal {
     overflow-y: auto;
 }
+
+.bordered-div {
+  border: 2px solid steelblue; /* Solid border */
+  position: relative; /* Needed for absolute positioning of child */
+  padding: 40px;
+  margin: 0px;
+}
+
+.text-over-border {
+  position: absolute;
+  top: -10px; /* Half of the font size to center it on the border */
+  left: 20px; /* Distance from the left side of the bordered div */
+  background: #fff; /* Same as the page background for illusion of cutting through the border */
+  padding: 0 10px; /* Add some padding around the text */
+  font-size: 14px; /* Example font size */
+    color: steelblue;
+}

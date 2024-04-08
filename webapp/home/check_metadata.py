@@ -698,7 +698,8 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
     link = url_for(page, filename=doc_name, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
 
     validation_errs = validate_via_metapype(attrib_node)
-    if find_content_empty(validation_errs, names.ATTRIBUTEDEFINITION):
+    if find_content_empty(validation_errs, names.ATTRIBUTEDEFINITION) or \
+        find_min_unmet(validation_errs, names.ATTRIBUTE, names.ATTRIBUTEDEFINITION):
         add_to_evaluation('attributes_01', link, data_table_name=data_table_name)
     if find_min_unmet(validation_errs, names.MISSINGVALUECODE, names.CODEEXPLANATION):
         add_to_evaluation('attributes_07', link, data_table_name=data_table_name)

@@ -1,7 +1,7 @@
 import os
 import daiquiri
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for
+    Blueprint, flash, render_template, redirect, request, session, url_for
 )
 from flask_login import (
     current_user, login_required

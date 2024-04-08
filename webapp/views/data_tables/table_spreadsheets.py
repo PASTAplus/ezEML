@@ -178,7 +178,8 @@ def set_column_widths():
 
     for i in range(maxrow):
         for j in range(maxcol):
-            ws.cell(i + 1, j + 1).font = Font(size=FONT_SIZE)
+            is_bold = ws.cell(i + 1, j + 1).font.bold
+            ws.cell(i + 1, j + 1).font = Font(size=FONT_SIZE, bold=is_bold)
 
 
 def remove_sheet_protection(first_row, last_row, first_col, last_col):

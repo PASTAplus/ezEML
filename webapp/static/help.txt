@@ -1144,6 +1144,8 @@ Instead, you can use <b>Download Column Properties Spreadsheet</b> to download a
 The spreadsheet has a section for the properties such as column definitions and missing value codes that are common to all variable types, followed by sections for each variable type (numerical, datetime, categorical), containing the properties specific to that type.
 
 Feel free to iterate this process. I.e., when you download the spreadsheet it will reflect the current state of the table; you won't have to start over. Download, edit, upload, repeat as needed.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/tCx2xYXdiaw" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 submit_package
 Send to EDI

@@ -6,6 +6,7 @@ from flask import request
 
 from metapype.model.node import Node
 from webapp.home.home_utils import log_error, log_info
+from webapp.config import Config
 
 
 def node_tree_ids(node: Node, ids: list):
@@ -37,12 +38,13 @@ def dump_node_store(eml_node, prefix=''):
         for child in node.children:
             dump_node(child, indent + 2)
 
-    dump_node(eml_node)
+    if Config.LOG_NODE_STORE:
+        dump_node(eml_node)
     store_len = len(Node.store)
     log_info(f'*** {prefix} store_len={store_len}     {request.url}')
     node_store_hash, tree_hash = calculate_node_store_checksums(eml_node)
     log_info(f'*** {prefix} node store checksum={node_store_hash}    {request.url}')
-    log_info(f'*** {prefix}  node tree checksum={tree_hash}    {request.url}')
+    log_info(f'*** {prefix} node tree checksum={tree_hash}    {request.url}')
 
 
 def calculate_node_store_checksum():

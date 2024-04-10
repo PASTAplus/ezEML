@@ -22,6 +22,7 @@ actions = {
     'COLLABORATE': 'Collaborate',
     'COLLABORATION_BACKUPS': 'Collaboration Backups',
     'DELETE_DOCUMENT': 'Delete',
+    'DOWNLOAD_COLUMN_PROPERTIES_SPREADSHEET': 'Download Column Properties Spreadsheet',
     'DOWNLOAD_EML_FILE': 'Download EML File',
     'ENABLE_EDI_CURATION': 'Enable EDI Curation',
     'END_COLLABORATION': 'End Collaboration',
@@ -62,6 +63,7 @@ actions = {
     'SEND_TO_EDI': 'Send to EDI',
     'SEND_TO_COLLEAGUE': 'Send to Colleague',
     'SETTINGS': 'Settings',
+    'UPLOAD_COLUMN_PROPERTIES_SPREADSHEET': 'Upload Column Properties Spreadsheet',
     'USER_GUIDE': 'User Guide'
 }
 

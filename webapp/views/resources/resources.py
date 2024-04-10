@@ -22,6 +22,7 @@ from webapp.home.utils.hidden_buttons import (
 	is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons, non_saving_hidden_buttons_decorator
 )
 from webapp.home.check_metadata import init_evaluation, format_tooltip
+from webapp.home.exceptions import NodeWithGivenIdNotFound
 
 from webapp.home.forms import is_dirty_form, init_form_md5
 from webapp.views.resources.forms import (
@@ -561,7 +562,7 @@ def keyword(filename=None, node_id=None):
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'keyword')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
 
             save_both_formats(filename=filename, eml_node=eml_node)
 

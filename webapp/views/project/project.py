@@ -22,6 +22,7 @@ from webapp.home.utils.node_store import dump_node_store
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import get_upval, get_downval, UP_ARROW, DOWN_ARROW, list_funding_awards
 from webapp.home.utils.create_nodes import create_project, create_related_project, create_funding_award
+from webapp.home.exceptions import NodeWithGivenIdNotFound
 
 from webapp.home.texttype_node_processing import (
     display_texttype_node,
@@ -380,7 +381,7 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
                 else:
                     msg = f"No funding award node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'funding_award')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 add_child(project_node, award_node)
 

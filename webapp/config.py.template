@@ -114,3 +114,4 @@ class Config(object):
     LOG_MEMORY_USAGE = False
     LOG_REQUESTS = False
     LOG_RESPONSES = False
+    LOG_NODE_STORE = False

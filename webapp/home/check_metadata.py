@@ -1537,7 +1537,8 @@ def get_section_from_link(link):
         return 'other_entities'
     if '/eml/data_package_id/' in link:
         return 'data_package_id'
-    return None
+    log_info(f'get_section_from_link: link={link} not recognized')
+    return []
 
 
 def set_session_info(evaluation, eml_node):

@@ -28,6 +28,7 @@ from webapp.config import Config
 from webapp.home import views, exceptions, check_data_table_contents, standard_units
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
 from webapp.home.check_metadata import init_evaluation, format_tooltip
+from webapp.home.exceptions import NodeWithGivenIdNotFound
 
 from webapp.views.data_tables.load_data import (
     cull_data_files
@@ -69,6 +70,7 @@ from webapp.buttons import *
 from webapp.pages import *
 
 from webapp.views.data_tables.load_data import load_data_table, sort_codes, infer_datetime_format
+import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
 
 import webapp.auth.user_data as user_data
 from webapp.home.views import (get_help, get_helps, reload_metadata)
@@ -271,7 +273,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
                 else:
                     msg = f"No node found in the node store with node id {dt_node_id}"
                     dump_node_store(eml_node, 'data_table')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 # Not modifying an existing data table, so just add the new data table node to the dataset node.
                 add_child(dataset_node, dt_node)
@@ -649,8 +651,6 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
 @login_required
 @non_saving_hidden_buttons_decorator
 def upload_spreadsheet(filename=None, dt_node_id=None):
-    import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
-
     form = UploadSpreadsheetForm()
     uploads_folder = user_data.get_document_uploads_folder_name()
     document_name = filename
@@ -684,7 +684,8 @@ def upload_spreadsheet(filename=None, dt_node_id=None):
                 file.save(filepath)
                 # Process the uploaded spreadsheet
                 try:
-                    table_spreadsheets.ingest_data_table_sheet(filepath, dt_node_id)
+                    log_usage(actions['UPLOAD_COLUMN_PROPERTIES_SPREADSHEET'], document_name)
+                    table_spreadsheets.ingest_data_table_spreadsheet(filepath, dt_node_id)
                 except exceptions.DataTableSpreadsheetError as e:
                     flash(f'Error uploading the spreadsheet:\n {e}', 'error')
                 return redirect(url_for(PAGE_ATTRIBUTE_SELECT, filename=document_name, dt_node_id=dt_node_id))
@@ -708,11 +709,11 @@ def attribute_select(filename=None, dt_node_id=None):
     """
 
     def download_spreadsheet(data_table_node_id, filename):
-        import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
         load_eml(filename=filename)
         data_table_node = Node.get_node_instance(data_table_node_id)
         data_table_name_node = data_table_node.find_child(names.ENTITYNAME)
         data_table_name = data_table_name_node.content
+        log_usage(actions['DOWNLOAD_COLUMN_PROPERTIES_SPREADSHEET'], filename)
         return table_spreadsheets.generate_data_entry_spreadsheet(data_table_node, filename, data_table_name)
 
     def attribute_select_post(filename=None, form=None, form_dict=None,
@@ -1298,7 +1299,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'attribute_dateTime')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 add_child(attribute_list_node, att_node)
 
@@ -1545,7 +1546,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'attribute_numerical')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 add_child(attribute_list_node, att_node)
 
@@ -1852,7 +1853,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'attribute_categorical')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 add_child(attribute_list_node, att_node)
 
@@ -2267,7 +2268,7 @@ def code_definition(filename=None, dt_node_id=None, att_node_id=None, nom_ord_no
                     else:
                         msg = f"No node found in the node store with node id {node_id}"
                         dump_node_store(eml_node, 'code_definition')
-                        raise Exception(msg)
+                        raise NodeWithGivenIdNotFound(msg)
                 else:
                     add_child(ed_node, code_definition_node)
                     cd_node_id = code_definition_node.id

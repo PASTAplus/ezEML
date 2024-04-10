@@ -29,7 +29,7 @@ from flask_login import (
 )
 
 import webapp.home.utils.node_utils
-from webapp.home.exceptions import InvalidHeaderRow, UnexpectedDataTypes, TaxonNotFound
+from webapp.home.exceptions import InvalidHeaderRow, UnexpectedDataTypes, TaxonNotFound, NodeWithGivenIdNotFound
 
 from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.node_store import dump_node_store
@@ -320,7 +320,7 @@ def geographic_coverage(filename=None, node_id=None):
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'geographic_coverage')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 add_child(coverage_node, gc_node)
 
@@ -517,7 +517,7 @@ def temporal_coverage(filename=None, node_id=None):
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'temporal_coverage')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 add_child(coverage_node, tc_node)
 
@@ -965,7 +965,7 @@ def taxonomic_coverage(filename=None, node_id=None, taxon=None):
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'taxonomic_coverage')
-                    raise Exception(msg)
+                    raise NodeWithGivenIdNotFound(msg)
             else:
                 add_child(coverage_node, txc_node)
 

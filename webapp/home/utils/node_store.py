@@ -33,7 +33,7 @@ def dump_node_store(eml_node, prefix=''):
 
     def dump_node(node: Node, indent=0):
         indent_str = ' ' * indent
-        print(f'{indent_str}{node.name} {node.id} {node.content}')
+        log_info(f'{indent_str}{node.name} {node.id} {node.content}')
         for child in node.children:
             dump_node(child, indent + 2)
 

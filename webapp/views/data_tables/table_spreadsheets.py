@@ -641,7 +641,7 @@ def get_categorical_variables(sheet, num_categorical_variables):
     return codes_list, definitions_list
 
 
-def ingest_data_table_sheet(filepath, dt_node_id):
+def ingest_data_table_spreadsheet(filepath, dt_node_id):
     global row
 
     def set_child_node(child_name, parent_node, content=None, attribute=None):

@@ -53,6 +53,10 @@ class MissingFileError(ezEMLError):
     pass
 
 
+class NodeWithGivenIdNotFound(ezEMLError):
+    pass
+
+
 class NumberOfColumnsHasChanged(ezEMLError):
     pass
 

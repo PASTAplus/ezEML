@@ -153,8 +153,9 @@ def log_request():
         return
 
     referrer = request.referrer
-    log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
-    log_available_memory()
+    if referrer is not None: # We don't want to log the every-five-minute pings checking server status
+        log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
+        log_available_memory()
 
 
 @home_bp.after_app_request

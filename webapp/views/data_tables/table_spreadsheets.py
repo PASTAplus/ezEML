@@ -778,8 +778,9 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
         raise exceptions.DataTableSpreadsheetError(msg)
     entity_name = entity_name_node.content
     if entity_name != data_table_name:
-        msg = 'Data table name in the spreadsheet does not match the name in the data table metadata. ' \
-            'Data table name changes must be performed in the ezEML editor, not in a spreadsheet.'
+        msg = f'Data table name in the spreadsheet ({data_table_name}) does not match the name in the data table metadata ({entity_name}). ' \
+            'Make sure you are opening the correct spreadsheet file. Data table name changes must be performed in the ezEML editor, '\
+            'not in a spreadsheet.'
         raise exceptions.DataTableNameMismatch(msg)
 
     column_names = get_column_names(sheet)

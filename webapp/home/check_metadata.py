@@ -721,6 +721,8 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
         if find_min_unmet_for_choice(validation_errs, names.UNIT):
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
+        if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_FLOAT, names.PRECISION):
+            add_to_evaluation('attributes_09', link, data_table_name=data_table_name)
 
     # DateTime
     if attr_type == webapp.home.metapype_client.VariableType.DATETIME:

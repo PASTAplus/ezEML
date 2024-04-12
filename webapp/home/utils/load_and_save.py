@@ -204,6 +204,10 @@ def load_eml(filename:str=None,
             eml_node = from_json(ext_filename)
         else:
             log_error(f"load_eml: Could not find {ext_filename}")
+            log_error(f"filename: {filename}, folder_name: {folder_name}, owner_login: {owner_login}")
+            if not owner_login:
+                owner_login = user_data.get_active_document_owner_login()
+                log_error(f"get_active_document_owner_login() returns: {owner_login}")
             return None
 
         if eml_node:

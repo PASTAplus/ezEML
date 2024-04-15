@@ -6,6 +6,7 @@ from flask_login import current_user
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Border, Font, PatternFill, Protection, Side
 from openpyxl.utils import column_index_from_string, get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
 
 from webapp.home import exceptions as exceptions
 from webapp.home.home_utils import get_check_metadata_status
@@ -16,6 +17,56 @@ from webapp.home.utils.node_utils import new_child_node
 from metapype.model.node import Node
 from metapype.eml import names
 
+standard_units = ['acre', 'ampere', 'amperePerMeter', 'amperePerMeterSquared', 'angstrom', 'are', 'atmosphere',
+                  'bar', 'becquerel', 'britishThermalUnit', 'bushel', 'bushelPerAcre', 'calorie', 'candela',
+                  'candelaPerMeterSquared', 'celsius', 'centigram', 'centimeter', 'centimeterCubed',
+                  'centimeterPerSecond', 'centimeterSquared', 'centisecond', 'coulomb', 'decibar', 'decigram',
+                  'decimeter', 'decisecond', 'degree', 'dekagram', 'dekameter', 'dekasecond', 'dimensionless',
+                  'equivalentPerLiter', 'fahrenheit', 'farad', 'fathom', 'foot', 'Foot_Gold_Coast', 'Foot_US',
+                  'footCubedPerSecond', 'footPerDay', 'footPerHour', 'footPerSecond', 'footPound', 'footSquared',
+                  'footSquaredPerDay', 'gallon', 'grad', 'gram', 'gramPerCentimeterCubed', 'gramPercentimeterSquared',
+                  'gramPerCentimeterSquaredPerSecond', 'gramPerDayPerHectare', 'gramPerDayPerLiter', 'gramPerGram',
+                  'gramPerLiter', 'gramPerMeterSquared', 'gramPerMeterSquaredPerDay', 'gramPerMeterSquaredPerYear',
+                  'gramPerMilliliter', 'gramPerYear', 'gray', 'hectare', 'hectogram', 'hectometer', 'hectopascal',
+                  'hectosecond', 'henry', 'hertz', 'hour', 'inch', 'inchCubed', 'inchPerHour', 'inverseCentimeter',
+                  'inverseMeter', 'joule', 'katal', 'kelvin', 'kilogram', 'kilogramPerHectare',
+                  'kilogramPerHectarePerYear', 'kilogramPerMeterCubed', 'kilogramPerMeterSquared',
+                  'kilogramPerMeterSquaredPerDay', 'kilogramPerMeterSquaredPerSecond', 'kilogramPerMeterSquaredPerYear',
+                  'kilogramPerSecond', 'kilohertz', 'kiloliter', 'kilometer', 'kilometerPerHour', 'kilometerSquared',
+                  'kilopascal', 'kilosecond', 'kilovolt', 'kilowatt', 'kilowattPerMeterSquared', 'knot', 'langley',
+                  'langleyPerDay', 'Link_Clarke', 'liter', 'literPerHectare', 'literPerLiter', 'literPerMeterSquared',
+                  'literPerSecond', 'lumen', 'lux', 'megagram', 'megagramPerMeterCubed', 'megahertz',
+                  'megajoulePerMeterSquaredPerDay', 'megameter', 'megapascal', 'megasecond', 'megavolt', 'megawatt',
+                  'meter', 'meterCubed', 'meterCubedPerHectare', 'meterCubedPerKilogram', 'meterCubedPerMeterCubed',
+                  'meterCubedPerMeterSquared', 'meterCubedPerSecond', 'meterPerDay', 'meterPerGram', 'meterPerSecond',
+                  'meterPerSecondSquared', 'meterSquared', 'meterSquaredPerDay', 'meterSquaredPerHectare',
+                  'meterSquaredPerKilogram', 'meterSquaredPerSecond', 'microequivalentPerLiter', 'microgram',
+                  'microgramPerGram', 'microgramPerGramPerDay', 'microgramPerGramPerHour', 'microgramPerGramPerWeek',
+                  'microgramPerLiter', 'microliter', 'microliterPerLiter', 'micrometer', 'micrometerCubedPerGram',
+                  'micromolePerCentimeterSquaredPerSecond', 'micromolePerGram', 'micromolePerGramPerDay',
+                  'micromolePerGramPerHour', 'micromolePerGramPerSecond', 'micromolePerKilogram', 'micromolePerLiter',
+                  'micromolePerMeterSquaredPerSecond', 'micromolePerMole', 'microsecond',
+                  'microwattPerCentimeterSquaredPerNanometer', 'microwattPerCentimeterSquaredPerNanometerPerSteradian',
+                  'microwattPerCentimeterSquaredPerSteradian', 'mile', 'milePerHour', 'milePerMinute', 'milePerSecond',
+                  'mileSquared', 'millibar', 'milliequivalentPerLiter', 'milligram', 'milligramPerKilogram',
+                  'milligramPerLiter', 'milligramPerMeterCubed', 'milligramPerMeterCubedPerDay',
+                  'milligramPerMeterSquared', 'milligramPerMeterSquaredPerDay', 'milligramPerMilliliter', 'millihertz',
+                  'milliliter', 'milliliterPerLiter', 'millimeter', 'millimeterPerDay', 'millimeterPerSecond',
+                  'millimeterSquared', 'millimolePerGram', 'millimolePerKilogram', 'millimolePerLiter',
+                  'millimolePerMeterCubed', 'millimolePerMole', 'millisecond', 'millivolt', 'milliwatt', 'minute',
+                  'mole', 'molePerGram', 'molePerKilogram', 'molePerKilogram', 'molePerKilogramPerSecond',
+                  'molePerLiter', 'molePerMeterCubed', 'molePerMeterSquaredPerSecond', 'molePerMole', 'nanogram',
+                  'nanogramPerGram', 'nanogramPerGramPerHour', 'nanoliterPerLiter', 'nanometer',
+                  'nanomolePerGramPerDay', 'nanomolePerGramPerHour', 'nanomolePerGramPerSecond', 'nanomolePerKilogram',
+                  'nanomolePerLiter', 'nanomolePerMole', 'nanosecond', 'nauticalMile', 'newton', 'nominalDay',
+                  'nominalHour', 'nominalLeapYear', 'nominalMinute', 'nominalWeek', 'nominalYear', 'number',
+                  'numberPerGram', 'numberPerHectare', 'numberPerKilometerSquared', 'numberPerLiter',
+                  'numberPerMeterCubed', 'numberPerMeterSquared', 'numberPerMilliliter', 'ohm', 'ohmMeter', 'pascal',
+                  'percent', 'permil', 'pint', 'pound', 'poundPerAcre', 'poundPerInchSquared', 'quart', 'radian',
+                  'second', 'siemens', 'siemensPerCentimeter', 'siemensPerMeter', 'sievert', 'steradian', 'tesla',
+                  'ton', 'tonne', 'tonnePerHectare', 'tonnePerYear', 'volt', 'watt', 'wattPerMeterSquared',
+                  'wattPerMeterSquaredPerNanometer', 'wattPerMeterSquaredPerNanometerPerSteradian',
+                  'wattPerMeterSquaredPerSteradian', 'weber', 'yard', 'Yard_Indian', 'yardPerSecond', 'yardSquared']
 
 # Globals
 wb = None
@@ -25,6 +76,7 @@ row = None
 col = None
 maxcol = None
 maxrow = None
+data_validation = None
 
 def rgb_to_hex(rgb):
     return '{:02X}{:02X}{:02X}'.format(*rgb)
@@ -123,6 +175,12 @@ def bold(cell, text):
     set_maxcolrow(cell)
 
 
+def italic(cell, text):
+    ws[cell].font = Font(size=FONT_SIZE, italic=True)
+    ws[cell] = text
+    set_maxcolrow(cell)
+
+
 def normal(cell, text):
     ws[cell].font = Font(size=FONT_SIZE)
     ws[cell] = text
@@ -147,6 +205,16 @@ def optional(cell, text):
 def rarely_used(cell, text):
     normal(cell, text)
     highlight_cell(cell, RARELY_USED)
+
+
+def create_data_validation():
+    global data_validation, ws, wb
+    ws = wb.active
+    formula1 = '"' + ','.join(standard_units) + '"'
+    data_validation = DataValidation(type="list", formula1=formula1, allow_blank=True)
+    data_validation.error = 'Your entry is not an allowed standard unit. Please choose from the list on Sheet2 or use a custom unit.'
+    data_validation.errorTitle = 'Not an allowed standard unit'
+    ws.add_data_validation(data_validation)
 
 
 def start_table(package_name, table_name, description=''):
@@ -179,7 +247,9 @@ def set_column_widths():
     for i in range(maxrow):
         for j in range(maxcol):
             is_bold = ws.cell(i + 1, j + 1).font.bold
-            ws.cell(i + 1, j + 1).font = Font(size=FONT_SIZE, bold=is_bold)
+            is_italic = ws.cell(i + 1, j + 1).font.italic
+            color = ws.cell(i + 1, j + 1).font.color
+            ws.cell(i + 1, j + 1).font = Font(size=FONT_SIZE, bold=is_bold, italic=is_italic, color=color)
 
 
 def remove_sheet_protection(first_row, last_row, first_col, last_col):
@@ -188,6 +258,18 @@ def remove_sheet_protection(first_row, last_row, first_col, last_col):
         for col in range(first_col, last_col+1):
             ws.cell(row=row, column=col).protection = Protection(locked=False)
             ws.cell(row=row, column=col).font = Font(size=FONT_SIZE)
+
+
+def create_sheet2():
+    global wb
+    ws2 = wb.create_sheet('Standard Units')
+    ws2['A1'] = 'Allowed Standard Units:'
+    ws2['A1'].font = Font(size=FONT_SIZE, bold=True)
+    row = 2
+    for unit in standard_units:
+        ws2[f'A{row}'] = unit
+        ws2[f'A{row}'].font = Font(size=FONT_SIZE)
+        row += 1
 
 
 def create_sheet():
@@ -227,6 +309,8 @@ def add_all_columns_headers():
 def add_numerical_columns_headers():
     global row
     bold(f'A{str(row)}', 'NUMERICAL')
+    ws[f'C{str(row)}'].font = Font(size=FONT_SIZE, bold=True, italic=True, color='4682B4')
+    ws[f'C{str(row)}'] = 'Either a Standard Unit or Custom Unit is required. See Sheet2 for a list of allowed Standard Units.'
     row += 1
     bold(f'A{str(row)}', 'Column')
     bold(f'B{str(row)}', 'Number Type')
@@ -347,11 +431,13 @@ def add_numerical_columns(attribute_nodes, eml_node):
         return ''
 
     def add_numerical_column(attribute_node, eml_node):
-        global row
+        global row, data_validation
         if not is_numerical(attribute_node):
             return
         row += 1
         remove_sheet_protection(row, row, 2, 8)
+        # data_validation.add(ws[f'C{str(row)}'])
+
         normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
         number_type_node = attribute_node.find_descendant(names.NUMBERTYPE)
         if number_type_node:
@@ -464,6 +550,8 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
 
     create_sheet()
     add_all_columns_headers()
+    create_sheet2()
+    # create_data_validation()
 
     entity_name_node = data_table_node.find_child(names.ENTITYNAME)
     entity_name = entity_name_node.content if entity_name_node else ''

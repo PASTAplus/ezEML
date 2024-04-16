@@ -54,6 +54,7 @@ attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b
 attributes_07,Data Tables,Explanation,ERROR,REQUIRED,A Missing Value Code <b>Explanation</b> is required.,For Missing Value Codes,code_explanation_1
 attributes_08,Data Tables,DateTime Format,WARNING,RECOMMENDED,The DateTime <b>Format String</b> is not one that is recommended by the EDI data repository. A list of recommended formats is available <b><a href='../datetime_formats'>here</a></b>.,For DateTime variables,format_string
 attributes_09,Data Tables,Numerical Variable Precision,ERROR,REQUIRED,The <b>Precision</b> of a Numerical variable is required to be a pure floating point number.,For Numerical variables.,precision
+attributes_10,Data Tables,Standard Unit,ERROR,REQUIRED,A Standard Unit must have one of the approved Standard Unit values. "{}" was found and must be replaced.,,standard_unit
 methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,,add_ms
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,,description
 methods_03,Methods,Methods,ERROR,REQUIRED,The metadata contains an empty <b>Methods</b> section. EML does not permit a Methods section to be empty.,,add_ms

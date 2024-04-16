@@ -37,7 +37,6 @@ from metapype.model.node import Node
 from webapp.pages import *
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
-import webapp.home.views as views
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -87,10 +86,10 @@ def annotate_link(eval_entry):
         eval_entry.link = urlunparse(parsed._replace(query=new_query))
 
 
-def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None, node=None):
+def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None, node=None, replace_value=None):
     """ Add an EvalEntry for an error or warning to the evaluation list that is being built up. """
 
-    def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None, node=None):
+    def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None, node=None, replace_value=None):
         """ Return the EvalEntry object for the given id. """
         try:
             vals = current_app.config.get(f'__eval__{id}')
@@ -100,13 +99,16 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
                 vals[1] = item
             ui_element_id = vals[6] if 6 < len(vals) else None
             node = vals[7] if 7 < len(vals) else None
+            explanation = vals[4]
+            if replace_value:
+                explanation = explanation.replace('{}', replace_value)
             return EvalEntry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
-                             explanation=vals[4], data_table_name=data_table_name, link=link,
+                             explanation=explanation, data_table_name=data_table_name, link=link,
                              ui_element_id=ui_element_id, node=node)
         except Exception as exc:
             return None
 
-    entry = get_eval_entry(id, link, section, item, data_table_name, node)
+    entry = get_eval_entry(id, link, section, item, data_table_name, node, replace_value)
     annotate_link(entry)
     if entry:
         evaluation.append(entry)
@@ -655,6 +657,17 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
                            nom_ord_node_id=nominal_node.id, node_id=code_definition_node.id, mscale=mscale)
             add_to_evaluation(err_code, link, data_table_name=get_data_table_name(data_table_node))
 
+    def bad_standard_unit(attr_node):
+        import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
+        """ Return True if the attribute node has a standard unit that is not in the standard unit list. """
+        standard_unit_node = attr_node.find_descendant(names.STANDARDUNIT)
+        if not standard_unit_node:
+            return None
+        standard_unit = standard_unit_node.content
+        if standard_unit not in table_spreadsheets.standard_units:
+            return standard_unit
+        return None
+
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     page = None
@@ -717,12 +730,16 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
 
     # Numerical
     if attr_type == webapp.home.metapype_client.VariableType.NUMERICAL:
+        attribute_name = attrib_node.find_child(names.ATTRIBUTENAME).content
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
         if find_min_unmet_for_choice(validation_errs, names.UNIT):
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
         if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_FLOAT, names.PRECISION):
             add_to_evaluation('attributes_09', link, data_table_name=data_table_name)
+        bad_standard_unit = bad_standard_unit(attrib_node)
+        if bad_standard_unit:
+            add_to_evaluation('attributes_10', link, data_table_name=data_table_name, replace_value=bad_standard_unit)
 
     # DateTime
     if attr_type == webapp.home.metapype_client.VariableType.DATETIME:

@@ -163,3 +163,5 @@ class ColumnNameMismatch(DataTableSpreadsheetError):
 class ColumnTypeMismatch(DataTableSpreadsheetError):
     pass
 
+class UnitIsNotAnAllowedStandardUnit(DataTableSpreadsheetError):
+    pass

@@ -799,6 +799,9 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
             ir_node.remove_child(ir_node.find_child(names.UNIT))
         except ValueError:
             pass
+        if standard_unit and standard_unit not in standard_units:
+            msg = f"'{standard_unit}' is not an allowed Standard Unit. See the list of allowed Standard Units in Sheet2 of the spreadsheet. Please correct the spreadsheet and try again."
+            raise exceptions.UnitIsNotAnAllowedStandardUnit(msg)
         if standard_unit or custom_unit:
             unit_node = new_child_node(names.UNIT, ir_node)
             set_child_node(names.STANDARDUNIT, unit_node, standard_unit)
@@ -882,7 +885,7 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
 
     num_numerical_variables = column_types.count('Numerical')
     if num_numerical_variables > 0:
-        number_types, standard_units, custom_units, custom_unit_descriptions, num_precisions, num_bounds_minima, num_bounds_maxima = \
+        number_types, standard_units_found, custom_units_found, custom_unit_descriptions, num_precisions, num_bounds_minima, num_bounds_maxima = \
             get_numerical_variables(sheet, num_numerical_variables=num_numerical_variables)
         row += num_numerical_variables + 4
 
@@ -935,7 +938,7 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
     for attribute_node in attribute_nodes:
         if not is_numerical(attribute_node):
             continue
-        set_numerical_variable(attribute_node, number_types[i], standard_units[i], custom_units[i], custom_unit_descriptions[i],
+        set_numerical_variable(attribute_node, number_types[i], standard_units_found[i], custom_units_found[i], custom_unit_descriptions[i],
                                    num_precisions[i], num_bounds_minima[i], num_bounds_maxima[i])
         i += 1
 

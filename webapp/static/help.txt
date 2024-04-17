@@ -1,6 +1,6 @@
 abstract
 Abstract
-The <b>Abstract</b> will be used by full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included.
+The <b>Abstract</b> will be used by full-text searches, and it should be rich with descriptive text. Multiple paragraphs may be included. It should contain enough information to allow potential data users to understand the data and decide on its fitness for use. The abstract should be about the data, not the paper the data was used in.
 
 In particular, descriptions should include information that does not fit into structured metadata, and focus on the “what”, “when”, and “where” information, general taxonomic information, as well as whether the data package is ongoing or completed.
 
@@ -782,7 +782,7 @@ Invite a Collaborator
 --------------------
 keywords
 Keywords
-It is recommended that meaningful sets of keywords be provided.
+It is recommended that meaningful sets of keywords be provided. They facilitate discoverability and re-use of datasets. Keywords should be comprehensive and include higher level concepts applicable to the data with regard to such things as what ecosystem it was measured in, what was measured, methods used, and organism groups.
 
 One set of keywords may identify the contributing organization(s), e.g., the LTER or OBFS site, LTREB or Macrosystems project, especially if data are co-funded or funding is leveraged.
 

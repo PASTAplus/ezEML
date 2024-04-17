@@ -727,7 +727,7 @@ def get_categorical_variables(sheet, num_categorical_variables):
         codes, definitions = get_a_categorical_variable()
         codes_list.append(codes)
         definitions_list.append(definitions)
-        col = next_spreadsheet_column(col, 2)
+        col = next_spreadsheet_column(col, 3)
     return codes_list, definitions_list
 
 

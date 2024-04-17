@@ -17,7 +17,7 @@ from webapp.home.utils.node_utils import new_child_node
 from metapype.model.node import Node
 from metapype.eml import names
 
-standard_units = ['acre', 'ampere', 'amperePerMeter', 'amperePerMeterSquared', 'angstrom', 'are', 'atmosphere',
+standard_units = ['', 'acre', 'ampere', 'amperePerMeter', 'amperePerMeterSquared', 'angstrom', 'are', 'atmosphere',
                   'bar', 'becquerel', 'britishThermalUnit', 'bushel', 'bushelPerAcre', 'calorie', 'candela',
                   'candelaPerMeterSquared', 'celsius', 'centigram', 'centimeter', 'centimeterCubed',
                   'centimeterPerSecond', 'centimeterSquared', 'centisecond', 'coulomb', 'decibar', 'decigram',
@@ -85,7 +85,7 @@ REQUIRED = rgb_to_hex((232, 200, 200))
 RECOMMENDED = rgb_to_hex((252, 235, 166))
 OPTIONAL = rgb_to_hex((211, 237, 244))
 RARELY_USED = rgb_to_hex((242, 242, 242))
-FONT_SIZE = 14
+FONT_SIZE = 12
 
 
 def next_spreadsheet_column(column, i=1):
@@ -210,9 +210,11 @@ def rarely_used(cell, text):
 def create_data_validation():
     global data_validation, ws, wb
     ws = wb.active
-    formula1 = '"' + ','.join(standard_units) + '"'
+    # We need to reference the standard units list on Sheet2 in this way because the list is limited to 255 characters
+    #  if specified directly in the formula1 argument of the DataValidation object.
+    formula1 = "'Standard Units'!$A$2:$A$" + str(len(standard_units) + 1)
     data_validation = DataValidation(type="list", formula1=formula1, allow_blank=True)
-    data_validation.error = 'Your entry is not an allowed standard unit. Please choose from the list on Sheet2 or use a custom unit.'
+    data_validation.error = 'Your entry is not an allowed standard unit. Please choose from the drop-down list or use a custom unit.'
     data_validation.errorTitle = 'Not an allowed standard unit'
     ws.add_data_validation(data_validation)
 
@@ -310,7 +312,7 @@ def add_numerical_columns_headers():
     global row
     bold(f'A{str(row)}', 'NUMERICAL')
     ws[f'C{str(row)}'].font = Font(size=FONT_SIZE, bold=True, italic=True, color='4682B4')
-    ws[f'C{str(row)}'] = 'Either a Standard Unit or Custom Unit is required. See Sheet2 for a list of allowed Standard Units.'
+    ws[f'C{str(row)}'] = 'Either a Standard Unit or Custom Unit is required.'
     row += 1
     bold(f'A{str(row)}', 'Column')
     bold(f'B{str(row)}', 'Number Type')
@@ -436,7 +438,7 @@ def add_numerical_columns(attribute_nodes, eml_node):
             return
         row += 1
         remove_sheet_protection(row, row, 2, 8)
-        # data_validation.add(ws[f'C{str(row)}'])
+        data_validation.add(f'C{str(row)}')
 
         normal('A' + str(row), attribute_node.find_child(names.ATTRIBUTENAME).content)
         number_type_node = attribute_node.find_descendant(names.NUMBERTYPE)
@@ -551,7 +553,7 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
     create_sheet()
     add_all_columns_headers()
     create_sheet2()
-    # create_data_validation()
+    create_data_validation()
 
     entity_name_node = data_table_node.find_child(names.ENTITYNAME)
     entity_name = entity_name_node.content if entity_name_node else ''

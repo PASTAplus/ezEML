@@ -1550,7 +1550,7 @@ def get_section_from_link(link):
         return 'publication_info'
     if '/eml/method_step_select/' in link or '/eml/method_step/' in link or '/eml/data_source' in link:
         return 'methods'
-    if '/eml/project_select/' in link or '/eml/project/' in link or '/eml/project_personnel/' in link:
+    if '/eml/project_select/' in link or '/eml/project/' in link or '/eml/project_personnel/' or '/eml/funding_award/' in link:
         return 'project'
     if '/eml/other_entity_select/' in link or '/eml/other_entity/' in link:
         return 'other_entities'

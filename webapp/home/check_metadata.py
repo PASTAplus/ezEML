@@ -71,9 +71,17 @@ class EvalEntry:
 severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
 
-def annotate_link(eval_entry):
+def annotate_link(eval_entry, id=None):
     parsed = urlparse(eval_entry.link)
     level = 'error' if eval_entry.severity == EvalSeverity.ERROR else 'warning'
+    if id == 'attributes_11':
+        # If the error is a missing variable type, the ui_element_id needs to match the particular missing case
+        # Get the node ID
+        node_id = parse_qs(parsed.query).get('node_id')
+        if isinstance(node_id, list) and node_id:
+            node_id = node_id[0]
+        if node_id:
+            eval_entry.ui_element_id = f"{eval_entry.ui_element_id}_{node_id}"
     ui_element_id = f"{eval_entry.ui_element_id}|{level}"
     if not parsed.query:
         eval_entry.link = urlunparse(parsed._replace(query=f'ui_element_id={ui_element_id}'))
@@ -109,7 +117,7 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
             return None
 
     entry = get_eval_entry(id, link, section, item, data_table_name, node, replace_value)
-    annotate_link(entry)
+    annotate_link(entry, id)
     if entry:
         evaluation.append(entry)
 
@@ -707,7 +715,10 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             if attrib_name_node:
                 attrib_name = attrib_name_node.content
         log_error(f"page not initialized... filename={doc_name}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
+        link = url_for(PAGE_ATTRIBUTE_SELECT, filename=doc_name, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
+        add_to_evaluation('attributes_11', link, data_table_name=data_table_name)
         return
+
     link = url_for(page, filename=doc_name, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
 
     validation_errs = validate_via_metapype(attrib_node)

@@ -42,7 +42,7 @@
                             {% if not was_uploaded %}
                             <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Remove"/>
                             {% endif %}
-                            <input class="btn btn-primary" name="{{ att_entry.id }}" type="submit" value="Change Type"/></td>
+                            <input class="btn btn-primary" id="change_type_{{ att_entry.id }}" name="{{ att_entry.id }}" type="submit" value="Change Type"/></td>
                     </tr>
                     {% endfor %}
                 </table>
@@ -91,5 +91,6 @@
     </script>
 
     {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
 
 {% endblock %}

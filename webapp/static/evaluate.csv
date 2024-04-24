@@ -68,6 +68,8 @@ project_05,Project,Award Title,ERROR,REQUIRED,<b>Award Title</b> is required.,,a
 other_entity_01,Other Entities,Name,ERROR,REQUIRED,Entity <b>Name</b> is required.,,entity_name
 other_entity_02,Other Entities,Entity Type,ERROR,REQUIRED,<b>Entity Type</b> is required.,,entity_type
 other_entity_03,Other Entities,Entity Description,WARNING,RECOMMENDED,Entity <b>Description</b> is highly recommended.,,entity_description
+other_entity_04,Other Entities,Source Name,ERROR,REQUIRED,<b>Source Name</b> is required.,,object_name
+other_entity_05,Other Entities,Data Format,ERROR,REQUIRED,<b>Data Format</b> is required.,,format_name
 contacts_01,Contacts,Contacts,ERROR,REQUIRED,At least one dataset <b>Contact</b> is required.,,add_rp
 contacts_01_ds,Data Sources,Contacts,ERROR,REQUIRED,At least one data source <b>Contact</b> is required.,,add_contact
 maintenance_01,Maintenance,Maintenance,ERROR,REQUIRED,Maintenance <b>Description</b> is required.,,description

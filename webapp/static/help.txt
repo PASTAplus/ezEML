@@ -1362,7 +1362,7 @@ Validate an EML XML File
 
 <b>Validate an EML XML File</b> employs EDI's <b>emlvp</b> library to validate an EML file. It checks for compliance with the EML schema, checks for parser validation errors such as circular references and duplicate IDs, and checks for occurrences of non-ASCII Unicode characters.
 
-These checks are performed on an existing EML XML file that you upload, rather than the EML document that you are currently editing in ezEML. This makes it possible to validate an EML XML file that was created outside of ezEML, or to validate an EML XML file that you have downloaded from ezEML.
+These checks are performed on an existing EML XML file that you upload, rather than the EML document that you are currently editing in ezEML. This makes it possible to validate an EML XML file that was created outside of ezEML or to validate an EML XML file that you have downloaded from ezEML.
 
 The checks are somewhat technical in nature and are aimed particularly at Information Managers and other users with extensive experience with the EML standard.
 --------------------

@@ -27,5 +27,6 @@ dependencies:
   - pympler
   - pip
   - pip:
+      - emlvp
       - metapype
 prefix: /home/servilla/anaconda3/envs/ezeml

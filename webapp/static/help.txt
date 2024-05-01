@@ -1356,4 +1356,25 @@ This package contains taxonomic coverage metadata that was imported from an EML 
 When you save your package as an EML XML file, however, the Taxonomic Coverage will be preserved intact.
 
 Alternatively, you can replace the taxonomic coverage metadata by using <b>Import Taxonomic Coverage</b> from the Import/Export menu, or you can clear the taxonomic coverage metadata by clicking the <b>Clear All Taxonomic Coverage</b> button. Doing either of these actions will make it possible for you to view and edit taxonomic coverage, but the taxonomic coverage that was imported from the EML XML file will be removed from the package.
+--------------------
+validate_xml
+Validate an EML XML File
+
+<b>Validate an EML XML File</b> employs EDI's <b>emlvp</b> library to validate an EML file. It checks for compliance with the EML schema, checks for parser validation errors such as circular references and duplicate IDs, and checks for occurrences of non-ASCII Unicode characters.
+
+These checks are performed on an existing EML XML file that you upload, rather than the EML document that you are currently editing in ezEML. This makes it possible to validate an EML XML file that was created outside of ezEML, or to validate an EML XML file that you have downloaded from ezEML.
+
+The checks are somewhat technical in nature and are aimed particularly at Information Managers and other users with extensive experience with the EML standard.
+--------------------
+unicode_characters
+Non-ASCII Unicode Characters
+
+The EML standard permits the use of non-ASCII Unicode characters in text elements. Their use is not an error.
+
+You may, however, encounter display problems with EML files containing such characters when working in text editors or other software if the needed fonts are not available. We identify the presence of non-ASCII Unicode characters in the EML document to help you troubleshoot such problems.
+
+
+
+
+
 

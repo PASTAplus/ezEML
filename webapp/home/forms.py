@@ -237,6 +237,10 @@ class OpenEMLDocumentForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
 
 
+class ValidateEMLFileForm(FlaskForm):
+    filename = SelectField('EML XML File Name', choices=[])
+
+
 class SaveAsForm(FlaskForm):
     filename = StringField('Document Name', validators=[DataRequired()])
 

@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2024.04.23' %}
+{% set release_number = '2024.05.01' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -52,7 +52,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         'import_package_2', 'import_xml_2', 'export_package_2',
         '/send_to_other', '/load_geo_coverage',
         '/load_taxonomic_coverage', '/load_taxonomic_coverage_2',
-        '/manage_data_usage', '/submit_package'] %}
+        '/manage_data_usage', '/submit_package', '/validate_eml'] %}
 {% set ns = namespace(is_non_saving = false) %}
 {% for page in non_saving_endswith %}
     {% if request.path.endswith(page) %}
@@ -165,6 +165,10 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                         {{ macros.toolbar_menu_item(url_for('home.export_package'), 'hidden_export_ezEML_data_package', 'Export ezEML Data Package...', ns.is_non_saving) }}
                 {% endif %}
                         {{ macros.toolbar_menu_item(url_for('home.import_package'), 'hidden_import_ezEML_data_package', 'Import ezEML Data Package...', ns.is_non_saving) }}
+                        <li>
+                            <hr style="border-top: 1px solid #B0B0B0;">
+                        </li>
+                        {{ macros.toolbar_menu_item(url_for('home.validate_eml'), 'hidden_validate_eml', 'Validate an EML XML File...', ns.is_non_saving) }}
                     </ul>
                 </li>
             {% endif %}

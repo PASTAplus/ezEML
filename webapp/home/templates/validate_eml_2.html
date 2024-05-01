@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_validate_xml_id, help_validate_xml_title, help_validate_xml_content = help[0] %}
+    {% set help_validate_xml_btn = help_validate_xml_id ~ '_btn' %}
+    {% set help_validate_xml_dialog = help_validate_xml_id ~ '_dialog' %}
+    {% set help_unicode_characters_id, help_unicode_characters_title, help_unicode_characters_content = help[1] %}
+    {% set help_unicode_characters_btn = help_unicode_characters_id ~ '_btn' %}
+    {% set help_unicode_characters_dialog = help_unicode_characters_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Validate an EML XML File</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_validate_xml_btn) }}</td>
+    </table>
+    <div class="row">
+
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" novalidate="true">
+                {{ form.csrf_token }}
+                <p>&nbsp;</p>
+                <h4>File: {{ filename }}</h4>
+                <p>&nbsp;</p>
+            {% if validation_errs %}
+                <h4>Schema Validation Errors:</h4>
+                <table class="table table-striped">
+                    <tr>
+                        <th width="5%">Line&nbsp;#</th>
+                        <th width="40%">Item</th>
+                        <th width="55%">Details</th>
+                    </tr>
+                    {% for validation_err in validation_errs %}
+                    <tr>
+                        <td>{{ validation_err[0] }}</td>
+                        <td>{{ validation_err[1] }}</td>
+                        <td>{{ validation_err[2] }}
+                    </tr>
+                    {% endfor %}
+                </table>
+{#                <p>&nbsp;</p>#}
+            {% endif %}
+
+            {% if parse_errs %}
+                {% if validation_errs %}
+                <h4>Other Validation Errors:</h4>
+                {% else %}
+                <h4>Validation Errors:</h4>
+                {% endif %}
+                <table class="table table-striped">
+                    <tr>
+                        <th width="45%">Error</th>
+                        <th width="55%">Details</th>
+                    </tr>
+                    {% for parse_err in parse_errs %}
+                    <tr>
+                        <td>{{ parse_err[0] }}</td>
+                        <td>{{ parse_err[1] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+{#                <p>&nbsp;</p>#}
+            {% endif %}
+
+            {% if unicodes %}
+                <table>
+                    <td><h4>Non-ASCII Unicode Characters:</h4></td>
+                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_unicode_characters_btn) }}</td>
+                </table>
+                <table class="table table-striped">
+                    <tr>
+                        <th width="5%">Line&nbsp;#</th>
+                        <th width="10%">Col #</th>
+                        <th width="30%">Char</th>
+                        <th width="55%">Char Code</th>
+                    </tr>
+                    {% for unicode in unicodes %}
+                    <tr>
+                        <td>{{ unicode[0] }}</td>
+                        <td>{{ unicode[1] }}</td>
+                        {% if unicode[3] == 8201 %}
+                        <td>"Thin space"</td>
+                        {% else %}
+                        <td>{{ unicode[2] }}</td>
+                        {% endif %}
+                        <td>{{ unicode[3] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <p>&nbsp;</p>
+            {% endif %}
+
+            {% if not validation_errs and not parse_errs and not unicodes %}
+                <h5>Validation successful, no errors found</h5>
+            {% else %}
+                <p>&nbsp;</p>
+{#                <input class="btn btn-primary" style="width: 200px;" onclick="copy_to_clipboard();"#}
+{#                       value="Copy Details to Clipboard"/><br>&nbsp;<br>&nbsp;<br>#}
+            {% endif %}
+                {{ macros.hidden_buttons() }}
+                {{ form.csrf_token }}
+                {{ wtf.form_field(form.md5) }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_validate_xml_dialog, help_validate_xml_title, help_validate_xml_content) }}
+    {{ macros.help_dialog(help_unicode_characters_dialog, help_unicode_characters_title, help_unicode_characters_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_validate_xml_id, help_validate_xml_title, help_validate_xml_content = help[0] %}
+    {% set help_validate_xml_btn = help_validate_xml_id ~ '_btn' %}
+    {% set help_validate_xml_dialog = help_validate_xml_id ~ '_dialog' %}
+    {% set help_unicode_characters_id, help_unicode_characters_title, help_unicode_characters_content = help[1] %}
+    {% set help_unicode_characters_btn = help_unicode_characters_id ~ '_btn' %}
+    {% set help_unicode_characters_dialog = help_unicode_characters_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_validate_xml_dialog, help_validate_xml_btn) }}
+        {{ macros.help_script(help_unicode_characters_dialog, help_unicode_characters_btn) }}
+    });
+
+    function copy_to_clipboard() {
+        let $temp = $("<textarea>");
+        $("body").append($temp);
+        let s = `{{ err_text | safe }}`;
+        s = s.replace(/&#34;/g, '"');
+        $temp.val(s).select();
+        document.execCommand("copy");
+        $temp.remove();
+        alert('Copied to clipboard')
+     }
+
+    </script>
+{% endblock %}

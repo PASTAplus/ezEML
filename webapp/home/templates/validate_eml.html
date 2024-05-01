@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_validate_xml_id, help_validate_xml_title, help_validate_xml_content = help[0] %}
+    {% set help_validate_xml_btn = help_validate_xml_id ~ '_btn' %}
+    {% set help_validate_xml_dialog = help_validate_xml_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Validate an EML XML File</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_validate_xml_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                <h4>Select the EML XML file to validate:</h4>
+                <input class="file_select" type="file" name="file" accept=".xml">
+                <p></p>
+                <br>
+
+                <input class="btn btn-primary" name="Open" type="submit" value="Validate"/>
+                <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_validate_xml_dialog, help_validate_xml_title, help_validate_xml_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_validate_xml_id, help_validate_xml_title, help_validate_xml_content = help[0] %}
+    {% set help_validate_xml_btn = help_validate_xml_id ~ '_btn' %}
+    {% set help_validate_xml_dialog = help_validate_xml_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_validate_xml_dialog, help_validate_xml_btn) }}
+    });
+    </script>
+{% endblock %}

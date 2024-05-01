@@ -55,8 +55,8 @@ from webapp.home.exceptions import (
 )
 
 from webapp.home.forms import ( 
-    CreateEMLForm, ImportPackageForm,
-    OpenEMLDocumentForm, SaveAsForm,
+    EDIForm, CreateEMLForm, ImportPackageForm,
+    OpenEMLDocumentForm, ValidateEMLFileForm, SaveAsForm,
     LoadMetadataForm, LoadDataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportPartiesFromTemplateForm,
     ImportItemsForm, ImportSingleItemForm, ImportKeywordsForm,
@@ -127,6 +127,13 @@ from webapp.home.texttype_node_processing import (
     check_xml_validity,
     model_has_complex_texttypes
 )
+import emlvp.unicode_inspector as ui
+import emlvp.validator as validator
+from emlvp.validator import Validator
+from emlvp.exceptions import ValidationError, ParseError, ParserError, XIncludeError, XMLSchemaParseError, \
+    XMLSyntaxError
+from emlvp.parser import Parser
+from lxml import etree as etree
 
 app = Flask(__name__)
 
@@ -235,31 +242,13 @@ def url_of_interest():
     return True
 
 
-# @home_bp.route('/test_page')
-# def test_page():
-#     """
-#     A basically empty page for testing purposes.
-#     """
-#     from webapp.views.data_tables.table_templates import generate_data_entry_spreadsheet
-#
-#     # eml_node = load_eml('knb-lter-hbr.393.2')
-#     # eml_node = load_eml('knb-lter-hbr.392.1')
-#
-#     package_name = 'knb-lter-hbr.11.17'
-#     # package_name = 'knb-lter-hbr.120.5'
-#     eml_node = load_eml(package_name)
-#
-#     data_table_name = 'ws9_stream_monthly_flux_gHa'
-#     data_table_nodes = []
-#     eml_node.find_all_descendants('dataTable', data_table_nodes)
-#     for data_table_node in data_table_nodes:
-#         entity_name_node = data_table_node.find_descendant('entityName')
-#         if entity_name_node.content == data_table_name:
-#             break
-#
-#     generate_data_entry_spreadsheet(data_table_node, package_name, data_table_name)
-#
-#     return render_template('test_page.html')
+@home_bp.route('/test_page')
+def test_page():
+    """
+    A basically empty page for testing purposes.
+    """
+
+    return render_template('test_page.html')
 
 
 @home_bp.before_app_request
@@ -3884,6 +3873,100 @@ def get_current_page():
     page = session.get('current_page')
     # home_utils.log_info(f'get_current_page: {page}')
     return session.get('current_page')
+
+
+@home_bp.route('/validate_eml', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def validate_eml():
+    """
+    Route to handle validating an EML file.
+    """
+
+    form = ValidateEMLFileForm()
+    uploads_folder = user_data.get_document_uploads_folder_name()
+
+    document, eml_node = reload_metadata()  # So check_metadata status is correct
+
+    # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        return redirect(get_back_url())
+
+    if request.method == 'POST':
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file:
+            filename = file.filename
+
+            if filename is None or filename == '':
+                flash('No selected file', 'error')
+            else:
+                # Delete old tmp files... We don't want to delete the new one even after the validation, in case
+                #  the user refreshes the validate_eml_2 page.
+                pattern = os.path.join(uploads_folder, "*.xml.tmp")
+                files = glob.glob(pattern)
+                for f in files:
+                    os.remove(f)
+
+                file.save(os.path.join(uploads_folder, filename + '.tmp'))
+
+                log_usage(actions['VALIDATE_EML'], filename)
+
+                return redirect(url_for(PAGE_VALIDATE_EML_2, filename=filename))
+
+    # Process GET
+    help = get_helps(['validate_xml'])
+    return render_template('validate_eml.html', title='Validate an EML File', form=form, help=help)
+
+
+@home_bp.route('/validate_eml_2/<filename>', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def validate_eml_2(filename):
+    form = EDIForm()
+    uploads_folder = user_data.get_document_uploads_folder_name()
+
+    with open(os.path.join(uploads_folder, filename + '.tmp'), 'r') as f:
+        xml = f.read()
+
+    schema_path = validator.schema_path()
+    v = Validator(schema_path + "/EML2.2.0/xsd/eml.xsd")
+    validation_errs = []
+    try:
+        v.validate(xml)
+    except ValidationError as e:
+        errors = str(e.args[0]).split('\n')
+        for error in errors:
+            e_parts = [p.strip() for p in error.split(':')]
+            validation_errs.append((e_parts[1], e_parts[-2], e_parts[-1]))
+    except XMLSyntaxError as e:
+        pass
+
+    p = Parser()
+    parse_errs = []
+    try:
+        p.parse(xml)
+    except (ParseError, ParserError, ValueError, XIncludeError, XMLSchemaParseError, XMLSyntaxError, etree.XMLSyntaxError) as e:
+        errors = str(e.args[0]).split('\n')
+        for error in errors:
+            e_parts = [p.strip() for p in error.split(':', 1)]
+            try:
+                details = ','.join(ast.literal_eval(e_parts[1]))
+            except:
+                details = e_parts[1]
+            parse_errs.append((e_parts[0], details))
+
+    unicodes = ui.unicode_list(xml)
+
+    help = get_helps(['validate_xml', 'unicode_characters'])
+
+    reload_metadata()
+    return render_template('validate_eml_2.html', form=form, help=help, filename=filename,
+                           validation_errs=validation_errs, parse_errs=parse_errs, unicodes=unicodes)
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

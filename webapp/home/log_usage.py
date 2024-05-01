@@ -64,7 +64,8 @@ actions = {
     'SEND_TO_COLLEAGUE': 'Send to Colleague',
     'SETTINGS': 'Settings',
     'UPLOAD_COLUMN_PROPERTIES_SPREADSHEET': 'Upload Column Properties Spreadsheet',
-    'USER_GUIDE': 'User Guide'
+    'USER_GUIDE': 'User Guide',
+    'VALIDATE_EML': 'Validate EML'
 }
 
 

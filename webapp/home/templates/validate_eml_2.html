@@ -22,7 +22,7 @@
                 <h4>File: {{ filename }}</h4>
                 <p>&nbsp;</p>
             {% if validation_errs %}
-                <h4>Schema Validation Errors:</h4>
+                <h4>Schema Validation Errors</h4>
                 <table class="table table-striped">
                     <tr>
                         <th width="5%">Line&nbsp;#</th>
@@ -42,7 +42,7 @@
 
             {% if parse_errs %}
                 {% if validation_errs %}
-                <h4>Other Validation Errors:</h4>
+                <h4>Other Validation Errors</h4>
                 {% else %}
                 <h4>Validation Errors:</h4>
                 {% endif %}
@@ -63,7 +63,7 @@
 
             {% if unicodes %}
                 <table>
-                    <td><h4>Non-ASCII Unicode Characters:</h4></td>
+                    <td><h4>Non-ASCII Unicode Characters</h4></td>
                     <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_unicode_characters_btn) }}</td>
                 </table>
                 <table class="table table-striped">

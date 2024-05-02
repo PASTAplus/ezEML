@@ -16,6 +16,7 @@ import os
 import os.path
 from pathlib import Path
 import pickle
+import re
 from shutil import copyfile, move, rmtree
 import subprocess
 import time
@@ -3906,7 +3907,7 @@ def validate_eml():
                 flash('No selected file', 'error')
             else:
                 # Delete old tmp files... We don't want to delete the new one even after the validation, in case
-                #  the user refreshes the validate_eml_2 page.
+                #  the user refreshes the validate_eml_2 page. It'll get deleted next time around.
                 pattern = os.path.join(uploads_folder, "*.xml.tmp")
                 files = glob.glob(pattern)
                 for f in files:
@@ -3941,8 +3942,26 @@ def validate_eml_2(filename):
     except ValidationError as e:
         errors = str(e.args[0]).split('\n')
         for error in errors:
-            e_parts = [p.strip() for p in error.split(':')]
-            validation_errs.append((e_parts[1], e_parts[-2], e_parts[-1]))
+            # e_parts = [p.strip() for p in error.split(':')]
+            # validation_errs.append((e_parts[1], e_parts[-2], e_parts[-1]))
+
+            # Extract line number
+            line_number = error.split(':')[1]
+
+            # Extract element name using regex to find text between curly braces
+            element_name_match = re.search(r"{([^}]*)}", error)
+            element_name = element_name_match.group(0) if element_name_match else ''
+            # Remove braces if present
+            if element_name.startswith('{') and element_name.endswith('}'):
+                element_name = element_name[1:-1]  # Removing the first and last characters
+
+            # Extract the error message by finding the position of the last colon after the element name and slicing
+            element_position = error.find(element_name) + len(element_name)
+            error_message_start = error.find(':', element_position) + 1
+            error_message = error[error_message_start:].strip()
+
+            validation_errs.append((line_number, element_name, error_message))
+
     except XMLSyntaxError as e:
         pass
 

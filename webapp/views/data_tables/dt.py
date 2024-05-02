@@ -1625,11 +1625,7 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
     Logically, this is nested in attribute_numerical(), but it's a separate function to make it more readable.
     """
 
-    has_deprecated_units, unknown_units = standard_units.has_deprecated_units(eml_node)
-    if not has_deprecated_units:
-        form.standard_unit.choices = [('', '')] + [(x, x) for x in standard_units.standard_units]
-    else:
-        form.standard_unit.choices = [('', '')] + [(x, x) for x in standard_units.all_units]
+    form.standard_unit.choices = [('', '')] + [(x, x) for x in standard_units.standard_units]
 
     attribute_name_node = att_node.find_child(names.ATTRIBUTENAME)
     if attribute_name_node:
@@ -1672,6 +1668,11 @@ def populate_attribute_numerical_form(form: AttributeIntervalRatioForm = None, e
                 standard_unit_node = unit_node.find_child(names.STANDARDUNIT)
                 if standard_unit_node:
                     form.standard_unit.data = standard_unit_node.content
+                    # If the standard unit is not in the list of standard units, add it so that the value will display.
+                    # An error will be generated as well.
+                    if form.standard_unit.data not in standard_units.standard_units:
+                        unit_choices = sorted(standard_units.standard_units + [form.standard_unit.data], key=lambda x: x.lower())
+                        form.standard_unit.choices = [('', '')] + [(x, x) for x in unit_choices]
                 custom_unit_node = unit_node.find_child(names.CUSTOMUNIT)
                 if custom_unit_node:
                     custom_unit_name = custom_unit_node.content

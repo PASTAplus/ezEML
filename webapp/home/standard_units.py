@@ -63,3 +63,8 @@ def has_deprecated_units(eml_node):
         elif unit not in all_units:
             unknown_units.add(unit)
     return has_deprecated_units, unknown_units
+
+
+def deprecated_in_favor_of(unit):
+    """ Return the unit that the specified unit is deprecated in favor of. """
+    return deprecated_standard_units.get(unit, None)

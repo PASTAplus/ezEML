@@ -23,11 +23,10 @@ from dataclasses import dataclass
 from flask import (
     Blueprint, Flask, url_for, request, session, current_app
 )
-from flask_login import current_user
 
 import webapp.home.utils.load_and_save
 from webapp.home.home_utils import log_error, log_info
-
+from webapp.home.standard_units import deprecated_in_favor_of
 from metapype.eml import names
 import metapype.eml.validate as validate
 from metapype.eml.validation_errors import ValidationError
@@ -94,10 +93,10 @@ def annotate_link(eval_entry, id=None):
         eval_entry.link = urlunparse(parsed._replace(query=new_query))
 
 
-def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None, node=None, replace_value=None):
+def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=None, node=None, replace_value=None, replace_with=None):
     """ Add an EvalEntry for an error or warning to the evaluation list that is being built up. """
 
-    def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None, node=None, replace_value=None):
+    def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None, node=None, replace_value=None, replace_with=None):
         """ Return the EvalEntry object for the given id. """
         try:
             vals = current_app.config.get(f'__eval__{id}')
@@ -109,14 +108,16 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
             node = vals[7] if 7 < len(vals) else None
             explanation = vals[4]
             if replace_value:
-                explanation = explanation.replace('{}', replace_value)
+                explanation = explanation.replace('"{}"', replace_value, 1)
+                if replace_with:
+                    explanation = explanation.replace('"{}"', replace_with, 1)
             return EvalEntry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
                              explanation=explanation, data_table_name=data_table_name, link=link,
                              ui_element_id=ui_element_id, node=node)
         except Exception as exc:
             return None
 
-    entry = get_eval_entry(id, link, section, item, data_table_name, node, replace_value)
+    entry = get_eval_entry(id, link, section, item, data_table_name, node, replace_value, replace_with)
     annotate_link(entry, id)
     if entry:
         evaluation.append(entry)
@@ -670,11 +671,11 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
         """ Return True if the attribute node has a standard unit that is not in the standard unit list. """
         standard_unit_node = attr_node.find_descendant(names.STANDARDUNIT)
         if not standard_unit_node:
-            return None
+            return None, None
         standard_unit = standard_unit_node.content
         if standard_unit not in table_spreadsheets.standard_units:
-            return standard_unit
-        return None
+            return standard_unit, deprecated_in_favor_of(standard_unit)
+        return None, None
 
     attr_type = get_attribute_type(attrib_node)
     mscale = None
@@ -716,7 +717,7 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
                 attrib_name = attrib_name_node.content
         log_error(f"page not initialized... filename={doc_name}  data_table={data_table_name}  attr_name={attrib_name}  attr_type={attr_type}")
         link = url_for(PAGE_ATTRIBUTE_SELECT, filename=doc_name, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
-        add_to_evaluation('attributes_11', link, data_table_name=data_table_name)
+        add_to_evaluation('attributes_12', link, data_table_name=data_table_name)
         return
 
     link = url_for(page, filename=doc_name, dt_node_id=data_table_node.id, node_id=attrib_node.id, mscale=mscale)
@@ -748,9 +749,12 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
         if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_FLOAT, names.PRECISION):
             add_to_evaluation('attributes_09', link, data_table_name=data_table_name)
-        bad_standard_unit = bad_standard_unit(attrib_node)
+        bad_standard_unit, deprecated_use_instead = bad_standard_unit(attrib_node)
         if bad_standard_unit:
-            add_to_evaluation('attributes_10', link, data_table_name=data_table_name, replace_value=bad_standard_unit)
+            if not deprecated_use_instead:
+                add_to_evaluation('attributes_10', link, data_table_name=data_table_name, replace_value=bad_standard_unit)
+            else:
+                add_to_evaluation('attributes_11', link, data_table_name=data_table_name, replace_value=bad_standard_unit, replace_with=deprecated_use_instead)
 
     # DateTime
     if attr_type == webapp.home.metapype_client.VariableType.DATETIME:

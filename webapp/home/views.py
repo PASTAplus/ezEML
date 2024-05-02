@@ -3928,6 +3928,37 @@ def validate_eml():
 @login_required
 @non_saving_hidden_buttons_decorator
 def validate_eml_2(filename):
+    def parse_error_message(input_string):
+        parts = input_string.split(':')
+
+        line_number = parts[1]
+
+        # Find the sixth colon
+        count = 0
+        for index, char in enumerate(input_string):
+            if char == ':':
+                count += 1
+                if count == 6:
+                    break
+
+        error = input_string[index + 2:]
+
+        # Find the first colon not inside a pair of quotes or braces
+        inside_quotes = False
+        inside_braces = False
+        for index, char in enumerate(error):
+            if char == '"':
+                inside_quotes = not inside_quotes
+            elif char == '{':
+                inside_braces = True
+            elif char == '}':
+                inside_braces = False
+            elif char == ':' and not inside_quotes and not inside_braces:
+                break
+        element_name = error[:index]
+        error_message = error[index + 2:]
+        return line_number, element_name, error_message
+
     form = EDIForm()
     uploads_folder = user_data.get_document_uploads_folder_name()
 
@@ -3935,31 +3966,24 @@ def validate_eml_2(filename):
         xml = f.read()
 
     schema_path = validator.schema_path()
-    v = Validator(schema_path + "/EML2.2.0/xsd/eml.xsd")
+
+    if "https://eml.ecoinformatics.org/eml-2.2.0" in xml:
+        schema = schema_path + "/EML2.2.0/xsd/eml.xsd"
+    elif "eml://ecoinformatics.org/eml-2.1.1" in xml:
+        schema = schema_path + "/EML2.1.1/eml.xsd"
+    elif "eml://ecoinformatics.org/eml-2.1.0" in xml:
+        schema = schema_path + "/EML2.1.0/eml.xsd"
+    else:
+        raise ValueError("Cannot determine EML schema")
+
+    v = Validator(schema)
     validation_errs = []
     try:
         v.validate(xml)
     except ValidationError as e:
         errors = str(e.args[0]).split('\n')
         for error in errors:
-            # e_parts = [p.strip() for p in error.split(':')]
-            # validation_errs.append((e_parts[1], e_parts[-2], e_parts[-1]))
-
-            # Extract line number
-            line_number = error.split(':')[1]
-
-            # Extract element name using regex to find text between curly braces
-            element_name_match = re.search(r"{([^}]*)}", error)
-            element_name = element_name_match.group(0) if element_name_match else ''
-            # Remove braces if present
-            if element_name.startswith('{') and element_name.endswith('}'):
-                element_name = element_name[1:-1]  # Removing the first and last characters
-
-            # Extract the error message by finding the position of the last colon after the element name and slicing
-            element_position = error.find(element_name) + len(element_name)
-            error_message_start = error.find(':', element_position) + 1
-            error_message = error[error_message_start:].strip()
-
+            line_number, element_name, error_message = parse_error_message(error)
             validation_errs.append((line_number, element_name, error_message))
 
     except XMLSyntaxError as e:

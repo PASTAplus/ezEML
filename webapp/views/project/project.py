@@ -124,12 +124,15 @@ def project(filename=None, project_node_id=None):
             save_both_formats(filename=filename, eml_node=eml_node)
 
         new_page = handle_hidden_buttons(new_page)
+        # We need to distinguish the case where the user has clicked "Project" button in Contents menu. In this case,
+        # we need to redirect to the project page, not the related project page. We can't let the presence of a project
+        # node ID fool us.
+        if BTN_HIDDEN_PROJECT in request.form:
+            doing_related_project = False
 
-        # if not node_id:
         if not doing_related_project:
             return redirect(url_for(new_page, filename=filename))
         else:
-            # return redirect(url_for(new_page, filename=filename, node_id=None, project_node_id=project_node_id))
             return redirect(url_for(new_page, filename=filename, node_id='None', project_node_id=project_node_id))
 
     # Process GET

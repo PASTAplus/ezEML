@@ -1079,7 +1079,7 @@ def save_as():
 
     # Process GET
     if current_document:
-        form.filename.data = current_document
+        # form.filename.data = current_document
         help = get_helps(['save_as_document'])
         return render_template('save_as.html',
                                filename=current_document,

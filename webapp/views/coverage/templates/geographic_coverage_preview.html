@@ -33,6 +33,17 @@
             });
 
             polygon.setMap(map);
+
+            // Create a new bounds object
+            const bounds = new google.maps.LatLngBounds();
+
+            // Extend the bounds to include each point of the polygon
+            polygonCoords.forEach(function(coord) {
+                bounds.extend(coord);
+            });
+
+            // Fit the map to the new bounds
+            map.fitBounds(bounds);
         }
     </script>
 </head>

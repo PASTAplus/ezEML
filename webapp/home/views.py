@@ -3739,6 +3739,9 @@ def select_post(filename=None, form=None, form_dict=None,
                 remove_child(node)
                 # node_id = project_node_id  # for relatedProject case
                 save_both_formats(filename=filename, eml_node=eml_node)
+            elif val == BTN_PREVIEW:
+                new_page = 'cov.preview_geographic_coverage'
+                node_id, _ = extract_ids(key)
             elif val == BTN_REUPLOAD:
                 node_id, secondary_node_id = extract_ids(key)
                 if reupload_page:

@@ -32,6 +32,8 @@ class Config(object):
     AUTH = "https://auth.edirepository.org/auth"
     TARGET = "ezeml.edirepository.org"
 
+    GOOGLE_MAP_API_KEY = "GOOGLE_MAP_API_KEY"
+
     DOMAINS = {
         "edi": "o=EDI,dc=edirepository,dc=org",
     }

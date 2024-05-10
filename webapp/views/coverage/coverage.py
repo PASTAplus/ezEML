@@ -93,7 +93,7 @@ def geographic_coverage_select(filename=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(filename, form, form_dict,
+        url = select_post(filename, form, form_dict, # blah
                           'POST', PAGE_GEOGRAPHIC_COVERAGE_SELECT,
                           PAGE_INTELLECTUAL_RIGHTS,
                           PAGE_TEMPORAL_COVERAGE_SELECT,
@@ -253,6 +253,42 @@ def load_geo_coverage(filename):
     return render_template('load_geo_coverage.html',
                            form=form,
                            help=help)
+
+
+@cov_bp.route('/preview_geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
+@login_required
+def preview_geographic_coverage(filename=None, node_id=None):
+    """
+    Route for displaying a preview map for a geographic coverage
+    """
+
+    # Process GET
+    gc_node = None
+    if node_id != '1':
+        eml_node = load_eml(filename=filename)
+        dataset_node = eml_node.find_child(names.DATASET)
+        if dataset_node:
+            coverage_node = dataset_node.find_child(names.COVERAGE)
+            if coverage_node:
+                gc_nodes = coverage_node.find_all_children(names.GEOGRAPHICCOVERAGE)
+                if gc_nodes:
+                    for gc_node in gc_nodes:
+                        if node_id == gc_node.id:
+                            break
+    if node_id == gc_node.id:
+        bounding_coordinates = gc_node.find_child(names.BOUNDINGCOORDINATES)
+        if bounding_coordinates:
+            west = bounding_coordinates.find_child(names.WESTBOUNDINGCOORDINATE).content
+            east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
+            north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
+            south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
+            corners = [[south, west], [south, east], [north, east], [north, west]]
+            return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage', coordinates=corners)
+
+    # set_current_page('geographic_coverage')
+    # help = get_helps(['geographic_coverages', 'geographic_coverages_csv_file'])
+    # return render_template('geographic_coverage_select.html', title=title,
+    #                        gc_list=gc_list, form=form, help=help, tooltip=tooltip)
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])

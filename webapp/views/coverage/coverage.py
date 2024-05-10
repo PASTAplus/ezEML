@@ -261,6 +261,9 @@ def preview_geographic_coverage(filename=None, node_id=None):
     """
     Route for displaying a preview map for a geographic coverage
     """
+    from webapp.config import Config
+
+    API_KEY = Config.GOOGLE_MAP_API_KEY
 
     # Process GET
     gc_node = None
@@ -283,7 +286,7 @@ def preview_geographic_coverage(filename=None, node_id=None):
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
             corners = [[south, west], [south, east], [north, east], [north, west]]
-            return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage', coordinates=corners)
+            return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage', api_key=API_KEY, coordinates=corners)
 
     # set_current_page('geographic_coverage')
     # help = get_helps(['geographic_coverages', 'geographic_coverages_csv_file'])

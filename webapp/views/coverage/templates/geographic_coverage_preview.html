@@ -19,6 +19,7 @@
             return true;
         }
 
+        window.onload=function() {
         function initMap() {
             const mapCenter = { lat: {{ coordinates[0][0] }}, lng: {{ coordinates[0][1] }} };
             const map = new google.maps.Map(document.getElementById("map"), {
@@ -70,6 +71,7 @@
             {#    map.setZoom(map.getZoom() - 1); // Zoom out by one level after the map has fit the bounds#}
             {#});#}
         }
+        };
     </script>
 </head>
 <body>

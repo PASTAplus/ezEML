@@ -33,11 +33,11 @@
 
             if (polygonCoords.length == 1 || allCoordsSame(polygonCoords)) {
                 map.setCenter(polygonCoords[0]);
-                const marker = new google.maps.Marker({
+                new google.maps.Marker({
                     position: polygonCoords[0],
                     map: map,
                 });
-                map.setCenter(polygonCoords[0]);
+
             } else {
                 const polygon = new google.maps.Polygon({
                     paths: polygonCoords,
@@ -47,19 +47,20 @@
                     fillColor: "#5990bd",
                     fillOpacity: 0.35,
                 });
+
+                polygon.setMap(map);
+
+                // Create a new bounds object
+                const bounds = new google.maps.LatLngBounds();
+
+                // Extend the bounds to include each point of the polygon
+                polygonCoords.forEach(function(coord) {
+                    bounds.extend(coord);
+                });
+
+                // Fit the map to the new bounds
+                map.fitBounds(bounds);
             }
-            polygon.setMap(map);
-
-            // Create a new bounds object
-            const bounds = new google.maps.LatLngBounds();
-
-            // Extend the bounds to include each point of the polygon
-            polygonCoords.forEach(function(coord) {
-                bounds.extend(coord);
-            });
-
-            // Fit the map to the new bounds
-            map.fitBounds(bounds);
 
             // Listen for the 'idle' event on the map and then adjust the zoom
             google.maps.event.addListenerOnce(map, 'idle', function() {

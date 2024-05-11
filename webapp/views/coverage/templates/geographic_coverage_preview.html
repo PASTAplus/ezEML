@@ -31,7 +31,6 @@
             const polygonCoords = [
                 {% for lat, lng in coordinates %}
                     new google.maps.LatLng({{ lat }}, {{ lng }}),
-                {#{ lat: {{ lat }}, lng: {{ lng }} },#}
                 {% endfor %}
             ];
 
@@ -40,8 +39,8 @@
                 new google.maps.Marker({
                     position: polygonCoords[0],
                     map: map,
-                    fillColor: "#FF0000"
                 });
+                map.setZoom(15);
 
             } else {
                 const polygon = new google.maps.Polygon({

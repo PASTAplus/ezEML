@@ -21,6 +21,14 @@
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_geographic_coverage_btn) }}</td>
     </table>
 
+    <script>
+    function openInNewTab(url) {
+        alert(url);
+        var win = window.open(url, '_ezEML_preview');
+        win.focus();
+    }
+    </script>
+
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
@@ -44,7 +52,8 @@
                         {{ macros.up_down_arrow(gc_entry.id, gc_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="Edit"/>&nbsp;
                         <input class="btn btn-primary" name="{{ gc_entry.id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/>&nbsp;
-                        <input class="btn btn-primary" name="{{ gc_entry.id }}" type="submit" value="Preview"/>
+                        {# Implemented as a link so we can open in a new tab #}
+                        <a class="btn btn-primary" href="{{ url_for('cov.preview_geographic_coverage', filename=filename, node_id=node_id) }}" target="_ezEML_preview_">Preview</a>
                         </td>
                     </tr>
                     {% endfor %}

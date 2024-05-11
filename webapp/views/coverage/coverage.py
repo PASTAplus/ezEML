@@ -116,7 +116,7 @@ def geographic_coverage_select(filename=None):
 
     set_current_page('geographic_coverage')
     help = get_helps(['geographic_coverages', 'geographic_coverages_csv_file'])
-    return render_template('geographic_coverage_select.html', title=title,
+    return render_template('geographic_coverage_select.html', title=title, filename=filename,
                            gc_list=gc_list, form=form, help=help, tooltip=tooltip)
 
 

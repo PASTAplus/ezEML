@@ -66,12 +66,12 @@
                 map.fitBounds(bounds);
 
                 // Listen for the 'idle' event on the map and then adjust the zoom
-                google.maps.event.addListenerOnce(map, 'idle', function() {
-                    map.setZoom(map.getZoom() - 1); // Zoom out by one level after the map has fit the bounds
-                });
+                {#google.maps.event.addListenerOnce(map, 'idle', function() {#}
+                {#    map.setZoom(map.getZoom() - 1); // Zoom out by one level after the map has fit the bounds#}
+                {#});#}
             }
 
-            }, 500);
+            }, 250);
         }
     </script>
 </head>

@@ -4,7 +4,7 @@
     <title>Google Map</title>
     <style>
         #map {
-            height: 400px;
+            height: 600px;
             width: 100%;
         }
     </style>
@@ -44,6 +44,11 @@
 
             // Fit the map to the new bounds
             map.fitBounds(bounds);
+
+            // Listen for the 'idle' event on the map and then adjust the zoom
+            google.maps.event.addListenerOnce(map, 'idle', function() {
+                map.setZoom(map.getZoom() - 1); // Zoom out by one level after the map has fit the bounds
+            });
         }
     </script>
 </head>

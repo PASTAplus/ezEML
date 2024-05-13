@@ -59,6 +59,8 @@ def login():
         else:
             return redirect(url_for(PAGE_INDEX))
 
+    log_info(f"request.url: {request.url}")
+
     # Process POST
     form = LoginForm()
     if form.validate_on_submit():
@@ -97,7 +99,6 @@ def login():
         return redirect(url_for(PAGE_LOGIN))
 
     # Process GET
-    log_info(f"request.url: {request.url}")
     auth_token = request.args.get("token")
     log_info(f"auth_token: {auth_token}")
     cname = request.args.get("cname")

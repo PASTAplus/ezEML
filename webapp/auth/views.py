@@ -60,6 +60,7 @@ def login():
             return redirect(url_for(PAGE_INDEX))
 
     log_info(f"request.url: {request.url}")
+    log_info(f"request.args: {request.args}")
 
     # Process POST
     form = LoginForm()

@@ -58,6 +58,7 @@ def login():
             return redirect(url_for(PAGE_TITLE, filename=filename))
         else:
             return redirect(url_for(PAGE_INDEX))
+
     # Process POST
     form = LoginForm()
     if form.validate_on_submit():
@@ -96,6 +97,7 @@ def login():
         return redirect(url_for(PAGE_LOGIN))
 
     # Process GET
+    log_info(f"request.url: {request.url}")
     auth_token = request.args.get("token")
     log_info(f"auth_token: {auth_token}")
     cname = request.args.get("cname")
@@ -117,6 +119,7 @@ def login():
             else:
                 next_page = url_for(PAGE_INDEX)
         return redirect(next_page)
+
     help = get_helps(['login'])
     return render_template(
         'login.html', form=form, auth=Config.AUTH, target=Config.TARGET, help=help

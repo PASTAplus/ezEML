@@ -125,6 +125,7 @@ class Config(object):
         ],
         "LTER/NTL": [
             ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),
+            ("NTL-d5c08b86e40a4d6ec22d97fe4a28bc43", "gahler@wisc.edu"),
         ],
         "NEON": [
         ],

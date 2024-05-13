@@ -1372,6 +1372,52 @@ Non-ASCII Unicode Characters
 The EML standard permits the use of non-ASCII Unicode characters in text elements. Their use is not an error.
 
 You may, however, encounter display problems with EML files that contain such characters when you are working in text editors or other software if the needed fonts are not available. We identify non-ASCII Unicode characters in the EML document to help you troubleshoot such problems.
+--------------------
+manage_templates
+Manage Templates
+
+A research site or organization can designate one or more users to manage metadata templates for the site. Such users can create, edit, save, and delete templates. As a user with template management rights, you are able to manage templates for your particular site.
+
+Any ezEML user can <i>make use of</i> templates when creating a new EML document or importing selected metadata from a template. I.e., templates are available to all users, but only selected users can <i>manage</i> them.
+
+Ordinarily, EML documents are visible only to their creators and collaborators. Templates, however, are visible to all users. In all other respects, templates are just like any other EML document, except that their metadata is generally only partially complete.
+--------------------
+open_template
+Open Template
+
+Click <b>Open a Template</b> to view or edit an existing metadata template. You can then employ the full feature set of ezEML to view and edit the metadata of the template, just as you would for any other EML document.
+
+To create a new template from scratch, just use <b>New...</b> in the <b>EML Documents</b> menu to create it as you would any other EML document, then save it as a template using <b>Save As Template</b>.
+
+With <b>Save As Template</b>, you can save the template under its current name or under a new name.
+--------------------
+save_as_template
+Save As Template
+
+Click <b>Save As Template</b> to save the currently open EML document as a metadata template. You can save the template under the EML document's current name or under a new name.
+
+If no EML document is currently open, <b>Save As Template</b> will be disabled.
+--------------------
+delete_template
+Delete Template
+
+<b>Delete Template</b> lets you delete a metadata template for which you have management rights.
+
+Deleting a template cannot be undone.
+--------------------
+display_templates
+Display Templates
+
+<b>Display Templates</b> displays the full tree of metadata templates that currently exist. It shows all templates, not just the ones for which you have management rights.
+--------------------
+template_name
+Template Name
+
+Enter a name for the template. This is the name users will employ to access the template.
+
+It may be the same as the name of the currently open EML document, but it doesn't have to be.
+
+
 
 
 

@@ -63,7 +63,7 @@ from webapp.home.forms import (
     ImportItemsForm, ImportSingleItemForm, ImportKeywordsForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm,
-    SettingsForm
+    SettingsForm, OpenTemplateForm, SaveAsTemplateForm, DeleteTemplateForm
 )
 
 import webapp.utils as utils
@@ -98,6 +98,14 @@ from webapp.home.utils.import_nodes import import_responsible_parties, import_ke
 from webapp.home.utils.lists import list_data_packages, list_templates, template_display_name, compose_full_gc_label, \
     truncate_middle, compose_taxonomic_label, UP_ARROW, DOWN_ARROW
 from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fetched_from_edi_metadata
+from webapp.home.utils.template_management import (
+    init_template_management,
+    template_folders_for_user,
+    templates_for_user,
+    copy_template_to_user_data,
+    copy_document_to_template_folder,
+    delete_template_file
+)
 
 import webapp.home.check_data_table_contents as check_data_table_contents
 from webapp.home.check_data_table_contents import format_date_time_formats_list
@@ -577,6 +585,7 @@ def init_session_vars():
     """ Initialize session variables. """
     init_db()
     init_status_badges()
+    init_template_management()
 
     session["news_datetime"] = get_news_datetime()
 
@@ -975,6 +984,8 @@ def manage_data_usage(action=None):
         return redirect(url_for(PAGE_INDEX))
 
     days = Config.GC_DAYS_TO_LIVE  # default number of days to filter on
+
+    reload_metadata()  # Reload the metadata to set badge colors
 
     # The action parameter is used to signal we want to return to the previous page.
     if action == '____back____':
@@ -1392,6 +1403,165 @@ def open_eml_document():
                            form=form)
 
 
+@home_bp.route('/save_as_template', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def save_as_template():
+    """Handle the Save As Template... page in EML Documents menu."""
+
+    """
+    First, check if the user is authorized to access multiple template folders. If so, the first step is to select
+    the folder in which to save the template. If not, the user will be taken directly to the Save As Template page.
+    """
+    template_folders = template_folders_for_user()
+
+    form = SaveAsTemplateForm()
+    reload_metadata() # To update the content menu badges.
+
+    choices = [[folder, folder] for folder in template_folders]
+    form.folder.choices = choices
+
+    # Process POST
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(url_for(PAGE_MANAGE_TEMPLATES))
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+            if len(template_folders) > 1:
+                folder = form.folder.data
+            elif len(template_folders) == 1:
+                folder = template_folders[0]
+                form.folder.data = folder
+            else:
+                flash('You do not have access to any template folders.', 'error')
+                return redirect(url_for(PAGE_TITLE, filename=current_user.get_filename()))
+
+            # Copy the current document to the selected template folder.
+            current_document = current_user.get_filename()
+            save_to_name = form.filename.data
+            copy_document_to_template_folder(current_document, folder, save_to_name)
+
+            flash(f'Template saved as "{save_to_name}" in template folder {folder}.', 'success')
+            return redirect(url_for(PAGE_TITLE, filename=current_document))
+        else:
+            if len(template_folders) > 1 and not form.folder.data:
+                flash('Select a template folder and try again.', 'error')
+
+    # Process GET
+    if len(template_folders) == 1:
+        form.folder.data = template_folders[0]
+
+    form.filename.data = current_user.get_filename()
+
+    help = get_helps(['template_name'])
+    return render_template('save_as_template.html', title='Save As Template',
+                           form=form, help=help)
+
+
+@home_bp.route('/delete_template', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def delete_template():
+    """Handle the Delete Template... page in EML Documents menu."""
+
+    form = DeleteTemplateForm()
+    form.filename.choices = templates_for_user()
+    reload_metadata() # To update the content menu badges.
+
+    # Process POST
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(url_for(PAGE_MANAGE_TEMPLATES))
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+
+            # Delete the selected template.
+            if delete_template_file(filename):
+                flash(f'Template "{filename}" was deleted.', 'success')
+            else:
+                flash(f'Error deleting template "{filename}".', 'error')
+            return redirect(url_for(PAGE_TITLE, filename=current_user.get_filename()))
+
+    # Process GET
+    help = get_helps(['save_as_document'])
+    return render_template('delete_template.html', title='Delete Template',
+                           form=form, help=help)
+
+
+@home_bp.route('/manage_templates', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def manage_templates():
+    """Handle the Manage Templates... page in EML Documents menu."""
+
+    form = EDIForm()
+    reload_metadata() # To update the content menu badges.
+
+    # Process POST
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(get_back_url())
+
+        if form.validate_on_submit():
+            # If the user has clicked Save in the EML Documents menu, for example, we need to ignore the
+            #  programmatically generated Submit
+
+            if request.form.get(BTN_SUBMIT) == BTN_OPEN_TEMPLATE:
+                return redirect(url_for(PAGE_OPEN_TEMPLATE))
+            elif request.form.get(BTN_SUBMIT) == BTN_SAVE_AS_TEMPLATE:
+                return redirect(url_for(PAGE_SAVE_AS_TEMPLATE))
+            elif request.form.get(BTN_SUBMIT) == BTN_DELETE_TEMPLATE:
+                return redirect(url_for(PAGE_DELETE_TEMPLATE))
+            elif request.form.get(BTN_SUBMIT) == BTN_DISPLAY_TEMPLATES:
+                return redirect(url_for(PAGE_DISPLAY_TEMPLATES))
+
+    if not current_user.get_filename():
+        save_disabled = 'disabled'
+    else:
+        save_disabled = ''
+
+    help = get_helps(['manage_templates', 'open_template', 'save_as_template', 'delete_template', 'display_templates'])
+    return render_template('manage_templates.html',
+                           title='Manage Templates',
+                           save_disabled=save_disabled,
+                           form=form, help=help)
+
+
+@home_bp.route('/open_template', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def open_template():
+    """Handle the Open Template... page in EML Documents menu."""
+
+    form = OpenTemplateForm()
+    form.filename.choices = list_templates(True)
+    reload_metadata() # To update the content menu badges.
+
+    # Process POST
+    if request.method == 'POST':
+
+        if BTN_CANCEL in request.form:
+            return redirect(url_for(PAGE_MANAGE_TEMPLATES))
+
+        if form.validate_on_submit():
+            filename = form.filename.data
+
+            # Copy the template to the user's data directory.
+            filename = copy_template_to_user_data(filename)
+
+            # Open the document. Note that open_document takes care of handling locks.
+            return open_document(filename)
+
+    # Process GET
+    return render_template('open_template.html', title='Open Template',
+                           form=form)
+
+
 @home_bp.route('/open_package/<package_name>', methods=['GET', 'POST'])
 @home_bp.route('/open_package/<package_name>/<owner>', methods=['GET', 'POST'])
 @login_required
@@ -1424,6 +1594,92 @@ def open_package(package_name, owner=None):
     return redirect(url_for(new_page, filename=package_name))
 
 
+def form_template_tree(file, output, collapsed=True, set_targets=True):
+    """
+    Note that the expansion of template folders, etc., is handled in JavaScript in the template.
+    """
+    def get_subdirs(dir):
+        subdirs = []
+        for fname in sorted(os.listdir(dir), key=str.lower):
+            if os.path.isdir(os.path.join(dir, fname)):
+                subdirs.append(os.path.join(dir, fname))
+        return subdirs
+
+    def get_files(dir):
+        files = []
+        for fname in sorted(os.listdir(dir), key=str.lower):
+            if os.path.isdir(os.path.join(dir, fname)) or fname.endswith('.json'):
+                files.append(os.path.join(dir, fname))
+        return files
+
+    def add_file(fname, output):
+        dir = os.path.dirname(fname)
+        dir = dir.replace(f"{Config.TEMPLATE_DIR}/", '')
+        fname = os.path.splitext(os.path.basename(fname))[0]
+        if set_targets:
+            output += f'<li onclick="setTarget(\'{fname}\', \'{dir}\');" style="color:steelblue;cursor:pointer;">{fname}</li>\n'
+        else:
+            output += f'<li style="color:black;">{fname}</li>\n'
+
+        return output
+
+    if file == Config.TEMPLATE_DIR:
+        subdirs = get_subdirs(file)
+        if not subdirs:
+            return "<i>No templates are available at this time.</i>"
+
+    have_ul = False
+    if os.path.isdir(file):
+        files = get_files(file)
+        if file != Config.TEMPLATE_DIR:
+            output += f'<li>{os.path.basename(os.path.normpath(file))}\n'
+            if files:
+                if collapsed:
+                    output += f'<ul style="display: none;">\n'
+                else:
+                    output += f'<ul style="display: block;">\n'
+                have_ul = True
+        for file in files:
+            output = form_template_tree(file, output, collapsed=collapsed, set_targets=set_targets)
+    else:
+        if file:
+            output = add_file(file, output)
+    if have_ul:
+        output += "</ul>\n"
+    output += "</li>\n"
+
+    return output
+
+
+@home_bp.route('/display_templates', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def display_templates():
+    """
+    Handle the Display Templates... item in EML Documents menu.
+
+    Note that the expansion of template folders, etc., is handled in JavaScript in the template.
+    """
+    reload_metadata() # To update the content menu badges.
+
+    if request.method == 'POST':
+        form = request.form
+        if BTN_CANCEL in form:
+            return redirect(url_for(PAGE_MANAGE_TEMPLATES))
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_MANAGE_TEMPLATES)
+            return redirect(url_for(new_page))
+
+    # Process GET
+    output = '<ul class="directory-list">\n'
+    output = form_template_tree(Config.TEMPLATE_DIR, output, collapsed=False, set_targets=False)
+    output += '</ul>'
+
+    help = get_helps(['new_from_template'])
+    return render_template('display_templates.html', directory_list=output, help=help)
+
+
 @home_bp.route('/new_from_template', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
@@ -1433,57 +1689,15 @@ def new_from_template():
 
     Note that the expansion of template folders, etc., is handled in JavaScript in the template.
     """
-    def form_template_tree(file, output):
-        def get_subdirs(dir):
-            subdirs = []
-            for fname in sorted(os.listdir(dir), key=str.lower):
-                if os.path.isdir(os.path.join(dir, fname)):
-                    subdirs.append(os.path.join(dir, fname))
-            return subdirs
-
-        def get_files(dir):
-            files = []
-            for fname in sorted(os.listdir(dir), key=str.lower):
-                if os.path.isdir(os.path.join(dir, fname)) or fname.endswith('.json'):
-                    files.append(os.path.join(dir, fname))
-            return files
-
-        def add_file(fname, output):
-            dir = os.path.dirname(fname)
-            dir = dir.replace(f"{Config.TEMPLATE_DIR}/", '')
-            fname = os.path.splitext(os.path.basename(fname))[0]
-            output += f'<li onclick="setTarget(\'{fname}\', \'{dir}\');" style="color:steelblue;cursor:pointer;">{fname}</li>\n'
-
-            return output
-
-        if file == Config.TEMPLATE_DIR:
-            subdirs = get_subdirs(file)
-            if not subdirs:
-                return "<i>No templates are available at this time.</i>"
-
-        have_ul = False
-        if os.path.isdir(file):
-            files = get_files(file)
-            if file != Config.TEMPLATE_DIR:
-                output += f'<li>{os.path.basename(os.path.normpath(file))}\n'
-                if files:
-                    output += f'<ul style="display: none;">\n'
-                    have_ul = True
-            for file in files:
-                output = form_template_tree(file, output)
-        else:
-            if file:
-                output = add_file(file, output)
-        if have_ul:
-            output += "</ul>\n"
-        output += "</li>\n"
-
-        return output
-
     if request.method == 'POST':
         form = request.form
         if BTN_CANCEL in form:
             return redirect(get_back_url())
+
+        if is_hidden_button():
+            new_page = handle_hidden_buttons(PAGE_NEW_FROM_TEMPLATE_2)
+            current_document = current_user.get_filename()
+            return redirect(url_for(new_page, filename=current_document))
 
         form_dict = form.to_dict(flat=False)
         # Find the key with value = 'OK'. That gives the path of the template.

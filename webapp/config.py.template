@@ -104,6 +104,35 @@ class Config(object):
         "UMBS" : [ ("Jason_Tallant-40d45c7169e13671c6b8f78c30e21327", "jtallant@umich.edu") ]
     }
 
+    # Certain users are authorized to manage templates for certain sites.
+    TEMPLATE_MANAGERS = {
+        "__ALL__": [
+            ("jide-7a03c1e6f4528a6f9c4b1ae3cec24b39", "jride@wisc.edu"),
+        ],
+        "COS-SPU": [
+            ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),
+        ],
+        "LTER/CAP": [
+        ],
+        "LTER/FCE": [
+        ],
+        "LTER/HBR": [
+            ("HBR-673945f5868105aaeb512e1340fbb96e", "mary.martin@unh.edu"),
+        ],
+        "LTER/JRN": [
+        ],
+        "LTER/MCR": [
+        ],
+        "LTER/NTL": [
+            ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),
+        ],
+        "NEON": [
+        ],
+        "UMBS": [
+            ("Jason_Tallant-40d45c7169e13671c6b8f78c30e21327", "jtallant@umich.edu"),
+        ],
+    }
+
     # To allow disabling EDI Curation emails during development so as not to annoy curators
     DISABLE_ENABLE_EDI_CURATION_EMAILS = False
 

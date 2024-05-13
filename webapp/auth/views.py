@@ -94,6 +94,7 @@ def login():
             return redirect(accept_url)
         flash('Invalid username or password')
         return redirect(url_for(PAGE_LOGIN))
+
     # Process GET
     auth_token = request.args.get("token")
     log_info(f"auth_token: {auth_token}")

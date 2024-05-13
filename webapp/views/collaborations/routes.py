@@ -7,12 +7,15 @@ from urllib.parse import quote, unquote, urlparse
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
-    session, Markup, jsonify, send_file
+    session, jsonify, send_file
 )
 
 from flask_login import (
     current_user, login_required
 )
+
+from markupsafe import Markup
+
 import webapp.auth.user_data as user_data
 
 import webapp.mimemail as mimemail

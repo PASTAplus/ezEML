@@ -25,7 +25,7 @@ from zipfile import ZipFile
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
-    session, Markup, jsonify, send_file
+    session, jsonify, send_file
 )
 
 from flask_login import (
@@ -33,6 +33,8 @@ from flask_login import (
 )
 
 from flask import Flask, current_app
+
+from markupsafe import Markup
 
 import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail

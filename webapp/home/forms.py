@@ -237,6 +237,19 @@ class OpenEMLDocumentForm(FlaskForm):
     filename = SelectField('Document Name', choices=[])
 
 
+class OpenTemplateForm(FlaskForm):
+    filename = SelectField('Template Name', choices=[])
+
+
+class SaveAsTemplateForm(FlaskForm):
+    folder = RadioField('Template Folder', choices=[], validators=[DataRequired()])
+    filename = StringField('Template Name', validators=[DataRequired()])
+
+
+class DeleteTemplateForm(FlaskForm):
+    filename = RadioField('Template Name', choices=[], validators=[DataRequired()])
+
+
 class ValidateEMLFileForm(FlaskForm):
     filename = SelectField('EML XML File Name', choices=[])
 

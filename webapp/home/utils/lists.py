@@ -20,6 +20,7 @@ from webapp.home.home_utils import log_info
 from webapp.home.metapype_client import VariableType
 from webapp.home.texttype_node_processing import excerpt_text
 from webapp.home.utils.import_nodes import compose_rp_label
+from webapp.home.utils.template_management import is_authorized_to_manage_templates
 from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 NO_OP = ''
@@ -59,7 +60,7 @@ def template_display_name(template_path:str):
     return ' | '.join(segments)
 
 
-def list_templates():
+def list_templates(authorized_only=False):
     template_dir = Config.TEMPLATE_DIR
     if template_dir[-1] != '/':
         template_dir += '/'
@@ -67,6 +68,9 @@ def list_templates():
     for root, dirs, files in os.walk(template_dir):
         for name in files:
             if name.endswith('.json'):
+                if authorized_only:
+                    if not is_authorized_to_manage_templates(root.removeprefix(template_dir)):
+                        continue
                 templates.append((root, name))
     choices = []
     for template in templates:

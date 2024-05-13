@@ -94,9 +94,12 @@ def login():
             return redirect(accept_url)
         flash('Invalid username or password')
         return redirect(url_for(PAGE_LOGIN))
+
     # Process GET
     auth_token = request.args.get("token")
+    log_info(f"auth_token: {auth_token}")
     cname = request.args.get("cname")
+    log_info(f"cname: {cname}")
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
         uid = pasta_token.uid

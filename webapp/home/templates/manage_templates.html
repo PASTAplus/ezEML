@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_manage_templates_id, help_manage_templates_title, help_manage_templates_content = help[0] %}
+    {% set help_manage_templates_btn = help_manage_templates_id ~ '_btn' %}
+    {% set help_manage_templates_dialog = help_manage_templates_id ~ '_dialog' %}
+    {% set help_open_template_id, help_open_template_title, help_open_template_content = help[1] %}
+    {% set help_open_template_btn = help_open_template_id ~ '_btn' %}
+    {% set help_open_template_dialog = help_open_template_id ~ '_dialog' %}
+    {% set help_save_as_template_id, help_save_as_template_title, help_save_as_template_content = help[2] %}
+    {% set help_save_as_template_btn = help_save_as_template_id ~ '_btn' %}
+    {% set help_save_as_template_dialog = help_save_as_template_id ~ '_dialog' %}
+    {% set help_delete_template_id, help_delete_template_title, help_delete_template_content = help[3] %}
+    {% set help_delete_template_btn = help_delete_template_id ~ '_btn' %}
+    {% set help_delete_template_dialog = help_delete_template_id ~ '_dialog' %}
+    {% set help_display_templates_id, help_display_templates_title, help_display_templates_content = help[4] %}
+    {% set help_display_templates_btn = help_display_templates_id ~ '_btn' %}
+    {% set help_display_templates_dialog = help_display_templates_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Manage Templates</h2></td>
+        <td valign="middle" style="padding-top: 18px;padding-left: 10px;">{{ macros.help_button(help_manage_templates_btn) }}</td>
+    </table>
+
+    <form method="POST" action="" class="form" role="form" novalidate>
+        {{ form.csrf_token }}
+        <p>&nbsp;</p>
+
+                <table>
+                    <td><input class="btn btn-primary" style="width: 200px;" name="Submit" type="submit" value="Open Template"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_open_template_btn) }}
+                    </td>
+                </table>
+        <p>&nbsp;</p>
+                <table>
+                    <td><input class="btn btn-primary" style="width: 200px;" name="Submit" type="submit" {{ save_disabled }} value="Save As Template"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_save_as_template_btn) }}
+                    </td>
+                </table>
+        <p>&nbsp;</p>
+                <table>
+                    <td><input class="btn btn-primary" style="width: 200px;" name="Submit" type="submit" value="Delete Template"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_delete_template_btn) }}
+                    </td>
+                </table>
+        <p>&nbsp;</p>
+                <table>
+                    <td><input class="btn btn-primary" style="width: 200px;" name="Submit" type="submit" value="Display Templates"/></td>
+                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_display_templates_btn) }}
+                    </td>
+                </table>
+
+                <p></p>
+                <p></p>
+        <p>&nbsp;</p>
+                <input class="btn btn-primary" style="width: 100px;" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
+                {{ macros.hidden_buttons() }}
+
+    </form>
+        </div>
+    {{ macros.help_dialog(help_manage_templates_dialog, help_manage_templates_title, help_manage_templates_content) }}
+    {{ macros.help_dialog(help_open_template_dialog, help_open_template_title, help_open_template_content) }}
+    {{ macros.help_dialog(help_save_as_template_dialog, help_save_as_template_title, help_save_as_template_content) }}
+    {{ macros.help_dialog(help_delete_template_dialog, help_delete_template_title, help_delete_template_content) }}
+    {{ macros.help_dialog(help_display_templates_dialog, help_display_templates_title, help_display_templates_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_manage_templates_id, help_manage_templates_title, help_manage_templates_content = help[0] %}
+    {% set help_manage_templates_btn = help_manage_templates_id ~ '_btn' %}
+    {% set help_manage_templates_dialog = help_manage_templates_id ~ '_dialog' %}
+    {% set help_open_template_id, help_open_template_title, help_open_template_content = help[1] %}
+    {% set help_open_template_btn = help_open_template_id ~ '_btn' %}
+    {% set help_open_template_dialog = help_open_template_id ~ '_dialog' %}
+    {% set help_save_as_template_id, help_save_as_template_title, help_save_as_template_content = help[2] %}
+    {% set help_save_as_template_btn = help_save_as_template_id ~ '_btn' %}
+    {% set help_save_as_template_dialog = help_save_as_template_id ~ '_dialog' %}
+    {% set help_delete_template_id, help_delete_template_title, help_delete_template_content = help[3] %}
+    {% set help_delete_template_btn = help_delete_template_id ~ '_btn' %}
+    {% set help_delete_template_dialog = help_delete_template_id ~ '_dialog' %}
+    {% set help_display_templates_id, help_display_templates_title, help_display_templates_content = help[4] %}
+    {% set help_display_templates_btn = help_display_templates_id ~ '_btn' %}
+    {% set help_display_templates_dialog = help_display_templates_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_manage_templates_dialog, help_manage_templates_btn) }}
+        {{ macros.help_script(help_open_template_dialog, help_open_template_btn) }}
+        {{ macros.help_script(help_save_as_template_dialog, help_save_as_template_btn) }}
+        {{ macros.help_script(help_delete_template_dialog, help_delete_template_btn) }}
+        {{ macros.help_script(help_display_templates_dialog, help_display_templates_btn) }}
+    });
+    </script>
+{% endblock %}

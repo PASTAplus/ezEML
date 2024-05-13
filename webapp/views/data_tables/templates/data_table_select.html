@@ -46,7 +46,7 @@
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.upval) }}
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Edit"/></td>
-                        <td><input class="btn btn-primary" onclick="return confirm('Are you sure? This action cannot be undone.');" name="{{ dt_entry.id }}" type="submit" value="Remove"/></td>
+                        <td><input class="btn btn-primary" onclick="return confirm('Are you sure? This action cannot be undone.\n\nIf you intend to re-upload the table, do not remove it. Removing the table causes its metadata to be deleted, and it would then have to be re-entered.');" name="{{ dt_entry.id }}" type="submit" value="Remove"/></td>
                         {% if dt_entry.object_name %}
                         <td><input class="btn btn-primary" name="{{ dt_entry.id }}" type="submit" value="Re-upload"/>
                         </td>

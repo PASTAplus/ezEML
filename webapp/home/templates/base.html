@@ -44,7 +44,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
         'about', 'news', 'user_guide', 'import_package', 'import_xml',
-        'export_package', 'settings'] %}
+        'export_package', 'settings', '/open_template', 'save_as_template', 'delete_template', 'display_templates'] %}
 {% set non_saving_contains = ['_select', '/check_metadata/', '/check_data_tables/', '/explore_data_tables/',
         '/data_table_errors/', '/fetch_xml', '/file_error', '/manage_packages',
         '/import_parties_2/', '/import_geo_coverage_2/',
@@ -124,6 +124,16 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                     {% endif %}
                         {{ macros.toolbar_menu_item(url_for('home.settings'), 'hidden_settings', 'Settings...', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.manage_packages'), 'hidden_manage', 'Manage...', ns.is_non_saving) }}
+                    {% if session["authorized_to_manage_templates"] %}
+{#                        <li>#}
+{#                            <hr style="border-top: 1px solid #B0B0B0;">#}
+{#                        </li>#}
+                        {{ macros.toolbar_menu_item(url_for('home.manage_templates'), 'hidden_manage_templates', 'Manage Templates...', ns.is_non_saving) }}
+{#                        {{ macros.toolbar_menu_item(url_for('home.open_template'), 'hidden_open_template', 'Open Template...', ns.is_non_saving) }}#}
+{#                        {{ macros.toolbar_menu_item(url_for('home.save_as_template'), 'hidden_save_as_template', 'Save As Template...', ns.is_non_saving) }}#}
+{#                        {{ macros.toolbar_menu_item(url_for('home.delete_template'), 'hidden_delete_template', 'Delete Template...', ns.is_non_saving) }}#}
+{#                        {{ macros.toolbar_menu_item(url_for('home.display_templates'), 'hidden_display_templates', 'Display Templates', ns.is_non_saving) }}#}
+                    {% endif %}
                     </ul>
                 </li>
             {% endif %}

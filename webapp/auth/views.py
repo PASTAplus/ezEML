@@ -59,11 +59,11 @@ def login():
         else:
             return redirect(url_for(PAGE_INDEX))
 
-    log_info(f"request.url: {request.url}")
-    if request.method == 'GET':
-        log_info(f"GET: request.args: {request.args.to_dict()}")
-    else:
-        log_info(f"POST: request.form: {request.form.to_dict()}")
+    # log_info(f"request.url: {request.url}")
+    # if request.method == 'GET':
+    #     log_info(f"GET: request.args: {request.args.to_dict()}")
+    # else:
+    #     log_info(f"POST: request.form: {request.form.to_dict()}")
 
     # Process POST
     form = LoginForm()
@@ -104,9 +104,9 @@ def login():
 
     # Process GET
     auth_token = request.args.get("token")
-    log_info(f"auth_token: {auth_token}")
+    # log_info(f"auth_token: {auth_token}")
     cname = request.args.get("cname")
-    log_info(f"cname: {cname}")
+    # log_info(f"cname: {cname}")
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
         uid = pasta_token.uid

@@ -13,10 +13,11 @@
 :Created:
     3/6/18
 """
+from urllib.parse import urlparse
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 import requests
-from werkzeug.urls import url_parse
 
 from webapp.pages import *
 from webapp.auth.forms import LoginForm
@@ -88,7 +89,7 @@ def login():
             initialize_user_data(cname, pasta_token.uid, auth_token)
             log_usage(actions['LOGIN'], cname, 'LDAP')
             next_page = request.args.get('next')
-            if not next_page or url_parse(next_page).netloc != '':
+            if not next_page or urlparse(next_page).netloc != '':
                 current_document = get_active_document()
                 if current_document:
                     next_page = url_for(PAGE_TITLE, filename=current_document)
@@ -117,7 +118,7 @@ def login():
         initialize_user_data(cname, pasta_token.uid, auth_token)
         log_usage(actions['LOGIN'], cname)
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
+        if not next_page or urlparse(next_page).netloc != '':
             current_document = get_active_document()
             if current_document:
                 next_page = url_for(PAGE_TITLE, filename=current_document)

@@ -125,9 +125,9 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                         {{ macros.toolbar_menu_item(url_for('home.settings'), 'hidden_settings', 'Settings...', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.manage_packages'), 'hidden_manage', 'Manage...', ns.is_non_saving) }}
                     {% if session["authorized_to_manage_templates"] %}
-{#                        <li>#}
-{#                            <hr style="border-top: 1px solid #B0B0B0;">#}
-{#                        </li>#}
+                        <li>
+                            <hr style="border-top: 1px solid #B0B0B0;">
+                        </li>
                         {{ macros.toolbar_menu_item(url_for('home.manage_templates'), 'hidden_manage_templates', 'Manage Templates...', ns.is_non_saving) }}
 {#                        {{ macros.toolbar_menu_item(url_for('home.open_template'), 'hidden_open_template', 'Open Template...', ns.is_non_saving) }}#}
 {#                        {{ macros.toolbar_menu_item(url_for('home.save_as_template'), 'hidden_save_as_template', 'Save As Template...', ns.is_non_saving) }}#}

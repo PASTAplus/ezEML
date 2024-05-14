@@ -12,13 +12,15 @@ import requests
 from urllib.parse import unquote
 
 from flask import (
-    Blueprint, Flask, flash, Markup, render_template, redirect, request, session, url_for, current_app, send_file
+    Blueprint, Flask, flash, render_template, redirect, request, session, url_for, current_app, send_file
 )
 import flask
 
 from flask_login import (
     current_user, login_required
 )
+
+from markupsafe import Markup
 
 import webapp.home.utils.create_nodes
 import webapp.home.utils.node_utils

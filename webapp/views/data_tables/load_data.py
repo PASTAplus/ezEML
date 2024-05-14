@@ -17,10 +17,11 @@ import numpy as np
 import pandas as pd
 import time
 
-from flask import flash, render_template, redirect, url_for, request, Markup
+from flask import flash, render_template, redirect, url_for, request
 from flask_login import current_user
 
 import daiquiri
+from markupsafe import Markup
 
 import webapp.home.home_utils
 import webapp.home.metapype_client

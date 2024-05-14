@@ -169,11 +169,11 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 
 
 @click.command()
-@click.option('--days', default=90, help='Remove files if JSON last-modified date greater than this number of days.')
-@click.option('--base', default=f'{Config.USER_DATA_DIR}', help='Base directory from which to crawl the file system.')
-@click.option('--include_exports', default=False, help='If True, include exports directories in file system crawl.')
-@click.option('--exports_days', default=1, help='If including exports, remove exports older than this number of days.')
-@click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing.')
+@click.option('--days', default=90, help='Remove files if JSON last-modified date greater than this number of days. Default is 90.')
+@click.option('--base', default=f'{Config.USER_DATA_DIR}', help=f'Base directory from which to crawl the file system. Default is {Config.USER_DATA_DIR}.')
+@click.option('--include_exports', default=False, help='If True, include exports directories in file system crawl. Default is False.')
+@click.option('--exports_days', default=14, help='If including exports, remove exports older than this number of days. Default is 14.')
+@click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing. Default is False.')
 def GC(days, base, include_exports, exports_days, logonly):
 	logfile = os.path.join(base, 'ezEML_GC.log')
 	daiquiri.setup(level=logging.INFO, outputs=(

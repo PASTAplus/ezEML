@@ -30,7 +30,7 @@ class Config(object):
     PASTA_URL = "https://pasta.lternet.edu/package"
 
     AUTH = "https://auth.edirepository.org/auth"
-    TARGET = "ezeml.edirepository.org"
+    TARGET = "https://ezeml.edirepository.org/eml/auth/login"
 
     GOOGLE_MAP_API_KEY = "GOOGLE_MAP_API_KEY"
 

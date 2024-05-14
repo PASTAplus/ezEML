@@ -74,7 +74,8 @@ def is_authorized_to_manage_templates(site):
     try:
         user_login = current_user.get_user_login()
         if user_login:
-            return site in user_lookup.get(user_login) or '__ALL__' in user_lookup.get(user_login)
+            sites = user_lookup.get(user_login, [])
+            return site in sites or '__ALL__' in sites
     except AttributeError as ex:
         pass
     return False
@@ -96,7 +97,7 @@ def template_folders_for_user(user_login=None):
         if not user_login:
             user_login = current_user.get_user_login()
         if user_login:
-            templates = user_lookup.get(user_login)
+            templates = user_lookup.get(user_login, [])
             if '__ALL__' in templates:
                 return get_template_folders()
             else:
@@ -122,7 +123,7 @@ def templates_for_user(user_login=None):
         if not user_login:
             user_login = current_user.get_user_login()
         if user_login:
-            template_folders = user_lookup.get(user_login)
+            template_folders = user_lookup.get(user_login, [])
             if '__ALL__' in template_folders:
                 template_folders = get_template_folders()
             template_files = []

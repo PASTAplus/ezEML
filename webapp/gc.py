@@ -171,10 +171,11 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 @click.command()
 @click.option('--days', default=90, help='Remove files if JSON last-modified date greater than this number of days. Default is 90.')
 @click.option('--base', default=f'{Config.USER_DATA_DIR}', help=f'Base directory from which to crawl the file system. Default is {Config.USER_DATA_DIR}.')
+@click.option('--keep_uploads', default=True, help='If True, do not remove files from the uploads directories. Default is True.')
 @click.option('--include_exports', default=False, help='If True, include exports directories in file system crawl. Default is False.')
 @click.option('--exports_days', default=14, help='If including exports, remove exports older than this number of days. Default is 14.')
 @click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing. Default is False.')
-def GC(days, base, include_exports, exports_days, logonly):
+def GC(days, base, keep_uploads, include_exports, exports_days, logonly):
 	logfile = os.path.join(base, 'ezEML_GC.log')
 	daiquiri.setup(level=logging.INFO, outputs=(
 		daiquiri.output.Stream(sys.stdout),
@@ -217,7 +218,8 @@ def GC(days, base, include_exports, exports_days, logonly):
 					package_name = os.path.splitext(file)[0]
 
 					# remove the uploads dir for this package
-					remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly, age=filetime.days)
+					if not keep_uploads:
+						remove_uploads_dir_for_package(package_name, base, user_dir, logger, logonly, age=filetime.days)
 
 					# remove the backups for this JSON file
 					remove_backups(file, user_dir, logger, logonly)

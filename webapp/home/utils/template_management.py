@@ -24,7 +24,6 @@ def init_template_management():
     authorized_sites = []
     try:
         user_login = current_user.get_user_login()
-        user_login = 'cgries-0dc416e2cf674c2836a179917be98d76'
         if user_login:
             template_managers = Config.TEMPLATE_MANAGERS
             for key, val in template_managers.items():

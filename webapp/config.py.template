@@ -103,7 +103,7 @@ class Config(object):
     AUTO_COLLABORATION_SITES = {
         "UMBS" : [ ("Jason_Tallant-40d45c7169e13671c6b8f78c30e21327", "jtallant@umich.edu") ]
     }
-
+    
     # Certain users are authorized to manage templates for certain sites.
     TEMPLATE_MANAGERS = {
         "__ALL__": [
@@ -113,6 +113,7 @@ class Config(object):
             ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),
         ],
         "LTER/CAP": [
+            ("CAP-7fe9edc60d0e1d44273e96e4898d1c0b", "Stevan.Earl@asu.edu"),
         ],
         "LTER/FCE": [
         ],
@@ -124,8 +125,8 @@ class Config(object):
         "LTER/MCR": [
         ],
         "LTER/NTL": [
+            ("NTL-d5c08b86e40a4d6ec22d97fe4a28bc43", "gahler@wisc.edu")
             ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),
-            ("NTL-d5c08b86e40a4d6ec22d97fe4a28bc43", "gahler@wisc.edu"),
         ],
         "NEON": [
         ],

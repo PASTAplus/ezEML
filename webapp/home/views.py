@@ -4104,7 +4104,9 @@ def validate_eml():
     """
 
     form = ValidateEMLFileForm()
-    uploads_folder = user_data.get_document_uploads_folder_name()
+
+    uploads_folder = os.path.join(user_data.get_user_uploads_folder_name(), '__tmpdir__')
+    Path(uploads_folder).mkdir(parents=True, exist_ok=True)
 
     document, eml_node = reload_metadata()  # So check_metadata status is correct
 
@@ -4179,7 +4181,9 @@ def validate_eml_2(filename):
         return line_number, element_name, error_message
 
     form = EDIForm()
-    uploads_folder = user_data.get_document_uploads_folder_name()
+
+    uploads_folder = os.path.join(user_data.get_user_uploads_folder_name(), '__tmpdir__')
+    Path(uploads_folder).mkdir(parents=True, exist_ok=True)
 
     with open(os.path.join(uploads_folder, filename + '.tmp'), 'r') as f:
         xml = f.read()

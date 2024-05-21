@@ -222,6 +222,8 @@ def responsible_party(filename=None, rp_node_id=None,
         # role = False
         new_page = select_new_page(back_page, next_page, this_page)
 
+        old_rp_node_id = rp_node_id
+
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
         url = select_post(filename, form, form_dict,
@@ -317,6 +319,10 @@ def responsible_party(filename=None, rp_node_id=None,
                 # FIXME
                 if node_name == names.PUBLISHER:
                     new_page = PAGE_PUBLICATION_INFO
+
+            if 'eml/data_source_personnel' in url:
+                # Handle case of SAVE CHANGES on the Data Source Personnel page
+                return redirect(url.replace(old_rp_node_id, rp_node_id))
 
             if node_name == names.PUBLISHER:
                 return redirect(url)

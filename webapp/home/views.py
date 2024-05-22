@@ -2454,7 +2454,7 @@ def import_related_projects_2(filename, template, is_template):
 def display_decode_error_lines(filename):
     """A helper function used in displaying lines with UTF-8 decode errors in a file."""
     errors = []
-    with open(filename, 'r', errors='replace') as f:
+    with open(filename, 'r', encoding='utf-8-sig', errors='replace') as f:
         lines = f.readlines()
     for index, line in enumerate(lines, start=1):
         if "�" in line:

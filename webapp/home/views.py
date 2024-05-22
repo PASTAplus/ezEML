@@ -1298,6 +1298,12 @@ def create():
                 flash("Please choose a name that does not contain a slash '/' character.", 'error')
                 return render_template('create_eml.html', help=help, form=form)
 
+            if len(filename) > 100:
+                flash("Please choose a name that is less than 100 characters long. This name serves only to identify your EML document within " \
+                      "your ezEML account. It will not appear in your package's metadata. It just needs to be specific enough to enable you " \
+                      "to distinguish this EML document from others in your account.", 'error')
+                return render_template('create_eml.html', help=help, form=form)
+
             user_filenames = user_data.get_user_document_list()
             if user_filenames and filename and filename in user_filenames:
                 flash(f'{filename} already exists. Please select another name.', 'error')
@@ -1774,8 +1780,15 @@ def new_from_template_2(template_filename):
             user_filenames = user_data.get_user_document_list()
             if user_filenames and filename and filename in user_filenames:
                 flash(f'{filename} already exists. Please select another name.', 'error')
-                return render_template('create_eml.html', help=help,
-                                form=form)
+                return render_template('new_from_template_2.html', template_filename=template_filename,
+                                       help=help, form=form)
+
+            if len(filename) > 100:
+                flash("Please choose a name that is less than 100 characters long. This name serves only to identify your EML document within " \
+                      "your ezEML account. It will not appear in your package's metadata. It just needs to be specific enough to enable you " \
+                      "to distinguish this EML document from others in your account.", 'error')
+                return render_template('new_from_template_2.html', template_filename=template_filename,
+                                       help=help, form=form)
 
             template_filename = template_filename.replace('\\', '/')
             template_path = f'{template_filename}.json'

@@ -21,6 +21,7 @@
 
         function initMap() {
             setTimeout(function() {
+            alert("{{ bounding_boxes }}");
 
             {% for coordinates in bounding_boxes %}
                 alert("{{ coordinates }}");

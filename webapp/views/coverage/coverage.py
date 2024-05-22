@@ -255,9 +255,9 @@ def load_geo_coverage(filename):
                            help=help)
 
 
-@cov_bp.route('/preview_all_geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
+@cov_bp.route('/preview_all_geographic_coverage/<filename>', methods=['GET', 'POST'])
 @login_required
-def preview_all_geographic_coverage(filename=None, node_id=None):
+def preview_all_geographic_coverage(filename=None):
     """
     Route for displaying a preview map showing all geographic coverages
     """

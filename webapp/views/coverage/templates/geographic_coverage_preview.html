@@ -22,6 +22,9 @@
         function initMap() {
             setTimeout(function() {
 
+            {% for coordinates in bounding_boxes %}
+                alert("{{ coordinates }}");
+
             const mapCenter = { lat: {{ coordinates[0][0] }}, lng: {{ coordinates[0][1] }} };
             const map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 10,
@@ -64,6 +67,7 @@
 
                 // Fit the map to the new bounds
                 map.fitBounds(bounds);
+                {% endfor %}
 
                 // Listen for the 'idle' event on the map and then adjust the zoom
                 {#google.maps.event.addListenerOnce(map, 'idle', function() {#}

@@ -281,7 +281,7 @@ def preview_all_geographic_coverage(filename=None):
             bounding_boxes.append(corners)
 
     return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
-                           api_key=API_KEY, bounding_boxes=bounding_boxes)
+                           api_key=API_KEY, locations=bounding_boxes)
 
 
 @cov_bp.route('/preview_geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
@@ -316,7 +316,7 @@ def preview_geographic_coverage(filename=None, node_id=None):
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
             corners = [[south, west], [south, east], [north, east], [north, west]]
             return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
-                                   api_key=API_KEY, bounding_boxes=[corners])
+                                   api_key=API_KEY, locations=[corners])
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])

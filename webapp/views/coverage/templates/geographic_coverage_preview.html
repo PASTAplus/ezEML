@@ -34,7 +34,7 @@
       });
 
       // Process locations
-        const locations = {{ locations }};
+        const locations = {{ locations | safe }};
       locations.forEach(location => {
         if (location.north === location.south && location.east === location.west) {
           // It's a point

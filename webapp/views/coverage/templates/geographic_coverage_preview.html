@@ -60,8 +60,16 @@
         }
       });
 
-      // Set the calculated bounds to the map, which will adjust the center and zoom
-      map.fitBounds(bounds);
+      // Check if only one point is present
+      if (locations.length === 1 && locations[0].north === locations[0].south && locations[0].east === locations[0].west) {
+        // Set map center and a reasonable zoom level for a single point
+        const singlePoint = { lat: locations[0].north, lng: locations[0].east };
+        map.setCenter(singlePoint);
+        map.setZoom(14); // Adjust zoom level as needed
+      } else {
+        // Set the calculated bounds to the map, which will adjust the center and zoom
+        map.fitBounds(bounds);
+      }
     };
 
     window.onload = initMap;

@@ -73,15 +73,15 @@
       });
 
       // Calculate map center
-      const mapCenter = {
-        lat: totalLat / count,
-        lng: totalLng / count
-      };
+      {#const mapCenter = {#}
+      {#  lat: totalLat / count,#}
+      {#  lng: totalLng / count#}
+      {#};#}
       // Set the calculated bounds to the map, which will adjust the center and zoom
       map.fitBounds(bounds);
 
       // Set the calculated center to the map
-      map.setCenter(mapCenter);
+      {#map.setCenter(mapCenter);#}
 
             };
 

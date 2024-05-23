@@ -24,6 +24,7 @@
       let totalLat = 0;
       let totalLng = 0;
       let count = 0;
+      let bounds = new google.maps.LatLngBounds();
 
       // Create the map
       const map = new google.maps.Map(document.getElementById('map'), {
@@ -60,6 +61,9 @@
             strokeOpacity: 0.8,
             strokeWeight: 2
           });
+          bounds.extend({ lat: location.north, lng: location.east });
+          bounds.extend({ lat: location.south, lng: location.west });
+
           const centerLat = (location.north + location.south) / 2;
           const centerLng = (location.east + location.west) / 2;
           totalLat += centerLat;
@@ -73,6 +77,8 @@
         lat: totalLat / count,
         lng: totalLng / count
       };
+      // Set the calculated bounds to the map, which will adjust the center and zoom
+      map.fitBounds(bounds);
 
       // Set the calculated center to the map
       map.setCenter(mapCenter);

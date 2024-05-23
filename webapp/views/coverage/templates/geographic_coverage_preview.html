@@ -11,28 +11,15 @@
     <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap&libraries=&v=weekly" async></script>
     <script>
 
-        function allCoordsSame(coords) {
-            if (coords.length > 0) {
-                const first = coords[0];
-                return coords.every(coord => coord.lat() === first.lat() && coord.lng() === first.lng());
-            }
-            return true;
-        }
-
     function initMap() {
-      // Initialize variables to calculate the map center
-      let totalLat = 0;
-      let totalLng = 0;
-      let count = 0;
-      let bounds = new google.maps.LatLngBounds();
 
       // Create the map
-      const map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 10,
-      });
+      const map = new google.maps.Map(document.getElementById('map'), { zoom: 8});
+
+      let bounds = new google.maps.LatLngBounds();
 
       // Process locations
-        const locations = {{ locations | safe }};
+      const locations = {{ locations | safe }};
       locations.forEach(location => {
         if (location.north === location.south && location.east === location.west) {
           // It's a point
@@ -42,18 +29,17 @@
             map: map,
             title: 'Point'
           });
-          totalLat += point.lat;
-          totalLng += point.lng;
-          count++;
+          bounds.extend(point);
         } else {
           // It's a bounding box
+        const rectangleBounds = {
+            north: location.north,
+            south: location.south,
+            east: location.east,
+            west: location.west
+          };
           new google.maps.Rectangle({
-            bounds: {
-              north: location.north,
-              south: location.south,
-              east: location.east,
-              west: location.west
-            },
+            bounds: rectangleBounds,
             map: map,
             fillColor: "#5990bd",
             fillOpacity: 0.35,
@@ -63,91 +49,22 @@
           });
           bounds.extend({ lat: location.north, lng: location.east });
           bounds.extend({ lat: location.south, lng: location.west });
-
-          const centerLat = (location.north + location.south) / 2;
-          const centerLng = (location.east + location.west) / 2;
-          totalLat += centerLat;
-          totalLng += centerLng;
-          count++;
         }
       });
 
-      // Calculate map center
-      const mapCenter = {
-        lat: totalLat / count,
-        lng: totalLng / count
-      };
-      // Set the calculated bounds to the map, which will adjust the center and zoom
-      map.fitBounds(bounds);
-
-      // Set the calculated center to the map
-      map.setCenter(mapCenter);
-
-            };
-
+      // Check if only one point is present
+      if (locations.length === 1 && locations[0].north === locations[0].south && locations[0].east === locations[0].west) {
+        // Set map center and a reasonable zoom level for a single point
+        const singlePoint = { lat: locations[0].north, lng: locations[0].east };
+        map.setCenter(singlePoint);
+        map.setZoom(14); // Adjust zoom level as needed
+      } else {
+        // Set the calculated bounds to the map, which will adjust the center and zoom
+        map.fitBounds(bounds);
+      }
+    };
 
     window.onload = initMap;
-
-
-
-        {##}
-        {##}
-        {#function initMap() {#}
-        {#    alert("{{ bounding_boxes }}");#}
-        {#    setTimeout(function() {#}
-        {##}
-        {#    {% for coordinates in bounding_boxes %}#}
-        {#        alert("{{ coordinates }}");#}
-        {##}
-        {#    const mapCenter = { lat: {{ coordinates[0][0] }}, lng: {{ coordinates[0][1] }} };#}
-        {#    const map = new google.maps.Map(document.getElementById("map"), {#}
-        {#        zoom: 10,#}
-        {#        center: mapCenter,#}
-        {#    });#}
-        {##}
-        {#    const polygonCoords = [#}
-        {#        {% for lat, lng in coordinates %}#}
-        {#            new google.maps.LatLng({{ lat }}, {{ lng }}),#}
-        {#        {% endfor %}#}
-        {#    ];#}
-        {##}
-        {#    if (polygonCoords.length == 1 || allCoordsSame(polygonCoords)) {#}
-        {#        map.setCenter(polygonCoords[0]);#}
-        {#        new google.maps.Marker({#}
-        {#            position: polygonCoords[0],#}
-        {#            map: map,#}
-        {#        });#}
-        {#        map.setZoom(15);#}
-        {##}
-        {#    } else {#}
-        {#        const polygon = new google.maps.Polygon({#}
-        {#            paths: polygonCoords,#}
-        {#            strokeColor: "#5990bd",#}
-        {#            strokeOpacity: 0.8,#}
-        {#            strokeWeight: 2,#}
-        {#            fillColor: "#5990bd",#}
-        {#            fillOpacity: 0.35,#}
-        {#        });#}
-        {##}
-        {#        polygon.setMap(map);#}
-        {##}
-        {#        // Create a new bounds object#}
-        {#        const bounds = new google.maps.LatLngBounds();#}
-        {##}
-        {#        // Extend the bounds to include each point of the polygon#}
-        {#        polygonCoords.forEach(function(coord) {#}
-        {#            bounds.extend(coord);#}
-        {#        });#}
-        {##}
-        {#        // Fit the map to the new bounds#}
-        {#        map.fitBounds(bounds);#}
-        {#        {% endfor %}#}
-        {##}
-        {#        // Listen for the 'idle' event on the map and then adjust the zoom#}
-                {#google.maps.event.addListenerOnce(map, 'idle', function() {#}
-                {#    map.setZoom(map.getZoom() - 1); // Zoom out by one level after the map has fit the bounds#}
-                {#});#}
-        {#    }#}
 
     </script>
 </head>

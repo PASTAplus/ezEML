@@ -677,6 +677,31 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             return standard_unit, deprecated_in_favor_of(standard_unit)
         return None, None
 
+    def check_custom_units(attr_node):
+        """ Check for custom units that differ only by case and/or whitespace. """
+        def get_all_custom_units():
+            custom_unit_nodes = eml_node.find_all_nodes_by_path([names.ADDITIONALMETADATA,
+                                                            names.METADATA,
+                                                            names.UNITLIST,
+                                                            names.UNIT])
+            custom_units = []
+            for custom_unit_node in custom_unit_nodes:
+                custom_units.append(custom_unit_node.attribute_value('id'))
+            return custom_units
+
+        def check_for_duplicates(custom_unit):
+            normalized_custom_unit = ''.join(custom_unit.split()).lower()
+            all_custom_units = get_all_custom_units()
+            for unit in all_custom_units:
+                if unit != custom_unit and normalized_custom_unit == ''.join(unit.split()).lower():
+                    return unit
+            return None
+
+        custom_unit_node = attr_node.find_descendant(names.CUSTOMUNIT)
+        if not custom_unit_node:
+            return None
+        return check_for_duplicates(custom_unit_node.content)
+
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     page = None
@@ -755,6 +780,9 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
                 add_to_evaluation('attributes_10', link, data_table_name=data_table_name, replace_value=bad_standard_unit)
             else:
                 add_to_evaluation('attributes_11', link, data_table_name=data_table_name, replace_value=bad_standard_unit, replace_with=deprecated_use_instead)
+        duplicate_custom_unit = check_custom_units(attrib_node)
+        if duplicate_custom_unit:
+            add_to_evaluation('attributes_13', link, data_table_name=data_table_name)
 
     # DateTime
     if attr_type == webapp.home.metapype_client.VariableType.DATETIME:

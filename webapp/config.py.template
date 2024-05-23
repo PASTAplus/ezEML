@@ -128,6 +128,9 @@ class Config(object):
             ("NTL-d5c08b86e40a4d6ec22d97fe4a28bc43", "gahler@wisc.edu"),
             ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),
         ],
+        "LTER/PAL": [
+            ("PAL-04e7b50e325fe831d997d067d0c8f5f4", "sage@marine.rutgers.edu"),
+        ],
         "NEON": [
         ],
         "UMBS": [

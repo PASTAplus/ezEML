@@ -19,60 +19,136 @@
             return true;
         }
 
-        function initMap() {
-            setTimeout(function() {
+    function initMap() {
+      // Initialize variables to calculate the map center
+      let totalLat = 0;
+      let totalLng = 0;
+      let count = 0;
+      let bounds = new google.maps.LatLngBounds();
 
-            const mapCenter = { lat: {{ coordinates[0][0] }}, lng: {{ coordinates[0][1] }} };
-            const map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 10,
-                center: mapCenter,
-            });
+      // Create the map
+      const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 10,
+      });
 
-            const polygonCoords = [
-                {% for lat, lng in coordinates %}
-                    new google.maps.LatLng({{ lat }}, {{ lng }}),
-                {% endfor %}
-            ];
+      // Process locations
+        const locations = {{ locations | safe }};
+      locations.forEach(location => {
+        if (location.north === location.south && location.east === location.west) {
+          // It's a point
+          const point = { lat: location.north, lng: location.east };
+          new google.maps.Marker({
+            position: point,
+            map: map,
+            title: 'Point'
+          });
+          totalLat += point.lat;
+          totalLng += point.lng;
+          count++;
+        } else {
+          // It's a bounding box
+          new google.maps.Rectangle({
+            bounds: {
+              north: location.north,
+              south: location.south,
+              east: location.east,
+              west: location.west
+            },
+            map: map,
+            fillColor: "#5990bd",
+            fillOpacity: 0.35,
+            strokeColor: "#5990bd",
+            strokeOpacity: 0.8,
+            strokeWeight: 2
+          });
+          bounds.extend({ lat: location.north, lng: location.east });
+          bounds.extend({ lat: location.south, lng: location.west });
 
-            if (polygonCoords.length == 1 || allCoordsSame(polygonCoords)) {
-                map.setCenter(polygonCoords[0]);
-                new google.maps.Marker({
-                    position: polygonCoords[0],
-                    map: map,
-                });
-                map.setZoom(15);
+          const centerLat = (location.north + location.south) / 2;
+          const centerLng = (location.east + location.west) / 2;
+          totalLat += centerLat;
+          totalLng += centerLng;
+          count++;
+        }
+      });
 
-            } else {
-                const polygon = new google.maps.Polygon({
-                    paths: polygonCoords,
-                    strokeColor: "#5990bd",
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
-                    fillColor: "#5990bd",
-                    fillOpacity: 0.35,
-                });
+      // Calculate map center
+      const mapCenter = {
+        lat: totalLat / count,
+        lng: totalLng / count
+      };
+      // Set the calculated bounds to the map, which will adjust the center and zoom
+      map.fitBounds(bounds);
 
-                polygon.setMap(map);
+      // Set the calculated center to the map
+      map.setCenter(mapCenter);
 
-                // Create a new bounds object
-                const bounds = new google.maps.LatLngBounds();
+            };
 
-                // Extend the bounds to include each point of the polygon
-                polygonCoords.forEach(function(coord) {
-                    bounds.extend(coord);
-                });
 
-                // Fit the map to the new bounds
-                map.fitBounds(bounds);
+    window.onload = initMap;
 
-                // Listen for the 'idle' event on the map and then adjust the zoom
+
+
+        {##}
+        {##}
+        {#function initMap() {#}
+        {#    alert("{{ bounding_boxes }}");#}
+        {#    setTimeout(function() {#}
+        {##}
+        {#    {% for coordinates in bounding_boxes %}#}
+        {#        alert("{{ coordinates }}");#}
+        {##}
+        {#    const mapCenter = { lat: {{ coordinates[0][0] }}, lng: {{ coordinates[0][1] }} };#}
+        {#    const map = new google.maps.Map(document.getElementById("map"), {#}
+        {#        zoom: 10,#}
+        {#        center: mapCenter,#}
+        {#    });#}
+        {##}
+        {#    const polygonCoords = [#}
+        {#        {% for lat, lng in coordinates %}#}
+        {#            new google.maps.LatLng({{ lat }}, {{ lng }}),#}
+        {#        {% endfor %}#}
+        {#    ];#}
+        {##}
+        {#    if (polygonCoords.length == 1 || allCoordsSame(polygonCoords)) {#}
+        {#        map.setCenter(polygonCoords[0]);#}
+        {#        new google.maps.Marker({#}
+        {#            position: polygonCoords[0],#}
+        {#            map: map,#}
+        {#        });#}
+        {#        map.setZoom(15);#}
+        {##}
+        {#    } else {#}
+        {#        const polygon = new google.maps.Polygon({#}
+        {#            paths: polygonCoords,#}
+        {#            strokeColor: "#5990bd",#}
+        {#            strokeOpacity: 0.8,#}
+        {#            strokeWeight: 2,#}
+        {#            fillColor: "#5990bd",#}
+        {#            fillOpacity: 0.35,#}
+        {#        });#}
+        {##}
+        {#        polygon.setMap(map);#}
+        {##}
+        {#        // Create a new bounds object#}
+        {#        const bounds = new google.maps.LatLngBounds();#}
+        {##}
+        {#        // Extend the bounds to include each point of the polygon#}
+        {#        polygonCoords.forEach(function(coord) {#}
+        {#            bounds.extend(coord);#}
+        {#        });#}
+        {##}
+        {#        // Fit the map to the new bounds#}
+        {#        map.fitBounds(bounds);#}
+        {#        {% endfor %}#}
+        {##}
+        {#        // Listen for the 'idle' event on the map and then adjust the zoom#}
                 {#google.maps.event.addListenerOnce(map, 'idle', function() {#}
                 {#    map.setZoom(map.getZoom() - 1); // Zoom out by one level after the map has fit the bounds#}
                 {#});#}
-            }
+        {#    }#}
 
-            }, 250);
-        }
     </script>
 </head>
 <body>

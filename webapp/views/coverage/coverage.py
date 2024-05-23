@@ -255,6 +255,35 @@ def load_geo_coverage(filename):
                            help=help)
 
 
+@cov_bp.route('/preview_all_geographic_coverage/<filename>', methods=['GET', 'POST'])
+@login_required
+def preview_all_geographic_coverage(filename=None):
+    """
+    Route for displaying a preview map showing all geographic coverages
+    """
+    from webapp.config import Config
+
+    API_KEY = Config.GOOGLE_MAP_API_KEY
+
+    # Process GET
+    eml_node = load_eml(filename=filename)
+    gc_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE])
+    bounding_boxes = []
+
+    for gc_node in gc_nodes:
+        bounding_coordinates = gc_node.find_child(names.BOUNDINGCOORDINATES)
+        if bounding_coordinates:
+            west = bounding_coordinates.find_child(names.WESTBOUNDINGCOORDINATE).content
+            east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
+            north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
+            south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
+            bounds = { 'north': float(north), 'south': float(south), 'east': float(east), 'west': float(west) }
+            bounding_boxes.append(bounds)
+
+    return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
+                           api_key=API_KEY, locations=bounding_boxes)
+
+
 @cov_bp.route('/preview_geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])
 @login_required
 def preview_geographic_coverage(filename=None, node_id=None):
@@ -285,13 +314,9 @@ def preview_geographic_coverage(filename=None, node_id=None):
             east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
-            corners = [[south, west], [south, east], [north, east], [north, west]]
-            return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage', api_key=API_KEY, coordinates=corners)
-
-    # set_current_page('geographic_coverage')
-    # help = get_helps(['geographic_coverages', 'geographic_coverages_csv_file'])
-    # return render_template('geographic_coverage_select.html', title=title,
-    #                        gc_list=gc_list, form=form, help=help, tooltip=tooltip)
+            bounds = { 'north': float(north), 'south': float(south), 'east': float(east), 'west': float(west) }
+            return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
+                                   api_key=API_KEY, locations=[bounds])
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])

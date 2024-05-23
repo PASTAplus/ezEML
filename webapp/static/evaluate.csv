@@ -57,6 +57,7 @@ attributes_09,Data Tables,Numerical Variable Precision,ERROR,REQUIRED,The <b>Pre
 attributes_10,Data Tables,Standard Unit,ERROR,REQUIRED,A Standard Unit must have one of the approved Standard Unit values. "{}" was found. Choose a replacement.,,standard_unit
 attributes_11,Data Tables,Standard Unit,WARNING,RECOMMENDED,Standard Unit "{}" is deprecated. Use "{}" instead.,,standard_unit
 attributes_12,Data Tables,Variable Type,ERROR,REQUIRED,A <b>Variable Type</b> is required.,,change_type
+attributes_13,Data Tables,Variable Type,ERROR,REQUIRED,Multiple <b>Custom Units</b> have been defined that differ only by capitalization and/or whitespace. This will cause downstream failures.,,custom_unit
 methods_01,Methods,Method Steps,WARNING,RECOMMENDED,A dataset should define at least one <b>Method Step</b>.,,add_ms
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,,description
 methods_03,Methods,Methods,ERROR,REQUIRED,The metadata contains an empty <b>Methods</b> section. EML does not permit a Methods section to be empty.,,add_ms

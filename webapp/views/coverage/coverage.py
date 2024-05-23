@@ -78,7 +78,7 @@ from metapype.eml import names
 from metapype.model.node import Node
 
 
-cov_bp = Blueprint('cov', __name__, template_folder='templates')
+cov_bp = Blueprfloat('cov', __name__, template_folder='templates')
 
 
 @cov_bp.route('/geographic_coverage_select/<filename>', methods=['GET', 'POST'])
@@ -277,7 +277,7 @@ def preview_all_geographic_coverage(filename=None):
             east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
-            bounds = { 'north': int(north), 'south': int(south), 'east': int(east), 'west': int(west) }
+            bounds = { 'north': float(north), 'south': float(south), 'east': float(east), 'west': float(west) }
             bounding_boxes.append(bounds)
 
     return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
@@ -314,7 +314,7 @@ def preview_geographic_coverage(filename=None, node_id=None):
             east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
-            bounds = { 'north': int(north), 'south': int(south), 'east': int(east), 'west': int(west) }
+            bounds = { 'north': float(north), 'south': float(south), 'east': float(east), 'west': float(west) }
             return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
                                    api_key=API_KEY, locations=[bounds])
 

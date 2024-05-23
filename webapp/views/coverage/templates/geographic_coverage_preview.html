@@ -28,6 +28,7 @@
 
       // Create the map
         alert('creating map');
+        alert({{ locations }});
       const map = new google.maps.Map(document.getElementById('map'), {
         zoom: 8,
       });
@@ -80,9 +81,9 @@
       map.setCenter(mapCenter);
 
             };
-        
 
-    window.onload = initMap;
+
+    {#window.onload = initMap;#}
 
 
 

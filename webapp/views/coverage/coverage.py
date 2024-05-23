@@ -78,7 +78,7 @@ from metapype.eml import names
 from metapype.model.node import Node
 
 
-cov_bp = Blueprfloat('cov', __name__, template_folder='templates')
+cov_bp = Blueprint('cov', __name__, template_folder='templates')
 
 
 @cov_bp.route('/geographic_coverage_select/<filename>', methods=['GET', 'POST'])

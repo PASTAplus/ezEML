@@ -277,7 +277,7 @@ def preview_all_geographic_coverage(filename=None):
             east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
-            bounds = { 'north': north, 'south': south, 'east': east, 'west': west }
+            bounds = { 'north': int(north), 'south': int(south), 'east': int(east), 'west': int(west) }
             bounding_boxes.append(bounds)
 
     return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
@@ -314,7 +314,7 @@ def preview_geographic_coverage(filename=None, node_id=None):
             east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
-            bounds = { 'north': north, 'south': south, 'east': east, 'west': west }
+            bounds = { 'north': int(north), 'south': int(south), 'east': int(east), 'west': int(west) }
             return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
                                    api_key=API_KEY, locations=[bounds])
 

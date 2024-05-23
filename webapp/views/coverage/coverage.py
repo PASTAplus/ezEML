@@ -277,8 +277,8 @@ def preview_all_geographic_coverage(filename=None):
             east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
-            corners = [[south, west], [south, east], [north, east], [north, west]]
-            bounding_boxes.append(corners)
+            bounds = { 'north': north, 'south': south, 'east': east, 'west': west }
+            bounding_boxes.append(bounds)
 
     return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
                            api_key=API_KEY, locations=bounding_boxes)
@@ -314,9 +314,9 @@ def preview_geographic_coverage(filename=None, node_id=None):
             east = bounding_coordinates.find_child(names.EASTBOUNDINGCOORDINATE).content
             north = bounding_coordinates.find_child(names.NORTHBOUNDINGCOORDINATE).content
             south = bounding_coordinates.find_child(names.SOUTHBOUNDINGCOORDINATE).content
-            corners = [[south, west], [south, east], [north, east], [north, west]]
+            bounds = { 'north': north, 'south': south, 'east': east, 'west': west }
             return render_template('geographic_coverage_preview.html', title='Preview Geographic Coverage',
-                                   api_key=API_KEY, locations=[corners])
+                                   api_key=API_KEY, locations=[bounds])
 
 
 @cov_bp.route('/geographic_coverage/<filename>/<node_id>', methods=['GET', 'POST'])

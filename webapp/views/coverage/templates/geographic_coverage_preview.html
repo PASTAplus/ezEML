@@ -20,19 +20,14 @@
         }
 
     function initMap() {
-      // Initialize variables to calculate the map center
-      let totalLat = 0;
-      let totalLng = 0;
-      let count = 0;
-      let bounds = new google.maps.LatLngBounds();
 
       // Create the map
-      const map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 10,
-      });
+      const map = new google.maps.Map(document.getElementById('map'));
+
+      let bounds = new google.maps.LatLngBounds();
 
       // Process locations
-        const locations = {{ locations | safe }};
+      const locations = {{ locations | safe }};
       locations.forEach(location => {
         if (location.north === location.south && location.east === location.west) {
           // It's a point
@@ -42,18 +37,17 @@
             map: map,
             title: 'Point'
           });
-          totalLat += point.lat;
-          totalLng += point.lng;
-          count++;
+          bounds.extend(point);
         } else {
           // It's a bounding box
+        const rectangleBounds = {
+            north: location.north,
+            south: location.south,
+            east: location.east,
+            west: location.west
+          };
           new google.maps.Rectangle({
-            bounds: {
-              north: location.north,
-              south: location.south,
-              east: location.east,
-              west: location.west
-            },
+            bounds: rectangleBounds,
             map: map,
             fillColor: "#5990bd",
             fillOpacity: 0.35,
@@ -63,28 +57,12 @@
           });
           bounds.extend({ lat: location.north, lng: location.east });
           bounds.extend({ lat: location.south, lng: location.west });
-
-          const centerLat = (location.north + location.south) / 2;
-          const centerLng = (location.east + location.west) / 2;
-          totalLat += centerLat;
-          totalLng += centerLng;
-          count++;
         }
       });
 
-      // Calculate map center
-      {#const mapCenter = {#}
-      {#  lat: totalLat / count,#}
-      {#  lng: totalLng / count#}
-      {#};#}
       // Set the calculated bounds to the map, which will adjust the center and zoom
       map.fitBounds(bounds);
-
-      // Set the calculated center to the map
-      {#map.setCenter(mapCenter);#}
-
-            };
-
+    };
 
     window.onload = initMap;
 

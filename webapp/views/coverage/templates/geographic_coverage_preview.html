@@ -20,15 +20,12 @@
         }
 
     function initMap() {
-            debugger;
       // Initialize variables to calculate the map center
       let totalLat = 0;
       let totalLng = 0;
       let count = 0;
 
       // Create the map
-        alert('creating map');
-        alert('{{ locations }}');
       const map = new google.maps.Map(document.getElementById('map'), {
         zoom: 8,
       });
@@ -76,7 +73,6 @@
         lat: totalLat / count,
         lng: totalLng / count
       };
-      alert(mapCenter);
 
       // Set the calculated center to the map
       map.setCenter(mapCenter);

@@ -34,6 +34,7 @@
       });
 
       // Process locations
+        const locations = {{ locations }};
       locations.forEach(location => {
         if (location.north === location.south && location.east === location.west) {
           // It's a point

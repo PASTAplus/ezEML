@@ -1566,6 +1566,7 @@ def get_section_from_link(link):
         '/eml/attribute_categorical/' in link or \
         '/eml/attribute_dateTime/' in link or \
         '/eml/attribute_numerical/' in link or \
+        '/eml/attribute_select' in link or \
         '/eml/attribute_text/' in link or \
         '/eml/code_definition' in link:
         return 'data_tables'
@@ -1680,7 +1681,7 @@ def set_session_info(evaluation, eml_node):
         severity = entry.severity
         if entry.link:
             which = get_section_from_link(entry.link)
-            if which is not None:
+            if which:
                 current_severity = section_links_found.get(which, EvalSeverity.OK)
                 if severity.value < current_severity.value:
                     section_links_found[which] = severity

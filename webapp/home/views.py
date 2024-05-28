@@ -307,10 +307,11 @@ def clear_metapype_store(response):
     if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
         return response
     if url_of_interest():
-        if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
-            store_len = len(Node.store)
-            log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')
-        Node.store.clear()
+        store_len = len(Node.store)
+        if store_len > 0:
+            if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
+                log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')
+            Node.store.clear()
     return response
 
 

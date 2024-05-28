@@ -1467,7 +1467,8 @@ def validate_via_metapype(node):
         # if elapsed > 0.05:
         #     print(f"validate: {node.name}  {elapsed}")
     except Exception as e:
-        print(f'validate_via_metapype: node={node.name} exception={e}')
+        name = node.name if node is not None else 'None'
+        log_error(f'validate_via_metapype: node={name} exception={e}')
     return errs
 
 
@@ -1483,7 +1484,8 @@ def evaluate_via_metapype(node):
         # if elapsed > 0.05:
         #     print(f"evaluate: {node.name}  {elapsed}")
     except Exception as e:
-        print(f'evaluate_via_metapype: node={node.name} exception={e}')
+        name = node.name if node is not None else 'None'
+        log_error(f'evaluate_via_metapype: node={name} exception={e}')
     return eval
 
 

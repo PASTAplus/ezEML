@@ -226,8 +226,9 @@ def method_step(filename=None, node_id=None):
                 method_step_node = Node(names.METHODSTEP, parent=methods_node)
                 add_child(methods_node, method_step_node)
                 node_id = method_step_node.id
-            create_method_step(method_step_node, description, instrumentation, data_sources,
-                               data_sources_marker_begin, data_sources_marker_end)
+            if not create_method_step(method_step_node, description, instrumentation, data_sources,
+                                      data_sources_marker_begin, data_sources_marker_end):
+                new_page = PAGE_METHOD_STEP # Stay on same page to display error message
 
             save_both_formats(filename=filename, eml_node=eml_node)
 

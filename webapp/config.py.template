@@ -110,12 +110,18 @@ class Config(object):
             ("jide-7a03c1e6f4528a6f9c4b1ae3cec24b39", "jride@wisc.edu"),
         ],
         "COS-SPU": [
+            ("Tom_Van_Buren-d335795d246db2e3befdc5d2aade338b", "Tom.VanBuren@sattle.gov"),
+            ("vanburt-f16a493a7acfeb8076cbb242f0955d1e", "Tom.VanBuren@sattle.gov"),
             ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),
+        ],
+        "LTER/AND": [
+            ("AND-01bfc39ebeeacf27a44988cd24bfe959", "suzanne.remillard@oregonstate.edu"),
         ],
         "LTER/CAP": [
             ("CAP-7fe9edc60d0e1d44273e96e4898d1c0b", "Stevan.Earl@asu.edu"),
         ],
         "LTER/FCE": [
+            ("FCE-f0e3c733c734a74c59b05e8e85af19f4", "gkamener@fiu.edu"),
         ],
         "LTER/HBR": [
             ("HBR-673945f5868105aaeb512e1340fbb96e", "mary.martin@unh.edu"),

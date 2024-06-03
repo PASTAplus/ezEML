@@ -1264,7 +1264,8 @@ def download_current():
 
         if isinstance(return_value, str):
             # If there was an error, display it as a Flash message.
-            flash(return_value)
+            flash(return_value, 'error')
+            return redirect(get_back_url())
         else:
             # No error, so just return the 200 status code response object.
             return return_value

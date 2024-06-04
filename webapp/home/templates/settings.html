@@ -17,11 +17,16 @@
                 <p></p>
                 <table>
                     <tr>
-                    <td colspan="2"><h4>Enable Complex Text Element Editing:</h4></td>
+                    <td colspan="3"><h4>Enable Complex Text Element Editing:</h4></td>
                     <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_settings_text_editing_btn) }}</td>
                     </tr>
-                    <tr><td style="width: 10%">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.complex_text_editing_document) }}</td></tr>
-                    <tr><td style="width: 10%">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.complex_text_editing_global) }}</td></tr>
+                    <tr><td style="width: 30px;">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.complex_text_editing_document) }}</td></tr>
+                    {% if programmatic %}
+                    <tr><td style="width: 30px;">&nbsp;</td><td style="width: 5%">&nbsp;</td><td style="width: 390px;"><i><b>Note: </b>This document contains complex text elements,
+                        so complex text element editing has been enabled automatically.</i>
+                    </td></tr>
+                    {% endif %}
+                    <tr><td style="width: 30px;">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.complex_text_editing_global) }}</td></tr>
                 </table>
 
                 <br>

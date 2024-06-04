@@ -1133,10 +1133,16 @@ def settings():
             return redirect(get_back_url())
 
     if request.method == 'GET':
-        form.complex_text_editing_document.data = user_data.get_enable_complex_text_element_editing_document()
+        current_document = user_data.get_active_document()
+        document_has_complex_texttypes = False
+        if current_document:
+            eml_node = load_eml(filename=current_document)
+            document_has_complex_texttypes = texttype_node_processing.model_has_complex_texttypes(eml_node)
+        form.complex_text_editing_document.data = user_data.get_enable_complex_text_element_editing_document() or \
+                                                    document_has_complex_texttypes
         form.complex_text_editing_global.data = user_data.get_enable_complex_text_element_editing_global()
     help = get_helps(['settings_text'])
-    return render_template('settings.html', form=form, help=help)
+    return render_template('settings.html', programmatic=document_has_complex_texttypes, form=form, help=help)
 
 
 @home_bp.route('/check_data_tables', methods=['GET', 'POST'])

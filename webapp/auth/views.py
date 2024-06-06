@@ -14,6 +14,7 @@
     3/6/18
 """
 from urllib.parse import urlparse
+import base64
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
@@ -107,16 +108,23 @@ def login():
     auth_token = request.args.get("token")
     # log_info(f"auth_token: {auth_token}")
     cname = request.args.get("cname")
+    idp = request.args.get("idp")
     # log_info(f"cname: {cname}")
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
+        decoded_bytes = base64.b64decode(pasta_token)
+        decoded_str = decoded_bytes.decode("utf-8")
+        try:
+            username = decoded_str.split("-")[0].split('*')[0]
+        except:
+            username = ''
         uid = pasta_token.uid
         log_info(f"uid: {uid}")
         session_id = cname + "*" + uid
         user = User(session_id)
         login_user(user)
         initialize_user_data(cname, pasta_token.uid, auth_token)
-        log_usage(actions['LOGIN'], cname, current_user.get_user_login())
+        log_usage(actions['LOGIN'], cname, idp, username, current_user.get_user_login())
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
             current_document = get_active_document()

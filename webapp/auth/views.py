@@ -112,7 +112,7 @@ def login():
     # log_info(f"cname: {cname}")
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
-        decoded_bytes = base64.b64decode(pasta_token.to_b64())
+        decoded_bytes = base64.b64decode(auth_token)
         decoded_str = decoded_bytes.decode("utf-8")
         try:
             username = decoded_str.split("-")[0].split('*')[0]

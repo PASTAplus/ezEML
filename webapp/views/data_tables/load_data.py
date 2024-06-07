@@ -612,8 +612,9 @@ def load_data_table(uploads_path: str = None,
                 ratio_node = new_child_node(names.RATIO, ms_node)
                 numeric_domain_node = new_child_node(names.NUMERICDOMAIN, ratio_node)
                 number_type = 'real'
-                if str(dtype).startswith('int'):  # FIXME - we can do better than this
+                if str(dtype).startswith('int'):
                     number_type = 'integer'
+                    storage_type_node.content = 'integer'
                 number_type_node = new_child_node(names.NUMBERTYPE, numeric_domain_node, content=number_type)
                 numeric_domain_node = new_child_node(names.UNIT, ratio_node)
 

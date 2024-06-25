@@ -104,6 +104,7 @@ from webapp.home.utils.template_management import (
     init_template_management,
     template_folders_for_user,
     templates_for_user,
+    check_overwrite_user_data,
     copy_template_to_user_data,
     copy_document_to_template_folder,
     delete_template_file
@@ -1460,6 +1461,11 @@ def save_as_template():
             copy_document_to_template_folder(current_document, folder, save_to_name)
 
             flash(f'Template saved as "{save_to_name}" in template folder {folder}.', 'success')
+
+            flash(f'Document "{save_to_name}" has been removed from your user folder. '
+                  f"To edit it in the future, go to 'Manage Templates...' and  use the 'Open Template' button, "
+                  f"which copies it to your user folder and opens it for editing.")
+
             return redirect(url_for(PAGE_TITLE, filename=current_document))
         else:
             if len(template_folders) > 1 and not form.folder.data:
@@ -1552,7 +1558,7 @@ def manage_templates():
 @login_required
 @non_saving_hidden_buttons_decorator
 def open_template():
-    """Handle the Open Template... page in EML Documents menu."""
+    """Handle the Open Template... page in Manage Templates... menu."""
 
     form = OpenTemplateForm()
     form.filename.choices = list_templates(True)
@@ -1567,8 +1573,29 @@ def open_template():
         if form.validate_on_submit():
             filename = form.filename.data
 
+            # Check that we are not going to overwrite a modified document in the user's data directory.
+            if check_overwrite_user_data(filename):
+                doc_name = os.path.basename(filename)
+                doc_name = os.path.splitext(doc_name)[0]
+                current_filename = current_user.get_filename()
+                if doc_name == current_filename:
+                    flash(f'A different version of document "{doc_name}" is currently open. '
+                          f"Opening the template will overwrite it. Please delete it before opening this template.\n\n"
+                          f"If desired, you can use 'Save As...' in the 'EML Documents' menu to save the currently open version "
+                          f"under a different name before deleting it.\n\n"
+                          f"If the currently open version is intended to replace the template, just use 'Save As Template' to save it.")
+                else:
+                    flash(f'A different version of document "{doc_name}" already exists in your user folder. '
+                          f"Opening the template will overwrite it. Please delete it before opening this template.\n\n"
+                          f"If the version in your user folder is the one you want to keep, use the ordinary 'Open' "
+                          f"command to open it. You can then save it as a template if you wish.")
+                return redirect(url_for(PAGE_MANAGE_TEMPLATES))
+
             # Copy the template to the user's data directory.
             filename = copy_template_to_user_data(filename)
+
+            flash(f'Template "{filename}" has been copied to your user data directory and opened for editing.\n\n'
+                  f"When you are done editing, use 'Save As Template' to save your changes to the template.", 'success')
 
             # Open the document. Note that open_document takes care of handling locks.
             return open_document(filename)

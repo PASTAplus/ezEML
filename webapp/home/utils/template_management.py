@@ -47,6 +47,24 @@ def init_user_lookup():
             user_lookup[user[0]] = sites
 
 
+def check_overwrite_user_data(template_pathname):
+    # Check if a file with the given name already exists in the user's data directory and is different from the template
+    user_base = user_data.get_user_folder_name(current_user_directory_only=True)
+    filename = os.path.basename(template_pathname)
+    user_path = os.path.join(user_base, filename)
+
+    if os.path.exists(user_path):
+        with open(template_pathname, 'r') as f:
+            template_content = f.read()
+        with open(user_path, 'r') as f:
+            user_content = f.read()
+        if template_content == user_content:
+            return False
+        return True
+
+    return False
+
+
 def copy_template_to_user_data(template_pathname):
     # Copy the template to the user's data directory
     user_base = user_data.get_user_folder_name(current_user_directory_only=True)
@@ -66,6 +84,8 @@ def copy_document_to_template_folder(filename, template_folder, save_to_name):
     to_path = os.path.join(template_base, template_folder, save_to_name + '.json')
 
     copyfile(from_path, to_path)
+    # We remove the version in the user's data directory to avoid confusion between the versions
+    os.remove(from_path)
 
 
 def is_authorized_to_manage_templates(site):

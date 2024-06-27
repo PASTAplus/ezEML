@@ -43,6 +43,7 @@ def send_mail(subject, msg, to, to_name=None):
     else:
         message["To"] = formataddr((Config.TO_NAME, Config.TO))
 
+    message.add_header("X-SES-CONFIGURATION-SET", "edi-dedicated")
     part = MIMEText(msg, "plain")
     message.attach(part)
 

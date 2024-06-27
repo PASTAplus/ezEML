@@ -1390,6 +1390,8 @@ Click <b>Open a Template</b> to view or edit an existing metadata template. You 
 To create a new template from scratch, just use <b>New...</b> in the <b>EML Documents</b> menu to create it as you would any other EML document, then save it as a template using <b>Save As Template</b>.
 
 With <b>Save As Template</b>, you can save the template under its current name or under a new name.
+
+Templates are stored in their own storage area, distinct from your user data directory, so that they will be visible to all users, not just you and your collaborators. When you open a template via <b>Open Template</b>, it is copied into your user data directory and opened for editing. If you then modify the template, you need to save it via <b>Save As Template</b>, which moves it back to the template directory.
 --------------------
 save_as_template
 Save As Template
@@ -1397,6 +1399,8 @@ Save As Template
 Click <b>Save As Template</b> to save the currently open EML document as a metadata template. You can save the template under the EML document's current name or under a new name.
 
 If no EML document is currently open, <b>Save As Template</b> will be disabled.
+
+When you save a document as a template, the document is moved out of your user data directory and into the template directory to make it visible to all users, not just to you and your collaborators. It will therefore no longer appear in the list of EML documents that you see when you use the <b>Open</b> command. To view or edit a saved template, use the <b>Open Template</b> command. This copies the template into your user data directory and opens it for editing. Then to save changes to the template, use <b>Save As Template</b>, at which point it is moved back to the template directory.
 --------------------
 delete_template
 Delete Template

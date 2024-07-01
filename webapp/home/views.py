@@ -945,7 +945,22 @@ def rename_package():
             user_folder = user_data.get_user_folder_name(current_user_directory_only=True)
             from_metadata = os.path.join(user_folder, f"{from_package}.json")
             to_metadata = os.path.join(user_folder, f"{to_package}.json")
-            move(from_metadata, to_metadata)
+            try:
+                move(from_metadata, to_metadata)
+            except FileNotFoundError:
+                pass
+            from_metadata = os.path.join(user_folder, f"{from_package}.xml")
+            to_metadata = os.path.join(user_folder, f"{to_package}.xml")
+            try:
+                move(from_metadata, to_metadata)
+            except FileNotFoundError:
+                pass
+            from_eval_pkl = os.path.join(user_folder, f"{from_package}_eval.pkl")
+            to_eval_pkl = os.path.join(user_folder, f"{to_package}_eval.pkl")
+            try:
+                move(from_eval_pkl, to_eval_pkl)
+            except FileNotFoundError:
+                pass
 
             from_folder = user_data.get_document_uploads_folder_name(from_package)
             to_folder = user_data.get_document_uploads_folder_name(to_package)
@@ -1000,6 +1015,10 @@ def rename_package():
 
         if new_name == current_document:
             flash('The new name must be different from the current name.', 'error')
+            return render_template('rename_package.html', form=form, help=help, in_use=in_use, title='Rename Package')
+
+        if user_data.is_document_locked(new_name):
+            flash(f'The document "{new_name}" is currently locked by another user.', 'error')
             return render_template('rename_package.html', form=form, help=help, in_use=in_use, title='Rename Package')
 
         do_rename(current_document, new_name)

@@ -178,6 +178,8 @@ def is_document_locked(filename, owner_login=None):
     we can return additional information about the lock owner.
     owner_login, if passed, is used to help identify the package.
     """
+    if not owner_login:
+        owner_login = current_user.get_user_org()
     user_login = current_user.get_user_org()
     return collaborations.update_lock(user_login, filename, owner_login=owner_login)
 

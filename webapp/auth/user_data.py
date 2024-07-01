@@ -457,6 +457,10 @@ def get_active_document_owner_login() -> str:
     return owner_login
 
 
+def user_is_owner_of_active_document() -> bool:
+    return current_user.get_user_org() == get_active_document_owner_login()
+
+
 def remove_active_file():
     user_folder = get_user_folder_name(current_user_directory_only=True)
     active_file = f'{user_folder}/{Config.ACTIVE_PACKAGE}'

@@ -241,6 +241,10 @@ def load_geo_coverage(filename):
                     load_geo_coverage_from_csv(data_file_path, document)
                     log_usage(actions['LOAD_GEOGRAPHIC_COVERAGE'], filename)
                     flash(f'Loaded {data_file}')
+                    try:
+                        os.remove(data_file_path)
+                    except FileNotFoundError as e:
+                        pass
                 except InvalidHeaderRow as e:
                     flash(f'Invalid header in {data_file}: {e}')
                 except UnexpectedDataTypes as ex:
@@ -839,6 +843,11 @@ def load_taxonomic_coverage(filename):
                     flash(f'CSV file does not have the expected header row.', 'error')
                 except ValueError as ex:
                     flash(f'Load CSV file failed. {ex.args[0]}', 'error')
+
+                try:
+                    os.remove(data_file_path)
+                except FileNotFoundError as e:
+                    pass
 
                 if errors:
                     # Save errors to a file

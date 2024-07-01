@@ -1077,6 +1077,12 @@ Provide a document name for the data package. This is the name by which the docu
 
 This document name will not appear in the EML itself. I.e., it is distinct from the Title and Data Package ID, both of which are saved in the EML.
 --------------------
+rename_document
+Rename
+<b>Rename</b> lets you change the name of the EML document. This is the name by which the document is known to ezEML. It is the name that appears in the list of documents when you click <b>Open...</b> in the <b>EML Documents</b> menu, for example. It can be any name that will be meaningful to you, for example if you come back to ezEML at a later time.
+
+<b>Rename</b> does not change the Title or Data Package ID or other contents of the EML itself.
+--------------------
 send_to_colleague
 Send to Colleague
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you can send the entire package to a colleague (e.g., an LTER Information Manager) via <b>Send to Colleague</b>.

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_rename_document_id, help_rename_document_title, help_rename_document_content = help[0] %}
+    {% set help_rename_document_btn = help_rename_document_id ~ '_btn' %}
+    {% set help_rename_document_dialog = help_rename_document_id ~ '_dialog' %}
+    {% set help_new_eml_document_id, help_new_eml_document_title, help_new_eml_document_content = help[1] %}
+    {% set help_new_eml_document_btn = help_new_eml_document_id ~ '_btn' %}
+    {% set help_new_eml_document_dialog = help_new_eml_document_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Rename</h2></td>
+        <td valign="top" style="padding-top: 28px;padding-left: 15px;">{{ macros.help_button(help_rename_document_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" class="form" role="form" novalidate>
+                {{ form.csrf_token }}
+                <input type="hidden" name="action" value=""/>
+
+                <h5>Enter the new document name:</h5>
+                <table>
+                    <td>{{ wtf.form_field(form.filename, size=120) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_new_eml_document_btn) }}</td>
+                </table>
+                <p>&nbsp;</p>
+                <button class="btn btn-primary" name="Rename" type="button" onclick="if(validateForm()) { this.form.submit(); }" value="Rename">Rename</button>
+                <button class="btn btn-primary" name="Cancel" type="submit" value="Cancel">Cancel</button>
+                {{ macros.hidden_buttons_with_no_contents_menu() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_rename_document_dialog, help_rename_document_title, help_rename_document_content) }}
+    {{ macros.help_dialog(help_new_eml_document_dialog, help_new_eml_document_title, help_new_eml_document_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_rename_document_id, help_rename_document_title, help_rename_document_content = help[0] %}
+    {% set help_rename_document_btn = help_rename_document_id ~ '_btn' %}
+    {% set help_rename_document_dialog = help_rename_document_id ~ '_dialog' %}
+    {% set help_new_eml_document_id, help_new_eml_document_title, help_new_eml_document_content = help[1] %}
+    {% set help_new_eml_document_btn = help_new_eml_document_id ~ '_btn' %}
+    {% set help_new_eml_document_dialog = help_new_eml_document_id ~ '_dialog' %}
+
+    <script>
+    let values_to_check = {{ in_use|tojson|safe }};
+    function validateForm() {
+        let doc_name = document.getElementById("filename").value;
+        if (values_to_check.includes(doc_name)) {
+            if (!confirm('This will overwrite an existing package of the same name and cannot be undone. Are you sure you want to proceed?')) {
+                document.getElementById("filename").value = "";
+                return false;
+            }
+        }
+        return true;
+    }
+
+    $(function()
+    {
+        {{ macros.help_script(help_rename_document_dialog, help_rename_document_btn) }}
+        {{ macros.help_script(help_new_eml_document_dialog, help_new_eml_document_btn) }}
+    });
+    </script>
+{% endblock %}

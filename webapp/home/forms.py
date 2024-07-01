@@ -258,6 +258,10 @@ class SaveAsForm(FlaskForm):
     filename = StringField('Document Name', validators=[DataRequired()])
 
 
+class RenamePackageForm(FlaskForm):
+    filename = StringField('New Document Name', validators=[DataRequired()])
+
+
 class SubmitToEDIForm(FlaskForm):
     name = StringField('Your Name *', validators=[DataRequired()])
     email_address = StringField('Your Email Address *', validators=[Email(), DataRequired()])

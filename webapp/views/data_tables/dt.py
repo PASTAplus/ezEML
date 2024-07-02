@@ -1031,7 +1031,7 @@ def force_datetime_type(attribute_node):
     if data_frame is None:
         raise webapp.home.exceptions.DataFileNotFound("Data file not found.")
     if data_frame[column_name].size > 0:
-        return infer_datetime_format(data_frame[column_name][1])
+        return infer_datetime_format(data_frame[column_name][0])
     else:
         return ''
 

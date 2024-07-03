@@ -87,7 +87,7 @@ def login():
             session_id = cname + "*" + pasta_token.uid
             user = User(session_id)
             login_user(user)
-            initialize_user_data(cname, pasta_token.uid, auth_token)
+            initialize_user_data(cname, 'LDAP', pasta_token.uid, auth_token)
             log_usage(actions['LOGIN'], cname, 'LDAP', current_user.get_user_login())
             next_page = request.args.get('next')
             if not next_page or urlparse(next_page).netloc != '':
@@ -112,20 +112,13 @@ def login():
     # log_info(f"cname: {cname}")
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
-        username = ''
-        # decoded_bytes = base64.b64decode(auth_token)
-        # decoded_str = decoded_bytes.decode("utf-8")
-        # try:
-        #     username = decoded_str.split("-")[0].split('*')[0]
-        # except:
-        #     username = ''
         uid = pasta_token.uid
         log_info(f"uid: {uid}")
         session_id = cname + "*" + uid
         user = User(session_id)
         login_user(user)
-        initialize_user_data(cname, pasta_token.uid, auth_token)
-        log_usage(actions['LOGIN'], cname, idp, username, current_user.get_user_login())
+        initialize_user_data(cname, idp, uid, auth_token)
+        log_usage(actions['LOGIN'], cname, idp, uid, current_user.get_user_login())
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
             current_document = get_active_document()

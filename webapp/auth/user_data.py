@@ -5,6 +5,7 @@
 Helper functions for accessing data regarding the current user.
 """
 
+from datetime import datetime
 import json
 import os
 import os.path
@@ -111,7 +112,7 @@ def get_user_document_list(current_user_directory_only=True):
     return packageids
 
 
-def initialize_user_data(cname, uid, auth_token):
+def initialize_user_data(cname, idp, uid, auth_token):
     user_folder_name = get_user_folder_name(current_user_directory_only=True)
     user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(Config.USER_DATA_DIR):
@@ -125,7 +126,9 @@ def initialize_user_data(cname, uid, auth_token):
         os.mkdir(user_uploads_folder_name)
     user_properties = get_user_properties()
     user_properties['cname'] = cname
+    user_properties['idp'] = idp
     user_properties['uid'] = uid
+    user_properties['datetime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     user_properties['auth_token'] = auth_token
     save_user_properties(user_properties)
 

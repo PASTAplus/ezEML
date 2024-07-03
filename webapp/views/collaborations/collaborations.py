@@ -381,6 +381,16 @@ def _add_lock(package_id, locked_by, session=None):
         return lock
 
 
+def rename_package(owner_login, old_package_name, new_package_name, session=None):
+    """
+    Rename a package by updating the package name in the package record.
+    """
+    with db_session(session) as session:
+        package = get_package(owner_login, old_package_name, session)
+        if package:
+            package.package_name = new_package_name
+
+
 def remove_package(owner_login, package_name, session=None):
     """
     To be called when a package is deleted. Removes all records associated with the package.

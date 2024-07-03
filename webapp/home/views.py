@@ -977,6 +977,10 @@ def rename_package():
         eml_node = load_eml(filename=new_document)
         fixup_distribution_urls(eml_node)
         save_both_formats(filename=new_document, eml_node=eml_node)
+        # Rename the package in the collaborations database. It is assumed that if we got here, we've already
+        #  established that the current user is the owner of the document.
+        user_login = current_user.get_user_org()
+        # collaborations.rename_package(user_login, current_document, new_document)
         # Delete the old package
         user_data.delete_package(current_document)
 

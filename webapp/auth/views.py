@@ -110,14 +110,21 @@ def login():
     cname = request.args.get("cname")
     idp = request.args.get("idp")
     # log_info(f"cname: {cname}")
+    sub = request.args.get("sub")
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
         uid = pasta_token.uid
         log_info(f"uid: {uid}")
+
+        # If it's a Google login, we need to see if the user data needs to be repaired.
+        from webapp.home.repair_user_data import repair_user_data
+        if Config.REPAIR_USER_DATA and idp == 'google':
+            repair_user_data(cname, idp, uid, sub)
+
         session_id = cname + "*" + uid
         user = User(session_id)
         login_user(user)
-        initialize_user_data(cname, idp, uid, auth_token)
+        initialize_user_data(cname, idp, uid, auth_token, sub)
         log_usage(actions['LOGIN'], cname, idp, uid, current_user.get_user_login())
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':

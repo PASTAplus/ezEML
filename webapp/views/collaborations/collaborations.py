@@ -165,6 +165,33 @@ def get_active_package_owner_login(user_login, session=None):
         return None
 
 
+def change_user_login(old_user_login, new_user_login, session=None):
+    """
+    Change the user login. This is used in repairing the user_data because of a bug in Google login handling.
+    """
+    with db_session(session) as session:
+        old_user = get_user(old_user_login, session=session)
+        new_user = get_user(new_user_login, session=session)
+        packages = Package.query.all()
+        for package in packages:
+            if package.owner_id == old_user.user_id:
+                package.owner_id = new_user.user_id
+        collaborations = Collaboration.query.all()
+        for collaboration in collaborations:
+            if collaboration.owner_id == old_user.user_id:
+                collaboration.owner_id = new_user.user_id
+            if collaboration.collaborator_id == old_user.user_id:
+                collaboration.collaborator_id = new_user.user_id
+        group_collaborations = GroupCollaboration.query.all()
+        for group_collaboration in group_collaborations:
+            if group_collaboration.owner_id == old_user.user_id:
+                group_collaboration.owner_id = new_user.user_id
+        invitations = Invitation.query.all()
+        for invitation in invitations:
+            if invitation.inviter_id == old_user.user_id:
+                invitation.inviter_id = new_user.user_id
+
+
 def update_lock(user_login, package_name, owner_login=None, opening=False, session=None):
     """
     In most cases, this will be called when the package is already the active package for the user, who already

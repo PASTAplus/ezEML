@@ -121,6 +121,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                         {{ macros.toolbar_menu_item(url_for('home.close'), 'hidden_close', 'Close', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.save'), 'hidden_save', 'Save', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.save_as'), 'hidden_save_as', 'Save As...', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.rename_package'), 'hidden_rename_package', 'Rename...', ns.is_non_saving) }}
                     {% endif %}
                         {{ macros.toolbar_menu_item(url_for('home.settings'), 'hidden_settings', 'Settings...', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.manage_packages'), 'hidden_manage', 'Manage...', ns.is_non_saving) }}

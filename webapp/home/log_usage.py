@@ -58,6 +58,7 @@ actions = {
     'OPEN_DOCUMENT': 'Open',
     'RE_UPLOAD_DATA_TABLE': 'Re-upload Data Table',
     'RE_UPLOAD_OTHER_ENTITY': 'Re-upload Other Entity',
+    'RENAME_PACKAGE' : 'Rename Package',
     'SAVE_AS_DOCUMENT': 'Save As',
     'SAVE_DOCUMENT': 'Save',
     'SEND_TO_EDI': 'Send to EDI',

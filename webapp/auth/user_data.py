@@ -5,6 +5,7 @@
 Helper functions for accessing data regarding the current user.
 """
 
+from datetime import datetime
 import json
 import os
 import os.path
@@ -111,7 +112,7 @@ def get_user_document_list(current_user_directory_only=True):
     return packageids
 
 
-def initialize_user_data(cname, uid, auth_token):
+def initialize_user_data(cname, idp, uid, auth_token, sub=None):
     user_folder_name = get_user_folder_name(current_user_directory_only=True)
     user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(Config.USER_DATA_DIR):
@@ -125,8 +126,11 @@ def initialize_user_data(cname, uid, auth_token):
         os.mkdir(user_uploads_folder_name)
     user_properties = get_user_properties()
     user_properties['cname'] = cname
+    user_properties['idp'] = idp
     user_properties['uid'] = uid
+    user_properties['datetime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     user_properties['auth_token'] = auth_token
+    user_properties['sub'] = sub
     save_user_properties(user_properties)
 
 
@@ -178,6 +182,8 @@ def is_document_locked(filename, owner_login=None):
     we can return additional information about the lock owner.
     owner_login, if passed, is used to help identify the package.
     """
+    if not owner_login:
+        owner_login = current_user.get_user_org()
     user_login = current_user.get_user_org()
     return collaborations.update_lock(user_login, filename, owner_login=owner_login)
 
@@ -455,6 +461,10 @@ def get_active_document_owner_login() -> str:
             # If the owner_login is not set, we assume the owner is the current user.
             owner_login = current_user.get_user_org()
     return owner_login
+
+
+def user_is_owner_of_active_document() -> bool:
+    return current_user.get_user_org() == get_active_document_owner_login()
 
 
 def remove_active_file():

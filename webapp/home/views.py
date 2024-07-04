@@ -59,7 +59,7 @@ from webapp.home.exceptions import (
 
 from webapp.home.forms import ( 
     EDIForm, CreateEMLForm, ImportPackageForm,
-    OpenEMLDocumentForm, ValidateEMLFileForm, SaveAsForm,
+    OpenEMLDocumentForm, ValidateEMLFileForm, SaveAsForm, RenamePackageForm,
     LoadMetadataForm, LoadDataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportPartiesFromTemplateForm,
     ImportItemsForm, ImportSingleItemForm, ImportKeywordsForm,
@@ -97,8 +97,8 @@ from webapp.home.utils.load_and_save import get_pathname, load_eml, load_templat
 from webapp.home.utils.import_nodes import import_responsible_parties, import_keyword_nodes, import_coverage_nodes, \
     import_funding_award_nodes, compose_funding_award_label, compose_project_label, import_project_node, \
     import_related_project_nodes, compose_rp_label
-from webapp.home.utils.lists import list_data_packages, list_templates, template_display_name, compose_full_gc_label, \
-    truncate_middle, compose_taxonomic_label, UP_ARROW, DOWN_ARROW
+from webapp.home.utils.lists import list_data_packages, list_templates, list_files_in_dir, template_display_name, \
+    compose_full_gc_label, truncate_middle, compose_taxonomic_label, UP_ARROW, DOWN_ARROW
 from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fetched_from_edi_metadata
 from webapp.home.utils.template_management import (
     init_template_management,
@@ -930,6 +930,107 @@ def save():
     flash(f'Saved {current_document}')
          
     return redirect(url_for(PAGE_TITLE, filename=current_document))
+
+
+@home_bp.route('/rename_package', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def rename_package():
+    def do_rename(current_document, new_document):
+
+        def move_files(from_package, to_package):
+            """
+            Move the metadata files and uploads from one package to another as part of the 'Rename' operation.
+            """
+            user_folder = user_data.get_user_folder_name(current_user_directory_only=True)
+            from_metadata = os.path.join(user_folder, f"{from_package}.json")
+            to_metadata = os.path.join(user_folder, f"{to_package}.json")
+            try:
+                move(from_metadata, to_metadata)
+            except FileNotFoundError:
+                pass
+            from_metadata = os.path.join(user_folder, f"{from_package}.xml")
+            to_metadata = os.path.join(user_folder, f"{to_package}.xml")
+            try:
+                move(from_metadata, to_metadata)
+            except FileNotFoundError:
+                pass
+            from_eval_pkl = os.path.join(user_folder, f"{from_package}_eval.pkl")
+            to_eval_pkl = os.path.join(user_folder, f"{to_package}_eval.pkl")
+            try:
+                move(from_eval_pkl, to_eval_pkl)
+            except FileNotFoundError:
+                pass
+
+            from_folder = user_data.get_document_uploads_folder_name(from_package)
+            to_folder = user_data.get_document_uploads_folder_name(to_package)
+            for filename in os.listdir(from_folder):
+                from_path = os.path.join(from_folder, filename)
+                to_path = os.path.join(to_folder, filename)
+                move(from_path, to_path)
+                user_data.add_data_table_upload_filename(filename, document_name=to_package)
+
+        # Uploads are stored under the document name, so we need to copy them.
+        move_files(current_document, new_document)
+        log_usage(actions['RENAME_PACKAGE'], current_document, new_document)
+        current_user.set_filename(filename=new_document)
+        eml_node = load_eml(filename=new_document)
+        fixup_distribution_urls(eml_node)
+        save_both_formats(filename=new_document, eml_node=eml_node)
+        # Rename the package in the collaborations database. It is assumed that if we got here, we've already
+        #  established that the current user is the owner of the document.
+        user_login = current_user.get_user_org()
+        # collaborations.rename_package(user_login, current_document, new_document)
+        # Delete the old package
+        user_data.delete_package(current_document)
+
+    """Handle the Rename Package page."""
+    current_document = current_user.get_filename()
+    if not current_document:
+        flash('No document currently open')
+        return render_template('index.html')
+
+    if not user_data.user_is_owner_of_active_document():
+        flash("Only the document's owner can rename it.", 'error')
+        return redirect(get_back_url())
+
+    help = get_helps(['rename_document', 'save_as_document'])
+
+    form = RenamePackageForm()
+    if BTN_CANCEL in request.form:
+        if current_document:
+            return redirect(get_back_url())
+        else:
+            return render_template('index.html')
+
+    # Get names already in use
+    user_path = user_data.get_user_folder_name(current_user_directory_only=True)
+    files = list_files_in_dir(user_path)
+    in_use = []
+    for file in files:
+        if file.endswith('.json'):
+            in_use.append(file[:-5])
+
+    if form.validate_on_submit():
+        new_name = form.filename.data
+        if not new_name:
+            flash('Please enter a new name')
+            return render_template('rename_package.html', form=form, help=help, in_use=in_use, title='Rename Package')
+
+        if new_name == current_document:
+            flash('The new name must be different from the current name.', 'error')
+            return render_template('rename_package.html', form=form, help=help, in_use=in_use, title='Rename Package')
+
+        if user_data.is_document_locked(new_name):
+            flash(f'The document "{new_name}" is currently locked by another user.', 'error')
+            return render_template('rename_package.html', form=form, help=help, in_use=in_use, title='Rename Package')
+
+        do_rename(current_document, new_name)
+
+        flash(f'Renamed "{current_document}" to "{new_name}"')
+        return redirect(url_for(PAGE_TITLE, filename=new_name))
+
+    return render_template('rename_package.html', form=form, help=help, in_use=in_use, title='Rename Package')
 
 
 @home_bp.route('/manage_packages', methods=['GET', 'POST'])

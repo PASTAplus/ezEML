@@ -688,6 +688,10 @@ def upload_spreadsheet(filename=None, dt_node_id=None):
                 try:
                     log_usage(actions['UPLOAD_COLUMN_PROPERTIES_SPREADSHEET'], document_name)
                     table_spreadsheets.ingest_data_table_spreadsheet(filepath, dt_node_id)
+                    try:
+                        os.remove(filepath)
+                    except FileNotFoundError as e:
+                        pass
                 except exceptions.DataTableSpreadsheetError as e:
                     flash(f'Error uploading the spreadsheet:\n {e}', 'error')
                 return redirect(url_for(PAGE_ATTRIBUTE_SELECT, filename=document_name, dt_node_id=dt_node_id))
@@ -1027,7 +1031,7 @@ def force_datetime_type(attribute_node):
     if data_frame is None:
         raise webapp.home.exceptions.DataFileNotFound("Data file not found.")
     if data_frame[column_name].size > 0:
-        return infer_datetime_format(data_frame[column_name][1])
+        return infer_datetime_format(data_frame[column_name][0])
     else:
         return ''
 

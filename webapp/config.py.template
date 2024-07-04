@@ -47,6 +47,8 @@ class Config(object):
     SCOPE_ATTRIBUTE_VALUE = "document"
     SYSTEM_ATTRIBUTE_VALUE = "https://pasta.edirepository.org"
 
+    REPAIR_USER_DATA = False
+
     # Email configuration
     RELAY_HOST = 'RELAY_HOST'
     RELAY_PASSWORD = 'RELAY_PASSWORD'

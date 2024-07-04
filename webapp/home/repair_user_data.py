@@ -196,14 +196,13 @@ def move_directory(src, dst):
     if not os.path.exists(src):
         raise FileNotFoundError(f"Source directory {src} does not exist.")
 
-    if os.path.exists(dst):
-        shutil.rmtree(dst)
-
     if not os.path.isdir(dst):
         os.mkdir(dst)
 
+    dst_path = os.path.join(dst, os.path.basename(src))
+
     # Move the directory
-    shutil.move(src, dst)
+    shutil.move(src, dst_path)
 
 
 def copy_files_with_exclusions(src, dst, exclude_files):

@@ -170,9 +170,9 @@ def repair_user_data(cname, idp, uid, sub):
             # We have both the uid-based and sub-based directories, so we merge the sub-based directory into the
             #  uid-based directory.
             merge_sub_dir_to_uid_dir(sub_dir, uid_dir)
-            # Fixup the collaborations database to use the uid-based login instead of the sub-based login
-            log_info(f"change_user_login: {os.path.basename(sub_dir)} {os.path.basename(uid_dir)}")
-            change_user_login(os.path.basename(sub_dir), os.path.basename(uid_dir))
+        # Fixup the collaborations database to use the uid-based login instead of the sub-based login
+        log_info(f"change_user_login: {os.path.basename(sub_dir)} {os.path.basename(uid_dir)}")
+        change_user_login(os.path.basename(sub_dir), os.path.basename(uid_dir))
         # Move the sub-based directory to the backup directory
         move_dir_to_backup(sub_dir)
 

@@ -15,17 +15,21 @@ class Optionality(Enum):
     FORCE = 3
 
 
-def new_child_node(child_name:str, parent:Node, content:str=None, attribute:ty.Tuple[str,str]=None):
+def new_child_node(child_name:str, parent:Node, content:str=None, attribute:ty.Tuple[str,str]=None, force=False):
     """
     Create a new child node and add it to the parent node. Optionally, set its content and/or an attribute.
     Return the new child node.
+    If force is True, add the child node without checking the parent's rule. Used for additionalMetadata.
     """
     child_node = Node(child_name, parent=parent)
     if content is not None:
         child_node.content = content
     if attribute is not None:
         child_node.add_attribute(attribute[0], attribute[1])
-    add_child(parent, child_node)
+    if not force:
+        add_child(parent, child_node)
+    else:
+        parent.add_child(child_node)
     return child_node
 
 

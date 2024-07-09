@@ -21,7 +21,6 @@ from webapp.home.home_utils import log_error, log_info, get_check_metadata_statu
 from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_store import calculate_node_store_checksum
 from webapp.home.utils.node_utils import add_node, Optionality
-from webapp.home.utils.node_utils import add_node, Optionality
 from webapp.utils import null_string
 from webapp.views.collaborations import collaborations as collaborations
 
@@ -937,77 +936,93 @@ def taxonomy_inconsistent_with_ezeml(eml_node, package_name):
         return False
 
 
-def fix_up_custom_units(eml_node:Node=None):
+def fix_up_custom_units(eml_node:Node=None, new_custom_unit=None, new_description=None):
     """
     Fix up the handling of custom units in the additionalMetadata node.
 
     The additionalMetadata nodes are handled differently from how they were handled initially.
     Pre-existing data packages need to be fixed up. Newly-created data packages will be correct, but
-      we need to check if this package needs fixup.
-    In addition, we check here whether we have custom units in the additionalMetadata that are no
-      longer needed because they no longer appear in a data table.
-    And if there are no custom units in the additionalMetadata, we remove the additionalMetadata node.
+      since we have this code, we'll also use it to add new custom units to the additionalMetadata node.
+
+    What should result is a single additionalMetadata node with all the custom units in it.
+    There may be other additionalMetadata nodes that do not contain custom units, and they will be left alone.
     """
-
-    def remove_custom_unit_from_additional_metadata(eml_node: Node = None, custom_unit_name: str = None):
-        """
-        Remove the custom unit from the additionalMetadata node.
-        """
-        unitList_node = eml_node.find_descendant(names.UNITLIST)
-        if unitList_node:
-            unit_nodes = unitList_node.find_all_children(names.UNIT)
-            for unit_node in unit_nodes:
-                if unit_node.attribute_value('id') == custom_unit_name:
-                    node_utils.remove_child(unit_node)
-                    break
-
-    custom_unit_nodes = []
-    eml_node.find_all_descendants(names.CUSTOMUNIT, custom_unit_nodes)
-    custom_units = set()
-    for custom_unit_node in custom_unit_nodes:
-        custom_units.add(custom_unit_node.content)
-
-    unitlist_node = eml_node.find_descendant(names.UNITLIST)
-    if unitlist_node:
-        metadata_node = unitlist_node.parent
-        # If there's an emlEditor node that's a sibling to unitlist_node, remove it
-        eml_editor_node = metadata_node.find_child('emlEditor')
-        if eml_editor_node:
-            node_utils.remove_child(eml_editor_node)
-        # Remove custom unit nodes that are no longer needed
+    def collect_custom_units_from_attributes(eml_node):
         custom_unit_nodes = []
         eml_node.find_all_descendants(names.CUSTOMUNIT, custom_unit_nodes)
-        unit_nodes = unitlist_node.find_all_children(names.UNIT)
-        for unit_node in unit_nodes:
-            if unit_node.attribute_value('id') not in custom_units:
-                log_info(f'Removing from additionalMetadata custom unit list: {unit_node.attribute_value("id")}')
-                node_utils.remove_child(unit_node)
-        # If there are no custom units, remove the unitlist, metadata, and additionalMetadata nodes if they're empty
-        unit_nodes = unitlist_node.find_all_children(names.UNIT)
-        if len(unit_nodes) == 0:
-            node_utils.remove_child(unitlist_node)
-            if not metadata_node.children:
-                additional_metadata_node = metadata_node.parent
-                node_utils.remove_child(metadata_node)
-                if not additional_metadata_node.children:
-                    eml_node.remove_child(additional_metadata_node)
+        custom_units = set()
+        for custom_unit_node in custom_unit_nodes:
+            custom_units.add(custom_unit_node.content)
+        return list(custom_units)
 
-    # Make sure all custom units are represented in the additionalMetadata node
-    # This is a band-aid and shouldn't be necessary, but we saw an unexplained case where it was. Until that's figured
-    #  out, we'll do this. Note that if we create a new custom unit additionalMetadata node, we don't add a description.
-    custom_unit_additionalMetadata_nodes = eml_node.find_all_nodes_by_path([
-        names.ADDITIONALMETADATA, names.METADATA, names.UNITLIST, names.UNIT])
-    custom_units_in_additionalMetadata = set()
-    for custom_unit_additionalMetadata_node in custom_unit_additionalMetadata_nodes:
-        custom_units_in_additionalMetadata.add(custom_unit_additionalMetadata_node.attribute_value('id'))
-    # If there are custom units not represented in the additionalMetadata node, add them
-    for custom_unit in custom_units:
-        if custom_unit not in custom_units_in_additionalMetadata:
-            handle_custom_unit_additional_metadata(eml_node, custom_unit)
-    # If there are custom units in the additionalMetadata that don't appear in the data tables, remove them
-    for custom_unit_in_additionalMetadata in custom_units_in_additionalMetadata:
-        if custom_unit_in_additionalMetadata not in custom_units:
-            remove_custom_unit_from_additional_metadata(eml_node, custom_unit_in_additionalMetadata)
+    def collect_custom_units_from_additional_metadata(eml_node):
+        unit_list_nodes = []
+        unit_nodes = []
+        eml_node.find_all_descendants(names.UNITLIST, unit_list_nodes)
+        for unit_list_node in unit_list_nodes:
+            unit_nodes.extend(unit_list_node.children)
+        custom_units = {}
+        for unit_node in unit_nodes:
+            if unit_node.attribute_value('name'):
+                custom_unit = unit_node.attribute_value('name')
+                description_node = unit_node.find_child(names.DESCRIPTION)
+                if description_node:
+                    description = description_node.content
+                else:
+                    description = ''
+                custom_units[custom_unit] = description
+        return custom_units
+
+    custom_units_from_attributes = collect_custom_units_from_attributes(eml_node)
+    custom_units_from_additional_metadata = collect_custom_units_from_additional_metadata(eml_node)
+
+    # Remove any custom units from the additionalMetadata node that are not in the attributes, i.e., that are no longer
+    #  needed.
+    current_keys = custom_units_from_additional_metadata.keys()
+    for key in current_keys:
+        if key not in custom_units_from_attributes:
+            del custom_units_from_additional_metadata[key]
+
+    # Add any custom units from the attributes that are not in the additionalMetadata node.
+    for custom_unit in custom_units_from_attributes:
+        if custom_unit not in custom_units_from_additional_metadata:
+            custom_units_from_additional_metadata[custom_unit] = ''
+
+    if new_custom_unit:
+        custom_units_from_additional_metadata[new_custom_unit] = new_description
+
+    # Remove any additionalMetadata nodes that contain custom units. We're going to recreate one.
+    # First, remove unitList nodes.
+    unit_list_nodes = []
+    eml_node.find_all_descendants(names.UNITLIST, unit_list_nodes)
+    for unit_list_node in unit_list_nodes:
+        parent_node = unit_list_node.parent
+        parent_node.remove_child(unit_list_node)
+    # Now remove additionalMetadata nodes that contain only a metadata node.
+    # We do it this way on the off chance that an additionalMetadata node that contained a unitList node also contains
+    #  some other stuff. This is not expected, but it's legal EML.
+    additional_metadata_nodes = []
+    eml_node.find_all_descendants(names.ADDITIONALMETADATA, additional_metadata_nodes)
+    for additional_metadata_node in additional_metadata_nodes:
+        if len(additional_metadata_node.children) == 1 and \
+                additional_metadata_node.children[0].name == names.METADATA and \
+                len(additional_metadata_node.children[0].children) == 0:
+            parent_node = additional_metadata_node.parent
+            parent_node.remove_child(additional_metadata_node)
+
+    # If needed, create a new additionalMetadata node with the custom units.
+    if custom_units_from_additional_metadata:
+        additional_metadata_node = node_utils.new_child_node(names.ADDITIONALMETADATA, eml_node)
+        metadata_node = node_utils.new_child_node(names.METADATA, additional_metadata_node, force=True)
+        unitlist_node = node_utils.new_child_node(names.UNITLIST, metadata_node, force=True)
+        unitlist_node.prefix = 'stmml'
+        for custom_unit_name, custom_unit_description in custom_units_from_additional_metadata.items():
+            unit_node = node_utils.new_child_node(names.UNIT, unitlist_node, force=True)
+            unit_node.add_attribute('id', custom_unit_name)
+            unit_node.add_attribute('name', custom_unit_name)
+            unit_node.prefix = 'stmml'
+            description_node = node_utils.new_child_node(names.DESCRIPTION, unit_node, custom_unit_description, force=True)
+            description_node.prefix = 'stmml'
 
 
 def handle_custom_unit_additional_metadata(eml_node:Node=None,
@@ -1016,50 +1031,7 @@ def handle_custom_unit_additional_metadata(eml_node:Node=None,
     """
     Add a custom unit name and description to the additionalMetadata node if it's not already there.
     """
-    additional_metadata_nodes = []
-    eml_node.find_all_descendants(names.ADDITIONALMETADATA, additional_metadata_nodes)
-    metadata_node = None
-    # If no additionalMetadata node, create one
-    if not additional_metadata_nodes:
-        dataset_node = eml_node.find_child(names.DATASET)
-        additional_metadata_node = add_node(dataset_node, names.ADDITIONALMETADATA, None, Optionality.FORCE)
-        additional_metadata_nodes.append(additional_metadata_node)
-        metadata_node = add_node(additional_metadata_node, names.METADATA, None, Optionality.FORCE)
-    unitlist_node = None
-    prefix = None
-    # Find an additionalMetadata node that has a unitlist node, if any. If there are multiple, we'll use the first one.
-    for additional_metadata_node in additional_metadata_nodes:
-        metadata_node = additional_metadata_node.find_child(names.METADATA)
-        unitlist_node = metadata_node.find_child(names.UNITLIST)
-        if unitlist_node:
-            prefix = unitlist_node.prefix
-            break
-    if not unitlist_node:
-        unitlist_node = add_node(metadata_node, names.UNITLIST, None, Optionality.FORCE)
-    unit_nodes = []
-    unitlist_node.find_all_descendants(names.UNIT, unit_nodes)
-
-    found = False
-    for unit_node in unit_nodes:
-        if unit_node.attribute_value('id') == custom_unit_name:
-            unit_node.add_attribute('name', custom_unit_name)
-            description_node = unit_node.find_child(names.DESCRIPTION)
-            if description_node:
-                node_utils.remove_child(description_node)
-            description_node = add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
-            found = True
-            break
-    if not found:
-        unit_node = Node(names.UNIT, parent=unitlist_node)
-        unitlist_node.add_child(unit_node)
-        unit_node.add_attribute('id', custom_unit_name)
-        unit_node.add_attribute('name', custom_unit_name)
-        description_node = add_node(unit_node, names.DESCRIPTION, custom_unit_description, Optionality.FORCE)
-
-    if description_node:
-        # e.g., unit element may be "stmml:unit", in which case we want
-        # the description to be "stmml:description"
-        description_node.prefix = prefix
+    fix_up_custom_units(eml_node, custom_unit_name, custom_unit_description)
 
     # save custom unit names and descriptions in session so we can do some javascript magic
     custom_units = session.get("custom_units", {})

@@ -13,6 +13,10 @@ def log_info(msg):
     with open(REPAIR_LOG_FILE, 'a') as f:
         f.write(msg + '\n')
 
+def log_error(msg):
+    with open(REPAIR_LOG_FILE, 'a') as f:
+        f.write('*** ERROR *** ' + msg + '\n')
+
 
 def generate_ezeml_user_data_dirs(cname, uid, sub):
     """
@@ -196,13 +200,17 @@ def move_directory(src, dst):
     if not os.path.exists(src):
         raise FileNotFoundError(f"Source directory {src} does not exist.")
 
-    if not os.path.isdir(dst):
-        os.mkdir(dst)
-
     dst_path = os.path.join(dst, os.path.basename(src))
 
+    if os.path.exists(dst_path):
+        shutil.rmtree(dst_path)
+
     # Move the directory
-    shutil.move(src, dst_path)
+    try:
+        shutil.copytree(src, dst_path)
+        shutil.rmtree(src)
+    except Exception as e:
+        log_error(f"Error moving directory {src} to {dst_path}: {e}")
 
 
 def copy_files_with_exclusions(src, dst, exclude_files):

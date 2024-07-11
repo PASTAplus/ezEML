@@ -172,6 +172,8 @@ def change_user_login(old_user_login, new_user_login, session=None):
     with db_session(session) as session:
         old_user = get_user(old_user_login, session=session)
         new_user = get_user(new_user_login, session=session)
+        if not old_user or not new_user:
+            return
         packages = Package.query.all()
         for package in packages:
             if package.owner_id == old_user.user_id:

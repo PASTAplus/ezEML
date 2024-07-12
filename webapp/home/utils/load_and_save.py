@@ -978,7 +978,7 @@ def fix_up_custom_units(eml_node:Node=None, new_custom_unit=None, new_descriptio
 
     # Remove any custom units from the additionalMetadata node that are not in the attributes, i.e., that are no longer
     #  needed.
-    current_keys = custom_units_from_additional_metadata.keys()
+    current_keys = list(custom_units_from_additional_metadata.keys())
     for key in current_keys:
         if key not in custom_units_from_attributes:
             del custom_units_from_additional_metadata[key]

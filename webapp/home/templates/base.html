@@ -546,5 +546,134 @@ function do_not_show_change_clicked(checkbox) {
         };
     });
     </script>
+
+    <script>
+    // --------------------------------------------------------------------------------------------------------------------
+    // Detect and prevent multiple tabs running ezEML simultaneously
+    // --------------------------------------------------------------------------------------------------------------------
+
+    // We use a custom modal dialog rather than the built-in alert() function because the latter causes execution to halt.
+    // We want the claim_main messages to continue to be sent while the dialog is displayed so that the other tab is
+    // notified that another tab is open.
+    </script>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+        }
+        .modal button {
+            margin-top: 10px;
+        }
+    </style>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <p>ezEML is open in another tab. ezEML does not support being open in more than one tab at a time.</p>
+            <p>Please close one of the tabs before continuing.</p>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        function showModal() {
+            document.getElementById('myModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('myModal').style.display = 'none';
+        }
+    </script>
+
+    <script>
+    // This function gets or creates a session-wide instanceId. This identifies a tab's session uniquely so we can
+    // determine if a claim_main message is coming from the same session (i.e., tab) or a different one.
+    function getSessionInstanceId() {
+        let instanceId = sessionStorage.getItem('sessionInstanceId');
+        if (!instanceId) {
+            instanceId = Math.random().toString(36).substr(2, 9);
+            sessionStorage.setItem('sessionInstanceId', instanceId);
+        }
+        return instanceId;
+    }
+
+    // Get the instanceId for this session
+    const instanceId = getSessionInstanceId();
+
+    // The BroadcastChannel API allows us to send messages between tabs. We use it to send a message to all other tabs.
+    const channelName = 'ezEML_instance_channel';
+    const channel = new BroadcastChannel(channelName);
+
+    // When a message is received, check if it's from the same session. If not, show the alert.
+    let alertTime = new Date();
+    let isAlertOpen = false;
+    function showAlert() {
+        if (!isAlertOpen) {
+            isAlertOpen = true;
+            let currentDateTime = new Date();
+            // We may have a bunch of messages backed up in the channel. We only want to show the alert once.
+            // So if the last alert was less than a second ago (i.e., we just closed the alert), don't show it again.
+            if (currentDateTime - alertTime > 1000) {
+                console.log('Alerting user', currentDateTime);
+                showModal();
+            } else {
+                console.log('Alert suppressed', currentDateTime);
+            }
+            isAlertOpen = false;
+            alertTime = new Date();
+        }
+    }
+
+    channel.onmessage = (event) => {
+        console.log('Received message:', event.data);
+        if (event.data.type === 'claim_main') {
+            if (event.data.id !== instanceId) {
+                console.log('App is already open in another tab ' + event.data.id);
+                showAlert();
+            }
+        }
+        if (event.data.type === 'main_closed') {
+            handleMainClosed();
+        }
+    };
+
+    function claimMainInstance() {
+        console.log('Claiming main instance status, id:', instanceId, ' at ', new Date());
+        channel.postMessage({ type: 'claim_main', id: instanceId });
+    }
+
+    function handleMainClosed() {
+        console.log('handleMainClosed');
+        // We are being informed that the other tab closed. We are probably sitting with an open modal dialog. Close it.
+        closeModal();
+        // Main instance closed, try to claim main status
+        claimMainInstance();
+    }
+
+    // Try to claim main instance status when the page loads
+    claimMainInstance();
+
+    // Periodically try to claim main instance status
+    setInterval(claimMainInstance, 3000);
+
+    // When the tab is closing or refreshing
+    window.addEventListener('beforeunload', (event) => {
+        console.log('beforeunload');
+        channel.postMessage({ type: 'main_closed' });
+    });
+    </script>
     {% endblock %}
 {% endblock %}

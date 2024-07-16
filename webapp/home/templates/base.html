@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2024.07.09' %}
+{% set release_number = '2024.07.17' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -621,20 +621,16 @@ function do_not_show_change_clicked(checkbox) {
     let alertTime = new Date();
     let isAlertOpen = false;
     function showAlert() {
-        if (!isAlertOpen) {
-            isAlertOpen = true;
-            let currentDateTime = new Date();
-            // We may have a bunch of messages backed up in the channel. We only want to show the alert once.
-            // So if the last alert was less than a second ago (i.e., we just closed the alert), don't show it again.
-            if (currentDateTime - alertTime > 1000) {
-                console.log('Alerting user', currentDateTime);
-                showModal();
-            } else {
-                console.log('Alert suppressed', currentDateTime);
-            }
-            isAlertOpen = false;
-            alertTime = new Date();
+        let currentDateTime = new Date();
+        // If the last alert was less than a second ago (i.e., we just closed the alert),
+        //  don't show it again.
+        if (currentDateTime - alertTime > 1000) {
+            console.log('Alerting user', currentDateTime);
+            showModal();
+        } else {
+            console.log('Alert suppressed', currentDateTime);
         }
+        alertTime = new Date();
     }
 
     channel.onmessage = (event) => {

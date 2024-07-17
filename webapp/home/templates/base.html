@@ -622,9 +622,9 @@ function do_not_show_change_clicked(checkbox) {
     let isAlertOpen = false;
     function showAlert() {
         let currentDateTime = new Date();
-        // If the last alert was less than a second ago (i.e., we just closed the alert),
+        // If the last alert was less than half a second ago (i.e., we just closed the alert),
         //  don't show it again.
-        if (currentDateTime - alertTime > 1000) {
+        if (currentDateTime - alertTime > 500) {
             console.log('Alerting user', currentDateTime);
             showModal();
         } else {
@@ -663,7 +663,7 @@ function do_not_show_change_clicked(checkbox) {
     claimMainInstance();
 
     // Periodically try to claim main instance status
-    setInterval(claimMainInstance, 5000);
+    setInterval(claimMainInstance, 2000);
 
     // When the tab is closing or refreshing
     window.addEventListener('beforeunload', (event) => {

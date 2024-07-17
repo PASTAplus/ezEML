@@ -663,7 +663,7 @@ function do_not_show_change_clicked(checkbox) {
     claimMainInstance();
 
     // Periodically try to claim main instance status
-    setInterval(claimMainInstance, 3000);
+    setInterval(claimMainInstance, 5000);
 
     // When the tab is closing or refreshing
     window.addEventListener('beforeunload', (event) => {

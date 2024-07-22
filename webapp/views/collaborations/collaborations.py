@@ -168,7 +168,51 @@ def get_active_package_owner_login(user_login, session=None):
 def change_user_login(old_user_login, new_user_login, session=None):
     """
     Change the user login. This is used in repairing the user_data because of a bug in Google login handling.
+
+    old_user_login here will be the user login that is incorrect (i.e., that used the sub id).
+    new_user_login will be the correct user login (i.e., that used the email address).
     """
+
+    def fixup_packages(old_user, new_user, old_package, new_package, session=session):
+        collaborations_to_fix = Collaboration.query.filter(Collaboration.package_id == old_package.package_id).all()
+        for collaboration in collaborations_to_fix:
+            # We want to change the package_id, but we need to beware of the uniqueness constraint
+            #     db.UniqueConstraint('collaborator_id', 'package_id', name='_collaborator_package_uc')
+            existing_collaboration = Collaboration.query.filter(Collaboration.collaborator_id == collaboration.collaborator_id,
+                                                                Collaboration.package_id == new_package.package_id).first()
+            if not existing_collaboration:
+                collaboration.package_id = new_package.package_id
+            else:
+                # If there is already a collaboration with the new package_id, we delete the one with the old package_id.
+                session.delete(existing_collaboration)
+
+        group_collaborations_to_fix = GroupCollaboration.query.filter(GroupCollaboration.package_id == old_package.package_id).all()
+        for group_collaboration in group_collaborations_to_fix:
+            # We want to change the package_id, but we need to beware of the uniqueness constraint
+            #     db.UniqueConstraint('user_group_id', 'package_id', name='_user_group_package_uc')
+            existing_group_collaboration = GroupCollaboration.query.filter(GroupCollaboration.owner_id == group_collaboration.owner_id,
+                                                                          GroupCollaboration.package_id == new_package.package_id).first()
+            if not existing_group_collaboration:
+                group_collaboration.package_id = new_package.package_id
+            else:
+                # If there is already a group collaboration with the new package_id, we delete the one with the old package_id.
+                session.delete(existing_group_collaboration)
+
+        invitations_to_fix = Invitation.query.filter(Invitation.package_id == old_package.package_id).all()
+        for invitation in invitations_to_fix:
+            # No uniqueness constraint to worry about here.
+            invitation.package_id = new_package.package_id
+
+        locks_to_fix = Lock.query.filter(Lock.package_id == old_package.package_id).all()
+        for lock in locks_to_fix:
+            # No uniqueness constraint to worry about here.
+            lock.package_id = new_package.package_id
+
+        group_locks_to_fix = GroupLock.query.filter(GroupLock.package_id == old_package.package_id).all()
+        for group_lock in group_locks_to_fix:
+            # No uniqueness constraint to worry about here.
+            group_lock.package_id = new_package.package_id
+
     with db_session(session) as session:
         old_user = get_user(old_user_login, session=session)
         new_user = get_user(new_user_login, session=session)
@@ -177,17 +221,33 @@ def change_user_login(old_user_login, new_user_login, session=None):
         packages = Package.query.all()
         for package in packages:
             if package.owner_id == old_user.user_id:
-                package.owner_id = new_user.user_id
+                # Because of the uniqueness constraint on package owner_id and package_name, we need to handle the case
+                #  where the new_user_login already has a package with the same name. I.e., the user was logged in under
+                #  the two different accounts and worked on a package with the same name under each account.
+                # In that case, we need to fix up all references to the old package_id to point to the new package_id.
+                # We also need to fix up the active_package_id for the user.
+                existing_package = _get_package(new_user.user_id, package.package_name, create_if_not_found=False, session=session)
+                if not existing_package:
+                    package.owner_id = new_user.user_id
+                else:
+                    # Fix up all references to the old package_id to point to the new package_id.
+                    fixup_packages(old_user, new_user, package, existing_package, session=session)
+                    # Set the active_package_id for the user to the existing package.
+                    if old_user.active_package_id == package.package_id:
+                        old_user.active_package_id = existing_package.package_id
+
         collaborations = Collaboration.query.all()
         for collaboration in collaborations:
             if collaboration.owner_id == old_user.user_id:
                 collaboration.owner_id = new_user.user_id
             if collaboration.collaborator_id == old_user.user_id:
                 collaboration.collaborator_id = new_user.user_id
+
         group_collaborations = GroupCollaboration.query.all()
         for group_collaboration in group_collaborations:
             if group_collaboration.owner_id == old_user.user_id:
                 group_collaboration.owner_id = new_user.user_id
+
         invitations = Invitation.query.all()
         for invitation in invitations:
             if invitation.inviter_id == old_user.user_id:

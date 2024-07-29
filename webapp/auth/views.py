@@ -114,7 +114,7 @@ def login():
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
         uid = pasta_token.uid
-        log_info(f"uid: {uid}")
+        log_info(f"uid: {uid}  cname: {cname}  idp: {idp}  sub: {sub}")
 
         # If it's a Google login, we need to see if the user data needs to be repaired.
         from webapp.home.repair_user_data import repair_user_data

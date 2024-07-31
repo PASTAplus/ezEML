@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2024.07.17' %}
+{% set release_number = '2024.07.31' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -227,6 +227,13 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                             {{ macros.toolbar_menu_item(url_for('collab.collaborate'), 'hidden_collaborate', 'Collaborate', ns.is_non_saving) }}
                             </ul>
                         </td>
+                            {% if session['release_to_owner_link'] %}
+                            <td>
+                                <ul class="nav navbar-nav">
+                                    {{ macros.toolbar_menu_item(url_for('home.release_to_owner'), 'hidden_release_to_owner', 'Release to Owner', ns.is_non_saving) }}
+                                </ul>
+                            </td>
+                            {% endif %}
                         {% endif %}
                         <td>
                             <ul class="nav navbar-nav">

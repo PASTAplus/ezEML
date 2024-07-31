@@ -160,6 +160,33 @@ AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be cau
 
 
 @home_bp.before_app_request
+def release_to_owner_link():
+    """
+    If the current user is an EDI curator and has control of a package under curation, we provide a link to release
+    the package back to the owner.
+    """
+    if current_user and hasattr(current_user, 'get_user_login'):
+        user_login = current_user.get_user_login()
+        session['release_to_owner_link'] = collaborations.release_to_owner(user_login)
+    else:
+        session['release_to_owner_link'] = None
+
+
+@home_bp.route('/release_to_owner/', methods=['GET','POST'])
+@home_bp.route('/release_to_owner/<filename>', methods=['GET','POST'])
+def release_to_owner(filename=None):
+    """
+    Release a package back to the owner.
+    """
+    if current_user and hasattr(current_user, 'get_user_login'):
+        user_login = current_user.get_user_login()
+        active_package_id = collaborations.release_to_owner(user_login)
+        if active_package_id:
+            return redirect(url_for(PAGE_RELEASE_GROUP_LOCK, package_id=active_package_id))
+    return redirect(url_for('home.index'))
+
+
+@home_bp.before_app_request
 def log_request():
     """
     Log the incoming request.

@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 from dataclasses import dataclass
 from datetime import datetime, date
 from enum import Enum, auto
-from flask import request
+from flask import request, url_for
 from flask_login import current_user
 
 from webapp import db
@@ -44,6 +44,7 @@ from webapp.views.collaborations.data_classes import (
 )
 from webapp.views.collaborations.db_session import db_session
 import webapp.home.exceptions as exceptions
+from webapp.pages import *
 
 
 import daiquiri
@@ -148,6 +149,27 @@ def get_active_package(user_login, session=None):
             return Package.query.get(active_package_id)
         else:
             return None
+
+
+def release_to_owner(user_login, session=None):
+    """
+    If the user is an EDI curator and the active package is owned by another user and is under EDI curation,
+    return a link that releases the group lock. Otherwise, return None.
+    """
+    with db_session(session) as session:
+        if not is_edi_curator(user_login, session=session):
+            return None
+        active_package = get_active_package(user_login, session=session)
+        if not active_package:
+            return None
+        active_package_id = active_package.package_id
+        if not active_package:
+            return None
+        user = get_user(user_login, session=session)
+        owner = active_package.owner
+        if user and owner and user != owner:
+            return active_package_id
+    return None
 
 
 def get_active_package_owner_login(user_login, session=None):

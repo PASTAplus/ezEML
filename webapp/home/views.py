@@ -17,6 +17,7 @@ import os.path
 from pathlib import Path
 import pickle
 import re
+import requests
 from shutil import copyfile, move, rmtree
 import subprocess
 import time
@@ -473,6 +474,43 @@ def check_data_table():
     column_names = request.headers.get('column_names').split(',')
     # return profile_and_save("check_data_table", check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names))
     return check_data_table_contents.check_data_table(eml_file_url, csv_file_url, data_table_name, column_names)
+
+
+@home_bp.route('/data_table_fetch/<document_name>/<csv_filename>/<path:url>', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def data_table_fetch(document_name:str=None, csv_filename:str=None, url:str=None):
+    """Handle fetching a missing data table on the Check Data Tables page."""
+
+    # We want to fetch the data table from the URL and save it in the user-data directory of the package owner.
+    uploads_dir = user_data.get_user_uploads_folder_name()
+    if not os.path.exists(uploads_dir):
+        os.makedirs(uploads_dir)
+    package_uploads_dir = os.path.join(uploads_dir, document_name)
+    if not os.path.exists(package_uploads_dir):
+        os.makedirs(package_uploads_dir)
+
+    if not csv_filename:
+        flash("No CSV filename provided to fetch data table.", "error")
+        return redirect(url_for(PAGE_CHECK_DATA_TABLES))
+
+    if not url:
+        flash("No URL provided to fetch data table.", "error")
+        return redirect(url_for(PAGE_CHECK_DATA_TABLES))
+
+    save_path = os.path.join(package_uploads_dir, csv_filename)
+
+    # Send HTTP GET request to the URL to fetch the data table
+    response = requests.get(url, stream=True)
+    response.raise_for_status()  # Check if the request was successful
+
+    # Save the file in chunks to avoid memory issues with large files
+    with open(save_path, 'wb') as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
+
+    flash('Data table fetched successfully.', 'success')
+    return redirect(url_for(PAGE_CHECK_DATA_TABLES))
 
 
 @home_bp.route('/data_table_errors/<data_table_name>', methods=['GET', 'POST'])

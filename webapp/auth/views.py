@@ -105,13 +105,13 @@ def login():
         return redirect(url_for(PAGE_LOGIN))
 
     # Process GET
-    for arg in request.args:
-        log_info(f"arg: {arg} = {request.args[arg]}")
+    # for arg in request.args:
+    #     log_info(f"arg: {arg} = {request.args[arg]}")
     auth_token = request.args.get("token")
-    log_info(f"auth_token: {auth_token}")
+    # log_info(f"auth_token: {auth_token}")
     cname = request.args.get("cname")
     idp = request.args.get("idp")
-    log_info(f"cname: {cname}")
+    # log_info(f"cname: {cname}")
     sub = request.args.get("sub")
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)

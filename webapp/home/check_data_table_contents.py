@@ -1143,7 +1143,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
                 quoted_document_name = urllib.parse.quote(document_name)
                 quoted_csv_name = urllib.parse.quote(csv_file_name)
                 quoted_url = urllib.parse.quote(online_distribution_url_node.content, safe='')
-                action = f'<a href="data_table_fetch/{quoted_document_name}/{quoted_csv_name}/{quoted_url}">Fetch data table</a>'
+                action = f'<a href="data_table_fetch/{quoted_document_name}/{quoted_csv_name}/{quoted_url}" onclick="stand_by_2();">Fetch data table</a>'
             else:
                 action = 'CSV file missing. Upload via the Data Tables page.'
         output += f'<tr><td width=2%><span class ="nav_link {status}_circle"></span></td>'
@@ -1151,7 +1151,9 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
         output += f'<td width=5%></td>'
         output += f'<td width=25%>{action}</td></tr>'
     if output:
-        output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th></th><th>Data Table Name</th><th></th></tr>' + output + '</table>'
+        output = '<table class="eval_table" width=100% style="padding: 10px;"><tr><th></th><th>Data Table Name</th><th></th>' \
+                 '<td><span id="stand_by_hint_2" style="visibility: hidden;color: #006699;"><i>Please stand by...</i></span></td></tr>' + \
+                 output + '</table>'
     return output, btn_status
 
 

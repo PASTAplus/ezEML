@@ -502,14 +502,15 @@ def data_table_fetch(document_name:str=None, csv_filename:str=None, url:str=None
 
     # Send HTTP GET request to the URL to fetch the data table
     response = requests.get(url, stream=True)
-    response.raise_for_status()  # Check if the request was successful
+    if response.status_code != 200:
+        flash(f'Unable to fetch data table "{csv_filename}". Reason: {response.reason}', "error")
+    else:
+        # Save the file in chunks to avoid memory issues with large files
+        with open(save_path, 'wb') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        flash('Data table fetched successfully.', 'success')
 
-    # Save the file in chunks to avoid memory issues with large files
-    with open(save_path, 'wb') as file:
-        for chunk in response.iter_content(chunk_size=8192):
-            file.write(chunk)
-
-    flash('Data table fetched successfully.', 'success')
     return redirect(url_for(PAGE_CHECK_DATA_TABLES))
 
 

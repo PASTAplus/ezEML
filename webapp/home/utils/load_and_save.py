@@ -566,8 +566,8 @@ def clean_model(eml_node):
 # Namespaces for the EML document
 NSMAP = {
     "eml": "https://eml.ecoinformatics.org/eml-2.2.0",
-    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-    "stmml": "http://www.xml-cml.org/schema/stmml-1.2"
+    "stmml": "http://www.xml-cml.org/schema/stmml-1.2",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
 }
 
 

@@ -322,7 +322,9 @@ def responsible_party(filename=None, rp_node_id=None,
 
             if 'eml/data_source_personnel' in url:
                 # Handle case of SAVE CHANGES on the Data Source Personnel page
-                return redirect(url.replace(old_rp_node_id, rp_node_id))
+                # We bracket the node IDs with slashes to handle the case when old_rp_node_id is '1'. In that case,
+                #  we may end up replacing a '1' in the filename with the new node ID. Not the intended result.
+                return redirect(url.replace(f'/{old_rp_node_id}/', f'/{rp_node_id}/'))
 
             if node_name == names.PUBLISHER:
                 return redirect(url)

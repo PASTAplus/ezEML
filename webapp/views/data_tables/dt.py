@@ -1571,8 +1571,8 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
 
     # Process GET
     attribute_name = ''
+    eml_node = load_eml(filename=filename)
     if node_id != '1':
-        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)

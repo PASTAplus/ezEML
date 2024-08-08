@@ -374,6 +374,31 @@ def enforce_dataset_sequence(eml_node:Node=None):
             dataset_node._children = new_children
 
 
+def enforce_public_read_access(eml_node:Node=None):
+    # If no access node, add it as first child of eml node
+    if eml_node:
+        access_node = eml_node.find_child(names.ACCESS)
+        if not access_node:
+            access_node = Node(names.ACCESS)
+            access_node.parent = eml_node
+            eml_node.add_child(access_node, 0)
+            access_node.add_attribute('system', Config.SYSTEM_ATTRIBUTE_VALUE)
+            access_node.add_attribute('scope', Config.SCOPE_ATTRIBUTE_VALUE)
+            access_node.add_attribute('order', Config.ORDER_ATTRIBUTE_VALUE)
+            access_node.add_attribute('authSystem', Config.AUTH_SYSTEM_ATTRIBUTE_VALUE)
+        allow_nodes = access_node.find_all_children(names.ALLOW)
+        for allow_node in allow_nodes:
+            principal_node = allow_node.find_child(names.PRINCIPAL)
+            permission_node = allow_node.find_child(names.PERMISSION)
+            if principal_node and principal_node.content == 'public' and permission_node and permission_node.content == 'read':
+                return
+        public_allow_node = node_utils.new_child_node(names.ALLOW, parent=access_node)
+        public_principal_node = node_utils.new_child_node(names.PRINCIPAL, parent=public_allow_node)
+        public_principal_node.content = 'public'
+        public_permission_node = node_utils.new_child_node(names.PERMISSION, parent=public_allow_node)
+        public_permission_node.content = 'read'
+
+
 def clean_model(eml_node):
     """
     Perform various cleanups on the model. This is called when a model is saved. Its purpose is to deal with
@@ -387,6 +412,7 @@ def clean_model(eml_node):
         eml_node.remove_attribute('filename')
     except:
         pass
+    enforce_public_read_access(eml_node)
     # Some documents have, due to earlier bugs, empty publisher, pubPlace, or pubDate nodes
     publisher_nodes = []
     eml_node.find_all_descendants(names.PUBLISHER, publisher_nodes)

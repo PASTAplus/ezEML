@@ -1224,6 +1224,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
     """
     form = AttributeDateTimeForm(filename=filename, node_id=node_id)
     att_node_id = node_id
+    eml_node = load_eml(filename=filename)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
@@ -1240,7 +1241,6 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
         if submit_type == 'Save Changes':
             dt_node = None
             attribute_list_node = None
-            eml_node = load_eml(filename=filename)
             dataset_node = eml_node.find_child(names.DATASET)
             if not dataset_node:
                 dataset_node = Node(names.DATASET, parent=eml_node)
@@ -1325,7 +1325,6 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
 
     # Process GET
     if node_id != '1':
-        eml_node = load_eml(filename=filename)
         dataset_node = eml_node.find_child(names.DATASET)
         if dataset_node:
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
@@ -1449,6 +1448,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
     """
     form = AttributeIntervalRatioForm(filename=filename, node_id=node_id)
     att_node_id = node_id
+    att_node = None
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         url = url_for(PAGE_ATTRIBUTE_SELECT, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id)
@@ -1607,7 +1607,10 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
 
     # Get the tooltip for the status badge
     init_evaluation(eml_node, filename)
-    tooltip = format_tooltip(att_node)
+    if att_node:
+        tooltip = format_tooltip(att_node)
+    else:
+        tooltip = ''
 
     help = views.get_helps(['attribute_name', 'attribute_definition', 'attribute_label', 'attribute_storage_type',
                       'attribute_number_type', 'attribute_numerical_precision', 'save_changes'])

@@ -29,6 +29,10 @@ class ExtraWhitespaceInColumnNames(ezEMLError):
     pass
 
 
+class EMLFileNotFound(ezEMLError):
+    pass
+
+
 class FileOpenError(ezEMLError):
     pass
 

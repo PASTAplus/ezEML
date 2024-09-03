@@ -3,12 +3,14 @@ Handlers for the various errors that can occur in the webapp. Logs the error and
 """
 
 import daiquiri
-from flask import Blueprint, render_template, request
+from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_wtf.csrf import CSRFError
 from webapp import app
-from webapp.home.exceptions import LockOwnedByAGroup, LockOwnedByAnotherUser, DeprecatedCodeError, NodeWithGivenIdNotFound
+from webapp.home.exceptions import EMLFileNotFound, LockOwnedByAGroup, LockOwnedByAnotherUser, DeprecatedCodeError, NodeWithGivenIdNotFound
 from webapp.config import Config
+import webapp.auth.user_data as user_data
+from webapp.pages import *
 
 
 logger = daiquiri.getLogger('handler: ' + __name__)
@@ -50,6 +52,13 @@ def bad_request(error):
 def bad_request(error):
     log_error(error)
     return render_template('500.html'), 500
+
+
+@app.errorhandler(EMLFileNotFound)
+def handle_eml_file_not_found(error):
+    log_error('EML file not found: {0}'.format(error.message))
+    user_data.set_active_document(None)
+    return redirect(url_for(PAGE_INDEX))
 
 
 @app.errorhandler(NodeWithGivenIdNotFound)

@@ -34,6 +34,7 @@ import metapype.eml.evaluate as evaluate
 from metapype.eml.evaluation_warnings import EvaluationWarning
 from metapype.model.node import Node
 from webapp.pages import *
+from webapp.home.exceptions import EMLFileNotFound
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
 
@@ -1383,6 +1384,12 @@ def perform_evaluation(eml_node, doc_name):
         # print(f"**** {msg} {elapsed}")
 
     global evaluation, validation_errs, evaluation_warnings
+
+    if not eml_node:
+        # If the user uses the browser's back button after deleting the current package, for example, the eml_node will be None
+        # We'll redirect to the index page
+        raise EMLFileNotFound(doc_name)
+
     evaluation = []
     start = datetime.now()
 

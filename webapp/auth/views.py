@@ -84,6 +84,8 @@ def login():
             pasta_token = PastaToken(auth_token)
             uid = pasta_token.uid.split(",")[0]
             cname = uid.split('=')[1]
+            if cname:
+                cname = cname.strip()
             session_id = cname + "*" + pasta_token.uid
             user = User(session_id)
             login_user(user)
@@ -110,6 +112,8 @@ def login():
     auth_token = request.args.get("token")
     # log_info(f"auth_token: {auth_token}")
     cname = request.args.get("cname")
+    if cname:
+        cname = cname.strip()
     idp = request.args.get("idp")
     # log_info(f"cname: {cname}")
     sub = request.args.get("sub")

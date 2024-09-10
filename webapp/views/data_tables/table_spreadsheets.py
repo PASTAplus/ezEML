@@ -598,14 +598,16 @@ def generate_data_entry_spreadsheet(data_table_node, filename, data_table_name):
         row += 2
         add_numerical_columns_headers()
         add_numerical_columns(attribute_nodes, eml_node)
+        row += 1
 
     if 'DateTime' in column_types:
-        row += 3
+        row += 2
         add_datetime_columns_headers()
         add_datetime_columns(attribute_nodes)
+        row += 1
 
     if 'Categorical' in column_types:
-        row += 3
+        row += 2
         add_categorical_columns_headers()
         add_categorical_columns(attribute_nodes, row)
 

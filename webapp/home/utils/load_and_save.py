@@ -990,13 +990,16 @@ def fix_up_custom_units(eml_node:Node=None, new_custom_unit=None, new_descriptio
         custom_units = {}
         for unit_node in unit_nodes:
             if unit_node.attribute_value('name'):
-                custom_unit = unit_node.attribute_value('name')
+                custom_unit_name = unit_node.attribute_value('name')
                 description_node = unit_node.find_child(names.DESCRIPTION)
                 if description_node:
                     description = description_node.content
                 else:
                     description = ''
-                custom_units[custom_unit] = description
+                # We capture the attributes of the unit node so that we can restore them when we write the
+                #  custom unit back out. Packages that have been fetched from the repository may contain
+                #  additional attributes besides the id and name, and we don't want to lose them.
+                custom_units[custom_unit_name] = (description, unit_node.attributes)
         return custom_units
 
     custom_units_from_attributes = collect_custom_units_from_attributes(eml_node)
@@ -1012,10 +1015,10 @@ def fix_up_custom_units(eml_node:Node=None, new_custom_unit=None, new_descriptio
     # Add any custom units from the attributes that are not in the additionalMetadata node.
     for custom_unit in custom_units_from_attributes:
         if custom_unit not in custom_units_from_additional_metadata:
-            custom_units_from_additional_metadata[custom_unit] = ''
+            custom_units_from_additional_metadata[custom_unit] = ('', { 'id': custom_unit, 'name': custom_unit})
 
     if new_custom_unit:
-        custom_units_from_additional_metadata[new_custom_unit] = new_description
+        custom_units_from_additional_metadata[new_custom_unit] = (new_description, { 'id': custom_unit, 'name': custom_unit})
 
     # Remove any additionalMetadata nodes that contain custom units. We're going to recreate one.
     # First, remove unitList nodes.
@@ -1042,10 +1045,14 @@ def fix_up_custom_units(eml_node:Node=None, new_custom_unit=None, new_descriptio
         metadata_node = node_utils.new_child_node(names.METADATA, additional_metadata_node, force=True)
         unitlist_node = node_utils.new_child_node(names.UNITLIST, metadata_node, force=True)
         unitlist_node.prefix = 'stmml'
-        for custom_unit_name, custom_unit_description in custom_units_from_additional_metadata.items():
+        for custom_unit_name, custom_unit_details in custom_units_from_additional_metadata.items():
             unit_node = node_utils.new_child_node(names.UNIT, unitlist_node, force=True)
             unit_node.add_attribute('id', custom_unit_name)
             unit_node.add_attribute('name', custom_unit_name)
+            custom_unit_description, custom_unit_attributes = custom_unit_details
+            for key, value in custom_unit_attributes.items():
+                if key not in ['id', 'name']:
+                    unit_node.add_attribute(key, value)
             unit_node.prefix = 'stmml'
             description_node = node_utils.new_child_node(names.DESCRIPTION, unit_node, custom_unit_description, force=True)
             description_node.prefix = 'stmml'

@@ -1144,6 +1144,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cod
     old_size_node.content = new_size_node.content
     old_records_node.content = new_records_node.content
     old_md5_node.content = new_md5_node.content
+    old_md5_node.attributes = new_md5_node.attributes
     old_field_delimiter_node.content = new_field_delimiter_node.content
 
     # record delimiter node is not required, so may be missing

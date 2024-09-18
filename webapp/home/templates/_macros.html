@@ -198,22 +198,22 @@
 {% macro contents_menu_item(url, style, hidden_name, display_name, is_non_saving) %}
                             {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
 {% endmacro %}
-{% macro contents_menu_item_with_status(url, style, hidden_name, display_name, is_non_saving, badge) %}
-    {{ contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) }}
+{% macro contents_menu_item_with_status(url, style, hidden_name, display_name, is_non_saving, badge, badge_data) %}
+    {{ contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge, badge_data) }}
 {% endmacro %}
-{% macro contents_menu_item_with_status_right(url, style, hidden_name, display_name, is_non_saving, badge) %}
+{% macro contents_menu_item_with_status_right(url, style, hidden_name, display_name, is_non_saving, badge, badge_data) %}
                             {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}
                             {% set badge_status = badge + '_status' %}
-                            &nbsp;<div class="nav_link {{ session[badge_status] }}_circle"></div><br>
+                            &nbsp;<div class="nav_link {{ badge_data[badge_status] }}_circle"></div><br>
 {% endmacro %}
-{% macro contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge) %}
+{% macro contents_menu_item_with_status_left(url, style, hidden_name, display_name, is_non_saving, badge, badge_data) %}
                             {% set badge_status = badge + '_status' %}
-                            {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
+                            {% if badge_data[badge_status] == 'yellow' or badge_data[badge_status] == 'red' %}
                                 {% set url_string = '/eml/check_metadata?' + badge %}
                                 <a class="no-underline" href="{{ url_string }}">
                             {% endif %}
-                            <div class="{{ session[badge_status] }}_circle nav_link" title="Click for errors/warnings" style="margin-right: 3px;"></div>
-                            {% if session[badge_status] == 'yellow' or session[badge_status] == 'red' %}
+                            <div class="{{ badge_data[badge_status] }}_circle nav_link" title="Click for errors/warnings" style="margin-right: 3px;"></div>
+                            {% if badge_data[badge_status] == 'yellow' or badge_data[badge_status] == 'red' %}
                                 </a>
                             {% endif %}
                             {{ button_link(url, 'nav_link', style, hidden_name, display_name, is_non_saving) }}<br>
@@ -481,11 +481,11 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
     });
     </script>
 {% endmacro %}
-{% macro page_heading_with_status_popup(page_heading, node_id, tooltip, session, help_btn, inner_help_btn) %}
+{% macro page_heading_with_status_popup(page_heading, node_id, tooltip, badge_data, help_btn, inner_help_btn) %}
     <div class="col-md-10 badged_page_header" style="padding-left: 0;width:100%;border:0px solid red;">
         {% set node_id = node_id.split("|")[0] %}
         {% set node_status = node_id + '_status' %}
-        {{ local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ local_status_badge_with_popup(badge_data[node_status], tooltip) }}
         <div class="whitespace"></div>
         <table class="right_justified" style="height:0px;margin-top:0px;margin-bottom: 0px;"><tr>
         <td><h2>{{ page_heading }}</h2></td>

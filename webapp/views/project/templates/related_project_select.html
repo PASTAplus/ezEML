@@ -26,7 +26,7 @@
                         <td width="50%">
                         {% set node_id = project_entry.id %}
                         {% set node_status = node_id + '_status' %}
-                        {{ macros.status_badge_with_popup(session[node_status], project_entry.tooltip) }}
+                        {{ macros.status_badge_with_popup(badge_data[node_status], project_entry.tooltip) }}
                         {{ project_entry.label }}
                         </td>
                         {{ macros.up_down_arrow(project_entry.id, project_entry.upval) }}

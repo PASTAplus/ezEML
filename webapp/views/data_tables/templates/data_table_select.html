@@ -18,7 +18,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'data_tables_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, dt_list | length) }}
+        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip, dt_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Data Tables</h2></td>
@@ -39,7 +39,7 @@
                         <td width="80%">
                         {% set node_id = dt_entry.id.split("|")[0] %}
                         {% set node_status = node_id + '_status' %}
-                        {{ macros.status_badge_with_popup(session[node_status], dt_entry.tooltip) }}
+                        {{ macros.status_badge_with_popup(badge_data[node_status], dt_entry.tooltip) }}
                         {{ dt_entry.label }}
                         </td>
 

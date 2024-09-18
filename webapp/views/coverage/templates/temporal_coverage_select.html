@@ -11,7 +11,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'temporal_coverage_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, tc_list | length) }}
+        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip, tc_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Temporal Coverage{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>
@@ -35,7 +35,7 @@
                         <td>
                         {% set node_id = tc_entry.id.split("|")[0] %}
                         {% set node_status = node_id + '_status' %}
-                        {{ macros.status_badge_with_popup(session[node_status], tc_entry.tooltip) }}
+                        {{ macros.status_badge_with_popup(badge_data[node_status], tc_entry.tooltip) }}
                         {{ tc_entry.begin_date }}</td>
                         <td>{{ tc_entry.end_date }}</td>
                         {{ macros.up_down_arrow(tc_entry.id, tc_entry.upval) }}

@@ -16,7 +16,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'other_entities_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, oe_list | length) }}
+        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip, oe_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Other Entities</h2></td>
@@ -36,7 +36,7 @@
                         <td width="50%">
                         {% set node_id = oe_entry.id.split("|")[0] %}
                         {% set node_status = node_id + '_status' %}
-                        {{ macros.status_badge_with_popup(session[node_status], oe_entry.tooltip) }}
+                        {{ macros.status_badge_with_popup(badge_data[node_status], oe_entry.tooltip) }}
                         {{ oe_entry.label }}</td>
                         {{ macros.up_down_arrow(oe_entry.id, oe_entry.upval) }}
                         {{ macros.up_down_arrow(oe_entry.id, oe_entry.downval) }}

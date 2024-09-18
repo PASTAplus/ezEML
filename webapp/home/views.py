@@ -26,7 +26,7 @@ from zipfile import ZipFile
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
-    session, jsonify, send_file
+    session, jsonify, send_file, g
 )
 
 from flask_login import (
@@ -156,6 +156,8 @@ logger = daiquiri.getLogger(f'home: {__name__}')
 home_bp = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
 keywords = {}
+
+badge_data = {}
 
 AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be caused by a login timeout. Please log out, log back in, and try again.'
 

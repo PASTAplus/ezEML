@@ -17,7 +17,7 @@ import os
 
 import daiquiri.formatter
 
-from flask import Flask
+from flask import Flask, g
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -40,6 +40,18 @@ logger = daiquiri.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# The following makes the badge_data variable available to all templates
+# Formerly, it was passed in the session, but that caused problems with
+# the size of the session cookie. This is a better solution.
+# And the beauty of it is that it is available in all templates without
+# having to pass it in the render_template call, and it works with redirects
+# as well without having to pass it in the url, which leads to urls that are
+# too long.
+@app.context_processor
+def inject_badge_data():
+    return dict(badge_data=getattr(g, 'badge_data', None))
+
 bootstrap = Bootstrap(app)
 login = LoginManager(app)
 login.login_view = 'auth.login'

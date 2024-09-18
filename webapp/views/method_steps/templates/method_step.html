@@ -20,7 +20,7 @@
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_id = node_id %}
         {% set node_status = node_id + '_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Method Step</h2></td>
@@ -56,7 +56,7 @@
                         <td>
                         {% set node_id = ds_entry.ds_node_id %}
                         {% set node_status = node_id + '_status' %}
-                        {{ macros.local_status_badge_with_popup(session[node_status], ds_entry.tooltip) }}
+                        {{ macros.local_status_badge_with_popup(badge_data[node_status], ds_entry.tooltip) }}
                         {{ ds_entry.title }}
                         </td>
 

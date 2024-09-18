@@ -21,7 +21,7 @@ from urllib.parse import urlparse, urlunparse, parse_qs
 from dataclasses import dataclass
 
 from flask import (
-    Blueprint, Flask, url_for, request, session, current_app
+    Blueprint, Flask, url_for, request, session, current_app, g
 )
 
 import webapp.home.utils.load_and_save
@@ -37,6 +37,7 @@ from webapp.pages import *
 from webapp.home.exceptions import EMLFileNotFound
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
+import webapp.home.views as views
 
 app = Flask(__name__)
 home = Blueprint('home', __name__, template_folder='templates')
@@ -1642,9 +1643,9 @@ def set_session_info(evaluation, eml_node):
         for key, value in section_links_found.items():
             name = section_to_name(key)
             if name and not empty_subtree(eml_node, name):
-                session[key + '_status'] = 'green'
+                views.badge_data[key + '_status'] = 'green'
             else:
-                session[key + '_status'] = 'white'
+                views.badge_data[key + '_status'] = 'white'
 
     def severity_to_status(severity):
         if severity == EvalSeverity.OK:
@@ -1685,6 +1686,7 @@ def set_session_info(evaluation, eml_node):
     section_links_found = {}
     node_links_found = {}
     init_section_links_found(section_links_found)
+    views.badge_data = {}
 
     for entry in evaluation:
         severity = entry.severity
@@ -1706,10 +1708,10 @@ def set_session_info(evaluation, eml_node):
             name = section_to_name(key)
             if name and empty_subtree(eml_node, name):
                 color = 'white'
-        session[key + '_status'] = color
+        views.badge_data[key + '_status'] = color
 
     for key, value in node_links_found.items():
-        session[key + '_status'] = severity_to_status(value)
+        views.badge_data[key + '_status'] = severity_to_status(value)
 
-
+    g.badge_data = views.badge_data
 

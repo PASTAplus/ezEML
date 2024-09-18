@@ -29,7 +29,7 @@
                         <td width="30%">
                         {% set node_id = att_entry.id.split("|")[0] %}
                         {% set node_status = node_id + '_status' %}
-                        {{ macros.status_badge_with_popup(session[node_status], att_entry.tooltip) }}
+                        {{ macros.status_badge_with_popup(badge_data[node_status], att_entry.tooltip) }}
                         {{ att_entry.label }}
                         </td>
                         <td width="15%">{{ att_entry.mscale }}</td>

@@ -51,27 +51,10 @@
     {% set help_data_table_save_changes_btn = help_data_table_save_changes_id ~ '_btn' %}
     {% set help_data_table_save_changes_dialog = help_data_table_save_changes_id ~ '_dialog' %}
 
-{#    <table>#}
-{#        <td style="vertical-align:middle;padding-top: 12px;">#}
-{#        {% set node_id = dt_node_id.split("|")[0] %}#}
-{#        {% set node_status = node_id + '_status' %}#}
-{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
-{#        </td>#}
-{#        <td style="width:3%"></td>#}
-{#        <td style="vertical-align:middle;"><h2>Data Table</h2></td>#}
-{#        <td style="vertical-align:middle;padding-top: 18px;padding-left: 15px;">{{ macros.help_button(help_data_tables_btn) }}</td>#}
-{#        {% if session[node_status] == 'red' or session[node_status] == 'yellow' %}#}
-{#            <td>#}
-{#        <input class="btn btn-primary" id="save_changes" style="visibility:hidden;margin-top:20px;" name="Save Changes" type="submit" value="Save Changes"/>&nbsp;#}
-{#            <span id="save_changes_help" style="visibility:hidden;vertical-align: center; margin-top:25px;">{{ macros.help_button(help_data_table_save_changes_btn) }}</span>#}
-{#            </span>#}
-{#            </td>#}
-{#        {% endif %}#}
-{#    </table>#}
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
-                {{ macros.page_heading_with_status_popup('Data Table', dt_node_id, tooltip, session, help_data_table_save_changes_btn, help_data_tables_btn) }}
+                {{ macros.page_heading_with_status_popup('Data Table', dt_node_id, tooltip, badge_data, help_data_table_save_changes_btn, help_data_tables_btn) }}
                 <h5>Enter information about the data table object:</h5>
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_name) }}{{ macros.item_end(help_data_table_name_btn) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.entity_description) }}{{ macros.item_end(help_data_table_description_btn) }}

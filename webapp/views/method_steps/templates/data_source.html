@@ -27,7 +27,7 @@
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_id = node_id %}
         {% set node_status = node_id + '_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Data Source</h2></td>
@@ -67,7 +67,7 @@
                         <td style="width:60%">
                             {% set node_id = creator_entry.rp_node_id.split("|")[0] %}
                             {% set node_status = node_id + '_status' %}
-                                {{ macros.status_badge_with_popup(session[node_status], creator_entry.tooltip) }}
+                                {{ macros.status_badge_with_popup(badge_data[node_status], creator_entry.tooltip) }}
                             {{ creator_entry.label }}
                         </td>
 {#                        <td style="width:60%">{{ creator_entry.label }}</td>#}
@@ -99,7 +99,7 @@
                         <td style="width:60%">
                             {% set node_id = contact_entry.rp_node_id.split("|")[0] %}
                             {% set node_status = node_id + '_status' %}
-                                {{ macros.status_badge_with_popup(session[node_status], contact_entry.tooltip) }}
+                                {{ macros.status_badge_with_popup(badge_data[node_status], contact_entry.tooltip) }}
                             {{ contact_entry.label }}
                         </td>
 {#                        <td style="width:60%">{{ contact_entry.label }}</td>#}

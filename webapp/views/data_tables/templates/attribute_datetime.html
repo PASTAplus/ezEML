@@ -27,7 +27,7 @@
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" id="main_form" role="form">
-            {{ macros.page_heading_with_status_popup('DateTime Column', att_node_id, tooltip, session, help_attribute_save_changes_btn) }}
+            {{ macros.page_heading_with_status_popup('DateTime Column', att_node_id, tooltip, badge_data, help_attribute_save_changes_btn) }}
                 {{ form.csrf_token }}
                 {{ macros.column_table_header(column_name, table_name) }}
                 {{ macros.item_start() }}{{ wtf.form_field(form.attribute_name) }}{{ macros.item_end(help_attribute_name_btn) }}

@@ -9,7 +9,7 @@
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'methods_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip, method_step_list | length) }}
+        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip, method_step_list | length) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Method Steps{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>
@@ -30,7 +30,7 @@
                         <td>
                         {% set node_id = ms_entry.id.split("|")[0] %}
                         {% set node_status = node_id + '_status' %}
-                        {{ macros.status_badge_with_popup(session[node_status], ms_entry.tooltip) }}
+                        {{ macros.status_badge_with_popup(badge_data[node_status], ms_entry.tooltip) }}
                         {{ ms_entry.description }}</td>
 {#                        <td>{{ ms_entry.instrumentation }}</td>#}
                         {{ macros.up_down_arrow(ms_entry.id, ms_entry.upval) }}

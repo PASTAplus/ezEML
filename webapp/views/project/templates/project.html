@@ -19,7 +19,7 @@
 {#        {% set node_id = project_node_id %}#}
 {#        {% set node_status = node_id + '_status' %}#}
         {% set node_status = 'project_status' %}
-        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}
+        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>{{ title }}</h2></td>

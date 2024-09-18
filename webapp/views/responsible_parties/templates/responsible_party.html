@@ -19,16 +19,11 @@
         {% else %}
             {% set node_status = node_id + '_status' %}
         {% endif %}
-{#        {{ macros.local_status_badge_with_popup(session[node_status], tooltip) }}#}
-{#        </td>#}
-{#        <td style="width:3%"></td>#}
-{#        <td><h2>{{ title }}</h2></td>#}
-{#        <td valign="middle" style="padding-top: 20px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>#}
     </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" id="main_form" role="form">
-    {{ macros.page_heading_with_status_popup(title, node_id, tooltip, session, help_rp_save_changes_btn, help_rp_btn) }}
+    {{ macros.page_heading_with_status_popup(title, node_id, tooltip, badge_data, help_rp_save_changes_btn, help_rp_btn) }}
 
     {% if node_name == 'publisher' %}
     <div class="col-md-10" style="width:100%;border: 2px solid steelblue;color: steelblue;padding: 15px;margin-bottom: 15px;">

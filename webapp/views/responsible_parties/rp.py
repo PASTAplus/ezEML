@@ -19,7 +19,7 @@ from webapp.home.utils.hidden_buttons import handle_hidden_buttons, check_val_fo
 from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import list_responsible_parties
 from webapp.home.utils.create_nodes import create_responsible_party
-from webapp.home.utils.node_utils import add_child, new_child_node
+from webapp.home.utils.node_utils import add_child, new_child_node, replace_node
 
 from metapype.eml import names
 from metapype.model.node import Node
@@ -266,9 +266,6 @@ def responsible_party(filename=None, rp_node_id=None,
                 child nodes, and it is easier to create a new one from scratch than to try to modify an existing one. 
                 The responsibleParty node has a number of child nodes that have cardinality 0..infinity, which makes 
                 it a lot more complicated to find and modify the appropriate children to modify.
-                
-                A complication, though, is that the node ID will change, which we need to allow for if Save Changes is
-                clicked, bringing us back to the same page. I.e., we want the generated URL to use the new node ID.
                 """
                 rp_node = Node(node_name, parent=parent_node)
 
@@ -299,16 +296,15 @@ def responsible_party(filename=None, rp_node_id=None,
                 if rp_node_id and len(rp_node_id) != 1:
                     old_rp_node = Node.get_node_instance(rp_node_id)
                     if old_rp_node:
-                        old_rp_parent_node = old_rp_node.parent
-                        old_rp_parent_node.replace_child(old_rp_node, rp_node)
+                        replace_node(rp_node, old_rp_node.id)
                     else:
                         msg = f"No node found in the node store with node id {rp_node_id}"
                         raise Exception(msg)
                 else:
                     add_child(parent_node, rp_node)
 
-                # We want generated URLs, below, to point to the new responsibleParty node
-                rp_node_id = rp_node.id
+                # We want generated URLs, below, to point to the new responsibleParty node, but we have
+                #  given the new node the same node ID as the old node. So, we just leave the node ID as is.
 
                 save_both_formats(filename=filename, eml_node=eml_node)
                 # flash(f"Changes to the '{node_name}' element have been saved.")

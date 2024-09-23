@@ -23,7 +23,7 @@ from flask_login import (
 from markupsafe import Markup
 
 import webapp.home.utils.create_nodes
-import webapp.home.utils.node_utils
+# import webapp.home.utils.node_utils
 import webapp.views.data_tables.load_data
 from webapp.config import Config
 
@@ -51,7 +51,7 @@ from webapp.home.forms import (
 )
 
 from webapp.home.metapype_client import VariableType
-from webapp.home.utils.node_utils import remove_child, new_child_node, add_child
+from webapp.home.utils.node_utils import remove_child, new_child_node, add_child, replace_node
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, check_val_for_hidden_buttons
 from webapp.home.utils.node_store import dump_node_store
 from webapp.home.utils.load_and_save import load_eml, save_both_formats, handle_custom_unit_additional_metadata
@@ -269,9 +269,7 @@ def data_table(filename=None, dt_node_id=None, delimiter=None, quote_char=None):
 
                     # If we're modifying an existing data table, we need to replace the old data table node with the
                     # new one.
-                    dataset_parent_node = old_dt_node.parent
-                    dataset_parent_node.replace_child(old_dt_node, dt_node)
-                    dt_node_id = dt_node.id
+                    replace_node(dt_node, old_dt_node.id)
                 else:
                     msg = f"No node found in the node store with node id {dt_node_id}"
                     dump_node_store(eml_node, 'data_table')
@@ -1300,8 +1298,7 @@ def attribute_dateTime(filename=None, dt_node_id=None, node_id=None):
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
                 if old_att_node:
-                    att_parent_node = old_att_node.parent
-                    att_parent_node.replace_child(old_att_node, att_node)
+                    replace_node(att_node, old_att_node.id)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'attribute_dateTime')
@@ -1547,8 +1544,7 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
                 if old_att_node:
-                    att_parent_node = old_att_node.parent
-                    att_parent_node.replace_child(old_att_node, att_node)
+                    replace_node(att_node, old_att_node.id)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'attribute_numerical')
@@ -1858,8 +1854,7 @@ def attribute_categorical(filename: str = None, dt_node_id: str = None, node_id:
             if node_id and len(node_id) != 1:
                 old_att_node = Node.get_node_instance(att_node_id)
                 if old_att_node:
-                    att_parent_node = old_att_node.parent
-                    att_parent_node.replace_child(old_att_node, att_node)
+                    replace_node(att_node, old_att_node.id)
                 else:
                     msg = f"No node found in the node store with node id {node_id}"
                     dump_node_store(eml_node, 'attribute_categorical')

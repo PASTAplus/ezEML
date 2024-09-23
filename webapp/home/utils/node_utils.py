@@ -81,3 +81,23 @@ def remove_child(child_node:Node):
         parent_node = child_node.parent
         if parent_node:
             parent_node.remove_child(child_node)
+
+
+def replace_node(new_node:Node, old_node_id:str):
+    """
+    If the old_node_id is not '1', replace the old node with the new node.
+    This is used on pages that support Save Changes, where we want the modified node to replace the original node,
+     using the same node ID so the Back button works as expected.
+    """
+    if old_node_id and old_node_id != '1':
+        old_node = Node.get_node_instance(old_node_id)
+        if old_node:
+            parent_node = old_node.parent
+            if parent_node:
+                # Make the replacement in the node tree
+                parent_node.replace_child(old_node, new_node, delete_old=False)
+                # Make the replacement in the node instance dictionary
+                new_node_id = new_node.id
+                new_node._id = old_node.id
+                Node.set_node_instance(new_node)
+                Node.delete_node_instance(id=new_node_id)

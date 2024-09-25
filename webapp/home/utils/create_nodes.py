@@ -26,7 +26,7 @@ from webapp.home.intellectual_rights import INTELLECTUAL_RIGHTS_CC0, INTELLECTUA
 from webapp.utils import null_string
 from webapp.home.home_utils import RELEASE_NUMBER, log_error, log_info
 from webapp.home.metapype_client import VariableType
-from webapp.home.utils.node_utils import new_child_node, remove_child, add_node, Optionality
+from webapp.home.utils.node_utils import new_child_node, add_node, Optionality
 
 import webapp.home.utils.load_and_save as load_and_save
 

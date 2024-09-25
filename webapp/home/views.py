@@ -1764,7 +1764,7 @@ def open_template():
             filename = copy_template_to_user_data(filename)
 
             flash(f'Template "{filename}" has been copied to your user data directory and opened for editing.\n\n'
-                  f"When you are done editing, use 'Save As Template' to save your changes to the template.", 'success')
+                  f"When you are done editing, use 'Save As Template' on the 'Manage Templates' page to save your changes to the template.", 'success')
 
             # Open the document. Note that open_document takes care of handling locks.
             return open_document(filename)

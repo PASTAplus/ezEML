@@ -1675,7 +1675,7 @@ def delete_template():
                 flash(f'Template "{filename}" was deleted.', 'success')
             else:
                 flash(f'Error deleting template "{filename}".', 'error')
-            return redirect(url_for(PAGE_TITLE, filename=current_user.get_filename()))
+            return redirect(url_for(PAGE_INDEX))
 
     # Process GET
     help = get_helps(['save_as_document'])

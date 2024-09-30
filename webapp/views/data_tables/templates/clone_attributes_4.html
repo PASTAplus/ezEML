@@ -37,16 +37,19 @@
                 select_default(this.id);
             });
         }
+        function escapeSelector(selector) {
+            // There are a few characters that need to be escaped in a jQuery selector so they aren't interpreted as
+            //  class selectors and the like. This function escapes those characters.
+            return selector.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+        }
         function select_default(_select_id) {
             // We need to replace spaces with underscores in the SELECT id for jQuery to work properly
             let select_id = _select_id.replace(/ /g, '_');
             // Get rid of SELECT__ and __SELECT substrings
             let default_val = select_id.substring(8, select_id.length - 8);
-            // jQuery interprets '.' as a class selector, so we need to escape '.' with '\\'
-            // It's a double backslash because the first backslash is an escape character in a string. I.e., we're
-            //  saying we want the backslash to go into the string, not be interpreted as an escape character.
-            //  Now the selector will correctly find the option with the value that has a period in it.
-            select_id = select_id.replace(/\./g, '\\.');
+            // jQuery interprets '.' as a class selector, so we need to escape '.' with '\\'.
+            // There are various other chars that may be similarly problematic. We'll escape them all.
+            select_id = escapeSelector(select_id);
             let selector = '#' + select_id + ' option';
             $(selector).filter(function() {
                 let this_text = $(this).text().replace(/ /g, '_');

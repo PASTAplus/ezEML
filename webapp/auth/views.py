@@ -61,12 +61,6 @@ def login():
         else:
             return redirect(url_for(PAGE_INDEX))
 
-    # log_info(f"request.url: {request.url}")
-    # if request.method == 'GET':
-    #     log_info(f"GET: request.args: {request.args.to_dict()}")
-    # else:
-    #     log_info(f"POST: request.form: {request.form.to_dict()}")
-
     # Process POST
     form = LoginForm()
     if form.validate_on_submit():
@@ -74,8 +68,8 @@ def login():
         if not is_whitelisted_username(username):
             flash(f'Username {username} is not authorized to log in to this server. Please contact ' 
                   'support@edirepository.org if you believe you need access to this server.', 'error')
+            log_error(f'Non-whitelisted login attempt by {username}')
             return redirect(url_for(PAGE_LOGIN))
-        # domain = form.domain.data # Never None
         domain = "edi"
         user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
         password = form.password.data

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+
+    <title>FAQ</title>
+    <style>
+        .faq-container {
+            width: 80%;
+            margin: 5px;
+            padding: 20px;
+        }
+        .faq-question {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #fafafa;
+            border: 1px solid #ddd;
+            margin-top: 5px;
+            font-weight: 500;
+            font-size: 110%;
+        }
+        .faq-answer {
+            display: none;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .faq-question::before {
+            content: '+';
+            margin-right: 10px;
+        }
+        .faq-question.active::before {
+            content: '-';
+        }
+    </style>
+    <h4>Frequently Asked Questions</h4>
+
+    See also the User Guide and the Help buttons within ezEML.<p></p>
+
+    <div class="faq-container">
+        <div class="faq-item">
+            <div class="faq-question">Why use ezEML?</div>
+            <div class="faq-answer">To make your data discoverable and usable by others, it is essential to document its structure and contents via metadata. Metadata is best stored in a standardized format, such as the <b>Ecological Metadata Language (EML)</b> used by the <b>Environmental Data Initiative (EDI)</b> data repository.<p></p>
+
+                <b>ezEML</b> is a tool that helps you create EML metadata for your data packages. It provides a user-friendly interface for entering metadata and checking it for completeness and correctness. ezEML generates the EML document for you and gives you the means to submit your data package to the EDI data repository.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">What should I name my EML document?</div>
+            <div class="faq-answer">When you create an EML metadata document in ezEML, for example via <b>New</b> or <b>New from Template</b> in the <b>EML Documents</b> menu, you are asked to enter a document name.<p></p>
+
+                This is the name by which the document is known to ezEML. Think of it as you would a file name (without file extension). Choose a name that will be meaningful to you if you come back to ezEML at a later time. Feel free to use any naming conventions favored by your research team or site.<p></p>
+
+                If the data package is submitted to the EDI data repository, the package will be assigned a <b>Data Package ID</b> by which it will be known to the data repository, but ezEML knows the document by the document name you specify when creating the document in ezEML. The ezEML document name will not appear in the EML metadata. It is distinct from the <b>Title</b> and <b>Data Package ID</b>, both of which are saved in the EML.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">What do the green/yellow/red “badges” mean?</div>
+            <div class="faq-answer">ezEML displays colored “badges” that indicate all errors and warnings associated with the various sections and elements of an ezEML data package. These badges are clickable, showing lists of errors and warnings, and the errors and warnings they list are themselves clickable and take you directly to the item that needs to be added or edited, scrolling it into view and highlighting it.<p></p>
+
+Red badges indicate that errors are present in a particular page or section, yellow badges indicate there are warnings only, and green badges indicate the absence of any errors or warnings. Your goal in editing an ezEML data package should be to enter all required and recommended metadata, making corrections until, at minimum, no red error badges remain. Even better would be to get rid of all yellow warning badges, as well, thereby making all badges green.<p></p>
+
+This is highly dynamic functionality, so the easiest way to see how it works may be to watch the YouTube video, <a href="https://youtu.be/_FoRUJ7DqIc" target="_youtube_ezeml">here</a>.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I enter the metadata for a data table?</div>
+            <div class="faq-answer">ezEML facilitates entering the metadata for a data table via <b>Load Data Table from CSV File</b> on the <b>Data Tables</b> page.
+                ezEML gathers all of the metadata it can from the CSV file and enters it. Certain values, such as the data table <b>Description</b>, the <b>Definition</b> of a column, and the <b>Unit</b> of a numerical column, are not present in the CSV file
+                and need to be entered manually. The colored "badges" help you locate items that need to be filled in. Note that ezEML refers to "CSV" -- i.e., "comma-separated" -- files, but it can also load tables delimited by other characters, such as tabs or semicolons.<p></p>
+
+                What if your table has a very large number of columns? In such cases, entering the needed definitions, units, etc., a column at a time will be laborious.
+                ezEML lets you edit all of the column properties at once in a spreadsheet. Click <b>Edit Column Properties</b> for the table, then click <b>Download Column Properties Spreadsheet</b>.
+                This will download a spreadsheet that you can edit in Excel or another spreadsheet program. When you are done, save the spreadsheet and upload it back into ezEML via <b>Upload Column Properties Spreadsheet</b>,
+                and ezEML will make the changes to the table all at once.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I check my metadata and data tables?</div>
+            <div class="faq-answer">As you work, ezEML continually checks your metadata for completeness and correctness as indicated by the colored “badges” next to various items. Click a red or yellow badge to see a list of the relevant errors and warnings, which are themselves clickable, taking you to where the correction is needed. Alternatively, click <b>Check Metadata</b> in the <b>Contents</b> menu to see all errors and warnings in a single list.<p></p>
+
+                To check data tables, click <b>Check Data Tables</b> in the <b>Contents</b> menu. Tables are checked to see if the table’s contents are congruent with the table’s metadata.<p></p>
+
+                Metadata and tables are checked further by the EDI data repository when data packages are submitted to the repository.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I fetch a data package from the EDI repository?</div>
+            <div class="faq-answer">To fetch a data package from the EDI repository, click <b>Fetch a Data Package from EDI</b> in the <b>Import/Export</b> menu. You will be asked to select the package you wish to fetch. The data package metadata will be downloaded from the EDI repository and opened in ezEML.<p></p>
+
+                You will have the option then to download the associated data files as well. If you only need to inspect or update the metadata, you can choose not to download the data files, which may be large.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I submit my data package to the EDI repository?</div>
+            <div class="faq-answer">When you have finished entering your metadata and have uploaded all data tables and other data entities, you can submit your
+                entire data package to the EDI data repository. Click <b>Submit/Share Package</b> in the <b>Contents</b> menu, then click <b>Submit Package to EDI</b>. You will be asked to enter identifying information and then click <b>Submit Package to EDI</b> again.<p></p>
+
+                At this point, EDI's data curation team will take over, checking your metadata and data tables for completeness and correctness. If there are any issues, you will be contacted by email. If everything is in order, your data package will be assigned a <b>Data Package ID</b> and published in the EDI data repository.<p></p>
+
+                While EDI's curators are reviewing your package, it is locked against further editing in ezEML. If you need to make changes to the package, contact <b>support@edirepository.org</b> to request that the package be made available to you.<p></p>
+
+                Likewise, if the curators find issues that need to be addressed, they will contact you by email and make the package available to you for editing in ezEML. You can then make the necessary corrections in ezEML and make the package available to the curators again by clicking <b>Make available</b> in the <b>Collaborate</b> page.
+
+                For more information, see "Submitting Your Package to EDI" in the <b>User Guide</b>.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I update a data package in the EDI repository?</div>
+            <div class="faq-answer">To update a data package that has already been published in the EDI data repository, fetch the package from the repository,
+                make the desired changes, and then submit the package to the repository again, indicating on the submit package page that the submission is a revision.<p></p>
+
+                The package will be assigned a new version number by the EDI data curation team.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I use ezEML templates?</div>
+            <div class="faq-answer">A particular research site or team may find that portions of the metadata they enter are the same for lots of data packages. Examples of such
+                repeated content can include Creators, Contacts, Keywords, Intellectual Rights, Geographic Coverage, Project, etc.<p></p>
+
+                To save time and ensure consistency, ezEML lets you to create and use templates, which are partial EML documents. Anyone can use a template. Only selected users can create and edit templates.
+                To be authorized to create and edit templates, contact <b>support@edirepository.org.</b><p></p>
+
+                There are two ways to use a template. You can create a new package pre-populated with a template's metadata by using <b>New from Template</b> in the <b>EML Documents</b> menu. Or, you can import selected metadata from a template into an existing package by using the various <b>Import</b> features in the <b>Import/Export</b> menu. The Import features let you import either from a template or from another data package.<p></p>
+
+                For more information, see "Starting from an ezEML Document Template" in the <b>User Guide</b>.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How can I collaborate with others in editing my metadata?</div>
+            <div class="faq-answer">Ordinarily, the ezEML data packages that you've created are visible only to you. It can be useful, however, to set up collaborations with colleagues
+                to enable them to open and edit or review packages you've created.<p></p>
+
+                ezEML lets you establish and manage such collaborations via the <b>Collaborate</b> page, accessible via the menu bar at the top right of the ezEML window. When you have an EML document open,
+                you can invite others to collaborate on that document by clicking <b>Invite a Collaborator</b> on the <b>Collaborate</b> page.<p></p>
+
+                The topic is covered in detail in "Collaborating with Others in ezEML" in the <b>User Guide</b>,
+                or watch the YouTube video, <a href="https://www.youtube.com/watch?v=jUX6InEROoM&t=497s" target="_youtube_ezeml">here</a>.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I preview how my data package will appear in the EDI data portal?</div>
+            <div class="faq-answer">To preview how your data package will appear in the data portal for the EDI repository, click <b>Preview Your Metadata in the EDI Data Portal</b> in the <b>Import/Export</b> menu. The generated preview will be displayed in a new tab in your browser.<p></p>
+
+                The preview shows how the metadata will be displayed in the EDI repository, including the data tables and other data entities you have uploaded. It will, for example, let you see the data tables' metadata in a spreadsheet-like format. It will also render Markdown content, as described in the next FAQ.<p></p>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">How do I enter and preview Markdown?</div>
+            <div class="faq-answer">The EML standard allows certain metadata elements, such as Abstract and Method Step Description, to include Markdown formatting.<p></p>
+
+                In order to enter Markdown tags in ezEML, you need to enable "Complex Text Element Editing" on the <b>Settings</b> page, accessible via the <b>EML Documents</b> menu. For details on how complex text element editing works, see the associated <b>Help</b>
+                button on the <b>Settings</b> page.<p></p>
+
+                ezEML doesn't render Markdown directly, but you can preview it by using <b>Preview Your Metadata in the EDI Data Portal</b> in the <b>Import/Export</b> menu.<p></p>
+            </div>
+        </div>
+{#        <div class="faq-item">#}
+{#            <div class="faq-question"></div>#}
+{#            <div class="faq-answer">#}
+{#            </div>#}
+{#        </div>#}
+        <!-- Add more FAQ items as needed -->
+    </div>
+    <br>
+    <b><a href={{ back_url }}>Back</a></b>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const questions = document.querySelectorAll('.faq-question');
+            questions.forEach(question => {
+                question.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const answer = this.nextElementSibling;
+                    if (answer.style.display === 'block') {
+                        answer.style.display = 'none';
+                    } else {
+                        answer.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

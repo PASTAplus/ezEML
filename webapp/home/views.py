@@ -941,6 +941,15 @@ def user_guide():
     return render_template('user_guide.html', back_url=get_back_url(), title='User Guide')
 
 
+@home_bp.route('/faq')
+def faq():
+    """
+    Handle the FAQ page.
+    """
+    reload_metadata()
+    return render_template('faq.html', back_url=get_back_url(), title='FAQ')
+
+
 @home_bp.route('/news')
 def news():
     """Handle the News page."""

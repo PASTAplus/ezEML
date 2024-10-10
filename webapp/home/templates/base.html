@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2024.09.18' %}
+{% set release_number = '2024.10.09' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -43,7 +43,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         '/load_data', 'load_other_entity', 'check_metadata', 'delete',
         '/import_parties', '/import_geo_coverage',
         '/import_taxonomic_coverage', '/import_funding_awards',
-        'about', 'news', 'user_guide', 'import_package', 'import_xml',
+        'about', 'news', 'user_guide', 'faq', 'import_package', 'import_xml',
         'export_package', 'settings', '/open_template', 'save_as_template', 'delete_template', 'display_templates'] %}
 {% set non_saving_contains = ['_select', '/check_metadata/', '/check_data_tables/', '/explore_data_tables/',
         '/data_table_errors/', '/fetch_xml', '/file_error', '/manage_packages',
@@ -205,6 +205,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
                     </ul>
                 </li>
                         {{ macros.toolbar_menu_item(url_for('home.user_guide'), 'hidden_user_guide', 'User Guide', ns.is_non_saving) }}
+                        {{ macros.toolbar_menu_item(url_for('home.faq'), 'hidden_faq', 'FAQ', ns.is_non_saving) }}
                         {{ macros.toolbar_menu_item(url_for('home.about'), 'hidden_about', 'About', ns.is_non_saving) }}
 {#                        {{ macros.toolbar_menu_item(url_for('home.news'), 'hidden_news', 'News', ns.is_non_saving) }}#}
                         {# News is a special case so we can highlight it when there are new items #}

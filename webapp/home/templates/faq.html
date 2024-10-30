@@ -145,7 +145,7 @@ This is highly dynamic functionality, so the easiest way to see how it works may
             </div>
         </div>
         <div class="faq-item">
-            <div class="faq-question">How do I enter and preview Markdown?</div>
+            <div class="faq-question">How do I enter and preview Markdown and LaTeX?</div>
             <div class="faq-answer">The EML standard allows certain metadata elements, such as Abstract and Method Step Description, to include Markdown formatting.<p></p>
 
                 In order to enter Markdown tags in ezEML, you need to enable "Complex Text Element Editing" on the <b>Settings</b> page, accessible via the <b>EML Documents</b> menu. For details on how complex text element editing works, see the associated <b>Help</b>
@@ -161,7 +161,14 @@ This is highly dynamic functionality, so the easiest way to see how it works may
 - Goodbye<br>
   \&lt;/markdown\&gt;<br>
 \&lt;/abstract\&gt;
-            </code>
+            </code><p></p>
+                To enter equations via LaTeX, enable Complex Text Element Editing and enter the LaTeX code. No need to use Markdown. For example:<p></p>
+<code>
+\&lt;abstract\&gt;<br>
+Equation 1: $$VWC = -5.3 \times 10^{-2} + 2.92 \times 10^{-2}K_a - 5.5 \times 10^{-4}K_a^2 + 4.3 \times 10^{-6}K_a^3$$<br>
+\&lt;/abstract\&gt;
+</code><p></p>
+            As in the Markdown case, preview the rendering of the LaTeX code by using <b>Preview Your Metadata in the EDI Data Portal</b> in the <b>Import/Export</b> menu.
             </div>
         </div>
 {#        <div class="faq-item">#}

@@ -1,8 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{% extends "base.html" %}
+{% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
@@ -16,13 +12,16 @@
     {% set help_award_title_id, help_award_title_title, help_award_title_content = help[2] %}
     {% set help_award_title_btn = help_award_title_id ~ '_btn' %}
     {% set help_award_title_dialog = help_award_title_id ~ '_dialog' %}
-    {% set help_funder_identifiers_id, help_funder_identifiers_title, help_funder_identifiers_content = help[3] %}
-    {% set help_funder_identifiers_btn = help_funder_identifiers_id ~ '_btn' %}
-    {% set help_funder_identifiers_dialog = help_funder_identifiers_id ~ '_dialog' %}
-    {% set help_award_number_id, help_award_number_title, help_award_number_content = help[4] %}
+    {% set help_award_number_id, help_award_number_title, help_award_number_content = help[3] %}
     {% set help_award_number_btn = help_award_number_id ~ '_btn' %}
     {% set help_award_number_dialog = help_award_number_id ~ '_dialog' %}
-    {% set help_award_url_id, help_award_url_title, help_award_url_content = help[5] %}
+    {% set help_award_lookup_id, help_award_lookup_title, help_award_lookup_content = help[4] %}
+    {% set help_award_lookup_btn = help_award_lookup_id ~ '_btn' %}
+    {% set help_award_lookup_dialog = help_award_lookup_id ~ '_dialog' %}
+    {% set help_funder_identifiers_id, help_funder_identifiers_title, help_funder_identifiers_content = help[5] %}
+    {% set help_funder_identifiers_btn = help_funder_identifiers_id ~ '_btn' %}
+    {% set help_funder_identifiers_dialog = help_funder_identifiers_id ~ '_dialog' %}
+    {% set help_award_url_id, help_award_url_title, help_award_url_content = help[6] %}
     {% set help_award_url_btn = help_award_url_id ~ '_btn' %}
     {% set help_award_url_dialog = help_award_url_id ~ '_dialog' %}
     {% endif %}
@@ -45,12 +44,30 @@
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_award_title_btn) }}</td>
                 </table>
                 <table>
-                    <td>{{ wtf.form_field(form.funder_identifier, size=100) }}</td>
-                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_funder_identifiers_btn) }}</td>
+                    <tr>
+                    <td>{{wtf.form_field(form.award_number, size=70) }}
+                    </td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_award_number_btn) }}
+                    </td>
+                        <td>
+                        <table>
+                            <td>
+                            {% if lookup_confirm %}
+                            <input class="btn btn-primary" id="nsf_award_lookup" style="margin-left: 25px;margin-top: 6px;" name="Lookup" type="submit"
+                                   formnovalidate="formnovalidate" value="NSF Award Lookup"
+                                   onclick="confirm('{{ lookup_confirm }}');"/></td>
+                            {% else %}
+                            <input class="btn btn-primary" id="nsf_award_lookup" style="margin-left: 25px;margin-top: 6px;" name="Lookup" type="submit"
+                                   formnovalidate="formnovalidate" value="NSF Award Lookup"/></td>
+                            {% endif %}
+                            <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_award_lookup_btn) }}</td>
+                        </table>
+                    </td>
+                    </tr>
                 </table>
                 <table>
-                    <td>{{wtf.form_field(form.award_number, size=100) }}</td>
-                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_award_number_btn) }}</td>
+                    <td>{{ wtf.form_field(form.funder_identifier, size=100) }}</td>
+                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_funder_identifiers_btn) }}</td>
                 </table>
                 <table>
                     <td>{{ wtf.form_field(form.award_url, size=100) }}</td>
@@ -59,6 +76,8 @@
                 <br/><br/>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" formnovalidate="formnovalidate" value="Cancel"/>
+                <br/><br/>
+                <p></p>
                 {{ macros.hidden_buttons() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
@@ -69,8 +88,9 @@
     {{ macros.help_dialog(help_award_dialog, help_award_title, help_award_content) }}
     {{ macros.help_dialog(help_funder_name_dialog, help_funder_name_title, help_funder_name_content) }}
     {{ macros.help_dialog(help_award_title_dialog, help_award_title_title, help_award_title_content) }}
-    {{ macros.help_dialog(help_funder_identifiers_dialog, help_funder_identifiers_title, help_funder_identifiers_content) }}
     {{ macros.help_dialog(help_award_number_dialog, help_award_number_title, help_award_number_content) }}
+    {{ macros.help_dialog(help_award_lookup_dialog, help_award_lookup_title, help_award_lookup_content) }}
+    {{ macros.help_dialog(help_funder_identifiers_dialog, help_funder_identifiers_title, help_funder_identifiers_content) }}
     {{ macros.help_dialog(help_award_url_dialog, help_award_url_title, help_award_url_content) }}
 {% endblock %}
 
@@ -86,13 +106,16 @@
     {% set help_award_title_id, help_award_title_title, help_award_title_content = help[2] %}
     {% set help_award_title_btn = help_award_title_id ~ '_btn' %}
     {% set help_award_title_dialog = help_award_title_id ~ '_dialog' %}
-    {% set help_funder_identifiers_id, help_funder_identifiers_title, help_funder_identifiers_content = help[3] %}
-    {% set help_funder_identifiers_btn = help_funder_identifiers_id ~ '_btn' %}
-    {% set help_funder_identifiers_dialog = help_funder_identifiers_id ~ '_dialog' %}
-    {% set help_award_number_id, help_award_number_title, help_award_number_content = help[4] %}
+    {% set help_award_number_id, help_award_number_title, help_award_number_content = help[3] %}
     {% set help_award_number_btn = help_award_number_id ~ '_btn' %}
     {% set help_award_number_dialog = help_award_number_id ~ '_dialog' %}
-    {% set help_award_url_id, help_award_url_title, help_award_url_content = help[5] %}
+    {% set help_award_lookup_id, help_award_lookup_title, help_award_lookup_content = help[4] %}
+    {% set help_award_lookup_btn = help_award_lookup_id ~ '_btn' %}
+    {% set help_award_lookup_dialog = help_award_lookup_id ~ '_dialog' %}
+    {% set help_funder_identifiers_id, help_funder_identifiers_title, help_funder_identifiers_content = help[5] %}
+    {% set help_funder_identifiers_btn = help_funder_identifiers_id ~ '_btn' %}
+    {% set help_funder_identifiers_dialog = help_funder_identifiers_id ~ '_dialog' %}
+    {% set help_award_url_id, help_award_url_title, help_award_url_content = help[6] %}
     {% set help_award_url_btn = help_award_url_id ~ '_btn' %}
     {% set help_award_url_dialog = help_award_url_id ~ '_dialog' %}
     {% endif %}
@@ -102,9 +125,30 @@
         {{ macros.help_script(help_award_dialog, help_award_btn) }}
         {{ macros.help_script(help_funder_name_dialog, help_funder_name_btn) }}
         {{ macros.help_script(help_award_title_dialog, help_award_title_btn) }}
-        {{ macros.help_script(help_funder_identifiers_dialog, help_funder_identifiers_btn) }}
         {{ macros.help_script(help_award_number_dialog, help_award_number_btn) }}
+        {{ macros.help_script(help_award_lookup_dialog, help_award_lookup_btn) }}
+        {{ macros.help_script(help_funder_identifiers_dialog, help_funder_identifiers_btn) }}
         {{ macros.help_script(help_award_url_dialog, help_award_url_btn) }}
     });
     </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const awardInput = document.getElementById('award_number');
+            const lookupButton = document.getElementById('nsf_award_lookup');
+
+            function toggleButtonState() {
+                const inputValue = awardInput.value.trim(); // Remove whitespace
+                lookupButton.disabled = inputValue === ""; // Enable if not empty
+            }
+
+            // Initialize button state on page load
+            toggleButtonState();
+
+            // Listen for input changes
+            awardInput.addEventListener('input', toggleButtonState);
+        });
+
+    </script>
+
 {% endblock %}

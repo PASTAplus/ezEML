@@ -260,7 +260,7 @@ def strip_elements_added_by_pasta(filename:str=None, eml_node:Node=None):
     dataset_node = eml_node.find_child(names.DATASET)
     alternate_id_nodes = dataset_node.find_all_children(names.ALTERNATEIDENTIFIER)
     for alternate_id_node in alternate_id_nodes:
-        if alternate_id_node and ('10.6073' in alternate_id_node.content or '10.0311' in alternate_id_node.content):
+        if alternate_id_node and ('doi:10.6073/' in alternate_id_node.content or 'doi:10.0311/' in alternate_id_node.content):
             node_utils.remove_child(alternate_id_node)
             modified = True
     distribution_nodes = dataset_node.find_all_children(names.DISTRIBUTION)
@@ -268,7 +268,7 @@ def strip_elements_added_by_pasta(filename:str=None, eml_node:Node=None):
         online_nodes = distribution_node.find_all_children(names.ONLINE)
         for online_node in online_nodes:
             url_node = online_node.find_child(names.URL)
-            if url_node and url_node.content and ('10.6073' in url_node.content or '10.0311' in url_node.content):
+            if url_node and url_node.content and ('doi:10.6073/' in url_node.content or 'doi:10.0311/' in url_node.content):
                 node_utils.remove_child(distribution_node)
                 modified = True
     if modified:

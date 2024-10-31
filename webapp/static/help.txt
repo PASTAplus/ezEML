@@ -135,6 +135,18 @@ The unique identifier used by the funder to uniquely identify an award.
 
 These are typically alphanumeric values that are unique within the system used by a given funder. The number should be listed using the canonical form that each funder uses to express its award numbers and should not be prefixed or postfixed with extra text such as the acronym of the funder or the name of the funder, which is available instead in the Funder Name field.
 --------------------
+award_lookup
+NSF Award Lookup
+If the funding award is from the National Science Foundation (NSF), you can enter the Award Number and click <b>NSF Award Lookup</b> to have ezEML look up the Award Title for you. This lets you check that the award number you've entered correctly matches the award you intended.
+
+The Award Number should be numeric. E.g., 1234567, not NSF-1234567 or #1234567.
+
+If the award number is found, the Award Title field will be filled in with the title of the award. If it turns out that the award is not the one you intended, you can always click <b>Cancel</b> to leave the page without saving the award information.
+
+Of course, you can manually enter the Award Title, instead of using <b>NSF Award Lookup</b>.
+
+If the Award Number field is empty, the NSF Award Lookup button will be disabled.
+--------------------
 award_title
 Award Title
 The title of the award or grant. This field is required.

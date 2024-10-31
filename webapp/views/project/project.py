@@ -3,6 +3,7 @@ Routes for project and related project pages.
 """
 
 import collections
+import requests
 
 import daiquiri
 from flask import (
@@ -328,6 +329,42 @@ def funding_award_select_get(filename=None, form=None, project_node_id=None):
                            form=form, help=help, related_project=related_project)
 
 
+def get_award_title(award_number):
+    """
+    Fetch the title of an NSF award given its award number.
+
+    Args:
+        award_number (str): The NSF award number
+
+    Returns:
+        str: The title of the award
+
+    Raises:
+        requests.RequestException: If the API request fails
+        KeyError: If the response doesn't contain the expected data structure
+    """
+    award_number = award_number.strip()
+    if not award_number or not award_number.isdigit():
+        raise ValueError(f'Not a valid award number: "{award_number}"')
+
+    url = f"http://api.nsf.gov/services/v1/awards/{award_number}.json"
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
+
+        data = response.json()
+        if not data["response"]["award"]:
+            raise ValueError(f'No award data found for award number "{award_number}"')
+        title = data["response"]["award"][0]["title"]
+        return title
+
+    except requests.RequestException as e:
+        raise requests.RequestException(f"Failed to fetch award data: {e}")
+    except (KeyError, IndexError) as e:
+        raise KeyError(f"Failed to extract title from response: {e}")
+
+
 @proj_bp.route('/funding_award/<filename>/<node_id>', methods=['GET', 'POST'])
 @proj_bp.route('/funding_award/<filename>/<node_id>/<project_node_id>', methods=['GET', 'POST'])
 @login_required
@@ -347,6 +384,8 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
     else:
         project_node = Node.get_node_instance(project_node_id)
 
+    submit_type = None
+
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
@@ -357,12 +396,12 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
 
         # if request.method == 'POST' and form.validate_on_submit():
         if request.method == 'POST':
-            next_page = PAGE_FUNDING_AWARD_SELECT
+            next_page = handle_hidden_buttons(PAGE_FUNDING_AWARD_SELECT)
 
-        submit_type = None
-        if is_dirty_form(form):
+        if 'Lookup' in form_dict:
+            submit_type = 'Lookup'
+        elif 'OK' in form_dict or is_hidden_button():
             submit_type = 'Save Changes'
-        # flash(f'submit_type: {submit_type}')
 
         if submit_type == 'Save Changes':
             funder_name = form.funder_name.data
@@ -390,11 +429,25 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
 
             save_both_formats(filename=filename, eml_node=eml_node)
 
-        url = select_post(filename, form, form_dict,
-                          'POST', PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT,
-                          PAGE_FUNDING_AWARD_SELECT, PAGE_FUNDING_AWARD,
-                          project_node_id=project_node_id, import_page=PAGE_IMPORT_PARTIES)
-        return redirect(url)
+            url = select_post(filename, form, form_dict,
+                              'POST', PAGE_FUNDING_AWARD_SELECT, PAGE_PROJECT,
+                              next_page, PAGE_FUNDING_AWARD,
+                              project_node_id=project_node_id, import_page=PAGE_IMPORT_PARTIES)
+            return redirect(url)
+
+        if submit_type == 'Lookup':
+            award_number = form.award_number.data
+            try:
+                award_title = get_award_title(award_number)
+                form.award_title.data = award_title
+                form.funder_name.data = 'National Science Foundation (NSF)'
+
+            except requests.RequestException as e:
+                flash(e, 'error')
+            except ValueError as e:
+                flash(e, 'error')
+            except KeyError as e:
+                flash(f"Failed to extract title from response: {e}", 'error')
 
     # Process GET
     if not project_node_id:
@@ -404,7 +457,7 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
         title = 'Related Project Funding Award'
         related_project = True
 
-    if node_id != '1':
+    if node_id != '1' and submit_type != 'Lookup':
         award_nodes = project_node.find_all_children(names.AWARD)
         if award_nodes:
             for award_node in award_nodes:
@@ -414,18 +467,26 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
 
     init_form_md5(form)
 
+    if form.award_title.data and form.funder_name.data:
+        lookup_confirm = 'If the lookup succeeds, the Funder Name and Award Title fields will be overwritten. OK to continue?'
+    elif form.award_title.data:
+        lookup_confirm = 'If the lookup succeeds, the Award Title field will be overwritten. OK to continue?'
+    else:
+        lookup_confirm = None
     set_current_page('project')
     help = [get_help('award'),
             get_help('funder_name'),
             get_help('award_title'),
-            get_help('funder_identifiers'),
             get_help('award_number'),
+            get_help('award_lookup'),
+            get_help('funder_identifiers'),
             get_help('award_url')]
     return render_template('award.html',
                            title=title,
                            form=form,
                            help=help,
-                           related_project=related_project)
+                           related_project=related_project,
+                           lookup_confirm=lookup_confirm)
 
 
 def populate_award_form(form: AwardForm, award_node: Node):

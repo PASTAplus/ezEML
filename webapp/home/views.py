@@ -2566,7 +2566,11 @@ def get_projects_for_import(eml_node):
     project = eml_node.find_single_node_by_path([names.DATASET, names.PROJECT])
     project_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT])
     if project:
-        project_nodes.append(project)
+        # If the project has no title, it's a case where related projects were defined without the main project,
+        #  e.g., in a template. In this case, we don't want to include the project in the list of projects to import.
+        project_title = project.find_child(names.TITLE)
+        if project_title and project_title.content:
+            project_nodes.append(project)
     for project_node in project_nodes:
         label = truncate_middle(compose_project_label(project_node), 80, ' ... ')
         projects.append((f'{label}', project_node.id))

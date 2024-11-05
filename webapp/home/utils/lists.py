@@ -577,6 +577,8 @@ def truncate_middle(s, n, mid='...'):
 
     s is the string to truncate. n is the max length allowed. mid is the middle string to insert.
     """
+    if s is None:
+        return ''
     if len(s) <= n:
         # string is already short-enough
         return s

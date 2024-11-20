@@ -37,6 +37,7 @@ from flask import Flask, current_app
 
 from markupsafe import Markup
 
+from webapp.home.utils.file_utils import sanitize_filename
 import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
@@ -2732,7 +2733,7 @@ def zip_package(current_document=None, eml_node=None, include_data=True):
     package_id = eml_node.attribute_value("packageId")
     if package_id and package_id != current_document:
         # copy the EML file using the package_id as name
-        arcname = f'{package_id}.xml'
+        arcname = f'{sanitize_filename(package_id)}.xml'
         copyfile(f'{user_folder}/{current_document}.xml', f'{user_folder}/{arcname}')
     else:
         arcname = f'{current_document}.xml'

@@ -440,7 +440,9 @@ def funding_award(filename=None, node_id=None, project_node_id=None):
             try:
                 award_title = get_award_title(award_number)
                 form.award_title.data = award_title
+                form.award_url.data = f"https://www.nsf.gov/awardsearch/showAward?AWD_ID={award_number}"
                 form.funder_name.data = 'National Science Foundation (NSF)'
+                form.funder_identifier.data = 'https://ror.org/021nxhr62'
 
             except requests.RequestException as e:
                 flash(e, 'error')

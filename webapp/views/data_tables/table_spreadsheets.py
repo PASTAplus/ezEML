@@ -787,7 +787,7 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
         ir_node = interval_or_ratio_node(attribute_node)
         numeric_domain_node = ir_node.find_child(names.NUMERICDOMAIN)
         if numeric_domain_node is None:
-            numeric_domain_node = attribute_node.add_child(names.NUMERICDOMAIN)
+            numeric_domain_node = new_child_node(names.NUMERICDOMAIN, ir_node)
 
         # Number type
         set_child_node(names.NUMBERTYPE, numeric_domain_node, number_type)

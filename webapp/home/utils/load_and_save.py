@@ -670,6 +670,28 @@ def fixup_categorical_variables(eml_node):
                     change_measurement_scale(attribute_node, None, VariableType.CATEGORICAL.name)
 
 
+def fixup_numerical_variables(eml_node):
+    """
+    There was a bug that caused some Numerical variables to be missing the numericDomain element.
+    Existing ezEML documents may still contain such variables. Here we fix them.
+    """
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    for data_table_node in data_table_nodes:
+        # Look for ratio elements that have no numericDomain child.
+        ratio_nodes = []
+        data_table_node.find_all_descendants(names.RATIO, ratio_nodes)
+        for ratio_node in ratio_nodes:
+            if not ratio_node.find_child(names.NUMERICDOMAIN):
+                # Create a numericDomain element and add it to the ratio element.
+                numeric_domain_node = Node(names.NUMERICDOMAIN)
+                ratio_node.add_child(numeric_domain_node)
+                # Create a numberType element and add it to the numericDomain element.
+                number_type_node = Node(names.NUMBERTYPE)
+                numeric_domain_node.add_child(number_type_node)
+                number_type_node.content = 'real'
+
+
 def fixup_field_delimiters(eml_node):
     """
     There was a bug that caused the field delimiter to be saved as '\t' for tab-delimited data tables.
@@ -766,6 +788,7 @@ def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=Non
     get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
     fixup_categorical_variables(eml_node)
+    fixup_numerical_variables(eml_node)
     fixup_field_delimiters(eml_node)
     create_nodes.add_eml_editor_metadata(eml_node)
 

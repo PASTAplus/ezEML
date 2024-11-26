@@ -2733,7 +2733,7 @@ def zip_package(current_document=None, eml_node=None, include_data=True):
     package_id = eml_node.attribute_value("packageId")
     if package_id and package_id != current_document:
         # copy the EML file using the package_id as name
-        arcname = f'{sanitize_filename(package_id)}.xml'
+        arcname = f"{package_id.replace('/', '_')}.xml"
         copyfile(f'{user_folder}/{current_document}.xml', f'{user_folder}/{arcname}')
     else:
         arcname = f'{current_document}.xml'

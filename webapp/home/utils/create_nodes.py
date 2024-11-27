@@ -610,6 +610,25 @@ def create_abstract(filename:str=None, abstract:str=None):
         flash(texttype_node_processing.invalid_xml_error_message(msg), 'error')
 
 
+def add_licensed_elements(dataset_node, rights):
+    licensed_node = dataset_node.find_child(names.LICENSED)
+    if licensed_node:
+        dataset_node.remove_child(licensed_node)
+    if rights == INTELLECTUAL_RIGHTS_CC0 or rights == INTELLECTUAL_RIGHTS_CC_BY:
+        licensed_node = new_child_node(names.LICENSED, parent=dataset_node)
+        license_name_node = new_child_node(names.LICENSENAME, parent=licensed_node)
+        url_node = new_child_node(names.URL, parent=licensed_node)
+        identifier_node = new_child_node(names.IDENTIFIER, parent=licensed_node)
+        if rights == INTELLECTUAL_RIGHTS_CC0:
+            license_name_node.content = 'Creative Commons Zero v1.0 Universal'
+            url_node.content = 'https://spdx.org/licenses/CC0-1.0'
+            identifier_node.content = 'CC0-1.0'
+        elif rights == INTELLECTUAL_RIGHTS_CC_BY:
+            license_name_node.content = 'Creative Commons Attribution 4.0 International'
+            url_node.content = 'https://spdx.org/licenses/CC-BY-4.0'
+            identifier_node.content = 'CC-BY-4.0'
+
+
 def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
     """
     Create an intellectualRights node in the EML document, filling it in with the provided value.
@@ -645,6 +664,9 @@ def create_intellectual_rights(filename:str=None, intellectual_rights:str=None):
             return
     else:
         flash(texttype_node_processing.invalid_xml_error_message(msg), 'error')
+
+    add_licensed_elements(dataset_node, intellectual_rights)
+
     try:
         load_and_save.save_both_formats(filename=filename, eml_node=eml_node)
     except Exception as e:

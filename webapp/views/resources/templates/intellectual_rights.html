@@ -28,6 +28,7 @@
                 <span style="font-family:{{ font_family }}">
                 {{ macros.check_xml_start() }}{{ wtf.form_field(form.intellectual_rights, rows=6) }}
                     {{ macros.check_xml_end('check_xml', model_has_complex_texttypes) }}
+                </span>
 
                 <br/>
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>

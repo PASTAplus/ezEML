@@ -523,6 +523,12 @@ ezEML enters the Number of Records automatically when the data table is uploaded
 data_table_online_url
 Online Distribution URL
 If the data table is available online, its URL address.
+
+Typically, ezEML handles this for you automatically.
+
+When you load a data table from a CSV file, the data table is uploaded to ezEML and ezEML fills in the URL pointing to the data table on the ezEML server. Then when you submit the data package to the EDI repository, the URL will be updated to point to the data table in the repository.
+
+Similarly, if you fetch a data table from the EDI repository, the URL will be filled in automatically, pointing to the data table in the repository.
 --------------------
 deprecated_data_source
 Deprecated Data Source

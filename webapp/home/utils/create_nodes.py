@@ -687,7 +687,7 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
                 maintenance_node = dataset_node.find_child(names.MAINTENANCE)
                 if maintenance_node:
                     dataset_node.children.remove(maintenance_node)
-                    return
+                return
 
             # add_node either creates a new node or returns an existing one, so we don't need to check for existence
             #  or remove the old one.

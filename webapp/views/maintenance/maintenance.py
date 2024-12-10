@@ -95,20 +95,21 @@ def maintenance(filename=None):
         return redirect(url)
 
     if request.method == 'POST' and form.validate_on_submit():
-        save = False
-        if is_dirty_form(form):
-            save = True
+        # Rather than check if the form is dirty, we're going to go ahead and save the form.
+        # The reason is this: if the maintenance description consists of whitespace only, or whitespace
+        #  plus one or more paras containing only whitespace, the form will be not considered dirty, and
+        #  we want to be able to clear out such content. A reason why that matters is that if the description
+        #  and update frequency are both empty, the maintenance item should not have a badge. So fully clearing it
+        #  out is important to be able to do.
+        maintenace_description = form.description.data
+        valid, msg = is_valid_xml_fragment(maintenace_description, names.MAINTENANCE)
+        if not valid:
+            flash(invalid_xml_error_message(msg, False, names.DESCRIPTION), 'error')
+            return render_get_maintenance_page(eml_node, form, filename)
 
-        if save:
-            maintenace_description = form.description.data
-            valid, msg = is_valid_xml_fragment(maintenace_description, names.MAINTENANCE)
-            if not valid:
-                flash(invalid_xml_error_message(msg, False, names.DESCRIPTION), 'error')
-                return render_get_maintenance_page(eml_node, form, filename)
-
-            update_frequency = form.update_frequency.data
-            create_maintenance(dataset_node, maintenace_description, update_frequency)
-            save_both_formats(filename=filename, eml_node=eml_node)
+        update_frequency = form.update_frequency.data
+        create_maintenance(dataset_node, maintenace_description, update_frequency)
+        save_both_formats(filename=filename, eml_node=eml_node)
 
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)

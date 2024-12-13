@@ -1495,6 +1495,10 @@ def attribute_numerical(filename=None, dt_node_id=None, node_id=None, mscale=Non
             storage_type_system = form.storage_type_system.data
             standard_unit = form.standard_unit.data
             custom_unit = form.custom_unit.data
+            if '"' in custom_unit:
+                flash('The custom unit cannot contain a double quote ("). Please try again.', 'error')
+                url = url_for(PAGE_ATTRIBUTE_NUMERICAL, filename=filename, dt_node_id=dt_node_id, node_id=att_node_id, mscale=mscale)
+                return redirect(url)
             custom_unit_definition = form.custom_unit_description.data
             precision = form.precision.data
             number_type = form.number_type.data

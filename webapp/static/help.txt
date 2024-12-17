@@ -500,7 +500,7 @@ If your data table is a CSV file with fields separated by commas, for example, t
 --------------------
 data_table_record_delimiter
 Record Delimiter
-Character(s) used to delimit records (i.e., rows).
+Character(s) used to delimit records (i.e., rows) in a data table.
 
 The record delimiter is usually a linefeed (\n) on UNIX, a carriage return (\r) on MacOS, or both (\r\n) on Windows/DOS.
 

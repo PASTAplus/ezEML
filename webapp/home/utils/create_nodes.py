@@ -20,6 +20,7 @@ from flask import flash
 from webapp.config import Config
 
 from metapype.model.node import Node
+
 from webapp.home import exceptions as exceptions
 from webapp.home.intellectual_rights import INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
 
@@ -693,10 +694,26 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
             #  or remove the old one.
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
             description_node = add_node(maintenance_node, names.DESCRIPTION)
-            texttype_node_processing.post_process_texttype_node(description_node, description)
+            description_node.content = description
+            if description:
+                # If description is empty, we don't post process because we don't want the description node
+                #  to be deleted. We are about to set the update_frequency, and it update_frequency is set
+                #  then description is required.
+                texttype_node_processing.post_process_texttype_node(description_node, description)
+            else:
+                description_node.children = []
 
             if update_frequency:
                 update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)
+            else:
+                # We may be trying to reset the update frequency to the empty default value
+                update_frequency_node = maintenance_node.find_child(names.MAINTENANCEUPDATEFREQUENCY)
+                if update_frequency_node:
+                    # We had an update frequency and now we're clearing it, so remove the node
+                    maintenance_node.children.remove(update_frequency_node)
+                    # If the description is empty of content, remove the maintenance node altogether
+                    if not description_node.children and not description_node.content:
+                        dataset_node.children.remove(maintenance_node)
 
     except Exception as e:
         log_error(e)

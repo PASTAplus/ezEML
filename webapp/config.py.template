@@ -32,6 +32,9 @@ class Config(object):
     AUTH = "https://auth.edirepository.org/auth"
     TARGET = "https://ezeml.edirepository.org/eml/auth/login"
 
+    EZEML_DATA_ACCESS_LDAP_USER = "ezeml"
+    EZEML_DATA_ACCESS_LDAP_PASSWORD = "SECRET"
+
     GOOGLE_MAP_API_KEY = "GOOGLE_MAP_API_KEY"
 
     DOMAINS = {
@@ -69,6 +72,7 @@ class Config(object):
     GC_BUTTON_ENABLED = True
     GC_DAYS_TO_LIVE = 90
     GC_LOG_ONLY = False
+    GC_KEEP_UPLOADS = True
     GC_INCLUDE_EXPORTS = True
     GC_EXPORTS_DAYS_TO_LIVE = 120
     GC_CLEAN_ZIP_TEMPS_ON_STARTUP = False

@@ -909,6 +909,8 @@ def get_back_url(success=False):
             return PAGE_SEND_TO_OTHER
         elif current_page == 'manage_data_usage':
             return PAGE_MANAGE_DATA_USAGE
+        # elif current_page == 'curator_workflow':
+        #     return PAGE_CURATOR_WORKFLOW
         else:
             return PAGE_TITLE
 
@@ -1178,11 +1180,16 @@ def manage_data_usage(action=None):
         # If the user clicked the Garbage Collect button, do the garbage collection.
         if 'gc' in request.form and 'days' in request.form:
             days = request.form['days']
-            subprocess.run(['webapp/gc.py', f'--days={days}',
-                            f'--include_exports={Config.GC_INCLUDE_EXPORTS}',
-                            f'--exports_days={Config.GC_EXPORTS_DAYS_TO_LIVE}',
-                            f'--logonly={Config.GC_LOG_ONLY}'])
-            flash(f'Garbage collection completed. Days={days}.')
+            result = subprocess.run(['python3', 'webapp/gc.py', f'--days={days}',
+                                     f'--keep_uploads={Config.GC_KEEP_UPLOADS}',
+                                     f'--include_exports={Config.GC_INCLUDE_EXPORTS}',
+                                     f'--exports_days={Config.GC_EXPORTS_DAYS_TO_LIVE}',
+                                     f'--logonly={Config.GC_LOG_ONLY}'],
+                                    capture_output=True, text=True)
+            if result.returncode == 0:
+                flash(f'Garbage collection completed. Days={days}.')
+            else:
+                flash(f'Garbage collection failed: {result.stderr}', 'error')
 
     # Set the default sort order. Other sort orders can be selected by clicking the column headers and are handled
     # in the template.

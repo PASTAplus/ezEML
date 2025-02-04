@@ -130,12 +130,16 @@ def clean_orphans_from_directory(user_dir, dirname, dirtype, logger, logonly):
 
 def clean_orphaned_uploads(user_dir, logger, logonly):
 	# Remove directories in the uploads directory for which there is no corresponding JSON file
+	# For example, if the uploads dir has a subdir named "foo", then there must be a foo.json file in the
+	#  user_dir, or else the "foo" subdir is an orphan.
 	uploads_dir = os.path.join(user_dir, 'uploads')
 	clean_orphans_from_directory(user_dir, uploads_dir, "uploads", logger, logonly)
 
 
 def clean_orphaned_exports(user_dir, logger, logonly):
 	# Remove directories in the exports directory for which there is no corresponding JSON file
+	# For example, if the exports dir has a subdir named "foo", then there must be a foo.json file in the
+	#  user_dir, or else the "foo" subdir is an orphan.
 	exports_dir = os.path.join(user_dir, 'exports')
 	clean_orphans_from_directory(user_dir, exports_dir, "exports", logger, logonly)
 
@@ -169,12 +173,12 @@ def clean_orphaned_xml_and_eval_files(user_dir, logger, logonly):
 
 
 @click.command()
-@click.option('--days', default=90, help='Remove files if JSON last-modified date greater than this number of days. Default is 90.')
-@click.option('--base', default=f'{Config.USER_DATA_DIR}', help=f'Base directory from which to crawl the file system. Default is {Config.USER_DATA_DIR}.')
-@click.option('--keep_uploads', default=True, help='If True, do not remove files from the uploads directories. Default is True.')
-@click.option('--include_exports', default=False, help='If True, include exports directories in file system crawl. Default is False.')
-@click.option('--exports_days', default=14, help='If including exports, remove exports older than this number of days. Default is 14.')
-@click.option('--logonly', default=False, help='If True, no files are actually deleted. For testing. Default is False.')
+@click.option('--days', type=int, default=f'{Config.GC_DAYS_TO_LIVE}', help=f'Remove files if JSON last-modified date greater than this number of days. Default is {Config.GC_DAYS_TO_LIVE}.')
+@click.option('--base', type=str, default=f'{Config.USER_DATA_DIR}', help=f'Base directory from which to crawl the file system. Default is {Config.USER_DATA_DIR}.')
+@click.option('--keep_uploads', type=bool, default=f'{Config.GC_KEEP_UPLOADS}', help=f'If True, do not remove files from the uploads directories. Default is {Config.GC_KEEP_UPLOADS}.')
+@click.option('--include_exports', type=bool, default=f'{Config.GC_INCLUDE_EXPORTS}', help=f'If True, include exports directories in file system crawl. Default is {Config.GC_INCLUDE_EXPORTS}.')
+@click.option('--exports_days', type=int, default=f'{Config.GC_EXPORTS_DAYS_TO_LIVE}', help=f'If including exports, remove exports older than this number of days. Default is {Config.GC_EXPORTS_DAYS_TO_LIVE}.')
+@click.option('--logonly', type=bool, default=f'{Config.GC_LOG_ONLY}', help=f'If True, no files are actually deleted. For testing. Default is {Config.GC_LOG_ONLY}.')
 def GC(days, base, keep_uploads, include_exports, exports_days, logonly):
 	logfile = os.path.join(base, 'ezEML_GC.log')
 	daiquiri.setup(level=logging.INFO, outputs=(
@@ -186,7 +190,7 @@ def GC(days, base, keep_uploads, include_exports, exports_days, logonly):
 	))
 	logger = daiquiri.getLogger(__name__)
 
-	logger.info(f'Start run: ---------------------------------------- days={days} base={base} include_exports={include_exports} logonly={logonly}')
+	logger.info(f'Start run: ---------------------------------------- days={days} base={base} keep_uploads={keep_uploads} include_exports={include_exports} logonly={logonly}')
 	today = datetime.datetime.today()
 
 	os.chdir(base)

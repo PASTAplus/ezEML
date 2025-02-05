@@ -509,6 +509,8 @@ def remove_package(owner_login, package_name, session=None):
     with db_session(session) as session:
         package = get_package(owner_login, package_name, session)
         if package:
+            # Set active_package_id to NULL for all user rows that reference the package
+            session.query(User).filter(User.active_package_id == package.package_id).update({User.active_package_id: None})
             # Remove any collaborations associated with the package.
             collaborations = Collaboration.query.filter_by(package_id=package.package_id).all()
             for collaboration in collaborations:

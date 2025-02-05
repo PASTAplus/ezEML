@@ -875,8 +875,10 @@ def check_data_tables(eml_node, doc_name, evaluation_warnings=None):
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
-    if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_MISSING, names.DATASET):
-        add_to_evaluation('data_table_05', link)
+    # Warning if no data tables - removed 2/5/2025. The case of a dataset with no data tables is
+    #  not terribly uncommon.
+    # if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_MISSING, names.DATASET):
+    #     add_to_evaluation('data_table_05', link)
 
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
     for data_table_node in data_table_nodes:

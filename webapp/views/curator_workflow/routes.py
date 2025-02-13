@@ -1,7 +1,8 @@
-from flask import Blueprint, escape, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import (
     current_user, login_required
 )
+from markupsafe import escape
 
 from webapp.home.utils.hidden_buttons import non_saving_hidden_buttons_decorator
 from webapp.pages import *

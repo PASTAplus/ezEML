@@ -163,6 +163,9 @@ def curator_workflow(filename=None):
     # Process POST
     if request.method == 'POST':
 
+        if "refresh" in request.form:
+            check_eval_completions()
+
         if "staging_reserve" in request.form:
             handle_reserve_pid('STAGING', staging_form)
 

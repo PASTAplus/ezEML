@@ -252,6 +252,7 @@ def check_eval_completions():
                 if 200 <= status < 300 and text:
                     workflow.upload_status = 'UPLOAD_ERROR'
                     workflow.landing_page_link = text
+                    workflow.ready_to_upload = False
                     break
                 scope, identifier, revision = workflow.assigned_pid.split('.')
                 status, report = check_existence(PastaEnvironment[workflow.workflow_type], scope, identifier, revision)

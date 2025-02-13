@@ -3980,6 +3980,21 @@ def get_collaboration_database():
     return send_file(db_pathname, as_attachment=True, download_name='collaborations.db.sqlite3')
 
 
+@home_bp.route('/get_curator_workflow_database/', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def get_curator_workflow_database():
+    """
+    This route is an admin tool for use by the EDI team to download the database used to track curator workflow status.
+    """
+    if not (current_user and (current_user.is_admin() or current_user.is_data_curator())):
+        flash('You are not authorized to download the curator workflow database.', 'error')
+        return render_template('index.html')
+
+    db_pathname = os.path.join(Config.USER_DATA_DIR, '__db', 'curator_workflows.db.sqlite3')
+    return send_file(db_pathname, as_attachment=True, download_name='curator_workflows.db.sqlite3')
+
+
 @home_bp.route('/reupload_data_with_col_names_changed/<saved_filename>/<dt_node_id>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator

@@ -325,16 +325,6 @@
             setupNewRevisionHandlers("staging");
             setupNewRevisionHandlers("production");
 
-            document.getElementById('refresh_btn_staging').onclick = function() {
-                {#alert('refresh_btn_staging');#}
-                window.location.href = window.location.pathname + window.location.search;
-            }
-
-            document.getElementById('refresh_btn_production').onclick = function() {
-                {#alert('refresh_btn_production');#}
-                window.location.href = window.location.pathname + window.location.search;
-            }
-
             let stagingValues = {{ staging_values | tojson }};
             let productionValues = {{ production_values | tojson }};
             if (!stagingValues.ready_to_upload) {

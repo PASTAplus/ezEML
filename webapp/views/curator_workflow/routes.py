@@ -125,9 +125,10 @@ def curator_workflow(filename=None):
     def handle_evaluate(workflow_type):
         status, eval_transaction_id = evaluate_data_package(pasta_environment_from_workflow_type(workflow_type))
         if 200 <= status < 300:
+            log_info(f'{log_preamble()}eval started - transaction ID = {eval_transaction_id}')
             update_workflow(workflow_type, owner_login, package_name=filename, eval_status='EVAL_IN_PROGRESS',
                             upload_status='',
-                            eval_transaction_id=eval_transaction_id, report='', ready_to_upload=False,
+                            eval_transaction_id=eval_transaction_id, report='', has_errors=False, ready_to_upload=False,
                             create_transaction_id='', landing_page_link='')
         else:
             log_error(f'{log_preamble()} handle_evaluate({workflow_type}) returns status {status}')
@@ -140,6 +141,7 @@ def curator_workflow(filename=None):
     def handle_upload(workflow_type, revision_of: str=None):
         status, create_transaction_id = upload_data_package(pasta_environment_from_workflow_type(workflow_type), revision_of)
         if 200 <= status < 300:
+            log_info(f'{log_preamble()}upload started - transaction ID = {create_transaction_id}')
             update_workflow(workflow_type, owner_login, package_name=filename, upload_status='UPLOAD_IN_PROGRESS',
                             create_transaction_id=create_transaction_id)
         else:
@@ -239,6 +241,7 @@ def check_eval_completions():
                     workflow.report = report
                     workflow.has_errors = True
                     workflow.ready_to_upload = False
+                    log_info(f'check_eval_completions - error report - {PastaEnvironment[workflow.workflow_type]} - {workflow.eval_transaction_id}')
                 elif status == 404:
                     # No error report was found. Now check for eval report.
                     status, report = get_evaluate_report(PastaEnvironment[workflow.workflow_type], workflow.eval_transaction_id)
@@ -247,6 +250,7 @@ def check_eval_completions():
                         workflow.report = report
                         workflow.has_errors = has_errors(report)
                         workflow.ready_to_upload = not workflow.has_errors
+                        log_info(f'check_eval_completions - eval report - {PastaEnvironment[workflow.workflow_type]} - {workflow.eval_transaction_id}')
 
             in_progress = get_upload_in_progress_workflows()
             for workflow in in_progress:
@@ -255,12 +259,14 @@ def check_eval_completions():
                     workflow.upload_status = 'UPLOAD_ERROR'
                     workflow.landing_page_link = text
                     workflow.ready_to_upload = False
+                    log_info(f'check_eval_completions - upload error - {PastaEnvironment[workflow.workflow_type]} - {workflow.create_transaction_id}')
                     break
                 scope, identifier, revision = workflow.assigned_pid.split('.')
                 status, report = check_existence(PastaEnvironment[workflow.workflow_type], scope, identifier, revision)
                 if 200 <= status < 300:
                     workflow.upload_status = 'UPLOAD_COMPLETED'
                     workflow.landing_page_link = f'{portal_url_for_environment(PastaEnvironment[workflow.workflow_type])}/nis/mapbrowse?scope={scope}&identifier={identifier}&revision={revision}'
+                    log_info(f'check_eval_completions - upload completed - {PastaEnvironment[workflow.workflow_type]} - {workflow.create_transaction_id}')
 
             return ''
     except Exception as e:

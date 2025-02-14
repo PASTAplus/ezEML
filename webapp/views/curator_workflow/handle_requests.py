@@ -119,6 +119,10 @@ def evaluate_upload_data_package(pasta_environment: PastaEnvironment, upload: bo
             )
             return r.status_code, r.text
 
+    log_error(f'evaluate_upload_data_package  not returning a value - '
+              f'{PastaEnvironment[pasta_environment]} - upload={upload} - revision_of={revision_of}')
+    return '999', 'evaluate_upload_data_package not returning a value'
+
 
 def evaluate_data_package(pasta_environment: PastaEnvironment):
     return evaluate_upload_data_package(pasta_environment, upload=False)

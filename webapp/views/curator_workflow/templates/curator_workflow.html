@@ -48,11 +48,6 @@
 
                 <div style="margin-left: 20px;">
                     <table style="border-spacing: 0 10px; border-collapse: separate;">
-{#                        <tr>#}
-{#                            <td>#}
-{#                            <input class="btn btn-primary" style="width: 180px;" value="Initialize Workflow" onclick="return confirm_staging_init();" type="submit" name="init_staging_workflow"/>#}
-{#                            </td>#}
-{#                        </tr>#}
                         <tr>
                             <td>
                             <input class="btn btn-primary" style="width: 180px;" value="Reserve Package ID" type="submit" name="staging_reserve"/>
@@ -63,7 +58,8 @@
                         </tr>
                         <tr>
                             <td>
-                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="staging_apply_pid"/>
+                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="staging_apply_pid"
+                            {% if staging_values.pid_status == '' %} disabled {% endif %}/>
                             </td>
                             <td>
                             <span id="apply_pid_to_eml_staging" style="margin-left: 20px;">{{ staging_values.pid_entered_in_eml }}</span>
@@ -71,13 +67,16 @@
                         </tr>
                         <tr>
                             <td>
-                            <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_staging_eval();" type="submit" name="staging_evaluate"/>
+                            <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_staging_eval();" type="submit" name="staging_evaluate"
+                            {% if staging_values.pid_status != 'PID_ENTERED_IN_EML' %} disabled {% endif %}/>
                             </td>
                             <td>
                             <span id="evaluate_staging" style="margin-left: 20px;">
                                 {% if staging_values.eval_transaction_id %}
                                     {% if not staging_values.report and staging_values.eval_status == 'EVAL_IN_PROGRESS' %}
                                     Evaluation started
+                                    {% elif staging_values.has_errors %}
+                                    <span style="color: red">Error(s) found</span>
                                     {% else %}
                                     Ready for viewing
                                     {% endif  %}
@@ -87,7 +86,8 @@
                         </tr>
                         <tr>
                             <td>
-                            <input class="btn btn-primary" id="staging_report_btn" style="width: 180px;" value="View Quality Report" type="submit" name="staging_report"/>
+                            <input class="btn btn-primary" id="staging_report_btn" style="width: 180px;" value="View Quality Report" type="submit" name="staging_report"
+                            {% if staging_values.report == '' %} disabled {% endif %}/>
                             </td>
                             <td>
                             <span id="evaluation_report_staging" style="margin-left: 20px;">{{ evaluation_report_staging }}</span>
@@ -179,7 +179,8 @@
                         </tr>
                         <tr>
                             <td>
-                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="production_apply_pid"/>
+                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="production_apply_pid"
+                            {% if production_values.pid_status == '' %} disabled {% endif %}/>
                             </td>
                             <td>
                             <span id="apply_pid_to_eml_production" style="margin-left: 20px;">{{ production_values.pid_entered_in_eml }}</span>
@@ -188,13 +189,16 @@
 
                         <tr>
                             <td>
-                            <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_production_eval();" type="submit" name="production_evaluate"/>
+                            <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_production_eval();" type="submit" name="production_evaluate"
+                            {% if production_values.pid_status != 'PID_ENTERED_IN_EML' %} disabled {% endif %}/>
                             </td>
                             <td>
                             <span id="evaluate_production" style="margin-left: 20px;">
                                 {% if production_values.eval_transaction_id %}
                                     {% if not production_values.report and production_values.eval_status == 'EVAL_IN_PROGRESS' %}
                                     Evaluation started
+                                    {% elif staging_values.has_errors %}
+                                    <span style="color: red">Error(s) found</span>
                                     {% else %}
                                     Ready for viewing
                                     {% endif  %}
@@ -204,7 +208,8 @@
                         </tr>
                         <tr>
                             <td>
-                            <input class="btn btn-primary" id="production_report_btn" style="width: 180px;" value="View Quality Report" type="submit" name="production_report"/>
+                            <input class="btn btn-primary" id="production_report_btn" style="width: 180px;" value="View Quality Report" type="submit" name="production_report"
+                            {% if production_values.report == '' %} disabled {% endif %}/>
                             </td>
                             <td>
                             <span id="evaluation_report_production" style="margin-left: 20px;">{{ evaluation_report_production }}</span>

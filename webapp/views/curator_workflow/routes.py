@@ -141,7 +141,7 @@ def curator_workflow(filename=None):
         status, create_transaction_id = upload_data_package(pasta_environment_from_workflow_type(workflow_type), revision_of)
         if 200 <= status < 300:
             update_workflow(workflow_type, owner_login, package_name=filename, upload_status='UPLOAD_IN_PROGRESS',
-                            create_transaction_id=create_transaction_id, report='')
+                            create_transaction_id=create_transaction_id)
         else:
             log_error(f'{log_preamble()} handle_upload({workflow_type}) returns status {status}')
 
@@ -237,6 +237,7 @@ def check_eval_completions():
                     # There's an error report.
                     workflow.eval_status = 'ERROR_REPORT'
                     workflow.report = report
+                    workflow.has_errors = True
                     workflow.ready_to_upload = False
                 elif status == 404:
                     # No error report was found. Now check for eval report.
@@ -244,7 +245,8 @@ def check_eval_completions():
                     if status == 200:
                         workflow.eval_status = 'EVAL_REPORT'
                         workflow.report = report
-                        workflow.ready_to_upload = not has_errors(report)
+                        workflow.has_errors = has_errors(report)
+                        workflow.ready_to_upload = not workflow.has_errors
 
             in_progress = get_upload_in_progress_workflows()
             for workflow in in_progress:

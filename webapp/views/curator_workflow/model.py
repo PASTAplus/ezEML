@@ -64,6 +64,7 @@ class Workflow(db.Model):
     pid_entered_in_eml = db.Column(db.Text)
     eval_transaction_id = db.Column(db.Text)
     report = db.Column(db.Text)
+    has_errors = db.Column(db.Boolean)
     ready_to_upload = db.Column(db.Boolean)
     create_transaction_id = db.Column(db.Text)
     landing_page_link = db.Column(db.Text)

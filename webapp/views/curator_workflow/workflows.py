@@ -13,6 +13,7 @@ class WorkflowValues(NamedTuple):
     pid_entered_in_eml: str
     eval_transaction_id: str
     report: str
+    has_errors: bool
     ready_to_upload: bool
     create_transaction_id: str
     landing_page_link: str
@@ -82,7 +83,7 @@ def remove_workflows(owner_login:str, package_name:str, session=None):
 def update_workflow(workflow_type:str, owner_login:str, package_name:str, revision_of:str=None,
                     pid_status:str=None, eval_status:str=None, upload_status:str=None,
                     assigned_pid:str=None, pid_entered_in_eml:str=None,
-                    eval_transaction_id:str=None, report:str=None, ready_to_upload:bool=None,
+                    eval_transaction_id:str=None, report:str=None, has_errors:bool=None, ready_to_upload:bool=None,
                     create_transaction_id:str=None, landing_page_link:str=None,
                     session=None):
     with db_session(session) as session:
@@ -103,6 +104,8 @@ def update_workflow(workflow_type:str, owner_login:str, package_name:str, revisi
             workflow.eval_transaction_id = eval_transaction_id
         if report is not None:
             workflow.report = report
+        if has_errors is not None:
+            workflow.has_errors = has_errors
         if ready_to_upload is not None:
             workflow.ready_to_upload = ready_to_upload
         if create_transaction_id is not None:
@@ -113,7 +116,7 @@ def update_workflow(workflow_type:str, owner_login:str, package_name:str, revisi
 
 def get_workflow_values(workflow_type:str, owner_login:str, package_name:str, session=None):
     with db_session(session) as session:
-        workflow_values = WorkflowValues('', '', '', '', '', '', '', '', False, '', '')
+        workflow_values = WorkflowValues('', '', '', '', '', '', '', '', False, False, '', '')
         workflow = get_workflow(workflow_type, owner_login, package_name, create_if_not_found=False, session=session)
         if workflow:
             workflow_values = WorkflowValues(
@@ -125,6 +128,7 @@ def get_workflow_values(workflow_type:str, owner_login:str, package_name:str, se
                 workflow.pid_entered_in_eml if workflow.pid_entered_in_eml else '',
                 workflow.eval_transaction_id if workflow.eval_transaction_id else '',
                 workflow.report if workflow.report else '',
+                workflow.has_errors if workflow.has_errors else False,
                 workflow.ready_to_upload if workflow.ready_to_upload else False,
                 workflow.create_transaction_id if workflow.create_transaction_id else '',
                 workflow.landing_page_link if workflow.landing_page_link else '')

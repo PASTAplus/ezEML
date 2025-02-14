@@ -197,7 +197,7 @@
                                 {% if production_values.eval_transaction_id %}
                                     {% if not production_values.report and production_values.eval_status == 'EVAL_IN_PROGRESS' %}
                                     Evaluation started
-                                    {% elif staging_values.has_errors %}
+                                    {% elif production_values.has_errors %}
                                     <span style="color: red">Error(s) found</span>
                                     {% else %}
                                     Ready for viewing

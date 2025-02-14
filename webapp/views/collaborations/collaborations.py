@@ -527,6 +527,10 @@ def remove_package(owner_login, package_name, session=None):
             group_lock = _get_group_lock(package.package_id)
             if group_lock:
                 session.delete(group_lock)
+            # Find user(s) with active_package_id pointing to this package; clear them.
+            users = User.query.filter_by(active_package_id=package.package_id).all()
+            for user in users:
+                user.active_package_id = None
             # Remove the package record.
             session.delete(package)
 

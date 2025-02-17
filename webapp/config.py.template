@@ -136,6 +136,9 @@ class Config(object):
         ],
         "LTER/MCR": [
         ],
+        "LTER/NGA": [
+            ("NGA_Information_Management-31777b26cb8aed6e59186639c9141206", "im.ngalter@gmail.com"),
+        ],
         "LTER/NTL": [
             ("NTL-d5c08b86e40a4d6ec22d97fe4a28bc43", "gahler@wisc.edu"),
             ("cgries-0dc416e2cf674c2836a179917be98d76", "cgries@wisc.edu"),

@@ -29,6 +29,14 @@ class Config(object):
 
     PASTA_URL = "https://pasta.lternet.edu/package"
 
+    # Curator workflow support
+    PASTA_DEVELOPMENT_URL = "https://pasta-d.lternet.edu/package"
+    PASTA_STAGING_URL = "https://pasta-s.lternet.edu/package"
+    PASTA_PRODUCTION_URL = "https://pasta.lternet.edu/package"
+    PORTAL_DEVELOPMENT_URL = "https://portal-d.edirepository.org"
+    PORTAL_STAGING_URL = "https://portal-s.edirepository.org"
+    PORTAL_PRODUCTION_URL = "https://portal.edirepository.org"
+
     AUTH = "https://auth.edirepository.org/auth"
     TARGET = "https://ezeml.edirepository.org/eml/auth/login"
 

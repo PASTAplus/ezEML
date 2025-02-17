@@ -15,19 +15,15 @@ class PastaEnvironment(Enum):
     PRODUCTION = 2
 
 pasta_url_lut = {
-    PastaEnvironment.DEVELOPMENT: PASTA_DEVELOPMENT_URL,
-    PastaEnvironment.STAGING: PASTA_STAGING_URL,
-    PastaEnvironment.PRODUCTION: PASTA_PRODUCTION_URL
+    PastaEnvironment.DEVELOPMENT: Config.PASTA_DEVELOPMENT_URL,
+    PastaEnvironment.STAGING: Config.PASTA_STAGING_URL,
+    PastaEnvironment.PRODUCTION: Config.PASTA_PRODUCTION_URL
 }
 
-PORTAL_DEVELOPMENT_URL = "https://portal-d.edirepository.org"
-PORTAL_STAGING_URL = "https://portal-d.edirepository.org"  # TEMP set to dev
-PORTAL_PRODUCTION_URL = "https://portal-s.edirepository.org"  # TEMP set to staging
-
 portal_url_lut = {
-    PastaEnvironment.DEVELOPMENT: PORTAL_DEVELOPMENT_URL,
-    PastaEnvironment.STAGING: PORTAL_STAGING_URL,
-    PastaEnvironment.PRODUCTION: PORTAL_PRODUCTION_URL
+    PastaEnvironment.DEVELOPMENT: Config.PORTAL_DEVELOPMENT_URL,
+    PastaEnvironment.STAGING: Config.PORTAL_STAGING_URL,
+    PastaEnvironment.PRODUCTION: Config.PORTAL_PRODUCTION_URL
 }
 
 def authenticate(pasta_url):
@@ -35,7 +31,6 @@ def authenticate(pasta_url):
     dn = f'uid={Config.EZEML_DATA_ACCESS_LDAP_USER},o=EDI,dc=edirepository,dc=org' # distinguished name
     pw = Config.EZEML_DATA_ACCESS_LDAP_PASSWORD
     url = f"{pasta_url}/eml"
-    # url = 'https://pasta.lternet.edu/package/eml'
 
     # Perform HTTP basic authentication and pull token from cookie
     try:
@@ -153,5 +148,6 @@ def get_evaluate_report(pasta_environment: PastaEnvironment, eval_transaction_id
 if __name__ == "__main__":
     # transaction_id = evaluate_data_package(PastaEnvironment.STAGING)
     # identifier = delete_reservation(PastaEnvironment.STAGING, 'edi', '1141')
-    identifier = create_reservation(PastaEnvironment.STAGING, 'edi')
-    identifier = delete_reservation(PastaEnvironment.STAGING, 'edi', identifier)
+    # identifier = create_reservation(PastaEnvironment.STAGING, 'edi')
+    # identifier = delete_reservation(PastaEnvironment.STAGING, 'edi', identifier)
+    pass

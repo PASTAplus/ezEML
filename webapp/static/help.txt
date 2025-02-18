@@ -358,11 +358,13 @@ Click <b>Reserve Package ID</b>. This reserves a new or revision data package ID
  assigned. The Data Package ID is updated in the EML as well.
 
 To evaluate the package, click <b>Evaluate</b>. This evaluates the package on staging. When the evaluation has completed, you can view the
- resulting quality report by clicking <b>View Quality Report</b>, which opens the report in a new tab.
+ resulting quality report by clicking <b>View Quality Report</b>, which opens the report in a new tab. If the quality report contains one
+ or more errors, a notation to that effect will appear next to the <b>Evaluate</b> button. The <b>Upload</b> button will remain disabled until
+ an error-free evaluation is achieved.
 
 After you correct errors and warnings in the package, you can upload the package to staging by clicking <b>Upload</b>. When the upload
  completes, you can view the resulting landing page by clicking <b>View Landing Page</b>, which opens the landing page in a new tab. You
- can then use the <b>Copy Citation</b> button on the landing page to obtain a citation you can send to the user for their review.
+ can then use the <b>Copy Citation</b> button on the landing page to obtain a citation to send to the user for their review.
 
  Once the package on staging has been okayed by the user, follow the same sequence of steps under <b>Production Environment</b> to evaluate and
   upload the package to the EDI repository.

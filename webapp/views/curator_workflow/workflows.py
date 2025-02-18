@@ -5,6 +5,7 @@ from webapp.views.curator_workflow.model import (
 from webapp.views.collaborations.db_session import db_session
 
 class WorkflowValues(NamedTuple):
+    workflow_id: str
     revision_of: str
     pid_status: str
     eval_status: str
@@ -47,6 +48,13 @@ def create_workflow(workflow_type: str, owner_login: str, package_name: str, ses
         session.add(workflow)
         session.flush()
         return workflow
+
+
+def get_workflow_by_id(workflow_id: int, session=None):
+    with db_session(session) as session:
+        workflow = Workflow.query.filter_by(id=workflow_id).first()
+        return workflow
+
 
 def get_workflow(workflow_type: str, owner_login:str, package_name:str, create_if_not_found:bool=True, session=None):
     with db_session(session) as session:
@@ -116,10 +124,11 @@ def update_workflow(workflow_type:str, owner_login:str, package_name:str, revisi
 
 def get_workflow_values(workflow_type:str, owner_login:str, package_name:str, session=None):
     with db_session(session) as session:
-        workflow_values = WorkflowValues('', '', '', '', '', '', '', '', False, False, '', '')
+        workflow_values = WorkflowValues('', '', '', '', '', '', '', '', '', False, False, '', '')
         workflow = get_workflow(workflow_type, owner_login, package_name, create_if_not_found=False, session=session)
         if workflow:
             workflow_values = WorkflowValues(
+                workflow.id,
                 workflow.revision_of if workflow.revision_of else '',
                 workflow.pid_status if workflow.pid_status else '',
                 workflow.eval_status if workflow.eval_status else '',

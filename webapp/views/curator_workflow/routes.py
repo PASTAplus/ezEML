@@ -28,6 +28,7 @@ from webapp.views.curator_workflow.workflows import (
     update_workflow,
     WorkflowValues,
     get_workflow,
+    get_workflow_by_id,
     get_workflow_values,
     get_eval_in_progress_workflows,
     get_upload_in_progress_workflows,
@@ -97,9 +98,10 @@ def curator_workflow(filename=None):
             status, identifier = create_reservation(pasta_environment_from_workflow_type(workflow_type), scope)
             if 200 <= status < 300:
                 reserve_package_id = f'{scope}.{identifier}.1'
+                apply_pid(workflow_type, reserve_package_id)
                 log_info(f'{log_preamble()} {workflow_type.lower()}_reserve - created reservation {reserve_package_id}')
                 update_workflow(workflow_type, owner_login, package_name=filename,
-                                revision_of='', pid_status='PID_ASSIGNED', eval_status='', upload_status='',
+                                revision_of='', pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',
                                 assigned_pid=reserve_package_id)
             else:
                 log_error(f'{log_preamble()} {workflow_type.lower()}_reserve returns status {status}')
@@ -107,10 +109,19 @@ def curator_workflow(filename=None):
             new_revision = check_revision_of_value(workflow_form, pasta_environment_from_workflow_type(workflow_type))
             if new_revision is not None:
                 remove_workflow(workflow_type, owner_login, package_name=filename)
+                apply_pid(workflow_type, new_revision)
                 log_info(f'{log_preamble()} creating revision {new_revision}')
                 update_workflow(workflow_type, owner_login, package_name=filename, revision_of=workflow_form.revision_of.data,
-                                pid_status='PID_ASSIGNED', eval_status='', upload_status='',
+                                pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',
                                 assigned_pid=new_revision)
+
+
+    def apply_pid(workflow_type, pid):
+        current_document = user_data.get_active_document()
+        if current_document:
+            create_data_package_id(pid, filename)
+            # log_info(f'{log_preamble()}applied PID to EML - {data_package_id}')
+
 
     def handle_apply_pid(workflow_type, workflow_values):
         current_document = user_data.get_active_document()
@@ -122,7 +133,8 @@ def curator_workflow(filename=None):
                             pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',
                             pid_entered_in_eml=data_package_id)
 
-    def handle_evaluate(workflow_type):
+    def handle_evaluate(workflow_type, workflow_values):
+        apply_pid(workflow_type, workflow_values.assigned_pid)
         status, eval_transaction_id = evaluate_data_package(pasta_environment_from_workflow_type(workflow_type))
         if 200 <= status < 300:
             log_info(f'{log_preamble()}eval started - transaction ID = {eval_transaction_id}')
@@ -138,8 +150,9 @@ def curator_workflow(filename=None):
         if workflow_values.eval_status == 'ERROR_REPORT':
             return redirect(url_for('workflow.display_text', text=workflow_values.report))
 
-    def handle_upload(workflow_type, revision_of: str=None):
-        status, create_transaction_id = upload_data_package(pasta_environment_from_workflow_type(workflow_type), revision_of)
+    def handle_upload(workflow_type, workflow_values):
+        apply_pid(workflow_type, workflow_values.assigned_pid)
+        status, create_transaction_id = upload_data_package(pasta_environment_from_workflow_type(workflow_type), workflow_values.revision_of)
         if 200 <= status < 300:
             log_info(f'{log_preamble()}upload started - transaction ID = {create_transaction_id}')
             update_workflow(workflow_type, owner_login, package_name=filename, upload_status='UPLOAD_IN_PROGRESS',
@@ -175,13 +188,13 @@ def curator_workflow(filename=None):
             handle_apply_pid('STAGING', staging_values)
 
         if "staging_evaluate" in request.form:
-            handle_evaluate('STAGING')
+            handle_evaluate('STAGING', staging_values)
 
         if "staging_report" in request.form:
             handle_report('STAGING')
 
         if "staging_upload" in request.form:
-            handle_upload('STAGING', staging_values.revision_of)
+            handle_upload('STAGING', staging_values)
 
         if "production_reserve" in request.form:
             handle_reserve_pid('PRODUCTION', production_form)
@@ -190,15 +203,15 @@ def curator_workflow(filename=None):
             handle_apply_pid('PRODUCTION', production_values)
 
         if "production_evaluate" in request.form:
-            handle_evaluate('PRODUCTION')
+            handle_evaluate('PRODUCTION', production_values)
 
         if "production_report" in request.form:
             handle_report('PRODUCTION')
 
         if "production_upload" in request.form:
-            handle_upload('PRODUCTION', production_values.revision_of)
+            handle_upload('PRODUCTION', production_values)
 
-    help = get_helps(['manage_data_usage'])
+    help = get_helps(['curator_workflow'])
     set_current_page('curator_workflow')
 
     staging_values = get_workflow_values('STAGING', owner_login, filename)
@@ -213,6 +226,35 @@ def curator_workflow(filename=None):
                            staging_values=staging_values._asdict(),
                            production_values=production_values._asdict(),
                            staging_form=staging_form, production_form=production_form, help=help)
+
+
+
+from flask import Flask, jsonify
+from flask import request
+import time
+
+
+@workflow_bp.route('/check_workflow_status/<workflow_id>/', methods=['GET'])
+@workflow_bp.route('/check_workflow_status/<workflow_id>/<eval_status>/', methods=['GET'])
+@workflow_bp.route('/check_workflow_status/<workflow_id>/<eval_status>/<upload_status>', methods=['GET'])
+def check_workflow_status(workflow_id: str, eval_status: str='', upload_status: str=''):
+    if not eval_status:
+        eval_status = 'EVAL_IN_PROGRESS'
+    if not upload_status:
+        upload_status = 'UPLOAD_IN_PROGRESS'
+    workflow = get_workflow_by_id(int(workflow_id))
+    if workflow:
+        for _ in range(10):
+            # See if anything's changed
+            check_eval_completions()
+            if workflow.eval_status in ['ERROR_REPORT', 'EVAL_REPORT'] and eval_status in ['', 'EVAL_IN_PROGRESS']:
+                break
+            if workflow.upload_status in ['UPLOAD_ERROR', 'UPLOAD_COMPLETED'] and upload_status in ['', 'UPLOAD_IN_PROGRESS']:
+                break
+            time.sleep(10)
+        return jsonify((workflow.workflow_type, workflow.eval_status, workflow.has_errors, workflow.upload_status, workflow.landing_page_link))
+    else:
+        return jsonify(('NOT FOUND', '', '', '', ''))
 
 
 # The following is intended to be invoked from a cron job to check for evals that were in progress and have now completed.
@@ -357,3 +399,23 @@ def display_eval_result(workflow_type:str):
     </html>
     '''
     return output
+
+
+@workflow_bp.route('/display_landing_page/<workflow_type>', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def display_landing_page(workflow_type:str):
+    import webapp.auth.user_data as user_data
+    owner_login = user_data.get_active_document_owner_login()
+
+    current_document = user_data.get_active_document()
+
+    if workflow_type == 'staging':
+        workflow_values = get_workflow_values('STAGING', owner_login, current_document)
+    else:
+        workflow_values = get_workflow_values('PRODUCTION', owner_login, current_document)
+
+    if workflow_values and workflow_values.upload_status == 'UPLOAD_COMPLETED' and workflow_values.landing_page_link:
+        return redirect(workflow_values.landing_page_link)
+    else:
+        return 'An error occurred'

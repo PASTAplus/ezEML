@@ -4,6 +4,10 @@ from flask_login import (
 )
 from markupsafe import escape
 
+import webapp.auth.user_data as user_data
+from webapp.home.utils.load_and_save import load_eml
+from webapp.home.utils.create_nodes import create_data_package_id
+
 from webapp.home.utils.hidden_buttons import non_saving_hidden_buttons_decorator
 from webapp.pages import *
 from webapp.home.home_utils import log_error, log_info
@@ -26,8 +30,6 @@ from webapp.views.curator_workflow.handle_requests import (
 )
 from webapp.views.curator_workflow.workflows import (
     update_workflow,
-    WorkflowValues,
-    get_workflow,
     get_workflow_by_id,
     get_workflow_values,
     get_eval_in_progress_workflows,
@@ -47,10 +49,6 @@ def curator_workflow(filename=None):
 
     This page is available only to admins and data_curators.
     """
-    import webapp.auth.user_data as user_data
-    from webapp.home.utils.load_and_save import load_eml
-    from webapp.home.utils.create_nodes import create_title, create_data_package_id, create_pubinfo
-
     def log_preamble():
         return f'Curator workflow:  - curator={current_user._cname}, package={filename} - '
 
@@ -104,6 +102,7 @@ def curator_workflow(filename=None):
                                 revision_of='', pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',
                                 assigned_pid=reserve_package_id)
             else:
+                flash(f'PASTA returned status {status}', 'error')
                 log_error(f'{log_preamble()} {workflow_type.lower()}_reserve returns status {status}')
         else:
             new_revision = check_revision_of_value(workflow_form, pasta_environment_from_workflow_type(workflow_type))
@@ -143,6 +142,7 @@ def curator_workflow(filename=None):
                             eval_transaction_id=eval_transaction_id, report='', has_errors=False, ready_to_upload=False,
                             create_transaction_id='', landing_page_link='')
         else:
+            flash(f'PASTA returned status {status}', 'error')
             log_error(f'{log_preamble()} handle_evaluate({workflow_type}) returns status {status}')
 
     def handle_report(workflow_type):
@@ -158,6 +158,7 @@ def curator_workflow(filename=None):
             update_workflow(workflow_type, owner_login, package_name=filename, upload_status='UPLOAD_IN_PROGRESS',
                             create_transaction_id=create_transaction_id)
         else:
+            flash(f'PASTA returned status {status}', 'error')
             log_error(f'{log_preamble()} handle_upload({workflow_type}) returns status {status}')
 
     # Load the EML so the badges are rendered correctly

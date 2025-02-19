@@ -252,12 +252,19 @@ def check_workflow_status(workflow_id: str, eval_status: str='', upload_status: 
             if workflow.upload_status in ['UPLOAD_ERROR', 'UPLOAD_COMPLETED'] and upload_status in ['', 'UPLOAD_IN_PROGRESS']:
                 break
             time.sleep(10)
-        return jsonify((workflow.workflow_type, workflow.eval_status, workflow.has_errors, workflow.upload_status, workflow.landing_page_link))
+        if workflow.eval_status == 'ERROR_REPORT':
+            report = workflow.report
+        else:
+            report = ''
+        return jsonify((workflow.workflow_type, workflow.eval_status, report, workflow.has_errors, workflow.upload_status, workflow.landing_page_link))
     else:
-        return jsonify(('NOT FOUND', '', '', '', ''))
+        return jsonify(('NOT FOUND', '', '', '', '', ''))
 
 
-# The following is intended to be invoked from a cron job to check for evals that were in progress and have now completed.
+# The following is intended to be invoked from the Curator Workflow page to check for evals that were in progress and have now completed.
+# The original concept was that it would be invoked from a cron job, but that turns out to be unnecessary. Instead, it is invoke from
+#  route check_workflow_status, which is called from the Curator Workflow page. So check_eval_completions doesn't really need to be a
+#  route at this point.
 @workflow_bp.route('/check_eval_completions', methods=['GET', 'POST'])
 def check_eval_completions():
 

@@ -426,7 +426,7 @@
 
                 fetch('/eml/check_workflow_status/' + values.workflow_id +'/' + values.eval_status + '/' + values.upload_status)
                     .then(response => response.json())
-                    .then(([workflow_type, eval_status, has_errors, upload_status, landing_page_link]) => {
+                    .then(([workflow_type, eval_status, report, has_errors, upload_status, landing_page_link]) => {
                         if (workflow_type === workflowType) {
                             if (values.eval_status !== eval_status) {
                                 {#alert('eval_status:' + eval_status);#}
@@ -437,6 +437,7 @@
                                     if (has_errors) {
                                         eval_entry.textContent = "Error(s) found";
                                         eval_entry.style.color = 'red';
+                                        upload_error.textContent = report;
                                     } else {
                                         eval_entry.textContent = "Ready for viewing";
                                         view_report_button.disabled = false;

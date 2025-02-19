@@ -95,6 +95,7 @@ class Config(object):
 
     ADMIN_LOGINS = []
     BETA_TESTER_LOGINS = []
+    CURATOR_WORKFLOW_LOGINS = [] # If empty, all members of the EDI Curators group are included
     DATA_CURATOR_LOGINS = []
     SERVER_LOGINS_WHITELIST = []
 

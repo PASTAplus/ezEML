@@ -123,6 +123,9 @@
                         </tr>
                         <tr>
                             <td id='staging_upload_error' colspan="3" style="width: 180px;color:red;word-wrap: break-word;white-space: normal;overflow-wrap: break-word;">
+                            {% if staging_values.eval_status == 'ERROR_REPORT' %}
+                                {{ staging_values.report }}
+                            {% endif %}
                             {% if staging_values.upload_status == 'UPLOAD_ERROR' %}
                                 {{ staging_values.landing_page_link }}
                             {% endif %}
@@ -253,6 +256,9 @@
                         </tr>
                         <tr>
                             <td id='production_upload_error' colspan="3" style="width: 180px;color:red;word-wrap: break-word;white-space: normal;overflow-wrap: break-word;">
+                            {% if production_values.eval_status == 'ERROR_REPORT' %}
+                                {{ production_values.report }}
+                            {% endif %}
                             {% if production_values.upload_status == 'UPLOAD_ERROR' %}
                                 {{ production_values.landing_page_link }}
                             {% endif %}

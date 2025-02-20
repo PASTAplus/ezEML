@@ -788,7 +788,9 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
 
     # DateTime
     if attr_type == webapp.home.metapype_client.VariableType.DATETIME:
-        if find_content_empty(validation_errs, names.FORMATSTRING):
+        if find_min_unmet(validation_errs, names.DATETIME, names.FORMATSTRING):
+            add_to_evaluation('attributes_03', link, data_table_name=data_table_name)
+        elif find_content_empty(validation_errs, names.FORMATSTRING):
             add_to_evaluation('attributes_03', link, data_table_name=data_table_name)
         elif check_date_time_attribute(attrib_node):
             add_to_evaluation('attributes_08', link, data_table_name=data_table_name)

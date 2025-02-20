@@ -36,6 +36,8 @@ class Config(object):
     PORTAL_DEVELOPMENT_URL = "https://portal-d.edirepository.org"
     PORTAL_STAGING_URL = "https://portal-s.edirepository.org"
     PORTAL_PRODUCTION_URL = "https://portal.edirepository.org"
+    CURATOR_WORKFLOW_LOOP_LIMIT = 10
+    CURATOR_WORKFLOW_LOOP_SLEEP = 30
 
     AUTH = "https://auth.edirepository.org/auth"
     TARGET = "https://ezeml.edirepository.org/eml/auth/login"

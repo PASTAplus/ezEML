@@ -13,6 +13,7 @@ from webapp.pages import *
 from webapp.home.home_utils import log_error, log_info
 from webapp.home.views import get_helps, set_current_page, get_back_url
 from webapp.views.collaborations.db_session import db_session
+from webapp.config import Config
 
 from webapp.views.curator_workflow.forms import CuratorWorkflowForm
 
@@ -245,14 +246,14 @@ def check_workflow_status(workflow_id: str, eval_status: str='', upload_status: 
         upload_status = 'UPLOAD_IN_PROGRESS'
     workflow = get_workflow_by_id(int(workflow_id))
     if workflow:
-        for _ in range(10):
+        for _ in range(Config.CURATOR_WORKFLOW_LOOP_LIMIT):
             # See if anything's changed
             check_eval_completions()
             if workflow.eval_status in ['ERROR_REPORT', 'EVAL_REPORT'] and eval_status in ['', 'EVAL_IN_PROGRESS']:
                 break
             if workflow.upload_status in ['UPLOAD_ERROR', 'UPLOAD_COMPLETED'] and upload_status in ['', 'UPLOAD_IN_PROGRESS']:
                 break
-            time.sleep(10)
+            time.sleep(Config.CURATOR_WORKFLOW_LOOP_SLEEP)
         if workflow.eval_status == 'ERROR_REPORT':
             report = workflow.report
         else:

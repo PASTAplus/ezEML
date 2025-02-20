@@ -11,7 +11,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
 {% import '_macros.html' as macros %}
 
 {# The following must agree with RELEASE_NUMBER in home_utils.py #}
-{% set release_number = '2024.10.30' %}
+{% set release_number = '2025.02.19' %}
 {% set optional = 'Black' %}
 
 {% block head %}
@@ -52,7 +52,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         'import_package_2', 'import_xml_2', 'export_package_2',
         '/send_to_other', '/load_geo_coverage', '/new_from_template',
         '/load_taxonomic_coverage', '/load_taxonomic_coverage_2',
-        '/manage_data_usage', '/submit_package', '/validate_eml'] %}
+        '/manage_data_usage', '/curator_workflow', '/submit_package', '/validate_eml'] %}
 {% set ns = namespace(is_non_saving = false) %}
 {% for page in non_saving_endswith %}
     {% if request.path.endswith(page) %}
@@ -64,6 +64,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         {% set ns.is_non_saving = true %}
     {% endif %}
 {% endfor %}
+
 {% block navbar %}
 
 <nav class="navbar navbar-default">
@@ -313,6 +314,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             {% set send_to_other_style = '""'|safe %}
             {% set collaborate_style = '""'|safe %}
             {% set manage_data_usage_style = '""'|safe %}
+            {% set curator_workflow_style = '""'|safe %}
 
             {# Mark the current page with a bold font.#}
             {% set page = session['current_page'] %}
@@ -345,6 +347,7 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
             {% if page == 'collaborate' %}{% set collaborate_style = current %}{% endif %}
             {% if page == 'grant_access' %}{% set grant_access_style = current %}{% endif %}
             {% if page == 'manage_data_usage' %}{% set manage_data_usage_style = current %}{% endif %}
+            {% if page == 'curator_workflow' %}{% set curator_workflow_style = current %}{% endif %}
 
         {# Handle clicks on the main Contents menu.#}
         {{ macros.contents_menu_item_with_status(url_for('home.edit', page='res.title'), title_style, 'hidden_title', 'Title', ns.is_non_saving, 'title', badge_data) }}
@@ -384,6 +387,9 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         {% if current_user and current_user.is_authenticated and (current_user.is_admin() or current_user.is_data_curator()) %}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ manage_data_usage_style }}; href="{{ url_for('home.edit', page='home.manage_data_usage') }}" title="Edit">Manage Data Usage</a><br>
+            {% if current_user.is_curator_workflow_authorized() %}
+            <a class="nav_link" style={{ curator_workflow_style }}; href="{{ url_for('home.edit', page='workflow.curator_workflow') }}" title="Edit">Curator Workflow</a><br>
+            {% endif %}
         {% endif %}
 
         {% endif %}

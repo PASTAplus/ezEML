@@ -23,6 +23,8 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
+from sqlalchemy import event
+
 from webapp.config import Config
 
 
@@ -63,11 +65,44 @@ db_dir = os.path.join(Config.USER_DATA_DIR, '__db')
 if not os.path.exists(db_dir):
     os.makedirs(db_dir)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///' + os.path.join(db_dir, 'collaborations.db.sqlite3')
+# print(app.config['SQLALCHEMY_DATABASE_URI'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# And we use sqlite3 for managing curator workflows in ezEML
+# This bind needs to be set up before we call SQLAlchemy(app) !
+bind_target = f'sqlite:///' + os.path.join(db_dir, 'curator_workflows.db.sqlite3')
+app.config['SQLALCHEMY_BINDS'] = {
+    'curator_workflow': bind_target
+}
+
 db = SQLAlchemy(app)
 db.metadata.clear()
 migrate = Migrate(app, db)
 
+# Using sqlite3 for managing curator workflows
+from webapp.views.curator_workflow.model import WorkflowPackage, Workflow
+with app.app_context():
+    engine = db.engines.get('curator_workflow')
+    if engine is None:
+        raise ValueError("The 'curator_workflow' bind was not found in db.engines.")
+    db.metadata.create_all(bind=engine)  # Create tables for the bind
+
+# Enable foreign key constraints for SQLite
+def enable_foreign_keys(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON;")
+    cursor.close()
+with app.app_context():
+    engine = db.engines.get(None)
+    if engine:
+        event.listen(engine, "connect", enable_foreign_keys)
+    else:
+        raise ValueError("Default engine for collaborations.db not found")
+    engine = db.engines.get('curator_workflow')
+    if engine:
+        event.listen(engine, "connect", enable_foreign_keys)
+    else:
+        raise ValueError("Engine for curator_workflows.db not found")
 
 # Importing these modules causes the routes and error handlers to be associated
 # with the blueprint. It is important to note that the modules are imported at
@@ -88,6 +123,9 @@ app.register_blueprint(acc_bp, url_prefix='/eml')
 
 from webapp.views.collaborations.routes import collab_bp
 app.register_blueprint(collab_bp, url_prefix='/eml')
+
+from webapp.views.curator_workflow.routes import workflow_bp
+app.register_blueprint(workflow_bp, url_prefix='/eml')
 
 from webapp.views.coverage.coverage import cov_bp
 app.register_blueprint(cov_bp, url_prefix='/eml')

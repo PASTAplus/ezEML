@@ -342,6 +342,33 @@ For long-term data, e.g., from an LTER Site, we recommend that you include the o
 
 Citations generally list creator names in the order shown, so order is significant.
 --------------------
+curator_workflow
+Curator Workflow
+
+The <b>Curator Workflow</b> page is visible only to EDI data curators. It supports evaluation and uploading of the currently open ezEML
+ document, first to the PASTA staging environment, then to the PASTA production environment. Typically, the ezEML document being worked on
+ will be one that has been submitted by a user and opened by the EDI data curator via the <b>Collaborate</b> page.
+
+The typical workflow will be to start by using the buttons under <b>Staging Environment</b>. Unless you are working on a package that has
+ previously been uploaded to staging, you would select <b>New package</b>. If you are revising a package that was previously uploaded to
+ staging, enter its ID in the <b>Revision of</b> text box. E.g., if you revising edi.1.2, enter that value and ezEML will reserve the
+ next revision -- edi.1.3,  in this example.
+
+Click <b>Reserve Package ID</b>. This reserves a new or revision data package ID on staging, and the ID is shown next to the button after it has been
+ assigned. The Data Package ID is updated in the EML as well.
+
+To evaluate the package, click <b>Evaluate</b>. This evaluates the package on staging. When the evaluation has completed, you can view the
+ resulting quality report by clicking <b>View Quality Report</b>, which opens the report in a new tab. If the quality report contains one
+ or more errors, a notation to that effect will appear next to the <b>Evaluate</b> button. The <b>Upload</b> button will remain disabled until
+ an error-free evaluation is achieved.
+
+After you correct errors and warnings in the package, you can upload the package to staging by clicking <b>Upload</b>. When the upload
+ completes, you can view the resulting landing page by clicking <b>View Landing Page</b>, which opens the landing page in a new tab. You
+ can then use the <b>Copy Citation</b> button on the landing page to obtain a citation to send to the user for their review.
+
+ Once the package on staging has been okayed by the user, follow the same sequence of steps under <b>Production Environment</b> to evaluate and
+  upload the package to the EDI repository.
+--------------------
 data_package_id
 Data Package ID
 EML requires a data package to have a <b>Data Package ID</b>, but if your data package is going to be submitted to EDI's data repository by using <b>Send to EDI</b>, you can leave the Data Package ID blank. Our data curators will supply an ID when they receive your data package.

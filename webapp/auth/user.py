@@ -104,6 +104,14 @@ class User(UserMixin):
         except AttributeError:
             return False
 
+    def is_curator_workflow_authorized(self):
+        try:
+            if not Config.CURATOR_WORKFLOW_LOGINS:
+                return self.is_data_curator()
+            return self.get_username() in Config.CURATOR_WORKFLOW_LOGINS
+        except AttributeError:
+            return False
+
     def is_whitelisted_user(self):
         try:
             if Config.SERVER_LOGINS_WHITELIST:

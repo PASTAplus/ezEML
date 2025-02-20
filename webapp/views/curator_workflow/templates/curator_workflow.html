@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_curator_workflow_id, help_curator_workflow_title, help_curator_workflow_content = help[0] %}
+    {% set help_curator_workflow_btn = help_curator_workflow_id ~ '_btn' %}
+    {% set help_curator_workflow_dialog = help_curator_workflow_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>Curator Workflow</h2></td>
+        <td valign="middle" style="padding-top: 20px;padding-left: 10px;">{{ macros.help_button(help_curator_workflow_btn) }}</td>
+    </table>
+    <div class="row">
+        <div class="col-md-11">
+        <table style="width: 100%;">
+        <tr>
+            <td style="width: 50%;vertical-align: top;">
+
+{# ------------------- #}
+{# ----- STAGING ----- #}
+{# ------------------- #}
+            <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
+                {{ staging_form.csrf_token }}
+                <p></p>
+
+                <h3>Staging Environment</h3>
+                <table>
+                    <tr>
+                    <td colspan="3"><h4>New Package or Revision:</h4></td>
+{#                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_curator_workflow_btn) }}</td>#}
+                    </tr>
+                </table>
+
+                <div>
+                    {% for subfield in staging_form.new_or_revision %}
+                        <div>
+                            <label style="font-weight: normal;margin-left: 20px;">
+                            {{ subfield(id="staging_" + subfield.id) }} {{ subfield.label.text }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-left: 38px;font-weight: normal;">
+                    <label style="font-weight: normal;">{{ staging_form.revision_of.label.text }}</label>
+                    {{ staging_form.revision_of(id="staging_revision_details") }}
+                </div>
+                <br>
+
+                <div style="margin-left: 20px;">
+                    <table style="border-spacing: 0 10px; border-collapse: separate;">
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" style="width: 180px;" value="Reserve Package ID" type="submit" name="staging_reserve"/>
+                            </td>
+                            <td>
+                            <span id="reserve_package_id_staging" style="margin-left: 20px;">{{ staging_values.assigned_pid }}</span>
+                            </td>
+                        </tr>
+{#                        <tr>#}
+{#                            <td>#}
+{#                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="staging_apply_pid"#}
+{#                            {% if staging_values.pid_status == '' %} disabled {% endif %}/>#}
+{#                            </td>#}
+{#                            <td>#}
+{#                            <span id="apply_pid_to_eml_staging" style="margin-left: 20px;">{{ staging_values.pid_entered_in_eml }}</span>#}
+{#                            </td>#}
+{#                        </tr>#}
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_staging_eval();" type="submit" name="staging_evaluate"
+                            {% if staging_values.pid_status != 'PID_ENTERED_IN_EML' %} disabled {% endif %}/>
+                            </td>
+                            <td>
+                            <span id="evaluate_staging" style="margin-left: 20px;">
+                                {% if staging_values.eval_transaction_id %}
+                                    {% if not staging_values.report and staging_values.eval_status == 'EVAL_IN_PROGRESS' %}
+{#                                    Evaluation started#}
+                                        <div style="position: relative;z-index: 1000;" class="loader2"></div>
+                                    {% elif staging_values.has_errors %}
+                                    <span style="color: red">Error(s) found</span>
+                                    {% else %}
+                                    Ready for viewing
+                                    {% endif  %}
+                                {% endif  %}
+                            </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" id="staging_report_btn" style="width: 180px;" value="View Quality Report" type="submit" name="staging_report"
+                            {% if staging_values.report == '' %} disabled {% endif %}/>
+                            </td>
+                            <td>
+                            <span id="evaluation_report_staging" style="margin-left: 20px;">{{ evaluation_report_staging }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary staging_landing_btn" id="staging_upload_btn" style="width: 180px;" value="Upload" onclick="return confirm_staging_create();" type="submit" name="staging_upload"/>
+                            </td>
+                            <td>
+                            <span id="upload_staging" style="margin-left: 20px;">
+                                {% if staging_values.create_transaction_id %}
+                                    {% if staging_values.upload_status == 'UPLOAD_IN_PROGRESS' %}
+{#                                        Upload started#}
+                                        <div style="position: relative;z-index: 1000;" class="loader2"></div>
+                                    {% elif staging_values.upload_status == 'UPLOAD_COMPLETED' %}
+                                        Ready for viewing
+{#                                        <a href="{{ staging_values.landing_page_link }}" target="_ezeml_curator">Landing page</a>#}
+                                    {% endif  %}
+                                {% endif  %}
+                            </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" id="staging_landing_btn" style="width: 180px;" value="View Landing Page" type="submit" name="staging_landing"
+                            {% if staging_values.upload_status != 'UPLOAD_COMPLETED' %} disabled {% endif %}/>
+                            </td>
+                            <td>
+{#                            <span id="landing_staging" style="margin-left: 20px;">{{ evaluation_report_staging }}</span>#}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id='staging_upload_error' colspan="3" style="width: 180px;color:red;word-wrap: break-word;white-space: normal;overflow-wrap: break-word;">
+                            {% if staging_values.eval_status == 'ERROR_REPORT' %}
+                                {{ staging_values.report }}
+                            {% endif %}
+                            {% if staging_values.upload_status == 'UPLOAD_ERROR' %}
+                                {{ staging_values.landing_page_link }}
+                            {% endif %}
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+
+                {% if staging_values.upload_status != 'UPLOAD_ERROR' %}
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                {% else %}
+                    <br>
+                {% endif %}
+
+{#                <input class="btn btn-primary" type="submit" style="width: 180px;margin-left: 20px;" value="Refresh" name="refresh"/><p></p>#}
+
+                {{ macros.hidden_buttons() }}
+            </form>
+            </td>
+            <td style="width: 50%;;vertical-align: top;">
+
+{# ---------------------- #}
+{# ----- PRODUCTION ----- #}
+{# ---------------------- #}
+            <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
+                {{ production_form.csrf_token }}
+                <p></p>
+                <h3>Production Environment</h3>
+                <p></p>
+                <table>
+                    <tr>
+                    <td colspan="3"><h4>New Package or Revision:</h4></td>
+{#                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_curator_workflow_btn) }}</td>#}
+                    </tr>
+                </table>
+
+                <div>
+                    {% for subfield in production_form.new_or_revision %}
+                        <div>
+                            <label style="font-weight: normal;margin-left: 20px;">
+                            {{ subfield(id="production_" + subfield.id) }} {{ subfield.label.text }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-left: 38px;font-weight: normal;">
+                    <label style="font-weight: normal;">{{ production_form.revision_of.label.text }}</label>
+                    {{ production_form.revision_of(id="production_revision_details") }}
+                </div>
+                <br>
+
+                <div style="margin-left: 20px;">
+                    <table style="border-spacing: 0 10px; border-collapse: separate;">
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" style="width: 180px;" value="Reserve Package ID" type="submit" name="production_reserve"/>
+                            </td>
+                            <td>
+                            <span id="reserve_package_id_production" style="margin-left: 20px;">{{ production_values.assigned_pid }}</span>
+                            </td>
+                        </tr>
+{#                        <tr>#}
+{#                            <td>#}
+{#                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="production_apply_pid"#}
+{#                            {% if production_values.pid_status == '' %} disabled {% endif %}/>#}
+{#                            </td>#}
+{#                            <td>#}
+{#                            <span id="apply_pid_to_eml_production" style="margin-left: 20px;">{{ production_values.pid_entered_in_eml }}</span>#}
+{#                            </td>#}
+{#                        </tr>#}
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_production_eval();" type="submit" name="production_evaluate"
+                            {% if production_values.pid_status != 'PID_ENTERED_IN_EML' %} disabled {% endif %}/>
+                            </td>
+                            <td>
+                            <span id="evaluate_production" style="margin-left: 20px;">
+                                {% if production_values.eval_transaction_id %}
+                                    {% if not production_values.report and production_values.eval_status == 'EVAL_IN_PROGRESS' %}
+{#                                    Evaluation started#}
+                                        <div style="position: relative;z-index: 1000;" class="loader2"></div>
+                                    {% elif production_values.has_errors %}
+                                    <span style="color: red">Error(s) found</span>
+                                    {% else %}
+                                    Ready for viewing
+                                    {% endif  %}
+                                {% endif  %}
+                            </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" id="production_report_btn" style="width: 180px;" value="View Quality Report" type="submit" name="production_report"
+                            {% if production_values.report == '' %} disabled {% endif %}/>
+                            </td>
+                            <td>
+                            <span id="evaluation_report_production" style="margin-left: 20px;">{{ evaluation_report_production }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary production_landing_btn" id="production_upload_btn" style="width: 180px;" value="Upload" onclick="return confirm_production_create();" type="submit" name="production_upload"/>
+                            </td>
+                            <td>
+                            <span id="upload_production" style="margin-left: 20px;">
+                                {% if production_values.create_transaction_id %}
+                                    {% if production_values.upload_status == 'UPLOAD_IN_PROGRESS' %}
+{#                                        Upload started#}
+                                        <div style="position: relative;z-index: 1000;" class="loader2"></div>
+                                    {% elif production_values.upload_status == 'UPLOAD_COMPLETED' %}
+                                        Ready for viewing
+{#                                        <a href="{{ production_values.landing_page_link }}" target="_ezeml_curator">Landing page</a>#}
+                                    {% endif  %}
+                                {% endif  %}
+                            </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <input class="btn btn-primary" id="production_landing_btn" style="width: 180px;" value="View Landing Page" type="submit" name="production_landing"
+                            {% if production_values.upload_status != 'UPLOAD_COMPLETED' %} disabled {% endif %}/>
+                            </td>
+                            <td>
+{#                            <span id="landing_staging" style="margin-left: 20px;">{{ evaluation_report_staging }}</span>#}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id='production_upload_error' colspan="3" style="width: 180px;color:red;word-wrap: break-word;white-space: normal;overflow-wrap: break-word;">
+                            {% if production_values.eval_status == 'ERROR_REPORT' %}
+                                {{ production_values.report }}
+                            {% endif %}
+                            {% if production_values.upload_status == 'UPLOAD_ERROR' %}
+                                {{ production_values.landing_page_link }}
+                            {% endif %}
+                            </td>
+                        <td></td>
+                        </tr>
+                    </table>
+                </div>
+
+                {% if production_values.upload_status != 'UPLOAD_ERROR' %}
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                {% else %}
+                    <br>
+                {% endif %}
+
+{#                <input class="btn btn-primary" type="submit" style="width: 180px;margin-left: 20px;" value="Refresh" name="refresh"/><p></p>#}
+
+                {{ macros.hidden_buttons() }}
+            </form>
+        </td></tr>
+        </table>
+        </div>
+    </div>
+
+
+    {{ macros.help_dialog(help_curator_workflow_dialog, help_curator_workflow_title, help_curator_workflow_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% set help_curator_workflow_id, help_curator_workflow_title, help_curator_workflow_content = help[0] %}
+    {% set help_curator_workflow_btn = help_curator_workflow_id ~ '_btn' %}
+    {% set help_curator_workflow_dialog = help_curator_workflow_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_curator_workflow_dialog, help_curator_workflow_btn) }}
+    });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get form and buttons
+            const form = document.getElementById("main_form");
+            const evalReportButton_staging = document.getElementById("staging_report_btn");
+            const evalReportButton_production = document.getElementById("production_report_btn");
+            const landingPageButton_staging = document.getElementById("staging_landing_btn");
+            const landingPageButton_production = document.getElementById("production_landing_btn");
+
+            // Open in a new tab
+            evalReportButton_staging.addEventListener("click", function (event) {
+                {#alert('newTabButton_staging');#}
+                event.preventDefault();
+                form.target = "_ezeml_curator"; // Open in a new tab
+                form.action = "/eml/display_eval_result/staging"
+                form.submit();
+                form.action = ""
+                form.target = "_self"; // Reset target for other submits
+            });
+
+            // Open in a new tab
+            evalReportButton_production.addEventListener("click", function (event) {
+                {#alert('newTabButton_production');#}
+                event.preventDefault();
+                form.target = "_ezeml_curator"; // Open in a new tab
+                form.action = "/eml/display_eval_result/production"
+                form.submit();
+                form.action = ""
+                form.target = "_self"; // Reset target for other submits
+            });
+
+            // Open in a new tab
+            landingPageButton_staging.addEventListener("click", function (event) {
+                {#alert('newTabButton_staging');#}
+                event.preventDefault();
+                form.target = "_ezeml_curator"; // Open in a new tab
+                form.action = "/eml/display_landing_page/staging"
+                form.submit();
+                form.action = ""
+                form.target = "_self"; // Reset target for other submits
+            });
+
+            // Open in a new tab
+            landingPageButton_production.addEventListener("click", function (event) {
+                {#alert('newTabButton_staging');#}
+                event.preventDefault();
+                form.target = "_ezeml_curator"; // Open in a new tab
+                form.action = "/eml/display_landing_page/production"
+                form.submit();
+                form.action = ""
+                form.target = "_self"; // Reset target for other submits
+            });
+
+            function setupNewRevisionHandlers(formPrefix) {
+                const revisionInput = document.getElementById(formPrefix + "_revision_details");
+                const newRadio = document.querySelector(`input[id='${formPrefix}_new_or_revision-0']`);
+                const revisionRadio = document.querySelector(`input[id='${formPrefix}_new_or_revision-1']`);
+
+                if (!revisionInput || !newRadio || !revisionRadio) return; // Ensure elements exist
+
+                function updateRadioSelection() {
+                    if (revisionInput.value.trim() === "") {
+                        newRadio.checked = true;
+                    } else {
+                        revisionRadio.checked = true;
+                    }
+                }
+
+                newRadio.onclick = function() {
+                    revisionInput.value = '';
+                }
+
+                // Run on page load to set correct state
+                updateRadioSelection();
+
+                // Listen for input changes
+                revisionInput.addEventListener("input", updateRadioSelection);
+            }
+
+            // Set up handlers for both forms
+            setupNewRevisionHandlers("staging");
+            setupNewRevisionHandlers("production");
+
+            let stagingValues = {{ staging_values | tojson }};
+            let productionValues = {{ production_values | tojson }};
+            if (!stagingValues.ready_to_upload) {
+                document.getElementById('staging_upload_btn').disabled = true;
+            }
+            if (!productionValues.ready_to_upload) {
+                document.getElementById('production_upload_btn').disabled = true;
+            }
+
+            function updateStatus(workflowType) {
+                // Give these variables local scope
+                let values = null;
+                let eval_entry = null;
+                let upload_entry = null;
+                let view_report_button = null;
+                let upload_button = null;
+                let landing_button = null;
+                let upload_error = null;
+
+                if (workflowType === 'STAGING') {
+                    values = stagingValues;
+                    eval_entry = document.getElementById('evaluate_staging');
+                    upload_entry = document.getElementById('upload_staging');
+                    view_report_button = document.getElementById('staging_report_btn');
+                    upload_button = document.getElementById('staging_upload_btn');
+                    landing_button = document.getElementById('staging_landing_btn');
+                    upload_error = document.getElementById('staging_upload_error');
+                } else {
+                    values = productionValues;
+                    eval_entry = document.getElementById('evaluate_production');
+                    upload_entry = document.getElementById('upload_production');
+                    view_report_button = document.getElementById('production_report_btn');
+                    upload_button = document.getElementById('production_upload_btn');
+                    landing_button = document.getElementById('production_landing_btn');
+                    upload_error = document.getElementById('production_upload_error');
+                }
+                if (values.workflow_id === '') {
+                    // Nothing to do
+                    return;
+                }
+                if (['EVAL_REPORT', 'ERROR_REPORT'].includes(values.eval_status) &&
+                    ['UPLOAD_COMPLETED', 'UPLOAD_ERROR'].includes(values.upload_status)) {
+                    // Nothing to do
+                    return;
+                }
+
+                fetch('/eml/check_workflow_status/' + values.workflow_id +'/' + values.eval_status + '/' + values.upload_status)
+                    .then(response => response.json())
+                    .then(([workflow_type, eval_status, report, has_errors, upload_status, landing_page_link]) => {
+                        if (workflow_type === workflowType) {
+                            if (values.eval_status !== eval_status) {
+                                {#alert('eval_status:' + eval_status);#}
+                                if (eval_status === 'EVAL_IN_PROGRESS') {
+                                    eval_entry.textContent = "Evaluation started";
+                                }
+                                else {
+                                    if (has_errors) {
+                                        eval_entry.textContent = "Error(s) found";
+                                        eval_entry.style.color = 'red';
+                                        upload_error.textContent = report;
+                                    } else {
+                                        eval_entry.textContent = "Ready for viewing";
+                                        view_report_button.disabled = false;
+                                        upload_button.disabled = false;
+                                    }
+                                }
+                            }
+                            if (values.upload_status !== upload_status) {
+                                {#alert('upload_status:' + upload_status);#}
+                                if (upload_status === 'UPLOAD_COMPLETED') {
+                                    upload_entry.textContent = "Ready for viewing";
+                                    landing_button.disabled = false;
+                                }
+                                else if (upload_status === 'UPLOAD_ERROR') {
+                                    upload_entry.textContent = "";
+                                    upload_error.textContent = landing_page_link;
+                                    landing_button.disabled = true;
+                                }
+                            }
+                            if (eval_status === 'EVAL_IN_PROGRESS' || upload_status === 'UPLOAD_IN_PROGRESS') {
+                                {#alert('calling updateStatus again: ' + workflowType);#}
+                                updateStatus(workflowType);
+                            }
+                        }
+                    })
+            }
+            updateStatus("STAGING");
+            updateStatus("PRODUCTION");
+        });
+    </script>
+
+    <script>
+
+    let stagingValues = {{ staging_values | tojson }};
+    let productionValues = {{ production_values | tojson }};
+
+    // Function to check if all elements in an array are empty strings
+    function isAllEmpty(arr) {
+        return arr.every(value => value === '');
+    }
+
+    function confirm_staging_eval() {
+        if (stagingValues.eval_transaction_id) {
+            return confirm('Are you sure? The existing evaluation/upload will be erased.');
+        }
+        return true;
+    }
+
+    function confirm_staging_create() {
+        if (stagingValues.create_transaction_id) {
+            if (confirm('Are you sure? The existing upload will be erased.')) {
+                document.getElementById('staging_landing_btn').disabled = true;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function confirm_production_eval() {
+        if (productionValues.eval_transaction_id) {
+            return confirm('Are you sure? The existing evaluation/upload will be erased.');
+        }
+        return true;
+    }
+
+    function confirm_production_create() {
+        if (productionValues.create_transaction_id) {
+            if (confirm('Are you sure? The existing upload will be erased.')) {
+                document.getElementById('production_landing_btn').disabled = true;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    </script>
+
+{% endblock %}

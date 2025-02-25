@@ -120,6 +120,8 @@ def curator_workflow(filename=None):
         current_document = user_data.get_active_document()
         if current_document:
             create_data_package_id(pid, filename)
+            # Badge for PID may have changed
+            _ = load_eml(filename=current_document, skip_metadata_check=False, do_not_lock=True)
             # log_info(f'{log_preamble()}applied PID to EML - {data_package_id}')
 
 
@@ -128,6 +130,7 @@ def curator_workflow(filename=None):
         if current_document:
             data_package_id = workflow_values.assigned_pid
             create_data_package_id(data_package_id, filename)
+            _ = load_eml(filename=current_document, skip_metadata_check=False, do_not_lock=True)
             log_info(f'{log_preamble()}applied PID to EML - {data_package_id}')
             update_workflow(workflow_type, owner_login, package_name=filename,
                             pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',

@@ -351,10 +351,10 @@ The <b>Curator Workflow</b> page is visible only to EDI data curators. It suppor
 
 The typical workflow will be to start by using the buttons under <b>Staging Environment</b>. Unless you are working on a package that has
  previously been uploaded to staging, you would select <b>New package</b>. If you are revising a package that was previously uploaded to
- staging, enter its ID in the <b>Revision of</b> text box. E.g., if you revising edi.1.2, enter that value and ezEML will reserve the
- next revision -- edi.1.3,  in this example.
+ staging, or if you have already reserved a package ID via the Portal, enter the package ID to be used in the <b>Package ID</b> text box.
+ E.g., if you are revising edi.1.2, enter edi.1.3 in the text box, since that is the package ID to be used for the revision.
 
-Click <b>Reserve Package ID</b>. This reserves a new or revision data package ID on staging, and the ID is shown next to the button after it has been
+Click <b>Reserve Package ID</b>. This reserves a data package ID on staging, and the ID is shown next to the button after it has been
  assigned. The Data Package ID is updated in the EML as well.
 
 To evaluate the package, click <b>Evaluate</b>. This evaluates the package on staging. When the evaluation has completed, you can view the
@@ -363,7 +363,7 @@ To evaluate the package, click <b>Evaluate</b>. This evaluates the package on st
  an error-free evaluation is achieved.
 
 While an evaluation or upload is in progress, a spinner is displayed. ezEML automatically detects completion of the evaluation/upload. You are free to
- leave the Curator Workflow page, if desired, while the activity is in progress. When you return to the Curator Workflow page, ezEML shows the
+ leave the Curator Workflow page or logout of ezEML, if desired, while the activity is in progress. When you return to the Curator Workflow page, ezEML shows the
  current state of the workflow. Similarly, you may start an evaluation/upload in the production environment while one is ongoing in the
  staging environment, and vice versa.
 

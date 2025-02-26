@@ -24,7 +24,7 @@ class Workflow(db.Model):
         ),
         nullable=False
     )
-    revision_of = db.Column(db.Text)
+    entered_pid = db.Column(db.Text)
     pid_status = db.Column(
         db.Text,
         db.CheckConstraint(

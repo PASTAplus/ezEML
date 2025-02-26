@@ -15,10 +15,10 @@ from webapp.home.forms import EDIForm
 class CuratorWorkflowForm(FlaskForm):
                                            # validators=[Optional()])
 
-    new_or_revision = RadioField('New Package or Revision',
-                                 choices=[('New', 'New package'), ('Revision', 'Revision')],
+    new_or_existing = RadioField('New Package or Existing Package',
+                                 choices=[('New', 'New package'), ('Existing', 'Existing package')],
                                  default='New',
                                  validators=[DataRequired()])
     # revision = RadioField('Revision of ')
-    revision_of = StringField('Revision of: ', validators=[Optional()])
+    entered_pid = StringField('Package ID: ', validators=[Optional()])
     pass

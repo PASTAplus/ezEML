@@ -53,22 +53,19 @@ def curator_workflow(filename=None):
     def log_preamble():
         return f'Curator workflow:  - curator={current_user._cname}, package={filename} - '
 
-    def check_revision_of_value(form, pasta_environment: PastaEnvironment):
+    def check_package_id_value(form, pasta_environment: PastaEnvironment):
         retval = None
-        revision_of = form.revision_of.data
+        package_id = form.entered_pid.data
 
-        if not revision_of:
-            flash('Enter a value for "Revision of"')
+        if not package_id:
+            flash('Enter a value for "Package ID"')
         else:
-            # Check format of revision_of
-            substrings = revision_of.split('.')
-            if len(substrings) == 2:
-                revision_of += '.0'
-                substrings = revision_of.split('.')
+            # Check format of package ID
+            substrings = package_id.split('.')
             if len(substrings) != 3:
-                flash('Invalid value for "Revision of"', 'error')
+                flash('Invalid value for "Package ID"', 'error')
             else:
-                scope, identifier, revision = revision_of.split('.')
+                scope, identifier, revision = package_id.split('.')
                 if scope.lower() != 'edi':
                     flash('Scope must be "edi"', 'error')
                 elif not identifier.isdigit():
@@ -76,11 +73,10 @@ def curator_workflow(filename=None):
                 elif not revision.isdigit():
                     flash('Revision must be numeric', 'error')
                 else:
-                    new_revision = str(int(revision) + 1)
-                    retval = f'{scope}.{identifier}.{new_revision}'
-                    status, text = check_existence(pasta_environment, scope, identifier, new_revision)
+                    retval = f'{scope}.{identifier}.{revision}'
+                    status, text = check_existence(pasta_environment, scope, identifier, revision)
                     if 200 <= status < 300:
-                        flash(f'Revision {retval} already exists. Try again.')
+                        flash(f'Package {retval} already exists. Try again.')
                         retval = None
         return retval
 
@@ -91,7 +87,7 @@ def curator_workflow(filename=None):
             return PastaEnvironment.PRODUCTION
 
     def handle_reserve_pid(workflow_type, workflow_form):
-        if workflow_form.new_or_revision.data == 'New':
+        if workflow_form.new_or_existing.data == 'New':
             remove_workflow(workflow_type, owner_login, package_name=filename)
             scope = 'edi'  # We always use edi scope
             status, identifier = create_reservation(pasta_environment_from_workflow_type(workflow_type), scope)
@@ -100,18 +96,18 @@ def curator_workflow(filename=None):
                 apply_pid(workflow_type, reserve_package_id)
                 log_info(f'{log_preamble()} {workflow_type.lower()}_reserve - created reservation {reserve_package_id}')
                 update_workflow(workflow_type, owner_login, package_name=filename,
-                                revision_of='', pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',
+                                pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',
                                 assigned_pid=reserve_package_id)
             else:
                 flash(f'PASTA returned status {status}', 'error')
                 log_error(f'{log_preamble()} {workflow_type.lower()}_reserve returns status {status}')
         else:
-            new_revision = check_revision_of_value(workflow_form, pasta_environment_from_workflow_type(workflow_type))
+            new_revision = check_package_id_value(workflow_form, pasta_environment_from_workflow_type(workflow_type))
             if new_revision is not None:
                 remove_workflow(workflow_type, owner_login, package_name=filename)
                 apply_pid(workflow_type, new_revision)
                 log_info(f'{log_preamble()} creating revision {new_revision}')
-                update_workflow(workflow_type, owner_login, package_name=filename, revision_of=workflow_form.revision_of.data,
+                update_workflow(workflow_type, owner_login, package_name=filename, entered_pid=new_revision,
                                 pid_status='PID_ENTERED_IN_EML', eval_status='', upload_status='',
                                 assigned_pid=new_revision)
 
@@ -156,7 +152,7 @@ def curator_workflow(filename=None):
 
     def handle_upload(workflow_type, workflow_values):
         apply_pid(workflow_type, workflow_values.assigned_pid)
-        status, create_transaction_id = upload_data_package(pasta_environment_from_workflow_type(workflow_type), workflow_values.revision_of)
+        status, create_transaction_id = upload_data_package(pasta_environment_from_workflow_type(workflow_type), workflow_values.assigned_pid)
         if 200 <= status < 300:
             log_info(f'{log_preamble()}upload started - transaction ID = {create_transaction_id}')
             update_workflow(workflow_type, owner_login, package_name=filename, upload_status='UPLOAD_IN_PROGRESS',
@@ -222,10 +218,10 @@ def curator_workflow(filename=None):
     staging_values = get_workflow_values('STAGING', owner_login, filename)
     production_values = get_workflow_values('PRODUCTION', owner_login, filename)
 
-    staging_form.revision_of.data = staging_values.revision_of
-    staging_form.new_or_revision.data = 'Revision' if staging_values.revision_of else "New"
-    production_form.revision_of.data = production_values.revision_of
-    production_form.new_or_revision.data = 'Revision' if production_values.revision_of else "New"
+    staging_form.entered_pid.data = staging_values.entered_pid
+    staging_form.new_or_existing.data = 'Revision' if staging_values.entered_pid else "New"
+    production_form.entered_pid.data = production_values.entered_pid
+    production_form.new_or_existing.data = 'Existing' if production_values.entered_pid else "New"
 
     return render_template('curator_workflow.html', is_admin=current_user.is_admin(),
                            staging_values=staging_values._asdict(),
@@ -333,6 +329,14 @@ def format_eval_report(xml_data):
     output = '<hr>'
     def format_quality_check_item(qc, item_type):
         output = f"<b>{ item_type }</b><br>"
+        try:
+            entity_name_elements = qc.xpath("../qr:entityName", namespaces=ns)
+            entity_name = entity_name_elements[0].text if entity_name_elements else None
+            if entity_name:
+                output += f"<i style='color: grey;'>Entity:</i>&nbsp;&nbsp;{entity_name}<br>"
+        except Exception as e:
+            pass
+
         for elem in qc:
             # Check if the element's tag is in the specified list
             if elem.tag.split('}')[-1] in ('name', 'description', 'expected', 'found', 'explanation'):
@@ -352,6 +356,7 @@ def format_eval_report(xml_data):
     package_id = package_id_element.text if package_id_element is not None else None
 
     # Find qualityCheck elements where the <status> subelement has value 'error' or 'warn'
+
     errors = root.xpath("//qr:qualityCheck[qr:status='error']", namespaces=ns)
     warnings = root.xpath("//qr:qualityCheck[qr:status='warn']", namespaces=ns)
 

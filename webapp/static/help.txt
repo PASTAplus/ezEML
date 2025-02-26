@@ -362,6 +362,11 @@ To evaluate the package, click <b>Evaluate</b>. This evaluates the package on st
  or more errors, a notation to that effect will appear next to the <b>Evaluate</b> button. The <b>Upload</b> button will remain disabled until
  an error-free evaluation is achieved.
 
+While an evaluation or upload is in progress, a spinner is displayed. ezEML automatically detects completion of the evaluation/upload. You are free to
+ leave the Curator Workflow page, if desired, while the activity is in progress. When you return to the Curator Workflow page, ezEML shows the
+ current state of the workflow. Similarly, you may start an evaluation/upload in the production environment while one is ongoing in the
+ staging environment, and vice versa.
+
 After you correct errors and warnings in the package, you can upload the package to staging by clicking <b>Upload</b>. When the upload
  completes, you can view the resulting landing page by clicking <b>View Landing Page</b>, which opens the landing page in a new tab. You
  can then use the <b>Copy Citation</b> button on the landing page to obtain a citation to send to the user for their review.

@@ -24,15 +24,15 @@
                 <p></p>
 
                 <h3>Staging Environment</h3>
-                <table>
-                    <tr>
-                    <td colspan="3"><h4>New Package or Revision:</h4></td>
+{#                <table>#}
+{#                    <tr>#}
+{#                    <td colspan="3"><h4>New Package or Revision:</h4></td>#}
 {#                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_curator_workflow_btn) }}</td>#}
-                    </tr>
-                </table>
+{#                    </tr>#}
+{#                </table>#}
 
                 <div>
-                    {% for subfield in staging_form.new_or_revision %}
+                    {% for subfield in staging_form.new_or_existing %}
                         <div>
                             <label style="font-weight: normal;margin-left: 20px;">
                             {{ subfield(id="staging_" + subfield.id) }} {{ subfield.label.text }}
@@ -41,8 +41,8 @@
                     {% endfor %}
                 </div>
                 <div style="margin-left: 38px;font-weight: normal;">
-                    <label style="font-weight: normal;">{{ staging_form.revision_of.label.text }}</label>
-                    {{ staging_form.revision_of(id="staging_revision_details") }}
+                    <label style="font-weight: normal;">{{ staging_form.entered_pid.label.text }}</label>
+                    {{ staging_form.entered_pid(id="staging_revision_details") }}
                 </div>
                 <br>
 
@@ -157,15 +157,15 @@
                 <p></p>
                 <h3>Production Environment</h3>
                 <p></p>
-                <table>
-                    <tr>
-                    <td colspan="3"><h4>New Package or Revision:</h4></td>
+{#                <table>#}
+{#                    <tr>#}
+{#                    <td colspan="3"><h4>New Package or Revision:</h4></td>#}
 {#                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_curator_workflow_btn) }}</td>#}
-                    </tr>
-                </table>
+{#                    </tr>#}
+{#                </table>#}
 
                 <div>
-                    {% for subfield in production_form.new_or_revision %}
+                    {% for subfield in production_form.new_or_existing %}
                         <div>
                             <label style="font-weight: normal;margin-left: 20px;">
                             {{ subfield(id="production_" + subfield.id) }} {{ subfield.label.text }}
@@ -174,8 +174,8 @@
                     {% endfor %}
                 </div>
                 <div style="margin-left: 38px;font-weight: normal;">
-                    <label style="font-weight: normal;">{{ production_form.revision_of.label.text }}</label>
-                    {{ production_form.revision_of(id="production_revision_details") }}
+                    <label style="font-weight: normal;">{{ production_form.entered_pid.label.text }}</label>
+                    {{ production_form.entered_pid(id="production_revision_details") }}
                 </div>
                 <br>
 
@@ -356,8 +356,8 @@
 
             function setupNewRevisionHandlers(formPrefix) {
                 const revisionInput = document.getElementById(formPrefix + "_revision_details");
-                const newRadio = document.querySelector(`input[id='${formPrefix}_new_or_revision-0']`);
-                const revisionRadio = document.querySelector(`input[id='${formPrefix}_new_or_revision-1']`);
+                const newRadio = document.querySelector(`input[id='${formPrefix}_new_or_existing-0']`);
+                const revisionRadio = document.querySelector(`input[id='${formPrefix}_new_or_existing-1']`);
 
                 if (!revisionInput || !newRadio || !revisionRadio) return; // Ensure elements exist
 

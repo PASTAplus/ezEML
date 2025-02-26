@@ -73,18 +73,19 @@ import os
 import webapp.auth.user_data as user_data
 from webapp.home.utils.load_and_save import get_pathname, load_eml, save_both_formats
 
-def evaluate_upload_data_package(pasta_environment: PastaEnvironment, upload: bool=False, revision_of: str=None):
+def evaluate_upload_data_package(pasta_environment: PastaEnvironment, upload: bool=False, pid: str=None):
     pasta_url = url_for_environment(pasta_environment)
     if not upload:
         url = f'{pasta_url}/evaluate/eml'
         request = requests.post
-    elif revision_of:
-        substrs = revision_of.split('.')
-        url = f'{pasta_url}/eml/{substrs[0]}/{substrs[1]}'
-        request = requests.put
-    else:
-        url = f'{pasta_url}/eml'
-        request = requests.post
+    elif pid:
+        substrs = pid.split('.')
+        if substrs[2] != '1':
+            url = f'{pasta_url}/eml/{substrs[0]}/{substrs[1]}'
+            request = requests.put
+        else:
+            url = f'{pasta_url}/eml'
+            request = requests.post
 
     current_document = user_data.get_active_document()
     if current_document:
@@ -115,7 +116,7 @@ def evaluate_upload_data_package(pasta_environment: PastaEnvironment, upload: bo
             return r.status_code, r.text
 
     log_error(f'evaluate_upload_data_package  not returning a value - '
-              f'{PastaEnvironment[pasta_environment]} - upload={upload} - revision_of={revision_of}')
+              f'{PastaEnvironment[pasta_environment]} - upload={upload} - pid={pid}')
     return '999', 'evaluate_upload_data_package not returning a value'
 
 
@@ -123,8 +124,8 @@ def evaluate_data_package(pasta_environment: PastaEnvironment):
     return evaluate_upload_data_package(pasta_environment, upload=False)
 
 
-def upload_data_package(pasta_environment: PastaEnvironment, revision_of: str=None):
-    return evaluate_upload_data_package(pasta_environment, upload=True, revision_of=revision_of)
+def upload_data_package(pasta_environment: PastaEnvironment, pid: str=None):
+    return evaluate_upload_data_package(pasta_environment, upload=True, pid=pid)
 
 
 def get_error_report(pasta_environment: PastaEnvironment, eval_transaction_id: str):

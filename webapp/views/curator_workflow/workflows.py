@@ -6,7 +6,7 @@ from webapp.views.collaborations.db_session import db_session
 
 class WorkflowValues(NamedTuple):
     workflow_id: str
-    revision_of: str
+    entered_pid: str
     pid_status: str
     eval_status: str
     upload_status: str
@@ -88,7 +88,7 @@ def remove_workflows(owner_login:str, package_name:str, session=None):
             session.delete(production)
 
 
-def update_workflow(workflow_type:str, owner_login:str, package_name:str, revision_of:str=None,
+def update_workflow(workflow_type:str, owner_login:str, package_name:str, entered_pid:str=None,
                     pid_status:str=None, eval_status:str=None, upload_status:str=None,
                     assigned_pid:str=None, pid_entered_in_eml:str=None,
                     eval_transaction_id:str=None, report:str=None, has_errors:bool=None, ready_to_upload:bool=None,
@@ -96,8 +96,8 @@ def update_workflow(workflow_type:str, owner_login:str, package_name:str, revisi
                     session=None):
     with db_session(session) as session:
         workflow = get_workflow(workflow_type, owner_login, package_name, session)
-        if revision_of is not None:
-            workflow.revision_of = revision_of
+        if entered_pid is not None:
+            workflow.entered_pid = entered_pid
         if pid_status is not None:
             workflow.pid_status = pid_status
         if eval_status is not None:
@@ -129,7 +129,7 @@ def get_workflow_values(workflow_type:str, owner_login:str, package_name:str, se
         if workflow:
             workflow_values = WorkflowValues(
                 workflow.id,
-                workflow.revision_of if workflow.revision_of else '',
+                workflow.entered_pid if workflow.entered_pid else '',
                 workflow.pid_status if workflow.pid_status else '',
                 workflow.eval_status if workflow.eval_status else '',
                 workflow.upload_status if workflow.upload_status else '',

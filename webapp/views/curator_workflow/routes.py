@@ -328,7 +328,11 @@ from markupsafe import Markup
 def format_eval_report(xml_data):
     output = '<hr>'
     def format_quality_check_item(qc, item_type):
-        output = f"<b>{ item_type }</b><br>"
+        if item_type == 'Error':
+            color = '#DD1111'
+        else:
+            color = 'black'
+        output = f'<span style="color: {color};font-weight: bold;">{ item_type }</span><br>'
         try:
             entity_name_elements = qc.xpath("../qr:entityName", namespaces=ns)
             entity_name = entity_name_elements[0].text if entity_name_elements else None

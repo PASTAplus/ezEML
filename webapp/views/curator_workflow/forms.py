@@ -15,8 +15,9 @@ from webapp.home.forms import EDIForm
 class CuratorWorkflowForm(FlaskForm):
                                            # validators=[Optional()])
 
-    new_or_existing = RadioField('New Package or Existing Package',
-                                 choices=[('New', 'New package'), ('Existing', 'Existing package')],
+    new_or_existing = RadioField('Data Package ID',
+                                 choices=[('New', 'Get a new Package ID from PASTA'),
+                                          ('Existing', 'I have a Package ID to use (enter below)')],
                                  default='New',
                                  validators=[DataRequired()])
     # revision = RadioField('Revision of ')

@@ -125,6 +125,12 @@
                             <td id='staging_upload_error' colspan="3" style="width: 180px;color:red;word-wrap: break-word;white-space: normal;overflow-wrap: break-word;">
                             {% if staging_values.eval_status == 'ERROR_REPORT' %}
                                 {{ staging_values.report }}
+                                {% if 'is currently reserved by' in staging_values.report %}
+                                    <br><span style="color: black;">Note: ezEML operates as the EDI user. If you are trying to upload using
+                                a Package ID that you reserved under your individual user account via the Portal,
+                                use Curator Workflow to get a new package ID from PASTA and retry using that package ID.
+                                </span>
+                                {% endif %}
                             {% endif %}
                             {% if staging_values.upload_status == 'UPLOAD_ERROR' %}
                                 {{ staging_values.landing_page_link }}
@@ -258,6 +264,12 @@
                             <td id='production_upload_error' colspan="3" style="width: 180px;color:red;word-wrap: break-word;white-space: normal;overflow-wrap: break-word;">
                             {% if production_values.eval_status == 'ERROR_REPORT' %}
                                 {{ production_values.report }}
+                                {% if 'is currently reserved by' in production_values.report %}
+                                    <br><span style="color: black;">Note: ezEML operates as the EDI user. If you are trying to upload using
+                                a Package ID that you reserved under your individual user account via the Portal,
+                                use Curator Workflow to get a new package ID from PASTA and retry using that package ID.
+                                </span>
+                                {% endif %}
                             {% endif %}
                             {% if production_values.upload_status == 'UPLOAD_ERROR' %}
                                 {{ production_values.landing_page_link }}

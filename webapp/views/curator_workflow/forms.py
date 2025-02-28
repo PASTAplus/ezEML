@@ -17,7 +17,7 @@ class CuratorWorkflowForm(FlaskForm):
 
     new_or_existing = RadioField('Data Package ID',
                                  choices=[('New', 'Get a new Package ID from PASTA'),
-                                          ('Existing', 'I have a Package ID to use (enter below)')],
+                                          ('Existing', 'I have a Package ID to use (enter it below)')],
                                  default='New',
                                  validators=[DataRequired()])
     # revision = RadioField('Revision of ')

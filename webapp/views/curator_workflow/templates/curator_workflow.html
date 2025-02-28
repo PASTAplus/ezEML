@@ -126,9 +126,10 @@
                             {% if staging_values.eval_status == 'ERROR_REPORT' %}
                                 {{ staging_values.report }}
                                 {% if 'is currently reserved by' in staging_values.report %}
-                                    <br><span style="color: black;">Note: ezEML operates as the EDI user. If you are trying to upload using
-                                a Package ID that you reserved under your individual user account via the Portal,
-                                use Curator Workflow to get a new package ID from PASTA and retry using that package ID.
+                                    <br><span style="color: black;">Note: ezEML operates as the EDI user. If you are trying to
+                                    evaluate or upload using a package ID that you reserved under a different account
+                                    via the Data Portal, use Curator Workflow to get a new package ID from PASTA and retry using
+                                    that new package ID.
                                 </span>
                                 {% endif %}
                             {% endif %}
@@ -265,9 +266,10 @@
                             {% if production_values.eval_status == 'ERROR_REPORT' %}
                                 {{ production_values.report }}
                                 {% if 'is currently reserved by' in production_values.report %}
-                                    <br><span style="color: black;">Note: ezEML operates as the EDI user. If you are trying to upload using
-                                a Package ID that you reserved under your individual user account via the Portal,
-                                use Curator Workflow to get a new package ID from PASTA and retry using that package ID.
+                                    <br><span style="color: black;">Note: ezEML operates as the EDI user. If you are trying to
+                                    evaluate or upload using a package ID that you reserved under a different account
+                                    via the Data Portal, use Curator Workflow to get a new package ID from PASTA and retry using
+                                    that new package ID.
                                 </span>
                                 {% endif %}
                             {% endif %}

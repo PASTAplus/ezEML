@@ -24,13 +24,6 @@
                 <p></p>
 
                 <h3>Staging Environment</h3>
-{#                <table>#}
-{#                    <tr>#}
-{#                    <td colspan="3"><h4>New Package or Revision:</h4></td>#}
-{#                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_curator_workflow_btn) }}</td>#}
-{#                    </tr>#}
-{#                </table>#}
-
                 <div>
                     {% for subfield in staging_form.new_or_existing %}
                         <div>
@@ -56,15 +49,6 @@
                             <span id="reserve_package_id_staging" style="margin-left: 20px;">{{ staging_values.assigned_pid }}</span>
                             </td>
                         </tr>
-{#                        <tr>#}
-{#                            <td>#}
-{#                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="staging_apply_pid"#}
-{#                            {% if staging_values.pid_status == '' %} disabled {% endif %}/>#}
-{#                            </td>#}
-{#                            <td>#}
-{#                            <span id="apply_pid_to_eml_staging" style="margin-left: 20px;">{{ staging_values.pid_entered_in_eml }}</span>#}
-{#                            </td>#}
-{#                        </tr>#}
                         <tr>
                             <td>
                             <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_staging_eval();" type="submit" name="staging_evaluate"
@@ -74,13 +58,10 @@
                             <span id="evaluate_staging" style="margin-left: 20px;">
                                 {% if staging_values.eval_transaction_id %}
                                     {% if not staging_values.report and staging_values.eval_status == 'EVAL_IN_PROGRESS' %}
-{#                                    Evaluation started#}
                                         <div style="position: relative;z-index: 1000;" class="loader2"></div>
                                     {% elif staging_values.has_errors %}
                                     <span style="color: red">Error(s) found</span>
-                                    {% else %}
-                                    Ready for viewing
-                                    {% endif  %}
+                                    {% endif %}
                                 {% endif  %}
                             </span>
                             </td>
@@ -91,7 +72,12 @@
                             {% if staging_values.report == '' %} disabled {% endif %}/>
                             </td>
                             <td>
-                            <span id="evaluation_report_staging" style="margin-left: 20px;">{{ evaluation_report_staging }}</span>
+                            <span id="view_quality_staging" style="margin-left: 20px;">
+                                {%  if staging_values.eval_transaction_id and staging_values.eval_status != 'EVAL_IN_PROGRESS'
+                                    and not staging_values.has_errors %}
+                                Ready for viewing
+                                {% endif %}
+                            </span>
                             </td>
                         </tr>
                         <tr>
@@ -102,11 +88,7 @@
                             <span id="upload_staging" style="margin-left: 20px;">
                                 {% if staging_values.create_transaction_id %}
                                     {% if staging_values.upload_status == 'UPLOAD_IN_PROGRESS' %}
-{#                                        Upload started#}
                                         <div style="position: relative;z-index: 1000;" class="loader2"></div>
-                                    {% elif staging_values.upload_status == 'UPLOAD_COMPLETED' %}
-                                        Ready for viewing
-{#                                        <a href="{{ staging_values.landing_page_link }}" target="_ezeml_curator">Landing page</a>#}
                                     {% endif  %}
                                 {% endif  %}
                             </span>
@@ -118,7 +100,11 @@
                             {% if staging_values.upload_status != 'UPLOAD_COMPLETED' %} disabled {% endif %}/>
                             </td>
                             <td>
-{#                            <span id="landing_staging" style="margin-left: 20px;">{{ evaluation_report_staging }}</span>#}
+                            <span id="view_landing_staging" style="margin-left: 20px;">
+                            {% if staging_values.upload_status == 'UPLOAD_COMPLETED' %}
+                                Ready for viewing
+                            {% endif %}
+                            </span>
                             </td>
                         </tr>
                         <tr>
@@ -149,8 +135,6 @@
                     <br>
                 {% endif %}
 
-{#                <input class="btn btn-primary" type="submit" style="width: 180px;margin-left: 20px;" value="Refresh" name="refresh"/><p></p>#}
-
                 {{ macros.hidden_buttons() }}
             </form>
             </td>
@@ -164,13 +148,6 @@
                 <p></p>
                 <h3>Production Environment</h3>
                 <p></p>
-{#                <table>#}
-{#                    <tr>#}
-{#                    <td colspan="3"><h4>New Package or Revision:</h4></td>#}
-{#                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_curator_workflow_btn) }}</td>#}
-{#                    </tr>#}
-{#                </table>#}
-
                 <div>
                     {% for subfield in production_form.new_or_existing %}
                         <div>
@@ -196,15 +173,6 @@
                             <span id="reserve_package_id_production" style="margin-left: 20px;">{{ production_values.assigned_pid }}</span>
                             </td>
                         </tr>
-{#                        <tr>#}
-{#                            <td>#}
-{#                            <input class="btn btn-primary" style="width: 180px;" value="Apply PID to the EML" type="submit" name="production_apply_pid"#}
-{#                            {% if production_values.pid_status == '' %} disabled {% endif %}/>#}
-{#                            </td>#}
-{#                            <td>#}
-{#                            <span id="apply_pid_to_eml_production" style="margin-left: 20px;">{{ production_values.pid_entered_in_eml }}</span>#}
-{#                            </td>#}
-{#                        </tr>#}
                         <tr>
                             <td>
                             <input class="btn btn-primary" style="width: 180px;" value="Evaluate" onclick="return confirm_production_eval();" type="submit" name="production_evaluate"
@@ -214,12 +182,9 @@
                             <span id="evaluate_production" style="margin-left: 20px;">
                                 {% if production_values.eval_transaction_id %}
                                     {% if not production_values.report and production_values.eval_status == 'EVAL_IN_PROGRESS' %}
-{#                                    Evaluation started#}
                                         <div style="position: relative;z-index: 1000;" class="loader2"></div>
                                     {% elif production_values.has_errors %}
                                     <span style="color: red">Error(s) found</span>
-                                    {% else %}
-                                    Ready for viewing
                                     {% endif  %}
                                 {% endif  %}
                             </span>
@@ -231,7 +196,12 @@
                             {% if production_values.report == '' %} disabled {% endif %}/>
                             </td>
                             <td>
-                            <span id="evaluation_report_production" style="margin-left: 20px;">{{ evaluation_report_production }}</span>
+                            <span id="view_quality_production" style="margin-left: 20px;">
+                                {%  if production_values.eval_transaction_id and production_values.eval_status != 'EVAL_IN_PROGRESS'
+                                    and not production_values.has_errors %}
+                                Ready for viewing
+                                {% endif %}
+                            </span>
                             </td>
                         </tr>
                         <tr>
@@ -242,11 +212,7 @@
                             <span id="upload_production" style="margin-left: 20px;">
                                 {% if production_values.create_transaction_id %}
                                     {% if production_values.upload_status == 'UPLOAD_IN_PROGRESS' %}
-{#                                        Upload started#}
                                         <div style="position: relative;z-index: 1000;" class="loader2"></div>
-                                    {% elif production_values.upload_status == 'UPLOAD_COMPLETED' %}
-                                        Ready for viewing
-{#                                        <a href="{{ production_values.landing_page_link }}" target="_ezeml_curator">Landing page</a>#}
                                     {% endif  %}
                                 {% endif  %}
                             </span>
@@ -258,7 +224,11 @@
                             {% if production_values.upload_status != 'UPLOAD_COMPLETED' %} disabled {% endif %}/>
                             </td>
                             <td>
-{#                            <span id="landing_staging" style="margin-left: 20px;">{{ evaluation_report_staging }}</span>#}
+                            <span id="view_landing_production" style="margin-left: 20px;">
+                            {% if production_values.upload_status == 'UPLOAD_COMPLETED' %}
+                                Ready for viewing
+                            {% endif %}
+                            </span>
                             </td>
                         </tr>
                         <tr>
@@ -288,9 +258,6 @@
                 {% else %}
                     <br>
                 {% endif %}
-
-{#                <input class="btn btn-primary" type="submit" style="width: 180px;margin-left: 20px;" value="Refresh" name="refresh"/><p></p>#}
-
                 {{ macros.hidden_buttons() }}
             </form>
         </td></tr>
@@ -416,6 +383,8 @@
                 let upload_button = null;
                 let landing_button = null;
                 let upload_error = null;
+                let view_quality = null;
+                let view_landing = null;
 
                 if (workflowType === 'STAGING') {
                     values = stagingValues;
@@ -425,6 +394,8 @@
                     upload_button = document.getElementById('staging_upload_btn');
                     landing_button = document.getElementById('staging_landing_btn');
                     upload_error = document.getElementById('staging_upload_error');
+                    view_quality = document.getElementById('view_quality_staging');
+                    view_landing = document.getElementById('view_landing_staging');
                 } else {
                     values = productionValues;
                     eval_entry = document.getElementById('evaluate_production');
@@ -433,6 +404,8 @@
                     upload_button = document.getElementById('production_upload_btn');
                     landing_button = document.getElementById('production_landing_btn');
                     upload_error = document.getElementById('production_upload_error');
+                    view_quality = document.getElementById('view_quality_production');
+                    view_landing = document.getElementById('view_landing_production');
                 }
                 if (values.workflow_id === '') {
                     // Nothing to do
@@ -460,7 +433,8 @@
                                         upload_error.textContent = report;
                                         view_report_button.disabled = false;
                                     } else {
-                                        eval_entry.textContent = "Ready for viewing";
+                                        eval_entry.textContent = '';
+                                        view_quality.textContent = "Ready for viewing";
                                         view_report_button.disabled = false;
                                         upload_button.disabled = false;
                                     }
@@ -469,7 +443,8 @@
                             if (values.upload_status !== upload_status) {
                                 {#alert('upload_status:' + upload_status);#}
                                 if (upload_status === 'UPLOAD_COMPLETED') {
-                                    upload_entry.textContent = "Ready for viewing";
+                                    upload_entry.textContent = "";
+                                    view_landing.textContent = "Ready for viewing";
                                     landing_button.disabled = false;
                                 }
                                 else if (upload_status === 'UPLOAD_ERROR') {

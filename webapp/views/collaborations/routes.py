@@ -362,9 +362,10 @@ def compose_inform_inviter_of_acceptance_email(inviter_name, invitee_name, invit
     return msg_raw
 
 
-def compose_invite_collaborator_email(name, sender_name, sender_email, title, invitation_code, ezeml_url):
+def compose_invite_collaborator_email(name, sender_name, sender_email, title, invitation_code, filename, ezeml_url):
     msg_html = Markup(f'Dear {name}:<p><br>'
         f'I am inviting you to collaborate with me on editing a data package in ezEML.<p><br>Data Package Title: "{title}"<p>' \
+        f'ezEML Document Name: "{filename}"<p>' \
         f'To accept the invitation, please do the following:<p>' \
         f'- go to {ezeml_url} and log in using the login account you will use to edit the package<br>' \
         f'- in ezEML, click the "Collaborate" link<br>' \
@@ -375,6 +376,7 @@ def compose_invite_collaborator_email(name, sender_name, sender_email, title, in
         f'Thanks!<p>{sender_name}<br>{sender_email}')
     msg_raw = f'Dear {name}:\n\n' \
         f'I am inviting you to collaborate with me on editing a data package in ezEML.\n\nData Package Title: "{title}"\n\n' \
+        f'ezEML Document Name: "{filename}"\n\n' \
         f'To accept the invitation, please do the following:\n' \
         f'- go to {ezeml_url} and log in using the login account you will use to edit the package\n' \
         f'- in ezEML, click the "Collaborate" link\n' \
@@ -426,7 +428,7 @@ def invite_collaborator(filename=None):
                 mailto, mailto_html, mailto_raw = compose_invite_collaborator_email(collaborator_name,
                                                                                     user_name, user_email,
                                                                                     title, invitation_code,
-                                                                                    ezeml_url)
+                                                                                    filename, ezeml_url)
             except Exception as e:
                 collaborations.remove_invitation(invitation_code)
                 raise

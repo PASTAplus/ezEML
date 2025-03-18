@@ -29,6 +29,8 @@ class Config(object):
 
     PASTA_URL = "https://pasta.lternet.edu/package"
 
+    QUALITY_CHECK_SOLUTIONS_URL = 'https://ediorg.github.io/quality-check-solutions/solutions/ECC/'
+
     # Curator workflow support
     PASTA_DEVELOPMENT_URL = "https://pasta-d.lternet.edu/package"
     PASTA_STAGING_URL = "https://pasta-s.lternet.edu/package"

@@ -341,12 +341,21 @@ def format_eval_report(xml_data):
         except Exception as e:
             pass
 
+        identifier = None
+        link = None
         for elem in qc:
-            # Check if the element's tag is in the specified list
-            if elem.tag.split('}')[-1] in ('name', 'description', 'expected', 'found', 'explanation'):
-                # Format the tag (capitalize) and make it italic, as well as the colon
+            if elem.tag.split('}')[-1] in ('name', 'description', 'expected', 'found'):
                 tag = elem.tag.split('}')[-1].capitalize()
                 output += f"<i style='color: grey;'>{tag}:</i>&nbsp;&nbsp;{elem.text.strip() if elem.text else 'N/A'}<br>"
+            if elem.tag.split('}')[-1] == 'explanation':
+                tag = elem.tag.split('}')[-1].capitalize()
+                output += f"<i style='color: grey;'>{tag}:</i>&nbsp;&nbsp;{elem.text.strip() if elem.text else 'N/A'}  {link}<br>"
+            if elem.tag.split('}')[-1] == 'identifier':
+                identifier = elem.text.strip() if elem.text else None
+                link = f'<a href="{Config.QUALITY_CHECK_SOLUTIONS_URL}{identifier}.html" target="_blank">Details</a>'
+        # if identifier:
+        #     link = f'<a href="{Config.QUALITY_CHECK_SOLUTIONS_URL}{identifier}.md" target="_blank">Details</a>'
+        #     output += f"<i style='color: grey;'>Solution:</i>&nbsp;&nbsp;{link}<br>"
         output += '<hr>'
         return output
 

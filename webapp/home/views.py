@@ -4457,10 +4457,11 @@ def validate_eml_2(filename):
     try:
         v.validate(xml)
     except ValidationError as e:
-        errors = str(e.args[0]).split('\n')
+        errors = e.args[0]
         for error in errors:
-            line_number, element_name, error_message = parse_error_message(error)
-            validation_errs.append((line_number, element_name, error_message))
+            line = error.line
+            cause = error.message.replace('\n', '\\n')
+            validation_errs.append((line, cause))
 
     except XMLSyntaxError as e:
         pass

@@ -26,18 +26,15 @@
                 <table class="table table-striped">
                     <tr>
                         <th width="5%">Line&nbsp;#</th>
-                        <th width="30%">Item</th>
-                        <th width="65%">Error Details</th>
+                        <th width="95%">Error</th>
                     </tr>
                     {% for validation_err in validation_errs %}
                     <tr>
                         <td>{{ validation_err[0] }}</td>
                         <td>{{ validation_err[1] }}</td>
-                        <td>{{ validation_err[2] }}
                     </tr>
                     {% endfor %}
                 </table>
-{#                <p>&nbsp;</p>#}
             {% endif %}
 
             {% if parse_errs %}

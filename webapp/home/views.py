@@ -64,7 +64,7 @@ from webapp.home.forms import (
     OpenEMLDocumentForm, ValidateEMLFileForm, SaveAsForm, RenamePackageForm,
     LoadMetadataForm, LoadDataForm, LoadOtherEntityForm,
     ImportEMLForm, ImportEMLItemsForm, ImportPartiesFromTemplateForm,
-    ImportItemsForm, ImportSingleItemForm, ImportKeywordsForm,
+    ImportItemsForm, ImportItemsSortableForm, ImportSingleItemForm,
     SubmitToEDIForm, SendToColleagueForm, EDIForm,
     SelectUserForm, SelectDataFileForm, SelectEMLFileForm,
     SettingsForm, OpenTemplateForm, SaveAsTemplateForm, DeleteTemplateForm
@@ -2083,9 +2083,12 @@ def import_parties_2(filename, template, is_template, target=None):
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
             label = compose_rp_label(node)
             parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
+        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT, names.PERSONNEL]):
             label = compose_rp_label(node)
-            parties.append(('Related Project Personnel', f'{label} (Project Personnel)', node.id))
+            related_project_node = node.parent
+            project_title_node = related_project_node.find_child(names.TITLE)
+            project_title = f' - {project_title_node.content}' if project_title_node else ''
+            parties.append(('Related Project Personnel', f'{label} (Related Project Personnel{project_title})', node.id))
         return parties
 
     def get_sorted_parties(eml_node):
@@ -2255,11 +2258,22 @@ def import_keywords_2(filename, template, is_template):
     """Handle the Import Keywords item in Import/Export menu after a source document has been selected."""
 
     def get_keywords_for_import(eml_node):
-        keyword_tuples = []
-        keyword_groups = {}
+        """
+        Returns four items:
+            - dict of keyword groups in original order
+            - choices for checkboxes in orginal order
+            - dict of keyword groups in sorted order (groups sorted and keywords sorted within groups)
+            - choices for checkboxes in sorted order
+        For now, we're not using the sorted versions.
+        """
         dataset_node = eml_node.find_child(names.DATASET)
         if not dataset_node:
-            return []
+            return {}, [], {}, []
+
+        keyword_tuples = []
+        keyword_groups = {}
+        sorted_keyword_groups = {}
+
         keyword_set_nodes = []
         dataset_node.find_all_descendants(names.KEYWORDSET, keyword_set_nodes)
         for keyword_set_node in keyword_set_nodes:
@@ -2271,17 +2285,19 @@ def import_keywords_2(filename, template, is_template):
                     continue
                 thesaurus_node = keyword_set_node.find_child(names.KEYWORDTHESAURUS)
                 thesaurus = thesaurus_node.content if thesaurus_node else ''
-                if thesaurus:
-                    thesaurus = f'{thesaurus}'
                 keyword_tuples.append((keyword_node.id, f'{keyword} {thesaurus}', keyword, thesaurus))
                 keyword_groups[thesaurus] = keyword_groups.get(thesaurus, []) + [(keyword_node.id, keyword)]
-        for key in keyword_groups:
-            keyword_groups[key].sort(key=lambda x: x[1].lower())
-        sorted_dict = {key: keyword_groups[key] for key in sorted(keyword_groups)}
-        return sorted_dict, \
-               [(a, b) for a, b, _, _ in sorted(keyword_tuples, key=lambda x: (x[3].lower(), x[2].lower()))]
 
-    form = ImportItemsForm()
+        for key in keyword_groups:
+            sorted_keyword_groups[key] = sorted(keyword_groups[key], key=lambda x: x[1].lower())
+        sorted_keyword_groups = {key: keyword_groups[key] for key in sorted(keyword_groups)}
+        return (
+            keyword_groups,
+            [(a, b) for a, b, _, _ in keyword_tuples],
+            sorted_keyword_groups,
+            [(a, b) for a, b, _, _ in sorted(keyword_tuples, key=lambda x: (x[3].lower(), x[2].lower()))])
+
+    form = ImportItemsSortableForm()
 
     current_document, eml_node = reload_metadata()  # So check_metadata status is correct
 
@@ -2294,8 +2310,9 @@ def import_keywords_2(filename, template, is_template):
         source_filename = template_display_name(unquote(template))
         eml_node = load_template(unquote(template))
 
-    keyword_groups, sorted_choices = get_keywords_for_import(eml_node)
-    form.to_import.choices = sorted_choices
+    keyword_groups, choices, sorted_keyword_groups, sorted_choices = get_keywords_for_import(eml_node)
+    form.to_import.choices = choices
+    form.to_import_sorted.choices = sorted_choices
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
         return redirect(get_back_url())

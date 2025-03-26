@@ -165,6 +165,11 @@ class ImportItemsForm(FlaskForm):
     to_import = MultiCheckboxField('Import', choices=[], validators=[])
 
 
+class ImportItemsSortableForm(FlaskForm):
+    to_import = MultiCheckboxField('Import', choices=[], validators=[])
+    to_import_sorted = MultiCheckboxField('Import', choices=[], validators=[])
+
+
 class ImportEMLItemsForm(FlaskForm):
     to_import = MultiCheckboxField('Import', choices=[], validators=[])
     target = RadioField('Target', choices=[], validators=[])

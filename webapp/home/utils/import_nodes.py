@@ -318,6 +318,40 @@ def import_related_project_nodes(target_package, node_ids_to_import):
     load_and_save.save_both_formats(target_package, target_eml_node)
 
 
+def compose_individual_name_label(rp_node: Node = None, last_name_first: bool = False):
+    label = ''
+    if rp_node:
+        salutation_nodes = rp_node.find_all_children(names.SALUTATION)
+        if salutation_nodes:
+            for salutation_node in salutation_nodes:
+                if salutation_node and salutation_node.content:
+                    label = label + " " + salutation_node.content
+
+        given_name = ''
+        given_name_nodes = rp_node.find_all_children(names.GIVENNAME)
+        if given_name_nodes:
+            for given_name_node in given_name_nodes:
+                if given_name_node and given_name_node.content:
+                    given_name = given_name + " " + given_name_node.content
+
+        surname = ''
+        surname_node = rp_node.find_child(names.SURNAME)
+        if surname_node and surname_node.content:
+            surname = surname_node.content
+
+        if last_name_first:
+            return surname + "," + given_name
+        else:
+            return given_name + " " + surname
+
+def compose_simple_label(rp_node: Node = None, child_node_name: str = ''):
+    label = ''
+    if rp_node and child_node_name:
+        child_node = rp_node.find_child(child_node_name)
+        if child_node and child_node.content:
+            label = child_node.content
+    return label
+
 def compose_rp_label(rp_node:Node=None, last_name_first:bool=False):
     """
     Compose a label for a responsible party node. The label is a string that can be displayed to the user.
@@ -325,41 +359,6 @@ def compose_rp_label(rp_node:Node=None, last_name_first:bool=False):
     What we display for a responsible party depends on the type of responsible party, i.e. whether it is an individual,
     organization, or position. We also display the role, if any.
     """
-
-    def compose_individual_name_label(rp_node: Node = None, last_name_first: bool = False):
-        label = ''
-        if rp_node:
-            salutation_nodes = rp_node.find_all_children(names.SALUTATION)
-            if salutation_nodes:
-                for salutation_node in salutation_nodes:
-                    if salutation_node and salutation_node.content:
-                        label = label + " " + salutation_node.content
-
-            given_name = ''
-            given_name_nodes = rp_node.find_all_children(names.GIVENNAME)
-            if given_name_nodes:
-                for given_name_node in given_name_nodes:
-                    if given_name_node and given_name_node.content:
-                        given_name = given_name + " " + given_name_node.content
-
-            surname = ''
-            surname_node = rp_node.find_child(names.SURNAME)
-            if surname_node and surname_node.content:
-                surname = surname_node.content
-
-            if last_name_first:
-                return surname + "," + given_name
-            else:
-                return given_name + " " + surname
-
-    def compose_simple_label(rp_node: Node = None, child_node_name: str = ''):
-        label = ''
-        if rp_node and child_node_name:
-            child_node = rp_node.find_child(child_node_name)
-            if child_node and child_node.content:
-                label = child_node.content
-        return label
-
     label = ''
     if rp_node:
         individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)

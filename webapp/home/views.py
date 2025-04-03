@@ -98,7 +98,7 @@ from webapp.home.utils.load_and_save import get_pathname, load_eml, load_templat
     get_imported_from_xml_metadata, clear_taxonomy_imported_from_xml_flag
 from webapp.home.utils.import_nodes import import_responsible_parties, import_keyword_nodes, import_coverage_nodes, \
     import_funding_award_nodes, compose_funding_award_label, compose_project_label, import_project_node, \
-    import_related_project_nodes, compose_rp_label
+    import_related_project_nodes, compose_rp_label, compose_simple_label, compose_individual_name_label
 from webapp.home.utils.lists import list_data_packages, list_templates, list_files_in_dir, template_display_name, \
     compose_full_gc_label, truncate_middle, compose_taxonomic_label, UP_ARROW, DOWN_ARROW
 from webapp.home.utils.create_nodes import add_fetched_from_edi_metadata, get_fetched_from_edi_metadata
@@ -2063,58 +2063,70 @@ def import_parties(target=None):
 def import_parties_2(filename, template, is_template, target=None):
     """Handle the Import Responsible Parties item in Import/Export menu after a source document has been selected."""
 
+    def get_name(rp_node):
+        individual_name_node = rp_node.find_child(names.INDIVIDUALNAME)
+        label = compose_individual_name_label(individual_name_node)
+        if not label:
+            label = compose_simple_label(rp_node, names.ORGANIZATIONNAME)
+        if not label:
+            label = compose_simple_label(rp_node, names.POSITIONNAME)
+        return label
+
+    party_lookup = {}
+    def add_to_lookup(rp_node):
+        party_lookup[get_name(rp_node)] = True
+
+    def check_lookup(rp_node):
+        return party_lookup.get(get_name(rp_node))
+
     def get_responsible_parties_for_import(eml_node):
         parties = []
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
             label = compose_rp_label(node)
-            parties.append(('Creator', f'{label} (Creator)', node.id))
+            if not check_lookup(node):
+                parties.append(('Creator', f'{label} (Creator)', node.id))
+                add_to_lookup(node)
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
             label = compose_rp_label(node)
-            parties.append(('Contact', f'{label} (Contact)', node.id))
+            if not check_lookup(node):
+                parties.append(('Contact', f'{label} (Contact)', node.id))
+                add_to_lookup(node)
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
             label = compose_rp_label(node)
-            parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
+            if not check_lookup(node):
+                parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
+                add_to_lookup(node)
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
             label = compose_rp_label(node)
-            parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
+            if not check_lookup(node):
+                parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
+                add_to_lookup(node)
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
             label = compose_rp_label(node)
-            parties.append(('Publisher', f'{label} (Publisher)', node.id))
+            if not check_lookup(node):
+                parties.append(('Publisher', f'{label} (Publisher)', node.id))
+                add_to_lookup(node)
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
             label = compose_rp_label(node)
-            parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
+            if not check_lookup(node):
+                parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
+                add_to_lookup(node)
         for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.RELATED_PROJECT, names.PERSONNEL]):
             label = compose_rp_label(node)
-            related_project_node = node.parent
-            project_title_node = related_project_node.find_child(names.TITLE)
-            project_title = f' - {project_title_node.content}' if project_title_node else ''
-            parties.append(('Related Project Personnel', f'{label} (Related Project Personnel{project_title})', node.id))
+            if not check_lookup(node):
+                related_project_node = node.parent
+                project_title_node = related_project_node.find_child(names.TITLE)
+                project_title = f' - {project_title_node.content}' if project_title_node else ''
+                parties.append(
+                    ('Related Project Personnel', f'{label} (Related Project Personnel{project_title})', node.id))
+                add_to_lookup(node)
         return parties
 
-    def get_sorted_parties(eml_node):
+    def get_sorted_parties(parties):
         def sort_key(item):
             return item[1].lower()
 
-        sorted_parties = []
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CREATOR]):
-            label = compose_rp_label(node, last_name_first=True)
-            sorted_parties.append(('Creator', f'{label} (Creator)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.CONTACT]):
-            label = compose_rp_label(node, last_name_first=True)
-            sorted_parties.append(('Contact', f'{label} (Contact)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY]):
-            label = compose_rp_label(node, last_name_first=True)
-            sorted_parties.append(('Associated Party', f'{label} (Associated Party)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER]):
-            label = compose_rp_label(node, last_name_first=True)
-            sorted_parties.append(('Metadata Provider', f'{label} (Metadata Provider)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER]):
-            label = compose_rp_label(node, last_name_first=True)
-            sorted_parties.append(('Publisher', f'{label} (Publisher)', node.id))
-        for node in eml_node.find_all_nodes_by_path([names.DATASET, names.PROJECT, names.PERSONNEL]):
-            label = compose_rp_label(node, last_name_first=True)
-            sorted_parties.append(('Project Personnel', f'{label} (Project Personnel)', node.id))
-        return sorted(sorted_parties, key=sort_key)
+        return sorted(parties, key=sort_key)
 
     def add_related_project_personnel_targets():
         target_filename = current_user.get_filename()
@@ -2173,7 +2185,7 @@ def import_parties_2(filename, template, is_template, target=None):
     choices = [[party[2], party[1]] for party in parties]
     form.to_import.choices = choices
 
-    sorted_parties = get_sorted_parties(eml_node)
+    sorted_parties = get_sorted_parties(parties)
     sorted_choices = [[party[2], party[1]] for party in sorted_parties]
     form.to_import_sorted.choices = sorted_choices
 

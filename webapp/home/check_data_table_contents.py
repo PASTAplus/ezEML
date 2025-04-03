@@ -1140,6 +1140,7 @@ def create_check_data_tables_status_page_content(document_name, eml_node):
             # If there is a distribution URL, offer to fetch the table
             online_distribution_url_node = data_table_node.find_single_node_by_path([names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
             if online_distribution_url_node and online_distribution_url_node.content:
+                status = 'yellow'
                 quoted_document_name = urllib.parse.quote(document_name)
                 quoted_csv_name = urllib.parse.quote(csv_file_name)
                 quoted_url = urllib.parse.quote(online_distribution_url_node.content, safe='')

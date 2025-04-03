@@ -63,7 +63,7 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, get_help
+from webapp.home.views import select_post, non_breaking, get_help, get_helps
 from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 
@@ -108,8 +108,11 @@ def other_entity_select(filename=None):
 @login_required
 def other_entity(filename=None, node_id=None):
     dt_node_id = node_id
+
     form = OtherEntityForm(filename=filename)
     eml_node = load_eml(filename=filename)
+    if dt_node_id and len(dt_node_id) != 1:
+        old_dt_node = Node.get_node_instance(dt_node_id)
 
     if request.method == 'POST' and BTN_CANCEL in request.form:
             url = url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename, dt_node_id=dt_node_id)
@@ -137,6 +140,8 @@ def other_entity(filename=None, node_id=None):
         elif 'Taxonomic' in request.form:
             next_page = PAGE_ENTITY_TAXONOMIC_COVERAGE_SELECT
             auto_save = True
+        elif 'Save Changes' in request.form:
+            next_page = PAGE_OTHER_ENTITY
 
         eml_node = load_eml(filename=filename)
 
@@ -232,7 +237,7 @@ def other_entity(filename=None, node_id=None):
         else:
             return redirect(url_for(next_page,
                                     filename=filename,
-                                    dt_node_id=dt_node_id))
+                                    node_id=dt_node_id))
 
     # Process GET
     if dt_node_id != '1':
@@ -254,7 +259,7 @@ def other_entity(filename=None, node_id=None):
     tooltip = format_tooltip(dt_node) if dt_node else ''
 
     set_current_page('other_entity')
-    help = [get_help('other_entity')]
+    help = get_helps(['other_entity', 'save_changes'])
     return render_template('other_entity.html', title='Other Entity', form=form, help=help, dt_node_id=dt_node_id, tooltip=tooltip)
 
 

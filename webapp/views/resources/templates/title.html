@@ -23,7 +23,9 @@
 
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" novalidate="true">
-                <h5>Enter a title for the data package:</h5>
+                Enter a title for the data package. This usually differs from the journal article title, if any.<p>
+
+            </p> Click the Help button for guidelines.<p>
                 <table>
                     <td>{{ wtf.form_field(form.title, rows=5, cols=100) }}</td>
                     <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_title_btn) }}</td>

@@ -17,7 +17,7 @@ class OtherEntitySelectForm(EDIForm):
 class OtherEntityForm(EDIForm):
     entity_name = StringField('Name *', validators=[InputRequired(message='Name is required')])
     entity_type = StringField('Entity Type (e.g., photograph) *', validators=[])
-    entity_description = StringField('Description (Recommended)', widget=TextArea(), validators=[])
+    entity_description = StringField('Description *', widget=TextArea(), validators=[])
     object_name = StringField('Source Name (e.g., filename) *', validators=[])
     format_name = StringField('Data Format (e.g., PNG) *', validators=[])
     size = StringField('Size (Optional)', validators=[Optional(), validate_integer])

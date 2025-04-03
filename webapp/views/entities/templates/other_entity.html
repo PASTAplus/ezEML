@@ -5,21 +5,25 @@
     {% set help_other_entity_id, help_other_entity_title, help_other_entity_content = help[0] %}
     {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
+    {% set help_other_entity_save_changes_id, help_other_entity_save_changes_title, help_other_entity_save_changes_content = help[1] %}
+    {% set help_other_entity_save_changes_btn = help_other_entity_save_changes_id ~ '_btn' %}
+    {% set help_other_entity_save_changes_dialog = help_other_entity_save_changes_id ~ '_dialog' %}
 
-    <table>
-        <td style="vertical-align:middle;padding-top: 12px;">
-        {% set node_id = dt_node_id %}
-        {% set node_status = node_id + '_status' %}
-        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
-        </td>
-        <td style="width:3%"></td>
-        <td><h2>Other Entity</h2></td>
-        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entity_btn) }}</td>
-    </table>
+{#    <table>#}
+{#        <td style="vertical-align:middle;padding-top: 12px;">#}
+{#        {% set node_id = dt_node_id %}#}
+{#        {% set node_status = node_id + '_status' %}#}
+{#        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}#}
+{#        </td>#}
+{#        <td style="width:3%"></td>#}
+{#        <td><h2>Other Entity</h2></td>#}
+{#        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_other_entity_btn) }}</td>#}
+{#    </table>#}
 
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
+    {{ macros.page_heading_with_status_popup('Other Entity', dt_node_id, tooltip, badge_data, help_other_entity_save_changes_btn, help_other_entity_btn) }}
                 <h5>Enter information about the data entity object:</h5>
                 {{ wtf.form_field(form.entity_name) }}
                 {{ wtf.form_field(form.entity_type) }}
@@ -66,11 +70,13 @@
                 {{ macros.hidden_buttons_with_no_contents_menu() }}
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
+                {{ macros.save_changes_modal() }}
             </form>
             <p>&nbsp;</p>
         </div>
     </div>
     {{ macros.help_dialog(help_other_entity_dialog, help_other_entity_title, help_other_entity_content) }}
+    {{ macros.help_dialog(help_other_entity_save_changes_dialog, help_other_entity_save_changes_title, help_other_entity_save_changes_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -78,15 +84,20 @@
     {% set help_other_entity_id, help_other_entity_title, help_other_entity_content = help[0] %}
     {% set help_other_entity_btn = help_other_entity_id ~ '_btn' %}
     {% set help_other_entity_dialog = help_other_entity_id ~ '_dialog' %}
+    {% set help_other_entity_save_changes_id, help_other_entity_save_changes_title, help_other_entity_save_changes_content = help[1] %}
+    {% set help_other_entity_save_changes_btn = help_other_entity_save_changes_id ~ '_btn' %}
+    {% set help_other_entity_save_changes_dialog = help_other_entity_save_changes_id ~ '_dialog' %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_other_entity_dialog, help_other_entity_btn) }}
+        {{ macros.help_script(help_other_entity_save_changes_dialog, help_other_entity_save_changes_btn) }}
     });
     </script>
 
     {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
+    {{ macros.save_changes_button_support() }}
 
 {% endblock %}

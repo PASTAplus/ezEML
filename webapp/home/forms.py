@@ -230,6 +230,28 @@ class LoadDataForm(EDIForm):
     )
 
 
+class ReloadDataForm(EDIForm):
+    delimiter = SelectField('Field Delimiter', choices=[
+        (',', 'comma'),
+        ('\t', 'tab'),
+        ('|', 'vertical bar, or pipe - |'),
+        (';', 'semicolon'),
+        (':', 'colon')
+    ], default=','
+    )
+    quote = SelectField('Quote Character', choices=[
+        ('"', 'double quote - "'),
+        ("'", "single quote - '")
+    ], default='"'
+    )
+    update_codes = SelectField('Update Categorical Codes', choices=[
+        ('no', 'no'),
+        ('yes', 'yes')
+    ], default='no'
+    )
+
+
+
 class LoadOtherEntityForm(FlaskForm):
     pass
 

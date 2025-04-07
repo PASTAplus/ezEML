@@ -47,7 +47,7 @@ from webapp.views.data_tables.forms import (
 
 from webapp.home.forms import (
     init_form_md5, is_dirty_form,
-    LoadDataForm, OpenDocumentForm
+    LoadDataForm, OpenDocumentForm, ReloadDataForm
 )
 
 from webapp.home.metapype_client import VariableType
@@ -582,7 +582,7 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
     # We'll clear it to avoid misunderstandings...
     filename = None
 
-    form = LoadDataForm()
+    form = ReloadDataForm()
     document = current_user.get_filename()
     uploads_folder = user_data.get_document_uploads_folder_name()
     eml_node = load_eml(filename=document)
@@ -625,12 +625,13 @@ def reupload_data(dt_node_id=None, filename=None, saved_filename=None, name_chg_
 
             delimiter = form.delimiter.data
             quote_char = form.quote.data
+            update_codes = form.update_codes.data == 'yes'
 
             try:
                 goto = webapp.views.data_tables.load_data.handle_reupload(dt_node_id=dt_node_id, saved_filename=filename,
                                                                           document=document, eml_node=eml_node,
                                                                           uploads_folder=uploads_folder, name_chg_ok=name_chg_ok,
-                                                                          delimiter=delimiter, quote_char=quote_char)
+                                                                          delimiter=delimiter, quote_char=quote_char, update_codes=update_codes)
                 log_usage(actions['RE_UPLOAD_DATA_TABLE'], unmodified_filename)
                 return goto
 

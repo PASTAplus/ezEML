@@ -921,7 +921,7 @@ def check_data_table_similarity(old_dt_node, new_dt_node, new_column_vartypes, n
 
 def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
                     eml_node=None, uploads_folder=None, name_chg_ok=False,
-                    delimiter=None, quote_char=None):
+                    delimiter=None, quote_char=None, update_codes=False):
     """
     When a data table is re-uploaded, we need to perform various checks in addition to doing load_data_table().
     Also, we need to re-use existing nodes where possible so that we don't lose any user edits for attribute
@@ -1002,7 +1002,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
         try:
             # use the existing dt_node, but update objectName, size, rows, MD5, etc.
             # also, update column names and categorical codes, as needed
-            update_data_table(dt_node, new_dt_node, new_column_names, new_column_codes)
+            update_data_table(dt_node, new_dt_node, new_column_names, new_column_codes, update_codes=update_codes)
             # rename the temp file
             os.rename(filepath, filepath.replace('.ezeml_tmp', ''))
 
@@ -1064,7 +1064,7 @@ def handle_reupload(dt_node_id=None, saved_filename=None, document=None,
                             quote_char=quote_char))
 
 
-def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_codes, doing_xml_import=False):
+def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_codes, doing_xml_import=False, update_codes=False):
     """
     Update the metadata for a data table that is being fetched or reuploaded. In such cases, metadata for the table
     already exists (e.g., in fetch, we fetch the package's metadata first and then do the data tables), but we need to
@@ -1177,7 +1177,7 @@ def update_data_table(old_dt_node, new_dt_node, new_column_names, new_column_cod
                 if old_name != new_name:
                     views.debug_None(old_attribute_names_node, 'old_attribute_names_node is None')
                     old_attribute_names_node.content = new_name
-        if not compare_codes(old_column_codes, new_column_codes):
+        if update_codes and not compare_codes(old_column_codes, new_column_codes):
             # need to fix up the categorical codes
             old_attribute_list_node = old_dt_node.find_child(names.ATTRIBUTELIST)
             old_attribute_nodes = old_attribute_list_node.find_all_children(names.ATTRIBUTE)

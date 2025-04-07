@@ -67,6 +67,7 @@ project_02,Project,Project Personnel,ERROR,REQUIRED,At least one <b>Project Pers
 project_03,Project,Project,WARNING,RECOMMENDED,A dataset should define a <b>Project</b>.,
 project_04,Project,Funder Name,ERROR,REQUIRED,<b>Funder Name</b> is required.,,funder_name
 project_05,Project,Award Title,ERROR,REQUIRED,<b>Award Title</b> is required.,,award_title
+project_06,Project,Funding Award,WARNING,RECOMMENDED,"<b>Funding Awards</b> should be listed. If the project has no associated <b>Funding Awards</b>, ignore this warning.",,funding_awards
 other_entity_01,Other Entities,Name,ERROR,REQUIRED,Entity <b>Name</b> is required.,,entity_name
 other_entity_02,Other Entities,Entity Type,ERROR,REQUIRED,<b>Entity Type</b> is required.,,entity_type
 other_entity_03,Other Entities,Entity Description,ERROR,REQUIRED,Entity <b>Description</b> is required.,,entity_description

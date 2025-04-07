@@ -1092,8 +1092,11 @@ def check_project_node(project_node, doc_name, related_project_id=None):
                                 related_project_id)
 
     project_award_nodes = project_node.find_all_children(names.AWARD)
-    for project_award_node in project_award_nodes:
-        check_project_award(project_award_node, doc_name, related_project_id)
+    if not project_award_nodes:
+        add_to_evaluation('project_06', link)
+    else:
+        for project_award_node in project_award_nodes:
+            check_project_award(project_award_node, doc_name, related_project_id)
 
     related_project_nodes = project_node.find_all_children(names.RELATED_PROJECT)
     for related_project_node in related_project_nodes:

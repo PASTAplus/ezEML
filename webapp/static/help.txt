@@ -500,9 +500,10 @@ Choose the CSV file containing the updated data table, and set the Field Delimit
 
 The CSV file's name is not required to be the same as the name of the CSV file uploaded previously.
 
-Usually, when you're re-uploading a table whose metadata has already been entered, you'll want to leave the categorical codes as they are.
- If, instead, you want ezEML to infer the categorical codes anew, you can set <b>Update Categorical Codes</b> to <b>yes</b>. In the latter case,
- ezEML will retain Code Definitions for existing categorical codes, but you'll have to enter Code Definitions for any new codes ezEML detects.
+When you're re-uploading a table whose metadata has already been entered, you may want to leave the categorical codes as they are, or you may want to update them.
+ If you want ezEML to infer the categorical codes anew, set <b>Update Categorical Codes</b> to <b>yes</b> (the default). In that case,
+ ezEML will retain Code Definitions previously entered for existing categorical codes, but you'll need to enter Code Definitions for any new codes ezEML detects.
+ To leave the categorical codes unchanged, set <b>Update Categorical Codes</b> to <b>no</b>.
 --------------------
 data_table_name
 Data Table Name

@@ -245,9 +245,9 @@ class ReloadDataForm(EDIForm):
     ], default='"'
     )
     update_codes = SelectField('Update Categorical Codes', choices=[
-        ('no', 'no'),
-        ('yes', 'yes')
-    ], default='no'
+        ('yes', 'yes'),
+        ('no', 'no')
+    ], default='yes'
     )
 
 

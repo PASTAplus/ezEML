@@ -8,13 +8,13 @@ responsible_party_01,Party,Party,ERROR,REQUIRED,"At least one of <b>Last Name</b
 responsible_party_02,Party,Party,WARNING,RECOMMENDED,An <b>ORCID ID</b> is recommended.,,user_id
 responsible_party_03,Party,Party,ERROR,REQUIRED,A <b>Role</b> is required.,Applies only to parties that require Role.,role
 responsible_party_04,Party,Party,ERROR,REQUIRED,<b>Last Name</b> is required if First Name or Middle Name/Initial  is given.,"Applies if first or middle name is provided, but no last name.",sn
-responsible_party_05,Party,Party,ERROR,REQUIRED,An <b>Email Address</b> is required.,,email
+responsible_party_05,Party,Party,WARNING,RECOMMENDED,An <b>Email Address</b> should be provided.,,email
 responsible_party_06,Party,Party,ERROR,REQUIRED,An <b>Org ID Type</b> is required if an Org ID is provided.,,org_id_type
 responsible_party_01_ds,Data Sources,Party,ERROR,REQUIRED,"At least one of <b>Last Name</b>, <b>Organization</b>, or <b>Position Name</b> is required.",,sn
 responsible_party_02_ds,Data Sources,Party,WARNING,RECOMMENDED,An <b>ORCID ID</b> is recommended.,,user_id
 responsible_party_03_ds,Data Sources,Party,ERROR,REQUIRED,A <b>Role</b> is required.,Applies only to parties that require Role.,role
 responsible_party_04_ds,Data Sources,Party,ERROR,REQUIRED,<b>Last Name</b> is required if First Name or Middle Name/Initial  is given.,"Applies if first or middle name is provided, but no last name.",sn
-responsible_party_05_ds,Data Sources,Party,WARNING,RECOMMENDED,An <b>Email</b> address should be provided.,,email
+responsible_party_05_ds,Data Sources,Party,WARNING,RECOMMENDED,An <b>Email Address</b> should be provided.,,email
 responsible_party_06_ds,Data Sources,Party,ERROR,REQUIRED,An <b>Org ID Type</b> is required if an Org ID is provided.,,org_id_type
 abstract_01,Abstract,Abstract,ERROR,REQUIRED,A dataset <b>Abstract</b> is required.,,abstract
 abstract_02,Abstract,Abstract,ERROR,REQUIRED,Increase the length of the dataset's <b>Abstract</b>. 20 or more words is a recommended length.,"Currently, shown if number of words < 20.",abstract

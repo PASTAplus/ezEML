@@ -385,9 +385,11 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
 
     evaluation_warnings = evaluate_via_metapype(rp_node)
 
-    # User ID is recommended
+    # ORCID ID is recommended
     if find_err_code(evaluation_warnings, EvaluationWarning.ORCID_ID_MISSING, rp_node.name):
-        add_to_evaluation('responsible_party_02', link, section, item)
+        # Make sure this is an individual, not an organization or position
+        if rp_node.find_child(names.INDIVIDUALNAME):
+            add_to_evaluation('responsible_party_02', link, section, item)
 
     # Email is recommended
     if find_err_code(evaluation_warnings, EvaluationWarning.EMAIL_MISSING, rp_node.name):

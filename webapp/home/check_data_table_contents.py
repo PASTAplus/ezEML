@@ -932,7 +932,14 @@ def set_check_data_tables_badge_status(document_name, eml_node):
         data_table_name = get_data_table_name(data_table_node)
         metadata_hash = hash_data_table_metadata_settings(eml_node, data_table_name)
         this_status = get_data_file_eval_status(document_name, csv_file_name, metadata_hash)
+
         if this_status == 'red' or this_status == 'black':
+            if this_status == 'black':
+                online_distribution_url_node = data_table_node.find_single_node_by_path(
+                    [names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
+                if online_distribution_url_node and Config.PASTA_URL in online_distribution_url_node.content:
+                    # If the package was fetched from EDI and the data table hasn't been updated, we don't need it to be checked
+                    continue
             status = 'red'
             break
         if this_status == 'yellow' and status == 'green':

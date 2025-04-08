@@ -107,11 +107,34 @@ If you have questions, please contact us at
         </table>
 
         {% if check_metadata_status == 'red' %}
-            <span style="color:red;">Your metadata contains one or more errors.</span><span style="color:black;"> To see what the errors
-                are, click <b><a href="edit/home.check_metadata">Check Metadata</a></b>.
-            We encourage you to correct the errors before submitting, but you may go ahead and submit your package as is,
-                if you choose, for example if there are errors you're not sure how to handle. In that case, please leave
-            an explanation in the <b>Notes for EDI Data Curators</b> text area above so we can assist you better.</span>
+            <div class="col-md-12" style="border: 2px solid red;padding: 15px;">
+            <span style="color:red;font-weight: bold">Your metadata contains one or more errors.</span><span style="color:black;"><p></p>To see what the errors
+                are, click <b><a href="/eml/check_metadata">Check Metadata</a></b>, where errors will be indicated by red
+                "badges" like this:  <span class ="red_circle" style=""></span><p></p>
+            We strongly encourage you to correct all errors before submitting. If you are unsure how to fix some errors,
+                feel free to contact us at <a style="color: steelblue;font-weight: bold" href="mailto:support.edirepository.org">support@edirepository.org</a>
+                for assistance. If you are completely stuck, you may go ahead and submit your package as is, but in that case, please leave
+                an explanation in the <b>Notes for EDI Data Curators</b> text area above so we can assist you better.</span>
+{#            <p>&nbsp;</p>#}
+            </div>
+            <p>&nbsp;</p>
+        {% endif %}
+        {% if check_data_table_status == 'yellow' %}
+            <div class="col-md-12" style="border: 2px solid red;padding: 15px;">
+            <span style="color:red;font-weight: bold">One or more of your data tables have not been checked.</span><p></p><span style="color:black;"> Before continuing,
+                please click <b><a href="/eml/check_data_tables">Check Data Tables</a></b>, check all unchecked tables, and correct
+                any errors found.
+            </div>
+            <p>&nbsp;</p>
+        {% endif %}
+        {% if check_data_table_status == 'red' %}
+            <div class="col-md-12" style="border: 2px solid red;padding: 15px;">
+            <span style="color:red;font-weight: bold">One or more of your data tables contain errors.</span><p></p><span style="color:black;">
+                Click <b><a href="/eml/check_data_tables">Check Data Tables</a></b> to see what the errors are.<p></p>
+            We strongly encourage you to correct all errors before submitting. If you are unsure how to fix some errors,
+                feel free to contact us at <a style="color: steelblue;font-weight: bold;" href="mailto:support.edirepository.org">support@edirepository.org</a>
+                for assistance.</span>
+            </div>
             <p>&nbsp;</p>
         {% endif %}
 

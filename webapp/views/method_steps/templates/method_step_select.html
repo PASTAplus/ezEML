@@ -7,6 +7,7 @@
     {% set help_methods_dialog = help_methods_id ~ '_dialog' %}
 
     <table>
+    <tr>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'methods_status' %}
         {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip, method_step_list | length) }}
@@ -14,7 +15,17 @@
         <td style="width:3%"></td>
         <td><h2>Method Steps{% if entity_name %} for Data Entity: {{ entity_name }}{% endif %}</h2></td>
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_methods_btn) }}</td>
+    </tr>
     </table>
+    <table>
+    <tr>
+        <td style="vertical-align:middle;padding-top: 12px;width: 20px;">&nbsp;</td>
+        <td>
+    Describe the data collection methods. Click the Help button above for guidelines.
+        </td>
+    </tr>
+    </table><br>
+
 
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form">

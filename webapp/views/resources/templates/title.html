@@ -23,10 +23,15 @@
 
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" novalidate="true">
-                <h5>Enter a title for the data package:</h5>
+                Enter a title for the data package (not the associated journal article).
+                <table>
+                    <td>Click the Help button for guidelines.</td>
+                    <td valign="top" style="padding-top: 5px;padding-left: 15px;">{{ macros.help_button(help_title_btn) }}</td>
+                </table>
+                <p>
                 <table>
                     <td>{{ wtf.form_field(form.title, rows=5, cols=100) }}</td>
-                    <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_title_btn) }}</td>
+{#                    <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_title_btn) }}</td>#}
                 </table>
                 <br/>
                 <table>

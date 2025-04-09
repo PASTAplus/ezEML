@@ -93,7 +93,7 @@ def geographic_coverage_select(filename=None):
     if request.method == 'POST':
         form_value = request.form
         form_dict = form_value.to_dict(flat=False)
-        url = select_post(filename, form, form_dict, # blah
+        url = select_post(filename, form, form_dict,
                           'POST', PAGE_GEOGRAPHIC_COVERAGE_SELECT,
                           PAGE_INTELLECTUAL_RIGHTS,
                           PAGE_TEMPORAL_COVERAGE_SELECT,

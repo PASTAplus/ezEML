@@ -781,7 +781,9 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
         elif missing_value_code_node:
             attribute_node.remove_child(missing_value_code_node)
 
-    def set_numerical_variable(attribute_node, number_type, standard_unit, custom_unit, custom_unit_description, precision, bounds_min, bounds_max):
+    def set_numerical_variable(attribute_node, number_type, standard_unit,
+                               custom_unit, custom_unit_description,
+                               precision, bounds_min, bounds_max):
         if not is_numerical(attribute_node):
             return
         ir_node = interval_or_ratio_node(attribute_node)
@@ -884,6 +886,8 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
     column_types = get_column_types(sheet, length=length)
     column_definitions = get_column_definitions(sheet, length=length)
     column_labels = get_column_labels(sheet, length=length)
+    storage_types = get_storage_types(sheet, length=length)
+    storage_type_systems = get_storage_type_systems(sheet, length=length)
     mvc1, mvc_explanations_1, mvc2, mvc_explanations_2, mvc3, mvc_explanations_3 = get_missing_values(sheet, length=length)
     row += 4
 
@@ -929,6 +933,10 @@ def ingest_data_table_spreadsheet(filepath, dt_node_id):
     # Set column labels
     for i, attribute_node in enumerate(attribute_nodes):
         set_child_node(names.ATTRIBUTELABEL, attribute_node, column_labels[i])
+
+    # Set storage type info
+    for i, attribute_node in enumerate(attribute_nodes):
+        set_child_node(names.STORAGETYPE, attribute_node, content=storage_types[i], attribute=('typeSystem', storage_type_systems[i]))
 
     # Set missing value codes
     # mvc1, mvc_explanations_1, mvc2, mvc_explanations_2, mvc3, mvc_explanations_3 = get_missing_values(sheet, length=length)

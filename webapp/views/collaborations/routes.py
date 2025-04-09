@@ -199,6 +199,7 @@ def enable_edi_curation(filename=None):
     eml_node = load_eml(filename=filename)
     return render_template('enable_edi_curation.html', filename=filename, enable_disabled=enable_disabled,
                            check_metadata_status=get_check_metadata_status(eml_node, filename),
+                           check_data_table_status=session['check_data_tables_status'],
                            help=help, form=form)
 
 

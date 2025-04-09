@@ -385,9 +385,11 @@ def check_responsible_party(rp_node:Node, section:str=None, item:str=None,
 
     evaluation_warnings = evaluate_via_metapype(rp_node)
 
-    # User ID is recommended
+    # ORCID ID is recommended
     if find_err_code(evaluation_warnings, EvaluationWarning.ORCID_ID_MISSING, rp_node.name):
-        add_to_evaluation('responsible_party_02', link, section, item)
+        # Make sure this is an individual, not an organization or position
+        if rp_node.find_child(names.INDIVIDUALNAME):
+            add_to_evaluation('responsible_party_02', link, section, item)
 
     # Email is recommended
     if find_err_code(evaluation_warnings, EvaluationWarning.EMAIL_MISSING, rp_node.name):
@@ -1092,8 +1094,11 @@ def check_project_node(project_node, doc_name, related_project_id=None):
                                 related_project_id)
 
     project_award_nodes = project_node.find_all_children(names.AWARD)
-    for project_award_node in project_award_nodes:
-        check_project_award(project_award_node, doc_name, related_project_id)
+    if not project_award_nodes:
+        add_to_evaluation('project_06', link)
+    else:
+        for project_award_node in project_award_nodes:
+            check_project_award(project_award_node, doc_name, related_project_id)
 
     related_project_nodes = project_node.find_all_children(names.RELATED_PROJECT)
     for related_project_node in related_project_nodes:

@@ -128,7 +128,6 @@ def data_package_id(filename=None):
     """Handle the page for the Data Package ID item in the Contents menu."""
 
     form = DataPackageIDForm()
-    form = DataPackageIDForm()
 
     # Process POST
     if request.method == 'POST':

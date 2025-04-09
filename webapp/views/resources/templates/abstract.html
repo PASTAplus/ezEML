@@ -19,7 +19,8 @@
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
                 {{ form.csrf_token }}
-                <h5>Enter the abstract text below:</h5>
+                Enter an abstract for the data package (not the associated journal article).<p></p>
+                    Click the Help button for guidelines.<p></p>
 
                 {% if model_has_complex_texttypes %}
                 {% set font_family='Courier' %}

@@ -2126,7 +2126,11 @@ def import_parties_2(filename, template, is_template, target=None):
         def sort_key(item):
             return item[1].lower()
 
-        return sorted(parties, key=sort_key)
+        # Remove the labels 'Creator', 'Contact', etc., in addition to sorting
+        cleaned = [
+            (t[0], t[1].rsplit(' (', 1)[0] if '(' in t[1] and ')' in t[1] else t[1], t[2])
+            for t in parties]
+        return sorted(cleaned, key=sort_key)
 
     def add_related_project_personnel_targets():
         target_filename = current_user.get_filename()

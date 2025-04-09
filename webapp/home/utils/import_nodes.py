@@ -332,7 +332,9 @@ def compose_individual_name_label(rp_node: Node = None, last_name_first: bool = 
         if given_name_nodes:
             for given_name_node in given_name_nodes:
                 if given_name_node and given_name_node.content:
-                    given_name = given_name + " " + given_name_node.content
+                    if given_name:
+                        given_name = given_name + " "
+                    given_name = given_name + given_name_node.content
 
         surname = ''
         surname_node = rp_node.find_child(names.SURNAME)

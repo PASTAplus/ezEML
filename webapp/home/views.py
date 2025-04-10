@@ -2068,8 +2068,11 @@ def import_parties_2(filename, template, is_template, target=None):
         label = compose_individual_name_label(individual_name_node)
         if not label:
             label = compose_simple_label(rp_node, names.ORGANIZATIONNAME)
-        if not label:
-            label = compose_simple_label(rp_node, names.POSITIONNAME)
+            position_name_label = compose_simple_label(rp_node, names.POSITIONNAME)
+            if not label:
+                label = position_name_label
+            else:
+                label = f'{label}, {position_name_label}'
         return label
 
     party_lookup = {}

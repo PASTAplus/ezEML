@@ -318,7 +318,7 @@ def import_related_project_nodes(target_package, node_ids_to_import):
     load_and_save.save_both_formats(target_package, target_eml_node)
 
 
-def compose_individual_name_label(rp_node: Node = None, last_name_first: bool = False):
+def compose_individual_name_label(rp_node: Node = None, last_name_first: bool = True):
     label = ''
     if rp_node:
         salutation_nodes = rp_node.find_all_children(names.SALUTATION)
@@ -342,7 +342,7 @@ def compose_individual_name_label(rp_node: Node = None, last_name_first: bool = 
             surname = surname_node.content
 
         if last_name_first:
-            return surname + "," + given_name
+            return surname + ", " + given_name
         else:
             return given_name + " " + surname
 
@@ -354,7 +354,7 @@ def compose_simple_label(rp_node: Node = None, child_node_name: str = ''):
             label = child_node.content
     return label
 
-def compose_rp_label(rp_node:Node=None, last_name_first:bool=False):
+def compose_rp_label(rp_node:Node=None, last_name_first:bool=True):
     """
     Compose a label for a responsible party node. The label is a string that can be displayed to the user.
 
@@ -378,16 +378,19 @@ def compose_rp_label(rp_node:Node=None, last_name_first:bool=False):
 
         if individual_name_label:
             label = individual_name_label
+            if position_name_label or organization_name_label or role_label:
+                label = label + ' – '
+
         if position_name_label:
-            if label:
-                label = label + ', '
+            # if label:
+            #     label = label + ' – '
             label = label + position_name_label
         if organization_name_label:
-            if label:
+            if position_name_label:
                 label = label + ', '
             label = label + organization_name_label
         if role_label:
-            if label:
+            if position_name_label or organization_name_label:
                 label = label + ', '
             label = label + role_label
     return label

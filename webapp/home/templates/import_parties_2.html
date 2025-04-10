@@ -11,7 +11,7 @@
         function setTarget(target) {
             let target_list = document.getElementsByName('target');
             for (let i = 0; i < target_list.length; i++) {
-                if (target_list[i].value == target) {
+                if (target_list[i].value === target) {
                     target_list[i].checked = true;
                 }
             }

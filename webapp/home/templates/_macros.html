@@ -124,7 +124,7 @@
             // checkbox statuses should be copied to the other list.
             let from_items = null;
             let to_items = null;
-            if (sorted === true) {
+            if (sorted === 'true') {
                 from_items = Array.from(document.getElementById('to_import_sorted').getElementsByTagName('li'));
                 to_items = Array.from(document.getElementById('to_import').getElementsByTagName('li'));
             } else {
@@ -151,9 +151,9 @@
             let to_import_sorted = document.getElementById('to_import_sorted');
             let items = null;
 
-            reconcile_checkbox_statuses(sorted.value == 'true');
+            reconcile_checkbox_statuses(sorted.value === 'true');
 
-            if (sorted.value == 'false') {
+            if (sorted.value === 'false') {
                 items = Array.from(to_import.getElementsByTagName('li'));
                 to_import.style.display = 'none';
                 to_import_sorted.style.display = 'block';

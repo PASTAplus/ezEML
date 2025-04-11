@@ -208,7 +208,7 @@ class NCBITaxonomy(TaxonomySource):
         hierarchy = []
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         id = self.get_taxon_id(name)
-        while id:
+        while id and not id == '0':
             rec = self.fetch_by_taxon_id(id)
             if rec:
                 tree = fromstring(rec.encode('utf-8'), parser=parser)
@@ -236,11 +236,14 @@ class NCBITaxonomy(TaxonomySource):
                          timeout=self._timeout)
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         tree = fromstring(r.text.encode('utf-8'), parser=parser)
-        common_name = tree.xpath("//DocSum/Item[@Name='CommonName']")[0].text
-        if not common_name:
-            return ''
-        else:
+        common_name = ''
+        common_name_entry = tree.xpath("//DocSum/Item[@Name='CommonName']")
+        if common_name_entry:
+            common_name = common_name_entry[0].text
+        if common_name:
             return common_name
+        else:
+            return ''
 
 
 def load_taxonomic_coverage_csv_file(csv_file, delimiter, quotechar):

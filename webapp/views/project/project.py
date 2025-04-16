@@ -240,7 +240,7 @@ def project_personnel_select(filename=None, node_id=None, project_node_id=None):
         return redirect(url)
 
     # Process GET
-    help = [get_help('project_personnel')]
+    help = [get_help('project_personnel'), get_help('project_personnel')]
     return rp_select_get(filename=filename, form=form, rp_name='personnel',
                          rp_singular=non_breaking('Project Personnel'), rp_plural=non_breaking('Project Personnel'),
                          node_id=node_id, project_node_id=project_node_id, help=help)

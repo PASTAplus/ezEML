@@ -70,7 +70,7 @@
                         <input class="btn btn-primary" id="add_coverage" name="1" type="submit" value="Add Geographic Coverage"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="2" type="submit" value="Import Geographic Coverage"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="3" type="submit" value="Load Geographic Coverage from CSV File"/></td>
-                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_geographic_coverage_csv_file_btn) }}</td>
+                    <td valign="middle" style="padding-top: 0px;">{{ macros.help_button(help_geographic_coverage_csv_file_btn) }}</td>
                         <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         {# Implemented as a link so we can open in a new tab #}
                         <a class="btn btn-primary" href="{{ url_for('cov.preview_all_geographic_coverage', filename=filename) }}" target="_ezEML_preview_">Preview All</a>

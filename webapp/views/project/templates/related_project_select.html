@@ -31,7 +31,7 @@
                         </td>
                         {{ macros.up_down_arrow(project_entry.id, project_entry.upval) }}
                         {{ macros.up_down_arrow(project_entry.id, project_entry.downval) }}
-                        <td><input class="btn btn-primary" name="{{ project_entry.id }}" type="submit" value="Edit"/>
+                        <td><input class="btn btn-primary" name="{{ project_entry.id }}" type="submit" value="Edit"/>&nbsp;
                             <input class="btn btn-primary" name="{{ project_entry.id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}

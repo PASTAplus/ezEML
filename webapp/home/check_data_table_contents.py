@@ -66,9 +66,8 @@ from metapype.model import metapype_io
 from metapype.model.node import Node
 
 
-data_time_format_strings = None
-date_time_format_regex = None
-DATE_TIME_FORMAT_STRINGS_FILENAME = 'webapp/static/dateTimeFormatString_list.csv'
+date_time_format_examples = {}
+date_time_format_regex = {}
 DATE_TIME_FORMAT_REGEX_FILENAME = 'webapp/static/dateTimeFormatString_regex.csv'
 
 
@@ -694,27 +693,20 @@ def check_data_table(eml_file_url:str=None,
     return results
 
 
-def load_date_time_format_files(strings_filename=DATE_TIME_FORMAT_STRINGS_FILENAME,
-                                regex_filename=DATE_TIME_FORMAT_REGEX_FILENAME):
+def load_date_time_format_files(regex_filename=DATE_TIME_FORMAT_REGEX_FILENAME):
     """
-    Load the date time format strings and corresponding regexes from the CSV files and save in global variables.
+    Load the date time format strings and corresponding regexes from the CSV file and save in global variables.
     """
-    global data_time_format_strings, date_time_format_regex
-    if not data_time_format_strings:
-        data_time_format_strings = OrderedDict()
-        with open(strings_filename, 'r', encoding='utf-8-sig') as csv_file:
-            csv_reader = csv.DictReader(csv_file)
-            for line in csv_reader:
-                format = line['Format']
-                example = line['Example']
-                data_time_format_strings[format] = example
+    global date_time_format_examples, date_time_format_regex
     if not date_time_format_regex:
         date_time_format_regex = OrderedDict()
         with open(regex_filename, 'r', encoding='utf-8-sig') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             for line in csv_reader:
                 format = line['Format']
+                example = line['Example']
                 regex = line['Regex']
+                date_time_format_examples[format] = example
                 date_time_format_regex[format] = regex
 
 
@@ -757,7 +749,7 @@ def check_date_time_attribute(attribute_node):
     def check_date_time_format_specification(specification):
         """ Check if a datetime specification has a valid format according to our list of supported formats. """
         load_date_time_format_files()
-        return specification in data_time_format_strings.keys()
+        return specification in date_time_format_regex.keys()
 
     format_string_node = attribute_node.find_single_node_by_path(
         [names.MEASUREMENTSCALE, names.DATETIME, names.FORMATSTRING])
@@ -797,7 +789,7 @@ def format_date_time_formats_list():
     output += '<table class="eval_table" width=100% style="padding: 10px;">'
     output += '<tr><th style="font-size:120%;">Format</th><th style="font-size:120%;">Example</th></tr>'
 
-    for format, example in data_time_format_strings.items():
+    for format, example in date_time_format_examples.items():
         output += f'<tr>'
         output += f'<td class="eval_table" valign="top">{format}</td>'
         output += f'<td class="eval_table" valign="top">{example}</td>'

@@ -63,13 +63,13 @@
                         <td width="3%">&nbsp;</td>
                         <td>
                             <span style="float:right;">
-                            <input class="btn btn-primary" name="{{ ds_entry.ms_node_id }}|{{ ds_entry.ds_node_id }}" type="submit" value="Edit"/>
+                            <input class="btn btn-primary" name="{{ ds_entry.ms_node_id }}|{{ ds_entry.ds_node_id }}" type="submit" value="Edit"/>&nbsp;
                             <input class="btn btn-primary" name="{{ ds_entry.ms_node_id }}|{{ ds_entry.ds_node_id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/>
                             </span></td>
                     </tr>
                     {% endfor %}
                 </table>
-                    <input class="btn btn-primary" name="Add Data Source" type="submit" value="Add Data Source"/>
+                    <input class="btn btn-primary" name="Add Data Source" type="submit" value="Add Data Source"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="Fetch Data Source Info from EDI" type="submit" value="Fetch Data Source Info from EDI"/>
                 <p>
                 </div>
@@ -83,7 +83,7 @@
                 </td>
 
                 <br>
-                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel" formnovalidate="True"/>
                 {{ macros.hidden_buttons_with_no_contents_menu() }}
                 {{ form.csrf_token }}

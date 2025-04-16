@@ -874,6 +874,43 @@ Note: Communities sometimes have specific requests for keywords to assist in sea
 Keywords are not required by the EML standard, but EDI requires keywords for packages submitted to the EDI data repository.
  At least 5 keywords should be provided to help other users discover your data package.
 --------------------
+load_responsible_parties
+Load Responsible Parties (Creators, Contacts, etc.) from CSV File
+
+When your data package has a very long list of Creators, say, it can be tedious to enter them one at a time via <b>Add Creator</b>. To handle
+ such cases, you can put the relevant information in a CSV file and upload it all at once via <b>Load Creators from CSV File</b>. The same capability
+ exists for Contacts, Associated Parties, and Metadata Providers.
+
+The first row in the CSV file is required to be the following header:<br>
+<code>
+last_name,first_name,middle_initial,salutation,orcid_id,organization,org_id,org_id_type,position_name,email_address,role,online_url,address_1,address_2,city,state,postal_code,country,phone,fax
+</code>
+
+The file needs to adhere to that column sequence.
+
+If you use <b>comma</b> as the Field Delimiter and have entries that contain commas, those entries need to be enclosed in quotes so that the commas
+ are not interpreted as field delimiters.
+
+The file needs to be <b>UTF-8 encoded</b>. If you create the file in Microsoft Excel, you need to save it using Save As... and select CSV UTF-8 (Comma delimited) (.csv)
+ as the File Format.
+
+When you load responsible parties in this way, any existing responsible parties of the given type (creators, contacts, etc.) are overwritten, so
+ you will probably want all of the parties of that type to be in the CSV file.
+
+ If you specify an <b>org_id</b> for a responsible party, the corresponding <b>org_id_type</b> should be one of:<ul>
+ <li>https://www.grid.ac/
+ <li>https://isni.oclc.org/
+ <li>https://ror.org/
+ <li>https://www.wikidata.org/
+ </ul>
+ corresponding, respectively, to:<ul>
+ <li>GRID – Global Research Identifier Database
+ <li>ISNI – International Standard Name Identifier
+ <li>ROR – Research Organization Registry
+ <li>Wikidata Organization Identifier
+ </ul>
+ Other values will be accepted, but they will not appear in the ezEML user interface when you edit the responsible party in question.
+--------------------
 load_taxonomic_coverage
 Load Taxonomic Coverage from CSV File
 

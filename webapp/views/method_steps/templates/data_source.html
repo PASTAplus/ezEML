@@ -73,7 +73,7 @@
 {#                        <td style="width:60%">{{ creator_entry.label }}</td>#}
                         {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.upval) }}
                         {{ macros.up_down_arrow(creator_entry.rp_node_id, creator_entry.downval) }}
-                        <td align="right"><input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" type="submit" value="Edit"/>
+                        <td align="right"><input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" type="submit" value="Edit"/>&nbsp;
                         <input class="btn btn-primary" name="creator|{{ creator_entry.rp_node_id }}|{{ creator_entry.data_source_node_id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
 
                     </tr>
@@ -105,7 +105,7 @@
 {#                        <td style="width:60%">{{ contact_entry.label }}</td>#}
                         {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.upval) }}
                         {{ macros.up_down_arrow(contact_entry.rp_node_id, contact_entry.downval) }}
-                        <td align="right"><input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" type="submit" value="Edit"/>
+                        <td align="right"><input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" type="submit" value="Edit"/>&nbsp;
                         <input class="btn btn-primary" name="contact|{{ contact_entry.rp_node_id }}|{{ contact_entry.data_source_node_id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
@@ -117,7 +117,7 @@
                 <input class="btn btn-primary" id="add_contact" name="{{ data_source_node_id }}" type="submit" value="Add Contact"/>
                 <p>&nbsp;</p>
 
-                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons() }}
             </form>

@@ -62,3 +62,24 @@ class ResponsiblePartyForm(EDIForm):
                 self.email.data,
                 self.online_url.data,
                 self.role.data)
+
+
+class LoadResponsiblePartyForm(EDIForm):
+    delimiter = SelectField('Field Delimiter', choices=[
+            (',', 'comma'),
+            ('\t', 'tab'),
+            ('|', 'vertical bar, or pipe - |'),
+            (';', 'semicolon'),
+            (':', 'colon')
+        ], default=','
+    )
+    quote = SelectField('Quote Character', choices=[
+            ('"', 'double quote - "'),
+            ("'", "single quote - '")
+        ], default='"'
+    )
+    node_name = HiddenField('')
+    md5 = HiddenField('')
+
+    def field_data(self)->tuple:
+        return (self.node_name)

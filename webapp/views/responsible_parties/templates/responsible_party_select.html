@@ -6,6 +6,9 @@
     {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
     {% set help_rp_btn = help_rp_id ~ '_btn' %}
     {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% set help_responsible_parties_csv_file_id, help_responsible_parties_csv_file_title, help_responsible_parties_csv_file_content = help[1] %}
+    {% set help_responsible_parties_csv_file_btn = help_responsible_parties_csv_file_id ~ '_btn' %}
+    {% set help_responsible_parties_csv_file_dialog = help_responsible_parties_csv_file_id ~ '_dialog' %}
     {% endif %}
 
     <table>
@@ -18,10 +21,6 @@
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>
     </table>
 
-{#    <table>#}
-{#        <td><h2>{{ rp_plural }}</h2></td>#}
-{#        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_rp_btn) }}</td>#}
-{#    </table>#}
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
@@ -40,14 +39,21 @@
                         </td>
                         {{ macros.up_down_arrow(rp_entry.id, rp_entry.upval) }}
                         {{ macros.up_down_arrow(rp_entry.id, rp_entry.downval) }}
-                        <td align="right"><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="Edit"/>
+                        <td align="right"><input class="btn btn-primary" name="{{ rp_entry.id }}" type="submit" value="Edit"/>&nbsp;
                         <input class="btn btn-primary" name="{{ rp_entry.id }}" onclick="return confirm('Are you sure? This action cannot be undone.');" type="submit" value="Remove"/></td>
                     </tr>
                     {% endfor %}
                 </table>
                 <br/>
                 <input class="btn btn-primary" id="add_rp" name="1" type="submit" value="Add {{ rp_singular }}"/>&nbsp;&nbsp;
-                <input class="btn btn-primary" name="1" type="submit" value="Import {{ rp_singular }}"/>
+                <input class="btn btn-primary" name="1" type="submit" value="Import {{ rp_singular }}"/>&nbsp;&nbsp;
+                {% if session['current_page'] != 'project' %}
+                <input class="btn btn-primary" name="load" type="submit" value="Load {{ rp_plural }} from CSV File"/>&nbsp;
+{#                    <span style="display: inline-block; vertical-align: middle;">#}
+                    <span class="help-wrapper">
+                    {{ macros.help_button(help_responsible_parties_csv_file_btn) }}
+                    </span>
+                {% endif %}
                 <br/><br/>
                 {% if session['current_page'] != 'project' %}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
@@ -61,6 +67,7 @@
         </div>
     </div>
     {{ macros.help_dialog(help_rp_dialog, help_rp_title, help_rp_content) }}
+    {{ macros.help_dialog(help_responsible_parties_csv_file_dialog, help_responsible_parties_csv_file_title, help_responsible_parties_csv_file_content) }}
 {% endblock %}
 
 {% block app_scripts %}
@@ -69,12 +76,16 @@
     {% set help_rp_id, help_rp_title, help_rp_content = help[0] %}
     {% set help_rp_btn = help_rp_id ~ '_btn' %}
     {% set help_rp_dialog = help_rp_id ~ '_dialog' %}
+    {% set help_responsible_parties_csv_file_id, help_responsible_parties_csv_file_title, help_responsible_parties_csv_file_content = help[1] %}
+    {% set help_responsible_parties_csv_file_btn = help_responsible_parties_csv_file_id ~ '_btn' %}
+    {% set help_responsible_parties_csv_file_dialog = help_responsible_parties_csv_file_id ~ '_dialog' %}
     {% endif %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_rp_dialog, help_rp_btn) }}
+        {{ macros.help_script(help_responsible_parties_csv_file_dialog, help_responsible_parties_csv_file_btn) }}
     });
     </script>
 

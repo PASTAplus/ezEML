@@ -11,7 +11,7 @@
                 <h5>Select an EML document to open:</h5>
                 {{ wtf.form_field(form.filename, maxlen=100) }}
                 <p>&nbsp;</p>
-                <input class="btn btn-primary" name="Open" type="submit" value="Open"/>
+                <input class="btn btn-primary" name="Open" type="submit" value="Open"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons_with_no_contents_menu() }}
             </form>

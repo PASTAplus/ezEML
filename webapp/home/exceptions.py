@@ -45,6 +45,10 @@ class InvalidHeaderRow(ezEMLError):
     pass
 
 
+class InvalidRow(ezEMLError):
+    pass
+
+
 class InvalidXMLError(ezEMLError):
     pass
 

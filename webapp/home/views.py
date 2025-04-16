@@ -36,6 +36,7 @@ from flask_login import (
 from flask import Flask, current_app
 
 from markupsafe import Markup
+from tornado.httpclient import HTTPError
 
 from webapp.home.utils.file_utils import sanitize_filename
 import webapp.home.utils.node_utils
@@ -350,6 +351,11 @@ def clear_metapype_store(response):
 def non_breaking(_str):
     """ Replace spaces with non-breaking spaces. """
     return _str.replace(' ', html.unescape('&nbsp;'))
+
+
+def breaking(_str):
+    """ Replace non-breaking spaces with spaces. """
+    return _str.replace(html.unescape('&nbsp;'), ' ')
 
 
 def debug_msg(msg):
@@ -2879,8 +2885,16 @@ def export_package():
             archive_basename, download_url, _ = save_as_ezeml_package_export(zipfile_path)
             if download_url:
                 log_usage(actions['EXPORT_EZEML_DATA_PACKAGE'])
+                # We want to use the tinyurl version of the url, but we don't want to fail altogether if tinyurl.com is
+                #  temporarily unavailable
+                try:
+                    url = make_tiny(download_url)
+                except requests.exceptions.HTTPError as err:
+                    # Something's wrong with tinyurl.com
+                    log_error('make_tiny() failed with error: {err}')
+                    url = download_url
                 return redirect(url_for('home.export_package_2', package_name=archive_basename,
-                                        download_url=make_tiny(download_url), safe=''))
+                                        download_url=url, safe=''))
 
     # Process GET
     help = get_helps(['export_package'])
@@ -3042,6 +3056,7 @@ def make_tiny(url):
     import requests
     params = {'url': quote(url, safe=':/')}
     response = requests.post('http://tinyurl.com/api-create.php', params=params)
+    response.raise_for_status()
     return response.text.replace('http://', 'https://')
 
 
@@ -4216,7 +4231,7 @@ def select_post(filename=None, form=None, form_dict=None,
 
     if form_dict:
         for key in form_dict:
-            val = form_dict[key][0]  # value is the first list element
+            val = breaking(form_dict[key][0])  # value is the first list element
             if val in (BTN_BACK, BTN_DONE):
                 new_page = back_page
             elif val[0:4] == BTN_BACK:
@@ -4274,6 +4289,22 @@ def select_post(filename=None, form=None, form_dict=None,
                 new_page = import_page
                 if node_id is None:
                     node_id = '1'
+            elif val == BTN_LOAD_ASSOCIATED_PARTIES:
+                new_page = PAGE_LOAD_RESPONSIBLE_PARTIES
+                node_name = names.ASSOCIATEDPARTY
+                node_id = '1'
+            elif val == BTN_LOAD_CONTACTS:
+                new_page = PAGE_LOAD_RESPONSIBLE_PARTIES
+                node_name = names.CONTACT
+                node_id = '1'
+            elif val == BTN_LOAD_CREATORS:
+                new_page = PAGE_LOAD_RESPONSIBLE_PARTIES
+                node_name = names.CREATOR
+                node_id = '1'
+            elif val == BTN_LOAD_METADATA_PROVIDERS:
+                new_page = PAGE_LOAD_RESPONSIBLE_PARTIES
+                node_name = names.METADATAPROVIDER
+                node_id = '1'
             elif val == BTN_LOAD_DATA_TABLE:
                 new_page = PAGE_LOAD_DATA
                 node_id = '1'
@@ -4303,6 +4334,8 @@ def select_post(filename=None, form=None, form_dict=None,
             return url_for(new_page, filename=filename, node_id=node_id, project_node_id=project_node_id)
         elif new_page == PAGE_IMPORT_PARTIES:
             return url_for(new_page, filename=filename, target=import_target)
+        elif new_page == PAGE_LOAD_RESPONSIBLE_PARTIES:
+            return url_for(new_page, filename=filename, node_name=node_name)
         else:
             if new_page is None:
                 # url_for would raise an exception... log debug info
@@ -4707,11 +4740,18 @@ def send_to_other(filename=None, mailto=None):
         name_quoted = quote(name)
         email_address_quoted = quote(email_address)
         title_quoted = quote(title)
-        url = make_tiny(url)  # Note: it is assumed the URL has not been encoded
+        # We want to use the tinyurl version of the url, but we don't want to fail altogether if tinyurl.com is
+        #  temporarily unavailable
+        try:
+            tiny_url = make_tiny(url)  # Note: it is assumed the URL has not been encoded
+        except requests.exceptions.HTTPError as err:
+            # Something's wrong with tinyurl.com
+            log_error('make_tiny() failed with error: {err}')
+            tiny_url = url
         msg_quoted = f'mailto:{email_address_quoted}?subject=ezEML-Generated%20Data%20Package&body=Dear%20{name_quoted}%3A%0D%0A%0D%0A' \
                      f'I%20have%20created%20a%20data%20package%20containing%20EML%20metadata%20and%20associated%20data%20files%20' \
                      f'for%20your%20inspection.%0D%0A%0D%0ATitle%3A%20%22{title_quoted}%22%0D%0A%0D%0AThe%20data%20package%20is%20' \
-                     f'available%20for%20download%20here%3A%20{url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
+                     f'available%20for%20download%20here%3A%20{tiny_url}%0D%0A%0D%0AThe%20package%20was%20created%20using%20ezEML.%20' \
                      f'After%20you%20download%20the%20package%2C%20you%20can%20import%20it%20into%20ezEML%2C%20or%20you%20can%20' \
                      f'unzip%20it%20to%20extract%20the%20EML%20file%20and%20associated%20data%20files%20to%20work%20with%20them%20' \
                      f'directly.%0D%0A%0D%0ATo%20learn%20more%20about%20ezEML%2C%20go%20to%20https%3A%2F%2Fezeml.edirepository.org.' \
@@ -4719,7 +4759,7 @@ def send_to_other(filename=None, mailto=None):
         msg_html = Markup(f'Dear {name}:<p><br>'
                           f'I have created a data package containing EML metadata and associated data files '
                           f'for your inspection.<p>Title: "{title}"<p>The data package is '
-                          f'available for download here: {url}.<p>The package was created using ezEML. '
+                          f'available for download here: {tiny_url}.<p>The package was created using ezEML. '
                           f'After you download the package, you can import it into ezEML, or you can '
                           f'unzip it to extract the EML file and associated data files to work with them '
                           f'directly.<p>To learn more about ezEML, go to https://ezeml.edirepository.org.'
@@ -4727,7 +4767,7 @@ def send_to_other(filename=None, mailto=None):
         msg_raw = f'Dear {name}:\n\n' \
                   f'I have created a data package containing EML metadata and associated data files ' \
                   f'for your inspection.\n\nTitle: "{title}"\n\nThe data package is ' \
-                  f'available for download here: {url}.\n\nThe package was created using ezEML. ' \
+                  f'available for download here: {tiny_url}.\n\nThe package was created using ezEML. ' \
                   f'After you download the package, you can import it into ezEML, or you can ' \
                   f'unzip it to extract the EML file and associated data files to work with them ' \
                   f'directly.\n\nTo learn more about ezEML, go to https://ezeml.edirepository.org.' \

@@ -1,4 +1,9 @@
+import csv
 import html
+import os
+import shutil
+
+from collections import namedtuple
 
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for
@@ -7,8 +12,12 @@ from flask_login import (
     login_required
 )
 
+from webapp.auth.user_data import (
+    get_document_uploads_folder_name, get_user_folder_name
+)
+
 from webapp.views.responsible_parties.forms import (
-    ResponsiblePartyForm, ResponsiblePartySelectForm
+    ResponsiblePartyForm, ResponsiblePartySelectForm, LoadResponsiblePartyForm
 )
 
 from webapp.home.forms import (
@@ -20,6 +29,11 @@ from webapp.home.utils.load_and_save import load_eml, save_both_formats
 from webapp.home.utils.lists import list_responsible_parties
 from webapp.home.utils.create_nodes import create_responsible_party
 from webapp.home.utils.node_utils import add_child, new_child_node, replace_node
+from webapp.home.log_usage import (
+    actions,
+    log_usage,
+)
+from webapp.home.exceptions import InvalidHeaderRow, InvalidRow
 
 from metapype.eml import names
 from metapype.model.node import Node
@@ -27,7 +41,10 @@ from metapype.model.node import Node
 from webapp.buttons import *
 from webapp.pages import *
 
-from webapp.home.views import select_post, non_breaking, set_current_page, get_help, get_helps
+from webapp.home.views import (
+    select_post, non_breaking, set_current_page, get_help, get_helps, reload_metadata,
+    secure_filename, allowed_data_file
+)
 from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 
@@ -51,7 +68,7 @@ def creator_select(filename=None):
 
     # Process GET
     set_current_page('creator')
-    help = [get_help('creators')]
+    help = get_helps(['creators', 'load_responsible_parties'])
     return rp_select_get(filename=filename, form=form, rp_name=names.CREATOR,
                          rp_singular='Creator', rp_plural='Creators', help=help)
 
@@ -373,7 +390,7 @@ def metadata_provider_select(filename=None):
 
     # Process GET
     set_current_page('metadata_provider')
-    help = [get_help('metadata_providers')]
+    help = get_helps(['metadata_providers', 'load_responsible_parties'])
     return rp_select_get(filename=filename, form=form,
                          rp_name=names.METADATAPROVIDER,
                          rp_singular=non_breaking('Metadata Provider'),
@@ -412,7 +429,7 @@ def associated_party_select(filename=None):
 
     # Process GET
     set_current_page('associated_party')
-    help = [get_help('associated_parties')]
+    help = get_helps(['associated_parties', 'load_responsible_parties'])
     return rp_select_get(filename=filename, form=form,
                          rp_name=names.ASSOCIATEDPARTY,
                          rp_singular=non_breaking('Associated Party'),
@@ -448,7 +465,7 @@ def contact_select(filename=None):
 
     # Process GET
     set_current_page('contact')
-    help = [get_help('contacts')]
+    help = get_helps(['contacts', 'load_responsible_parties'])
     return rp_select_get(filename=filename, form=form, rp_name='contact',
                          rp_singular='Contact', rp_plural='Contacts', help=help)
 
@@ -631,3 +648,209 @@ def data_source_personnel(filename=None, rp_type=None, rp_node_id=None, method_s
                              next_page=PAGE_DATA_SOURCE,
                              title=f'Data Source {rp_type.capitalize()}',
                              parent_node_id=data_source_node_id)
+
+
+RP_Entry = namedtuple('RP_Entry', [
+            'last_name', 'first_name', 'middle_initial', 'salutation', 'orcid_id', 'organization',
+            'org_id', 'org_id_type', 'position_name', 'email_address', 'role', 'online_url',
+            'address_1', 'address_2', 'city', 'state', 'postal_code', 'country', 'phone', 'fax'])
+
+
+@rp_bp.route('/load_responsible_parties/<filename>/<node_name>', methods=['GET', 'POST'])
+@login_required
+def load_responsible_parties(filename, node_name):
+    """
+    Route for loading responsible parties from a CSV file.
+
+    node_name is one of: names.CREATOR, names.CONTACT, names.ASSOCIATED_PARTY, names.METADATA_PROVIDER
+    """
+
+    def save_uploaded_responsible_parties(eml_node, node_name, rp_entries):
+        """
+        Save the responsible parties imported from a CSV file in the EML document.
+        """
+        dataset_node = eml_node.find_child(names.DATASET)
+        if not dataset_node:
+            dataset_node = Node(names.DATASET)
+
+        # Delete the existing nodes of the given type. We're replacing them.
+        existing_nodes = dataset_node.find_all_children(node_name)
+        for existing_node in existing_nodes:
+            dataset_node.remove_child(existing_node)
+
+        for rp_entry in rp_entries:
+            # Create a responsible party node
+            rp_node = Node(node_name, parent=dataset_node)
+            create_responsible_party(rp_node,
+                                     salutation = rp_entry.salutation,
+                                     gn = rp_entry.first_name,
+                                     mn = rp_entry.middle_initial,
+                                     sn = rp_entry.last_name,
+                                     user_id = rp_entry.orcid_id,
+                                     organization = rp_entry.organization,
+                                     org_id = rp_entry.org_id,
+                                     org_id_type = rp_entry.org_id_type,
+                                     position_name = rp_entry.position_name,
+                                     address_1 = rp_entry.address_1,
+                                     address_2 = rp_entry.address_2,
+                                     city = rp_entry.city,
+                                     state = rp_entry.state,
+                                     postal_code = rp_entry.postal_code,
+                                     country = rp_entry.country,
+                                     phone = rp_entry.phone,
+                                     fax = rp_entry.fax,
+                                     email = rp_entry.email_address,
+                                     online_url = rp_entry.online_url,
+                                     role = rp_entry.role)
+
+            add_child(dataset_node, rp_node)
+
+    form = LoadResponsiblePartyForm()
+    document, eml_node = reload_metadata()
+    uploads_folder = get_document_uploads_folder_name()
+
+    referer = None
+    if node_name == names.CREATOR:
+        referer = PAGE_CREATOR_SELECT
+    elif node_name == names.CONTACT:
+        referer = PAGE_CONTACT_SELECT
+    elif node_name == names.ASSOCIATEDPARTY:
+        referer = PAGE_ASSOCIATED_PARTY_SELECT
+    elif node_name == names.METADATAPROVIDER:
+        referer = PAGE_METADATA_PROVIDER_SELECT
+
+    # Process POST
+    if request.method == 'POST' and BTN_CANCEL in request.form:
+        url = url_for(referer, filename=filename)
+        return redirect(url)
+
+    if request.method == 'POST' and form.validate_on_submit():
+
+        form_value = request.form
+        form_dict = form_value.to_dict(flat=False)
+        new_page = None
+        if form_dict:
+            for key in form_dict:
+                val = form_dict[key][0]  # value is the first list element
+                new_page = check_val_for_hidden_buttons(val, new_page)
+
+        if new_page:
+            url = url_for(new_page, filename=filename)
+            return redirect(url)
+
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+
+        delimiter = form.delimiter.data
+        quote_char = form.quote.data
+
+        file = request.files['file']
+        if file:
+            csv_filename = secure_filename(file.filename)
+
+            if csv_filename is None or csv_filename == '':
+                flash('No selected file', 'error')
+            elif allowed_data_file(csv_filename):
+                filepath = os.path.join(uploads_folder, csv_filename)
+                file.save(filepath)
+                data_file_path = f'{uploads_folder}/{csv_filename}'
+                try:
+                    log_usage(actions['LOAD_RESPONSIBLE_PARTIES'], filename, csv_filename, node_name)
+                    rp_entries = load_responsible_parties_csv_file(data_file_path, delimiter, quote_char)
+                    flash(f'Loaded {csv_filename}')
+                    if rp_entries:
+                        eml_node = load_eml(filename=document)
+                        save_uploaded_responsible_parties(eml_node, node_name, rp_entries)
+                        save_both_formats(filename=document, eml_node=eml_node)
+
+                except InvalidHeaderRow as err:
+                    flash('CSV file does not have the expected header row.', 'error')
+                except ValueError as err:
+                    flash(f'Load CSV file failed. {err.args[0]}', 'error')
+                    if delimiter == ',':
+                        flash('If the CSV file has values that contain a comma, make sure those values are enclosed in the proper quote character.')
+                except InvalidRow as err:
+                    flash(f'Load CSV file failed. {err.args[0]}', 'error')
+
+                try:
+                    os.remove(data_file_path)
+                except FileNotFoundError as e:
+                    pass
+
+                return redirect(url_for(referer, filename=filename))  # blah
+
+    # Process GET
+
+    # Determine if we have existing nodes of the given type. If so, we want to issue an overwrite warning.
+    dataset_node = eml_node.find_child(names.DATASET) or Node(names.DATASET)
+    existing_nodes = dataset_node.find_all_children(node_name)
+    will_overwrite = len(existing_nodes) > 0
+
+    help = [get_help('load_responsible_parties')]
+    if node_name == names.CREATOR:
+        title = 'Creators'
+    elif node_name == names.CONTACT:
+        title = 'Contacts'
+    elif node_name == names.ASSOCIATEDPARTY:
+        title = 'Associated Parties'
+    elif node_name == names.METADATAPROVIDER:
+        title = 'Metadata Providers'
+
+    return render_template('load_responsible_parties.html',
+                           title=title,
+                           will_overwrite=will_overwrite,
+                           form=form,
+                           help=help)
+
+
+def load_responsible_parties_csv_file(csv_file, delimiter, quotechar):
+    """
+    Load a responsible parties CSV file into a list of tuples: (
+        last_name, first_name, middle_initial, salutation, orcid_id, organization, org_id,
+        org_id_type, position_name, email_address, online_url, address_1, address_2, city,
+        state, postal_code, country, phone, fax
+    )
+    """
+    rp_entries = []
+    with (open(csv_file, 'r', encoding='utf-8-sig') as f):
+        reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
+        header_row = next(reader)
+        if header_row and header_row !=  [
+            'last_name', 'first_name', 'middle_initial', 'salutation', 'orcid_id', 'organization',
+            'org_id', 'org_id_type', 'position_name', 'email_address', 'role', 'online_url', 'address_1', 'address_2',
+            'city', 'state', 'postal_code', 'country', 'phone', 'fax']:
+            raise InvalidHeaderRow(f'{os.path.splitext(csv_file)[0]} has invalid header row: {header_row}')
+        for row_num, row in enumerate(reader, start=1):
+            try:
+                last_name, first_name, middle_initial, salutation, orcid_id, organization, org_id, \
+                org_id_type, position_name, email_address, role, online_url, address_1, address_2, city, \
+                state, postal_code, country, phone, fax = (str.strip(x) for x in row)
+            except ValueError as ex:
+                raise ValueError(f'Row {row_num} is invalid: {ex.args[0]}')
+            except Exception as ex:
+                raise InvalidRow(f'Row {row_num} is invalid: {ex.args[0]}')
+            rp_entries.append(RP_Entry(
+                last_name=last_name,
+                first_name=first_name,
+                middle_initial=middle_initial,
+                salutation=salutation,
+                orcid_id=orcid_id,
+                organization=organization,
+                org_id=org_id,
+                org_id_type=org_id_type,
+                position_name=position_name,
+                email_address=email_address,
+                role=role,
+                online_url=online_url,
+                address_1=address_1,
+                address_2=address_2,
+                city=city,
+                state=state,
+                postal_code=postal_code,
+                country=country,
+                phone=phone,
+                fax=fax
+            ))
+    return rp_entries

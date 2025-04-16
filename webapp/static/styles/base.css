@@ -229,3 +229,8 @@ a.no-underline:hover {
   font-size: 14px; /* Example font size */
     color: steelblue;
 }
+
+.help-wrapper {
+    display: inline-block;
+    vertical-align: middle; /* Aligns with adjacent inline elements */
+}

@@ -32,11 +32,11 @@
 
                 <table>
                     <td>{{ wtf.form_field(form.data_package_id, size=100) }}</td>
-                    <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_data_package_id_btn) }}</td>
+                    <td valign="middle" style="padding-top: 10px;">{{ macros.help_button(help_data_package_id_btn) }}</td>
                 </table>
                 <br/>
                 <table>
-                    <td><input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
+                    <td><input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/></td>
                 </table>
                 {{ macros.hidden_buttons() }}

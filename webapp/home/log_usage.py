@@ -47,6 +47,7 @@ actions = {
     'LOAD_DATA_TABLE': 'Load Data Table',
     'LOAD_GEOGRAPHIC_COVERAGE': 'Load Geographic Coverage',
     'LOAD_OTHER_ENTITY': 'Load Other Entity',
+    'LOAD_RESPONSIBLE_PARTIES': 'Load Responsible Parties',
     'LOAD_TAXONOMIC_COVERAGE': 'Load Taxonomic Coverage',
     'LOGIN': 'Login',
     'LOGOUT': 'Logout',

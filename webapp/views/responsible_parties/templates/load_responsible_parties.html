@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if help %}
+    {% set help_responsible_parties_csv_file_id, help_responsible_parties_csv_file_title, help_responsible_parties_csv_file_content = help[0] %}
+    {% set help_responsible_parties_csv_file_btn = help_responsible_parties_csv_file_id ~ '_btn' %}
+    {% set help_responsible_parties_csv_file_dialog = help_responsible_parties_csv_file_id ~ '_dialog' %}
+    {% endif %}
+
+    <table>
+        <td><h2>Load {{ title }} from CSV File</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_responsible_parties_csv_file_btn) }}</td>
+    </table>
+
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+                {{ form.csrf_token }}
+                <br>
+                <h4>Select the CSV file to load:</h4>
+                <input type=file name=file>
+                <p>&nbsp;</p>
+                <table width="70%">
+                    <tr>
+{#                        <td width="25%">{{ wtf.form_field(form.num_header_rows) }}</td>#}
+{#                        <td width="3%"></td>#}
+                        <td width="25%">{{ wtf.form_field(form.delimiter) }}</td>
+                        <td width="3%"></td>
+                        <td width="25%">{{ wtf.form_field(form.quote) }}</td>
+
+                    </tr>
+                </table>
+                <table><tr>
+                    {% if not will_overwrite %}
+                    <td style="padding-right: 40px;"><input class="btn btn-primary" onclick="document.getElementById('spinner').style.visibility='visible';" name="Upload" type="submit" value="Upload"/></td>
+                    {% else %}
+                    <td style="padding-right: 40px;"><input class="btn btn-primary" onclick="confirm('This action will overwrite existing {{ title }}. OK to proceed?');" name="Upload" type="submit" value="Upload"/></td>
+                    {% endif %}
+                    <td style="padding-right: 10px;"><input class="btn btn-primary" name="Reset" type="reset" value="Reset"/></td>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <td style="padding-right: 40px;"><input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/></td>
+                    <td>
+                    <table id="spinner" style="visibility: hidden">
+                        <tr>
+                            <td style="padding-right: 10px;"><div style="margin: auto;position: relative;z-index: 1000;" class="loader"></div></td>
+                            <td style="color: #006699;">Please stand by...</td>
+                        </tr>
+                    </table>
+                    </td></tr>
+                </table>
+{#                <span id="spinner" style="visibility: hidden;"><div style="margin: auto;position: relative;z-index: 1000;" class="loader"></div>Please stand by...</span>#}
+
+                {{ macros.hidden_buttons() }}
+            </form>
+        </div>
+    </div>
+    {{ macros.help_dialog(help_responsible_parties_csv_file_dialog, help_responsible_parties_csv_file_title, help_responsible_parties_csv_file_content) }}
+{% endblock %}
+
+{% block app_scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_responsible_parties_csv_file_id, help_responsible_parties_csv_file_title, help_responsible_parties_csv_file_content = help[0] %}
+    {% set help_responsible_parties_csv_file_btn = help_responsible_parties_csv_file_id ~ '_btn' %}
+    {% set help_responsible_parties_csv_file_dialog = help_responsible_parties_csv_file_id ~ '_dialog' %}
+    {% endif %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_responsible_parties_csv_file_dialog, help_responsible_parties_csv_file_btn) }}
+    });
+    </script>
+{% endblock %}

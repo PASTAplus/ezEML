@@ -47,7 +47,7 @@
                         <td><input class="btn btn-primary" name="{{ oe_entry.id }}" type="submit" value="Re-upload"/>
                         </td>
                             {% if not ns.reupload_help_displayed %}
-                            <td style="padding-top: 15px;">{{ macros.help_button(help_other_entities_reupload_btn, "ui-button ui-corner-all ui-widget") }}</td>
+                            <td style="padding-top: 10px;">{{ macros.help_button(help_other_entities_reupload_btn, "ui-button ui-corner-all ui-widget") }}</td>
                             {% set ns.reupload_help_displayed = true %}
                             {% else %}
                             <td></td>
@@ -63,9 +63,9 @@
                 <br/>
                 <table>
                     <td>
-                        <input class="btn btn-primary" name="1" type="submit" value="Load Other Entity from File"/>&nbsp;
+                        <input class="btn btn-primary" name="1" type="submit" value="Load Other Entity from File"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="1" type="submit" value="Add Other Entity from Scratch"/></td>
-                    <td valign="middle" style="padding-top: 5px;">{{ macros.help_button(help_add_load_other_entities_btn) }}</td>
+                    <td valign="middle" style="padding-top: 0px;padding-left: 5px;">{{ macros.help_button(help_add_load_other_entities_btn) }}</td>
                 </table>
 
                 <br/><br/>

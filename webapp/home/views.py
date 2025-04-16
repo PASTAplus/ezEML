@@ -36,7 +36,6 @@ from flask_login import (
 from flask import Flask, current_app
 
 from markupsafe import Markup
-from tornado.httpclient import HTTPError
 
 from webapp.home.utils.file_utils import sanitize_filename
 import webapp.home.utils.node_utils

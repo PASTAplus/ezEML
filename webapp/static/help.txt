@@ -909,7 +909,7 @@ When you load responsible parties in this way, any existing responsible parties 
  <li>ROR – Research Organization Registry
  <li>Wikidata Organization Identifier
  </ul>
- Other values will be accepted, but they will not appear in the ezEML user interface when you edit the responsible party in question.
+ Other values for org_id will be accepted, but they will not appear in the ezEML user interface when you edit the responsible party in question.
 --------------------
 load_taxonomic_coverage
 Load Taxonomic Coverage from CSV File

@@ -1017,9 +1017,11 @@ Method steps are descriptions of specific steps of the method employed when coll
 <b>These are the <i>data collection</i> methods, not the overall research methods as they might be described in a journal article
  accompanying the research project. Copying the methods from your journal article is generally not appropriate.</b>
 
-A dataset should define at least one Method Step. The methods for a data publication should include, at a high-level of description, where the data were collected, how they were collected, and why they were collected. Future users of your data should be able to look at this methods section and understand entirely how the data were collected, as well as understand any caveats to the collection that may affect interpretation.
-
-I.e., the method steps document the procedures followed to produce a data object. These may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data and any quality control measures taken.
+A dataset should define at least one Method Step. The methods for a data publication should include, at a high-level of description,
+ where the data were collected, how they were collected, and why they were collected. Future users of your data should be able to look
+  at this methods section and understand entirely how the data were collected, as well as understand any caveats to the collection that
+   may affect interpretation. You may include text descriptions of the procedures, references to relevant literature, software,
+   instrumentation, source data, and any quality control measures taken.
 
 If your methods include in-text citations (Author, Date), please be sure also to provide the full citation. Any citation format (e.g., APA, Ecology) is acceptable. Full citations can be placed underneath text within a Method Step, or you may create a separate Method Step that serves as a references section / bibliography.
 

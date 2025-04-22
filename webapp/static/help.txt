@@ -1021,6 +1021,8 @@ A dataset should define at least one Method Step. The methods for a data publica
 
 I.e., the method steps document the procedures followed to produce a data object. These may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data and any quality control measures taken.
 
+If your methods include in-text citations (Author, Date), please be sure also to provide the full citation. Any citation format (e.g., APA, Ecology) is acceptable. Full citations can be placed underneath text within a Method Step, or you may create a separate Method Step that serves as a references section / bibliography.
+
 An additional use of method steps is to specify data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package. Provenance metadata is important in making research transparent and reproducible. To specify provenance for your data package, create a method step and add to it one or more Data Sources that refer to the data package(s) that were used to create the current data package. It is customary to place such provenance method steps at the end of the method steps list. For more on data provenance, see <a style="color: steelblue;" href="/static/user_guide/documenting_data_provenance.pdf" target="_user_guide_ezeml">Documenting Data Provenance</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
 For more on documenting data provenance metadata in ezEML, watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/LkCA_qgDwhc" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
@@ -1029,12 +1031,15 @@ The EML standard does not require method steps, but EDI requires at least one me
 --------------------
 method_step_description
 Method Step Description
-Description of the methods employed in collecting or generating a data set or other resource or in quality control and assurance.
-
-Describe the data collection methodology for a project, experiment, or particular data table or the steps taken to control or assure the quality of the data. Likewise, a literature citation may be provided that describes the methodology that was employed. Or the information my be provided by either referencing a protocol resource or entering the structured protocol information.
+Describe the data collection methodology for a project, experiment, or particular data table and the steps taken to control or assure the quality of the data.
 
 <b>These are the <i>data collection</i> methods, not the overall research methods as they might be described in a journal article
  accompanying the research project. Copying the methods from your journal article is generally not appropriate.</b>
+
+Include, at a high-level of description, where the data were collected, how they were collected, and why they were collected. Future users of your data should be able to look at the methods section and understand entirely how the data were collected, as well as understand any caveats to the collection that may affect interpretation.
+ You may include text descriptions of the procedures, references to relevant literature, software, instrumentation, source data, and any quality control measures taken.
+
+If your methods include in-text citations (Author, Date), please be sure also to provide the full citation. Any citation format (e.g., APA, Ecology) is acceptable. Full citations can be placed underneath text within a Method Step Description, or you may create a separate Method Step that serves as a references section / bibliography.
 
 If this method step is intended to document data <b>provenance</b>, i.e., the origin or history of data used in the creation of the current data package, then the description can be something like:
 <p style="padding:0px 20px 0px 20px;background-color:#F0F0F0">This method step describes provenance-based metadata as specified in the LTER EML Best Practices.</p>

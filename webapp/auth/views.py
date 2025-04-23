@@ -15,6 +15,7 @@
 """
 from urllib.parse import urlparse
 import base64
+import jwt
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
@@ -71,19 +72,23 @@ def login():
             log_error(f'Non-whitelisted login attempt by {username}')
             return redirect(url_for(PAGE_LOGIN))
         domain = "edi"
-        user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
+        user_dn = f'uid={form.username.data},{Config.DOMAINS[domain]}'
         password = form.password.data
-        auth_token = authenticate(user_dn=user_dn, password=password)
-        if auth_token is not None and auth_token != "teapot":
-            pasta_token = PastaToken(auth_token)
-            uid = pasta_token.uid.split(",")[0]
-            cname = uid.split('=')[1]
+        _, pasta_token = authenticate(user_dn=user_dn, password=password)
+        if pasta_token is not None and pasta_token != "teapot":
+            _jwt_ = jwt.decode(
+                pasta_token,
+                options={'verify_signature': False},
+                algorithms=['HS256']
+            )
+            uid = _jwt_['pastaIdpUid']
+            cname = _jwt_['cn']
             if cname:
                 cname = cname.strip()
-            session_id = cname + "*" + pasta_token.uid
+            session_id = f'{cname}*{uid}'
             user = User(session_id)
             login_user(user)
-            initialize_user_data(cname, 'LDAP', pasta_token.uid, auth_token)
+            initialize_user_data(cname, 'LDAP', uid)
             log_usage(actions['LOGIN'], cname, 'LDAP', current_user.get_user_login())
             next_page = request.args.get('next')
             if not next_page or urlparse(next_page).netloc != '':
@@ -93,7 +98,7 @@ def login():
                 else:
                     next_page = url_for(PAGE_INDEX)
             return redirect(next_page)
-        elif auth_token == "teapot":
+        elif pasta_token == "teapot":
             log_usage(actions['LOGIN'], form.username.data, 'teapot')
             accept_url = f"{Config.AUTH}/accept?uid={user_dn}&target={Config.TARGET}"
             return redirect(accept_url)
@@ -101,19 +106,20 @@ def login():
         return redirect(url_for(PAGE_LOGIN))
 
     # Process GET
-    # for arg in request.args:
-    #     log_info(f"arg: {arg} = {request.args[arg]}")
-    auth_token = request.args.get("token")
-    # log_info(f"auth_token: {auth_token}")
-    cname = request.args.get("cname")
-    if cname:
-        cname = cname.strip()
-    idp = request.args.get("idp")
-    # log_info(f"cname: {cname}")
-    sub = request.args.get("sub")
-    if auth_token is not None and cname is not None:
-        pasta_token = PastaToken(auth_token)
-        uid = pasta_token.uid
+    _jwt_ = None
+    pasta_token = request.args.get("pasta_token")
+    if pasta_token:
+        _jwt_ = jwt.decode(
+            pasta_token,
+            options={'verify_signature': False},
+            algorithms=['HS256']
+        )
+
+    if _jwt_:
+        sub = _jwt_['sub']
+        cname = _jwt_['cn']
+        idp = _jwt_['pastaIdpName']
+        uid = _jwt_['pastaIdpUid']
         log_info(f"uid: {uid}  cname: {cname}  idp: {idp}  sub: {sub}")
 
         # If it's a Google login, we need to see if the user data needs to be repaired.
@@ -121,10 +127,10 @@ def login():
         if Config.REPAIR_USER_DATA and idp == 'google':
             repair_user_data(cname, idp, uid, sub)
 
-        session_id = cname + "*" + uid
+        session_id = f"{cname}*{uid}"
         user = User(session_id)
         login_user(user)
-        initialize_user_data(cname, idp, uid, auth_token, sub)
+        initialize_user_data(cname, idp, uid, sub)
         log_usage(actions['LOGIN'], cname, idp, uid, current_user.get_user_login())
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
@@ -153,10 +159,18 @@ def logout():
 
 def authenticate(user_dn=None, password=None):
     auth_token = None
-    auth_url = Config.AUTH + f"/login/pasta?target={Config.TARGET}"
+    pasta_token = None
+    auth_url = f"{Config.AUTH}/login/pasta?target={Config.TARGET}"
     r = requests.get(auth_url, auth=(user_dn, password))
     if r.status_code == requests.codes.ok:
-        auth_token = r.cookies['auth-token']
+        try:
+            auth_token = r.cookies['auth-token']
+        except:
+            auth_token = None
+        try:
+            pasta_token = r.cookies['pasta-token']
+        except:
+            pasta_token = None
     elif r.status_code == requests.codes.teapot:
-        return "teapot"
-    return auth_token
+        return "teapot", "teapot"
+    return auth_token, pasta_token

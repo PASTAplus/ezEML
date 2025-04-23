@@ -1102,6 +1102,16 @@ def change_measurement_scale(attribute_node, old_mscale, new_mscale):
         return
     mscale_node = attribute_node.find_child(names.MEASUREMENTSCALE)
 
+    # if changing to Categorical, make sure it won't result in more than 100 codes
+    if new_mscale == VariableType.CATEGORICAL.name:
+        column_name = attribute_node.find_child(names.ATTRIBUTENAME).content
+        data_frame = load_df(attribute_node, usecols=[column_name])
+        if not data_frame.empty:
+            codes = data_frame[column_name].unique().tolist()
+            if len(codes) > 100:
+                flash(f'Column {column_name} contains more than 100 distinct values, so it is not an appropriate candidate for conversion to a Categorical column.\n\nezEML has left its type unchanged.', 'error')
+                return
+
     # clear its children
     if mscale_node:
         mscale_node.remove_children()

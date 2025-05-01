@@ -567,6 +567,24 @@ def check_coverage(eml_node, doc_name, evaluation_warnings=None):
             check_taxonomic_coverage(taxonomic_classification_node, doc_name)
 
 
+def check_bounding_box(geographic_coverage_node, link, validation_errs):
+    """
+    Check that the bounding box coordinates are logically reasonable. If a coordinate is missing or not a number,
+    it is assumed to have been flagged elsewhere.
+    """
+    west = geographic_coverage_node.find_single_node_by_path([names.BOUNDINGCOORDINATES, names.WESTBOUNDINGCOORDINATE])
+    east = geographic_coverage_node.find_single_node_by_path([names.BOUNDINGCOORDINATES, names.EASTBOUNDINGCOORDINATE])
+    north = geographic_coverage_node.find_single_node_by_path([names.BOUNDINGCOORDINATES, names.NORTHBOUNDINGCOORDINATE])
+    south = geographic_coverage_node.find_single_node_by_path([names.BOUNDINGCOORDINATES, names.SOUTHBOUNDINGCOORDINATE])
+    min_alt = geographic_coverage_node.find_single_node_by_path([names.BOUNDINGCOORDINATES, names.BOUNDINGALTITUDES, names.ALTITUDEMINIMUM])
+    max_alt = geographic_coverage_node.find_single_node_by_path([names.BOUNDINGCOORDINATES, names.BOUNDINGALTITUDES, names.ALTITUDEMAXIMUM])
+    if west and east and float(east.content) < float(west.content):
+        add_to_evaluation('geographic_coverage_09', link)
+    if north and south and float(north.content) < float(south.content):
+        add_to_evaluation('geographic_coverage_10', link)
+    if min_alt and max_alt and float(max_alt.content) < float(min_alt.content):
+        add_to_evaluation('geographic_coverage_11', link)
+
 def check_geographic_coverage(eml_node, doc_name):
     """
     Check geographic coverage for empty geographic description, empty or invalid west/east/north/south bounding
@@ -603,7 +621,7 @@ def check_geographic_coverage(eml_node, doc_name):
             find_content_empty(validation_errs, names.ALTITUDEMAXIMUM) or \
             find_content_empty(validation_errs, names.ALTITUDEUNITS):
             add_to_evaluation('geographic_coverage_07', link)
-
+        check_bounding_box(geographic_coverage_node, link, validation_errs)
 
 def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, data_table_name:str):
     """

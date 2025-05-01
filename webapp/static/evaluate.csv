@@ -29,8 +29,11 @@ geographic_coverage_03,Geographic Coverage,West Bounding Coordinate,ERROR,REQUIR
 geographic_coverage_04,Geographic Coverage,East Bounding Coordinate,ERROR,REQUIRED,<b>East Bounding Coordinate</b> must be a decimal value between -180.0 and +180.0.,,ebc
 geographic_coverage_05,Geographic Coverage,North Bounding Coordinate,ERROR,REQUIRED,<b>North Bounding Coordinate</b> must be a decimal value between -90.0 and +90.0.,,nbc
 geographic_coverage_06,Geographic Coverage,South Bounding Coordinate,ERROR,REQUIRED,<b>South Bounding Coordinate</b> must be a decimal value between -90.0 and +90.0.,,sbc
-geographic_coverage_07,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,If <b>Bounding Altitude</b> is specified all three fields are required.,,amin
+geographic_coverage_07,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,If <b>Bounding Altitude</b> is specified all three fields are required.,,boundalts
 geographic_coverage_08,Geographic Coverage,Bounding Altitude,ERROR,REQUIRED,An invalid value was encountered for <b>Altitude Units</b>. See the Help for a list of permitted values.,,aunits
+geographic_coverage_09,Geographic Coverage,East Bounding Coordinate,ERROR,REQUIRED,<b>East Bounding Coordinate</b> cannot be less than <b>West Bounding Coordinate</b>,,ebc
+geographic_coverage_10,Geographic Coverage,North Bounding Coordinate,ERROR,REQUIRED,<b>North Bounding Coordinate</b> cannot be less than <b>South Bounding Coordinate</b>,,nbc
+geographic_coverage_11,Geographic Coverage,Maximum Altitude,ERROR,REQUIRED,<b>Maximum Altitude</b> cannot be less than <b>Minimum Altitude</b>,,amax
 taxonomic_coverage_01,Taxonomic Coverage,Taxon Rank,ERROR,REQUIRED,Taxon Rank is required,,taxon_rank
 taxonomic_coverage_02,Taxonomic Coverage,Taxon Scientific Name,ERROR,REQUIRED,Taxon Scientific Name is required,,taxon_value
 temporal_coverage_00,Temporal Coverage,Temporal Coverage,WARNING,RECOMMENDED,"A dataset should include <b>Temporal Coverage</b> information, if applicable. Such information helps users search for datasets related to a particular time period.",,add_coverage

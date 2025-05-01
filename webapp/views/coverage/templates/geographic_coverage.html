@@ -74,11 +74,11 @@
 
                         <h5 ><span style="color: black;font-style: normal;font-weight: bold">Bounding Altitudes (Optional)</span>
                             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            <span style="color: steelblue;font-style: italic">Bounding Altitudes is optional, but if any fields are filled in, they all must be.</span>
+                            <span style="color: steelblue;font-style: italic">Bounding Altitudes are optional, but if any fields are filled in, they all must be.</span>
                         </h5>
                 <table style="border: 1px solid steelblue;border-collapse: collapse;padding: 10px 20px;" width="100%">
                     <tr><td>&nbsp;</td></tr>
-                    <tr>
+                    <tr id="boundalts">
                         <td style="width: 3%">&nbsp;</td>
                         <td>{{ wtf.form_field(form.amin) }}</td>
                         <td style="width: 3%">&nbsp;</td>
@@ -135,5 +135,6 @@
     </script>
 
     {{ macros.popup_support() }}
+    {{ macros.highlight_element() }}
 
 {% endblock %}

@@ -12,16 +12,17 @@
     </table>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 {{ form.csrf_token }}
                 <br>
-                <h4>Select the EML XML file to validate:</h4>
+                <h4>Select an EML XML file to validate:</h4>
                 <input class="file_select" type="file" name="file" accept=".xml">
                 <p></p>
                 <br>
 
-                <input class="btn btn-primary" name="Open" type="submit" value="Validate"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" name="Open" type="submit" value="Validate Selected File"/>&nbsp;&nbsp;
+                <input class="btn btn-primary" name="Validate" type="submit" value="Validate Active Document"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons() }}
             </form>

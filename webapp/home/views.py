@@ -4436,6 +4436,18 @@ def validate_eml():
         return redirect(get_back_url())
 
     if request.method == 'POST':
+        if 'Validate' in request.form:
+            # We're validating the currently active document blah
+            user_folder = user_data.get_user_folder_name(current_user_directory_only=False)
+            current_document = user_data.get_active_document()
+            if current_document:
+                filename = f'{current_document}.xml'
+                pathname = f'{user_folder}/{filename}'
+                if os.path.exists(pathname):
+                    return redirect(url_for(PAGE_VALIDATE_EML_2, filename=filename, active='True'))
+                else:
+                    return redirect(url_for(PAGE_VALIDATE_EML))
+
         # Check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part', 'error')
@@ -4467,9 +4479,10 @@ def validate_eml():
 
 
 @home_bp.route('/validate_eml_2/<filename>', methods=['GET', 'POST'])
+@home_bp.route('/validate_eml_2/<filename>/<active>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
-def validate_eml_2(filename):
+def validate_eml_2(filename, active=False):
     def parse_error_message(input_string):
         parts = input_string.split(':')
 
@@ -4503,11 +4516,20 @@ def validate_eml_2(filename):
 
     form = EDIForm()
 
-    uploads_folder = os.path.join(user_data.get_user_uploads_folder_name(), '__tmpdir__')
-    Path(uploads_folder).mkdir(parents=True, exist_ok=True)
+    if not active == 'True':
+        uploads_folder = os.path.join(user_data.get_user_uploads_folder_name(), '__tmpdir__')
+        Path(uploads_folder).mkdir(parents=True, exist_ok=True)
 
-    with open(os.path.join(uploads_folder, filename + '.tmp'), 'r') as f:
-        xml = f.read()
+        with open(os.path.join(uploads_folder, filename + '.tmp'), 'r') as f:
+            xml = f.read()
+    else:
+        user_folder = user_data.get_user_folder_name(current_user_directory_only=False)
+        current_document = user_data.get_active_document()
+        if current_document:
+            filename = f'{current_document}.xml'
+            pathname = f'{user_folder}/{filename}'
+            with open(pathname, 'r') as f:
+                xml = f.read()
 
     schema_path = validator.schema_path()
 

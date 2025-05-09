@@ -153,8 +153,8 @@ def display_simple_texttype_node(text_node: Node = None) -> str:
     para_nodes = []
     text_node.find_all_descendants(names.PARA, para_nodes)
     for para_node in para_nodes:
-        if para_node.content:
-            text += f'{para_node.content}\n'
+        # if para_node.content:
+        text += f'{para_node.content}\n'
     return text.replace('&lt;', '<').replace('&gt;', '>')
 
 

@@ -106,14 +106,12 @@ class Config(object):
 
     COLLABORATION_GROUPS = {
         "EDI Curators": [
-            "bmcafee-9722dcae0cf4708f5946995452883e27",
             "csmith-3baeec96846153563e16e334d058e7b8",
             "cgries-0dc416e2cf674c2836a179917be98d76",
             "Corinna_Gries-0cefc3d7c9858476b71dbb3ab442fca6",
             "emarchisin-7a3f2e6242cd0504a4345fa924e575b0",
             "gmaurer-a4d2d568283e74b5c4aa0f21b0b21dea",
             "jide-7a03c1e6f4528a6f9c4b1ae3cec24b39",
-            "jlemaire-33463893a66177fe46eb87acc9d20e71",
             "skskoglund-f7880750a717ebabef7801c29724d383",
             "sgrossmanclarke1-20a819fd9dd1ef6ba61a1174846d40ff",
             "curator_1-ba3271c634835400327842d4e3e3dc98",

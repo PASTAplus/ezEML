@@ -109,7 +109,7 @@ def data_table_download(filename=None, dtnode_id=None):
     if os.path.exists(filepath):
         return send_file(filepath, as_attachment=True)
     else:
-        return redirect(request.url)
+        return redirect(url_for(PAGE_DATA_TABLE_SELECT, filename=filename))
 
 
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])

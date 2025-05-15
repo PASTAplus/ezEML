@@ -88,7 +88,7 @@ def other_entity_download(filename=None, oenode_id=None):
     if os.path.exists(filepath):
         return send_file(filepath, as_attachment=True)
     else:
-        return redirect(request.url)
+        return redirect(url_for(PAGE_OTHER_ENTITY_SELECT, filename=filename))
 
 
 @ent_bp.route('/other_entity_select/<filename>', methods=['GET', 'POST'])

@@ -143,11 +143,14 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
                 if to_skip and id == to_skip:
                     continue
                 label, object_name = compose_entity_label(dt_node)
-                if object_name_from_data_entity(dt_node):
+
+                uploads_folder = user_data.get_document_uploads_folder_name()
+                filepath = os.path.join(uploads_folder, object_name)
+                if os.path.exists(filepath) and object_name_from_data_entity(dt_node):
                     download_link = f"/eml/data_table_download/{current_document}/{dt_node.id}"
                 else:
                     download_link = None
-                # was_uploaded = user_data.data_table_was_uploaded(object_name)
+
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
                 tooltip = format_tooltip(dt_node)
@@ -197,11 +200,14 @@ def list_other_entities(eml_node:Node=None):
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
                 label, object_name = compose_entity_label(oe_node)
-                if object_name_from_data_entity(oe_node):
+
+                uploads_folder = user_data.get_document_uploads_folder_name()
+                filepath = os.path.join(uploads_folder, object_name)
+                if os.path.exists(filepath) and object_name_from_data_entity(oe_node):
                     download_link = f"/eml/other_entity_download/{current_document}/{id}"
                 else:
                     download_link = None
-                # was_uploaded = user_data.data_table_was_uploaded(object_name)
+
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
                 tooltip = format_tooltip(oe_node)

@@ -23,7 +23,6 @@ from flask_login import (
 from markupsafe import Markup
 
 import webapp.home.utils.create_nodes
-# import webapp.home.utils.node_utils
 import webapp.views.data_tables.load_data
 from webapp.config import Config
 
@@ -31,7 +30,7 @@ from webapp.home import views, exceptions, check_data_table_contents, standard_u
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons, non_saving_hidden_buttons_decorator
 from webapp.home.check_metadata import init_evaluation, format_tooltip
 from webapp.home.exceptions import NodeWithGivenIdNotFound
-
+from webapp.home.home_utils import object_name_from_data_entity
 from webapp.views.data_tables.load_data import (
     cull_data_files
 )
@@ -94,6 +93,23 @@ def log_error(msg):
     app = Flask(__name__)
     with app.app_context():
         current_app.logger.error(msg)
+
+
+@dt_bp.route('/data_table_download/<filename>/<dtnode_id>', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def data_table_download(filename=None, dtnode_id=None):
+    _ = load_eml(filename=filename)
+    dtnode = Node.get_node_instance(dtnode_id)
+    if not filename or not dtnode:
+        return
+    object_name = object_name_from_data_entity(dtnode)
+    uploads_folder = user_data.get_document_uploads_folder_name()
+    filepath = os.path.join(uploads_folder, object_name)
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    else:
+        return redirect(request.url)
 
 
 @dt_bp.route('/data_table_select/<filename>', methods=['GET', 'POST'])

@@ -14,8 +14,9 @@ from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_but
 from webapp.config import Config
 
 from metapype.model.node import Node
+from metapype.eml import names
 
-RELEASE_NUMBER = '2025.05.07'
+RELEASE_NUMBER = '2025.05.14'
 
 
 def extract_caller_module_name():
@@ -222,6 +223,16 @@ def profile_and_save(func, *args, **kwargs):
     return retval
 
 
+def object_name_from_data_entity(entity_node:Node=None):
+    """ Helper function to return an object name given its node. """
+    object_name = ''
+
+    if entity_node:
+        object_name_node = entity_node.find_single_node_by_path([names.PHYSICAL, names.OBJECTNAME])
+        if object_name_node:
+            object_name = object_name_node.content
+
+    return object_name
 
 
 

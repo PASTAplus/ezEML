@@ -40,7 +40,11 @@
                         {% set node_id = dt_entry.id.split("|")[0] %}
                         {% set node_status = node_id + '_status' %}
                         {{ macros.status_badge_with_popup(badge_data[node_status], dt_entry.tooltip) }}
-                        {{ dt_entry.label }}
+                            {% if dt_entry.download_link %}
+                            <a href="{{ dt_entry.download_link }}" data-toggle="tooltip" data-original-title="Download the data table file">{{ dt_entry.label }}</a>
+                            {% else %}
+                            {{ dt_entry.label }}
+                            {% endif %}
                         </td>
 
                         {{ macros.up_down_arrow(dt_entry.id, dt_entry.upval) }}
@@ -109,5 +113,6 @@
 
     {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
+    {{ macros.tooltip_support() }}
 
 {% endblock %}

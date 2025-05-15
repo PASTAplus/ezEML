@@ -1,5 +1,6 @@
+import os
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for, Flask, current_app
+    Blueprint, flash, render_template, redirect, request, url_for, send_file
 )
 from flask_login import (
     current_user, login_required
@@ -66,8 +67,28 @@ from webapp.pages import *
 from webapp.home.views import select_post, non_breaking, get_help, get_helps
 from webapp.home.check_metadata import init_evaluation, format_tooltip
 
+import webapp.auth.user_data as user_data
+from webapp.home.home_utils import object_name_from_data_entity
+
 
 ent_bp = Blueprint('ent', __name__, template_folder='templates')
+
+
+@ent_bp.route('/other_entity_download/<filename>/<oenode_id>', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def other_entity_download(filename=None, oenode_id=None):
+    _ = load_eml(filename=filename)
+    oenode = Node.get_node_instance(oenode_id)
+    if not filename or not oenode:
+        return
+    object_name = object_name_from_data_entity(oenode)
+    uploads_folder = user_data.get_document_uploads_folder_name()
+    filepath = os.path.join(uploads_folder, object_name)
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    else:
+        return redirect(request.url)
 
 
 @ent_bp.route('/other_entity_select/<filename>', methods=['GET', 'POST'])

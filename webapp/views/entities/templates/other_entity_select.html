@@ -37,7 +37,11 @@
                         {% set node_id = oe_entry.id.split("|")[0] %}
                         {% set node_status = node_id + '_status' %}
                         {{ macros.status_badge_with_popup(badge_data[node_status], oe_entry.tooltip) }}
-                        {{ oe_entry.label }}</td>
+                        {% if oe_entry.download_link %}
+                        <a href="{{ oe_entry.download_link }}" data-toggle="tooltip" data-original-title="Download the other entity file">{{ oe_entry.label }}</a>
+                        {% else %}
+                        {{ oe_entry.label }}
+                        {% endif %}
                         {{ macros.up_down_arrow(oe_entry.id, oe_entry.upval) }}
                         {{ macros.up_down_arrow(oe_entry.id, oe_entry.downval) }}
                         <td><input class="btn btn-primary" name="{{ oe_entry.id }}" type="submit" value="Edit"/></td>
@@ -103,5 +107,6 @@
     </script>
 
     {{ macros.popup_support() }}
+    {{ macros.tooltip_support() }}
 
 {% endblock %}

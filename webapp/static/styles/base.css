@@ -234,3 +234,13 @@ a.no-underline:hover {
     display: inline-block;
     vertical-align: middle; /* Aligns with adjacent inline elements */
 }
+
+.tooltip-inner {
+    background-color: #555 !important;
+    color: #fff;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+.tooltip .arrow:before {
+    border-color: #555;
+}

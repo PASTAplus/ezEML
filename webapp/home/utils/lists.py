@@ -116,6 +116,7 @@ def list_files_in_dir(dirpath):
     """ Return a list of files (regular files, not directories) in the directory at dirpath. """
     return [f for f in listdir(dirpath) if isfile(join(dirpath, f))]
 
+from webapp.home.home_utils import object_name_from_data_entity
 
 def list_data_tables(eml_node:Node=None, to_skip:str=None):
     """
@@ -135,13 +136,17 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
             dt_nodes = dataset_node.find_all_children(names.DATATABLE)
             DT_Entry = collections.namedtuple(
                 'DT_Entry',
-                ["id", "label", "object_name", "was_uploaded", "upval", "downval", "tooltip"],
+                ["id", "label", "object_name", "download_link", "was_uploaded", "upval", "downval", "tooltip"],
                  rename=False)
             for i, dt_node in enumerate(dt_nodes):
                 id = dt_node.id
                 if to_skip and id == to_skip:
                     continue
                 label, object_name = compose_entity_label(dt_node)
+                if object_name_from_data_entity(dt_node):
+                    download_link = f"/eml/data_table_download/{current_document}/{dt_node.id}"
+                else:
+                    download_link = None
                 # was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(dt_nodes))
@@ -149,6 +154,7 @@ def list_data_tables(eml_node:Node=None, to_skip:str=None):
                 dt_entry = DT_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
+                                    download_link=download_link,
                                     was_uploaded=True,
                                     upval=upval,
                                     downval=downval,
@@ -186,11 +192,15 @@ def list_other_entities(eml_node:Node=None):
             oe_nodes = dataset_node.find_all_children(names.OTHERENTITY)
             OE_Entry = collections.namedtuple(
                 'OE_Entry',
-                ["id", "label", "object_name", "was_uploaded", "upval", "downval", "tooltip"],
+                ["id", "label", "object_name", "download_link", "was_uploaded", "upval", "downval", "tooltip"],
                 rename=False)
             for i, oe_node in enumerate(oe_nodes):
                 id = oe_node.id
                 label, object_name = compose_entity_label(oe_node)
+                if object_name_from_data_entity(oe_node):
+                    download_link = f"/eml/other_entity_download/{current_document}/{id}"
+                else:
+                    download_link = None
                 # was_uploaded = user_data.data_table_was_uploaded(object_name)
                 upval = get_upval(i)
                 downval = get_downval(i+1, len(oe_nodes))
@@ -198,6 +208,7 @@ def list_other_entities(eml_node:Node=None):
                 oe_entry = OE_Entry(id=id,
                                     label=label,
                                     object_name=object_name,
+                                    download_link=download_link,
                                     was_uploaded=True,
                                     upval=upval,
                                     downval=downval,

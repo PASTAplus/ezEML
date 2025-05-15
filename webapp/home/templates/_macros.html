@@ -582,3 +582,18 @@ box-shadow: 5px 8px 20px 1px #BFBFBF;
       </div>
     </div>
 {% endmacro %}
+{% macro tooltip_support() %}
+    <script type="text/javascript">
+    $(document).ready(function() {
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip({
+            delay: { show: 200, hide: 250 }
+        });
+        // Hide tooltip on any tooltip-enabled link click
+        $('[data-toggle="tooltip"]').on('click', function() {
+            $(this).tooltip('hide');
+            $(this).blur(); // Ensure focus is removed
+        });
+    })
+    </script>
+{% endmacro %}

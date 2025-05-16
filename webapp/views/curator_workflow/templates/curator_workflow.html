@@ -12,7 +12,21 @@
     </table>
     <div class="row">
         <div class="col-md-11">
+        <br>
+        <div style="display: flex;align-items: center; gap:10px;">
+                <h4 style="margin: 0;">{{ staging_form.scope.label.text }}</h4>
+                {{ staging_form.scope() }}
+        </div>
+        <br>
         <table style="width: 100%;">
+        <tr>
+{#            <td style="width: 25%;vertical-align: top;">#}
+{#                <h4>{{ staging_form.scope.label.text }}</h4>#}
+{#                {{ staging_form.scope() }}#}
+{#                <p></p>#}
+{#            </td>#}
+            <td style="width: 25%;"></td>
+            </tr>
         <tr>
             <td style="width: 50%;vertical-align: top;">
 
@@ -21,9 +35,9 @@
 {# ------------------- #}
             <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
                 {{ staging_form.csrf_token }}
-                <p></p>
+{#                <p></p>#}
 
-                <h3>Staging Environment</h3>
+                <h4>Staging Environment</h4>
                 <div>
                     {% for subfield in staging_form.new_or_existing %}
                         <div>
@@ -145,8 +159,8 @@
 {# ---------------------- #}
             <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
                 {{ production_form.csrf_token }}
-                <p></p>
-                <h3>Production Environment</h3>
+{#                <p></p>#}
+                <h4>Production Environment</h4>
                 <p></p>
                 <div>
                     {% for subfield in production_form.new_or_existing %}

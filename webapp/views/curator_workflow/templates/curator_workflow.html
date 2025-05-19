@@ -14,8 +14,8 @@
         <div class="col-md-11">
         <br>
         <div style="display: flex;align-items: center; gap:10px;">
-                <h4 style="margin: 0;">{{ staging_form.scope.label.text }}</h4>
-                {{ staging_form.scope() }}
+                <h4 style="margin: 0;">{{ scope_select_form.scope.label.text }}</h4>
+                {{ scope_select_form.scope(id='scope-select-field') }}
         </div>
         <br>
         <table style="width: 100%;">
@@ -35,6 +35,7 @@
 {# ------------------- #}
             <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
                 {{ staging_form.csrf_token }}
+                {{ staging_form.scope(id='staging-hidden-scope') }}
 {#                <p></p>#}
 
                 <h4>Staging Environment</h4>
@@ -159,6 +160,7 @@
 {# ---------------------- #}
             <form method="POST" action="" class="form" id="main_form" role="form" novalidate="true">
                 {{ production_form.csrf_token }}
+                {{ production_form.scope(id='production-hidden-scope') }}
 {#                <p></p>#}
                 <h4>Production Environment</h4>
                 <p></p>
@@ -297,6 +299,19 @@
     </script>
 
     <script>
+        document.getElementById('scope-select-field').addEventListener('change', function() {
+            var selectedValue = this.value;
+            document.getElementById('staging-hidden-scope').value = selectedValue;
+            document.getElementById('production-hidden-scope').value = selectedValue;
+        });
+
+        // Set initial value for hidden fields based on default
+        window.onload = function() {
+            var selectedValue = document.getElementById('scope-select-field').value; // Will be 'option2'
+            document.getElementById('staging-hidden-scope').value = selectedValue;
+            document.getElementById('production-hidden-scope').value = selectedValue;
+        };
+
         document.addEventListener("DOMContentLoaded", function () {
             // Get form and buttons
             const form = document.getElementById("main_form");

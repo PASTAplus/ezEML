@@ -2,7 +2,7 @@
 from flask_wtf import FlaskForm
 
 from wtforms import (
-    StringField, RadioField, SubmitField, SelectField
+    StringField, RadioField, SelectField, HiddenField
 )
 from wtforms.widgets import TextArea
 
@@ -12,11 +12,10 @@ from wtforms.validators import (
 from webapp.home.forms import EDIForm
 
 
-class CuratorWorkflowForm(FlaskForm):
-                                           # validators=[Optional()])
-
+class ScopeSelectForm(FlaskForm):
     scope = SelectField('Scope',
                        choices=[("edi", "edi"),
+                                ("icarus", "icarus"),
                                 ("knb-lter-and", "knb-lter-and"),
                                 ("knb-lter-arc", "knb-lter-arc"),
                                 ("knb-lter-bes", "knb-lter-bes"),
@@ -49,8 +48,12 @@ class CuratorWorkflowForm(FlaskForm):
                                 ("knb-lter-sev", "knb-lter-sev"),
                                 ("knb-lter-sgs", "knb-lter-sgs"),
                                 ("knb-lter-vcr", "knb-lter-vcr")
-                                ])
+                                ],
+                        default='edi')
 
+
+class CuratorWorkflowForm(FlaskForm):
+    scope = HiddenField('Hidden Scope')                                       # validators=[Optional()])
     new_or_existing = RadioField('Data Package ID',
                                  choices=[('New', 'Get a new Package ID from PASTA'),
                                           ('Existing', 'I have a Package ID to use (enter it below)')],

@@ -15,7 +15,7 @@ from webapp.home.views import get_helps, set_current_page, get_back_url
 from webapp.views.collaborations.db_session import db_session
 from webapp.config import Config
 
-from webapp.views.curator_workflow.forms import CuratorWorkflowForm
+from webapp.views.curator_workflow.forms import CuratorWorkflowForm, ScopeSelectForm
 
 from webapp.views.curator_workflow.handle_requests import (
     PastaEnvironment,
@@ -66,9 +66,9 @@ def curator_workflow(filename=None):
                 flash('Invalid value for "Package ID"', 'error')
             else:
                 scope, identifier, revision = package_id.split('.')
-                if scope.lower() != 'edi':
-                    flash('Scope must be "edi"', 'error')
-                elif not identifier.isdigit():
+                # if scope.lower() != 'edi':
+                #     flash('Scope must be "edi"', 'error')
+                if not identifier.isdigit():
                     flash('Identifier must be numeric', 'error')
                 elif not revision.isdigit():
                     flash('Revision must be numeric', 'error')
@@ -89,7 +89,7 @@ def curator_workflow(filename=None):
     def handle_reserve_pid(workflow_type, workflow_form):
         if workflow_form.new_or_existing.data == 'New':
             remove_workflow(workflow_type, owner_login, package_name=filename)
-            scope = 'edi'  # We always use edi scope
+            scope = workflow_form.scope.data
             status, identifier = create_reservation(pasta_environment_from_workflow_type(workflow_type), scope)
             if 200 <= status < 300:
                 reserve_package_id = f'{scope}.{identifier}.1'
@@ -173,6 +173,7 @@ def curator_workflow(filename=None):
     staging_values = get_workflow_values('STAGING', owner_login, filename)
     production_values = get_workflow_values('PRODUCTION', owner_login, filename)
 
+    scope_select_form = ScopeSelectForm()
     staging_form = CuratorWorkflowForm()
     production_form = CuratorWorkflowForm()
 
@@ -226,7 +227,10 @@ def curator_workflow(filename=None):
     return render_template('curator_workflow.html', is_admin=current_user.is_admin(),
                            staging_values=staging_values._asdict(),
                            production_values=production_values._asdict(),
-                           staging_form=staging_form, production_form=production_form, help=help)
+                           scope_select_form=scope_select_form,
+                           staging_form=staging_form,
+                           production_form=production_form,
+                           help=help)
 
 
 

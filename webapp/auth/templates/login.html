@@ -27,23 +27,31 @@
         <td style="width: 45px;">&nbsp;</td>
         <td valign="top" style="padding-top: 0px;padding-left: 5px;">{{ macros.help_button(help_login_btn) }}</td>
     </table>
-	<p>
-        <p>&nbsp;</p>
-        <a style="padding-left: 30px;" href="{{ auth }}/login/google?target={{ target }}" onclick="log_login_usage('google');"><img src="/static/btn_google_signin_light_normal_web.png"/></a>
-        <p>&nbsp;</p>
-	    <a style="padding-left: 30px;" href="{{ auth }}/login/orcid?target={{ target }}" onclick="log_login_usage('orcid');"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
-        <p>&nbsp;</p>
-	    <a style="padding-left: 30px;" href="{{ auth }}/login/github?target={{ target }}" onclick="log_login_usage('github');"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
-        <p>&nbsp;</p>
-	    <a style="padding-left: 30px;" href="{{ auth }}/login/microsoft?target={{ target }}" onclick="log_login_usage('microsoft');"><img src="/static/btn_microsoft_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
-        <p>&nbsp;</p>
-	    <a style="padding-left: 30px;cursor: pointer;" onclick="displayEDILogin();"><img src="/static/btn_edi_signin_light_normal_web.png"/></a>
-{#        <p>&nbsp;</p>#}
-{#	    <a style="padding-left: 95px;cursor: pointer;" onclick="displayEDILogin();"><img style="width: 70px;height: 70px;" src="/static/EDI-logo-300DPI_5.png"/></a>#}
+    <p></p>
+    <div class="col-md-8" style="border: 2px solid steelblue;color: steelblue;padding: 15px;">
+        Please note: different logins give rise to different ezEML accounts. E.g., if you log in using Google credentials
+        on one occasion and ORCID credentials on another occasion, they will connect to different ezEML accounts, each with
+        its own data. ezEML has no way of knowing those accounts belong to the same user. As a result, it's a good idea to keep track
+        of which login(s) you use.
+    </div>
+    <p></p>
 
+	<p>
+        <div class="col-md-8" style="padding-left: 0px;">
+        <p>&nbsp;</p>
+        <a style="padding-left: 65px;" href="{{ auth }}/login/google?target={{ target }}" onclick="log_login_usage('google');"><img src="/static/btn_google_signin_light_normal_web.png"/></a>
+        <p>&nbsp;</p>
+	    <a style="padding-left: 65px;" href="{{ auth }}/login/orcid?target={{ target }}" onclick="log_login_usage('orcid');"><img src="/static/btn_orcid_signin_light_normal_web.png"/></a>
+        <p>&nbsp;</p>
+	    <a style="padding-left: 65px;" href="{{ auth }}/login/github?target={{ target }}" onclick="log_login_usage('github');"><img src="/static/btn_github_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+        <p>&nbsp;</p>
+	    <a style="padding-left: 65px;" href="{{ auth }}/login/microsoft?target={{ target }}" onclick="log_login_usage('microsoft');"><img src="/static/btn_microsoft_signin_light_normal_web.png"/></a>&nbsp;&nbsp;
+        <p>&nbsp;</p>
+	    <a style="padding-left: 65px;cursor: pointer;" onclick="displayEDILogin();"><img src="/static/btn_edi_signin_light_normal_web.png"/></a>
+        </div>
     </p>
     <div id="EDI" class="row" style="display: none;padding-top: 2em;padding-left: 15px;">
-        <div class="col-md-6" style="padding-left: 0px;">
+        <div class="col-md-8" style="padding-left: 0px;">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 {{ form.csrf_token }}
                 {{ wtf.form_field(form.username, size=50) }}
@@ -53,7 +61,7 @@
             </form>
         </div>
     </div>
-	<div style="padding-top: 2em;">
+	<div class="col-md-8" style="padding-top: 2em;">
         <p>
             Please read our <a class="searchsubcat" href="https://edirepository.org/about/edi-policy#privacy-policy">
             privacy policy</a> to know what information we<br>collect about you and to understand your privacy rights.

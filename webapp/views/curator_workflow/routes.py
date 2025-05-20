@@ -165,7 +165,7 @@ def curator_workflow(filename=None):
     eml_node = load_eml(filename=filename)
 
     if not current_user.is_admin() and not current_user.is_data_curator():
-        flash('You are not authorized to access the Curator Workflow page', 'error')
+        flash('You are not authorized to access the Publish at EDI page', 'error')
         return redirect(url_for(PAGE_INDEX))
 
     owner_login = user_data.get_active_document_owner_login()

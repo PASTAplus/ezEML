@@ -384,12 +384,14 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
         <a class="nav_link" style={{ share_submit_package_style }}; href="{{ url_for('home.edit', page='home.share_submit_package') }}" title="Edit">Submit/Share Package</a><br>
 
-        {% if current_user and current_user.is_authenticated and (current_user.is_admin() or current_user.is_data_curator()) %}
+        {% if current_user and current_user.is_authenticated and
+            (current_user.is_admin() or current_user.is_data_curator() or current_user.is_curator_workflow_authorized()) %}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
+        <a class="nav_link" style={{ curator_workflow_style }}; href="{{ url_for('home.edit', page='workflow.curator_workflow') }}" title="Edit">Publish at EDI</a><br>
+        {% endif %}
+
+        {% if current_user and current_user.is_authenticated and (current_user.is_admin() or current_user.is_data_curator()) %}
         <a class="nav_link" style={{ manage_data_usage_style }}; href="{{ url_for('home.edit', page='home.manage_data_usage') }}" title="Edit">Manage Data Usage</a><br>
-            {% if current_user.is_curator_workflow_authorized() %}
-            <a class="nav_link" style={{ curator_workflow_style }}; href="{{ url_for('home.edit', page='workflow.curator_workflow') }}" title="Edit">Curator Workflow</a><br>
-            {% endif %}
         {% endif %}
 
         {% endif %}

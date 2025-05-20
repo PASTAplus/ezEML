@@ -1,9 +1,15 @@
 
+import base64
 from enum import Enum
 import requests
+import time
 
+from flask_login import current_user
+
+import webapp.auth.user_data as user_data
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info
+import webapp.home.exceptions as exceptions
 
 PASTA_DEVELOPMENT_URL = "https://pasta-d.lternet.edu/package"
 PASTA_STAGING_URL = "https://pasta-d.lternet.edu/package"  # TEMP set to dev
@@ -26,8 +32,23 @@ portal_url_lut = {
     PastaEnvironment.PRODUCTION: Config.PORTAL_PRODUCTION_URL
 }
 
-def authenticate(pasta_url):
-    # Setup user credentials
+def authenticate_for_workflow(pasta_url):
+    """
+    If the user is an EDI curator, we re-authenticate so the token won't time out.
+    Otherwise, we use the cached auth_token for the user -- which may time out, but we want the user's actions
+    to be taken under their identity.
+    """
+    if not current_user.is_edi_curator():
+        auth_token = user_data.get_auth_token()
+        # See if auth_token has expired
+        auth_decoded = base64.b64decode(auth_token).decode('utf-8')
+        expiry = int(auth_decoded.split('*')[2])
+        current_time = int(time.time()) * 1000
+        if expiry < current_time:
+            raise exceptions.AuthTokenExpired('')
+        return {'auth-token': auth_token}
+
+    # EDI curator. Setup user credentials for EDI user.
     dn = f'uid={Config.EZEML_DATA_ACCESS_LDAP_USER},o=EDI,dc=edirepository,dc=org' # distinguished name
     pw = Config.EZEML_DATA_ACCESS_LDAP_PASSWORD
     url = f"{pasta_url}/eml"
@@ -53,19 +74,19 @@ def portal_url_for_environment(pasta_environment: PastaEnvironment):
 
 def create_reservation(pasta_environment: PastaEnvironment, scope: str):
     pasta_url = url_for_environment(pasta_environment)
-    r = requests.post(f"{pasta_url}/reservations/eml/{scope}", cookies=authenticate(pasta_url))
+    r = requests.post(f"{pasta_url}/reservations/eml/{scope}", cookies=authenticate_for_workflow(pasta_url))
     return r.status_code, r.text
 
 
 def delete_reservation(pasta_environment: PastaEnvironment, scope: str, identifier: str):
     pasta_url = url_for_environment(pasta_environment)
-    r = requests.delete(f"{pasta_url}/reservations/eml/{scope}/{identifier}", cookies=authenticate(pasta_url))
+    r = requests.delete(f"{pasta_url}/reservations/eml/{scope}/{identifier}", cookies=authenticate_for_workflow(pasta_url))
     return r.status_code, r.text
 
 
 def check_existence(pasta_environment: PastaEnvironment, scope:str, identifier: str, revision: str):
     pasta_url = url_for_environment(pasta_environment)
-    r = requests.get(f"{pasta_url}/eml/{scope}/{identifier}/{revision}", cookies=authenticate(pasta_url))
+    r = requests.get(f"{pasta_url}/eml/{scope}/{identifier}/{revision}", cookies=authenticate_for_workflow(pasta_url))
     return r.status_code, r.text
 
 
@@ -111,7 +132,7 @@ def evaluate_upload_data_package(pasta_environment: PastaEnvironment, upload: bo
                 url=url,
                 headers=headers,
                 data=xml_data,
-                cookies = authenticate(pasta_url)
+                cookies = authenticate_for_workflow(pasta_url)
             )
             return r.status_code, r.text
 
@@ -132,7 +153,7 @@ def get_error_report(pasta_environment: PastaEnvironment, eval_transaction_id: s
     pasta_url = url_for_environment(pasta_environment)
     r = requests.get(
         f'{pasta_url}/error/eml/{eval_transaction_id}',
-        cookies=authenticate(pasta_url)
+        cookies=authenticate_for_workflow(pasta_url)
     )
     return r.status_code, r.text
 
@@ -141,7 +162,7 @@ def get_evaluate_report(pasta_environment: PastaEnvironment, eval_transaction_id
     pasta_url = url_for_environment(pasta_environment)
     r = requests.get(
         f'{pasta_url}/evaluate/report/eml/{eval_transaction_id}',
-        cookies=authenticate(pasta_url)
+        cookies=authenticate_for_workflow(pasta_url)
     )
     return r.status_code, r.text
 

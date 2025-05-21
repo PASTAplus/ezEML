@@ -385,8 +385,11 @@ For an explanation of how "hidden buttons" are used, see webapp/home/utils.hidde
         <a class="nav_link" style={{ share_submit_package_style }}; href="{{ url_for('home.edit', page='home.share_submit_package') }}" title="Edit">Submit/Share Package</a><br>
 
         {% if current_user and current_user.is_authenticated and
-            (current_user.is_admin() or current_user.is_data_curator() or current_user.is_curator_workflow_authorized()) %}
+            (current_user.is_admin() or current_user.is_data_curator() or current_user.is_publish_at_edi_authorized()) %}
         <hr class="nav_link" style="border-top: 1px solid lightgray" width="100px" align="left">
+        {% endif %}
+        {% if current_user and current_user.is_authenticated and
+            (current_user.is_admin() or current_user.is_publish_at_edi_authorized()) %}
         <a class="nav_link" style={{ curator_workflow_style }}; href="{{ url_for('home.edit', page='workflow.curator_workflow') }}" title="Edit">Publish at EDI</a><br>
         {% endif %}
 

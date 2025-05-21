@@ -14,6 +14,7 @@ from webapp.home.home_utils import log_error, log_info
 from webapp.home.views import get_helps, set_current_page, get_back_url
 from webapp.views.collaborations.db_session import db_session
 from webapp.config import Config
+import webapp.home.exceptions as exceptions
 
 from webapp.views.curator_workflow.forms import CuratorWorkflowForm, ScopeSelectForm
 
@@ -164,7 +165,7 @@ def curator_workflow(filename=None):
     # Load the EML so the badges are rendered correctly
     eml_node = load_eml(filename=filename)
 
-    if not current_user.is_admin() and not current_user.is_data_curator():
+    if not current_user.is_admin() and not current_user.is_publish_at_edi_authorized():
         flash('You are not authorized to access the Publish at EDI page', 'error')
         return redirect(url_for(PAGE_INDEX))
 
@@ -180,38 +181,42 @@ def curator_workflow(filename=None):
     # Process POST
     if request.method == 'POST':
 
-        if "refresh" in request.form:
-            check_eval_completions()
+        try:
+            if "refresh" in request.form:
+                check_eval_completions()
 
-        if "staging_reserve" in request.form:
-            handle_reserve_pid('STAGING', staging_form)
+            if "staging_reserve" in request.form:
+                handle_reserve_pid('STAGING', staging_form)
 
-        if "staging_apply_pid" in request.form:
-            handle_apply_pid('STAGING', staging_values)
+            if "staging_apply_pid" in request.form:
+                handle_apply_pid('STAGING', staging_values)
 
-        if "staging_evaluate" in request.form:
-            handle_evaluate('STAGING', staging_values)
+            if "staging_evaluate" in request.form:
+                handle_evaluate('STAGING', staging_values)
 
-        if "staging_report" in request.form:
-            handle_report('STAGING')
+            if "staging_report" in request.form:
+                handle_report('STAGING')
 
-        if "staging_upload" in request.form:
-            handle_upload('STAGING', staging_values)
+            if "staging_upload" in request.form:
+                handle_upload('STAGING', staging_values)
 
-        if "production_reserve" in request.form:
-            handle_reserve_pid('PRODUCTION', production_form)
+            if "production_reserve" in request.form:
+                handle_reserve_pid('PRODUCTION', production_form)
 
-        if "production_apply_pid" in request.form:
-            handle_apply_pid('PRODUCTION', production_values)
+            if "production_apply_pid" in request.form:
+                handle_apply_pid('PRODUCTION', production_values)
 
-        if "production_evaluate" in request.form:
-            handle_evaluate('PRODUCTION', production_values)
+            if "production_evaluate" in request.form:
+                handle_evaluate('PRODUCTION', production_values)
 
-        if "production_report" in request.form:
-            handle_report('PRODUCTION')
+            if "production_report" in request.form:
+                handle_report('PRODUCTION')
 
-        if "production_upload" in request.form:
-            handle_upload('PRODUCTION', production_values)
+            if "production_upload" in request.form:
+                handle_upload('PRODUCTION', production_values)
+
+        except exceptions.AuthTokenExpired as e:
+            flash('Your PASTA authentication token has expired. Please log out of ezEML and log in again.', 'error')
 
     help = get_helps(['curator_workflow'])
     set_current_page('curator_workflow')

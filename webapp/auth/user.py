@@ -104,11 +104,12 @@ class User(UserMixin):
         except AttributeError:
             return False
 
-    def is_curator_workflow_authorized(self):
+    def is_publish_at_edi_authorized(self):
+        user_login = self.get_user_login()
         try:
-            if not Config.CURATOR_WORKFLOW_LOGINS:
-                return self.is_data_curator()
-            return self.get_username() in Config.CURATOR_WORKFLOW_LOGINS
+            if user_login in Config.PUBLISH_AT_EDI_USERS:
+                return True
+            return user_login in Config.COLLABORATION_GROUPS["EDI Curators"]
         except AttributeError:
             return False
 

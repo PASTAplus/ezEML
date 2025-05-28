@@ -2,22 +2,84 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+    {% set help_unicode_characters_id, help_unicode_characters_title, help_unicode_characters_content = help[0] %}
+    {% set help_unicode_characters_btn = help_unicode_characters_id ~ '_btn' %}
+    {% set help_unicode_characters_dialog = help_unicode_characters_id ~ '_dialog' %}
+
     <h2>Check Metadata: Results</h2>
-{#    <div class="row">#}
         <div class="col-md-12">
             <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
                 <a href="{{ request.referrer }}">Back</a>
                 {{ content|safe }}
+
+            <p>&nbsp;</p>
+            {% if parse_errs %}
+                <span class ="nav_link red_circle" style="display: inline-block;"></span>&nbsp;&nbsp;
+                <h4 style="display: inline;">Validation Errors</h4>
+
+                <table class="table table-striped" style="margin-top: 10px;">
+                    <tr>
+                        <th width="45%">Error</th>
+                        <th width="55%">Details</th>
+                    </tr>
+                    {% for parse_err in parse_errs %}
+                    <tr>
+                        <td>{{ parse_err[0] }}</td>
+                        <td>{{ parse_err[1] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+
+            {% if unicodes %}
+                <table>
+                    <td style="padding-bottom: 0px;">
+                        <h4>Non-ASCII Unicode Characters</h4></td>
+                    <td valign="middle" style="padding-bottom: 5px;padding-left: 10px;">{{ macros.help_button(help_unicode_characters_btn) }}</td>
+                </table>
+                <table class="table table-striped">
+                    <tr>
+                        <th width="5%">Line&nbsp;#</th>
+                        <th width="10%">Col #</th>
+                        <th width="30%">Char</th>
+                        <th width="55%">Char Code</th>
+                    </tr>
+                    {% for unicode in unicodes %}
+                    <tr>
+                        <td>{{ unicode[0] }}</td>
+                        <td>{{ unicode[1] }}</td>
+                        {% if unicode[3] == 8201 %}
+                        <td>"Thin space"</td>
+                        {% else %}
+                        <td>{{ unicode[2] }}</td>
+                        {% endif %}
+                        <td>{{ unicode[3] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <p>&nbsp;</p>
+            {% endif %}
+            <p>&nbsp;</p>
+
                 {{ macros.hidden_buttons() }}
             </form>
         </div>
-{#    </div>#}
+    {{ macros.help_dialog(help_unicode_characters_dialog, help_unicode_characters_title, help_unicode_characters_content) }}
 {% endblock %}
 
 
 {% block scripts %}
     {{ super() }}
+    {% set help_unicode_characters_id, help_unicode_characters_title, help_unicode_characters_content = help[0] %}
+    {% set help_unicode_characters_btn = help_unicode_characters_id ~ '_btn' %}
+    {% set help_unicode_characters_dialog = help_unicode_characters_id ~ '_dialog' %}
+
     <script>
+    $(function()
+    {
+        {{ macros.help_script(help_unicode_characters_dialog, help_unicode_characters_btn) }}
+    });
+
     $(document).ready(function()
     {
       $(".eval_table tr:odd").css("background", "#f4f4f4");

@@ -1200,8 +1200,8 @@ def format_entry(entry: EvalEntry):
 evaluations = []
 def init_evaluation(eml_node, doc_name):
     """ Initialize the evaluation process. """
-    global evaluations
-    evaluations = perform_evaluation(eml_node, doc_name)
+    global evaluations, parse_errs, unicode_errs
+    evaluations, parse_errs, unicode_errs = perform_evaluation(eml_node, doc_name)
 
 
 def format_tooltip(node, section=None):
@@ -1242,7 +1242,7 @@ def format_tooltip(node, section=None):
     return tooltip
 
 
-def format_output(evaluation, eml_node):
+def format_output(evaluation, parse_errs, unicode_errs, eml_node):
     """ Format the evaluation output for display. """
 
     def get_data_table_names(eml_node):
@@ -1352,7 +1352,7 @@ def format_output(evaluation, eml_node):
                 if entry.severity == severity:
                     output += format_entry(entry)
         output += '</table><br>'
-    if all_ok:
+    if all_ok and not parse_errs and not unicode_errs:
         output += '<h4>No errors or warnings found!</h4>'
     output += '</span>'
     return output
@@ -1368,7 +1368,7 @@ def check_evaluation_memo(json_filename, eml_node):
     try:
         # start = datetime.now()
         # Get the memoized results
-        old_md5, validation_errs, evaluation_warnings, evaluation = pickle.load(open(eval_filename, 'rb'))
+        old_md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs = pickle.load(open(eval_filename, 'rb'))
         # Compute the current MD5 hash to see if it has changed
         with open(json_filename, 'rt') as json_file:
             json = json_file.read()
@@ -1378,15 +1378,23 @@ def check_evaluation_memo(json_filename, eml_node):
         # print('**** check_evaluation_memo', elapsed)
         if new_md5 == old_md5:
             # print(f'**** new_md5={new_md5}')
-            return old_md5, validation_errs, evaluation_warnings, evaluation
+            return old_md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs
         else:
             # print(f'**** new_md5={new_md5}, old_md5={old_md5}')
-            return new_md5, None, None, None
+            return new_md5, None, None, None, None, None
+    except ValueError:
+        # Memo files used to contain fewer objects. I.e., this memo file must be obsolete. Delete it.
+        try:
+            os.remove(eval_filename)
+        except:
+            pass
     except:
-        return None, None, None, None
+        pass
+
+    return None, None, None, None, None, None
 
 
-def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings, evaluation):
+def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs):
     """ Memoize the evaluation results in a pickle file, together with the MD5 hash. """
     eval_filename = json_filename.replace('.json', '_eval.pkl')
     try:
@@ -1395,7 +1403,7 @@ def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation
                 json = json_file.read()
             md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
         with open(eval_filename, 'wb') as f:
-            pickle.dump((md5, validation_errs, evaluation_warnings, evaluation), f)
+            pickle.dump((md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs), f)
     except Exception as e:
         if os.path.exists(eval_filename):
             os.remove(eval_filename)
@@ -1411,7 +1419,7 @@ def perform_evaluation(eml_node, doc_name):
         elapsed = (end - start).total_seconds()
         # print(f"**** {msg} {elapsed}")
 
-    global evaluation, validation_errs, evaluation_warnings
+    global evaluation, validation_errs, evaluation_warnings, parse_errs, unicode_errs
 
     if not eml_node:
         # If the user uses the browser's back button after deleting the current package, for example, the eml_node will be None
@@ -1422,14 +1430,13 @@ def perform_evaluation(eml_node, doc_name):
     start = datetime.now()
 
     user_folder = user_data.get_user_folder_name()
+    xml_filename = f'{user_folder}/{doc_name}.xml'
     json_filename = f'{user_folder}/{doc_name}.json'
 
-    md5, validation_errs, evaluation_warnings, evaluation = check_evaluation_memo(json_filename, eml_node)
+    md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs = check_evaluation_memo(json_filename, eml_node)
     need_to_memoize = False
-    # if validation_errs == None or evaluation_warnings == None:
     if evaluation is None:
         evaluation = []
-        # print('memoize')
         need_to_memoize = True
         validation_errs = validate_via_metapype(eml_node)
         evaluation_warnings = evaluate_via_metapype(eml_node)
@@ -1437,7 +1444,7 @@ def perform_evaluation(eml_node, doc_name):
     if not need_to_memoize:
         display_elapsed(start, '**** perform_evaluation')
         set_session_info(evaluation, eml_node)
-        return evaluation
+        return evaluation, parse_errs, unicode_errs
 
     display_elapsed(start, '**** starting checks')
     check_dataset_title(eml_node, doc_name, validation_errs, evaluation_warnings)
@@ -1458,14 +1465,18 @@ def perform_evaluation(eml_node, doc_name):
     check_other_entities(eml_node, doc_name)
     check_data_package_id(eml_node, doc_name, validation_errs)
 
+    _, parse_errs, unicode_errs = views.parse_and_validate(pathname=xml_filename, parse_only=True)
+
     if need_to_memoize:
-        memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings, evaluation)
+        memoize_evaluation(json_filename, eml_node, md5,
+                           validation_errs, evaluation_warnings, evaluation,
+                           parse_errs, unicode_errs)
 
     display_elapsed(start, '**** perform_evaluation')
 
     set_session_info(evaluation, eml_node)
 
-    return evaluation
+    return evaluation, parse_errs, unicode_errs
 
 
 def check_metadata_status(eml_node, doc_name):
@@ -1473,7 +1484,7 @@ def check_metadata_status(eml_node, doc_name):
     Return the number of errors and warnings for the metadata status. This is used to set the badge color for the
     Check Metadata menu item. Most of the time the evaluation is memoized, so this is fast.
     """
-    evaluations = perform_evaluation(eml_node, doc_name)
+    evaluations, parse_errs, unicode_errs = perform_evaluation(eml_node, doc_name)
     errors = 0
     warnings = 0
     for entry in evaluations:
@@ -1482,13 +1493,17 @@ def check_metadata_status(eml_node, doc_name):
             errors += 1
         if severity == EvalSeverity.WARNING:
             warnings += 1
+    if parse_errs:
+        errors += 1
+    # if unicode_errs:
+    #     warnings += 1
     return errors, warnings
 
 
 def check_eml(eml_node, doc_name):
     """ Evaluate the EML document and return the results as HTML. """
-    evaluations = perform_evaluation(eml_node, doc_name)
-    return format_output(evaluations, eml_node)
+    evaluations, parse_errs, unicode_errs = perform_evaluation(eml_node, doc_name)
+    return format_output(evaluations, parse_errs, unicode_errs, eml_node), parse_errs, unicode_errs
 
 
 def validate_via_metapype(node):

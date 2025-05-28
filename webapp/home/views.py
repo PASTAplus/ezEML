@@ -1406,7 +1406,7 @@ def check_metadata(filename:str = None):
         raise FileNotFoundError
     eml_node = load_eml(filename=current_document, skip_metadata_check=True, do_not_lock=True)
 
-    content = check_eml(eml_node, current_document)
+    content, parse_errs, unicode_errs = check_eml(eml_node, current_document)
 
     log_usage(actions['CHECK_METADATA'])
 
@@ -1416,7 +1416,13 @@ def check_metadata(filename:str = None):
 
     else:
         set_current_page('check_metadata')
-        return render_template('check_metadata.html', content=content, title='Check Metadata')
+        help = get_helps(['unicode_characters_active'])
+        return render_template('check_metadata.html',
+                               content=content,
+                               parse_errs=parse_errs,
+                               unicodes=unicode_errs,
+                               help=help,
+                               title='Check Metadata')
 
 
 @home_bp.route('/datetime_formats', methods=['GET', 'POST'])
@@ -4478,6 +4484,57 @@ def validate_eml():
     return render_template('validate_eml.html', title='Validate an EML File', form=form, help=help)
 
 
+def parse_and_validate(pathname=None, parse_only=False):
+    # This would be contained in validate_eml_2 except that it is also called by check_metadata, in which
+    #  case parse_only == True, since check_metadata handles schema errors.
+    with open(pathname, 'r') as f:
+        xml = f.read()
+
+    schema_path = validator.schema_path()
+
+    if "https://eml.ecoinformatics.org/eml-2.2.0" in xml:
+        schema = schema_path + "/EML2.2.0/xsd/eml.xsd"
+    elif "eml://ecoinformatics.org/eml-2.1.1" in xml:
+        schema = schema_path + "/EML2.1.1/eml.xsd"
+    elif "eml://ecoinformatics.org/eml-2.1.0" in xml:
+        schema = schema_path + "/EML2.1.0/eml.xsd"
+    else:
+        raise ValueError("Cannot determine EML schema")
+
+    v = Validator(schema)
+    validation_errs = []
+    if not parse_only:
+        try:
+            v.validate(xml)
+        except ValidationError as e:
+            errors = e.args[0]
+            for error in errors:
+                line = error.line
+                cause = error.message.replace('\n', '\\n')
+                validation_errs.append((line, cause))
+
+        except XMLSyntaxError as e:
+            pass
+
+    p = Parser()
+    parse_errs = []
+    try:
+        p.parse(xml)
+    except (ParseError, ParserError, ValueError, XIncludeError, XMLSchemaParseError, XMLSyntaxError, etree.XMLSyntaxError) as e:
+        errors = str(e.args[0]).split('\n')
+        for error in errors:
+            e_parts = [p.strip() for p in error.split(':', 1)]
+            try:
+                details = ','.join(ast.literal_eval(e_parts[1]))
+            except:
+                details = e_parts[1]
+            parse_errs.append((e_parts[0], details))
+
+    unicodes = ui.unicode_list(xml)
+
+    return validation_errs, parse_errs, unicodes
+
+
 @home_bp.route('/validate_eml_2/<filename>', methods=['GET', 'POST'])
 @home_bp.route('/validate_eml_2/<filename>/<active>', methods=['GET', 'POST'])
 @login_required
@@ -4516,63 +4573,24 @@ def validate_eml_2(filename, active=False):
 
     form = EDIForm()
 
+    pathname = None
     if not active == 'True':
         uploads_folder = os.path.join(user_data.get_user_uploads_folder_name(), '__tmpdir__')
         Path(uploads_folder).mkdir(parents=True, exist_ok=True)
-
-        with open(os.path.join(uploads_folder, filename + '.tmp'), 'r') as f:
-            xml = f.read()
+        pathname = os.path.join(uploads_folder, filename + '.tmp')
     else:
         user_folder = user_data.get_user_folder_name(current_user_directory_only=False)
         current_document = user_data.get_active_document()
         if current_document:
             filename = f'{current_document}.xml'
             pathname = f'{user_folder}/{filename}'
-            with open(pathname, 'r') as f:
-                xml = f.read()
 
-    schema_path = validator.schema_path()
+    validation_errs, parse_errs, unicodes = parse_and_validate(pathname)
 
-    if "https://eml.ecoinformatics.org/eml-2.2.0" in xml:
-        schema = schema_path + "/EML2.2.0/xsd/eml.xsd"
-    elif "eml://ecoinformatics.org/eml-2.1.1" in xml:
-        schema = schema_path + "/EML2.1.1/eml.xsd"
-    elif "eml://ecoinformatics.org/eml-2.1.0" in xml:
-        schema = schema_path + "/EML2.1.0/eml.xsd"
+    if active == 'True':
+        help = get_helps(['validate_xml', 'unicode_characters_active'])
     else:
-        raise ValueError("Cannot determine EML schema")
-
-    v = Validator(schema)
-    validation_errs = []
-    try:
-        v.validate(xml)
-    except ValidationError as e:
-        errors = e.args[0]
-        for error in errors:
-            line = error.line
-            cause = error.message.replace('\n', '\\n')
-            validation_errs.append((line, cause))
-
-    except XMLSyntaxError as e:
-        pass
-
-    p = Parser()
-    parse_errs = []
-    try:
-        p.parse(xml)
-    except (ParseError, ParserError, ValueError, XIncludeError, XMLSchemaParseError, XMLSyntaxError, etree.XMLSyntaxError) as e:
-        errors = str(e.args[0]).split('\n')
-        for error in errors:
-            e_parts = [p.strip() for p in error.split(':', 1)]
-            try:
-                details = ','.join(ast.literal_eval(e_parts[1]))
-            except:
-                details = e_parts[1]
-            parse_errs.append((e_parts[0], details))
-
-    unicodes = ui.unicode_list(xml)
-
-    help = get_helps(['validate_xml', 'unicode_characters'])
+        help = get_helps(['validate_xml', 'unicode_characters'])
 
     reload_metadata()
     return render_template('validate_eml_2.html', form=form, help=help, filename=filename,

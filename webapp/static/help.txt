@@ -1520,6 +1520,18 @@ Non-ASCII Unicode Characters
 The EML standard permits the use of non-ASCII Unicode characters in text elements. Their use is not an error.
 
 You may, however, encounter display problems with EML files that contain such characters when you are working in text editors or other software if the needed fonts are not available. We identify non-ASCII Unicode characters in the EML document to help you troubleshoot such problems.
+
+The table shows the location of each such character in the EML XML.
+--------------------
+unicode_characters_active
+Non-ASCII Unicode Characters
+
+The EML standard permits the use of non-ASCII Unicode characters in text elements. Their use is not an error.
+
+You may, however, encounter display problems with EML files that contain such characters when you are working in text editors or other software if the needed fonts are not available. We identify non-ASCII Unicode characters in the EML document to help you troubleshoot such problems.
+
+The table shows the location of each such character in the EML XML. Use <b>Download EML File (XML)"</b> in the <b>Import/Export</b> menu to download the XML file,
+ and open it in a text editor to see which EML elements contain the problem characters.
 --------------------
 manage_templates
 Manage Templates

@@ -787,7 +787,6 @@ def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=Non
         owner_login = user_data.get_active_document_owner_login()
     clean_model(eml_node)
     enforce_dataset_sequence(eml_node)
-    get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
     fix_up_custom_units(eml_node)
     fixup_categorical_variables(eml_node)
     fixup_numerical_variables(eml_node)
@@ -798,6 +797,8 @@ def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=Non
         owner_login = user_data.get_active_document_owner_login()
     save_eml(filename=filename, eml_node=eml_node, format='json', owner_login=owner_login)
     save_eml(filename=filename, eml_node=eml_node, format='xml', owner_login=owner_login)
+
+    get_check_metadata_status(eml_node, filename) # To keep badge up-to-date in UI
 
 
 def save_eml(filename:str=None, eml_node:Node=None, format:str='json', owner_login:str=None):

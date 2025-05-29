@@ -1465,7 +1465,11 @@ def perform_evaluation(eml_node, doc_name):
     check_other_entities(eml_node, doc_name)
     check_data_package_id(eml_node, doc_name, validation_errs)
 
-    _, parse_errs, unicode_errs = views.parse_and_validate(pathname=xml_filename, parse_only=True)
+    try:
+        _, parse_errs, unicode_errs = views.parse_and_validate(pathname=xml_filename, parse_only=True)
+    except FileNotFoundError:
+        parse_errs = []
+        unicode_errs = []
 
     if need_to_memoize:
         memoize_evaluation(json_filename, eml_node, md5,

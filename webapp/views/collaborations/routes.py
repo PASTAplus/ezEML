@@ -1,6 +1,7 @@
 """
 The various routes for the collaborate page. E.g., display the page, enable EDI curation, invite a collaborator, etc.
 """
+from datetime import date
 import os
 import shutil
 from urllib.parse import quote, unquote, urlparse
@@ -13,6 +14,9 @@ from flask import (
 from flask_login import (
     current_user, login_required
 )
+
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 from markupsafe import Markup
 
@@ -144,7 +148,6 @@ def collaborate(filename=None, dev=None):
 @login_required
 @non_saving_hidden_buttons_decorator
 def enable_edi_curation(filename=None):
-
     form = EnableEDICurationForm()
 
     enable_disabled = False
@@ -175,7 +178,6 @@ def enable_edi_curation(filename=None):
             notes = form.data['notes']
             is_update = 'existing' in form.data['is_update']
             update_package = form.update_package.data if form.update_package.data else 'None'
-
             if notes:
                 return redirect(url_for(PAGE_ENABLE_EDI_CURATION_2,
                                         filename=filename,
@@ -239,6 +241,52 @@ def enable_edi_curation_mail_body(server=None, package_id=None, filename=None, n
     return msg
 
 
+def manipulate_package_id(is_update, update_package):
+    if not is_update:
+        return ''
+    # If update_package has the proper form, increment the revision
+    try:
+        scope, identifier, revision = update_package.split('.')
+        identifier = int(identifier)
+        revision = int(revision) + 1
+        return f"{scope}.{identifier}.{revision}"
+    except Exception:
+        return ''
+
+
+def add_entry_to_curator_log(submitter_name, submitter_email, submission_title, notes, is_update, update_package):
+    try:
+        scope = ["https://www.googleapis.com/auth/spreadsheets"]
+        creds = ServiceAccountCredentials.from_json_keyfile_name(
+            'webapp/static/ezeml-290315-ce4543f85534.json', scope
+        )
+        client = gspread.authorize(creds)
+        sheet = client.open_by_key(
+            "1fn-2yKAo2rrgFJDgGRewbtKwfZ0r12t5E8X808cQ6ZY"
+        ).worksheet("Sheet1")
+        today = date.today()
+        formatted_date = f"{today.month}/{today.day}/{today.year}"
+        notes = unquote(notes)
+        if is_update:
+            notes = f"Update to package {update_package}. \n{notes}"
+        else:
+            notes = f"This is a new package. \n{notes}"
+        package_id = manipulate_package_id(is_update, update_package)
+        new_row = [formatted_date,
+                   "",
+                   unquote(submitter_name),
+                   submitter_email,
+                   unquote(submission_title),
+                   "Unassigned",
+                   notes,
+                   package_id]
+        sheet.append_row(new_row)
+    except gspread.exceptions.APIError as e:
+        log_error(f"add_entry_to_curator_log - API Error: {e.response.text}")
+    except Exception as e:
+        log_error(f"add_entry_to_curator_log - General Error: {str(e)}")
+
+
 @collab_bp.route('/enable_edi_curation_2/<filename>/<name>/<email_address>/<is_update>/<update_package>', methods=['GET', 'POST'])
 @collab_bp.route('/enable_edi_curation_2/<filename>/<name>/<email_address>/<notes>/<is_update>/<update_package>', methods=['GET', 'POST'])
 @login_required
@@ -276,6 +324,8 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         if sent is True:
             log_usage(actions['ENABLE_EDI_CURATION'], name, email_address)
         flash('The package has been submitted to the EDI data curation team for review.', 'success')
+
+        add_entry_to_curator_log(name, email_address, filename, notes, eval(is_update), update_package)
 
     except UserIsNotTheOwner:
         flash('Only the owner of the package can submit it to EDI.', 'error')

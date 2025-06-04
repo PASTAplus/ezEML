@@ -16,7 +16,7 @@ from flask_login import (
 )
 
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
 from markupsafe import Markup
 
@@ -256,9 +256,9 @@ def manipulate_package_id(is_update, update_package):
 
 def add_entry_to_curator_log(submitter_name, submitter_email, submission_title, notes, is_update, update_package):
     try:
-        scope = ["https://www.googleapis.com/auth/spreadsheets"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name(
-            'webapp/static/ezeml-290315-ce4543f85534.json', scope
+        scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+        creds = Credentials.from_service_account_file(
+            'webapp/static/ezeml-290315-ce4543f85534.json', scopes=scopes
         )
         client = gspread.authorize(creds)
         sheet = client.open_by_key(

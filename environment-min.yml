@@ -16,9 +16,9 @@ dependencies:
   - flask-sqlalchemy
   - flask-bootstrap
   - flask-login
+  - google-auth
   - gspread
   - markupsafe
-  - oath2client
   - requests
   - pendulum
   - uwsgi

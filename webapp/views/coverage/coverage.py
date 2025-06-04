@@ -187,6 +187,13 @@ def load_geo_coverage(filename):
             if data_frame[column].isnull().values.any():
                 raise UnexpectedDataTypes(f'Geographic coverage file contains missing values in column: {column}.')
 
+        # List looks good. Clear the existing geo coverage nodes before adding the new ones.
+        geo_coverage_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.COVERAGE, names.GEOGRAPHICCOVERAGE])
+        for geo_coverage_node in geo_coverage_nodes:
+            parent = geo_coverage_node.parent
+            if parent:
+                parent.remove_child(geo_coverage_node)
+
         for index, row in data_frame.iterrows():
             if has_optional_columns:
                 add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4],

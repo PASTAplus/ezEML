@@ -266,7 +266,7 @@ def add_entry_to_curator_log(submitter_name, submitter_email, submission_title, 
         ).worksheet("Sheet1")
         today = date.today()
         formatted_date = f"{today.month}/{today.day}/{today.year}"
-        notes = unquote(notes)
+        notes = unquote(notes or '')
         if is_update:
             notes = f"Update to package {update_package}. \n{notes}"
         else:

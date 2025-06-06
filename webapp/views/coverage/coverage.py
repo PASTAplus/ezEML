@@ -150,7 +150,7 @@ def load_geo_coverage(filename):
 
         eml_node = load_eml(filename=filename)
 
-        data_frame = pd.read_csv(csv_filename, comment='#', encoding='utf8')
+        data_frame = pd.read_csv(csv_filename, encoding='utf8')
 
         required_columns = ['geographicDescription',
                             'northBoundingCoordinate',

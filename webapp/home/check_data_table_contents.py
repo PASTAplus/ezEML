@@ -138,7 +138,7 @@ def load_df(eml_node, csv_url, data_table_name, max_rows=None):
         if max_rows is None:
             max_rows = num_rows
         truncated = num_rows > max_rows
-        df = pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char, comment='#',
+        df = pd.read_csv(unquote_plus(csv_url), encoding='utf-8-sig', sep=delimiter, quotechar=quote_char,
                            keep_default_na=False, skiprows=range(1, num_header_lines), nrows=max_rows,
                            skipfooter=num_footer_lines, low_memory=False, infer_datetime_format=True,
                            dtype=str)   # Set dtype to str to prevent pandas from converting empty strings to NaN,

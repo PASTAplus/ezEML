@@ -1031,10 +1031,10 @@ def load_df(attribute_node, usecols=None):
 
     try:
         if len(usecols) == 1 and usecols[0] is not None:
-            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char,
+            return pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char,
                                usecols=usecols)
         else:
-            return pd.read_csv(full_path, comment='#', encoding='utf8', sep=delimiter, quotechar=quote_char)
+            return pd.read_csv(full_path, encoding='utf8', sep=delimiter, quotechar=quote_char)
     except FileNotFoundError as e:
         raise webapp.home.exceptions.DataFileNotFound(f"Data file {data_file} not found.")
 

@@ -14,7 +14,8 @@ from webapp.home.forms import EDIForm
 
 class ScopeSelectForm(FlaskForm):
     scope = SelectField('Scope: ',
-                       choices=[("edi", "edi"),
+                       choices=[("cos-spu", "cos-spu"),
+                                ("edi", "edi"),
                                 ("knb-lter-and", "knb-lter-and"),
                                 ("knb-lter-arc", "knb-lter-arc"),
                                 ("knb-lter-bes", "knb-lter-bes"),

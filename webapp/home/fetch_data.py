@@ -59,7 +59,7 @@ def send_authorized_pasta_request(url):
         #  user about an expired token when a token isn't needed.
         auth_token = user_data.get_auth_token()
         # see if auth_token has expired
-        auth_decoded = base64.b64decode(auth_token).decode('utf-8')
+        auth_decoded = base64.b64decode(auth_token.split('-')[0]).decode('utf-8')
         expiry = int(auth_decoded.split('*')[2])
         current_time = int(time.time()) * 1000
         if expiry < current_time:

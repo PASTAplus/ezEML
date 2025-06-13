@@ -84,9 +84,14 @@ def delete_reservation(pasta_environment: PastaEnvironment, scope: str, identifi
     return r.status_code, r.text
 
 
-def check_existence(pasta_environment: PastaEnvironment, scope:str, identifier: str, revision: str):
+def check_existence(pasta_environment: PastaEnvironment, scope:str, identifier: str, revision: str=None):
     pasta_url = url_for_environment(pasta_environment)
-    r = requests.get(f"{pasta_url}/eml/{scope}/{identifier}/{revision}", cookies=authenticate_for_workflow(pasta_url))
+    if revision:
+        r = requests.get(f"{pasta_url}/eml/{scope}/{identifier}/{revision}",
+                         cookies=authenticate_for_workflow(pasta_url))
+    else:
+        r = requests.get(f"{pasta_url}/eml/{scope}/{identifier}",
+                         cookies=authenticate_for_workflow(pasta_url))
     return r.status_code, r.text
 
 
@@ -100,11 +105,17 @@ def evaluate_upload_data_package(pasta_environment: PastaEnvironment, upload: bo
         url = f'{pasta_url}/evaluate/eml'
         request = requests.post
     elif pid:
-        substrs = pid.split('.')
-        if substrs[2] != '1':
-            url = f'{pasta_url}/eml/{substrs[0]}/{substrs[1]}'
+        # Whether we PUT or POST depends on whether we're updating or creating. Just looking at the revision
+        #  number isn't good enough to determine which case it is. We check with PASTA to see if the package
+        #  exists.
+        scope, identifier, revision = pid.split('.')
+        status, text = check_existence(pasta_environment, scope, identifier)
+        if 200 <= status < 300:
+            # Updating an existing package
+            url = f'{pasta_url}/eml/{scope}/{identifier}'
             request = requests.put
         else:
+            # Inserting a new package
             url = f'{pasta_url}/eml'
             request = requests.post
 

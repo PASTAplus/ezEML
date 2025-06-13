@@ -356,6 +356,42 @@ Publish at EDI
 The <b>Publish at EDI</b> page is visible only to EDI data curators and select Information Managers. It supports evaluation and uploading of the currently open ezEML
  document, first to the PASTA staging environment, then to the PASTA production environment.
 
+Select the <b>Scope</b> to which the package will be submitted.
+
+The typical workflow will be to start by using the buttons under <b>Staging Environment</b>. You can ask for a new package ID to be
+ allocated for your use, or you can enter a package ID if you already have one. If you're revising edi.1.2, for example, enter edi.1.3
+ in the text box since that is the package ID to be used for the revision. Click
+ <b>Set the Package ID</b>. This reserves a data package ID on staging, and the ID is shown next to the button after it has been
+ assigned. The Data Package ID is updated in the EML as well.
+
+If you are an EDI data curator, ezEML will operate as the EDI user. Otherwise, it will use the identity under which you're currently
+ logged in. If you have reserved a package ID under a different account, you won't be able to use that package ID. In such cases, select
+ <b>Get a new Package ID from PASTA</b> to get a new package ID. It is okay to let the
+ package ID you reserved under the other account go to waste.
+
+To evaluate the package, click <b>Evaluate</b>. This evaluates the package on staging. When the evaluation has completed, you can view the
+ resulting quality report by clicking <b>View Quality Report</b>, which opens the report in a new tab. If the quality report contains one
+ or more errors, a notation to that effect will appear next to the <b>Evaluate</b> button. The <b>Upload</b> button will remain disabled until
+ an error-free evaluation is achieved.
+
+While an evaluation or upload is in progress, a spinner is displayed. ezEML automatically detects completion of the evaluation/upload. You are free to
+ leave the Publish at EDI page or logout of ezEML, if desired, while the activity is in progress. When you return to the Publish at EDI page, ezEML shows the
+ current state of the workflow. Similarly, you may start an evaluation/upload in the production environment while one is ongoing in the
+ staging environment, and vice versa.
+
+After you correct errors and warnings in the package, you can upload the package to staging by clicking <b>Upload</b>. When the upload
+ completes, you can view the resulting landing page by clicking <b>View Landing Page</b>, which opens the landing page in a new tab. You
+ can then use the <b>Copy Citation</b> button on the landing page to obtain a citation to send to the user for their review.
+
+ Once the package on staging has been okayed by the user, follow the same sequence of steps under <b>Production Environment</b> to evaluate and
+  upload the package to the EDI repository.
+--------------------
+curator_workflow_internal
+Publish at EDI
+
+The <b>Publish at EDI</b> page is visible only to EDI data curators and select Information Managers. It supports evaluation and uploading of the currently open ezEML
+ document, first to the PASTA staging environment, then to the PASTA production environment.
+
 For EDI data curators, typically the ezEML document being worked on will be one that has been submitted by a user and opened by the EDI data curator via the <b>Collaborate</b> page.
 
 Select the <b>Scope</b> to which the package will be submitted.

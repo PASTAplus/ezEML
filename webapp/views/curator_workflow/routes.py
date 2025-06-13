@@ -218,7 +218,10 @@ def curator_workflow(filename=None):
         except exceptions.AuthTokenExpired as e:
             flash('Your PASTA authentication token has expired. Please log out of ezEML and log in again.', 'error')
 
-    help = get_helps(['curator_workflow'])
+    if current_user.is_edi_curator():
+        help = get_helps(['curator_workflow_internal'])
+    else:
+        help = get_helps(['curator_workflow'])
     set_current_page('curator_workflow')
 
     staging_values = get_workflow_values('STAGING', owner_login, filename)

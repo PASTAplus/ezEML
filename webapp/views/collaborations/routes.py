@@ -6,6 +6,7 @@ import os
 import shutil
 from urllib.parse import quote, unquote, urlparse
 
+import ast
 from flask import (
     Blueprint, flash, render_template, redirect, request, url_for,
     session, jsonify, send_file
@@ -311,7 +312,7 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         # Send an email to EDI Curators to let them know that a new package is available for curation
         parsed_url = urlparse(request.base_url)
         server = parsed_url.netloc
-        msg = enable_edi_curation_mail_body(server, package_id, filename, name, email_address, notes, eval(is_update), update_package)
+        msg = enable_edi_curation_mail_body(server, package_id, filename, name, email_address, notes, ast.literal_eval(is_update), update_package)
 
         if not Config.DISABLE_ENABLE_EDI_CURATION_EMAILS:
             sent = mimemail.send_mail(subject=f'Data package submitted to EDI: "{filename}"',
@@ -325,7 +326,7 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
             log_usage(actions['ENABLE_EDI_CURATION'], name, email_address)
         flash('The package has been submitted to the EDI data curation team for review.', 'success')
 
-        add_entry_to_curator_log(name, email_address, filename, notes, eval(is_update), update_package)
+        add_entry_to_curator_log(name, email_address, filename, notes, ast.literal_eval(is_update), update_package)
 
     except UserIsNotTheOwner:
         flash('Only the owner of the package can submit it to EDI.', 'error')

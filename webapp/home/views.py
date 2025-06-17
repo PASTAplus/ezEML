@@ -3380,7 +3380,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
             flash(AUTH_TOKEN_FLASH_MSG, 'error')
             help = get_helps(['import_xml_3'])
             # This code is used both for Fetch and Import, so we need to redirect to the right page in case of error.
-            if not eval(fetched):
+            if not ast.literal_eval(fetched):
                 return redirect(url_for('home.import_xml', form=form, help=help))
             else:
                 return redirect(url_for('home.fetch_xml', form=form, help=help))
@@ -3414,7 +3414,7 @@ def import_xml_3(nsmap_changed=False, unknown_nodes=None, attr_errs=None, child_
         flash(AUTH_TOKEN_FLASH_MSG, 'error')
         help = get_helps(['import_xml_3'])
         # This code is used both for Fetch and Import, so we need to redirect to the right page in case of error.
-        if not eval(fetched):
+        if not ast.literal_eval(fetched):
             return redirect(url_for('home.import_xml', form=form, help=help))
         else:
             return redirect(url_for('home.fetch_xml', form=form, help=help))
@@ -3450,7 +3450,7 @@ def import_xml_4(filename=None, fetched=False):
             flash(AUTH_TOKEN_FLASH_MSG, 'error')
             help = get_helps(['import_xml_3'])
             # This code is used both for Fetch and Import, so we need to redirect to the right page in case of error.
-            if not eval(fetched):
+            if not ast.literal_eval(fetched):
                 return redirect(url_for('home.import_xml', form=form, help=help))
             else:
                 return redirect(url_for('home.fetch_xml', form=form, help=help))

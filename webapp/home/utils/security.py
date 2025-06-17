@@ -17,7 +17,9 @@ def validate_download_url(url):
     # Define a safe base directory for local files
     allowed_file_base = Config.BASE_DIR
 
+    log_info(f"parsing url")
     parsed_url = urllib.parse.urlparse(url)
+    log_info(f"parsed_url.scheme: {parsed_url.scheme}")
 
     # Case 1: Allow file:// URLs, but restrict to a safe base directory
     if parsed_url.scheme == "file":

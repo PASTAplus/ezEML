@@ -38,6 +38,8 @@ from flask import Flask, current_app
 from markupsafe import Markup
 
 from webapp.home.utils.file_utils import sanitize_filename
+from webapp.home.utils.security import validate_download_url
+
 import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
 
@@ -509,6 +511,7 @@ def data_table_fetch(document_name:str=None, csv_filename:str=None, url:str=None
     save_path = os.path.join(package_uploads_dir, csv_filename)
 
     # Send HTTP GET request to the URL to fetch the data table
+    url = validate_download_url(url, PAGE_CHECK_DATA_TABLES)
     response = requests.get(url, stream=True)
     if response.status_code != 200:
         flash(f'Unable to fetch data table "{csv_filename}". Reason: {response.reason}', "error")

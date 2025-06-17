@@ -52,6 +52,8 @@ import warnings
 import webapp.home.metapype_client
 from webapp.home.home_utils import log_error, log_info, log_available_memory
 import webapp.home.utils.load_and_save
+from webapp.home.utils.security import validate_download_url
+from webapp.pages import PAGE_CHECK_DATA_TABLES
 from webapp.utils import path_exists, path_isdir, path_join
 
 import webapp.auth.user_data as user_data
@@ -82,6 +84,7 @@ def load_eml_file(eml_file_url:str):
 
     # Get the eml file
     try:
+        eml_file_url = validate_download_url(eml_file_url, PAGE_CHECK_DATA_TABLES)
         response = s.get(eml_file_url)
         response.raise_for_status()
     except Exception as err:
@@ -1056,6 +1059,7 @@ def check_table_headers(current_document=None, data_table_node=None, csv_file_ur
     if csv_file_url is None:
         assert(current_document and data_table_node)
         csv_file_url = get_csv_file_url(current_document, data_table_node)
+    csv_file_url = validate_download_url(csv_file_url, PAGE_CHECK_DATA_TABLES)
     for line in urllib.request.urlopen(csv_file_url):
         if '#' in line.decode('utf-8'):
             return False

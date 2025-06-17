@@ -9,6 +9,8 @@ from flask import (
 from webapp.config import Config
 
 def validate_download_url(url):
+    from webapp.home.home_utils import log_info
+    log_info(f"validate_download_url: {url}")
     # Define a whitelist of allowed domains
     allowed_domains = Config.ALLOWED_DOWNLOAD_DOMAINS
 

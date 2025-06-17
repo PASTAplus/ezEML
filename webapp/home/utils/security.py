@@ -10,11 +10,7 @@ from webapp.config import Config
 
 def validate_download_url(url):
     # Define a whitelist of allowed domains
-    allowed_domains = {
-        "ezeml-d.edirepository.org",
-        "ezeml.edirepository.org",
-        "pasta.lternet.edu"
-    }
+    allowed_domains = Config.ALLOWED_DOWNLOAD_DOMAINS
 
     # Define a safe base directory for local files
     allowed_file_base = Config.BASE_DIR

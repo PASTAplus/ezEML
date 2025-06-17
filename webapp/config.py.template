@@ -80,6 +80,12 @@ class Config(object):
 
     DEX_BASE_URL = "https://dex.edirepository.org"
 
+    ALLOWED_DOWNLOAD_DOMAINS = [
+        "ezeml-d.edirepository.org",
+        "ezeml.edirepository.org",
+        "pasta.lternet.edu"
+    ]
+
     # Garbage collection
     GC_BUTTON_ENABLED = True
     GC_DAYS_TO_LIVE = 90

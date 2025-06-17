@@ -511,7 +511,7 @@ def data_table_fetch(document_name:str=None, csv_filename:str=None, url:str=None
     save_path = os.path.join(package_uploads_dir, csv_filename)
 
     # Send HTTP GET request to the URL to fetch the data table
-    url = validate_download_url(url, PAGE_CHECK_DATA_TABLES)
+    url = validate_download_url(url)
     if url is None:
         redirect(url_for(PAGE_CHECK_DATA_TABLES))
     response = requests.get(url, stream=True)

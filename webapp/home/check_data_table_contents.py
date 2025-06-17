@@ -34,7 +34,7 @@ import os
 
 from collections import OrderedDict
 import csv
-from flask import session, flash, request
+from flask import session, flash, request, redirect, url_for
 import glob
 import hashlib
 import json
@@ -85,6 +85,8 @@ def load_eml_file(eml_file_url:str):
     # Get the eml file
     try:
         eml_file_url = validate_download_url(eml_file_url, PAGE_CHECK_DATA_TABLES)
+        if eml_file_url is None:
+            redirect(url_for(PAGE_CHECK_DATA_TABLES))
         response = s.get(eml_file_url)
         response.raise_for_status()
     except Exception as err:
@@ -1060,6 +1062,8 @@ def check_table_headers(current_document=None, data_table_node=None, csv_file_ur
         assert(current_document and data_table_node)
         csv_file_url = get_csv_file_url(current_document, data_table_node)
     csv_file_url = validate_download_url(csv_file_url, PAGE_CHECK_DATA_TABLES)
+    if csv_file_url is None:
+        redirect(url_for(PAGE_CHECK_DATA_TABLES))
     for line in urllib.request.urlopen(csv_file_url):
         if '#' in line.decode('utf-8'):
             return False

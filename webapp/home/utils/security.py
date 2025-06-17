@@ -8,7 +8,7 @@ from flask import (
 )
 from webapp.config import Config
 
-def validate_download_url(url, page):
+def validate_download_url(url):
     # Define a whitelist of allowed domains
     allowed_domains = {
         "ezeml-d.edirepository.org",
@@ -26,17 +26,17 @@ def validate_download_url(url, page):
         local_path = os.path.abspath(os.path.join(parsed_url.netloc, parsed_url.path))
         if not local_path.startswith(allowed_file_base):
             flash(f"Local file access is not allowed outside {Config.BASE_DIR}.", "error")
-            return redirect(url_for(page))
+            return None
         return url
 
     # Case 2: Regular HTTP(S) URLs
     if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
         flash("Invalid URL provided.", "error")
-        return redirect(url_for(page))
+        return None
 
     domain = parsed_url.netloc.split(":")[0]
     if domain not in allowed_domains:
         flash(f"The URL's domain ({domain}) is not an allowed domain.", "error")
-        return redirect(url_for(page))
+        return None
 
     return url

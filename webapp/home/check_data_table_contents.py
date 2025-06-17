@@ -84,9 +84,7 @@ def load_eml_file(eml_file_url:str):
 
     # Get the eml file
     try:
-        log_info("load_eml_file")
         eml_file_url = validate_download_url(eml_file_url)
-        log_info(f"eml_file_url: {eml_file_url}")
         if eml_file_url is None:
             redirect(url_for(PAGE_CHECK_DATA_TABLES))
         response = s.get(eml_file_url)
@@ -1063,9 +1061,7 @@ def check_table_headers(current_document=None, data_table_node=None, csv_file_ur
     if csv_file_url is None:
         assert(current_document and data_table_node)
         csv_file_url = get_csv_file_url(current_document, data_table_node)
-    log_info("check_table_headers")
     csv_file_url = validate_download_url(csv_file_url)
-    log_info(f"csv_file_url: {csv_file_url}")
     if csv_file_url is None:
         redirect(url_for(PAGE_CHECK_DATA_TABLES))
     for line in urllib.request.urlopen(csv_file_url):

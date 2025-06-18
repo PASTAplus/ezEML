@@ -38,7 +38,7 @@ from flask import Flask, current_app
 from markupsafe import Markup
 
 from webapp.home.utils.file_utils import sanitize_filename
-from webapp.home.utils.security import validate_download_url
+from webapp.home.utils.security import validate_download_url, validate_user_data_path
 
 import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
@@ -4492,7 +4492,7 @@ def validate_eml():
 def parse_and_validate(pathname=None, parse_only=False):
     # This would be contained in validate_eml_2 except that it is also called by check_metadata, in which
     #  case parse_only == True, since check_metadata handles schema errors.
-    with open(pathname, 'r') as f:
+    with open(validate_user_data_path(pathname), 'r') as f:
         xml = f.read()
 
     schema_path = validator.schema_path()

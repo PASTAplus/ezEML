@@ -36,3 +36,14 @@ def validate_download_url(url):
         return None
 
     return url
+
+
+def validate_user_data_path(pathname):
+    """
+    Check that a path actually points to a directory in the user data tree.
+    """
+    path = os.path.normpath(pathname)
+    local_path = os.path.abspath(path)
+    if not local_path.startswith(Config.USER_DATA_DIR):
+        raise PermissionError(f"Access to directory '{path}' is not allowed.")
+    return pathname

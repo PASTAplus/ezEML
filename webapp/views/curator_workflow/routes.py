@@ -1,3 +1,6 @@
+import re
+import html
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import (
     current_user, login_required
@@ -339,6 +342,21 @@ from lxml import etree
 from markupsafe import Markup
 def format_eval_report(xml_data):
     output = '<hr>'
+
+    def clean_cdata(text):
+        # Extract CDATA content (non-greedy match)
+        match = re.search(r'<!\[CDATA\[(.*?)\]\]>', text, re.DOTALL)
+        if match:
+            content = match.group(1)
+        else:
+            content = text
+
+        # Escape HTML special characters to prevent accidental rendering
+        escaped = html.escape(content)
+
+        # Replace newlines with <br> so they render as line breaks in the browser
+        return escaped.replace('\n', '<br>')
+
     def format_quality_check_item(qc, item_type):
         if item_type == 'Error':
             color = '#DD1111'
@@ -361,7 +379,7 @@ def format_eval_report(xml_data):
                 output += f"<i style='color: grey;'>{tag}:</i>&nbsp;&nbsp;{elem.text.strip() if elem.text else 'N/A'}<br>"
             if elem.tag.split('}')[-1] == 'explanation':
                 tag = elem.tag.split('}')[-1].capitalize()
-                output += f"<i style='color: grey;'>{tag}:</i>&nbsp;&nbsp;{elem.text.strip() if elem.text else 'N/A'}  {link}<br>"
+                output += f"<i style='color: grey;white-space:pre-wrap;'>{tag}:</i>&nbsp;&nbsp;{clean_cdata(elem.text.strip()) if elem.text else 'N/A'}  {link}<br>"
             if elem.tag.split('}')[-1] == 'identifier':
                 identifier = elem.text.strip() if elem.text else None
                 link = f'<a href="{Config.QUALITY_CHECK_SOLUTIONS_URL}{identifier}.html" target="_blank">Details</a>'

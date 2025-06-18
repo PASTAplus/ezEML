@@ -77,10 +77,10 @@ def get_user_download_folder_name():
 
 
 def get_user_uploads_folder_name():
-    user_folder_name = validate_user_data_path(get_user_folder_name(current_user_directory_only=False))
+    user_folder_name = get_user_folder_name(current_user_directory_only=False)
     user_uploads_folder_name = f'{user_folder_name}/uploads'
 
-    return user_uploads_folder_name
+    return validate_user_data_path(user_uploads_folder_name)
 
 
 def get_document_uploads_folder_name(document_name=None, encoded_for_url=False):

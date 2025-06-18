@@ -45,5 +45,5 @@ def validate_user_data_path(pathname):
     path = os.path.normpath(pathname)
     local_path = os.path.abspath(path)
     if not local_path.startswith(Config.USER_DATA_DIR):
-        raise PermissionError(f"Access to directory '{path}' is not allowed.")
-    return pathname
+        raise PermissionError(f"Access to directory '{pathname}' is not allowed.")
+    return local_path

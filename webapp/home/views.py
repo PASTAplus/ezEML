@@ -4160,7 +4160,7 @@ def load_entity(node_id=None):
                     flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
                     return redirect(request.url)
 
-                file.save(os.path.join(uploads_folder, filename))
+                file.save(os.path.join(validate_user_data_path(uploads_folder), filename))
                 data_file = filename
                 data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {data_file}')

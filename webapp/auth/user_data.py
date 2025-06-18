@@ -24,6 +24,7 @@ import webapp.home.views as views
 import webapp.views.collaborations.collaborations as collaborations
 import webapp.home.exceptions as exceptions
 from webapp.home.home_utils import log_error, log_info
+from webapp.home.utils.security import validate_user_data_path
 
 USER_PROPERTIES_FILENAME = '__user_properties__.json'
 
@@ -76,7 +77,7 @@ def get_user_download_folder_name():
 
 
 def get_user_uploads_folder_name():
-    user_folder_name = get_user_folder_name(current_user_directory_only=False)
+    user_folder_name = validate_user_data_path(get_user_folder_name(current_user_directory_only=False))
     user_uploads_folder_name = f'{user_folder_name}/uploads'
 
     return user_uploads_folder_name

@@ -1,0 +1,19 @@
+{% extends 'bootstrap/base.html' %}
+
+
+{% block content %}
+<div class="container" style="width: 50%;">
+    {% block app_content %}
+        <p>&nbsp;</p>
+        <h4 align="left">Invalid Filename</h4>
+        <p>&nbsp;</p>
+        {{ message }}
+        <p>&nbsp;</p>
+        ezEML checks filenames to prevent malicious attacks on the file system. If you believe your
+        filename has been disallowed incorrectly, please contact support@edirepository.org and we will
+        investigate.
+        <p>&nbsp;</p>
+        <a style="float:left;" href="{{ url_for('home.index') }}"><h4>Continue</h4></a>
+    {% endblock %}
+</div>
+{% endblock %}

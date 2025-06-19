@@ -7,7 +7,8 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_wtf.csrf import CSRFError
 from webapp import app
-from webapp.home.exceptions import EMLFileNotFound, LockOwnedByAGroup, LockOwnedByAnotherUser, DeprecatedCodeError, NodeWithGivenIdNotFound
+from webapp.home.exceptions import EMLFileNotFound, LockOwnedByAGroup, LockOwnedByAnotherUser, DeprecatedCodeError, \
+    NodeWithGivenIdNotFound, InvalidFilename
 from webapp.config import Config
 import webapp.auth.user_data as user_data
 from webapp.pages import *
@@ -59,6 +60,14 @@ def handle_eml_file_not_found(error):
     log_error('EML file not found: {0}'.format(error.message))
     user_data.set_active_document(None)
     return redirect(url_for(PAGE_INDEX))
+
+
+@app.errorhandler(InvalidFilename)
+def handle_invalid_filename(error):
+    log_error('Invalid filename: {0}'.format(error.message))
+    user_data.set_active_document(None)
+    return render_template('invalid_filename_error.html',
+                           message=error.message)
 
 
 @app.errorhandler(NodeWithGivenIdNotFound)

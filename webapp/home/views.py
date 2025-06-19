@@ -38,7 +38,7 @@ from flask import Flask, current_app
 from markupsafe import Markup
 
 from webapp.home.utils.file_utils import sanitize_filename
-from webapp.home.utils.security import validate_download_url, validate_user_data_path
+from webapp.home.utils.security import validate_download_url, validate_user_data_path, validate_filename
 
 import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
@@ -4147,7 +4147,7 @@ def load_entity(node_id=None):
 
         file = request.files['file']
         if file:
-            filename = file.filename
+            filename = validate_filename(file.filename)
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
@@ -4466,7 +4466,7 @@ def validate_eml():
 
         file = request.files['file']
         if file:
-            filename = file.filename
+            filename = validate_filename(file.filename)
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')

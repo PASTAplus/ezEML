@@ -45,6 +45,10 @@ class InvalidHeaderRow(ezEMLError):
     pass
 
 
+class InvalidFilename(ezEMLError):
+    pass
+
+
 class InvalidRow(ezEMLError):
     pass
 

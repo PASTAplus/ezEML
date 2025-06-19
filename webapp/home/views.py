@@ -38,7 +38,7 @@ from flask import Flask, current_app
 from markupsafe import Markup
 
 from webapp.home.utils.file_utils import sanitize_filename
-from webapp.home.utils.security import validate_download_url, validate_user_data_path
+from webapp.home.utils.security import validate_download_url, validate_user_data_path, validate_filename
 
 import webapp.home.utils.node_utils
 import webapp.mimemail as mimemail
@@ -4160,9 +4160,9 @@ def load_entity(node_id=None):
                     flash('The selected name has already been used in this data package. Names of data tables and other entities must be unique within a data package.', 'error')
                     return redirect(request.url)
 
+                filename = validate_filename(filename)
                 file.save(os.path.join(validate_user_data_path(uploads_folder), filename))
                 data_file = filename
-                data_file_path = f'{uploads_folder}/{data_file}'
                 flash(f'Loaded {data_file}')
                 dataset_node = eml_node.find_child(names.DATASET)
                 other_entity_node = load_other_entity(dataset_node, uploads_folder, data_file, node_id=node_id)
@@ -4466,7 +4466,7 @@ def validate_eml():
 
         file = request.files['file']
         if file:
-            filename = file.filename
+            filename = validate_filename(file.filename)
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')

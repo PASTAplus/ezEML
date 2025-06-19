@@ -7,6 +7,8 @@ from flask import (
     flash, redirect, url_for
 )
 from webapp.config import Config
+from webapp.home.exceptions import InvalidFilename
+
 
 def validate_download_url(url):
     # Define a whitelist of allowed domains
@@ -47,3 +49,36 @@ def validate_user_data_path(pathname):
     if not local_path.startswith(Config.USER_DATA_DIR):
         raise PermissionError(f"Access to directory '{pathname}' is not allowed.")
     return local_path
+
+
+def validate_filename(filename: str) -> str:
+    """
+    Validate filename to prevent path traversal and other security issues on Linux.
+    Returns the safe filename or raises ValueError.
+    """
+    if not filename or not filename.strip():
+        raise InvalidFilename("Filename cannot be empty or whitespace-only.")
+
+    filename = filename.strip()
+
+    # Disallow null bytes
+    if '\x00' in filename:
+        raise InvalidFilename(f'Filename "{filename}" contains a null byte and is not allowed.')
+
+    # Disallow absolute paths
+    if filename.startswith('/'):
+        raise InvalidFilename(f'Absolute paths are not allowed: "{filename}"')
+
+    # Normalize the path to catch obfuscated traversal attempts
+    normalized = os.path.normpath(filename)
+
+    # Check for path traversal in directory portion
+    path = os.path.dirname(normalized)
+    if '..' in path:
+        raise InvalidFilename(f'Path traversal detected in filename: "{filename}"')
+
+    # Check if normalization revealed an absolute path
+    if normalized.startswith('/'):
+        raise InvalidFilename(f'Path traversal detected in filename: "{filename}"')
+
+    return filename

@@ -773,7 +773,7 @@ def list_method_steps(eml_node:Node, parent_node:Node=None):
         if method_step_node:
             description_node = method_step_node.find_child(names.DESCRIPTION)
             if description_node:
-                title, text = excerpt_text(description_node)
+                title, text = excerpt_text(description_node, MAX_LEN)
                 if title:
                     description = title
                 else:

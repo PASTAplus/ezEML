@@ -201,7 +201,41 @@ def display_texttype_node(texttype_node):
         return display_simple_texttype_node(texttype_node)
 
 
-def excerpt_text(texttype_node):
+def extract_text(texttype_node, max_len):
+    """
+    Do a depth-first recursive search of children, extracting text in sections, paras, literal layouts,
+     and markdown, stopping when max_len is reached.
+    """
+    TARGET_TYPES = { names.SECTION, names.PARA, names.LITERALLAYOUT, names.MARKDOWN }
+    result = []
+
+    def depth_first_search(node):
+        nonlocal max_len
+        if max_len <= 0:
+            return
+        if node.name in TARGET_TYPES:
+            if node.content:
+                needed = max_len - len(''.join(result))
+                if needed <= 0:
+                    return
+                result.append(node.content[:needed])
+                max_len -= len(result[-1])
+
+            # Continue with children if needed
+            for child in node.children:
+                if max_len <= 0:
+                    break
+                depth_first_search(child)
+
+    for child in texttype_node.children:
+        if max_len <= 0:
+            break
+        depth_first_search(child)
+
+    return "".join(result)
+
+
+def excerpt_text(texttype_node, max_len):
     # For use, for example, in displaying a snippet of description for method step select page, where we display just
     #  an excerpt of the text, not the entire text.
     title = ''
@@ -211,15 +245,7 @@ def excerpt_text(texttype_node):
     title_node = texttype_node.find_descendant(names.TITLE)
     if title_node:
         title = title_node.content
-    text = display_simple_texttype_node(texttype_node)
-    # if we didn't get anything, let's see if what we have is markdown
-    if not text:
-        markdown_nodes = []
-        texttype_node.find_all_descendants(names.MARKDOWN, markdown_nodes)
-        for markdown_node in markdown_nodes:
-            if markdown_node.content:
-                text += f'{markdown_node.content}\n'
-        text = text.replace('#', '')
+    text = extract_text(texttype_node, max_len)
     return title, text
 
 

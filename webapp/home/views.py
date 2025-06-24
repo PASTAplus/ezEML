@@ -4532,7 +4532,10 @@ def parse_and_validate(pathname=None, parse_only=False):
             try:
                 details = ','.join(ast.literal_eval(e_parts[1]))
             except:
-                details = e_parts[1]
+                if len(e_parts) > 1:
+                    details = e_parts[1]
+                else:
+                    details = None
             parse_errs.append((e_parts[0], details))
 
     unicodes = ui.unicode_list(xml)

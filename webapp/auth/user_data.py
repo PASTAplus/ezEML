@@ -481,6 +481,32 @@ def get_auth_token():
 
 
 ##############################################
+# Handle QUDT units annotation settings
+##############################################
+
+def set_generate_qudt_annotations(generate_qudt_annotations=True):
+    user_properties = get_user_properties()
+    user_properties['generate_qudt_annotations'] = generate_qudt_annotations
+    save_user_properties(user_properties)
+
+
+def get_generate_qudt_annotations():
+    user_properties = get_user_properties()
+    return user_properties.get('generate_qudt_annotations', True)
+
+
+def set_qudt_annotations_done(done=True):
+    user_properties = get_user_properties()
+    user_properties['qudt_annotations_done'] = done
+    save_user_properties(user_properties)
+
+
+def get_udt_annotations_done():
+    user_properties = get_user_properties()
+    return user_properties.get('qudt_annotations_done', False)
+
+
+##############################################
 # Handle complex text element editing settings
 ##############################################
 

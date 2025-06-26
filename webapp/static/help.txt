@@ -1567,7 +1567,8 @@ The EML standard permits the use of non-ASCII Unicode characters in text element
 You may, however, encounter display problems with EML files that contain such characters when you're working in text editors or other software if the needed fonts are not available. We identify non-ASCII Unicode characters in the EML document to help you troubleshoot such problems.
 
 The table shows the location of each such character in the EML XML. Use <b>Download EML File (XML)</b> in the <b>Import/Export</b> menu to download the XML file,
- open it in a text editor, and go to the specified line and column to see which EML element contains the problem character.
+ open it in a text editor, and go to the specified line and column to see which EML element contains the problem character. After editing the EML, you can use
+ <b>Import EML File (XML)</b> in the <b>Import/Export</b> menu to import the modified EML into ezEML.
 --------------------
 manage_templates
 Manage Templates

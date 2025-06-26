@@ -4482,7 +4482,7 @@ def review_qudt_annotations(filename):
                     annotation_entries.append(AnnotationEntry(column_name, unit_in_metadata, qudt_label, qudt_code, ''))
         data_table_list.append((data_table_name, annotation_entries))
 
-    help = get_helps(['title'])
+    help = get_helps(['qudt_units_annotations'])
     return render_template('review_qudt_annotations.html', annotations=data_table_list, help=help)
 
 

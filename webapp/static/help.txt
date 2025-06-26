@@ -1230,6 +1230,18 @@ The date of publication.
 
 Publication date is not required by EML. If you submit your data to the EDI data repository, the date of publication will be entered automatically by EDI.
 --------------------
+qudt_units_annotations
+QUDT Units Annotations
+
+The QUDT ontology is a formal vocabulary developed to describe and reason about quantities, units, dimensions, and data types in scientific, engineering, and other technical domains. "QUDT" stands for:
+ Quantities, Units, Dimensions, and (Data) Types.
+
+It was originally developed by NASA and is now maintained by the <a href="https:qudt.org">QUDT.org</a> organization. The QUDT ontology is widely used in semantic web and linked data applications to
+ ensure interoperability of units and measurements across systems.
+
+For a subset of standard and custom units for Numerical data table columns, ezEML is able to add metadata annotations that map the unit to its QUDT code. This is
+ a step toward greater interpretability of data packages.
+--------------------
 related_project
 Related Project
 A project may be associated with related projects. EML treats one project as the main or primary project, which can then have one or more related projects as "children".

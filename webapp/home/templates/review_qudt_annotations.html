@@ -40,6 +40,7 @@
                 <th style="text-align:left;" width=25%>QUDT Code</th>
                 </thead>
                 <tbody>
+                {% if annotation[1] %}
                 {% for annotation in annotation[1] %}
                 <tr>
                 <td class="eval_table" valign="top">{{ annotation.column_name }}</td>
@@ -48,6 +49,9 @@
                 <td class="eval_table" valign="top" align="left">{{ annotation.qudt_code | safe }}</td>
                 </tr>
                 {% endfor %}
+                {% else %}
+                    <td colspan="4">No QUDT annotations have been created for this table.</td>
+                {%  endif %}
                 </tbody>
             </table>
             {% endfor %}

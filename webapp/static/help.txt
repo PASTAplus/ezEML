@@ -1234,13 +1234,32 @@ qudt_units_annotations
 QUDT Units Annotations
 
 The QUDT ontology is a formal vocabulary developed to describe and reason about quantities, units, dimensions, and data types in scientific, engineering, and other technical domains. "QUDT" stands for:
- Quantities, Units, Dimensions, and (Data) Types.
+ Quantities, Units, Dimensions, and Types.
 
 It was originally developed by NASA and is now maintained by the <a href="https:qudt.org">QUDT.org</a> organization. The QUDT ontology is widely used in semantic web and linked data applications to
  ensure interoperability of units and measurements across systems.
 
 For a subset of standard and custom units for Numerical data table columns, ezEML is able to add metadata annotations that map the unit to its QUDT code. This is
  a step toward greater interpretability of data packages.
+
+There may be cases where you believe a QUDT unit annotation added by ezEML is incorrect. Such cases should be very infrequent, but if such
+ a case arises, you can reject the annotation by clicking the <b>Reject</b> action. Or, to reject all QUDT unit annotations for a data table, click
+ <b>Reject All</b>.
+
+QUDT unit annotations that have been rejected will still be shown in the table, but the action associated with them will
+ switch to <b>Accept</b>, which allows you to undo the action of rejected an annotation. <b>Accept All</b> lets you accept all of the
+ annotations for a data table.
+--------------------
+reject_qudt_annotations
+Reject/Accept QUDT Units Annotations
+
+There may be cases where you believe a QUDT unit annotation added by ezEML is incorrect. Such cases should be very infrequent, but if such
+ a case arises, you can reject the annotation by clicking the <b>Reject</b> action. Or, to reject all QUDT unit annotations for a data table, click
+ <b>Reject All</b>.
+
+QUDT unit annotations that have been rejected will still be shown in the table, but the action associated with them will
+ switch to <b>Accept</b>, which allows you to undo the action of rejected an annotation. <b>Accept All</b> lets you accept all of the
+ annotations for a data table.
 --------------------
 related_project
 Related Project

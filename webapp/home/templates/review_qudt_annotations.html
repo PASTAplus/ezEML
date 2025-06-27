@@ -5,6 +5,9 @@
     {% set help_review_qudt_annotations_id, help_review_qudt_annotations_title, help_review_qudt_annotations_content = help[0] %}
     {% set help_review_qudt_annotations_btn = help_review_qudt_annotations_id ~ '_btn' %}
     {% set help_review_qudt_annotations_dialog = help_review_qudt_annotations_id ~ '_dialog' %}
+    {% set help_reject_qudt_annotations_id, help_reject_qudt_annotations_title, help_reject_qudt_annotations_content = help[1] %}
+    {% set help_reject_qudt_annotations_btn = help_reject_qudt_annotations_id ~ '_btn' %}
+    {% set help_reject_qudt_annotations_dialog = help_reject_qudt_annotations_id ~ '_dialog' %}
 
     <table>
         <td><h2>QUDT Units Annotations</h2></td>
@@ -21,7 +24,14 @@
         {% endif %}
             {% for annotation in annotations %}
                 <p>&nbsp;</p>
-                <b>Data Table:</b>   {{ annotation[0] }}
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <div><b>Data Table:</b>   {{ annotation[0] }}</div>
+  <div style="display: flex; gap: 20px;">
+        <a href="/eml/reject_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Reject All</a>
+        <a href="/eml/restore_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Accept All</a>
+      <div style="position: relative; top: -3px;">{{ macros.help_button(help_reject_qudt_annotations_btn) }}</div>
+  </div>
+</div>
 
     <style>
     .table-tight td,
@@ -44,8 +54,8 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% if annotation[1] %}
-                {% for annotation in annotation[1] %}
+                {% if annotation[2] %}
+                {% for annotation in annotation[2] %}
                 <tr>
                 <td class="eval_table" valign="top" style="text-align:right;">{{ annotation.column_number }}</td>
                 <td width="1%"></td>
@@ -77,6 +87,7 @@
         </form>
     </div>
     {{ macros.help_dialog(help_review_qudt_annotations_dialog, help_review_qudt_annotations_title, help_review_qudt_annotations_content) }}
+    {{ macros.help_dialog(help_reject_qudt_annotations_dialog, help_reject_qudt_annotations_title, help_reject_qudt_annotations_content) }}
 {% endblock %}
 
 
@@ -85,11 +96,15 @@
     {% set help_review_qudt_annotations_id, help_review_qudt_annotations_title, help_review_qudt_annotations_content = help[0] %}
     {% set help_review_qudt_annotations_btn = help_review_qudt_annotations_id ~ '_btn' %}
     {% set help_review_qudt_annotations_dialog = help_review_qudt_annotations_id ~ '_dialog' %}
+    {% set help_reject_qudt_annotations_id, help_reject_qudt_annotations_title, help_reject_qudt_annotations_content = help[1] %}
+    {% set help_reject_qudt_annotations_btn = help_reject_qudt_annotations_id ~ '_btn' %}
+    {% set help_reject_qudt_annotations_dialog = help_reject_qudt_annotations_id ~ '_dialog' %}
 
     <script>
     $(function()
     {
         {{ macros.help_script(help_review_qudt_annotations_dialog, help_review_qudt_annotations_btn) }}
+        {{ macros.help_script(help_reject_qudt_annotations_dialog, help_reject_qudt_annotations_btn) }}
     });
 
     $(document).ready(function() {

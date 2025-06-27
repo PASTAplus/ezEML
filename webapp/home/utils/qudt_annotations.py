@@ -142,6 +142,7 @@ def available_qudt_annotations(eml_node, filename):
         entity_name_node = data_table_node.find_child(names.ENTITYNAME)
         if not entity_name_node or not entity_name_node.content:
             continue
+        data_table_node_id = data_table_node.id
         data_table_name = entity_name_node.content
         attribute_nodes = []
         data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
@@ -174,7 +175,6 @@ def available_qudt_annotations(eml_node, filename):
                     #     pass
                     annotation_exists = False
                     attribute_node_id = attribute_node.id
-                    data_table_node_id = attribute_node.parent.parent.id
                     attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
                     column_name = attribute_name_node.content
                     unit_in_metadata = unit_text
@@ -215,7 +215,7 @@ def available_qudt_annotations(eml_node, filename):
                                                  qudt_code,
                                                  action_link)
                     )
-        data_table_list.append((data_table_name, available_qudt_annotations))
+        data_table_list.append((data_table_name, data_table_node_id, available_qudt_annotations))
     return data_table_list
 
 
@@ -255,5 +255,56 @@ def is_rejected_annotation(attribute_node_id):
     return attribute_node_id in rejected_annotation_ids
 
 
+def reject_all_qudt_annotations(eml_node, data_table_node_id):
+    """
+    Reject all QUDT unit annotations for a data table.
+    Returns true iff a change was made. Caller is responsible for saving changes.
+    """
+    data_table_node = Node.get_node_instance(data_table_node_id)
+    if not data_table_node:
+        return
+    annotation_nodes = []
+    changed = False
+    data_table_node.find_all_descendants(names.ANNOTATION, annotation_nodes)
+    for annotation_node in annotation_nodes:
+        property_uri_node = annotation_node.find_child(names.PROPERTYURI)
+        value_uri_node = annotation_node.find_child(names.VALUEURI)
+        if not property_uri_node or not value_uri_node:
+            continue
+        if (property_uri_node.attribute_value('label') != 'has unit' or
+            property_uri_node.content not in ('https://qudt.org/schema/qudt/hasUnit',
+                                              'http://qudt.org/schema/qudt/hasUnit')):
+            continue
+        if ('http://qudt.org/vocab/unit/' not in value_uri_node.content
+            and 'https://qudt.org/vocab/unit/' not in value_uri_node.content):
+            continue
+        # We've got a QUDT unit annotation. Remove it.
+        changed = True
+        attribute_node = annotation_node.parent
+        attribute_node.remove_child(annotation_node)
+        Node.delete_node_instance(annotation_node.id)
+        set_rejected_annotation(attribute_node.id, True)
+    return changed
 
+
+def restore_all_qudt_annotations(eml_node, data_table_node_id):
+    """
+    Restore all QUDT unit annotations for a data table.
+    Returns true iff a change was made. Caller is responsible for saving changes.
+    """
+    data_table_node = Node.get_node_instance(data_table_node_id)
+    if not data_table_node:
+        return
+    # Get the attribute node IDs and remove them from the rejected set
+    rejected = load_rejected_annotation_ids()
+    original_rejected = rejected.copy()
+    attribute_nodes = []
+    data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
+    for attribute_node in attribute_nodes:
+        rejected.discard(attribute_node.id)
+    changed = (rejected != original_rejected)
+    if changed:
+        save_rejected_annotation_ids(rejected)
+        add_qudt_annotations(eml_node)
+    return changed
 

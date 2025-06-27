@@ -557,3 +557,30 @@ def get_enable_complex_text_element_editing_document(filename=None):
     if filename is None:
         filename = get_active_document()
     return filename in enabled_files
+
+
+##############################################
+# Handle QUDT units annotations settings
+##############################################
+
+def set_enable_automatic_qudt_annotations(enable_automatic_qudt_annotations=True):
+    user_properties = get_user_properties()
+    user_properties['enable_automatic_qudt_annotations'] = enable_automatic_qudt_annotations
+    save_user_properties(user_properties)
+
+
+def get_enable_automatic_qudt_annotations():
+    user_properties = get_user_properties()
+    return user_properties.get('enable_automatic_qudt_annotations', True)
+
+
+def set_replace_preexisting_qudt_annotations(set_replace_preexisting_qudt_annotations=True):
+    user_properties = get_user_properties()
+    user_properties['set_replace_preexisting_qudt_annotations'] = set_replace_preexisting_qudt_annotations
+    save_user_properties(user_properties)
+
+
+def get_replace_preexisting_qudt_annotations():
+    user_properties = get_user_properties()
+    return user_properties.get('set_replace_preexisting_qudt_annotations', True)
+

@@ -27,6 +27,13 @@
                     </td></tr>
                     {% endif %}
                     <tr><td style="width: 30px;">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.complex_text_editing_global) }}</td></tr>
+                    <tr></tr>
+                    <tr>
+                    <td colspan="3"><h4>Automatic QUDT Units Annotations:</h4></td>
+                    <td valign="middle" style="padding-top: 5px;padding-left: 10px;">{{ macros.help_button(help_settings_text_editing_btn) }}</td>
+                    </tr>
+                    <tr><td style="width: 30px;">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.add_qudt_units_annotations) }}</td></tr>
+                    <tr><td style="width: 30px;">&nbsp;</td><td colspan="2">{{ wtf.form_field(form.replace_qudt_units_annotations) }}</td></tr>
                 </table>
 
                 <br>

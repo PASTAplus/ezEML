@@ -4429,61 +4429,48 @@ def get_current_page():
 
 AnnotationEntry = collections.namedtuple(
     'AnnotationEntry',
-    ["column_name", "unit_in_metadata", "qudt_label", "qudt_code", "link"])
+    ["column_name", "unit_in_metadata", "qudt_label", "qudt_code", "link", "attribute_node_id"])
 
 
 @home_bp.route('/review_qudt_annotations/<filename>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
 def review_qudt_annotations(filename):
+    from webapp.home.utils.qudt_annotations import available_qudt_annotations
     """
     Route to display the QUDT Units Annotations in the model.
     """
-    data_table_list = []
     eml_node = load_eml(filename)
-    data_table_nodes = []
-    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
-    for data_table_node in data_table_nodes:
-        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
-        if not entity_name_node or not entity_name_node.content:
-            continue
-        data_table_name = entity_name_node.content
-        annotation_entries = []
-        attribute_nodes = []
-        data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
-        for attribute_node in attribute_nodes:
-            annotation_nodes = []
-            attribute_node.find_all_descendants(names.ANNOTATION, annotation_nodes)
-            for annotation_node in annotation_nodes:
-                property_uri_node = annotation_node.find_child(names.PROPERTYURI)
-                if property_uri_node and property_uri_node.content == 'http://qudt.org/schema/qudt/hasUnit':
-                    attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
-                    if not attribute_name_node or not attribute_name_node.content:
-                        continue
-                    column_name = attribute_name_node.content
-                    unit_in_metadata = None
-                    standard_unit_node = attribute_node.find_descendant(names.STANDARDUNIT)
-                    if standard_unit_node and standard_unit_node.content:
-                        unit_in_metadata = standard_unit_node.content
-                    else:
-                        custom_unit_node = attribute_node.find_descendant(names.CUSTOMUNIT)
-                        if custom_unit_node and custom_unit_node.content:
-                            unit_in_metadata = custom_unit_node.content
-                    if not unit_in_metadata:
-                        continue
-                    value_uri_node = annotation_node.find_child(names.VALUEURI)
-                    if not value_uri_node:
-                        continue
-                    qudt_label = value_uri_node.attribute_value('label')
-                    qudt_code = value_uri_node.content
-                    if qudt_code and ('http://qudt.org/vocab/unit/' in qudt_code or 'https://qudt.org/vocab/unit/' in qudt_code):
-                        segments = qudt_code.split('/')
-                        qudt_code = f'<a href="{qudt_code}" target="_ezeml_qudt">{segments[-1]}</a>'
-                    annotation_entries.append(AnnotationEntry(column_name, unit_in_metadata, qudt_label, qudt_code, ''))
-        data_table_list.append((data_table_name, annotation_entries))
+
+    qudt_annotations = available_qudt_annotations(eml_node, filename)
 
     help = get_helps(['qudt_units_annotations'])
-    return render_template('review_qudt_annotations.html', annotations=data_table_list, help=help)
+    return render_template('review_qudt_annotations.html', annotations=qudt_annotations, help=help)
+
+
+@home_bp.route('/reject_qudt_annotation/<filename>/<annotation_id>', methods=['GET', 'POST'])
+@login_required
+def reject_qudt_annotation(filename, annotation_id):
+    from webapp.home.utils.qudt_annotations import set_rejected_annotation
+    eml_node = load_eml(filename)
+    annotation_node = Node.get_node_instance(annotation_id)
+    attribute_node = annotation_node.parent
+    annotation_node.parent.remove_child(annotation_node)
+    Node.delete_node_instance(annotation_id)
+    set_rejected_annotation(attribute_node.id, True)
+    save_both_formats(filename=filename, eml_node=eml_node)
+    return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
+
+
+@home_bp.route('/restore_qudt_annotation/<filename>/<attribute_id>', methods=['GET', 'POST'])
+@login_required
+def restore_qudt_annotation(filename, attribute_id):
+    from webapp.home.utils.qudt_annotations import set_rejected_annotation, add_qudt_annotations
+    eml_node = load_eml(filename)
+    set_rejected_annotation(attribute_id, False)
+    add_qudt_annotations(eml_node, False)
+    save_both_formats(filename=filename, eml_node=eml_node)
+    return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
 
 
 @home_bp.route('/validate_eml', methods=['GET', 'POST'])

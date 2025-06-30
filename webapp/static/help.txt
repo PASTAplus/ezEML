@@ -1253,7 +1253,7 @@ QUDT unit annotations that have been rejected -- or never added in the first pla
 ezEML automatically adds QUDT unit annotations by default, but you can override this setting in the <b>Settings</b> page. See the <b>EML Documents</b> menu.
 
 ezEML employs mappings developed by the <b>EDI Units Working Group</b>. These mappings are very conservative. I.e., an annotation is added only if it is
- extremely unlikely to be incorrect. Many units found in EML data packages do not currently have QUDT equivalents, although coverage may improve over time.
+ extremely unlikely to be incorrect. Many units found in EML data packages do not currently have QUDT equivalents, although coverage should improve over time.
  Other units are too ambiguous to be mapped with confidence. All such cases are left unannotated. Because the mapping is highly conservative, you should
  find that the annotations added by ezEML are trustworthy.
 --------------------
@@ -1588,7 +1588,7 @@ If <b>Add QUDT units annotations where available</b> is checked (the default set
 To review the annotations ezEML has found, go to <b>Check Metadata</b> and click the <b>Review QUDT Units Annotations</b> link at the top right
  of the page. You will be able to accept or reject any annotation proposed by ezEML. ezEML employs the mappings developed by the EDI Units
  Working Group. These mappings are very conservative. I.e., an annotation is added only if it is extremely unlikely to be incorrect. Many units
- found in EML data packages do not currently have QUDT equivalents, although this may improve over time. Other units are too ambiguous to be
+ found in EML data packages do not currently have QUDT equivalents, although coverage should improve over time. Other units are too ambiguous to be
  mapped with confidence. All such cases are left unannotated. Because the mapping is highly conservative, you should find that the annotations added by ezEML are trustworthy.
 --------------------
 taxonomy_imported_from_xml

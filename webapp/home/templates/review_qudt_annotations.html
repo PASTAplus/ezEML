@@ -16,8 +16,8 @@
 
     <div class="col-md-12">
         <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
-{#            <a href="/eml/check_metadata/{{ filename }}">Back</a>#}
-                <a href="{{ request.referrer }}">Back</a>
+            <a href="/eml/check_metadata/{{ filename }}">Back</a>
+{#                <a href="{{ request.referrer }}">Back</a>#}
         {% if not annotations %}
                 <p>&nbsp;</p>
             No QUDT units annotations have been created.

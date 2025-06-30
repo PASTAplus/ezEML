@@ -135,6 +135,31 @@ AvailableAnnotationEntry = collections.namedtuple(
         "action_link"
     ])
 
+
+def is_qudt_annotation(annotation_node):
+    """
+    Returns (qudt_label, qudt_code) if this is a QUDT annotation.
+
+    If not, returns None.
+    """
+    property_uri_node = annotation_node.find_child(names.PROPERTYURI)
+    if not property_uri_node:
+        return None
+    if not property_uri_node.attribute_value('label') == 'has unit':
+        return None
+    if not property_uri_node.content in ('http://qudt.org/schema/qudt/hasUnit', 'https://qudt.org/schema/qudt/hasUnit'):
+        return None
+    value_uri_node = annotation_node.find_child(names.VALUEURI)
+    if not value_uri_node:
+        return None
+    qudt_label = value_uri_node.attribute_value('label')
+    qudt_uri = value_uri_node.content
+    if 'http://qudt.org/vocab/unit/' not in qudt_uri and 'https://qudt.org/vocab/unit/':
+        return None
+    qudt_code = qudt_uri.split('/')[-1]
+    return (qudt_label, qudt_code)
+
+
 def available_qudt_annotations(eml_node, filename):
     """
     Generate a list of available QUDT annotations. Some may have been entered in the metadata, others may have been removed.
@@ -175,14 +200,16 @@ def available_qudt_annotations(eml_node, filename):
                     (my_qudt_info_df["unit"] != "NA")
                 ]
                 if len(my_qudt_info_df) == 1:
-                    annotation_exists = False
                     attribute_node_id = attribute_node.id
                     attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
                     column_name = attribute_name_node.content
                     unit_in_metadata = unit_text
                     qudt_label = my_qudt_info_df.iloc[0]["qudtLabel"].strip()
                     qudt_code = my_qudt_info_df.iloc[0]["qudtUri"].replace('http://', 'https://')
+                    segments = qudt_code.split('/')
+                    qudt_code = f'<a href="{qudt_code}" target="_ezeml_qudt">{segments[-1]}</a>'
                     # Determine if annotation exists in the model
+                    annotation_exists = False
                     annotation_nodes = attribute_node.find_all_children(names.ANNOTATION)
                     for annotation_node in annotation_nodes:
                         property_uri_node = annotation_node.find_child(names.PROPERTYURI)
@@ -197,26 +224,32 @@ def available_qudt_annotations(eml_node, filename):
                             continue
                         if value_uri_node.attribute_value('label') != qudt_label:
                             continue
-                        if value_uri_node.content not in (qudt_code, qudt_code.replace('https://', 'http://')):
+                        if value_uri_node.content not in qudt_code and value_uri_node.content not in qudt_code.replace('https://', 'http://'):
                             continue
                         annotation_exists = True
-                        break
-                    if annotation_exists:
                         action_link = f'<a href="/eml/reject_qudt_annotation/{filename}/{annotation_node.id}">Reject</a>'
-                    else:
+                        available_qudt_annotations.append(
+                            AvailableAnnotationEntry(data_table_node_id,
+                                                     attribute_node_id,
+                                                     column_number,
+                                                     column_name,
+                                                     unit_in_metadata,
+                                                     qudt_label,
+                                                     qudt_code,
+                                                     action_link)
+                        )
+                    if not annotation_exists:
                         action_link = f'<a href="/eml/restore_qudt_annotation/{filename}/{attribute_node_id}">Accept</a>'
-                    segments = qudt_code.split('/')
-                    qudt_code = f'<a href="{qudt_code}" target="_ezeml_qudt">{segments[-1]}</a>'
-                    available_qudt_annotations.append(
-                        AvailableAnnotationEntry(data_table_node_id,
-                                                 attribute_node_id,
-                                                 column_number,
-                                                 column_name,
-                                                 unit_in_metadata,
-                                                 qudt_label,
-                                                 qudt_code,
-                                                 action_link)
-                    )
+                        available_qudt_annotations.append(
+                            AvailableAnnotationEntry(data_table_node_id,
+                                                     attribute_node_id,
+                                                     column_number,
+                                                     column_name,
+                                                     unit_in_metadata,
+                                                     qudt_label,
+                                                     qudt_code,
+                                                     action_link)
+                        )
         data_table_list.append((data_table_name, data_table_node_id, available_qudt_annotations))
     return data_table_list
 
@@ -324,3 +357,32 @@ def accept_all_qudt_annotations(eml_node, data_table_node_id):
         add_qudt_annotations(eml_node)
     return changed
 
+
+def remove_redundant_qudt_annotations(eml_node):
+    """
+    Finds and removes redundant QUDT units annotations.
+
+    Returns True iff a change was made. Caller is responsible for saving the model if changed.
+    """
+    return False
+    data_table_nodes = []
+    eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
+    changed = False
+    for data_table_node in data_table_nodes:
+        attribute_nodes = []
+        data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
+        for attribute_node in attribute_nodes:
+            found = set()
+            annotation_nodes = attribute_node.find_all_children(names.ANNOTATION)
+            if len(annotation_nodes) < 2:
+                continue
+            for annotation_node in annotation_nodes:
+                # See if it's a QUDT unit annotation
+                qudt_label, qudt_code = is_qudt_annotation(annotation_node)
+                if (qudt_label, qudt_code) in found:
+                    # Have a duplicate. Remove it.
+                    attribute_node.remove_child(annotation_node)
+                    changed = True
+                else:
+                    found.add((qudt_label, qudt_code))
+    return changed

@@ -40,6 +40,7 @@ from webapp.home.utils.file_utils import sanitize_filename
 from webapp.home.utils.security import validate_download_url, validate_user_data_path, validate_filename
 
 import webapp.home.utils.node_utils
+from webapp.home.utils import qudt_annotations
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
@@ -3154,6 +3155,8 @@ def import_xml():
                 eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
                     parse_xml_file(filename, filepath)
                 eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+                if qudt_annotations.remove_redundant_qudt_annotations(eml_node):
+                    flash('Redundant QUDT units annotations were found and removed')
 
                 # We're done with the temp file
                 utils.remove_zip_temp_folder()
@@ -3229,6 +3232,8 @@ def import_xml_2(package_name, filename, fetched=False):
             eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
                 parse_xml_file(filename, filepath)
             eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+            if qudt_annotations.remove_redundant_qudt_annotations(eml_node):
+                flash('Redundant QUDT units annotations were found and removed')
 
             # We're done with the temp file
             utils.remove_zip_temp_folder()
@@ -3696,6 +3701,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
         eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
             parse_xml_file(filename, filepath)
         eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+        if qudt_annotations.remove_redundant_qudt_annotations(eml_node):
+            flash('Redundant QUDT units annotations were found and removed')
 
         # We're done with the temp file
         utils.remove_zip_temp_folder()

@@ -364,7 +364,6 @@ def remove_redundant_qudt_annotations(eml_node):
 
     Returns True iff a change was made. Caller is responsible for saving the model if changed.
     """
-    return False
     data_table_nodes = []
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     changed = False

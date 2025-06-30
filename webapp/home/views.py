@@ -1313,18 +1313,20 @@ def settings():
 
         if form.validate_on_submit():
             current_document = current_user.get_filename()
-            setting_changed = False
+            document_setting_changed = False
             document_setting = user_data.get_enable_complex_text_element_editing_document(current_document)
             global_setting = user_data.get_enable_complex_text_element_editing_global()
             if document_setting != form.complex_text_editing_document.data or global_setting != form.complex_text_editing_global.data:
-                setting_changed = True
+                document_setting_changed = True
             user_data.set_enable_complex_text_element_editing_document(current_document, form.complex_text_editing_document.data)
             user_data.set_enable_complex_text_element_editing_global(form.complex_text_editing_global.data)
-            if setting_changed:
+            if document_setting_changed:
                 eml_node = load_eml(filename=current_document)
                 if eml_node:
                     # Setting has changed, so we need to re-process the document
                     user_data.set_model_has_complex_texttypes(texttype_node_processing.model_has_complex_texttypes(eml_node))
+            user_data.set_enable_automatic_qudt_annotations(form.add_qudt_units_annotations.data)
+            user_data.set_replace_preexisting_qudt_annotations(form.replace_qudt_units_annotations.data)
             log_usage(actions['SETTINGS'])
             return redirect(get_back_url())
 
@@ -1337,7 +1339,8 @@ def settings():
         form.complex_text_editing_document.data = user_data.get_enable_complex_text_element_editing_document() or \
                                                     document_has_complex_texttypes
         form.complex_text_editing_global.data = user_data.get_enable_complex_text_element_editing_global()
-    help = get_helps(['settings_text'])
+        form.add_qudt_units_annotations.data, form.replace_qudt_units_annotations.data = user_data.get_qudt_annotations_settings()
+    help = get_helps(['settings_text', 'settings_qudt_annotations'])
     return render_template('settings.html', programmatic=document_has_complex_texttypes, form=form, help=help)
 
 
@@ -4451,13 +4454,13 @@ def review_qudt_annotations(filename):
 @home_bp.route('/reject_qudt_annotation/<filename>/<annotation_id>', methods=['GET', 'POST'])
 @login_required
 def reject_qudt_annotation(filename, annotation_id):
-    from webapp.home.utils.qudt_annotations import set_rejected_annotation
+    from webapp.home.utils.qudt_annotations import set_annotation_action
     eml_node = load_eml(filename)
     annotation_node = Node.get_node_instance(annotation_id)
     attribute_node = annotation_node.parent
     annotation_node.parent.remove_child(annotation_node)
     Node.delete_node_instance(annotation_id)
-    set_rejected_annotation(attribute_node.id, True)
+    set_annotation_action(attribute_node.id, True)
     save_both_formats(filename=filename, eml_node=eml_node)
     return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
 
@@ -4465,10 +4468,10 @@ def reject_qudt_annotation(filename, annotation_id):
 @home_bp.route('/restore_qudt_annotation/<filename>/<attribute_id>', methods=['GET', 'POST'])
 @login_required
 def restore_qudt_annotation(filename, attribute_id):
-    from webapp.home.utils.qudt_annotations import set_rejected_annotation, add_qudt_annotations
+    from webapp.home.utils.qudt_annotations import set_annotation_action, add_qudt_annotations
     eml_node = load_eml(filename)
-    set_rejected_annotation(attribute_id, False)
-    add_qudt_annotations(eml_node, False)
+    set_annotation_action(attribute_id, False)
+    add_qudt_annotations(eml_node)
     save_both_formats(filename=filename, eml_node=eml_node)
     return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
 
@@ -4486,9 +4489,9 @@ def reject_all_qudt_annotations(filename, data_table_node_id):
 @home_bp.route('/restore_all_qudt_annotations/<filename>/<data_table_node_id>', methods=['GET', 'POST'])
 @login_required
 def restore_all_qudt_annotations(filename, data_table_node_id):
-    from webapp.home.utils.qudt_annotations import restore_all_qudt_annotations
+    from webapp.home.utils.qudt_annotations import accept_all_qudt_annotations
     eml_node = load_eml(filename)
-    if restore_all_qudt_annotations(eml_node, data_table_node_id):
+    if accept_all_qudt_annotations(eml_node, data_table_node_id):
         save_both_formats(filename=filename, eml_node=eml_node)
     return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
 

@@ -8,6 +8,8 @@ Using a units ontology to annotate pre-existing metadata. Sci Data 12, 304 (2025
 https://doi.org/10.1038/s41597-025-04587-8
 """
 
+ANNOTATIONS_ACTIONS_FILENAME = '__annotations_actions__.pkl'
+
 import collections
 
 import os
@@ -16,6 +18,7 @@ import pickle
 import re
 import uuid
 
+from webapp.auth import user_data
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -54,7 +57,7 @@ def convert_special_characters(in_string):
     return out_string
 
 
-def add_qudt_annotations(eml_node, overwrite_existing=True):
+def add_qudt_annotations(eml_node, automatically_add=True, overwrite_existing=False):
     """
     Add QUDT unit annotations where available.
 
@@ -77,6 +80,7 @@ def add_qudt_annotations(eml_node, overwrite_existing=True):
             if property_uri_node and 'hasUnit' in (property_uri_node.content or ""):
                 attribute_node.remove_child(annotation_node)
 
+    enable_automatic_qudt_annotations, replace_preexisting_qudt_annotations = user_data.get_qudt_annotations_settings()
     qudt_info_df = pd.read_csv('webapp/static/unitsWithQUDTInfo.csv')
     attribute_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE, names.ATTRIBUTELIST, names.ATTRIBUTE])
     for attribute_node in attribute_nodes:
@@ -100,7 +104,9 @@ def add_qudt_annotations(eml_node, overwrite_existing=True):
             if len(my_qudt_info_df) == 1:
                 if is_rejected_annotation(attribute_node.id):
                     continue
-                if has_existing_unit_annotation(attribute_node) and overwrite_existing:
+                if not enable_automatic_qudt_annotations and not is_accepted_annotation(attribute_node.id):
+                    continue
+                if has_existing_unit_annotation(attribute_node) and replace_preexisting_qudt_annotations:
                     remove_existing_unit_annotation(attribute_node)
                 if not has_existing_unit_annotation(attribute_node):
                     annotation_node = Node(names.ANNOTATION)
@@ -169,10 +175,6 @@ def available_qudt_annotations(eml_node, filename):
                     (my_qudt_info_df["unit"] != "NA")
                 ]
                 if len(my_qudt_info_df) == 1:
-                    # if has_existing_unit_annotation(attribute_node):
-                    #     remove_existing_unit_annotation(attribute_node)
-                    # if not has_existing_unit_annotation(attribute_node):
-                    #     pass
                     annotation_exists = False
                     attribute_node_id = attribute_node.id
                     attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
@@ -219,40 +221,47 @@ def available_qudt_annotations(eml_node, filename):
     return data_table_list
 
 
-REJECTED_ANNOTATIONS_FILENAME = '__rejected_annotations__.pkl'
-def load_rejected_annotation_ids():
+def load_annotations_actions():
     from webapp.auth.user_data import get_user_folder_name
     # Load the pickle file with the set of attribute IDs for rejected annotations
     user_folder_name = get_user_folder_name()
-    user_properties_pathname = os.path.join(user_folder_name, REJECTED_ANNOTATIONS_FILENAME)
-    rejected_annotation_ids = set()
+    user_properties_pathname = os.path.join(user_folder_name, ANNOTATIONS_ACTIONS_FILENAME)
+    rejected_annotations_ids = set()
+    accepted_annotations_ids = set()
     if os.path.exists(user_properties_pathname):
         with open(user_properties_pathname, 'rb') as file:
-            rejected_annotation_ids = pickle.load(file)
-    return rejected_annotation_ids
+            rejected_annotations_ids, accepted_annotations_ids = pickle.load(file)
+    return rejected_annotations_ids, accepted_annotations_ids
 
 
-def save_rejected_annotation_ids(rejected_annotation_ids):
+def save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids):
     from webapp.auth.user_data import get_user_folder_name
-    # Save the pickle file with the set of rejected annotation IDs
+    # Save the pickle file with the sets of rejected and accepted annotation IDs
     user_folder_name = get_user_folder_name()
-    user_properties_pathname = os.path.join(user_folder_name, REJECTED_ANNOTATIONS_FILENAME)
+    user_properties_pathname = os.path.join(user_folder_name, ANNOTATIONS_ACTIONS_FILENAME)
     with open(user_properties_pathname, 'wb') as file:
-         pickle.dump(rejected_annotation_ids, file)
+         pickle.dump((rejected_annotations_ids, accepted_annotations_ids), file)
 
 
-def set_rejected_annotation(attribute_node_id, reject):
-    rejected_annotation_ids = load_rejected_annotation_ids()
+def set_annotation_action(attribute_node_id, reject):
+    rejected_annotations_ids, accepted_annotations_ids = load_annotations_actions()
     if reject:
-        rejected_annotation_ids.add(attribute_node_id)
+        rejected_annotations_ids.add(attribute_node_id)
+        accepted_annotations_ids.discard(attribute_node_id)
     else:
-        rejected_annotation_ids.discard(attribute_node_id)
-    save_rejected_annotation_ids(rejected_annotation_ids)
+        accepted_annotations_ids.add(attribute_node_id)
+        rejected_annotations_ids.discard(attribute_node_id)
+    save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids)
 
 
 def is_rejected_annotation(attribute_node_id):
-    rejected_annotation_ids = load_rejected_annotation_ids()
+    rejected_annotation_ids, accepted_annotations_ids = load_annotations_actions()
     return attribute_node_id in rejected_annotation_ids
+
+
+def is_accepted_annotation(attribute_node_id):
+    rejected_annotation_ids, accepted_annotations_ids = load_annotations_actions()
+    return attribute_node_id in accepted_annotations_ids
 
 
 def reject_all_qudt_annotations(eml_node, data_table_node_id):
@@ -264,6 +273,7 @@ def reject_all_qudt_annotations(eml_node, data_table_node_id):
     if not data_table_node:
         return
     annotation_nodes = []
+    rejected_annotations_ids, accepted_annotations_ids = load_annotations_actions()
     changed = False
     data_table_node.find_all_descendants(names.ANNOTATION, annotation_nodes)
     for annotation_node in annotation_nodes:
@@ -283,28 +293,34 @@ def reject_all_qudt_annotations(eml_node, data_table_node_id):
         attribute_node = annotation_node.parent
         attribute_node.remove_child(annotation_node)
         Node.delete_node_instance(annotation_node.id)
-        set_rejected_annotation(attribute_node.id, True)
+        rejected_annotations_ids.add(attribute_node.id)
+        accepted_annotations_ids.discard(attribute_node.id)
+    if changed:
+        save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids)
     return changed
 
 
-def restore_all_qudt_annotations(eml_node, data_table_node_id):
+def accept_all_qudt_annotations(eml_node, data_table_node_id):
     """
-    Restore all QUDT unit annotations for a data table.
+    Accept all QUDT unit annotations for a data table. Besides updating the reject/accept sets,
+     this adds the annotations to the model.
     Returns true iff a change was made. Caller is responsible for saving changes.
     """
     data_table_node = Node.get_node_instance(data_table_node_id)
     if not data_table_node:
         return
-    # Get the attribute node IDs and remove them from the rejected set
-    rejected = load_rejected_annotation_ids()
-    original_rejected = rejected.copy()
+    # Get the attribute node IDs and remove them from the rejected set, add to the accepted set
+    rejected_annotations_ids, accepted_annotations_ids = load_annotations_actions()
+    original_rejected = rejected_annotations_ids.copy()
+    original_accepted = accepted_annotations_ids.copy()
     attribute_nodes = []
     data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
     for attribute_node in attribute_nodes:
-        rejected.discard(attribute_node.id)
-    changed = (rejected != original_rejected)
+        rejected_annotations_ids.discard(attribute_node.id)
+        accepted_annotations_ids.add(attribute_node.id)
+    changed = (rejected_annotations_ids != original_rejected) or (accepted_annotations_ids != original_accepted)
     if changed:
-        save_rejected_annotation_ids(rejected)
+        save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids)
         add_qudt_annotations(eml_node)
     return changed
 

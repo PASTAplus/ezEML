@@ -582,5 +582,12 @@ def set_replace_preexisting_qudt_annotations(set_replace_preexisting_qudt_annota
 
 def get_replace_preexisting_qudt_annotations():
     user_properties = get_user_properties()
-    return user_properties.get('set_replace_preexisting_qudt_annotations', True)
+    return user_properties.get('set_replace_preexisting_qudt_annotations', False)
+
+
+def get_qudt_annotations_settings():
+    user_properties = get_user_properties()
+    enable_automatic_qudt_annotations = user_properties.get('enable_automatic_qudt_annotations', True)
+    replace_preexisting_qudt_annotations = user_properties.get('set_replace_preexisting_qudt_annotations', False)
+    return enable_automatic_qudt_annotations, replace_preexisting_qudt_annotations
 

@@ -26,11 +26,13 @@
                 <p>&nbsp;</p>
 <div style="display: flex; justify-content: space-between; align-items: center;">
   <div><b>Data Table:</b>   {{ annotation[0] }}</div>
+    {% if annotation[2] %}
   <div style="display: flex; gap: 20px;">
         <a href="/eml/reject_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Reject All</a>
         <a href="/eml/restore_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Accept All</a>
       <div style="position: relative; top: -3px;">{{ macros.help_button(help_reject_qudt_annotations_btn) }}</div>
   </div>
+    {% endif %}
 </div>
 
     <style>
@@ -47,9 +49,9 @@
                 <tr>
                 <th style="text-align:right;padding-right: 10px;" width=4% colspan="2">Col#</th>
                 <th style="text-align:left;" width=25%>Column Name</th>
-                <th style="text-align:left;" width=21%>Unit as Entered</th>
-                <th style="text-align:left;" width=21%>QUDT Label</th>
-                <th style="text-align:left;" width=21%>QUDT Code</th>
+                <th style="text-align:left;" width=23%>Unit as Entered</th>
+                <th style="text-align:left;" width=20%>QUDT Label</th>
+                <th style="text-align:left;" width=20%>QUDT Code</th>
                 <th style="text-align:left;" width=8%>Action</th>
                 </tr>
                 </thead>
@@ -62,12 +64,17 @@
                 <td class="eval_table" valign="top">{{ annotation.column_name }}</td>
                 <td class="eval_table" valign="top" align="left">{{ annotation.unit_in_metadata }}</td>
                 <td class="eval_table" valign="top" align="left">{{ annotation.qudt_label | safe }}</td>
+                    {% if 'Accept' in annotation.action_link %}
+{#                <td class="eval_table" data-toggle="tooltip" data-html="true" title="Annotation not<br>included currently." valign="top" align="left"><s>{{ annotation.qudt_code | safe }}</s></td>#}
+                <td class="eval_table" valign="top" align="left"><s>{{ annotation.qudt_code | safe }}</s></td>
+                    {% else %}
                 <td class="eval_table" valign="top" align="left">{{ annotation.qudt_code | safe }}</td>
+                    {% endif %}
                 <td class="eval_table" valign="top" align="left">{{ annotation.action_link | safe }}</td>
                 </tr>
                 {% endfor %}
                 {% else %}
-                    <td colspan="4">No QUDT units annotations have been added for this table.</td>
+                    <td colspan="7">No QUDT units annotations have been added for this table.</td>
                 {%  endif %}
                 </tbody>
             </table>
@@ -108,6 +115,15 @@
     });
 
     $(document).ready(function() {
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip({
+            delay: { show: 50, hide: 50 }
+        });
+        $('[data-toggle="tooltip"]').on('click', function() {
+            $(this).tooltip('hide');
+            $(this).blur(); // Ensure focus is removed
+        });
+
       $('#data_table').DataTable( {
           paging: false,
           searching: false,
@@ -119,4 +135,14 @@
       $(".eval_table").css("padding", "1px");
     });
     </script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        // Initialize tooltips
+        alert('tooltip');
+        $('[data-toggle="tooltip"]').tooltip({
+            delay: { show: 50, hide: 50 }
+        });
+    })
+    </script>
+{#    {{ macros.tooltip_support() }}#}
 {% endblock %}

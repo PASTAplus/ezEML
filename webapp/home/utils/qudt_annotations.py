@@ -114,7 +114,7 @@ def add_qudt_annotations(eml_node, automatically_add=True, overwrite_existing=Fa
                     property_uri_node = Node(names.PROPERTYURI)
                     annotation_node.add_child(property_uri_node)
                     property_uri_node.add_attribute('label', 'has unit')
-                    property_uri_node.content = 'https://qudt.org/schema/qudt/hasUnit'
+                    property_uri_node.content = 'http://qudt.org/schema/qudt/hasUnit'
                     value_uri_node = Node(names.VALUEURI)
                     annotation_node.add_child(value_uri_node)
                     value_uri_node.add_attribute('label', my_qudt_info_df.iloc[0]["qudtLabel"].strip())
@@ -154,7 +154,7 @@ def is_qudt_annotation(annotation_node):
         return None
     qudt_label = value_uri_node.attribute_value('label')
     qudt_uri = value_uri_node.content
-    if 'http://qudt.org/vocab/unit/' not in qudt_uri and 'https://qudt.org/vocab/unit/':
+    if 'http://qudt.org/vocab/unit/' not in qudt_uri and 'https://qudt.org/vocab/unit/' not in qudt_uri:
         return None
     qudt_code = qudt_uri.split('/')[-1]
     return (qudt_label, qudt_code)
@@ -205,9 +205,10 @@ def available_qudt_annotations(eml_node, filename):
                     column_name = attribute_name_node.content
                     unit_in_metadata = unit_text
                     qudt_label = my_qudt_info_df.iloc[0]["qudtLabel"].strip()
-                    qudt_code = my_qudt_info_df.iloc[0]["qudtUri"].replace('http://', 'https://')
+                    qudt_code = my_qudt_info_df.iloc[0]["qudtUri"]
                     segments = qudt_code.split('/')
-                    qudt_code = f'<a href="{qudt_code}" target="_ezeml_qudt">{segments[-1]}</a>'
+                    qudt_link = qudt_code.replace('http://', 'https://')
+                    qudt_code = f'<a href="{qudt_link}" target="_ezeml_qudt">{segments[-1]}</a>'
                     # Determine if annotation exists in the model
                     annotation_exists = False
                     annotation_nodes = attribute_node.find_all_children(names.ANNOTATION)

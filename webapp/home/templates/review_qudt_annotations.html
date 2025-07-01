@@ -20,7 +20,7 @@
 {#                <a href="{{ request.referrer }}">Back</a>#}
         {% if not annotations %}
                 <p>&nbsp;</p>
-            No QUDT units annotations have been created.
+            No QUDT units annotations have been found.
         {% endif %}
             {% for annotation in annotations %}
                 <p>&nbsp;</p>
@@ -74,7 +74,7 @@
                 </tr>
                 {% endfor %}
                 {% else %}
-                    <td colspan="7">No QUDT units annotations have been added for this table.</td>
+                    <td colspan="7">No QUDT units annotations have been found for this table.</td>
                 {%  endif %}
                 </tbody>
             </table>

@@ -19,6 +19,7 @@ import re
 import uuid
 
 from webapp.auth import user_data
+from webapp.home.utils.node_utils import get_unit_text
 from metapype.eml import names
 from metapype.model.node import Node
 
@@ -72,25 +73,40 @@ def add_qudt_annotations(eml_node, automatically_add=True, overwrite_existing=Fa
                 return True
         return False
 
-    def remove_existing_unit_annotation(attribute_node):
-        """Remove existing unit annotation"""
+    def node_matches(annotation_node, qudt_label, qudt_uri):
+        property_uri_node = annotation_node.find_child(names.PROPERTYURI)
+        value_uri_node = annotation_node.find_child(names.VALUEURI)
+        if not property_uri_node or not value_uri_node:
+            return False
+        if property_uri_node.attribute_value('label') != 'has unit':
+            return False
+        if property_uri_node.content != 'http://qudt.org/schema/qudt/hasUnit':
+            return False
+        if value_uri_node.attribute_value('label') != qudt_label:
+            return False
+        if value_uri_node.content != qudt_uri:
+            return False
+        return True
+
+    def remove_existing_unit_annotation(attribute_node, qudt_label, qudt_uri):
+        """Remove existing unit annotation if it is different from what we're about to add."""
         annotation_node = attribute_node.find_child(names.ANNOTATION)
         if annotation_node:
             property_uri_node = annotation_node.find_child(names.PROPERTYURI)
             if property_uri_node and 'hasUnit' in (property_uri_node.content or ""):
-                attribute_node.remove_child(annotation_node)
+                # See if the existing node is different from what we're about to add.
+                if not node_matches(annotation_node, qudt_label, qudt_uri):
+                    from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
+                    log_qudt_annotations_usage(
+                        annotations_actions['REMOVE_FROM_EML'],
+                        attribute_node)
+                    attribute_node.remove_child(annotation_node)
 
     enable_automatic_qudt_annotations, replace_preexisting_qudt_annotations = user_data.get_qudt_annotations_settings()
     qudt_info_df = pd.read_csv('webapp/static/unitsWithQUDTInfo.csv')
     attribute_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE, names.ATTRIBUTELIST, names.ATTRIBUTE])
     for attribute_node in attribute_nodes:
-        unit_text = None
-        standard_unit_node = attribute_node.find_descendant(names.STANDARDUNIT)
-        if standard_unit_node:
-            unit_text = standard_unit_node.content.strip().lower()
-        custom_unit_node = attribute_node.find_descendant(names.CUSTOMUNIT)
-        if custom_unit_node:
-            unit_text = custom_unit_node.content.strip().lower()
+        unit_text = get_unit_text(attribute_node)
         if unit_text:
             my_qudt_info_df = qudt_info_df[
                 qudt_info_df["unit"].str.strip().str.lower() == unit_text.lower()
@@ -106,8 +122,10 @@ def add_qudt_annotations(eml_node, automatically_add=True, overwrite_existing=Fa
                     continue
                 if not enable_automatic_qudt_annotations and not is_accepted_annotation(attribute_node.id):
                     continue
+                qudt_label = my_qudt_info_df.iloc[0]["qudtLabel"].strip()
+                qudt_uri = my_qudt_info_df.iloc[0]["qudtUri"]
                 if has_existing_unit_annotation(attribute_node) and replace_preexisting_qudt_annotations:
-                    remove_existing_unit_annotation(attribute_node)
+                    remove_existing_unit_annotation(attribute_node, qudt_label, qudt_uri)
                 if not has_existing_unit_annotation(attribute_node):
                     annotation_node = Node(names.ANNOTATION)
                     attribute_node.add_child(annotation_node)
@@ -117,8 +135,13 @@ def add_qudt_annotations(eml_node, automatically_add=True, overwrite_existing=Fa
                     property_uri_node.content = 'http://qudt.org/schema/qudt/hasUnit'
                     value_uri_node = Node(names.VALUEURI)
                     annotation_node.add_child(value_uri_node)
-                    value_uri_node.add_attribute('label', my_qudt_info_df.iloc[0]["qudtLabel"].strip())
-                    value_uri_node.content = my_qudt_info_df.iloc[0]["qudtUri"]
+                    value_uri_node.add_attribute('label', qudt_label)
+                    value_uri_node.content = qudt_uri
+                    # Log it
+                    from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
+                    log_qudt_annotations_usage(
+                        annotations_actions['ADD_TO_EML'],
+                        attribute_node)
 
 
 
@@ -205,10 +228,10 @@ def available_qudt_annotations(eml_node, filename):
                     column_name = attribute_name_node.content
                     unit_in_metadata = unit_text
                     qudt_label = my_qudt_info_df.iloc[0]["qudtLabel"].strip()
-                    qudt_code = my_qudt_info_df.iloc[0]["qudtUri"]
-                    segments = qudt_code.split('/')
-                    qudt_link = qudt_code.replace('http://', 'https://')
-                    qudt_code = f'<a href="{qudt_link}" target="_ezeml_qudt">{segments[-1]}</a>'
+                    qudt_uri = my_qudt_info_df.iloc[0]["qudtUri"]
+                    qudt_code = qudt_uri.split('/')[-1]
+                    qudt_link = qudt_uri.replace('http://', 'https://')
+                    qudt_link = f'<a href="{qudt_link}" target="_ezeml_qudt">{qudt_code}</a>'
                     # Determine if annotation exists in the model
                     annotation_exists = False
                     annotation_nodes = attribute_node.find_all_children(names.ANNOTATION)
@@ -225,10 +248,10 @@ def available_qudt_annotations(eml_node, filename):
                             continue
                         if value_uri_node.attribute_value('label') != qudt_label:
                             continue
-                        if value_uri_node.content not in qudt_code and value_uri_node.content not in qudt_code.replace('https://', 'http://'):
+                        if value_uri_node.content not in qudt_uri and value_uri_node.content not in qudt_uri.replace('https://', 'http://'):
                             continue
                         annotation_exists = True
-                        action_link = f'<a href="/eml/reject_qudt_annotation/{filename}/{annotation_node.id}">Reject</a>'
+                        action_link = f'<a href="/eml/reject_qudt_annotation/{filename}/{annotation_node.id}/{qudt_label}/{qudt_code}">Reject</a>'
                         available_qudt_annotations.append(
                             AvailableAnnotationEntry(data_table_node_id,
                                                      attribute_node_id,
@@ -240,7 +263,7 @@ def available_qudt_annotations(eml_node, filename):
                                                      action_link)
                         )
                     if not annotation_exists:
-                        action_link = f'<a href="/eml/restore_qudt_annotation/{filename}/{attribute_node_id}">Accept</a>'
+                        action_link = f'<a href="/eml/accept_qudt_annotation/{filename}/{attribute_node_id}/{qudt_label}/{qudt_code}">Accept</a>'
                         available_qudt_annotations.append(
                             AvailableAnnotationEntry(data_table_node_id,
                                                      attribute_node_id,
@@ -280,10 +303,22 @@ def save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids)
 def set_annotation_action(attribute_node_id, reject):
     rejected_annotations_ids, accepted_annotations_ids = load_annotations_actions()
     if reject:
-        rejected_annotations_ids.add(attribute_node_id)
+        if attribute_node_id not in rejected_annotations_ids:
+            rejected_annotations_ids.add(attribute_node_id)
+            # Log the action
+            try:
+                attribute_node = Node.get_node_instance(attribute_node_id)
+                from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
+                log_qudt_annotations_usage(
+                    annotations_actions['REJECT'],
+                    attribute_node)
+            except Exception as e:
+                pass
         accepted_annotations_ids.discard(attribute_node_id)
     else:
-        accepted_annotations_ids.add(attribute_node_id)
+        if attribute_node_id not in accepted_annotations_ids:
+            accepted_annotations_ids.add(attribute_node_id)
+            # The addition of the annotation to the EML will be logged in qudt_annotations.py
         rejected_annotations_ids.discard(attribute_node_id)
     save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids)
 
@@ -325,10 +360,18 @@ def reject_all_qudt_annotations(eml_node, data_table_node_id):
         # We've got a QUDT unit annotation. Remove it.
         changed = True
         attribute_node = annotation_node.parent
-        attribute_node.remove_child(annotation_node)
-        Node.delete_node_instance(annotation_node.id)
         rejected_annotations_ids.add(attribute_node.id)
         accepted_annotations_ids.discard(attribute_node.id)
+        # Log it
+        # qudt_label = value_uri_node.attribute_value('label')
+        # qudt_uri = value_uri_node.content or ''
+        # qudt_code = qudt_uri.split('/')[-1]
+        from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
+        log_qudt_annotations_usage(
+            annotations_actions['REJECT'],
+            attribute_node)
+        attribute_node.remove_child(annotation_node)
+        Node.delete_node_instance(annotation_node.id)
     if changed:
         save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids)
     return changed
@@ -350,8 +393,24 @@ def accept_all_qudt_annotations(eml_node, data_table_node_id):
     attribute_nodes = []
     data_table_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
     for attribute_node in attribute_nodes:
+        if attribute_node.id not in accepted_annotations_ids:
+            # Log it
+            try:
+                value_uri_node = attribute_node.find_descendant(names.VALUEURI)
+                qudt_label = value_uri_node.attribute_value('label')
+                qudt_uri = value_uri_node.content or ''
+                qudt_code = qudt_uri.split('/')[-1]
+                from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
+                log_qudt_annotations_usage(
+                    annotations_actions['ACCEPT'],
+                    attribute_node,
+                    qudt_label,
+                    qudt_code)
+            except:
+                pass
         rejected_annotations_ids.discard(attribute_node.id)
         accepted_annotations_ids.add(attribute_node.id)
+
     changed = (rejected_annotations_ids != original_rejected) or (accepted_annotations_ids != original_accepted)
     if changed:
         save_annotations_actions(rejected_annotations_ids, accepted_annotations_ids)

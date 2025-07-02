@@ -13,7 +13,7 @@ from flask_login import current_user
 
 import webapp.home.utils.import_nodes as import_nodes
 import webapp.home.utils.node_utils as node_utils
-from webapp.home.utils.qudt_annotations import add_attribute_ids, add_qudt_annotations
+import webapp.home.utils.qudt_annotations as qudt_annotations
 
 from webapp import Config
 from webapp.auth import user_data as user_data
@@ -217,7 +217,7 @@ def load_eml(filename:str=None,
                 #  with xml tags.
                 user_data.set_model_has_complex_texttypes(texttype_node_processing.model_has_complex_texttypes(eml_node))
                 if not user_data.get_udt_annotations_done():
-                    add_qudt_annotations(eml_node)
+                    qudt_annotations.add_qudt_annotations(eml_node)
                     save_both_formats(filename=filename, eml_node=eml_node)
                     user_data.set_qudt_annotations_done(True)
         else:
@@ -798,8 +798,8 @@ def save_both_formats(filename:str=None, eml_node:Node=None, owner_login:str=Non
     fixup_field_delimiters(eml_node)
     create_nodes.add_eml_editor_metadata(eml_node)
 
-    add_attribute_ids(eml_node)
-    add_qudt_annotations(eml_node)
+    qudt_annotations.add_attribute_ids(eml_node)
+    qudt_annotations.add_qudt_annotations(eml_node)
 
     if not owner_login:
         owner_login = user_data.get_active_document_owner_login()

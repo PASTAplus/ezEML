@@ -40,7 +40,6 @@ from webapp.home.utils.file_utils import sanitize_filename
 from webapp.home.utils.security import validate_download_url, validate_user_data_path, validate_filename
 
 import webapp.home.utils.node_utils
-from webapp.home.utils import qudt_annotations
 import webapp.mimemail as mimemail
 
 from webapp.config import Config
@@ -48,6 +47,7 @@ from webapp.home.home_utils import (
     log_error, log_info, log_available_memory, url_without_query_string, url_without_ui_element_id_query_string
 )
 import webapp.home.texttype_node_processing as texttype_node_processing
+from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
 
 import csv
 
@@ -4458,25 +4458,44 @@ def review_qudt_annotations(filename):
     return render_template('review_qudt_annotations.html', filename=filename, annotations=qudt_annotations, help=help)
 
 
-@home_bp.route('/reject_qudt_annotation/<filename>/<annotation_id>', methods=['GET', 'POST'])
+@home_bp.route('/reject_qudt_annotation/<filename>/<annotation_id>/<qudt_label>/<qudt_code>', methods=['GET', 'POST'])
 @login_required
-def reject_qudt_annotation(filename, annotation_id):
+def reject_qudt_annotation(filename, annotation_id, qudt_label, qudt_code):
     from webapp.home.utils.qudt_annotations import set_annotation_action
     eml_node = load_eml(filename)
     annotation_node = Node.get_node_instance(annotation_id)
     attribute_node = annotation_node.parent
+    set_annotation_action(attribute_node.id, True)
     annotation_node.parent.remove_child(annotation_node)
     Node.delete_node_instance(annotation_id)
-    set_annotation_action(attribute_node.id, True)
+    try:
+        attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+        attribute_name = attribute_name_node.content or ''
+        data_table_node = attribute_node.parent.parent
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_REJECT'], data_table_name, attribute_name, qudt_label, qudt_code)
+    except:
+        pass
     save_both_formats(filename=filename, eml_node=eml_node)
     return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
 
 
-@home_bp.route('/restore_qudt_annotation/<filename>/<attribute_id>', methods=['GET', 'POST'])
+@home_bp.route('/accept_qudt_annotation/<filename>/<attribute_id>/<qudt_label>/<qudt_code>', methods=['GET', 'POST'])
 @login_required
-def restore_qudt_annotation(filename, attribute_id):
+def accept_qudt_annotation(filename, attribute_id, qudt_label, qudt_code):
     from webapp.home.utils.qudt_annotations import set_annotation_action, add_qudt_annotations
     eml_node = load_eml(filename)
+    try:
+        attribute_node = Node.get_node_instance(attribute_id)
+        attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+        attribute_name = attribute_name_node.content or ''
+        data_table_node = attribute_node.parent.parent
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_ACCEPT'], data_table_name, attribute_name, qudt_label, qudt_code)
+    except:
+        pass
     set_annotation_action(attribute_id, False)
     add_qudt_annotations(eml_node)
     save_both_formats(filename=filename, eml_node=eml_node)
@@ -4488,16 +4507,30 @@ def restore_qudt_annotation(filename, attribute_id):
 def reject_all_qudt_annotations(filename, data_table_node_id):
     from webapp.home.utils.qudt_annotations import reject_all_qudt_annotations
     eml_node = load_eml(filename)
+    try:
+        data_table_node = Node.get_node_instance(data_table_node_id)
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_REJECT_ALL'], data_table_name)
+    except:
+        pass
     if reject_all_qudt_annotations(eml_node, data_table_node_id):
         save_both_formats(filename=filename, eml_node=eml_node)
     return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
 
 
-@home_bp.route('/restore_all_qudt_annotations/<filename>/<data_table_node_id>', methods=['GET', 'POST'])
+@home_bp.route('/accept_all_qudt_annotations/<filename>/<data_table_node_id>', methods=['GET', 'POST'])
 @login_required
-def restore_all_qudt_annotations(filename, data_table_node_id):
+def accept_all_qudt_annotations(filename, data_table_node_id):
     from webapp.home.utils.qudt_annotations import accept_all_qudt_annotations
     eml_node = load_eml(filename)
+    try:
+        data_table_node = Node.get_node_instance(data_table_node_id)
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_ACCEPT_ALL'], data_table_name)
+    except:
+        pass
     if accept_all_qudt_annotations(eml_node, data_table_node_id):
         save_both_formats(filename=filename, eml_node=eml_node)
     return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))

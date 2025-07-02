@@ -29,7 +29,7 @@
     {% if annotation[2] %}
   <div style="display: flex; gap: 20px;">
         <a href="/eml/reject_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Reject All</a>
-        <a href="/eml/restore_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Accept All</a>
+        <a href="/eml/accept_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Accept All</a>
       <div style="position: relative; top: -3px;">{{ macros.help_button(help_reject_qudt_annotations_btn) }}</div>
   </div>
     {% endif %}

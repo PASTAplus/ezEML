@@ -1236,7 +1236,7 @@ QUDT Units Annotations
 The QUDT ontology is a formal vocabulary developed to describe and reason about quantities, units, dimensions, and data types in scientific, engineering, and other technical domains. "QUDT" stands for:
  Quantities, Units, Dimensions, and Types.
 
-It was originally developed by NASA and is now maintained by the <a href="https:qudt.org">QUDT.org</a> organization. The QUDT ontology is widely used in semantic web and linked data applications to
+It was originally developed by NASA and is now maintained by <a href="https:qudt.org">qudt.org</a>. It is widely used in semantic web and linked data applications to
  ensure interoperability of units and measurements across systems.
 
 For a subset of standard and custom units for Numerical data table columns, ezEML is able to add metadata annotations that map the unit to its QUDT code. This is
@@ -1246,7 +1246,8 @@ There may be cases where you believe a QUDT unit annotation added by ezEML is in
  a case arises, you can reject the annotation by clicking the <b>Reject</b> action. Or, to reject all QUDT unit annotations for a data table, click
  <b>Reject All</b>.
 
-QUDT unit annotations that have been rejected -- or never added in the first place -- will still be shown in the table, but their QUDT Codes will be crossed out and the action associated with them will
+QUDT unit annotations that have been rejected -- or never added in the first place because you have disabled automatic annotations via
+ the <b>Settings</b> page -- will still be shown in the table, but their QUDT Codes will be crossed out and the action associated with them will
  switch to <b>Accept</b>, which allows you to undo the action of rejecting an annotation. <b>Accept All</b> lets you accept all of the
  annotations for a data table.
 
@@ -1255,7 +1256,7 @@ ezEML automatically adds QUDT unit annotations by default, but you can override 
 ezEML employs mappings developed by the <b>EDI Units Working Group</b>. These mappings are very conservative. I.e., an annotation is added only if it is
  extremely unlikely to be incorrect. Many units found in EML data packages do not currently have QUDT equivalents, although coverage should improve over time.
  Other units are too ambiguous to be mapped with confidence. All such cases are left unannotated. Because the mapping is highly conservative, you should
- find that the annotations added by ezEML are trustworthy.
+ find that the annotations added by ezEML are highly trustworthy.
 --------------------
 reject_qudt_annotations
 Reject/Accept QUDT Units Annotations
@@ -1266,7 +1267,7 @@ There may be cases where you believe a QUDT unit annotation added by ezEML is in
 
 QUDT unit annotations that have been rejected -- or never added in the first place because you have disabled automatic annotations via
  the <b>Settings</b> page -- will still be shown in the table, but their QUDT Codes will be crossed out and the action associated with them will
- switch to <b>Accept</b>. Click <b>Accept</b> to add an annotation, or click <b>Accept All</b> to accept all of the
+ switch to <b>Accept</b>. Click <b>Accept</b> to accept an annotation, or click <b>Accept All</b> to accept all of the
  annotations for a data table.
 --------------------
 related_project
@@ -1591,6 +1592,13 @@ To review the annotations ezEML has found, go to <b>Check Metadata</b> and click
  found in EML data packages do not currently have QUDT equivalents, although coverage should improve over time. Other units are too ambiguous to be
  mapped with confidence. All such cases are left unannotated. Because the mapping is highly conservative, you should find that the annotations added by ezEML
  are highly trustworthy.
+
+If you're not ready to trust ezEML to add QUDT units annotations, you can always proceed as follows. Clear the <b>Add QUDT units annotations where available</b>
+ setting. Then after you fetch, import, or edit a package, go to the <b>Review QUDT Units Annotations</b> page and review the QUDT units ezEML has found.
+ If they look good, you can click <b>Accept All</b> on that page for each data table. Similarly, on the <b>Review QUDT Units Annotations</b> page you can
+ always reject any annotations you disagree with.
+
+Note that Settings are saved by ezEML and retain their values until you change them.
 --------------------
 taxonomy_imported_from_xml
 Imported Taxonomy

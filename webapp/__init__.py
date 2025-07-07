@@ -150,3 +150,23 @@ app.register_blueprint(res_bp, url_prefix='/eml')
 
 from webapp.views.responsible_parties.rp import rp_bp
 app.register_blueprint(rp_bp, url_prefix='/eml')
+
+
+import requests
+def download_qudt_annotations_data_file():
+    url = "https://github.com/EDIorg/Units-WG/raw/main/RCode_JP/DataFiles4R/unitsWithQUDTInfo.csv"
+    local_dir = os.path.join(app.root_path, 'static')
+    local_path = os.path.join(local_dir, 'unitsWithQUDTInfo.csv')
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad status codes
+
+        os.makedirs(local_dir, exist_ok=True)
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+        logger.info(f'QUDT annotations data file downloaded and saved to {local_path}')
+    except Exception as e:
+        logger.error(f'Failed to download QUDT annotations data file: {e}')
+
+download_qudt_annotations_data_file()

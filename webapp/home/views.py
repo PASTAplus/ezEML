@@ -4558,7 +4558,7 @@ def validate_eml():
 
     if request.method == 'POST':
         if 'Validate' in request.form:
-            # We're validating the currently active document blah
+            # We're validating the currently active document
             user_folder = user_data.get_user_folder_name(current_user_directory_only=False)
             current_document = user_data.get_active_document()
             if current_document:

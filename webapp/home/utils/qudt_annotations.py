@@ -259,7 +259,7 @@ def available_qudt_annotations(eml_node, filename):
                                                      column_name,
                                                      unit_in_metadata,
                                                      qudt_label,
-                                                     qudt_code,
+                                                     qudt_link,
                                                      action_link)
                         )
                     if not annotation_exists:
@@ -271,7 +271,7 @@ def available_qudt_annotations(eml_node, filename):
                                                      column_name,
                                                      unit_in_metadata,
                                                      qudt_label,
-                                                     qudt_code,
+                                                     qudt_link,
                                                      action_link)
                         )
         data_table_list.append((data_table_name, data_table_node_id, available_qudt_annotations))

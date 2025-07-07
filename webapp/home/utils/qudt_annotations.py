@@ -65,11 +65,14 @@ def add_qudt_annotations(eml_node, automatically_add=True, overwrite_existing=Fa
     Caller is responsible for saving the updated model. Returns True iff the model has been modified.
     """
     def has_existing_unit_annotation(attribute_node):
-        """Check if an annotation with 'hasUnit' exists."""
-        annotation_node = attribute_node.find_child(names.ANNOTATION)
-        if annotation_node:
+        """
+        Check if an annotation with 'hasUnit' exists.
+        Note that the attribute may have multiple annotations, not just QUDT ones.
+        """
+        annotaton_nodes = attribute_node.find_all_children(names.ANNOTATION)
+        for annotation_node in annotaton_nodes:
             property_uri_node = annotation_node.find_child(names.PROPERTYURI)
-            if property_uri_node and 'hasUnit' in (property_uri_node.content or ""):
+            if property_uri_node and '//qudt.org/schema/qudt/hasUnit' in (property_uri_node.content or ""):
                 return True
         return False
 
@@ -362,10 +365,6 @@ def reject_all_qudt_annotations(eml_node, data_table_node_id):
         attribute_node = annotation_node.parent
         rejected_annotations_ids.add(attribute_node.id)
         accepted_annotations_ids.discard(attribute_node.id)
-        # Log it
-        # qudt_label = value_uri_node.attribute_value('label')
-        # qudt_uri = value_uri_node.content or ''
-        # qudt_code = qudt_uri.split('/')[-1]
         from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
         log_qudt_annotations_usage(
             annotations_actions['REJECT'],
@@ -437,11 +436,14 @@ def remove_redundant_qudt_annotations(eml_node):
                 continue
             for annotation_node in annotation_nodes:
                 # See if it's a QUDT unit annotation
-                qudt_label, qudt_code = is_qudt_annotation(annotation_node)
-                if (qudt_label, qudt_code) in found:
-                    # Have a duplicate. Remove it.
-                    attribute_node.remove_child(annotation_node)
-                    changed = True
-                else:
-                    found.add((qudt_label, qudt_code))
+                try:
+                    qudt_label, qudt_code = is_qudt_annotation(annotation_node)
+                    if (qudt_label, qudt_code) in found:
+                        # Have a duplicate. Remove it.
+                        attribute_node.remove_child(annotation_node)
+                        changed = True
+                    else:
+                        found.add((qudt_label, qudt_code))
+                except:
+                    pass
     return changed

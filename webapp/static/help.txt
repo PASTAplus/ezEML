@@ -1257,6 +1257,9 @@ ezEML employs mappings developed by the <b>EDI Units Working Group</b>. These ma
  extremely unlikely to be incorrect. Many units found in EML data packages do not currently have QUDT equivalents, although coverage should improve over time.
  Other units are too ambiguous to be mapped with confidence. All such cases are left unannotated. Because the mapping is highly conservative, you should
  find that the annotations added by ezEML are highly trustworthy.
+
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/uUVkHvSMoJE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 reject_qudt_annotations
 Reject/Accept QUDT Units Annotations
@@ -1269,6 +1272,8 @@ QUDT unit annotations that have been rejected -- or never added in the first pla
  the <b>Settings</b> page -- will still be shown in the table, but their QUDT Codes will be crossed out and the action associated with them will
  switch to <b>Accept</b>. Click <b>Accept</b> to accept an annotation, or click <b>Accept All</b> to accept all of the
  annotations for a data table.
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/uUVkHvSMoJE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
 --------------------
 related_project
 Related Project
@@ -1599,7 +1604,9 @@ If you're not ready to trust ezEML to add QUDT units annotations, you can always
  always reject any annotations you disagree with.
 
 Note that Settings are saved by ezEML and retain their values until you change them.
---------------------
+
+Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/uUVkHvSMoJE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
+---------
 taxonomy_imported_from_xml
 Imported Taxonomy
 

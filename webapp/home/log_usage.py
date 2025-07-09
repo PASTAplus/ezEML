@@ -7,8 +7,11 @@ from flask_login import current_user
 
 from webapp.home.fetch_data import convert_file_size
 from webapp.home.home_utils import log_info
+from webapp.home.utils.node_utils import get_unit_text
+from metapype.eml import names
 
 
+ANNOTATIONS_LOG_FILE = 'qudt_annotations.log'
 USAGE_LOG_FILE = 'usage.log'
 
 
@@ -57,6 +60,10 @@ actions = {
     'NEW_FROM_TEMPLATE': 'New from Template',
     'OPEN_BY_COLLABORATOR': 'Open by Collaborator',
     'OPEN_DOCUMENT': 'Open',
+    'QUDT_ACCEPT': 'Accept QUDT Annotation',
+    'QUDT_ACCEPT_ALL': 'Accept All QUDT Annotations',
+    'QUDT_REJECT': 'Reject QUDT Annotation',
+    'QUDT_REJECT_ALL': 'Reject All QUDT Annotations',
     'RE_UPLOAD_DATA_TABLE': 'Re-upload Data Table',
     'RE_UPLOAD_OTHER_ENTITY': 'Re-upload Other Entity',
     'RENAME_PACKAGE' : 'Rename Package',
@@ -68,6 +75,13 @@ actions = {
     'UPLOAD_COLUMN_PROPERTIES_SPREADSHEET': 'Upload Column Properties Spreadsheet',
     'USER_GUIDE': 'User Guide',
     'VALIDATE_EML': 'Validate EML'
+}
+
+annotations_actions = {
+    'ACCEPT': 'ACCEPT',
+    'ADD_TO_EML': 'ADD_TO_EML',
+    'REJECT': 'REJECT',
+    'REMOVE_FROM_EML': 'REMOVE_FROM_EML'
 }
 
 
@@ -98,18 +112,21 @@ def handle_special_cases(action, args):
         return args
 
 
-def log_usage(action, *args):
-    args = handle_special_cases(action, args)
+def preamble():
     date = datetime.now().date().strftime('%Y-%m-%d')
     time = datetime.now().time().strftime('%H:%M:%S')
     if current_user and hasattr(current_user, 'get_username'):
         username = current_user.get_username()
-        current_document = current_user.get_filename()
-        if not current_document:
-            current_document = ''
+        current_document = current_user.get_filename() or ''
     else:
         username = ''
         current_document = ''
+    return date, time, username, current_document
+
+
+def log_usage(action, *args):
+    args = handle_special_cases(action, args)
+    date, time, username, current_document = preamble()
     NUM_DATA_COLS = 5
     data_cols = []
     for i in range(NUM_DATA_COLS):
@@ -124,3 +141,27 @@ def log_usage(action, *args):
         line = f"{date},{time},{username},{action},{current_document},{data}"
         log.write(f"{line}\n")
         log_info(line)
+
+
+def log_qudt_annotations_usage(action, attribute_node):
+    try:
+        date, time, username, document_name = preamble()
+        data_table_node = attribute_node.parent.parent
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+        column_name = attribute_name_node.content
+        unit_as_entered = get_unit_text(attribute_node)
+        value_uri_node = attribute_node.find_descendant(names.VALUEURI)
+        qudt_label = value_uri_node.attribute_value('label')
+        qudt_uri = value_uri_node.content or ''
+        qudt_code = qudt_uri.split('/')[-1]
+        with open(ANNOTATIONS_LOG_FILE, 'a') as log:
+            line = f"{date},{time},{username},{document_name},{action},{data_table_name},{column_name},{unit_as_entered},{qudt_label},{qudt_code}"
+            log.write(f"{line}\n")
+            log_info(line)
+    except Exception as e:
+        pass
+
+
+

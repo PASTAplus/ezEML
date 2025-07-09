@@ -5,7 +5,7 @@ Helper functions for accessing the Metapype model.
 import typing as ty
 from enum import Enum
 
-from metapype.eml import rule
+from metapype.eml import names, rule
 from metapype.model.node import Node
 
 
@@ -101,3 +101,13 @@ def replace_node(new_node:Node, old_node_id:str):
                 new_node._id = old_node.id
                 Node.set_node_instance(new_node)
                 Node.delete_node_instance(id=new_node_id)
+
+
+def get_unit_text(attribute_node):
+    unit_text = None
+    standard_unit_node = attribute_node.find_descendant(names.STANDARDUNIT)
+    if standard_unit_node:
+        unit_text = standard_unit_node.content.strip().lower()
+    if custom_unit_node := attribute_node.find_descendant(names.CUSTOMUNIT):
+        unit_text = custom_unit_node.content.strip().lower()
+    return unit_text

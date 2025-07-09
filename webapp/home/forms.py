@@ -318,4 +318,6 @@ class InviteCollaboratorForm(FlaskForm):
 class SettingsForm(FlaskForm):
     complex_text_editing_document = BooleanField('For the current EML document')
     complex_text_editing_global = BooleanField('For all EML documents')
+    add_qudt_units_annotations = BooleanField('Add QUDT units annotations where available', default=True)
+    replace_qudt_units_annotations = BooleanField('Replace pre-existing QUDT units annotations where found', default=False)
     pass

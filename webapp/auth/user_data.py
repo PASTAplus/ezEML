@@ -481,6 +481,32 @@ def get_auth_token():
 
 
 ##############################################
+# Handle QUDT units annotation settings
+##############################################
+
+def set_generate_qudt_annotations(generate_qudt_annotations=True):
+    user_properties = get_user_properties()
+    user_properties['generate_qudt_annotations'] = generate_qudt_annotations
+    save_user_properties(user_properties)
+
+
+def get_generate_qudt_annotations():
+    user_properties = get_user_properties()
+    return user_properties.get('generate_qudt_annotations', True)
+
+
+def set_qudt_annotations_done(done=True):
+    user_properties = get_user_properties()
+    user_properties['qudt_annotations_done'] = done
+    save_user_properties(user_properties)
+
+
+def get_udt_annotations_done():
+    user_properties = get_user_properties()
+    return user_properties.get('qudt_annotations_done', False)
+
+
+##############################################
 # Handle complex text element editing settings
 ##############################################
 
@@ -531,3 +557,37 @@ def get_enable_complex_text_element_editing_document(filename=None):
     if filename is None:
         filename = get_active_document()
     return filename in enabled_files
+
+
+##############################################
+# Handle QUDT units annotations settings
+##############################################
+
+def set_enable_automatic_qudt_annotations(enable_automatic_qudt_annotations=True):
+    user_properties = get_user_properties()
+    user_properties['enable_automatic_qudt_annotations'] = enable_automatic_qudt_annotations
+    save_user_properties(user_properties)
+
+
+def get_enable_automatic_qudt_annotations():
+    user_properties = get_user_properties()
+    return user_properties.get('enable_automatic_qudt_annotations', True)
+
+
+def set_replace_preexisting_qudt_annotations(set_replace_preexisting_qudt_annotations=True):
+    user_properties = get_user_properties()
+    user_properties['set_replace_preexisting_qudt_annotations'] = set_replace_preexisting_qudt_annotations
+    save_user_properties(user_properties)
+
+
+def get_replace_preexisting_qudt_annotations():
+    user_properties = get_user_properties()
+    return user_properties.get('set_replace_preexisting_qudt_annotations', False)
+
+
+def get_qudt_annotations_settings():
+    user_properties = get_user_properties()
+    enable_automatic_qudt_annotations = user_properties.get('enable_automatic_qudt_annotations', True)
+    replace_preexisting_qudt_annotations = user_properties.get('set_replace_preexisting_qudt_annotations', False)
+    return enable_automatic_qudt_annotations, replace_preexisting_qudt_annotations
+

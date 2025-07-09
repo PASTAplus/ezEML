@@ -3,8 +3,7 @@ Routes for the home blueprint, and functions for initializing a session or a req
 """
 
 import ast
-
-import contextlib
+import collections
 
 import urllib.parse
 
@@ -48,6 +47,8 @@ from webapp.home.home_utils import (
     log_error, log_info, log_available_memory, url_without_query_string, url_without_ui_element_id_query_string
 )
 import webapp.home.texttype_node_processing as texttype_node_processing
+from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
+import webapp.home.utils.qudt_annotations as qudt_annotations
 
 import csv
 
@@ -1314,18 +1315,20 @@ def settings():
 
         if form.validate_on_submit():
             current_document = current_user.get_filename()
-            setting_changed = False
+            document_setting_changed = False
             document_setting = user_data.get_enable_complex_text_element_editing_document(current_document)
             global_setting = user_data.get_enable_complex_text_element_editing_global()
             if document_setting != form.complex_text_editing_document.data or global_setting != form.complex_text_editing_global.data:
-                setting_changed = True
+                document_setting_changed = True
             user_data.set_enable_complex_text_element_editing_document(current_document, form.complex_text_editing_document.data)
             user_data.set_enable_complex_text_element_editing_global(form.complex_text_editing_global.data)
-            if setting_changed:
+            if document_setting_changed:
                 eml_node = load_eml(filename=current_document)
                 if eml_node:
                     # Setting has changed, so we need to re-process the document
                     user_data.set_model_has_complex_texttypes(texttype_node_processing.model_has_complex_texttypes(eml_node))
+            user_data.set_enable_automatic_qudt_annotations(form.add_qudt_units_annotations.data)
+            user_data.set_replace_preexisting_qudt_annotations(form.replace_qudt_units_annotations.data)
             log_usage(actions['SETTINGS'])
             return redirect(get_back_url())
 
@@ -1338,7 +1341,8 @@ def settings():
         form.complex_text_editing_document.data = user_data.get_enable_complex_text_element_editing_document() or \
                                                     document_has_complex_texttypes
         form.complex_text_editing_global.data = user_data.get_enable_complex_text_element_editing_global()
-    help = get_helps(['settings_text'])
+        form.add_qudt_units_annotations.data, form.replace_qudt_units_annotations.data = user_data.get_qudt_annotations_settings()
+    help = get_helps(['settings_text', 'settings_qudt_annotations'])
     return render_template('settings.html', programmatic=document_has_complex_texttypes, form=form, help=help)
 
 
@@ -1426,6 +1430,7 @@ def check_metadata(filename:str = None):
                                content=content,
                                parse_errs=parse_errs,
                                unicodes=unicode_errs,
+                               filename=filename,
                                help=help,
                                title='Check Metadata')
 
@@ -3151,6 +3156,8 @@ def import_xml():
                 eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
                     parse_xml_file(filename, filepath)
                 eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+                if qudt_annotations.remove_redundant_qudt_annotations(eml_node):
+                    flash('Redundant QUDT units annotations were found and removed')
 
                 # We're done with the temp file
                 utils.remove_zip_temp_folder()
@@ -3226,6 +3233,8 @@ def import_xml_2(package_name, filename, fetched=False):
             eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
                 parse_xml_file(filename, filepath)
             eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+            if qudt_annotations.remove_redundant_qudt_annotations(eml_node):
+                flash('Redundant QUDT units annotations were found and removed')
 
             # We're done with the temp file
             utils.remove_zip_temp_folder()
@@ -3693,6 +3702,8 @@ def fetch_xml_3(scope_identifier='', revision=''):
         eml_node, nsmap_changed, unknown_nodes, attr_errs, child_errs, other_errs, pruned_nodes = \
             parse_xml_file(filename, filepath)
         eml_node = strip_elements_added_by_pasta(package_name, eml_node)
+        if qudt_annotations.remove_redundant_qudt_annotations(eml_node):
+            flash('Redundant QUDT units annotations were found and removed')
 
         # We're done with the temp file
         utils.remove_zip_temp_folder()
@@ -4427,6 +4438,105 @@ def get_current_page():
     return session.get('current_page')
 
 
+AnnotationEntry = collections.namedtuple(
+    'AnnotationEntry',
+    ["column_name", "unit_in_metadata", "qudt_label", "qudt_code", "link", "attribute_node_id"])
+
+
+@home_bp.route('/review_qudt_annotations/<filename>', methods=['GET', 'POST'])
+@login_required
+@non_saving_hidden_buttons_decorator
+def review_qudt_annotations(filename):
+    from webapp.home.utils.qudt_annotations import available_qudt_annotations
+    """
+    Route to display the QUDT Units Annotations in the model.
+    """
+    eml_node = load_eml(filename)
+
+    qudt_annotations = available_qudt_annotations(eml_node, filename)
+
+    help = get_helps(['qudt_units_annotations', 'reject_qudt_annotations'])
+    return render_template('review_qudt_annotations.html', filename=filename, annotations=qudt_annotations, help=help)
+
+
+@home_bp.route('/reject_qudt_annotation/<filename>/<annotation_id>/<qudt_label>/<qudt_code>', methods=['GET', 'POST'])
+@login_required
+def reject_qudt_annotation(filename, annotation_id, qudt_label, qudt_code):
+    from webapp.home.utils.qudt_annotations import set_annotation_action
+    eml_node = load_eml(filename)
+    annotation_node = Node.get_node_instance(annotation_id)
+    attribute_node = annotation_node.parent
+    set_annotation_action(attribute_node.id, True)
+    annotation_node.parent.remove_child(annotation_node)
+    Node.delete_node_instance(annotation_id)
+    try:
+        attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+        attribute_name = attribute_name_node.content or ''
+        data_table_node = attribute_node.parent.parent
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_REJECT'], data_table_name, attribute_name, qudt_label, qudt_code)
+    except:
+        pass
+    save_both_formats(filename=filename, eml_node=eml_node)
+    return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
+
+
+@home_bp.route('/accept_qudt_annotation/<filename>/<attribute_id>/<qudt_label>/<qudt_code>', methods=['GET', 'POST'])
+@login_required
+def accept_qudt_annotation(filename, attribute_id, qudt_label, qudt_code):
+    from webapp.home.utils.qudt_annotations import set_annotation_action, add_qudt_annotations
+    eml_node = load_eml(filename)
+    try:
+        attribute_node = Node.get_node_instance(attribute_id)
+        attribute_name_node = attribute_node.find_child(names.ATTRIBUTENAME)
+        attribute_name = attribute_name_node.content or ''
+        data_table_node = attribute_node.parent.parent
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_ACCEPT'], data_table_name, attribute_name, qudt_label, qudt_code)
+    except:
+        pass
+    set_annotation_action(attribute_id, False)
+    add_qudt_annotations(eml_node)
+    save_both_formats(filename=filename, eml_node=eml_node)
+    return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
+
+
+@home_bp.route('/reject_all_qudt_annotations/<filename>/<data_table_node_id>', methods=['GET', 'POST'])
+@login_required
+def reject_all_qudt_annotations(filename, data_table_node_id):
+    from webapp.home.utils.qudt_annotations import reject_all_qudt_annotations
+    eml_node = load_eml(filename)
+    try:
+        data_table_node = Node.get_node_instance(data_table_node_id)
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_REJECT_ALL'], data_table_name)
+    except:
+        pass
+    if reject_all_qudt_annotations(eml_node, data_table_node_id):
+        save_both_formats(filename=filename, eml_node=eml_node)
+    return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
+
+
+@home_bp.route('/accept_all_qudt_annotations/<filename>/<data_table_node_id>', methods=['GET', 'POST'])
+@login_required
+def accept_all_qudt_annotations(filename, data_table_node_id):
+    from webapp.home.utils.qudt_annotations import accept_all_qudt_annotations
+    eml_node = load_eml(filename)
+    try:
+        data_table_node = Node.get_node_instance(data_table_node_id)
+        entity_name_node = data_table_node.find_child(names.ENTITYNAME)
+        data_table_name = entity_name_node.content
+        log_usage(actions['QUDT_ACCEPT_ALL'], data_table_name)
+    except:
+        pass
+    if accept_all_qudt_annotations(eml_node, data_table_node_id):
+        save_both_formats(filename=filename, eml_node=eml_node)
+    return redirect(url_for(PAGE_REVIEW_QUDT_ANNOTATIONS, filename=filename))
+
+
 @home_bp.route('/validate_eml', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
@@ -4448,7 +4558,7 @@ def validate_eml():
 
     if request.method == 'POST':
         if 'Validate' in request.form:
-            # We're validating the currently active document blah
+            # We're validating the currently active document
             user_folder = user_data.get_user_folder_name(current_user_directory_only=False)
             current_document = user_data.get_active_document()
             if current_document:

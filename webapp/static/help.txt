@@ -1606,7 +1606,7 @@ If you're not ready to trust ezEML to add QUDT units annotations, you can always
 Note that Settings are saved by ezEML and retain their values until you change them.
 
 Watch a short demo video here:&nbsp;&nbsp;<a href="https://youtu.be/uUVkHvSMoJE" target="_ezeml_user_guide"><img src="/user-data/youtube.png" style="height:18px;width:auto;"></a>
----------
+--------------------
 taxonomy_imported_from_xml
 Imported Taxonomy
 

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% set help_review_qudt_annotations_id, help_review_qudt_annotations_title, help_review_qudt_annotations_content = help[0] %}
+    {% set help_review_qudt_annotations_btn = help_review_qudt_annotations_id ~ '_btn' %}
+    {% set help_review_qudt_annotations_dialog = help_review_qudt_annotations_id ~ '_dialog' %}
+    {% set help_reject_qudt_annotations_id, help_reject_qudt_annotations_title, help_reject_qudt_annotations_content = help[1] %}
+    {% set help_reject_qudt_annotations_btn = help_reject_qudt_annotations_id ~ '_btn' %}
+    {% set help_reject_qudt_annotations_dialog = help_reject_qudt_annotations_id ~ '_dialog' %}
+
+    <table>
+        <td><h2>QUDT Units Annotations</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_review_qudt_annotations_btn) }}</td>
+    </table>
+
+    <div class="col-md-12">
+        <form method="POST" action="" class="form" role="form" enctype=multipart/form-data>
+            <a href="/eml/check_metadata/{{ filename }}">Back</a>
+        {% if not annotations %}
+                <p>&nbsp;</p>
+            No QUDT units annotations have been found.
+        {% endif %}
+            {% for annotation in annotations %}
+                <p>&nbsp;</p>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <div><b>Data Table:</b>   {{ annotation[0] }}</div>
+    {% if annotation[2] %}
+  <div style="display: flex; gap: 20px;">
+        <a href="/eml/reject_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Reject All</a>
+        <a href="/eml/accept_all_qudt_annotations/{{ filename }}/{{ annotation[1] }}">Accept All</a>
+      <div style="position: relative; top: -3px;">{{ macros.help_button(help_reject_qudt_annotations_btn) }}</div>
+  </div>
+    {% endif %}
+</div>
+
+    <style>
+    .table-tight td,
+    .table-tight th {
+      line-height: 1.2 !important;
+      padding-top: 4px !important;
+      padding-bottom: 4px !important;
+    }
+    </style>
+
+            <table id="data_table" class="table table-striped table-tight dataTable no-footer" width=100% style="padding: 0px;">
+                <thead>
+                <tr>
+                <th style="text-align:right;padding-right: 10px;" width=4%">Col#</th>
+                <th style="text-align:left;" width=25%>Column Name</th>
+                <th style="text-align:left;" width=23%>Unit as Entered</th>
+                <th style="text-align:left;" width=20%>QUDT Label</th>
+                <th style="text-align:left;" width=20%>QUDT Code</th>
+                <th style="text-align:left;" width=8%>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if annotation[2] %}
+                {% for annotation in annotation[2] %}
+                <tr>
+                <td class="eval_table" valign="top" style="text-align:right;padding-right: 10px;">
+                    <div style="padding-right: 10px;">{{ annotation.column_number }}</div>
+                </td>
+                <td class="eval_table" valign="top">{{ annotation.column_name }}</td>
+                <td class="eval_table" valign="top" align="left">{{ annotation.unit_in_metadata }}</td>
+                <td class="eval_table" valign="top" align="left">{{ annotation.qudt_label | safe }}</td>
+                    {% if 'Accept' in annotation.action_link %}
+                <td class="eval_table" valign="top" align="left"><s>{{ annotation.qudt_code | safe }}</s></td>
+                    {% else %}
+                <td class="eval_table" valign="top" align="left">{{ annotation.qudt_code | safe }}</td>
+                    {% endif %}
+                <td class="eval_table" valign="top" align="left">{{ annotation.action_link | safe }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                    <td colspan="7">No QUDT units annotations were found for this table.</td>
+                {%  endif %}
+                </tbody>
+            </table>
+            {% endfor %}
+        <p>&nbsp;</p>
+{#        <p>&nbsp;</p>#}
+        <hr style="margin-bottom: 6px;border: none; height: 1px; background-color: #AAA;">
+        <div style="font-size:0.85em">
+        ezEML leverages the exceptional work of the EDI Units Working Group. See:<br>
+        <div style="margin-left:10px;">
+        Porter, J.H., O’Brien, M., Frants, M., Earl, S. Martin, M., and Laney, C. <br>
+            Using a units ontology to annotate pre-existing metadata. <i>Sci Data</i> <b>12</b>, 304 (2025). <br>
+            <a href="https://doi.org/10.1038/s41597-025-04587-8">https://doi.org/10.1038/s41597-025-04587-8</a>
+            </div>
+        </div><br>
+            {{ macros.hidden_buttons() }}
+        </form>
+    </div>
+    {{ macros.help_dialog(help_review_qudt_annotations_dialog, help_review_qudt_annotations_title, help_review_qudt_annotations_content) }}
+    {{ macros.help_dialog(help_reject_qudt_annotations_dialog, help_reject_qudt_annotations_title, help_reject_qudt_annotations_content) }}
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    {% set help_review_qudt_annotations_id, help_review_qudt_annotations_title, help_review_qudt_annotations_content = help[0] %}
+    {% set help_review_qudt_annotations_btn = help_review_qudt_annotations_id ~ '_btn' %}
+    {% set help_review_qudt_annotations_dialog = help_review_qudt_annotations_id ~ '_dialog' %}
+    {% set help_reject_qudt_annotations_id, help_reject_qudt_annotations_title, help_reject_qudt_annotations_content = help[1] %}
+    {% set help_reject_qudt_annotations_btn = help_reject_qudt_annotations_id ~ '_btn' %}
+    {% set help_reject_qudt_annotations_dialog = help_reject_qudt_annotations_id ~ '_dialog' %}
+
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_review_qudt_annotations_dialog, help_review_qudt_annotations_btn) }}
+        {{ macros.help_script(help_reject_qudt_annotations_dialog, help_reject_qudt_annotations_btn) }}
+    });
+
+    $(document).ready(function() {
+        // Initialize tooltips
+        {#$('[data-toggle="tooltip"]').tooltip({#}
+        {#    delay: { show: 50, hide: 50 }#}
+        {#});#}
+        {#$('[data-toggle="tooltip"]').on('click', function() {#}
+        {#    $(this).tooltip('hide');#}
+        {#    $(this).blur(); // Ensure focus is removed#}
+        {#});#}
+
+      $('#data_table').DataTable( {
+          paging: false,
+          searching: false,
+          info: false,
+          columns:[null, null, null, null, null, null]
+      });
+      $('.dataTables_length').addClass('bs-select');
+      $(".eval_table tr:odd").css("background", "#f4f4f4");
+      $(".eval_table tr:even").css("background", "#fff");
+      $(".eval_table").css("padding", "1px");
+    });
+    </script>
+{#    <script type="text/javascript">#}
+{#    $(document).ready(function() {#}
+{#        // Initialize tooltips#}
+{#        $('[data-toggle="tooltip"]').tooltip({#}
+{#            delay: { show: 50, hide: 50 }#}
+{#        });#}
+{#    })#}
+{#    </script>#}
+{#    {{ macros.tooltip_support() }}#}
+{% endblock %}

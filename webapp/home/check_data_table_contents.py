@@ -774,8 +774,10 @@ def check_for_empty_rows(df, data_table_name, num_header_lines):
     empty_row_indices = empty_rows[empty_rows].index
     for index in empty_row_indices:
         # Make the index 1-based and take into account the number of header rows. I.e., make it match what they'd see in Excel.
+        # We need to handle MultiIndex data frames as well as regular data frames.
+        row_position = df.index.get_loc(index)
         errors.append(create_error_json(data_table_name, None,
-                                        index + num_header_lines + 1,
+                                        row_position + num_header_lines + 1,
                                         'Row is empty', 'Data', 'No data'))
     return errors
 

@@ -7,7 +7,7 @@ import numpy as np
 import os
 import pandas as pd
 from pathlib import Path
-import requests
+import uuid
 
 from urllib.parse import unquote
 
@@ -2649,6 +2649,9 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
             continue
         source_node = Node.get_node_instance(source_attr_id)
         source_node_copy = source_node.copy()
+        # If source_node has an 'id' attribute, give it a new one so we don't wind up with duplicate ids
+        if source_node_copy.attribute_value('id'):
+            source_node_copy.attributes['id'] = str(uuid.uuid4())
         target_node = Node.get_node_instance(target_attr_id)
         # We want to preserve the column name
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content

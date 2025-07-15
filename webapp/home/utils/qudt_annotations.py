@@ -29,13 +29,22 @@ def add_attribute_ids(eml_node):
     Add a UUID id attribute for each attribute node that doesn't already have an id.
     Caller is responsible for saving the updated model. Returns True iff the model has been modified.
     """
+    attribute_ids = set()
     modified = False
     attribute_nodes = []
     eml_node.find_all_descendants(names.ATTRIBUTE, attribute_nodes)
     for attribute_node in attribute_nodes:
-        if not attribute_node.attribute_value('id'):
+        attribute_id = attribute_node.attribute_value('id')
+        if not attribute_id:
             attribute_node.add_attribute('id', str(uuid.uuid4()))
             modified = True
+        elif attribute_id in attribute_ids:
+            # There was a bug such that cloning an attribute copied the id, thereby creating
+            #  a duplicate ID, which is an EML error. Detect and fix such cases.
+            attribute_id = str(uuid.uuid4())
+            attribute_node.attributes['id'] = attribute_id
+            modified = True
+        attribute_ids.add(attribute_id)
     return modified
 
 

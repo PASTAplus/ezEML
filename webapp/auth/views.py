@@ -73,7 +73,10 @@ def login():
         domain = "edi"
         user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
         password = form.password.data
+        log_info(f'user_dn:{user_dn}')
+        log_info(f'password:{password}')
         auth_token = authenticate(user_dn=user_dn, password=password)
+        log_info(f'auth_token:{auth_token}')
         if auth_token is not None and auth_token != "teapot":
             pasta_token = PastaToken(auth_token)
             uid = pasta_token.uid.split(",")[0]

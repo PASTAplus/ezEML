@@ -694,14 +694,16 @@ def create_maintenance(dataset_node:Node=None, description:str=None, update_freq
             #  or remove the old one.
             maintenance_node = add_node(dataset_node, names.MAINTENANCE)
             description_node = add_node(maintenance_node, names.DESCRIPTION)
+            description_node.children = []
             description_node.content = description
+            texttype_node_processing.save_content_in_para_nodes(description_node)
             if description:
                 # If description is empty, we don't post process because we don't want the description node
                 #  to be deleted. We are about to set the update_frequency, and it update_frequency is set
                 #  then description is required.
                 texttype_node_processing.post_process_texttype_node(description_node, description)
-            else:
-                description_node.children = []
+            # else:
+            #     description_node.children = []
 
             if update_frequency:
                 update_frequency_node = add_node(maintenance_node, names.MAINTENANCEUPDATEFREQUENCY, update_frequency)

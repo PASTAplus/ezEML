@@ -1150,9 +1150,9 @@ def check_other_entities(eml_node, doc_name):
             add_to_evaluation('other_entity_01', link)
         if find_min_unmet(validation_errors, names.OTHERENTITY, names.ENTITYTYPE):
             add_to_evaluation('other_entity_02', link)
-        if find_min_unmet(validation_errs, names.PHYSICAL, names.OBJECTNAME):
+        if find_min_unmet(validation_errors, names.PHYSICAL, names.OBJECTNAME):
             add_to_evaluation('other_entity_04', link)
-        if find_min_unmet(validation_errs, names.PHYSICAL, names.DATAFORMAT):
+        if find_min_unmet(validation_errors, names.PHYSICAL, names.DATAFORMAT):
             add_to_evaluation('other_entity_05', link)
 
         evaluation_warnings = evaluate_via_metapype(entity_node)

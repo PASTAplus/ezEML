@@ -329,6 +329,17 @@ def check_xml_validity(xml:str=None, parent_name:str=None):
     return response
 
 
+def save_content_in_para_nodes(text_node):
+    s = text_node.content
+    if s:
+        paras = s.splitlines()
+        for para in paras:
+            para_node = Node(names.PARA, parent=text_node)
+            para_node.content = para
+            text_node.add_child(para_node)
+        text_node.content = ''
+
+
 def post_process_texttype_node(text_node:Node=None, displayed_text:str=None):
     """
     After a text node has been edited or created, we need to post-process it to make sure it's in the correct form.
@@ -343,16 +354,6 @@ def post_process_texttype_node(text_node:Node=None, displayed_text:str=None):
     original text in the node.
     """
     from webapp.home.texttype_node_processing import TEXTTYPE_NODES, construct_texttype_node
-
-    def save_content_in_para_nodes(text_node):
-        s = text_node.content
-        if s:
-            paras = s.splitlines()
-            for para in paras:
-                para_node = Node(names.PARA, parent=text_node)
-                para_node.content = para
-                text_node.add_child(para_node)
-            text_node.content = ''
 
     def remove_paragraph_tags(s):
         if s:

@@ -16,7 +16,7 @@ from webapp.config import Config
 from metapype.model.node import Node
 from metapype.eml import names
 
-RELEASE_NUMBER = '2025.07.09'
+RELEASE_NUMBER = '2025.07.17'
 
 
 def extract_caller_module_name():

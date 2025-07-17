@@ -936,7 +936,9 @@ def set_check_data_tables_badge_status(document_name, eml_node):
             if this_status == 'black':
                 online_distribution_url_node = data_table_node.find_single_node_by_path(
                     [names.PHYSICAL, names.DISTRIBUTION, names.ONLINE, names.URL])
-                if online_distribution_url_node and Config.PASTA_URL in online_distribution_url_node.content:
+                if online_distribution_url_node and \
+                        online_distribution_url_node.content and \
+                        Config.PASTA_URL in online_distribution_url_node.content:
                     # If the package was fetched from EDI and the data table hasn't been updated, we don't need it to be checked
                     continue
             status = 'red'

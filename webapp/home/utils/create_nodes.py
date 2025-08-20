@@ -968,15 +968,15 @@ def create_taxonomic_coverage(
             taxonomic_classification_parent_node = taxonomic_coverage_node
             for entry in hierarchy[::-1]:
                 if len(entry) == 4:
-                    taxon_rank, taxon_name, common_name, taxon_id = entry
+                    taxon_rank, taxon_name, common_names, taxon_id = entry
                 if len(entry) == 6:
-                    taxon_rank, taxon_name, common_name, taxon_id, _, authority = entry
+                    taxon_rank, taxon_name, common_names, taxon_id, _, authority = entry
                 taxonomic_classification_node = new_child_node(names.TAXONOMICCLASSIFICATION, parent=taxonomic_classification_parent_node)
                 taxon_rank_name_node = new_child_node(names.TAXONRANKNAME, parent=taxonomic_classification_node)
                 taxon_rank_name_node.content = taxon_rank
                 taxon_rank_value_node = new_child_node(names.TAXONRANKVALUE, parent=taxonomic_classification_node)
                 taxon_rank_value_node.content = taxon_name.strip()
-                if common_name:
+                for common_name in common_names:
                     common_name_node = new_child_node(names.COMMONNAME, parent=taxonomic_classification_node)
                     common_name_node.content = common_name
                 if not authority:

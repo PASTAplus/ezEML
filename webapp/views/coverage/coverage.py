@@ -1100,7 +1100,7 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
         if node:
             taxon_rank_name_node = node.find_child(names.TAXONRANKNAME)
             taxon_rank_value_node = node.find_child(names.TAXONRANKVALUE)
-            taxon_common_name_node = node.find_child(names.COMMONNAME)
+            taxon_common_name_nodes = node.find_all_children(names.COMMONNAME)
             taxon_id_node = node.find_child(names.TAXONID)
 
             if taxon_rank_name_node and taxon_rank_name_node.content:
@@ -1111,10 +1111,10 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
                 taxon_rank_value = taxon_rank_value_node.content
             else:
                 taxon_rank_value = None
-            if taxon_common_name_node:
-                taxon_common_name = taxon_common_name_node.content
-            else:
-                taxon_common_name = ''
+            taxon_common_names = []
+            for taxon_common_name_node in taxon_common_name_nodes:
+                if taxon_common_name_node.content:
+                    taxon_common_names.append(taxon_common_name_node.content)
             if taxon_id_node:
                 taxon_id = taxon_id_node.content
                 provider_uri = taxon_id_node.attribute_value(names.PROVIDER)
@@ -1135,7 +1135,7 @@ def populate_taxonomic_coverage_form(form: TaxonomicCoverageForm, node: Node):
                     elif provider_uri == "http://www.marinespecies.org":
                         link = f'http://marinespecies.org/aphia.php?p=taxdetails&id={taxon_id}'
                         provider = 'WORMS'
-            hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_name, taxon_id, link, provider))
+            hierarchy.append((taxon_rank_name, taxon_rank_value, taxon_common_names, taxon_id, link, provider))
 
             taxonomic_classification_node = node.find_child(names.TAXONOMICCLASSIFICATION)
             if taxonomic_classification_node:

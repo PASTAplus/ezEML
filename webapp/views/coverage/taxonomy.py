@@ -55,8 +55,8 @@ class TaxonomySource:
         filled = []
         if hierarchy:
             for rank_name, taxon_name, taxon_id, link, provider in hierarchy:
-                common_name = self.get_common_name_by_id(taxon_id)
-                filled.append((rank_name, taxon_name, common_name, taxon_id, link, provider))
+                common_names = self.get_common_names_by_id(taxon_id)
+                filled.append((rank_name, taxon_name, common_names, taxon_id, link, provider))
         return filled
 
 
@@ -106,14 +106,15 @@ class ITISTaxonomy(TaxonomySource):
                     break
         return self.prune_hierarchy(hierarchy)
 
-    def get_common_name_by_id(self, tsn):
+    def get_common_names_by_id(self, tsn):
         r = requests.get(f'http://www.itis.gov/ITISWebService/jsonservice/getCommonNamesFromTSN?tsn={tsn}',
                          timeout=self._timeout)
         d = json.loads(r.text)
+        common_names = []
         for rec in d['commonNames']:
             if rec and rec.get('language') == 'English':
-                return rec.get('commonName')
-        return ''
+                common_names.append(rec.get('commonName'))
+        return common_names
 
 
 class WORMSTaxonomy(TaxonomySource):
@@ -155,15 +156,16 @@ class WORMSTaxonomy(TaxonomySource):
             self.parse(d, hierarchy)
         return self.prune_hierarchy(hierarchy)
 
-    def get_common_name_by_id(self, id):
+    def get_common_names_by_id(self, id):
         r = requests.get(f'http://marinespecies.org/rest/AphiaVernacularsByAphiaID/{id}',
                          timeout=self._timeout)
+        common_names = []
         if r and r.text:
             d = json.loads(r.text)
             for rec in d:
                 if rec.get('vernacular') and rec.get('language') == 'English':
-                    return rec.get('vernacular')
-        return ''
+                    common_names.append(rec.get('vernacular'))
+        return [common_name.strip() for common_name in common_names]
 
 
 class NCBITaxonomy(TaxonomySource):
@@ -230,21 +232,17 @@ class NCBITaxonomy(TaxonomySource):
                 break
         return self.prune_hierarchy(hierarchy)
 
-    def get_common_name_by_id(self, id):
+    def get_common_names_by_id(self, id):
+        common_names = []
         r = requests.get(
             f'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&api_key={self.api_key}&ID={id}',
                          timeout=self._timeout)
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         tree = fromstring(r.text.encode('utf-8'), parser=parser)
-        common_name = ''
         common_name_entry = tree.xpath("//DocSum/Item[@Name='CommonName']")
-        if common_name_entry:
-            common_name = common_name_entry[0].text
-        if common_name:
-            return common_name
-        else:
-            return ''
-
+        if common_name_entry and common_name_entry[0].text:
+            common_names = common_name_entry[0].text.split(',')
+        return [common_name.strip() for common_name in common_names]
 
 def load_taxonomic_coverage_csv_file(csv_file, delimiter, quotechar):
     """

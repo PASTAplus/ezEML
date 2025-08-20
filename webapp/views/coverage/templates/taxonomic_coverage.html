@@ -50,15 +50,15 @@
                 {% if hierarchy %}
                 <table id="taxonomy" width="100%">
                     {% if have_links %}
-                    <tr><th width="25%">Taxon Rank</th><th width="30%">Taxon Name</th><th width="25%">Common Name</th><th width="20%">Links</th></tr>
+                    <tr><th width="25%">Taxon Rank</th><th width="30%">Taxon Name</th><th width="25%">Common Name(s)</th><th width="20%">Links</th></tr>
                     {% else %}
-                    <tr><th width="25%">Taxon Rank</th><th width="25%">Taxon Name</th><th width="25%">Common Name</th></tr>
+                    <tr><th width="25%">Taxon Rank</th><th width="25%">Taxon Name</th><th width="25%">Common Name(s)</th></tr>
                     {% endif %}
                     {% for taxon in hierarchy %}
                         {% if have_links %}
-                        <tr><td>{{ taxon[0] }}</td><td>{{ taxon[1] }}</td><td>{{ taxon[2] }}</td><td>{{ macros.taxon_link(taxon[4]) }}</td></tr>
+                        <tr style="vertical-align: top;"><td>{{ taxon[0] }}</td><td>{{ taxon[1] }}</td><td>{{ taxon[2]|join(', ') }}</td><td>{{ macros.taxon_link(taxon[4]) }}</td></tr>
                         {% else %}
-                        <tr><td>{{ taxon[0] }}</td><td>{{ taxon[1] }}</td><td>{{ taxon[2] }}</td></tr>
+                        <tr style="vertical-align: top;"><td>{{ taxon[0] }}</td><td>{{ taxon[1] }}</td><td>{{ taxon[2]|join(', ') }}</td></tr>
                         {% endif %}
                     {% endfor %}
                 </table>

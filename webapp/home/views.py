@@ -514,7 +514,7 @@ def data_table_fetch(document_name:str=None, csv_filename:str=None, url:str=None
     # Send HTTP GET request to the URL to fetch the data table
     url = validate_download_url(url)
     if url is None:
-        redirect(url_for(PAGE_CHECK_DATA_TABLES))
+        return redirect(url_for(PAGE_CHECK_DATA_TABLES))
     response = requests.get(url, stream=True)
     if response.status_code != 200:
         flash(f'Unable to fetch data table "{csv_filename}". Reason: {response.reason}', "error")

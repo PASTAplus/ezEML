@@ -42,7 +42,8 @@ from webapp.home.utils.node_utils import add_child
 from webapp.home.check_metadata import init_evaluation, format_tooltip
 
 from webapp.views.coverage.taxonomy import (
-    TaxonomySourceEnum, ITISTaxonomy, NCBITaxonomy, WORMSTaxonomy,
+    TaxonomySourceEnum, ITISTaxonomy_REST, NCBITaxonomy_REST, WORMSTaxonomy_REST,
+    ITISTaxonomy_DB, NCBITaxonomy_DB, WORMSTaxonomy_DB,
     load_taxonomic_coverage_csv_file, process_taxonomic_coverage_file
 )
 
@@ -76,6 +77,7 @@ from webapp.home.log_usage import (
 
 from metapype.eml import names
 from metapype.model.node import Node
+from webapp.config import Config
 
 
 cov_bp = Blueprint('cov', __name__, template_folder='templates')
@@ -727,14 +729,23 @@ def fill_taxonomic_coverage(taxon, source_type, source_name, row=None, processin
         return hierarchy
 
     if source_type == TaxonomySourceEnum.ITIS:
-        source = ITISTaxonomy()
+        if Config.TAXONOMIC_AUTHORITY_ITIS == "REST":
+            source = ITISTaxonomy_REST()
+        else:
+            source = ITISTaxonomy_DB()
         source.name = 'ITIS'
     elif source_type == TaxonomySourceEnum.NCBI:
-        source = NCBITaxonomy()
+        if Config.TAXONOMIC_AUTHORITY_NCBI == "REST":
+            source = NCBITaxonomy_REST()
+        else:
+            source = NCBITaxonomy_DB()
         source.name = 'NCBI'
     elif source_type == TaxonomySourceEnum.WORMS:
-        source = WORMSTaxonomy()
-        source.name = 'WORMS'
+        if Config.TAXONOMIC_AUTHORITY_WORMS == "REST":
+            source = WORMSTaxonomy_REST()
+        else:
+            source = WORMSTaxonomy_DB()
+        source.name = 'WoRMS'
     if not source:
         raise ValueError('No source specified')
     try:

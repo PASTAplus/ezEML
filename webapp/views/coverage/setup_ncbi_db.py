@@ -96,5 +96,5 @@ def setup_ncbi_db(nodes_file='path/to/nodes.dmp', names_file='path/to/names.dmp'
 
 
 if __name__ == "__main__":
-    download_path = '/Users/jide/git/ezEML/webapp/static/taxonomies/NCBI/taxdump'
+    download_path = '../../static/taxonomies/NCBI/taxdump'
     setup_ncbi_db(nodes_file=f'{download_path}/nodes.dmp', names_file=f'{download_path}/names.dmp', db_path='ncbi_taxonomy.db')

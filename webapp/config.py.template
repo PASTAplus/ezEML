@@ -193,3 +193,8 @@ class Config(object):
     LOG_REQUESTS = False
     LOG_RESPONSES = False
     LOG_NODE_STORE = False
+
+    # Taxonomic authorities -- switch between using REST APIs or local database copies -- "REST" or "DB"
+    TAXONOMIC_AUTHORITY_NCBI = "DB"
+    TAXONOMIC_AUTHORITY_ITIS = "DB"
+    TAXONOMIC_AUTHORITY_WORMS = "DB"

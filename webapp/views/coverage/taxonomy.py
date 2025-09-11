@@ -23,6 +23,8 @@ from enum import Enum, auto
 from webapp.home.exceptions import *
 import webapp.views.coverage.coverage as coverage
 from webapp.home.home_utils import log_error, log_info
+from webapp.config import Config
+
 
 class TaxonomySourceEnum(Enum):
     ITIS = auto()
@@ -67,6 +69,34 @@ class TaxonomySource:
                 common_names = self.get_common_names_by_id(taxon_id)
                 filled.append((rank_name, taxon_name, common_names, taxon_id, link, provider))
         return filled
+
+
+def resolve_taxonomic_authority_source(authority):
+    source = None
+    source_type = None
+    if authority == "ITIS":
+        if Config.TAXONOMIC_AUTHORITY_ITIS == "REST":
+            source = ITISTaxonomy_REST()
+        else:
+            source = ITISTaxonomy_DB()
+        source.name = 'ITIS'
+        source_type = TaxonomySourceEnum.ITIS
+    elif authority == "NCBI":
+        if Config.TAXONOMIC_AUTHORITY_NCBI == "REST":
+            source = NCBITaxonomy_REST()
+        else:
+            source = NCBITaxonomy_DB()
+        source.name = 'NCBI'
+        source_type = TaxonomySourceEnum.NCBI
+    elif authority == "WORMS":
+        if Config.TAXONOMIC_AUTHORITY_WORMS == "REST":
+            source = WORMSTaxonomy_REST()
+        else:
+            source = WORMSTaxonomy_DB()
+        source.name = 'WoRMS'
+        source_type = TaxonomySourceEnum.WORMS
+    return source, source_type
+
 
 ###############################################################################################################
 #  Implementations using local databases
@@ -627,15 +657,8 @@ def process_taxonomic_coverage_file(taxa, authority):
                           f' the CSV file, {authority} was not queried for this taxon. To cause {authority} to be '
                           f' queried for a taxon, leave its taxon rank empty in the CSV file.')
             continue
-        if authority == 'ITIS':
-            t = ITISTaxonomy()
-            source_type = TaxonomySourceEnum.ITIS
-        elif authority == 'NCBI':
-            t = NCBITaxonomy()
-            source_type = TaxonomySourceEnum.NCBI
-        elif authority == 'WORMS':
-            t = WORMSTaxonomy()
-            source_type = TaxonomySourceEnum.WORMS
+        import webapp.views.coverage.coverage as coverage
+        t, source_type = coverage.resolve_taxonomic_authority_source(authority)
         try:
             hierarchy = coverage.fill_taxonomic_coverage(taxon, source_type, '', row, True)
             hierarchies.append(hierarchy)

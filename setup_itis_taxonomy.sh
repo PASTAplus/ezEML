@@ -52,6 +52,15 @@ fi
 echo "Renaming subdirectory to itisSqlite"
 SUBDIR=$(find "$ITIS_DIR" -maxdepth 1 -type d -name 'itisSqlite[0-9]*')
 if [ -n "$SUBDIR" ]; then
+    # Remove existing itisSqlite directory if it exists
+    if [ -d "$ITIS_DIR/itisSqlite" ]; then
+        echo "Removing existing directory $ITIS_DIR/itisSqlite"
+        rm -rf "$ITIS_DIR/itisSqlite"
+        if [ $? -ne 0 ]; then
+            echo "ERROR: Failed to remove existing directory $ITIS_DIR/itisSqlite"
+            exit 1
+        fi
+    fi
     mv "$SUBDIR" "$ITIS_DIR/itisSqlite"
     if [ $? -ne 0 ]; then
         echo "ERROR: Failed to rename $SUBDIR to $ITIS_DIR/itisSqlite"

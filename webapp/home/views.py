@@ -3067,12 +3067,38 @@ def share_submit_package(filename=None, success=None):
 
 
 def make_tiny(url):
-    """Helper function to generate a tiny URL."""
     import requests
-    params = {'url': quote(url, safe=':/')}
-    response = requests.post('http://tinyurl.com/api-create.php', params=params)
+    from urllib.parse import quote
+    """Helper function to generate a TinyURL using the new API."""
+
+    api_token = Config.TINYURL_API_TOKEN
+
+    # API endpoint for creating a TinyURL
+    api_url = "https://api.tinyurl.com/create"
+
+    # Headers with the API token
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json"
+    }
+
+    # Payload with the URL to shorten
+    payload = {
+        "url": url,  # No need to manually quote the URL; the API handles it
+        # Optional: Add custom alias or other parameters if needed
+        # "alias": "custom-alias",
+        # "domain": "tinyurl.com"
+    }
+
+    # Make the POST request
+    response = requests.post(api_url, json=payload, headers=headers)
+
+    # Raise an exception for HTTP errors
     response.raise_for_status()
-    return response.text.replace('http://', 'https://')
+
+    # Extract the shortened URL from the response
+    data = response.json()
+    return data["data"]["tiny_url"]
 
 
 def backup_metadata(filename):

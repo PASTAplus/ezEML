@@ -96,5 +96,6 @@ def setup_ncbi_db(nodes_file='path/to/nodes.dmp', names_file='path/to/names.dmp'
 
 
 if __name__ == "__main__":
-    download_path = 'webapp/static/taxonomies/NCBI/'
-    setup_ncbi_db(nodes_file=f'{download_path}/nodes.dmp', names_file=f'{download_path}/names.dmp', db_path='ncbi_taxonomy.db')
+    download_path = 'webapp/static/taxonomies/NCBI'
+    db_path = 'webapp/static/taxonomy_dbs/NCBI'
+    setup_ncbi_db(nodes_file=f'{download_path}/nodes.dmp', names_file=f'{download_path}/names.dmp', db_path=f'{db_path}/ncbi_taxonomy.db')

@@ -155,6 +155,7 @@ def get_user_properties(folder_name=None):
         save_user_properties(user_properties, folder_name)
     with open(user_properties_filename, 'r') as user_properties_file:
         try:
+            log_info(f'get_user_properties: {user_properties_filename}')
             user_properties = json.load(user_properties_file)
         except JSONDecodeError:
             # something's wrong with the user properties file. make a new one and initialize it.

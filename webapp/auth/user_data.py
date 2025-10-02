@@ -5,6 +5,7 @@
 Helper functions for accessing data regarding the current user.
 """
 
+import base64
 from datetime import datetime
 import json
 import os
@@ -13,6 +14,7 @@ from json import JSONDecodeError
 from pathlib import Path
 import pickle
 import shutil
+import time
 import urllib.parse
 
 import daiquiri
@@ -131,6 +133,12 @@ def initialize_user_data(cname, idp, uid, auth_token, sub=None):
     user_properties['uid'] = uid
     user_properties['datetime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     user_properties['auth_token'] = auth_token
+
+    auth_decoded = base64.b64decode(auth_token.split('-')[0]).decode('utf-8')
+    expiry = int(auth_decoded.split('*')[2])
+    current_time = int(time.time()) * 1000
+    log_info(f'initialize_user_data:  expiry:{expiry}  current_time:{current_time}  auth_decoded:{auth_decoded}')
+
     user_properties['sub'] = sub
     save_user_properties(user_properties)
 
@@ -162,6 +170,7 @@ def save_user_properties(user_properties, user_folder_name=None):
         user_folder_name = f'{Config.USER_DATA_DIR}/{user_folder_name}'
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     with open(user_properties_filename, 'w') as user_properties_file:
+        log_info(f'save_user_properties: {user_properties_filename}')
         json.dump(user_properties, user_properties_file)
 
 

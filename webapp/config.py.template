@@ -127,6 +127,7 @@ class Config(object):
         ]}
 
     PUBLISH_AT_EDI_USERS = {    # All members of EDI Curators collaboration group are also included
+        "BES-79720f7e3f36910a8e13a82f0c8cdf62": "mary.martin@unh.edu",
         "HBR-673945f5868105aaeb512e1340fbb96e": "mary.martin@unh.edu",
         "Jon_Ide-e3223fceadf8d96f538068d8d1650a91": "jride@wisc.edu"
     }

@@ -25,6 +25,8 @@ def init_template_management():
     try:
         user_login = current_user.get_user_login()
         if user_login:
+            if current_user.is_edi_curator():
+                authorized_sites.append("__ALL__")
             template_managers = Config.TEMPLATE_MANAGERS
             for key, val in template_managers.items():
                 for user in val:

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+    {% set help_select_an_ezeml_account_id, help_select_an_ezeml_account_title, help_select_an_ezeml_account_content = help[0] %}
+    {% set help_select_an_ezeml_account_btn = help_select_an_ezeml_account_id ~ '_btn' %}
+    {% set help_select_an_ezeml_account_dialog = help_select_an_ezeml_account_id ~ '_dialog' %}
+
+    <style>
+        .account-container {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid steelblue;
+            border-radius: 0.25rem;
+        }
+        .radio-margin {
+            margin-right: 1rem;
+        }
+        .account-details {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .account-details label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+        }
+        .account-details .username {
+            margin-left: 1em;
+        }
+        .pagination-container {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .pagination-container .pagination {
+            display: inline-flex;
+            gap: 0.25rem;
+        }
+        .pagination-container .page-item .page-link {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+
+    <div class="col-md-12" width="100%">
+        <form method="POST" action="">
+    <table>
+        <td><h2>Select an ezEML Account</h2></td>
+        <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_select_an_ezeml_account_btn) }}</td>
+    </table>
+    <table width="100%">
+        <tr>
+        <td width="70%">
+        There is more than one ezEML user account associated with your primary EDI user profile.<br>
+        Select the desired ezEML account, below, then click the Login button.
+        </td>
+        <td width="10%"></td>
+        <td width="20%">
+            <button type="submit" class="btn btn-primary" id="loginButton" style="text-align: right" name="Login" value="Login">Login</button>
+            &nbsp;&nbsp;
+            <button type="submit" class="btn btn-primary" id="cancelButton" style="text-align: right" name="Cancel" value="Cancel">Cancel</button>
+        </td>
+        </tr>
+    </table>
+    <p></p><br>
+
+            {% for account in linked_accounts %}
+            <div class="account-container">
+                <div class="account-details">
+                    <label>
+                        <input type="radio" name="selected_account" value="{{ account[0] }}" class="radio-margin" required
+                            {% if loop.first %}checked{% endif %}
+                               data-account="{{ account | tojson | b64encode | safe }}">
+                        <strong style="margin-left: 1rem;">User Name:</strong>
+                    </label>
+                    <span class="username">{{ account[1] }}</span>
+                    <div style="margin-left: 5rem;">
+                        <strong>Identity Provider:</strong> {{ account[2] }}
+                    </div>
+                </div>
+                <table class="table table-striped data-table display compact" id="table-{{ loop.index }}">
+                    <thead>
+                        <tr>
+                            <th width="70%">Package Name</th>
+                            <th width="30%">Date Modified</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in account[5] %}
+                        <tr>
+                            <td>{{ doc[0] }}</td>
+                            <td>{{ doc[1] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        <!-- Hidden input to store the full account tuple -->
+        <input type="hidden" name="full_account" id="full_account" value="{{ linked_accounts[0] | tojson | b64encode | safe }}">
+        </form>
+    </div>
+    {{ macros.help_dialog(help_select_an_ezeml_account_dialog, help_select_an_ezeml_account_title, help_select_an_ezeml_account_content) }}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% if help %}
+    {% set help_select_an_ezeml_account_id, help_select_an_ezeml_account_title, help_select_an_ezeml_account_content = help[0] %}
+    {% set help_select_an_ezeml_account_btn = help_select_an_ezeml_account_id ~ '_btn' %}
+    {% set help_select_an_ezeml_account_dialog = help_select_an_ezeml_account_id ~ '_dialog' %}
+    {% endif %}
+    
+    <script>
+    $(function()
+    {
+        {{ macros.help_script(help_select_an_ezeml_account_dialog, help_select_an_ezeml_account_btn) }}
+    });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTables for all tables with class 'data-table'
+            $('.data-table').each(function() {
+                $(this).DataTable({
+                    pageLength: 5,
+                    paging: true,
+                    lengthMenu: [
+                        [5, 10, 20, 50, -1],
+                        [5, 10, 20, 50, 'All'],
+                    ],
+                    order: [[0, 'asc']],
+                    searching: false,
+                    columnDefs: [
+                        { targets: '_all', orderable: true }
+                    ],
+                    dom: 't<"pagination-container"lip>'
+                });
+            });
+        });
+        function updateHiddenInput(radio) {
+            console.log("updateHiddenInput called with", radio.value);
+            const hiddenInput = document.getElementById('full_account');
+            if (!hiddenInput) {
+                console.error("Hidden input #full_account not found");
+                return;
+            }
+            const accountBase64 = radio.getAttribute('data-account');
+            console.log("Raw data-account (Base64):", accountBase64);
+            try {
+                const accountJson = atob(accountBase64); // Decode Base64
+                JSON.parse(accountJson); // Verify JSON
+                hiddenInput.value = accountBase64;
+                console.log("Hidden input updated with:", accountBase64);
+            } catch (e) {
+                console.error("Invalid Base64 or JSON in data-account:", accountBase64, "Error:", e);
+            }
+        }
+
+        // Add event listeners to all radio buttons
+        document.querySelectorAll('input[name="selected_account"]').forEach(radio => {
+            radio.addEventListener('change', () => updateHiddenInput(radio));
+        });
+    </script>
+{% endblock %}

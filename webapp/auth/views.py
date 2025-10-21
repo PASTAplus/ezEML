@@ -13,18 +13,23 @@
 :Created:
     3/6/18
 """
+from datetime import datetime
+
 from urllib.parse import urlparse
 import base64
+import json
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 import requests
+from numpy.f2py.crackfortran import endifs
 
 from webapp.pages import *
 from webapp.auth.forms import LoginForm
 from webapp.auth.pasta_token import PastaToken
+from webapp.auth.edi_token import decode_edi_token, get_linked_ezeml_accounts
 from webapp.auth.user import User
-from webapp.auth.user_data import get_active_document, initialize_user_data
+from webapp.auth.user_data import get_active_document, get_user_properties, initialize_user_data, save_user_properties
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
@@ -62,6 +67,36 @@ def login():
             return redirect(url_for(PAGE_INDEX))
 
     # Process POST
+    if request.method == 'POST':
+
+        # If we're coming from "Select an ezEML Account" page, retrieve the selected radio button value or cancel
+        if "Cancel" in request.form:
+            return redirect(url_for(PAGE_INDEX))
+        if "Login" in request.form:
+            try:
+                # Decode Base64 and parse JSON
+                selected_account_base64 = request.form['full_account']
+                selected_account_json = base64.b64decode(selected_account_base64).decode('utf-8')
+                selected_account = json.loads(selected_account_json)
+            except Exception as e:
+                selected_account = None
+            if selected_account:
+                # Process the selected_account value
+                user_login, idp_cname, idp_name, auth_common_name, uid, *_ = json.loads(selected_account)
+
+                session_id = idp_cname + "*" + uid
+                user = User(session_id)
+                login_user(user)
+
+                user_properties = get_user_properties()
+                user_properties['cname'] = idp_cname
+                user_properties['idp'] = idp_name
+                user_properties['uid'] = uid
+                user_properties['datetime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                save_user_properties(user_properties)
+
+                return redirect(url_for(PAGE_INDEX))
+
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
@@ -73,8 +108,18 @@ def login():
         domain = "edi"
         user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
         password = form.password.data
-        auth_token = authenticate(user_dn=user_dn, password=password)
+        auth_token, edi_token = authenticate(user_dn=user_dn, password=password)
+        if edi_token:
+            # We are logging in via "new" auth...
+            # See if we have multiple ezEML accounts to deal with
+            linked_accounts = get_linked_ezeml_accounts(edi_token)
+            if len(linked_accounts) > 1:
+                help = get_helps(['select_an_ezeml_account'])
+                return render_template('select_linked_account.html', linked_accounts=linked_accounts, help=help)
+
+        # We're logging in via "old" auth...
         if auth_token is not None and auth_token != "teapot":
+            # It's an LDAP login
             pasta_token = PastaToken(auth_token)
             uid = pasta_token.uid.split(",")[0]
             cname = uid.split('=')[1]
@@ -83,7 +128,7 @@ def login():
             session_id = cname + "*" + pasta_token.uid
             user = User(session_id)
             login_user(user)
-            initialize_user_data(cname, 'LDAP', pasta_token.uid, auth_token)
+            initialize_user_data(cname, 'LDAP', pasta_token.uid, auth_token, edi_token=edi_token)
             log_usage(actions['LOGIN'], cname, 'LDAP', current_user.get_user_login())
             next_page = request.args.get('next')
             if not next_page or urlparse(next_page).netloc != '':
@@ -94,6 +139,7 @@ def login():
                     next_page = url_for(PAGE_INDEX)
             return redirect(next_page)
         elif auth_token == "teapot":
+            # It's Google, ORCID, or GitHub
             log_usage(actions['LOGIN'], form.username.data, 'teapot')
             accept_url = f"{Config.AUTH}/accept?uid={user_dn}&target={Config.TARGET}"
             return redirect(accept_url)
@@ -104,16 +150,32 @@ def login():
     # for arg in request.args:
     #     log_info(f"arg: {arg} = {request.args[arg]}")
     auth_token = request.args.get("token")
-    # log_info(f"auth_token: {auth_token}")
-    cname = request.args.get("cname")
+    edi_token = request.args.get("edi_token")
+    if edi_token:
+        # See if we have multiple ezEML accounts to deal with
+        linked_accounts = get_linked_ezeml_accounts(edi_token)
+        if len(linked_accounts) > 0:
+            help = get_helps(['select_an_ezeml_account'])
+            return render_template('select_linked_account.html', linked_accounts=linked_accounts, help=help)
+
+        edi_token_decoded = decode_edi_token(edi_token)
+        cname = edi_token_decoded.get('idpCommonName')
+        idp = edi_token_decoded.get('idpName')
+        sub = edi_token_decoded.get('sub')
+    else:
+        cname = request.args.get("cn") or request.args.get("cname")
+        idp = request.args.get("idp_name") or request.args.get("idp")
+        sub = request.args.get("sub")
+
     if cname:
         cname = cname.strip()
-    idp = request.args.get("idp")
-    # log_info(f"cname: {cname}")
-    sub = request.args.get("sub")
+
     if auth_token is not None and cname is not None:
         pasta_token = PastaToken(auth_token)
-        uid = pasta_token.uid
+        if edi_token:
+            uid = edi_token_decoded.get('idpUid')
+        else:
+            uid = pasta_token.uid
         log_info(f"uid: {uid}  cname: {cname}  idp: {idp}  sub: {sub}")
 
         # If it's a Google login, we need to see if the user data needs to be repaired.
@@ -124,7 +186,7 @@ def login():
         session_id = cname + "*" + uid
         user = User(session_id)
         login_user(user)
-        initialize_user_data(cname, idp, uid, auth_token, sub)
+        initialize_user_data(cname, idp, uid, auth_token, edi_token=edi_token, sub=sub)
         log_usage(actions['LOGIN'], cname, idp, uid, current_user.get_user_login())
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
@@ -153,10 +215,12 @@ def logout():
 
 def authenticate(user_dn=None, password=None):
     auth_token = None
+    edi_token = None
     auth_url = Config.AUTH + f"/login/pasta?target={Config.TARGET}"
     r = requests.get(auth_url, auth=(user_dn, password))
     if r.status_code == requests.codes.ok:
         auth_token = r.cookies['auth-token']
+        edi_token = r.cookies.get('edi-token')
     elif r.status_code == requests.codes.teapot:
-        return "teapot"
-    return auth_token
+        return "teapot", None
+    return auth_token, edi_token

@@ -1303,6 +1303,22 @@ Rename
 
 <b>Rename</b> does not change the Title or Data Package ID or other contents of the EML itself.
 --------------------
+select_an_ezeml_account
+Select an ezEML Account
+
+Under EDI's <b>Identity and Access Management (IAM)</b> system, you can link multiple user profiles to a primary profile. For example, your primary user profile
+ might be an EDI LDAP account, and you might have one or more Google, ORCID, or GitHub accounts linked to it. When you log in, IAM automatically logs in to
+ the primary account. The linked accounts are a convenience, providing alternative ways to log in.
+
+Suppose, however, that you have logged in to ezEML in the past -- i.e., prior to the release of the IAM system -- using multiple different logins.
+ E.g., suppose on some occasions you logged in via an EDI LDAP account and on other occasions via one or more Google accounts. Those ezEML accounts
+ are distinct, each holding its own data. When those ezEML accounts were created, ezEML had no way to know that the accounts all belonged
+ to the same user.
+
+If you've logged in to ezEML using different logins in the past and those logins are now linked under the IAM system, ezEML asks you to select the
+ particular ezEML account to log into. The packages in each account are displayed to help you pick the account containing the data you want to work on.
+ Click the radio button next to the desired account and click the <b>Login</b> button.
+--------------------
 send_to_colleague
 Send to Colleague
 When you've entered all required metadata and uploaded all associated data files (data tables and other entities) to ezEML, you can send the entire package to a colleague (e.g., an LTER Information Manager) via <b>Send to Colleague</b>.

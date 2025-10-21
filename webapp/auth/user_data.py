@@ -115,7 +115,7 @@ def get_user_document_list(current_user_directory_only=True):
     return packageids
 
 
-def initialize_user_data(cname, idp, uid, auth_token, sub=None):
+def initialize_user_data(cname, idp, uid, auth_token, edi_token=None, sub=None):
     user_folder_name = get_user_folder_name(current_user_directory_only=True)
     user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(Config.USER_DATA_DIR):
@@ -133,6 +133,7 @@ def initialize_user_data(cname, idp, uid, auth_token, sub=None):
     user_properties['uid'] = uid
     user_properties['datetime'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     user_properties['auth_token'] = auth_token
+    user_properties['edi_token'] = edi_token
 
     auth_decoded = base64.b64decode(auth_token.split('-')[0]).decode('utf-8')
     expiry = int(auth_decoded.split('*')[2])

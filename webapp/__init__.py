@@ -12,6 +12,8 @@
 :Created:
     2/15/18
 """
+import base64
+import json
 import logging
 import os
 
@@ -42,6 +44,13 @@ logger = daiquiri.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Define the b64encode filter
+def b64encode(value):
+    return base64.b64encode(json.dumps(value).encode('utf-8')).decode('utf-8')
+
+# Register the filter with Jinja2
+app.jinja_env.filters['b64encode'] = b64encode
 
 # The following makes the badge_data variable available to all templates
 # Formerly, it was passed in the session, but that caused problems with

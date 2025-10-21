@@ -47,6 +47,11 @@ def init_user_lookup():
             sites = user_lookup.get(user[0], [])
             sites.append(key)
             user_lookup[user[0]] = sites
+    if current_user.is_edi_curator():
+        user = current_user.get_user_login()
+        sites = user_lookup.get(user, [])
+        sites.append("__ALL__")
+        user_lookup[user] = sites
 
 
 def check_overwrite_user_data(template_pathname):

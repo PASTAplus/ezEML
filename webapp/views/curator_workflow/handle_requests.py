@@ -60,8 +60,14 @@ def authenticate_for_workflow(pasta_url):
     try:
         response = requests.get(url, auth=(dn,pw))
         response.raise_for_status()
-        token = response.cookies['auth-token']
-        cookies = {'auth-token': token}
+        auth_token = response.cookies['auth-token']
+        # Whether the edi-token is present depends on whether we're connecting to "old" auth or "new" auth
+        try:
+            edi_token = response.cookies['edi-token']
+            cookies = {'auth-token': auth_token,
+                       'edi-token': edi_token}
+        except Exception as e:
+            cookies = {'auth-token': auth_token}
         return cookies
     except requests.exceptions.RequestException as e:
         log_error(f'handle_requests.authenticate() raised {e}')

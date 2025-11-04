@@ -154,7 +154,7 @@ def login():
     if edi_token:
         # See if we have multiple ezEML accounts to deal with
         linked_accounts = get_linked_ezeml_accounts(edi_token)
-        if len(linked_accounts) > 0:
+        if len(linked_accounts) > 1:
             help = get_helps(['select_an_ezeml_account'])
             return render_template('select_linked_account.html', linked_accounts=linked_accounts, help=help)
 

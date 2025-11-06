@@ -156,7 +156,7 @@ def get_user_properties(folder_name=None):
         save_user_properties(user_properties, folder_name)
     with open(user_properties_filename, 'r') as user_properties_file:
         try:
-            log_info(f'get_user_properties: {user_properties_filename}')
+            # log_info(f'get_user_properties: {user_properties_filename}')
             user_properties = json.load(user_properties_file)
         except JSONDecodeError:
             # something's wrong with the user properties file. make a new one and initialize it.
@@ -172,7 +172,7 @@ def save_user_properties(user_properties, user_folder_name=None):
         user_folder_name = f'{Config.USER_DATA_DIR}/{user_folder_name}'
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
     with open(user_properties_filename, 'w') as user_properties_file:
-        log_info(f'save_user_properties: {user_properties_filename}')
+        # log_info(f'save_user_properties: {user_properties_filename}')
         json.dump(user_properties, user_properties_file)
 
 

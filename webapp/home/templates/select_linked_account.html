@@ -78,6 +78,9 @@
                     <span class="username">{{ account[1] }}</span>
                     <div style="margin-left: 5rem;">
                         <strong>Identity Provider:</strong> {{ account[2] }}
+                        {% if account[4] and not account[2] == 'EDI' %}
+                        &nbsp;({{ account[4] }})
+                        {% endif %}
                     </div>
                 </div>
                 <table class="table table-striped data-table display compact" id="table-{{ loop.index }}">

@@ -59,9 +59,9 @@ def get_linked_ezeml_accounts(edi_token):
             user_login = user_name_clean + "-" + uid_hash
             # See if there exists an ezEML user account for this user_login
             user_dir = f'{Config.USER_DATA_DIR}/{user_login}'
+            ezeml_docs = []
             if os.path.exists(user_dir):
                 # Create a list of ezEML documents in the user dir
-                ezeml_docs = []
                 try:
                     folder_contents = os.listdir(user_dir)
                     only_files = [f for f in folder_contents if os.path.isfile(os.path.join(user_dir, f))]

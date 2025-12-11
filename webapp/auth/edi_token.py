@@ -50,10 +50,9 @@ def get_linked_ezeml_accounts(edi_token):
             idp_name = profile.get('idpName', '')
             if idp_name == 'ldap':
                 idp_name = 'EDI'
-                user_name = profile.get('cn', '')
             else:
                 idp_name = idp_name.capitalize()
-                user_name = idp_cname
+            user_name = idp_cname
             auth_common_name = (profile.get('commonName', '') or profile.get('cn', '')).strip()
             uid_hash = hashlib.md5(uid.encode("utf-8")).hexdigest()
             user_name_clean = user_name.strip().replace(" ", "_")

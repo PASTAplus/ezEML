@@ -5,6 +5,7 @@ import json
 import os
 
 from webapp.config import Config
+from webapp.home.home_utils import log_info
 
 
 def decode_jwt(token):
@@ -38,6 +39,16 @@ def decode_jwt(token):
 
 def decode_edi_token(edi_token):
     jwt = decode_jwt(edi_token)
+    payload = jwt.get('payload')
+    sub = payload.get('sub')
+    cn = payload.get('cn')
+    email = payload.get('email')
+    idp_common_name = payload.get('idpCommonName')
+    idp_name = payload.get('idpName')
+    idp_uid =  payload.get('idpUid')
+    links = payload.get('links')
+    log_info(f'decode_edi_token:\n   sub={sub},\n   cn={cn},\n   email={email},\n   idpCommonName={idp_common_name} \
+            \n   idpName={idp_name},\n   idpUid={idp_uid},\n   links={links}')
     return jwt.get('payload')
 
 

@@ -117,6 +117,7 @@ def get_user_document_list(current_user_directory_only=True):
 
 def initialize_user_data(cname, idp, uid, auth_token, edi_token=None, sub=None):
     user_folder_name = get_user_folder_name(current_user_directory_only=True)
+    log_info(f'initialize_user_data:\n   user_folder_name={user_folder_name}')
     user_uploads_folder_name = get_user_uploads_folder_name()
     if not os.path.exists(Config.USER_DATA_DIR):
         os.mkdir(Config.USER_DATA_DIR)

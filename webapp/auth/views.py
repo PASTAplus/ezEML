@@ -29,7 +29,7 @@ from webapp.auth.forms import LoginForm
 from webapp.auth.pasta_token import PastaToken
 from webapp.auth.edi_token import decode_edi_token, get_linked_ezeml_accounts
 from webapp.auth.user import User
-from webapp.auth.user_data import get_active_document, get_user_properties, initialize_user_data, save_user_properties
+from webapp.auth.user_data import get_active_document, get_user_properties, initialize_user_data, save_user_properties, save_authentication_tokens
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info
 from webapp.home.utils.hidden_buttons import is_hidden_button, handle_hidden_buttons
@@ -109,15 +109,23 @@ def login():
         user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
         password = form.password.data
         auth_token, edi_token = authenticate(user_dn=user_dn, password=password)
+        # We want to save the authentication tokens so we can access PASTA APIs without requiring the user
+        #  to keep logging in again. There's a catch, however. The tokens want to be saved in the user_data
+        #  dictionary for the user, but the ezEML user account we end up logged into may not be the primary
+        #  auth profile's account. We will save the tokens in the primary auth profile's account, but pass
+        #  along identifying information for that account so the other accounts know where to look for the tokens.
+        primary_folder_name = save_authentication_tokens(user_dn, username, auth_token, edi_token)
         if edi_token:
             # We are logging in via "new" auth...
-            # See if we have multiple ezEML accounts to deal with
-            linked_accounts = get_linked_ezeml_accounts(edi_token)
+            # See if we have multiple ezEML accounts to deal with.
+            # We pass in the primary_folder_name so we can save it in each ezEML account, so they will know where to
+            #  retrieve authentication tokens from.
+            linked_accounts = get_linked_ezeml_accounts(edi_token, primary_folder_name)
             if len(linked_accounts) > 1:
                 help = get_helps(['select_an_ezeml_account'])
-                return render_template('select_linked_account.html', linked_accounts=linked_accounts, help=help)
+                return render_template('select_linked_account.html',
+                                       linked_accounts=linked_accounts, primary_folder_name=primary_folder_name, help=help)
 
-        # We're logging in via "old" auth...
         if auth_token is not None and auth_token != "teapot":
             # It's an LDAP login
             pasta_token = PastaToken(auth_token)

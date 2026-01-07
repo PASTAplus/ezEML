@@ -7,6 +7,7 @@ Helper functions for accessing data regarding the current user.
 
 import base64
 from datetime import datetime
+import hashlib
 import json
 import os
 import os.path
@@ -489,7 +490,48 @@ def remove_active_file():
 
 def get_auth_token():
     user_properties = get_user_properties()
+    primary_folder = user_properties.get('primary_folder', '')
+    if primary_folder:
+        user_properties = get_user_properties(primary_folder)
     return user_properties.get('auth_token', '')
+
+
+def get_edi_token():
+    user_properties = get_user_properties()
+    primary_folder = user_properties.get('primary_folder', '')
+    if primary_folder:
+        user_properties = get_user_properties(primary_folder)
+    return user_properties.get('edi_token', '')
+
+
+def save_authentication_tokens(uid, cname, auth_token, edi_token):
+    # We want to save the authentication tokens so we can access PASTA APIs without requiring the user
+    #  to keep logging in again. There's a catch, however. The tokens want to be saved in the user_data
+    #  dictionary for a user, but the ezEML user account we end up logged into may not be the primary
+    #  auth profile's account. We will save the tokens in the primary auth profile's account, but pass
+    #  along identifying information for that account so the other accounts know where to look for the tokens.
+    uid_hash = hashlib.md5(uid.encode("utf-8")).hexdigest()
+    cname_clean = cname.replace(" ", "_")
+    folder_name = cname_clean + "-" + uid_hash
+    user_properties = get_user_properties(folder_name)
+    user_properties['auth_token'] = auth_token
+    user_properties['edi_token'] = edi_token
+    save_user_properties(user_properties, folder_name)
+    return folder_name
+
+
+def save_primary_folder(user_folder, primary_folder):
+    # To handle cases where multiple ezEML accounts are linked to a primary auth profile, we save the
+    #  primary_folder in user_properties. This makes it possible for the linked account to retrieve the
+    #  authentication tokens needed to interact with PASTA APIs.
+    user_properties = get_user_properties(user_folder)
+    user_properties['primary_folder'] = primary_folder
+    save_user_properties(user_properties, user_folder)
+
+
+def get_primary_folder():
+    user_properties = get_user_properties()
+    return user_properties.get('primary_folder', '')
 
 
 ##############################################

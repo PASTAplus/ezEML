@@ -6,7 +6,7 @@ import time
 
 from flask_login import current_user
 
-import webapp.auth.user_data as user_data
+from webapp.auth.edi_token import decode_edi_token
 from webapp.config import Config
 from webapp.home.home_utils import log_error, log_info
 import webapp.home.exceptions as exceptions
@@ -43,13 +43,22 @@ def authenticate_for_workflow(pasta_url):
         # See if auth_token has expired
         auth_decoded = base64.b64decode(auth_token.split('-')[0]).decode('utf-8')
         expiry = int(auth_decoded.split('*')[2])
-        current_time = int(time.time()) * 1000
+        edi_token = user_data.get_edi_token()
+        if edi_token:
+            edi_token_decoded = decode_edi_token(edi_token)
+            expiry = int(edi_token_decoded.get('exp', expiry))
+        current_time = int(time.time())
         if expiry < current_time:
             log_info(f'auth_decoded:{auth_decoded}')
             log_info(f'expiry:{expiry}  current_time:{current_time}')
             log_error('raising exceptions.AuthTokenExpired')
             raise exceptions.AuthTokenExpired('')
-        return {'auth-token': auth_token}
+
+        if edi_token:
+            return {'auth-token': auth_token,
+                    'edi-token': edi_token}
+        else:
+            return {'auth-token': auth_token}
 
     # EDI curator. Setup user credentials for EDI user.
     dn = f'uid={Config.EZEML_DATA_ACCESS_LDAP_USER},o=EDI,dc=edirepository,dc=org' # distinguished name

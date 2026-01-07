@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 
+from webapp.auth.user_data import save_primary_folder
 from webapp.config import Config
 from webapp.home.home_utils import log_info
 
@@ -52,9 +53,9 @@ def decode_edi_token(edi_token):
     return jwt.get('payload')
 
 
-def get_linked_ezeml_accounts(edi_token):
+def get_linked_ezeml_accounts(edi_token, primary_folder=None):
 
-    def get_ezeml_account_contents(profile):
+    def get_ezeml_account_contents(profile, primary_folder=None):
         uid = profile.get('idpUid')
         if uid:
             idp_cname = profile.get('idpCommonName', '')
@@ -85,6 +86,9 @@ def get_linked_ezeml_accounts(edi_token):
                                 ezeml_docs.append((package_id, date_modified))
                 except Exception as e:
                     pass
+                # If we have primary_folder_name, save it in the user data for this ezEML user
+                if primary_folder:
+                    save_primary_folder(user_login, primary_folder)
             return ((user_login, idp_cname, idp_name, auth_common_name, uid, ezeml_docs))
         else:
             return None
@@ -92,11 +96,11 @@ def get_linked_ezeml_accounts(edi_token):
     edi_jwt = decode_edi_token(edi_token)
     ezeml_accounts = []
     # First, the principal user profile
-    if ezeml_account := get_ezeml_account_contents(edi_jwt):
+    if ezeml_account := get_ezeml_account_contents(edi_jwt, primary_folder):
         ezeml_accounts.append(ezeml_account)
     # Now, any linked user profiles
     links = edi_jwt.get('links')
     for link in links:
-        if ezeml_account := get_ezeml_account_contents(link):
+        if ezeml_account := get_ezeml_account_contents(link, primary_folder):
             ezeml_accounts.append(ezeml_account)
     return ezeml_accounts

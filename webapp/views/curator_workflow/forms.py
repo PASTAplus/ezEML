@@ -16,6 +16,7 @@ class ScopeSelectForm(FlaskForm):
     scope = SelectField('Select the Scope: ',
                        choices=[("cos-spu", "cos-spu"),
                                 ("edi", "edi"),
+                                # ("icarus", "icarus"),
                                 ("knb-lter-and", "knb-lter-and"),
                                 ("knb-lter-arc", "knb-lter-arc"),
                                 ("knb-lter-bes", "knb-lter-bes"),

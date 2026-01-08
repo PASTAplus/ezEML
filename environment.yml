@@ -6,17 +6,16 @@ dependencies:
   - _libgcc_mutex=0.1
   - _openmp_mutex=4.5
   - aiohappyeyeballs=2.6.1
-  - aiohttp=3.13.2
+  - aiohttp=3.13.3
   - aiosignal=1.4.0
   - alembic=1.17.2
   - attrs=25.4.0
-  - backports.zstd=1.2.0
+  - backports.zstd=1.3.0
   - blinker=1.9.0
   - brotli-python=1.2.0
   - bzip2=1.0.8
-  - ca-certificates=2025.11.12
-  - cachetools=6.2.2
-  - certifi=2025.11.12
+  - ca-certificates=2026.1.4
+  - certifi=2026.1.4
   - cffi=2.0.0
   - charset-normalizer=3.4.4
   - click=8.3.1
@@ -36,14 +35,14 @@ dependencies:
   - flask-sqlalchemy=3.1.1
   - flask-wtf=1.2.2
   - frozenlist=1.7.0
-  - google-auth=2.43.0
+  - google-auth=2.47.0
   - google-auth-oauthlib=1.2.2
   - greenlet=3.3.0
   - gspread=5.12.4
   - h2=4.3.0
   - hpack=4.1.0
   - hyperframe=6.1.0
-  - icu=75.1
+  - icu=78.1
   - idna=3.11
   - importlib-metadata=8.7.0
   - iniconfig=2.3.0
@@ -67,8 +66,7 @@ dependencies:
   - libopenblas=0.3.30
   - libsqlite=3.51.1
   - libstdcxx=15.2.0
-  - libstdcxx-ng=15.2.0
-  - libuuid=2.41.2
+  - libuuid=2.41.3
   - libxcrypt=4.4.36
   - libxml2=2.15.1
   - libxml2-16=2.15.1
@@ -76,9 +74,9 @@ dependencies:
   - libzlib=1.3.1
   - mako=1.3.10
   - markupsafe=3.0.3
-  - multidict=6.6.3
+  - multidict=6.7.0
   - ncurses=6.5
-  - numpy=2.3.5
+  - numpy=2.4.0
   - oauthlib=3.3.1
   - openpyxl=3.1.5
   - openssl=3.6.0
@@ -89,7 +87,7 @@ dependencies:
   - pip=25.3
   - pluggy=1.6.0
   - propcache=0.3.1
-  - psutil=7.1.3
+  - psutil=7.2.1
   - pyasn1=0.6.1
   - pyasn1-modules=0.4.2
   - pycparser=2.22
@@ -102,11 +100,11 @@ dependencies:
   - python=3.11.14
   - python-dateutil=2.9.0.post0
   - python-json-logger=2.0.7
-  - python-tzdata=2025.2
+  - python-tzdata=2025.3
   - python_abi=3.11
   - pytz=2025.2
   - pyu2f=0.1.5
-  - readline=8.2
+  - readline=8.3
   - requests=2.32.5
   - requests-file=3.0.1
   - requests-oauthlib=2.0.0
@@ -115,14 +113,14 @@ dependencies:
   - setuptools=80.9.0
   - six=1.17.0
   - sniffio=1.3.1
-  - sqlalchemy=2.0.44
-  - time-machine=3.1.0
+  - sqlalchemy=2.0.45
+  - time-machine=3.2.0
   - tk=8.6.13
   - tomli=2.3.0
   - typing-extensions=4.15.0
   - typing_extensions=4.15.0
-  - tzdata=2025b
-  - urllib3=2.6.1
+  - tzdata=2025c
+  - urllib3=2.6.3
   - uwsgi=2.0.31
   - visitor=0.1.3
   - werkzeug=3.1.4
@@ -133,7 +131,7 @@ dependencies:
   - zipp=3.23.0
   - zstd=1.5.7
   - pip:
-      - emlvp==1.2.6
+      - emlvp==1.2.7
       - lxml==5.4.0
       - metapype==0.1.1
 prefix: /home/servilla/miniconda3/envs/ezeml

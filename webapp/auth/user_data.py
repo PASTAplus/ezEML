@@ -146,9 +146,9 @@ def initialize_user_data(cname, idp, uid, auth_token, edi_token=None, sub=None):
     save_user_properties(user_properties)
 
 
-def get_user_properties(folder_name=None):
+def get_user_properties(folder_name=None, current_user_directory_only=False):
     if not folder_name:
-        user_folder_name = get_user_folder_name()
+        user_folder_name = get_user_folder_name(current_user_directory_only)
     else:
         user_folder_name = f'{Config.USER_DATA_DIR}/{folder_name}'
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
@@ -489,7 +489,7 @@ def remove_active_file():
 
 
 def get_auth_token():
-    user_properties = get_user_properties()
+    user_properties = get_user_properties(current_user_directory_only=True) # We want the current user, not the package owner
     primary_folder = user_properties.get('primary_folder', '')
     if primary_folder:
         user_properties = get_user_properties(primary_folder)
@@ -497,7 +497,7 @@ def get_auth_token():
 
 
 def get_edi_token():
-    user_properties = get_user_properties()
+    user_properties = get_user_properties(current_user_directory_only=True) # We want the current user, not the package owner
     primary_folder = user_properties.get('primary_folder', '')
     if primary_folder:
         user_properties = get_user_properties(primary_folder)

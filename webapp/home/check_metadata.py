@@ -790,6 +790,7 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
     # Numerical
     if attr_type == webapp.home.metapype_client.VariableType.NUMERICAL:
         attribute_name = attrib_node.find_child(names.ATTRIBUTENAME).content
+
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
         if find_min_unmet_for_choice(validation_errs, names.UNIT):
@@ -805,6 +806,12 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
         duplicate_custom_unit = check_custom_units(attrib_node)
         if duplicate_custom_unit:
             add_to_evaluation('attributes_13', link, data_table_name=data_table_name)
+        if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_NONEMPTY, names.MINIMUM) or \
+                find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_FLOAT, names.MINIMUM):
+            add_to_evaluation('attributes_14', link, data_table_name=data_table_name)
+        if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_NONEMPTY, names.MAXIMUM) or \
+                find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_FLOAT, names.MAXIMUM):
+            add_to_evaluation('attributes_15', link, data_table_name=data_table_name)
 
     # DateTime
     if attr_type == webapp.home.metapype_client.VariableType.DATETIME:

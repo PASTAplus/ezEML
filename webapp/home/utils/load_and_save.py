@@ -409,7 +409,8 @@ def enforce_public_read_access(eml_node:Node=None):
 def clean_model(eml_node):
     """
     Perform various cleanups on the model. This is called when a model is saved. Its purpose is to deal with
-    cases where an existing model has glitches due to earlier bugs or because we've changed how we're doing things.
+    cases where an existing model has glitches due to earlier bugs or because we've changed how we're doing things
+    or because the model was created outside of ezEML.
     """
     if not eml_node:
         return
@@ -543,6 +544,18 @@ def clean_model(eml_node):
     for project_node in project_nodes:
         if not project_node.children:
             project_node.parent.remove_child(project_node)
+
+    # If a bounds node has empty minimum/maximum elmeents, delete them. This sometimes happens with packages
+    #  created outside of ezEML.
+    bounds_nodes = []
+    eml_node.find_all_descendants(names.BOUNDS, bounds_nodes)
+    for bounds_node in bounds_nodes:
+        minimum_node = bounds_node.find_descendant(names.MINIMUM)
+        if minimum_node and not minimum_node.content:
+            minimum_node.parent.remove_child(minimum_node)
+        maximum_node = bounds_node.find_descendant(names.MAXIMUM)
+        if maximum_node and not maximum_node.content:
+            maximum_node.parent.remove_child(maximum_node)
 
     # Fixup formatName fields to use mime types instead of file extensions.
     # If we make a change, flash a message to the user.

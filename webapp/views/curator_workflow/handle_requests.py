@@ -50,6 +50,7 @@ def authenticate_for_workflow(pasta_url):
         current_time = int(time.time())
         if expiry < current_time:
             log_info(f'auth_decoded:{auth_decoded}')
+            log_info(f'edi_token_decoded:{edi_token_decoded}')
             log_info(f'expiry:{expiry}  current_time:{current_time}')
             log_error('raising exceptions.AuthTokenExpired')
             raise exceptions.AuthTokenExpired('')

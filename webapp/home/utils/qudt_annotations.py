@@ -22,6 +22,7 @@ from webapp.auth import user_data
 from webapp.home.utils.node_utils import get_unit_text
 from metapype.eml import names
 from metapype.model.node import Node
+from webapp.home.home_utils import log_info
 
 
 def add_attribute_ids(eml_node):
@@ -95,7 +96,10 @@ def add_qudt_annotations(eml_node, automatically_add=True, overwrite_existing=Fa
         if property_uri_node.content != 'http://qudt.org/schema/qudt/hasUnit':
             return False
         if value_uri_node.attribute_value('label') != qudt_label:
-            return False
+            log_info(f"node_matches: label mismatch: {value_uri_node.attribute_value('label')} {qudt_label}")
+            # We used to demand the labels to match but then realized the units working group
+            #  may change labels at some point
+            # return False
         if value_uri_node.content != qudt_uri:
             return False
         return True
@@ -259,7 +263,11 @@ def available_qudt_annotations(eml_node, filename):
                         if not value_uri_node:
                             continue
                         if value_uri_node.attribute_value('label') != qudt_label:
-                            continue
+                            log_info(
+                                f"available_qudt_annotations: label mismatch: {value_uri_node.attribute_value('label')} {qudt_label}")
+                            # We used to demand the labels to match but then realized the units working group
+                            #  may change labels at some point
+                            # continue
                         if value_uri_node.content not in qudt_uri and value_uri_node.content not in qudt_uri.replace('https://', 'http://'):
                             continue
                         annotation_exists = True

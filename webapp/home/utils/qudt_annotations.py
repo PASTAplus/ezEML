@@ -207,6 +207,8 @@ def available_qudt_annotations(eml_node, filename):
 
     data_table_list = []
     data_table_nodes = []
+    if not eml_node:
+        return data_table_list
     eml_node.find_all_descendants(names.DATATABLE, data_table_nodes)
     for data_table_node in data_table_nodes:
         entity_name_node = data_table_node.find_child(names.ENTITYNAME)

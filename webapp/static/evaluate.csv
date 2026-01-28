@@ -61,8 +61,8 @@ attributes_10,Data Tables,Standard Unit,ERROR,REQUIRED,A Standard Unit must have
 attributes_11,Data Tables,Standard Unit,ERROR,REQUIRED,Standard Unit "{}" is deprecated. Use "{}" instead.,,standard_unit
 attributes_12,Data Tables,Variable Type,ERROR,REQUIRED,A <b>Variable Type</b> is required.,,change_type
 attributes_13,Data Tables,Variable Type,ERROR,REQUIRED,Multiple <b>Custom Units</b> have been defined that differ only by capitalization and/or whitespace. This will cause downstream failures.,,custom_unit
-attributes_14,Data Tables,Bounds Minimum,ERROR,REQUIRED,The <b>Bounds Minimum</b> of a Numerical variable is required to be a pure floating point number.,For Numerical variables.,bounds_minimum
-attributes_15,Data Tables,Bounds Maximum,ERROR,REQUIRED,The <b>Bounds Maximum</b> of a Numerical variable is required to be a pure floating point number.,For Numerical variables.,bounds_maximum
+attributes_14,Data Tables,Bounds Minimum,ERROR,REQUIRED,The <b>Bounds Minimum</b> of a Numerical variable is required to be a valid floating point number.,For Numerical variables.,bounds_minimum
+attributes_15,Data Tables,Bounds Maximum,ERROR,REQUIRED,The <b>Bounds Maximum</b> of a Numerical variable is required to be a valid floating point number.,For Numerical variables.,bounds_maximum
 methods_01,Methods,Method Steps,ERROR,REQUIRED,A dataset needs to define at least one <b>Method Step</b>.,,add_ms
 methods_02,Methods,Method Step,ERROR,REQUIRED,A method step is required to have a <b>Description</b>.,,description
 methods_03,Methods,Methods,ERROR,REQUIRED,The metadata contains an empty <b>Methods</b> section. EML does not permit a Methods section to be empty.,,add_ms

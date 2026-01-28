@@ -62,16 +62,20 @@ def get_file_size(full_path: str = ''):
     return file_size
 
 
-def get_md5_hash(full_path: str = ''):
-    """Return the MD5 hash of a file if the file exists. Otherwise, return None."""
-    digest = None
-    if full_path:
-        with open(full_path, 'rb') as file:
-            content = file.read()
-            md5_hash = hashlib.md5()
-            md5_hash.update(content)
-            digest = md5_hash.hexdigest()
-    return digest
+from pathlib import Path
+def get_md5_hash(full_path: str | Path) -> str | None:
+    path = Path(full_path)
+    if not path.is_file():
+        return None
+
+    md5 = hashlib.md5()
+
+    with path.open('rb') as f:
+        # Read 128KB at a time
+        for block in iter(lambda: f.read(128 << 10), b''):
+            md5.update(block)
+
+    return md5.hexdigest()
 
 
 def entity_name_from_data_file(filename: str = ''):

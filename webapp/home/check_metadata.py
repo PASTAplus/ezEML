@@ -724,6 +724,16 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             return None
         return check_for_duplicates(custom_unit_node.content)
 
+    def is_strict_float(s: str):
+        s = s.strip()
+        if not s:
+            return False
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
     attr_type = get_attribute_type(attrib_node)
     mscale = None
     page = None
@@ -806,12 +816,21 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
         duplicate_custom_unit = check_custom_units(attrib_node)
         if duplicate_custom_unit:
             add_to_evaluation('attributes_13', link, data_table_name=data_table_name)
-        if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_NONEMPTY, names.MINIMUM) or \
-                find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_FLOAT, names.MINIMUM):
-            add_to_evaluation('attributes_14', link, data_table_name=data_table_name)
-        if find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_NONEMPTY, names.MAXIMUM) or \
-                find_err_code(validation_errs, ValidationError.CONTENT_EXPECTED_FLOAT, names.MAXIMUM):
-            add_to_evaluation('attributes_15', link, data_table_name=data_table_name)
+
+        # The EML schema has two different uses of "bounds". When the bounds are for a numeric variable, the
+        #  values of maxiumum and minimum must be floats. When the bounds are for a categorical variable,
+        #  they are simply strings. Metapype cannot handle this ambiguous use of bounds, so we check it
+        #  here "by hand".
+        bounds_nodes = []
+        attrib_node.find_all_descendants(names.BOUNDS, bounds_nodes)
+        if bounds_nodes:
+            for bounds_node in bounds_nodes:
+                minimum_node = bounds_node.find_child(names.MINIMUM)
+                maximum_node = bounds_node.find_child(names.MAXIMUM)
+                if minimum_node and not is_strict_float(minimum_node.content):
+                    add_to_evaluation('attributes_14', link, data_table_name=data_table_name)
+                if maximum_node and not is_strict_float(maximum_node.content):
+                    add_to_evaluation('attributes_15', link, data_table_name=data_table_name)
 
     # DateTime
     if attr_type == webapp.home.metapype_client.VariableType.DATETIME:

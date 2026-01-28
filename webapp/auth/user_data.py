@@ -173,6 +173,7 @@ def save_user_properties(user_properties, user_folder_name=None):
     else:
         user_folder_name = f'{Config.USER_DATA_DIR}/{user_folder_name}'
     user_properties_filename = os.path.join(user_folder_name, USER_PROPERTIES_FILENAME)
+    Path(user_folder_name).mkdir(parents=True, exist_ok=True)
     with open(user_properties_filename, 'w') as user_properties_file:
         # log_info(f'save_user_properties: {user_properties_filename}')
         json.dump(user_properties, user_properties_file)

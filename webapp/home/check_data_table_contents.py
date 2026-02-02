@@ -94,7 +94,7 @@ def load_eml_file(eml_file_url:str):
     xml = response.content.decode('utf-8')
     eml_node = metapype_io.from_xml(xml,
                                     clean=True,
-                                    collapse=True,
+                                    collapse=False, # Don't want to modify data table names containing multiple consecutive spaces"
                                     literals=['literalLayout', 'markdown', 'attributeName', 'code'])
     assert isinstance(eml_node, Node)
     eml_node, nsmap_changed = webapp.home.utils.load_and_save.fixup_eml_namespaces_on_import(eml_node)

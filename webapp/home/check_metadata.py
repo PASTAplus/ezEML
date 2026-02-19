@@ -6,7 +6,7 @@ See load_eval_entries() in webapp.home.views.py. The loaded items in current_app
 current_app.config[f'__eval__{id}'] where id is the id of the entry in the csv file.
 
 Memoizing: When the evaluation is complete, the list of errors and warnings is pickled and saved in a file. If we're
-evaluating foo.JSON, the evaluation is saved in foo._eval.pkl. The pickle file also contains the MD5 hash of the JSON
+evaluating foo.JSON, the evaluation is saved in foo_eval.pkl. The pickle file also contains the MD5 hash of the JSON
 file, so we can tell if the metadata has changed since the last evaluation. If not, we can just load the pickle file and
 return the list of errors and warnings.
 """
@@ -17,13 +17,16 @@ from enum import Enum
 import hashlib
 import os
 import pickle
+import re
+
 from urllib.parse import urlparse, urlunparse, parse_qs
 from dataclasses import dataclass
 
 from flask import (
-    Blueprint, Flask, url_for, request, session, current_app, g
+    url_for, request, current_app, g
 )
 
+from webapp.scopes import SCOPES
 import webapp.home.utils.load_and_save
 from webapp.home.home_utils import log_error, log_info
 from webapp.home.standard_units import deprecated_in_favor_of
@@ -33,14 +36,44 @@ from metapype.eml.validation_errors import ValidationError
 import metapype.eml.evaluate as evaluate
 from metapype.eml.evaluation_warnings import EvaluationWarning
 from metapype.model.node import Node
-from webapp.pages import *
 from webapp.home.exceptions import EMLFileNotFound
 import webapp.auth.user_data as user_data
 from webapp.home.check_data_table_contents import check_date_time_attribute
 import webapp.home.views as views
 
-app = Flask(__name__)
-home = Blueprint('home', __name__, template_folder='templates')
+from webapp.pages import (
+    PAGE_ABSTRACT,
+    PAGE_ASSOCIATED_PARTY,
+    PAGE_ATTRIBUTE_CATEGORICAL,
+    PAGE_ATTRIBUTE_DATETIME,
+    PAGE_ATTRIBUTE_NUMERICAL,
+    PAGE_ATTRIBUTE_SELECT,
+    PAGE_ATTRIBUTE_TEXT,
+    PAGE_CODE_DEFINITION,
+    PAGE_CONTACT,
+    PAGE_CONTACT_SELECT,
+    PAGE_CREATOR,
+    PAGE_CREATOR_SELECT,
+    PAGE_DATA_PACKAGE_ID,
+    PAGE_DATA_SOURCE,
+    PAGE_DATA_TABLE,
+    PAGE_FUNDING_AWARD,
+    PAGE_GEOGRAPHIC_COVERAGE,
+    PAGE_GEOGRAPHIC_COVERAGE_SELECT,
+    PAGE_INTELLECTUAL_RIGHTS,
+    PAGE_KEYWORD_SELECT,
+    PAGE_MAINTENANCE,
+    PAGE_METADATA_PROVIDER,
+    PAGE_METHOD_STEP,
+    PAGE_METHOD_STEP_SELECT,
+    PAGE_OTHER_ENTITY,
+    PAGE_PROJECT,
+    PAGE_PROJECT_PERSONNEL,
+    PAGE_PUBLISHER,
+    PAGE_TAXONOMIC_COVERAGE,
+    PAGE_TEMPORAL_COVERAGE_SELECT,
+    PAGE_TITLE,
+)
 
 
 class EvalSeverity(Enum):
@@ -101,7 +134,7 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
     def get_eval_entry(id, link=None, section=None, item=None, data_table_name=None, node=None, replace_value=None, replace_with=None):
         """ Return the EvalEntry object for the given id. """
         try:
-            vals = current_app.config.get(f'__eval__{id}')
+            vals = list(current_app.config.get(f'__eval__{id}')) # Copy so we don't mutate config
             if section:
                 vals[0] = section
             if item:
@@ -116,12 +149,12 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
             return EvalEntry(section=vals[0], item=vals[1], severity=EvalSeverity[vals[2]], type=EvalType[vals[3]],
                              explanation=explanation, data_table_name=data_table_name, link=link,
                              ui_element_id=ui_element_id, node=node)
-        except Exception as exc:
+        except Exception:
             return None
 
     entry = get_eval_entry(id, link, section, item, data_table_name, node, replace_value, replace_with)
-    annotate_link(entry, id)
     if entry:
+        annotate_link(entry, id)
         evaluation.append(entry)
 
 
@@ -132,9 +165,9 @@ def find_min_unmet(errs, node_name, child_name, data_source_node_id=None):
     E.g., if node_name is names.DATASET and child_name is names.CREATOR, then this will return True if no
     creator has been defined for the dataset.
     """
-    for err_code, msg, node, *args in errs:
+    for err_code, _, node, *args in errs:
         if err_code == ValidationError.MIN_OCCURRENCE_UNMET:
-            err_cause, min = args
+            err_cause, _ = args
             if node.name == node_name and err_cause ==  child_name:
                 if data_source_node_id is None:
                     return True
@@ -284,51 +317,10 @@ def check_data_package_id(eml_node, doc_name, validation_errs=None):
 
     def check_id_for_EDI(package_id):
         """ Check whether the package_id is in the correct format for EDI. """
-        scopes = [
-            'cos-spu',
-            'ecotrends',
-            'edi',
-            'knb-lter-and',
-            'knb-lter-arc',
-            'knb-lter-bes',
-            'knb-lter-ble',
-            'knb-lter-bnz',
-            'knb-lter-cap',
-            'knb-lter-cce',
-            'knb-lter-cdr',
-            'knb-lter-cwt',
-            'knb-lter-fce',
-            'knb-lter-gce',
-            'knb-lter-hbr',
-            'knb-lter-hfr',
-            'knb-lter-jrn',
-            'knb-lter-kbs',
-            'knb-lter-knz',
-            'knb-lter-luq',
-            'knb-lter-mcm',
-            'knb-lter-mcr',
-            'knb-lter-nes',
-            'knb-lter-nin',
-            'knb-lter-ntl',
-            'knb-lter-nwk',
-            'knb-lter-nwt',
-            'knb-lter-pal',
-            'knb-lter-pie',
-            'knb-lter-sbc',
-            'knb-lter-sev',
-            'knb-lter-sgs',
-            'knb-lter-vcr',
-            'lter-landsat',
-            'lter-landsat-ledaps',
-            'msb-cap',
-            'msb-paleon',
-            'msb-tempbiodev'
-        ]
-
         if package_id:
             try:
                 scope, identifier, revision = package_id.split('.')
-                if scope not in scopes:
+                if scope not in SCOPES:
                     raise ValueError
                 identifier = int(identifier)
                 revision = int(revision)
@@ -446,7 +438,6 @@ def check_metadata_providers(eml_node, doc_name):
     """
     Check that metadata providers are valid.
     """
-    link = url_for(PAGE_METADATA_PROVIDER_SELECT, filename=doc_name)
     metadata_provider_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.METADATAPROVIDER])
     if metadata_provider_nodes and len(metadata_provider_nodes) > 0:
         for metadata_provider_node in metadata_provider_nodes:
@@ -458,7 +449,6 @@ def check_associated_parties(eml_node, doc_name):
     """
     Check that associated parties are valid.
     """
-    link = url_for(PAGE_ASSOCIATED_PARTY_SELECT, filename=doc_name)
     associated_party_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.ASSOCIATEDPARTY])
     if associated_party_nodes and len(associated_party_nodes) > 0:
         for associated_party_node in associated_party_nodes:
@@ -679,9 +669,9 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             attribute_node = mscale_node.parent
             attribute_list_node = attribute_node.parent
             data_table_node = attribute_list_node.parent
-            data_table_name = data_table_node.find_child(names.ENTITYNAME).content
+            # data_table_name = data_table_node.find_child(names.ENTITYNAME).content
 
-            code = code_definition_node.find_child(names.CODE).content
+            # code = code_definition_node.find_child(names.CODE).content
 
             link = url_for(PAGE_CODE_DEFINITION, filename=doc_name, dt_node_id=data_table_node.id,
                            att_node_id=attribute_node.id,
@@ -689,7 +679,7 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
             add_to_evaluation(err_code, link, data_table_name=get_data_table_name(data_table_node))
 
     def bad_standard_unit(attr_node):
-        import webapp.views.data_tables.table_spreadsheets as table_spreadsheets
+        import webapp.views.data_tables.table_spreadsheets as table_spreadsheets # imported here to avoid circular import
         """ Return True if the attribute node has a standard unit that is not in the standard unit list. """
         standard_unit_node = attr_node.find_descendant(names.STANDARDUNIT)
         if not standard_unit_node:
@@ -799,7 +789,7 @@ def check_attribute(eml_node, doc_name, data_table_node:Node, attrib_node:Node, 
 
     # Numerical
     if attr_type == webapp.home.metapype_client.VariableType.NUMERICAL:
-        attribute_name = attrib_node.find_child(names.ATTRIBUTENAME).content
+        # attribute_name = attrib_node.find_child(names.ATTRIBUTENAME).content
 
         if find_min_unmet(validation_errs, names.RATIO, names.UNIT):
             add_to_evaluation('attributes_02', link, data_table_name=data_table_name)
@@ -862,17 +852,8 @@ def check_data_table(eml_node, doc_name, data_table_node:Node):
         data_file = object_name_node.content
         uploads_folder = user_data.get_document_uploads_folder_name()
         full_path = f'{uploads_folder}/{data_file}'
-        try:
-            with open(full_path, 'rb') as file:
-                # We'll just check for the data_table file's existence. Don't need to recompute the MD5 over and over
-                pass
-            # computed_md5_hash = load_data.get_md5_hash(full_path)
-            # authentication_node = data_table_node.find_descendant(names.AUTHENTICATION)
-            # if authentication_node:
-            #     found_md5_hash = authentication_node.content
-            #     if found_md5_hash != computed_md5_hash:
-            #         add_to_evaluation('data_table_06', link, data_table_name=data_table_name)
-        except FileNotFoundError:
+        if not os.path.exists(full_path):
+            # We'll just check for the data_table file's existence. Don't need to recompute the MD5 over and over
             url_node = data_table_node.find_single_node_by_path([names.PHYSICAL,
                                                                  names.DISTRIBUTION,
                                                                  names.ONLINE,
@@ -919,14 +900,9 @@ def check_data_table(eml_node, doc_name, data_table_node:Node):
 
 def check_data_tables(eml_node, doc_name, evaluation_warnings=None):
     """ Check all data tables in the EML document. """
-    link = url_for(PAGE_DATA_TABLE_SELECT, filename=doc_name)
     dataset_node = eml_node.find_child(names.DATASET)
     if evaluation_warnings is None:
         evaluation_warnings = evaluate_via_metapype(dataset_node)
-    # Warning if no data tables - removed 2/5/2025. The case of a dataset with no data tables is
-    #  not terribly uncommon.
-    # if find_err_code(evaluation_warnings, EvaluationWarning.DATATABLE_MISSING, names.DATASET):
-    #     add_to_evaluation('data_table_05', link)
 
     data_table_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.DATATABLE])
     for data_table_node in data_table_nodes:
@@ -985,7 +961,7 @@ def check_publisher(eml_node, doc_name):
     """
     Check that publisher is valid.
     """
-    link = url_for(PAGE_PUBLISHER, filename=doc_name)
+    # link = url_for(PAGE_PUBLISHER, filename=doc_name)
     publisher_nodes = eml_node.find_all_nodes_by_path([names.DATASET, names.PUBLISHER])
     if publisher_nodes and len(publisher_nodes) > 0:
         for publisher_node in publisher_nodes:
@@ -1257,9 +1233,7 @@ def format_tooltip(node, section=None):
                         tooltip += 'red'
                     else:
                         tooltip += 'yellow'
-                    # if entry.ui_element_id:
-                    #     entry.link = f'{entry.link}?ui_element_id={entry.ui_element_id}'
-                    tooltip += f'_circle"></td><td>&nbsp;&nbsp;</td><td><a class="popup link" href="{entry.link}">{entry.explanation.replace(" ", " ")}</a></td></tr>\n'
+                    tooltip += f'_circle"></td><td>&nbsp;&nbsp;</td><td><a class="popup link" href="{entry.link}">{entry.explanation}</a></td></tr>\n'
                     all_ok = False
     if all_ok:
         tooltip = ''
@@ -1390,7 +1364,8 @@ def check_evaluation_memo(json_filename, eml_node):
     as indicated by a change in the MD5 hash. Check to see if memoizing is needed. If not, return the memoized results.
     The caller will know if memoizing is needed if the memoized results are None.
     """
-    eval_filename = json_filename.replace('.json', '_eval.pkl')
+    base, _ = os.path.splitext(json_filename)
+    eval_filename = f"{base}_eval.pkl"
     try:
         # start = datetime.now()
         # Get the memoized results
@@ -1412,9 +1387,9 @@ def check_evaluation_memo(json_filename, eml_node):
         # Memo files used to contain fewer objects. I.e., this memo file must be obsolete. Delete it.
         try:
             os.remove(eval_filename)
-        except:
+        except Exception:
             pass
-    except:
+    except Exception:
         pass
 
     return None, None, None, None, None, None
@@ -1422,15 +1397,16 @@ def check_evaluation_memo(json_filename, eml_node):
 
 def memoize_evaluation(json_filename, eml_node, md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs):
     """ Memoize the evaluation results in a pickle file, together with the MD5 hash. """
-    eval_filename = json_filename.replace('.json', '_eval.pkl')
+    base, _ = os.path.splitext(json_filename)
+    eval_filename = f"{base}_eval.pkl"
     try:
-        if md5 == None:
+        if md5 is None:
             with open(json_filename, 'rt') as json_file:
                 json = json_file.read()
             md5 = hashlib.md5(json.encode('utf-8')).hexdigest()
         with open(eval_filename, 'wb') as f:
             pickle.dump((md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs), f)
-    except Exception as e:
+    except Exception:
         if os.path.exists(eval_filename):
             os.remove(eval_filename)
 
@@ -1441,9 +1417,11 @@ def perform_evaluation(eml_node, doc_name):
     memoized results. Otherwise, perform the evaluation, memoize the results, and return them.
     """
     def display_elapsed(start, msg):
-        end = datetime.now()
-        elapsed = (end - start).total_seconds()
+        # Uncomment below to display elapsed times for troubleshooting
+        # end = datetime.now()
+        # elapsed = (end - start).total_seconds()
         # print(f"**** {msg} {elapsed}")
+        pass
 
     global evaluation, validation_errs, evaluation_warnings, parse_errs, unicode_errs
 
@@ -1571,7 +1549,6 @@ def evaluate_via_metapype(node):
 
 ########### Remainder of file is support for badges ###########
 
-import re
 uuid_regex = r"^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$"
 
 def is_valid_uuid(string):

@@ -1,32 +1,35 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+{% set help_abstract_id, help_abstract_title, help_abstract_content = help[0] %}
+{% set help_abstract_btn = help_abstract_id ~ '_btn' %}
+{% set help_abstract_dialog = help_abstract_id ~ '_dialog' %}
+
 {% block app_content %}
-    {% set help_abstract_id, help_abstract_title, help_abstract_content = help[0] %}
-    {% set help_abstract_btn = help_abstract_id ~ '_btn' %}
-    {% set help_abstract_dialog = help_abstract_id ~ '_dialog' %}
 
     <table>
-        <td style="vertical-align:middle;padding-top: 12px;">
-        {% set node_status = 'abstract_status' %}
-        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
-        </td>
-        <td style="width:3%"></td>
-        <td><h2>Abstract</h2></td>
+        <tr>
+            <td style="vertical-align:middle;padding-top: 12px;">
+            {% set node_status = 'abstract_status' %}
+            {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
+            </td>
+            <td style="width:3%"></td>
+            <td><h2>Abstract</h2></td>
+        </tr>
     </table>
 
     <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
+            <form method="POST" class="form" role="form">
                 {{ form.csrf_token }}
-                Enter an abstract for the data package (not the associated journal article).<p></p>
-                    Click the Help button for guidelines.<p></p>
+                <p class="mb-3">Enter an abstract for the data package (not the associated journal article).</p>
+                <p class="mb-3">Click the Help button for guidelines.</p>
 
+                {% set textarea_class = 'form-control' %}
                 {% if model_has_complex_texttypes %}
-                {% set font_family='Courier' %}
+                    {% set textarea_class = textarea_class ~ ' monospace-font' %}
                 {% endif %}
-                <span style="font-family:{{ font_family }}">
-                {{ macros.item_start() }}{{ wtf.form_field(form.abstract, rows=15, cols=120) }}
+                {{ macros.item_start() }}{{ wtf.form_field(form.abstract, rows=15, cols=120, class=textarea_class) }}
                 {{ macros.help_and_check_xml_buttons(help_abstract_btn, "check_xml", model_has_complex_texttypes) }}
                 {{ wtf.form_field(form.md5) }}
 
@@ -39,13 +42,11 @@
     </div>
 
     {{ macros.help_dialog(help_abstract_dialog, help_abstract_title, help_abstract_content) }}
-{% endblock %}
+{% endblock app_content %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_abstract_id, help_abstract_title, help_abstract_content = help[0] %}
-    {% set help_abstract_btn = help_abstract_id ~ '_btn' %}
-    {% set help_abstract_dialog = help_abstract_id ~ '_dialog' %}
+
     <script>
     $(function()
     {
@@ -53,10 +54,10 @@
     });
     </script>
     <script>
-        {{ macros.check_xml_btn_handler('#check_xml', '#abstract', 'abstract') }}
+        {{ macros.check_xml_btn_handler('#check_xml', '#' ~ form.abstract.id, 'abstract') }}
     </script>
 
     {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
 
-{% endblock %}
+{% endblock app_scripts %}

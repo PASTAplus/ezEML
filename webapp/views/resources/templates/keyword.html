@@ -1,49 +1,52 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+{% set help_keywords_id, help_keywords_title, help_keywords_content = help[0] %}
+{% set help_keywords_btn = help_keywords_id ~ '_btn' %}
+{% set help_keywords_dialog = help_keywords_id ~ '_dialog' %}
+
 {% block app_content %}
-    {% set help_keywords_id, help_keywords_title, help_keywords_content = help[0] %}
-    {% set help_keywords_btn = help_keywords_id ~ '_btn' %}
-    {% set help_keywords_dialog = help_keywords_id ~ '_dialog' %}
 
     <table>
+    <tr>
         <td><h2>Keyword</h2></td>
         <td valign="middle" style="padding-top: 10px;padding-left: 10px;">{{ macros.help_button(help_keywords_btn) }}</td>
+    </tr>
     </table>
     <div class="row">
         <div class="col-md-10">
             <form method="POST" action="" class="form" role="form">
+                {{ form.csrf_token }}
+
                 <h5>Enter a keyword below or select one from the LTER Controlled Vocabulary keyword list at the right:</h5>
                 <table border="0">
+                    <tr>
                 <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword, size="100") }}</td>
                 <td width="2%"></td>
                 <td valign="bottom" width="45%">{{ wtf.form_field(form.lter_keyword_select) }}</td>
+                    </tr>
                 </table>
                 <br/>
                 <table border="0">
-                <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword_thesaurus, size="100") }}</td>
+                <tr>
+                    <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword_thesaurus, size="100") }}</td>
                 <td width="2%"></td>
-                <span style="color:{{ optional }};">
                 <td valign="bottom" width="45%">{{ wtf.form_field(form.keyword_type) }}</td>
-                </span>
+                </tr>
                 </table>
                 <br/>
                 <input class="btn btn-primary" name="OK" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Cancel" type="submit" value="Cancel"/>
                 {{ macros.hidden_buttons_with_no_contents_menu() }}
-                {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
             </form>
         </div>
     </div>
     {{ macros.help_dialog(help_keywords_dialog, help_keywords_title, help_keywords_content) }}
-{% endblock %}
+{% endblock app_content %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_keywords_id, help_keywords_title, help_keywords_content = help[0] %}
-    {% set help_keywords_btn = help_keywords_id ~ '_btn' %}
-    {% set help_keywords_dialog = help_keywords_id ~ '_dialog' %}
 
     <script>
     $(function()
@@ -52,9 +55,6 @@
             let selected = $('#lter_keyword_select').val();
             $('#keyword').val(selected);
             $('#keyword_thesaurus').val('LTER Controlled Vocabulary')
-        });
-        $('#keyword').on('input', function() {
-            $('#lter_keyword_select').val("");
         });
 
         $('#keyword').on('input', function() {
@@ -78,4 +78,4 @@
         {{ macros.help_script(help_keywords_dialog, help_keywords_btn) }}
     });
     </script>
-{% endblock %}
+{% endblock app_scripts %}

@@ -1,16 +1,12 @@
 from wtforms import (
-    StringField, SelectField, RadioField, HiddenField
+    StringField, SelectField, RadioField
 )
 
 from wtforms.validators import (
-    InputRequired, Optional, Regexp
+    Optional, Regexp
 )
 
 from wtforms.widgets import TextArea
-
-from webapp.home.custom_validators import (
-    valid_min_length
-)
 
 from webapp.home.intellectual_rights import (
     INTELLECTUAL_RIGHTS_CC0, INTELLECTUAL_RIGHTS_CC_BY
@@ -71,9 +67,7 @@ class PublicationInfoForm(EDIForm):
 
 class TitleForm(EDIForm):
     title = StringField('Title *', widget=TextArea(), validators=[])
-    # md5 = HiddenField('')
 
 
 class DataPackageIDForm(EDIForm):
     data_package_id = StringField('Data Package ID *', validators=[])
-    # md5 = HiddenField('')

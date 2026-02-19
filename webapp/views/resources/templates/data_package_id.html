@@ -1,60 +1,60 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+{% set help_data_package_id_id, help_data_package_id_title, help_data_package_id_content = help[0] %}
+{% set help_data_package_id_btn = help_data_package_id_id ~ '_btn' %}
+{% set help_data_package_id_dialog = help_data_package_id_id ~ '_dialog' %}
+
 {% block app_content %}
-    {% set help_data_package_id_id, help_data_package_id_title, help_data_package_id_content = help[0] %}
-    {% set help_data_package_id_btn = help_data_package_id_id ~ '_btn' %}
-    {% set help_data_package_id_dialog = help_data_package_id_id ~ '_dialog' %}
 
     <table>
-        <td style="vertical-align:middle;padding-top: 12px;">
-        {% set node_status = 'data_package_id_status' %}
-        {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
-        </td>
-        <td style="width:3%"></td>
-        <td><h2>Data Package ID</h2></td>
+        <tr>
+            <td style="vertical-align:middle;padding-top: 12px;">
+            {% set node_status = 'data_package_id_status' %}
+            {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
+            </td>
+            <td style="width:3%"></td>
+            <td><h2>Data Package ID</h2></td>
+        </tr>
     </table>
-
-{#    <h2>Data Package ID</h2>#}
-{#    <div class="row">#}
+    <div class="row">
         <div class="col-md-10">
-            <form method="POST" action="" class="form" role="form">
-                EML requires a data package to have a <b>Data Package ID</b>, but if you are going to submit
+            <form method="POST" class="form" role="form">
+                {{ form.csrf_token }}
+
+                <p class="mb-3">EML requires a data package to have a <b>Data Package ID</b>, but if you are going to submit
                 to EDI you can leave it blank. Then, when you use <a href="{{ url_for('home.submit_package') }}">
                 <b>Submit to EDI</b></a> to send your package to EDI, our data curation team will take care of assigning an
-                ID and adding it to the metadata for you.
-                <p></p>
-                In the event that you've already obtained a Data Package ID (e.g., from your site data manager), enter it here.
-                <p></p>
-                For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.
-                <p>&nbsp;</p>
-                <p></p>
+                ID and adding it to the metadata for you.</p>
+                <p class="mb-3">In the event that you've already obtained a Data Package ID (e.g., from your site data manager), enter it here.</p>
+                <p class="mb-5">For data repositories other than EDI’s, contact the data repository for an appropriate Data Package ID value.</p>
 
                 <table>
+                    <tr>
                     <td>{{ wtf.form_field(form.data_package_id, size=100) }}</td>
                     <td valign="middle" style="padding-top: 10px;">{{ macros.help_button(help_data_package_id_btn) }}</td>
+                    </tr>
                 </table>
                 <br/>
                 <table>
+                    <tr>
                     <td><input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/></td>
+                    </tr>
                 </table>
                 {{ macros.hidden_buttons() }}
-                {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
             </form>
         </div>
-{#    </div>#}
+    </div>
 
     {{ macros.help_dialog(help_data_package_id_dialog, help_data_package_id_title, help_data_package_id_content) }}
 
-{% endblock %}
+{% endblock app_content %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_data_package_id_id, help_data_package_id_title, help_data_package_id_content = help[0] %}
-    {% set help_data_package_id_btn = help_data_package_id_id ~ '_btn' %}
-    {% set help_data_package_id_dialog = help_data_package_id_id ~ '_dialog' %}
+
     <script>
     $(function()
     {
@@ -65,4 +65,4 @@
     {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
 
-{% endblock %}
+{% endblock appscripts %}

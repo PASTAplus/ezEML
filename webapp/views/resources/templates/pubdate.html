@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+{% set help_pubdate_id, help_pubdate_title, help_pubdate_content = help[0] %}
+{% set help_pubdate_btn = help_pubdate_id ~ '_btn' %}
+{% set help_pubdate_dialog = help_pubdate_id ~ '_dialog' %}
+
 {% block app_content %}
-    {% set help_pubdate_id, help_pubdate_title, help_pubdate_content = help[0] %}
-    {% set help_pubdate_btn = help_pubdate_id ~ '_btn' %}
-    {% set help_pubdate_dialog = help_pubdate_id ~ '_dialog' %}
-    
+
     <h2>Publication Date</h2>
     <div class="row">
         <div class="col-md-6">
@@ -18,7 +19,6 @@
                     <td valign="middle" style="padding-top: 15px;">{{ macros.help_button(help_pubdate_btn) }}</td>
                 </table>
                 <br/>
-{#                <input class="btn btn-primary" name="Back" type="submit" value="Back"/>#}
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>&nbsp;&nbsp;
                 <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
@@ -31,9 +31,7 @@
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_pubdate_id, help_pubdate_title, help_pubdate_content = help[0] %}
-    {% set help_pubdate_btn = help_pubdate_id ~ '_btn' %}
-    {% set help_pubdate_dialog = help_pubdate_id ~ '_dialog' %}
+
     <script>
     $(function()
     {

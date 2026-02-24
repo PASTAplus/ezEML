@@ -55,7 +55,7 @@ attributes_04,Data Tables,Code Definitions,ERROR,REQUIRED,A Categorical variable
 attributes_05,Data Tables,Code Value,ERROR,REQUIRED,A <b>Code</b> value is required.,For Categorical variables,code
 attributes_06,Data Tables,Code Definition,ERROR,REQUIRED,A code <b>Definition</b> is required.,For Categorical variables,definition
 attributes_07,Data Tables,Explanation,ERROR,REQUIRED,A Missing Value Code <b>Explanation</b> is required.,For Missing Value Codes,code_explanation_1
-attributes_08,Data Tables,DateTime Format,WARNING,RECOMMENDED,The DateTime <b>Format String</b> is not one that is recommended by the EDI data repository. A list of recommended formats is available <b><a href='../datetime_formats'>here</a></b>.,For DateTime variables,format_string
+attributes_08,Data Tables,DateTime Format,WARNING,RECOMMENDED,The DateTime <b>Format String</b> is not one that is recommended by the EDI data repository. A list of recommended formats is available <b><a href='/eml/datetime_formats'>here</a></b>.,For DateTime variables,format_string
 attributes_09,Data Tables,Numerical Variable Precision,ERROR,REQUIRED,The <b>Precision</b> of a Numerical variable is required to be a pure floating point number.,For Numerical variables.,precision
 attributes_10,Data Tables,Standard Unit,ERROR,REQUIRED,A Standard Unit must have one of the approved Standard Unit values. "{}" was found. Choose a replacement.,,standard_unit
 attributes_11,Data Tables,Standard Unit,ERROR,REQUIRED,Standard Unit "{}" is deprecated. Use "{}" instead.,,standard_unit

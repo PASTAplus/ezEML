@@ -54,19 +54,20 @@ def send_mail(subject, msg, to, to_name=None, cc=None):
     message.attach(part)
 
     try:
-        with smtplib.SMTP(Config.RELAY_HOST, Config.RELAY_TLS_PORT) as server:
-            server.starttls()
-            server.login(Config.RELAY_USER, Config.RELAY_PASSWORD)
-            # TODO - TEMP - Temporarily comment out to avoid sending emails
-            server.sendmail(Config.FROM, recipients, message.as_string())
-
         log_msg = f"Sending email to: {to}"
         logger.info(log_msg)
         logger.info(f"Email message: {message.as_string()}")
+
+        with smtplib.SMTP(Config.RELAY_HOST, Config.RELAY_TLS_PORT) as server:
+            server.starttls()
+            server.login(Config.RELAY_USER, Config.RELAY_PASSWORD)
+            # TODO - Temporarily comment out to avoid sending emails, for example when testing locally
+            # server.sendmail(Config.FROM, recipients, message.as_string())
+
         return True
     except smtplib.SMTPException as e:
         logger.error(e)
-        if hasattr(e.smtp_error) and e.smtp_error:
+        if hasattr(e, 'smtp_error') and e.smtp_error:
             return e.smtp_error.decode()
         else:
             return 'Email failed to send'

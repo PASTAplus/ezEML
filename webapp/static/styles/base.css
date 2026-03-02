@@ -18,11 +18,19 @@ html {
 }
 
 /* Darken the stripes so they show up better in Firefox */
-.table-striped > tbody > tr:nth-of-type(odd) > * {
-  background-color: #e8e8e8 !important;
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+  background-color: #e8e8e8;
 }
-.table-striped tr:hover {
-    background-color:  #f4f4f4 !important;
+
+.table-striped > tbody > tr:hover > td {
+  background-color: #d0d0d0;
+}
+
+.collab_table > tbody > tr:nth-of-type(odd) > td {
+  background-color: #e8e8e8;
+}
+.collab_table > tbody > tr:hover > td {
+    background-color: #d0d0d0;
 }
 
 #taxonomy tr:nth-child(even) {
@@ -174,7 +182,7 @@ a.no-underline:hover {
 }
 
 .eval_table tr:hover {
-    background-color:  #e8e8e8 !important;
+    background-color:  #d0d0d0 !important;
 }
 
 .eval_table tr:hover td {

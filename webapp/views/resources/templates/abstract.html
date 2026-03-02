@@ -23,7 +23,7 @@
                     Click the Help button for guidelines.<p></p>
 
                 {% if model_has_complex_texttypes %}
-                {% set font_family='Courier' %}
+                {% set font_family='monospace, Consolas, "Courier New", Courier' %}
                 {% endif %}
                 <span style="font-family:{{ font_family }}">
                 {{ macros.item_start() }}{{ wtf.form_field(form.abstract, rows=15, cols=120) }}

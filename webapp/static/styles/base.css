@@ -17,6 +17,14 @@ html {
     width: 500px;
 }
 
+/* Darken the stripes so they show up better in Firefox */
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: #e8e8e8 !important;
+}
+.table-striped tr:hover {
+    background-color:  #f4f4f4 !important;
+}
+
 #taxonomy tr:nth-child(even) {
     background-color: #f2f2f2;
 }

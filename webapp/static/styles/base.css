@@ -19,7 +19,7 @@ html {
 
 /* Darken the stripes so they show up better in Firefox */
 .table-striped > tbody > tr:nth-of-type(odd) > td {
-  background-color: #e8e8e8;
+  background-color: #ececec;
 }
 
 .table-striped > tbody > tr:hover > td {
@@ -27,18 +27,22 @@ html {
 }
 
 .collab_table > tbody > tr:nth-of-type(odd) > td {
-  background-color: #e8e8e8;
+  background-color: #ececec;
 }
 .collab_table > tbody > tr:hover > td {
     background-color: #d0d0d0;
 }
 
+table.dataTable.compact tbody th, table.dataTable.compact tbody td {
+    padding: 2px;
+}
+
 #taxonomy tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #ececec;
 }
 
 .errors_table tr:nth-child(odd) {
-    background-color: #f2f2f2;
+    background-color: #ececec;
     padding: 3px;
 }
 

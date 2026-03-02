@@ -62,7 +62,7 @@ def send_mail(subject, msg, to, to_name=None, cc=None):
             server.starttls()
             server.login(Config.RELAY_USER, Config.RELAY_PASSWORD)
             # TODO - Temporarily comment out to avoid sending emails, for example when testing locally
-            # server.sendmail(Config.FROM, recipients, message.as_string())
+            server.sendmail(Config.FROM, recipients, message.as_string())
 
         return True
     except smtplib.SMTPException as e:

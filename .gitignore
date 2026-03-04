@@ -116,3 +116,4 @@ tests
 user-data
 home/templates/_config.html
 ezeml/templates/
+webapp/static/unitsWithQUDTInfo.csv

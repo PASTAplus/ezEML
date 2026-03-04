@@ -47,7 +47,6 @@ from webapp.home.home_utils import (
     log_error, log_info, log_available_memory, url_without_query_string, url_without_ui_element_id_query_string
 )
 import webapp.home.texttype_node_processing as texttype_node_processing
-from webapp.home.log_usage import annotations_actions, log_qudt_annotations_usage
 import webapp.home.utils.qudt_annotations as qudt_annotations
 
 import csv
@@ -152,7 +151,7 @@ from emlvp.exceptions import ValidationError, ParseError, ParserError, XIncludeE
 from emlvp.parser import Parser
 from lxml import etree as etree
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
 import daiquiri
 logger = daiquiri.getLogger(f'home: {__name__}')
@@ -164,6 +163,32 @@ keywords = {}
 badge_data = {}
 
 AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be caused by a login timeout. Please log out, log back in, and try again.'
+
+
+# --------------------------------------------------------------------------------
+# Setup metapype store isolated to this Flask request
+
+@home_bp.before_app_request
+def init_node_store():
+    # Short-circuit the requests to get static CSS files, YouTube logo, etc.
+    if request.path.startswith('/static/') or request.path.startswith('/user-data/'):
+        return
+    log_info(f'**** init_node_store: {request.path}') # TEMP
+    # We use the context manager in metapype
+    g._node_scope = Node.store_scope({}, clear_on_exit=True)
+    g._node_scope.__enter__() # Remember the context manager so we can tear down when done
+
+@home_bp.teardown_app_request
+def teardown_node_store(exc=None):
+    # Short-circuit the requests to get static CSS files, YouTube logo, etc.
+    if request.path.startswith('/static/') or request.path.startswith('/user-data/'):
+        return
+    log_info(f'**** teardown_node_store: {request.path}') # TEMP
+    try:
+        g._node_scope.__exit__(None, None, None)
+    except Exception:
+        pass
+# --------------------------------------------------------------------------------
 
 
 @home_bp.before_app_request
@@ -315,39 +340,39 @@ def post_debug_info_to_session():
         session["active_package_id"] = None
 
 
-@home_bp.before_app_request
-def check_metapype_store():
-    """
-    This function is called before every request. It checks the size of the Metapype store and logs it if it is
-    greater than zero, then clears it. This is useful for debugging.
-    """
-    if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
-        return
-    if url_of_interest():
-        store_len = len(Node.store)
-        if store_len > 0:
-            Node.store.clear()
-            log_info(f'********************************************************')
-            log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
-            log_info(f'********************************************************')
+# @home_bp.before_app_request
+# def check_metapype_store():
+#     """
+#     This function is called before every request. It checks the size of the Metapype store and logs it if it is
+#     greater than zero, then clears it. This is useful for debugging.
+#     """
+#     if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
+#         return
+#     if url_of_interest():
+#         store_len = len(Node.store)
+#         if store_len > 0:
+#             Node.store.clear()
+#             log_info(f'********************************************************')
+#             log_info(f'*** check_metapype_store ***: store_len={store_len}     {request.url}')
+#             log_info(f'********************************************************')
 
 
-@home_bp.after_app_request
-def clear_metapype_store(response):
-    """
-    This function is called after every request. It clears the Metapype store. We ensure that the store doesn't
-    accumulate nodes from previous requests. It is populated anew for each request when the EML model is loaded
-    via load_eml().
-    """
-    if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
-        return response
-    if url_of_interest():
-        store_len = len(Node.store)
-        if store_len > 0:
-            if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
-                log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')
-            Node.store.clear()
-    return response
+# @home_bp.after_app_request
+# def clear_metapype_store(response):
+#     """
+#     This function is called after every request. It clears the Metapype store. We ensure that the store doesn't
+#     accumulate nodes from previous requests. It is populated anew for each request when the EML model is loaded
+#     via load_eml().
+#     """
+#     if not Config.MEM_CLEAR_METAPYPE_STORE_AFTER_EACH_REQUEST:
+#         return response
+#     if url_of_interest():
+#         store_len = len(Node.store)
+#         if store_len > 0:
+#             if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
+#                 log_info(f'*** clear_metapype_store ***: store_len={store_len}     {request.url}')
+#             Node.store.clear()
+#     return response
 
 
 def non_breaking(_str):

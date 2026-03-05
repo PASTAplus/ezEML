@@ -21,7 +21,7 @@ def calculate_node_store_checksums(eml_node):
     """ Calculate checksums for node IDs in the node store and the node tree. Trouble-shooting aid. """
     import hashlib
     id_string = ''
-    for key, val in sorted(Node.store.items()):
+    for key, val in sorted(Node._store().items()):
         id_string += val.id
     node_store_hash = hashlib.md5(id_string.encode('utf-8')).hexdigest()
     tree_ids = sorted(node_tree_ids(eml_node, []))
@@ -40,7 +40,7 @@ def dump_node_store(eml_node, prefix=''):
 
     if Config.LOG_NODE_STORE:
         dump_node(eml_node)
-    store_len = len(Node.store)
+    store_len = len(Node._store())
     log_info(f'*** {prefix} store_len={store_len}     {request.url}')
     node_store_hash, tree_hash = calculate_node_store_checksums(eml_node)
     log_info(f'*** {prefix} node store checksum={node_store_hash}    {request.url}')
@@ -53,6 +53,6 @@ def calculate_node_store_checksum():
     """
     import hashlib
     id_string = ''
-    for key, val in sorted(Node.store.items()):
+    for key, val in sorted(Node._store().items()):
         id_string += val.id
     return hashlib.md5(id_string.encode('utf-8')).hexdigest()

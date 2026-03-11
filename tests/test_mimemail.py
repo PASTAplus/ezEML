@@ -22,7 +22,7 @@ import webapp.mimemail as mimemail
 
 
 cwd = os.path.dirname(os.path.realpath(__file__))
-logfile = cwd + "/test_mailout.log"
+logfile = cwd + "/test_mimemail.log"
 daiquiri.setup(level=logging.INFO,
                outputs=(daiquiri.output.File(logfile), "stdout",))
 logger = daiquiri.getLogger(__name__)

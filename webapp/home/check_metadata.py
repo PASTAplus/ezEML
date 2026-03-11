@@ -9,8 +9,9 @@ Memoizing: When the evaluation is complete, the list of errors and warnings is p
 evaluating foo.JSON, the evaluation is saved in foo_eval.pkl. The pickle file also contains the MD5 hash of the JSON
 file, so we can tell if the metadata has changed since the last evaluation. If not, we can just load the pickle file and
 return the list of errors and warnings.
-"""
 
+At the end of the file find the code that handles badges.
+"""
 
 from datetime import datetime
 from enum import Enum
@@ -21,9 +22,10 @@ import re
 
 from urllib.parse import urlparse, urlunparse, parse_qs
 from dataclasses import dataclass
+from markupsafe import escape
 
 from flask import (
-    url_for, request, current_app, g
+    url_for, request, current_app, g, has_request_context
 )
 
 from webapp.scopes import SCOPES
@@ -106,6 +108,15 @@ severities = [EvalSeverity.ERROR, EvalSeverity.WARNING, EvalSeverity.INFO]
 
 
 def annotate_link(eval_entry, id=None):
+    """
+    The link for a warning/error needs the ID of the UI element that should be highlighted when the user
+    clicks on a badge.
+
+    E.g., suppose it's an error saying a categorical variable needs a Code. Then a query string
+        ?ui_element_id=code|error
+    will be appended to the link. The Javascript code for the page will look for the UI element with id == 'code'
+    and will highlight it using error color (red).
+    """
     parsed = urlparse(eval_entry.link)
     level = 'error' if eval_entry.severity == EvalSeverity.ERROR else 'warning'
     if id == 'attributes_11':
@@ -155,7 +166,7 @@ def add_to_evaluation(id, link=None, section=None, item=None, data_table_name=No
     entry = get_eval_entry(id, link, section, item, data_table_name, node, replace_value, replace_with)
     if entry:
         annotate_link(entry, id)
-        evaluation.append(entry)
+        g.evaluation.append(entry)
 
 
 def find_min_unmet(errs, node_name, child_name, data_source_node_id=None):
@@ -181,7 +192,7 @@ def find_min_unmet_for_choice(errs, node_name):
     """
     Return True if a MIN_CHOICE_UNMET error is found for the given node.
 
-    E.g., if node_name is names.UNIT, then this will return True if no names.STANDARDUNIT or names.CUSTOMUNIT has been
+    E.g., if node_name is names.UNIT, then this will return True if no names.STANDARDUNIT or names.CUSTOMUNIT
     has been defined for the unit.
     """
     for err_code, msg, node, *args in errs:
@@ -844,7 +855,7 @@ def get_data_table_name(data_table_node:Node):
 def check_data_table(eml_node, doc_name, data_table_node:Node):
     """ Check a data table for completeness, including checking all of its columns (attributes). """
 
-    def check_data_table_md5_checksum(data_table_node, link, data_table_name=None):
+    def check_data_table_file_existence(data_table_node, link, data_table_name=None):
         """ Check for the existence of the data_table file. Not currently checking its MD5 checksum. """
         object_name_node = data_table_node.find_descendant(names.OBJECTNAME)
         if not object_name_node:
@@ -868,7 +879,7 @@ def check_data_table(eml_node, doc_name, data_table_node:Node):
     validation_errs = validate_via_metapype(data_table_node)
     data_table_name = get_data_table_name(data_table_node)
 
-    check_data_table_md5_checksum(data_table_node, link, data_table_name=data_table_name)
+    check_data_table_file_existence(data_table_node, link, data_table_name=data_table_name)
 
     if find_min_unmet(validation_errs, names.DATATABLE, names.ENTITYNAME):
         add_to_evaluation('data_table_01', link, data_table_name=data_table_name)
@@ -1166,19 +1177,6 @@ def check_other_entities(eml_node, doc_name):
         check_other_entity(other_entity_node, doc_name)
 
 
-def to_string(evaluation):
-    def eval_entry_to_string(eval_entry):
-        return f'Section:&nbsp;{eval_entry.section}<br>Item:&nbsp;{eval_entry.item}<br>Severity:&nbsp;{eval_entry.severity.name}<br>Type:&nbsp;{eval_entry.type.name}<br>Explanation:&nbsp;{eval_entry.explanation}<br><a href="{eval_entry.link}">Link</a>'
-
-    if evaluation and len(evaluation) > 0:
-        s = ''
-        for eval_entry in evaluation:
-            s += eval_entry_to_string(eval_entry) + '<p/>'
-        return s
-    else:
-        return "OK!"
-
-
 def format_entry(entry: EvalEntry):
     """ Format a single evaluation entry as HTML. """
     def severity_explanation(entry):
@@ -1188,22 +1186,21 @@ def format_entry(entry: EvalEntry):
             badge = f'<a href="{entry.link}"><span class="yellow_circle" title="Warning"></span></a>'
         return f"{badge}&nbsp;&nbsp;{entry.explanation}"
 
+    # escape user/content-derived strings for security
+    item = escape(entry.item or "")
+
     output = '<tr>'
-    # if entry.ui_element_id:
-    #     entry.link = f'{entry.link}?ui_element_id={entry.ui_element_id}'
-    output += f'<td class="eval_table" valign="top"><a href="{entry.link}">{entry.item}</a></td>'
+    output += f'<td class="eval_table" valign="top"><a href="{entry.link}">{item}</a></td>'
     output += f'<td class="eval_table" valign="top">{severity_explanation(entry)}</td>'
-    # output += f'<td class="eval_table" valign="top">{entry.type.name.title()}</td>'
-    # output += f'<td class="eval_table" valign="top">{entry.explanation}</td>'
     output += '</tr>'
     return output
 
 
-evaluations = []
 def init_evaluation(eml_node, doc_name):
     """ Initialize the evaluation process. """
-    global evaluations, parse_errs, unicode_errs
-    evaluations, parse_errs, unicode_errs = perform_evaluation(eml_node, doc_name)
+    if not has_request_context():
+        raise RuntimeError("init_evaluation() must be called during a request; g is request-scoped.")
+    g.evaluations, _, _ = perform_evaluation(eml_node, doc_name)
 
 
 def format_tooltip(node, section=None):
@@ -1223,7 +1220,7 @@ def format_tooltip(node, section=None):
     tooltip = f'<table width=100% style="padding: 30px;"><tr><td colspan=3><i>Click any item to edit:</i></td></tr>'
     all_ok = True
     for severity in severities:
-        for entry in evaluations:
+        for entry in g.evaluations:
             if entry.severity == severity:
                 if (node and node.id in entry.link) or (section and
                                                         (section in get_route_from_link(entry.link) or
@@ -1423,14 +1420,15 @@ def perform_evaluation(eml_node, doc_name):
         # print(f"**** {msg} {elapsed}")
         pass
 
-    global evaluation, validation_errs, evaluation_warnings, parse_errs, unicode_errs
-
     if not eml_node:
         # If the user uses the browser's back button after deleting the current package, for example, the eml_node will be None
         # We'll redirect to the index page
         raise EMLFileNotFound(doc_name)
 
-    evaluation = []
+    if not has_request_context():
+        raise RuntimeError("perform_evaluation() must be called during a request; g is request-scoped.")
+
+    g.evaluation = []
     start = datetime.now()
 
     user_folder = user_data.get_user_folder_name()
@@ -1440,16 +1438,21 @@ def perform_evaluation(eml_node, doc_name):
     md5, validation_errs, evaluation_warnings, evaluation, parse_errs, unicode_errs = check_evaluation_memo(json_filename, eml_node)
     need_to_memoize = False
     if evaluation is None:
-        evaluation = []
+        # check_evaluation_memo() returns None for evaluation if the memo is stale, as shown by an md5 checksum mismatch
+        g.evaluation = []
         need_to_memoize = True
         validation_errs = validate_via_metapype(eml_node)
         evaluation_warnings = evaluate_via_metapype(eml_node)
+    else:
+        g.evaluation = evaluation
 
     if not need_to_memoize:
+        # We don't need to run all the checks. We can just use the memoized evaluation.
         display_elapsed(start, '**** perform_evaluation')
         set_session_info(evaluation, eml_node)
         return evaluation, parse_errs, unicode_errs
 
+    # Run the checks anew.
     display_elapsed(start, '**** starting checks')
     check_dataset_title(eml_node, doc_name, validation_errs, evaluation_warnings)
     check_data_tables(eml_node, doc_name, evaluation_warnings)
@@ -1484,7 +1487,7 @@ def perform_evaluation(eml_node, doc_name):
 
     set_session_info(evaluation, eml_node)
 
-    return evaluation, parse_errs, unicode_errs
+    return g.evaluation, parse_errs, unicode_errs
 
 
 def check_metadata_status(eml_node, doc_name):
@@ -1533,10 +1536,10 @@ def validate_via_metapype(node):
 def evaluate_via_metapype(node):
     """ Evaluate a subtree of the EML document using Metapype. This looks for evaluation errors and warnings that
      are part of EDI's standards but not schema violations. """
-    eval = []
+    evals = []
     try:
         # start = time.perf_counter()
-        evaluate.tree(node, eval)
+        evaluate.tree(node, evals)
         # end = time.perf_counter()
         # elapsed = end - start
         # if elapsed > 0.05:
@@ -1544,7 +1547,7 @@ def evaluate_via_metapype(node):
     except Exception as e:
         name = node.name if node is not None else 'None'
         log_error(f'evaluate_via_metapype: node={name} exception={e}')
-    return eval
+    return evals
 
 
 ########### Remainder of file is support for badges ###########
@@ -1664,7 +1667,7 @@ def get_section_from_link(link):
     if '/eml/data_package_id/' in link:
         return 'data_package_id'
     log_info(f'get_section_from_link: link={link} not recognized')
-    return []
+    return None
 
 
 def set_session_info(evaluation, eml_node):
@@ -1692,9 +1695,9 @@ def set_session_info(evaluation, eml_node):
         for key, value in section_links_found.items():
             name = section_to_name(key)
             if name and not empty_subtree(eml_node, name):
-                views.badge_data[key + '_status'] = 'green'
+                g.badge_data[key + '_status'] = 'green'
             else:
-                views.badge_data[key + '_status'] = 'white'
+                g.badge_data[key + '_status'] = 'white'
 
     def severity_to_status(severity):
         if severity == EvalSeverity.OK:
@@ -1735,9 +1738,9 @@ def set_session_info(evaluation, eml_node):
     section_links_found = {}
     node_links_found = {}
     init_section_links_found(section_links_found)
-    views.badge_data = {}
+    g.badge_data = {}
 
-    for entry in evaluation:
+    for entry in g.evaluation:
         severity = entry.severity
         if entry.link:
             which = get_section_from_link(entry.link)
@@ -1757,10 +1760,8 @@ def set_session_info(evaluation, eml_node):
             name = section_to_name(key)
             if name and empty_subtree(eml_node, name):
                 color = 'white'
-        views.badge_data[key + '_status'] = color
+        g.badge_data[key + '_status'] = color
 
     for key, value in node_links_found.items():
-        views.badge_data[key + '_status'] = severity_to_status(value)
-
-    g.badge_data = views.badge_data
+        g.badge_data[key + '_status'] = severity_to_status(value)
 

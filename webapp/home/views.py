@@ -161,9 +161,12 @@ home_bp = Blueprint('home', __name__, template_folder='templates')
 help_dict = {}
 keywords = {}
 
-badge_data = {}
-
 AUTH_TOKEN_FLASH_MSG = 'Authorization to access data was denied. This can be caused by a login timeout. Please log out, log back in, and try again.'
+
+
+@home_bp.before_app_request
+def init_badge_data():
+    g.badge_data = {}
 
 
 @home_bp.before_app_request

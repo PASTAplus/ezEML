@@ -280,7 +280,8 @@ def add_entry_to_curator_log(submitter_name, submitter_email, submission_title, 
                    unquote(submission_title),
                    "Unassigned",
                    notes,
-                   package_id]
+                   package_id,
+                   "Open"]
         sheet.append_row(new_row)
     except gspread.exceptions.APIError as e:
         log_error(f"add_entry_to_curator_log - API Error: {e.response.text}")

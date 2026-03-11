@@ -117,3 +117,4 @@ user-data
 home/templates/_config.html
 ezeml/templates/
 webapp/static/unitsWithQUDTInfo.csv
+**/ezeml-290315-ce4543f85534.json

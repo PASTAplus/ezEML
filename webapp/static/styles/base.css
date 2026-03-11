@@ -17,12 +17,32 @@ html {
     width: 500px;
 }
 
+/* Darken the stripes so they show up better in Firefox */
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+  background-color: #ececec;
+}
+
+.table-striped > tbody > tr:hover > td {
+  background-color: #d0d0d0;
+}
+
+.collab_table > tbody > tr:nth-of-type(odd) > td {
+  background-color: #ececec;
+}
+.collab_table > tbody > tr:hover > td {
+    background-color: #d0d0d0;
+}
+
+table.dataTable.compact tbody th, table.dataTable.compact tbody td {
+    padding: 2px;
+}
+
 #taxonomy tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #ececec;
 }
 
 .errors_table tr:nth-child(odd) {
-    background-color: #f2f2f2;
+    background-color: #ececec;
     padding: 3px;
 }
 
@@ -166,7 +186,7 @@ a.no-underline:hover {
 }
 
 .eval_table tr:hover {
-    background-color:  #e8e8e8 !important;
+    background-color:  #d0d0d0 !important;
 }
 
 .eval_table tr:hover td {
@@ -246,7 +266,7 @@ a.no-underline:hover {
 }
 
 .monospace-font {
-    font-family: Courier, monospace;
+    font-family: monospace, Consolas, "Courier New", Courier;
 }
 .mb-3 { margin-bottom: 1rem; }
 .mb-4 { margin-bottom: 2rem; }

@@ -36,7 +36,7 @@
                 </table>
 
                 {% if model_has_complex_texttypes %}
-                {% set font_family='Courier' %}
+                {% set font_family='monospace, Consolas, "Courier New", Courier' %}
                 {% endif %}
                 {{ macros.check_xml_start(font_family) }}{{ wtf.form_field(form.abstract, rows=6, cols=100) }}
                 {{ macros.check_xml_end('check_xml_1', model_has_complex_texttypes) }}

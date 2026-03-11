@@ -314,16 +314,19 @@ def enable_edi_curation_2(filename=None, name=None, email_address=None, notes=No
         server = parsed_url.netloc
         msg = enable_edi_curation_mail_body(server, package_id, filename, name, email_address, notes, ast.literal_eval(is_update), update_package)
 
+        log_usage(actions['ENABLE_EDI_CURATION'], name, email_address)
+
         if not Config.DISABLE_ENABLE_EDI_CURATION_EMAILS:
-            sent = mimemail.send_mail(subject=f'Data package submitted to EDI: "{filename}"',
-                                      msg=msg,
-                                      to=email_address,
-                                      to_name=name,
-                                      cc=Config.TO)
-        else:
-            sent = True
-        if sent is True:
-            log_usage(actions['ENABLE_EDI_CURATION'], name, email_address)
+            success = mimemail.send_mail(subject=f'Data package submitted to EDI: "{filename}"',
+                                         msg=msg,
+                                         to=email_address,
+                                         to_name=name,
+                                         cc=Config.TO)
+
+            if success is not True:
+                flash('Email failed to send. Perhaps an email address was entered incorrectly. '
+                      'Please contact support@edirepository.org to ensure prompt service.', 'error')
+
         flash('The package has been submitted to the EDI data curation team for review.', 'success')
 
         add_entry_to_curator_log(name, email_address, filename, notes, ast.literal_eval(is_update), update_package)

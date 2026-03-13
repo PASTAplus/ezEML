@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+{% set help_intellectual_rights_id, help_intellectual_rights_title, help_intellectual_rights_content = help[0] %}
+{% set help_intellectual_rights_btn = help_intellectual_rights_id ~ '_btn' %}
+{% set help_intellectual_rights_dialog = help_intellectual_rights_id ~ '_dialog' %}
+
 {% block app_content %}
-    {% set help_intellectual_rights_id, help_intellectual_rights_title, help_intellectual_rights_content = help[0] %}
-    {% set help_intellectual_rights_btn = help_intellectual_rights_id ~ '_btn' %}
-    {% set help_intellectual_rights_dialog = help_intellectual_rights_id ~ '_dialog' %}
-    
+
     <table>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'intellectual_rights_status' %}
@@ -16,8 +17,11 @@
         <td valign="top" style="padding-top: 25px;padding-left: 15px;">{{ macros.help_button(help_intellectual_rights_btn) }}</td>
     </table>
 
-        <div class="col-md-12">
-            <form method="POST" action="" class="form" role="form">
+    <div class="row">
+        <div class="col-md-10">
+            <form method="POST" class="form" role="form">
+                {{ form.csrf_token }}
+
                 <h5>Choose from one of the intellectual rights options shown below:</h5>
                 {{ wtf.form_field(form.intellectual_rights_radio) }}
 
@@ -34,20 +38,16 @@
                 <input class="btn btn-primary" name="Next" type="submit" value="Save and Continue"/>
                 <input class="btn btn-primary" name="Reset" type="submit" value="Reset Changes"/>
                 {{ macros.hidden_buttons() }}
-                {{ form.csrf_token }}
                 {{ wtf.form_field(form.md5) }}
             </form>
         </div>
-{#    </div>#}
+    </div>
 
     {{ macros.help_dialog(help_intellectual_rights_dialog, help_intellectual_rights_title, help_intellectual_rights_content) }}
-{% endblock %}
+{% endblock app_content %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_intellectual_rights_id, help_intellectual_rights_title, help_intellectual_rights_content = help[0] %}
-    {% set help_intellectual_rights_btn = help_intellectual_rights_id ~ '_btn' %}
-    {% set help_intellectual_rights_dialog = help_intellectual_rights_id ~ '_dialog' %}
 
     <script>
     $(function()
@@ -61,4 +61,4 @@
 
     {{ macros.popup_support() }}
 
-{% endblock %}
+{% endblock app_scripts %}

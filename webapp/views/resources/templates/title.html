@@ -1,27 +1,31 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+{% set help_title_id, help_title_title, help_title_content = help[0] %}
+{% set help_title_btn = help_title_id ~ '_btn' %}
+{% set help_title_dialog = help_title_id ~ '_dialog' %}
+{% set help_nav_id, help_nav_title, help_nav_content = help[1] %}
+{% set help_nav_btn = help_nav_id ~ '_btn' %}
+{% set help_nav_dialog = help_nav_id ~ '_dialog' %}
+{% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
+{% set help_welcome_btn = help_welcome_id ~ '_btn' %}
+{% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
+
 {% block app_content %}
-    {% set help_title_id, help_title_title, help_title_content = help[0] %}
-    {% set help_title_btn = help_title_id ~ '_btn' %}
-    {% set help_title_dialog = help_title_id ~ '_dialog' %}
-    {% set help_nav_id, help_nav_title, help_nav_content = help[1] %}
-    {% set help_nav_btn = help_nav_id ~ '_btn' %}
-    {% set help_nav_dialog = help_nav_id ~ '_dialog' %}
-    {% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
-    {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
-    {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
 
     <table>
+        <tr>
         <td style="vertical-align:middle;padding-top: 12px;">
         {% set node_status = 'title_status' %}
         {{ macros.local_status_badge_with_popup(badge_data[node_status], tooltip) }}
         </td>
         <td style="width:3%"></td>
         <td><h2>Title</h2></td>
+        </tr>
     </table>
 
-        <div class="col-md-12">
+    <div class="row">
+        <div class="col-md-10">
             <form method="POST" action="" class="form" role="form" novalidate="true">
                 Enter a title for the data package (not the associated journal article).
                 <table>
@@ -31,12 +35,10 @@
                 <p>
                 <table>
                     <td>{{ wtf.form_field(form.title, rows=5, cols=100) }}</td>
-{#                    <td valign="top" style="padding-top: 35px;padding-left: 5px;">{{ macros.help_button(help_title_btn) }}</td>#}
                 </table>
                 <br/>
                 <table>
                     <td><input class="btn btn-primary"
-{#                               onclick="javascript:alert('{{ dns_ns.do_not_show_cbx }}');"#}
                                name="Next" type="submit" value="Save and Continue"/>&nbsp;&nbsp;
                         <input class="btn btn-primary" name="Reset" type="reset" value="Reset Changes"/></td>
                     <td valign="middle" style="padding-top: 0px;padding-left: 5px;">{{ macros.help_button(help_nav_btn) }}
@@ -48,25 +50,17 @@
                 {{ wtf.form_field(form.md5) }}
             </form>
         </div>
-{#    </div>#}
+    </div>
 
     {{ macros.help_dialog(help_title_dialog, help_title_title, help_title_content) }}
     {{ macros.help_dialog(help_nav_dialog, help_nav_title, help_nav_content) }}
     {{ macros.help_dialog(help_welcome_dialog, help_welcome_title, help_welcome_content) }}
 
-{% endblock %}
+{% endblock app_content %}
 
 {% block app_scripts %}
     {{ super() }}
-    {% set help_title_id, help_title_title, help_title_content = help[0] %}
-    {% set help_title_btn = help_title_id ~ '_btn' %}
-    {% set help_title_dialog = help_title_id ~ '_dialog' %}
-    {% set help_nav_id, help_nav_title, help_nav_content = help[1] %}
-    {% set help_nav_btn = help_nav_id ~ '_btn' %}
-    {% set help_nav_dialog = help_nav_id ~ '_dialog' %}
-    {% set help_welcome_id, help_welcome_title, help_welcome_content = help[2] %}
-    {% set help_welcome_btn = help_welcome_id ~ '_btn' %}
-    {% set help_welcome_dialog = help_welcome_id ~ '_dialog' %}
+
     <script>
 
     $(function()
@@ -97,4 +91,4 @@
     {{ macros.popup_support() }}
     {{ macros.highlight_element() }}
 
-{% endblock %}
+{% endblock app_scripts %}

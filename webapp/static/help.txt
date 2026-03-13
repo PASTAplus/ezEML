@@ -1124,7 +1124,7 @@ The <b>Reset Changes</b> button clears the changes you've made on the current pa
 
 The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
 
-It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
+It's usually safest to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
 
 See also <a style="color: steelblue;" href="/static/user_guide/navigating.pdf" target="_user_guide_ezeml">Navigating in ezEML</a> in the <a style="color: steelblue;" href="/eml/user_guide">User Guide</a>.
 
@@ -1471,7 +1471,7 @@ You can think of using ezEML as filling out one big form that's organized as a n
 
 The <b>ezEML</b> link at the top left of each page serves as a "Home" button, taking you back to the top of the Contents list.
 
-It's usually best to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
+It's usually safest to refrain from using your browser's forward and back buttons. Using them may cause you to lose unsaved edits.
 
 Notice that there are lots of Help buttons in ezEML (see the circular question mark icons). You may find them helpful.
 

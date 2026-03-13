@@ -71,9 +71,9 @@ def title(filename=None):
     current_packageid = current_user.get_filename()
     pid = os.getpid() # OS process ID for logging/debugging. Not to be confused with PASTA package ID.
     metapype_store = ''
-    if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
-        metapype_store_size = len(Node.store)
-        metapype_store = f', metapype_store_size={metapype_store_size}'
+    # if Config.MEM_LOG_METAPYPE_STORE_ACTIONS:
+    #     metapype_store_size = len(Node.store)
+    #     metapype_store = f', metapype_store_size={metapype_store_size}'
     log_info(f'Title    PID={pid}, user={user_name}, package={current_packageid}{metapype_store}')
 
     form = TitleForm()

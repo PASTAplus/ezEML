@@ -224,11 +224,11 @@ def load_eml(filename:str=None,
             log_error(f"load_eml: Could not load {ext_filename}")
 
         # Log some debug info, if configured to do so.
-        from webapp.home.views import url_of_interest
-        if Config.MEM_LOG_METAPYPE_STORE_ACTIONS and url_of_interest():
-            store_len = len(Node.store)
-            log_info(f'*** load_eml ***: store_len={store_len}     {request.url}')
-            log_info(f'*** load_eml ***: node store checksum={calculate_node_store_checksum()}    {request.url}')
+        # from webapp.home.views import url_of_interest
+        # if Config.MEM_LOG_METAPYPE_STORE_ACTIONS and url_of_interest():
+        #     store_len = len(Node.store)
+        #     log_info(f'*** load_eml ***: store_len={store_len}     {request.url}')
+        #     log_info(f'*** load_eml ***: node store checksum={calculate_node_store_checksum()}    {request.url}')
 
     except Exception as e:
         collaborations.release_acquired_lock(lock)

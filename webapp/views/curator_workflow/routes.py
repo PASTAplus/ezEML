@@ -1,20 +1,22 @@
-import re
 import html
+from lxml import etree
+from markupsafe import escape, Markup
+import re
+import time
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     current_user, login_required
 )
-from markupsafe import escape
 
 import webapp.auth.user_data as user_data
 from webapp.home.utils.load_and_save import load_eml
 from webapp.home.utils.create_nodes import create_data_package_id
 
 from webapp.home.utils.hidden_buttons import non_saving_hidden_buttons_decorator
-from webapp.pages import *
+from webapp.pages import PAGE_INDEX
 from webapp.home.home_utils import log_error, log_info
-from webapp.home.views import get_helps, set_current_page, get_back_url
+from webapp.home.views import get_helps, set_current_page
 from webapp.views.collaborations.db_session import db_session
 from webapp.config import Config
 import webapp.home.exceptions as exceptions
@@ -25,13 +27,11 @@ from webapp.views.curator_workflow.handle_requests import (
     PastaEnvironment,
     check_existence,
     create_reservation,
-    delete_reservation,
     evaluate_data_package,
     upload_data_package,
     get_error_report,
     get_evaluate_report,
-    portal_url_for_environment,
-    url_for_environment
+    portal_url_for_environment
 )
 from webapp.views.curator_workflow.workflows import (
     update_workflow,
@@ -48,7 +48,7 @@ workflow_bp = Blueprint('workflow', __name__, template_folder='templates')
 @workflow_bp.route('/curator_workflow/<filename>', methods=['GET', 'POST'])
 @login_required
 @non_saving_hidden_buttons_decorator
-def curator_workflow(filename=None):
+def curator_workflow(filename):
     """
     Handle the Curator Workflow page.
 
@@ -166,7 +166,7 @@ def curator_workflow(filename=None):
             log_error(f'{log_preamble()} handle_upload({workflow_type}) returns status {status}')
 
     # Load the EML so the badges are rendered correctly
-    eml_node = load_eml(filename=filename)
+    _ = load_eml(filename=filename)
 
     if not current_user.is_admin() and not current_user.is_publish_at_edi_authorized():
         flash('You are not authorized to access the Publish at EDI page', 'error')
@@ -218,7 +218,7 @@ def curator_workflow(filename=None):
             if "production_upload" in request.form:
                 handle_upload('PRODUCTION', production_values)
 
-        except exceptions.AuthTokenExpired as e:
+        except exceptions.AuthTokenExpired:
             flash('Your PASTA authentication token has expired. Please log out of ezEML and log in again.', 'error')
 
     if current_user.is_edi_curator():
@@ -242,12 +242,6 @@ def curator_workflow(filename=None):
                            staging_form=staging_form,
                            production_form=production_form,
                            help=help)
-
-
-
-from flask import Flask, jsonify
-from flask import request
-import time
 
 
 @workflow_bp.route('/check_workflow_status/<workflow_id>/', methods=['GET'])
@@ -296,7 +290,7 @@ def check_eval_completions():
             return False
 
     try:
-        with db_session(None) as session:
+        with db_session(None):
             in_progress = get_eval_in_progress_workflows()
             for workflow in in_progress:
                 status, report = get_error_report(PastaEnvironment[workflow.workflow_type], workflow.eval_transaction_id)
@@ -334,12 +328,10 @@ def check_eval_completions():
                     log_info(f'check_eval_completions - upload completed - {PastaEnvironment[workflow.workflow_type]} - {workflow.create_transaction_id}')
 
             return ''
-    except Exception as e:
+    except Exception:
         pass
 
 
-from lxml import etree
-from markupsafe import Markup
 def format_eval_report(xml_data):
     output = '<hr>'
 
@@ -368,7 +360,7 @@ def format_eval_report(xml_data):
             entity_name = entity_name_elements[0].text if entity_name_elements else None
             if entity_name:
                 output += f"<i style='color: grey;'>Entity:</i>&nbsp;&nbsp;{entity_name}<br>"
-        except Exception as e:
+        except Exception:
             pass
 
         identifier = None

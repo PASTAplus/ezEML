@@ -484,6 +484,7 @@
                             }
                             if (eval_status === 'EVAL_IN_PROGRESS' || upload_status === 'UPLOAD_IN_PROGRESS') {
                                 {#alert('calling updateStatus again: ' + workflowType);#}
+                                // If eval/upload is still in progress, check again
                                 updateStatus(workflowType);
                             }
                         }

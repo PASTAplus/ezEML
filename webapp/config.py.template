@@ -164,6 +164,9 @@ class Config(object):
         ],
         "LTER/JRN": [
         ],
+        "LTER/MCM": [
+            ("MCM-a5f28ab0fbfc633da789be65c3f1ecf0", "rfbrown@unm.edu"),
+        ],
         "LTER/MCR": [
         ],
         "LTER/NGA": [

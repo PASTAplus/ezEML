@@ -171,7 +171,7 @@ def init_node_store():
     # Short-circuit the requests to get static CSS files, YouTube logo, etc.
     if request.path.startswith('/static/') or request.path.startswith('/user-data/'):
         return
-    log_info(f'**** init_node_store: {request.path}') # TEMP
+    # log_info(f'**** init_node_store: {request.path}') # TEMP
     # We use the context manager in metapype
     g._node_scope = Node.store_scope({}, clear_on_exit=True)
     g._node_scope.__enter__() # Remember the context manager so we can tear down when done

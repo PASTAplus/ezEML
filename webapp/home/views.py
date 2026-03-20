@@ -3784,8 +3784,10 @@ def preview_data_portal_2():
 
     if request.method == 'GET':
         pathname = get_pathname(current_document, file_extension='xml')
+        log_info(f'preview_data_portal_2... pathname={pathname}')
         with open(pathname, 'rb') as f:
             xml = f.read()
+            log_info(f'preview_data_portal_2... xml={xml[:50]}...')
             return xml
     return None
 

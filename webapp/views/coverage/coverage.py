@@ -196,14 +196,18 @@ def load_geo_coverage(filename):
             if parent:
                 parent.remove_child(geo_coverage_node)
 
-        for index, row in data_frame.iterrows():
+        for values in data_frame.itertuples(index=False, name=None):
             if has_optional_columns:
-                add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4],
-                                      str(row[5]) if not pd.isna(row[5]) else None,
-                                      str(row[6]) if not pd.isna(row[6]) else None,
-                                      str(row[7]) if not pd.isna(row[7]) else None)
+                description, north, south, east, west, amin, amax, aunits = values
+                add_geo_coverage_node(
+                    eml_node, description, north, south, east, west,
+                    str(amin) if not pd.isna(amin) else None,
+                    str(amax) if not pd.isna(amax) else None,
+                    str(aunits) if not pd.isna(aunits) else None,
+                )
             else:
-                add_geo_coverage_node(eml_node, row[0], row[1], row[2], row[3], row[4])
+                description, north, south, east, west = values
+                add_geo_coverage_node(eml_node, description, north, south, east, west)
 
         save_both_formats(filename=filename, eml_node=eml_node)
 

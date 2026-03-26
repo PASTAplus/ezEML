@@ -16,6 +16,8 @@ new one (which will necessarily conform to ezEML's expectations).
 """
 
 import ast
+import uuid
+
 import numpy as np
 import os
 import pandas as pd
@@ -245,21 +247,22 @@ def load_geo_coverage(filename):
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
-            elif allowed_data_file(filename):
-                filepath = os.path.join(uploads_folder, filename)
-                file.save(filepath)
-                data_file = filename
+            elif ext := allowed_data_file(filename):
+                # Give the file a unique name. We want to guard against it having the same name as a data table file,
+                #  for example, so we don't clobber the data table
+                data_file = f'{uuid.uuid4()}{ext}'
                 data_file_path = f'{uploads_folder}/{data_file}'
+                file.save(data_file_path)
                 try:
                     load_geo_coverage_from_csv(data_file_path, document)
-                    log_usage(actions['LOAD_GEOGRAPHIC_COVERAGE'], filename)
-                    flash(f'Loaded {data_file}')
+                    log_usage(actions['LOAD_GEOGRAPHIC_COVERAGE'], filename, data_file)
+                    flash(f'Loaded {filename}')
                     try:
                         os.remove(data_file_path)
                     except FileNotFoundError as e:
                         pass
                 except InvalidHeaderRow as e:
-                    flash(f'Invalid header in {data_file}: {e}')
+                    flash(f'Invalid header in {filename}: {e}')
                 except UnexpectedDataTypes as ex:
                     flash(f'Load CSV file failed. {ex.args[0]}', 'error')
                 return redirect(url_for(PAGE_GEOGRAPHIC_COVERAGE_SELECT, filename=document))
@@ -827,18 +830,19 @@ def load_taxonomic_coverage(filename):
 
             if filename is None or filename == '':
                 flash('No selected file', 'error')
-            elif allowed_data_file(filename):
-                filepath = os.path.join(uploads_folder, filename)
-                file.save(filepath)
-                data_file = filename
+            elif ext := allowed_data_file(filename):
+                # Give the file a unique name. We want to guard against it having the same name as a data table file,
+                #  for example, so we don't clobber the data table
+                data_file = f'{uuid.uuid4()}{ext}'
                 data_file_path = f'{uploads_folder}/{data_file}'
+                file.save(data_file_path)
                 try:
                     errors = None
-                    log_usage(actions['LOAD_TAXONOMIC_COVERAGE'], filename)
+                    log_usage(actions['LOAD_TAXONOMIC_COVERAGE'], filename, data_file)
                     global_authority = source
                     taxa = load_taxonomic_coverage_csv_file(data_file_path, delimiter, quote_char)
                     hierarchies, general_coverages, errors = process_taxonomic_coverage_file(taxa, global_authority)
-                    flash(f'Loaded {data_file}')
+                    flash(f'Loaded {filename}')
                     if hierarchies:
                         eml_node = load_eml(filename=document)
                         save_uploaded_taxonomic_coverage(eml_node, hierarchies, general_coverages, global_authority)

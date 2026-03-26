@@ -15,12 +15,12 @@ import os
 import os.path
 from pathlib import Path
 import pickle
-import re
 import requests
-from shutil import copyfile, move, rmtree
+from shutil import copyfile, move
 import subprocess
 import time
-from urllib.parse import urlencode, urlparse, quote, unquote
+from typing import Optional
+from urllib.parse import urlparse, quote, unquote
 from zipfile import ZipFile
 
 from flask import (
@@ -1478,11 +1478,14 @@ def download_current():
             return return_value
 
 
-def allowed_data_file(filename):
-    """Only certain file types are allowed to be uploaded as data/csv files."""
-    ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'txt', 'xml', 'ezeml_tmp'])
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+def allowed_data_file(filename:str) -> str | None:
+    """
+    Only certain file extensions are allowed to be uploaded as data/csv files.
+    If it's allowed, return the extension. Otherwise, return None.
+    """
+    ALLOWED_EXTENSIONS: set[str] = {'.csv', '.tsv', '.txt', '.xml', '.ezeml_tmp'}
+    ext = Path(filename).suffix.lower()
+    return ext if ext in ALLOWED_EXTENSIONS else None
 
 
 @home_bp.route('/create', methods=['GET', 'POST'])

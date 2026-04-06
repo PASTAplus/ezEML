@@ -18,7 +18,7 @@ import webapp.home.utils.qudt_annotations as qudt_annotations
 from webapp import Config
 from webapp.auth import user_data as user_data
 from webapp.home import check_data_table_contents as check_data_table_contents
-from webapp.home.home_utils import log_error, log_info, get_check_metadata_status
+from webapp.home.home_utils import log_error, log_info, get_caller, get_check_metadata_status
 from webapp.home.metapype_client import VariableType
 from webapp.home.utils.node_store import calculate_node_store_checksum
 from webapp.home.utils.node_utils import add_node, Optionality
@@ -205,7 +205,9 @@ def load_eml(filename:str=None,
         else:
             log_error(f"load_eml: Could not find {ext_filename}")
             active_login = user_data.get_active_document_owner_login()
-            log_error(f"filename: {filename}, folder_name: {folder_name}, owner_login: {owner_login}, active_login: {active_login}")
+            func, line_num = get_caller(1)
+            log_error(f"filename: {filename}, folder_name: {folder_name}, owner_login: {owner_login}, "
+                      f"active_login: {active_login}, caller: {func}:{line_num}")
             return None
 
         if eml_node:

@@ -2,6 +2,9 @@
 
 import sys
 import daiquiri
+
+import inspect
+
 from urllib.parse import urlparse, urlunparse, urlencode, parse_qs
 
 from flask import session
@@ -16,7 +19,7 @@ from webapp.config import Config
 from metapype.model.node import Node
 from metapype.eml import names
 
-RELEASE_NUMBER = '2026.03.18'
+RELEASE_NUMBER = '2026.04.08'
 
 
 def extract_caller_module_name():
@@ -29,6 +32,35 @@ def extract_caller_module_name():
     f = f[index:]
     f = f.replace('/', '.')[:-3]
     return f
+
+
+def get_caller(levels=0):
+    """
+    Return (function_name, line_number) of the caller.
+
+    levels=0 → immediate caller
+    levels=1 → caller of caller
+    etc.
+    """
+    frame = inspect.currentframe()
+
+    try:
+        # Walk up the stack: +1 to skip this function itself
+        for _ in range(levels + 1):
+            if frame is None:
+                return None, None
+            frame = frame.f_back
+
+        if frame is None:
+            return None, None
+
+        func_name = frame.f_code.co_name
+        line_no = frame.f_lineno
+        return func_name, line_no
+
+    finally:
+        # Avoid reference cycles (important!)
+        del frame
 
 
 def log_error(msg):

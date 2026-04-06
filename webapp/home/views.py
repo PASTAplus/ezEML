@@ -19,7 +19,6 @@ import requests
 from shutil import copyfile, move
 import subprocess
 import time
-from typing import Optional
 from urllib.parse import urlparse, quote, unquote
 from zipfile import ZipFile
 
@@ -230,13 +229,11 @@ def log_request():
         return
 
     url = request.url
-    if '/static/' in url or 'youtube.png' in url or 'favicon.ico' in url or 'logo.png' in url:
+    if url.endswith('/eml/ping') or '/static/' in url or 'youtube.png' in url or 'favicon.ico' in url or 'logo.png' in url:
         return
 
-    referrer = request.referrer
-    if referrer is not None: # We don't want to log the every-five-minute pings checking server status
-        log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {referrer}')
-        log_available_memory()
+    log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {request.referrer}')
+    log_available_memory()
 
 
 @home_bp.after_app_request
@@ -314,6 +311,14 @@ def url_of_interest():
             # We suppress logging for these two URLs because they are called every 5 minutes by uptime monitor
             return False
     return True
+
+
+@home_bp.route('/ping')
+def ping():
+    """
+    Endpoint pinged by the health  status checker
+    """
+    return "pong", 200
 
 
 @home_bp.route('/test_page')

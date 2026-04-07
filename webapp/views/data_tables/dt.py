@@ -89,7 +89,7 @@ def log_info(msg):
 
 def log_error(msg):
     """ Available for debugging. """
-    return
+    # return
     app = Flask(__name__)
     with app.app_context():
         current_app.logger.error(msg)
@@ -2653,6 +2653,8 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
         if source_node_copy.attribute_value('id'):
             source_node_copy.attributes['id'] = str(uuid.uuid4())
         target_node = Node.get_node_instance(target_attr_id)
+        if target_node is None:
+            log_error(f'clone_column_properties: node instance not found for target_attr_id={target_attr_id}')
         # We want to preserve the column name
         target_name = target_node.find_descendant(names.ATTRIBUTENAME).content
         target_parent = target_node.parent

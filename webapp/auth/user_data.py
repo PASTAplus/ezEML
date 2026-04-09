@@ -19,7 +19,7 @@ import time
 import urllib.parse
 
 import daiquiri
-from flask import send_file, Flask, current_app
+from flask import send_file, session
 from flask_login import current_user
 
 from webapp.config import Config
@@ -144,6 +144,8 @@ def initialize_user_data(cname, idp, uid, auth_token, edi_token=None, sub=None):
 
     user_properties['sub'] = sub
     save_user_properties(user_properties)
+
+    session.permanent = True
 
 
 def get_user_properties(folder_name=None, current_user_directory_only=False):

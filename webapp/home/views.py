@@ -23,7 +23,7 @@ from urllib.parse import urlparse, quote, unquote
 from zipfile import ZipFile
 
 from flask import (
-    Blueprint, flash, render_template, redirect, request, url_for,
+    Blueprint, current_app, flash, render_template, redirect, request, url_for,
     session, jsonify, send_file, g
 )
 
@@ -187,6 +187,43 @@ def teardown_node_store(exc=None):
         pass
 # --------------------------------------------------------------------------------
 
+@home_bp.before_app_request
+def detect_session_loss():
+    """
+    We have made sessions permanent. Should only timeout after prolonged idleness of more than 30 days.
+    See __init__.py.
+    As a sanity check and troubleshooting aid, we log if session has unexpectedly disappeared.
+    """
+    # FIXME - Temporarily short-circuited. Want to do a little more testing...
+    return
+
+    # Only check for authenticated users on previous requests
+    if request.endpoint in ('static', None):  # Skip static files, etc.
+        return
+
+    was_authenticated = session.get('_was_authenticated', False)
+    is_now_authenticated = current_user.is_authenticated
+
+    if was_authenticated and not is_now_authenticated:
+        # This is the key event: user was logged in, but now isn't
+        session_cookie_name = current_app.config.get('SESSION_COOKIE_NAME', 'session')
+        log_error(
+            f"Unexpected session loss for user. "
+            f"Previous session_id: {session.get('_previous_session_id')}, "
+            f"Current session cookie: {request.cookies.get(session_cookie_name)}, "
+            f"IP: {request.remote_addr}, "
+            f"User-Agent: {request.headers.get('User-Agent')}"
+        )
+
+    # Update the tracking values for the next request
+    session['_was_authenticated'] = is_now_authenticated
+
+    if is_now_authenticated:
+        try:
+            session['_previous_session_id'] = current_user.get_id()
+        except Exception:
+            session['_previous_session_id'] = None
+
 
 @home_bp.before_app_request
 def init_badge_data():
@@ -232,7 +269,7 @@ def log_request():
     if url.endswith('/eml/ping') or '/static/' in url or 'youtube.png' in url or 'favicon.ico' in url or 'logo.png' in url:
         return
 
-    log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {request.referrer}')
+    log_info(f'**** INCOMING REQUEST: {url} [{request.method}]   REFERRER: {request.referrer}   REMOTE_ADDR: {request.remote_addr}')
     log_available_memory()
 
 

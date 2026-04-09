@@ -13,6 +13,7 @@
     2/15/18
 """
 import base64
+from datetime import timedelta
 import json
 import logging
 import os
@@ -68,6 +69,9 @@ login = LoginManager(app)
 login.login_view = 'auth.login'
 
 app.config['MAX_COOKIE_SIZE'] = 65535
+
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True               # Extends session on every request. Keep-alive.
 
 # We'll use sqlite3 for managing collaborations in ezEML
 db_dir = os.path.join(Config.USER_DATA_DIR, '__db')

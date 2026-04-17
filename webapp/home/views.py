@@ -1628,6 +1628,7 @@ def open_document(filename, owner=None, owner_login=None):
             # Set the badge status for the Check Data Tables menu item. The Check Metadata badge status will have been
             #  set by load_eml().
             check_data_table_contents.set_check_data_tables_badge_status(filename, eml_node)
+            check_data_table_contents.flash_missing_data_files(filename, eml_node)
         except Exception as e:
             loaded_ok = False
             log_error('Error loading EML file: ' + filename + ' in open_document(): {e}')
@@ -1875,6 +1876,7 @@ def open_package(package_name, owner=None):
         new_page = PAGE_TITLE
         log_usage(actions['OPEN_DOCUMENT'])
         check_data_table_contents.set_check_data_tables_badge_status(package_name, eml_node)
+        check_data_table_contents.flash_missing_data_files(package_name, eml_node)
     else:
         log_error('Error loading EML file: ' + package_name + ' in open_package()')
         new_page = PAGE_FILE_ERROR

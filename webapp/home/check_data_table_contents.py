@@ -34,6 +34,7 @@ import os
 
 from collections import OrderedDict
 import csv
+from datetime import datetime
 from flask import session, flash, request, redirect, url_for
 import glob
 import hashlib
@@ -71,6 +72,7 @@ from metapype.model.node import Node
 date_time_format_examples = {}
 date_time_format_regex = {}
 DATE_TIME_FORMAT_REGEX_FILENAME = 'webapp/static/dateTimeFormatString_regex.csv'
+GC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 def load_eml_file(eml_file_url:str):
@@ -949,6 +951,30 @@ def set_check_data_tables_badge_status(document_name, eml_node):
     return status
 
 
+def should_flash_missing_data_files(document_name):
+    """Return True if missing-file warnings should be shown for this package.
+
+    Uses Config.GC_LAST_COLLECTION_DATETIME as a cutoff timestamp in GC_DATETIME_FORMAT.
+    If the config value is unset, invalid, or the package JSON mtime can't be read, warnings remain enabled.
+    """
+    gc_datetime_str = getattr(Config, 'GC_LAST_COLLECTION_DATETIME', None)
+    if not gc_datetime_str:
+        return True
+
+    try:
+        gc_cutoff_datetime = datetime.strptime(gc_datetime_str, GC_DATETIME_FORMAT)
+    except ValueError:
+        log_error(f'should_flash_missing_data_files: Invalid GC_LAST_COLLECTION_DATETIME: {gc_datetime_str}')
+        return True
+
+    package_json_path = path_join(user_data.get_user_folder_name(), f'{document_name}.json')
+    try:
+        package_datetime = datetime.fromtimestamp(os.path.getmtime(package_json_path))
+    except (FileNotFoundError, OSError):
+        return True
+    return package_datetime <= gc_cutoff_datetime
+
+
 def flash_missing_data_files(document_name, eml_node):
     """Flash a combined warning for any data files (data tables or other entities) absent from the uploads folder.
 
@@ -963,6 +989,9 @@ def flash_missing_data_files(document_name, eml_node):
 
     Returns the total number of missing files found.
     """
+    if not should_flash_missing_data_files(document_name):
+        return 0
+
     # --- data tables ---
     missing_data_tables = []
     data_table_nodes = []

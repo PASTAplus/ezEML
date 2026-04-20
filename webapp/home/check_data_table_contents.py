@@ -1015,8 +1015,8 @@ def flash_missing_data_files(document_name, eml_node):
         flash(
             f'The following data table {"file is" if len(missing_data_tables) == 1 else "files are"} not present on the '
             f'server: {file_list}. '
-            'This can happen when files are removed during routine cleanup. '
-            'Please re-upload them from the Data Tables page.',
+            'This can happen when files are removed during server disk storage reclamation. '
+            'You can re-upload them from the Data Tables page.',
             'warning'
         )
 
@@ -1037,8 +1037,8 @@ def flash_missing_data_files(document_name, eml_node):
         flash(
             f'The following other {"entity file is" if len(missing_other_entities) == 1 else "entity files are"} not '
             f'present on the server: {file_list}. '
-            'This can happen when files are removed during routine cleanup. '
-            'Please re-upload them from the Other Entities page.',
+            'This can happen when files are removed during server disk storage reclamation. '
+            'You can re-upload them from the Other Entities page.',
             'warning'
         )
 

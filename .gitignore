@@ -114,7 +114,7 @@ venv.bak/
 webapp/config.py
 tests
 user-data
-home/templates/_config.html
+webapp/auth/templates/_config.html
 ezeml/templates/
 **/ezeml-290315-ce4543f85534.json
 webapp/static/unitsWithQUDTInfo.csv

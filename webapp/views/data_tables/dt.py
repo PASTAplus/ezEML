@@ -2403,6 +2403,8 @@ def clone_attributes_2(target_filename, target_dt_id, source_filename):
     eml_node = load_eml(filename=target_filename, owner_login=owner_login)
     target_dt_node = Node.get_node_instance(target_dt_id)
     target_object_name = target_dt_node.find_descendant(names.OBJECTNAME).content
+    if target_dt_node is None:
+        log_error(f'clone_attributes_2: node instance not found for target_dt_id={target_dt_id}')
 
     source_eml_node = load_eml(source_filename, do_not_lock=True, owner_login=owner_login)
     source_data_tables = list_data_tables(source_eml_node, to_skip=target_dt_id) # we don't want to clone a DT onto itself

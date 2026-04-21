@@ -13,10 +13,11 @@
     2/15/18
 """
 import base64
-from datetime import timedelta
+from datetime import datetime, timedelta
 import json
 import logging
 import os
+import re
 
 import daiquiri.formatter
 
@@ -45,6 +46,68 @@ logger = daiquiri.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+
+GC_START_RUN_REGEX = re.compile(
+    r'^(?P<run_datetime>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d+\s+__main__ -> Start run:.*\bdays=(?P<days>\d+)\b'
+)
+GC_LOG_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+
+def update_gc_cutoff_date_pickle():
+    """Parse the GC log and persist the most recent GC cutoff datetime in user-data/GC_date.pkl as plain text."""
+    gc_log_path = os.path.join(Config.USER_DATA_DIR, 'ezEML_GC.log')
+    gc_date_file_path = os.path.join(Config.USER_DATA_DIR, 'GC_date.pkl')
+
+    if not os.path.exists(gc_log_path):
+        return
+
+    latest_gc_cutoff = None
+    try:
+        # Expected log line format:
+        # "YYYY-MM-DD HH:MM:SS,mmm __main__ -> Start run: ... days=<N> ... keep_uploads=False ... logonly=False"
+        max_bytes = 2 * 1024 * 1024
+        file_size = os.path.getsize(gc_log_path)
+
+        def scan_lines(lines, latest_cutoff):
+            for line in lines:
+                match = GC_START_RUN_REGEX.search(line)
+                if not match:
+                    continue
+                if 'keep_uploads=False' not in line or 'logonly=False' not in line:
+                    continue
+                run_datetime = datetime.strptime(match.group('run_datetime'), GC_LOG_DATETIME_FORMAT)
+                days = int(match.group('days'))
+                gc_cutoff_datetime = run_datetime - timedelta(days=days)
+                if latest_cutoff is None or gc_cutoff_datetime > latest_cutoff:
+                    latest_cutoff = gc_cutoff_datetime
+            return latest_cutoff
+
+        if file_size > max_bytes:
+            with open(gc_log_path, 'rb') as f:
+                f.seek(-max_bytes, os.SEEK_END)
+                latest_gc_cutoff = scan_lines(
+                    f.read().decode('utf-8', errors='ignore').splitlines(),
+                    latest_gc_cutoff
+                )
+            if latest_gc_cutoff is None:
+                with open(gc_log_path, 'r', encoding='utf-8') as f:
+                    latest_gc_cutoff = scan_lines(f, latest_gc_cutoff)
+        else:
+            with open(gc_log_path, 'r', encoding='utf-8') as f:
+                latest_gc_cutoff = scan_lines(f, latest_gc_cutoff)
+    except Exception as e:
+        logger.error(f'Failed to parse GC log file {gc_log_path}: {e}')
+        return
+
+    if latest_gc_cutoff is None:
+        return
+
+    try:
+        with open(gc_date_file_path, 'w', encoding='utf-8') as f:
+            f.write(latest_gc_cutoff.strftime(GC_LOG_DATETIME_FORMAT))
+    except Exception as e:
+        logger.error(f'Failed to write GC cutoff date to {gc_date_file_path}: {e}')
 
 # Define the b64encode filter
 def b64encode(value):
@@ -183,3 +246,4 @@ def download_qudt_annotations_data_file():
         logger.error(f'Failed to download QUDT annotations data file: {e}')
 
 download_qudt_annotations_data_file()
+update_gc_cutoff_date_pickle()

@@ -34,7 +34,7 @@ import os
 
 from collections import OrderedDict
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import session, flash, request, redirect, url_for
 import glob
 import hashlib
@@ -954,18 +954,26 @@ def set_check_data_tables_badge_status(document_name, eml_node):
 def should_flash_missing_data_files(document_name):
     """Return True if missing-file warnings should be shown for this package.
 
-    Uses Config.GC_LAST_COLLECTION_DATETIME as a cutoff timestamp in GC_DATETIME_FORMAT.
-    If the config value is unset, invalid, or the package JSON mtime can't be read, warnings remain enabled.
+    Uses GC_date.pkl as the preferred cutoff timestamp in GC_DATETIME_FORMAT.
+    If no valid cutoff can be loaded, defaults to Config.GC_DAYS_TO_LIVE earlier
+    than current time. If the package JSON mtime can't be read, warnings remain
+    enabled.
     """
-    gc_datetime_str = getattr(Config, 'GC_LAST_COLLECTION_DATETIME', None)
-    if not gc_datetime_str:
-        return True
+    gc_cutoff_datetime = None
+    gc_date_file_path = path_join(Config.USER_DATA_DIR, 'GC_date.pkl')
+    if path_exists(gc_date_file_path):
+        try:
+            with open(gc_date_file_path, 'r', encoding='utf-8') as f:
+                gc_cutoff_value = f.read().strip()
+            if gc_cutoff_value:
+                gc_cutoff_datetime = datetime.strptime(gc_cutoff_value, GC_DATETIME_FORMAT)
+        except OSError:
+            gc_cutoff_datetime = None
+        except ValueError:
+            gc_cutoff_datetime = None
 
-    try:
-        gc_cutoff_datetime = datetime.strptime(gc_datetime_str, GC_DATETIME_FORMAT)
-    except ValueError:
-        log_error(f'should_flash_missing_data_files: Invalid GC_LAST_COLLECTION_DATETIME: {gc_datetime_str}')
-        return True
+    if gc_cutoff_datetime is None:
+        gc_cutoff_datetime = datetime.now() - timedelta(days=Config.GC_DAYS_TO_LIVE)
 
     package_json_path = path_join(user_data.get_user_folder_name(), f'{document_name}.json')
     try:

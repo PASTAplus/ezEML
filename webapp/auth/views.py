@@ -109,6 +109,10 @@ def login():
         user_dn = 'uid=' + form.username.data + ',' + Config.DOMAINS[domain]
         password = form.password.data
         auth_token, edi_token = authenticate(user_dn=user_dn, password=password)
+        if auth_token is None and edi_token is None:
+            flash('Invalid username or password')
+            return redirect(url_for(PAGE_LOGIN))
+
         # We want to save the authentication tokens so we can access PASTA APIs without requiring the user
         #  to keep logging in again. There's a catch, however. The tokens want to be saved in the user_data
         #  dictionary for the user, but the ezEML user account we end up logged into may not be the primary

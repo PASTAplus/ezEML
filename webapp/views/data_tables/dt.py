@@ -2668,6 +2668,10 @@ def clone_column_properties(source_table_id, source_attr_ids, target_table_id, t
             except:
                 log_error(f"\ntarget: {target_node.id}  {target_name}")
                 display_children_nodes(target_parent, level='error')
+                source_name = source_node_copy.find_descendant(names.ATTRIBUTENAME).content
+                source_parent = source_node_copy.parent
+                log_error(f"\nsource_copy: {source_node_copy.id}  {source_name}")
+                display_children_nodes(source_parent, level='error')
                 raise Exception("Missing child in clone_column_properties")
             source_copy_name_node = source_node_copy.find_descendant(names.ATTRIBUTENAME)
             source_copy_name_node.content = target_name

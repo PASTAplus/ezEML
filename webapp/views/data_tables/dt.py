@@ -2533,6 +2533,7 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
                 #  attributes for which no target was selected.
                 target_attr_ids.append(val[0])
 
+        log_usage(actions['CLONE_COLUMN_PROPERTIES'], source_filename, table_name_in, target_filename, table_name_out)
         clone_column_properties(source_dt_id, source_attr_ids, target_dt_id, target_attr_ids)
 
         # If column has a custom unit, we need to add the additionalMetadata for it
@@ -2559,7 +2560,6 @@ def clone_attributes_4(target_filename, target_dt_id, source_filename, source_dt
                                                                    custom_unit_description)
                             break
 
-        log_usage(actions['CLONE_COLUMN_PROPERTIES'], source_filename, table_name_in, target_filename, table_name_out)
         save_both_formats(target_filename, target_eml_node)
         return redirect(url_for('dt.data_table_select', filename=target_filename))
 

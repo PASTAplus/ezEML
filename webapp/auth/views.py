@@ -129,8 +129,10 @@ def login():
                 help = get_helps(['select_an_ezeml_account'])
                 return render_template('select_linked_account.html',
                                        linked_accounts=linked_accounts, primary_folder_name=primary_folder_name, help=help)
+            edi_jwt = decode_edi_token(edi_token)
+            idp_name = edi_jwt.get('idpName', None)
 
-        if auth_token is not None and auth_token != "teapot":
+        if (auth_token is not None and auth_token != "teapot") or idp_name == 'ldap':
             # It's an LDAP login
             pasta_token = PastaToken(auth_token)
             uid = pasta_token.uid.split(",")[0]
@@ -231,7 +233,7 @@ def authenticate(user_dn=None, password=None):
     auth_url = Config.AUTH + f"/login/pasta?target={Config.TARGET}"
     r = requests.get(auth_url, auth=(user_dn, password))
     if r.status_code == requests.codes.ok:
-        auth_token = r.cookies['auth-token']
+        auth_token = r.cookies.get('auth-token')
         edi_token = r.cookies.get('edi-token')
     elif r.status_code == requests.codes.teapot:
         return "teapot", None

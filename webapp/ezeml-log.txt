@@ -1,0 +1,227 @@
+2026-04-15 16:52:41,224 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.home.log_usage -> 2026-04-15,16:52:41,Michelle Nelson,Sacramento-San Joaquin Delta and Suisun Bay 2021 Water Quality Data (15 Minute) ,ADD_TO_EML,TWI,ph,ph,Acidity,PH
+2026-04-15 16:52:41,229 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.home.log_usage -> 2026-04-15,16:52:41,Michelle Nelson,Sacramento-San Joaquin Delta and Suisun Bay 2021 Water Quality Data (15 Minute) ,ADD_TO_EML,TWI,spc,microsiemens per centimeter,Microsiemens per Centimetre,MicroS-PER-CentiM
+2026-04-15 16:52:41,238 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.home.log_usage -> 2026-04-15,16:52:41,Michelle Nelson,Sacramento-San Joaquin Delta and Suisun Bay 2021 Water Quality Data (15 Minute) ,ADD_TO_EML,TWI,watertemperature,celsius,Degree Celsius,DEG_C
+2026-04-15 16:52:41,717 [PID 139386] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI [POST]   REFERRER: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:52:41,812 [PID 139386] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1 [GET]   REFERRER: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:52:41,856 [PID 139386] [INFO] [USER: Reed Hoshovsky] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/Reed_Hoshovsky-724ed7ea9462ecfba048bf5af10458fe/Central Delta EDI.json
+2026-04-15 16:52:59,468 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1 [POST]   REFERRER: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:52:59,511 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/Reed_Hoshovsky-724ed7ea9462ecfba048bf5af10458fe/Central Delta EDI.json
+2026-04-15 16:52:59,651 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI [GET]   REFERRER: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:52:59,695 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/Reed_Hoshovsky-724ed7ea9462ecfba048bf5af10458fe/Central Delta EDI.json
+2026-04-15 16:53:00,952 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI [POST]   REFERRER: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:53:01,045 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1 [GET]   REFERRER: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:53:01,087 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/Reed_Hoshovsky-724ed7ea9462ecfba048bf5af10458fe/Central Delta EDI.json
+2026-04-15 16:53:07,989 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/title/Sacramento-San%20Joaquin%20Delta%20and%20Suisun%20Bay%202021%20Water%20Quality%20Data%20(15%20Minute)%20 [POST]   REFERRER: https://ezeml.edirepository.org/eml/title/Sacramento-San%20Joaquin%20Delta%20and%20Suisun%20Bay%202021%20Water%20Quality%20Data%20(15%20Minute)%20   REMOTE_ADDR: 75.46.138.241
+2026-04-15 16:53:08,019 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.views.resources.resources -> Title    PID=155557, user=Michelle Nelson, package=Sacramento-San Joaquin Delta and Suisun Bay 2021 Water Quality Data (15 Minute) 
+2026-04-15 16:53:08,078 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/open_eml_document?filename=Sacramento-San+Joaquin+Delta+and+Suisun+Bay+2021+Water+Quality+Data+(15+Minute)+ [GET]   REFERRER: https://ezeml.edirepository.org/eml/title/Sacramento-San%20Joaquin%20Delta%20and%20Suisun%20Bay%202021%20Water%20Quality%20Data%20(15%20Minute)%20   REMOTE_ADDR: 75.46.138.241
+2026-04-15 16:53:27,557 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/manage_packages [GET]   REFERRER: https://ezeml.edirepository.org/eml/open_eml_document?filename=Sacramento-San+Joaquin+Delta+and+Suisun+Bay+2021+Water+Quality+Data+(15+Minute)+   REMOTE_ADDR: 75.46.138.241
+2026-04-15 16:53:27,588 [PID 155557] [INFO] [USER: Michelle Nelson] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/Michelle_Nelson-dccfc68c0b7efd5bdc86e2a5430b1497/_user_prop_backup_.json
+2026-04-15 16:53:27,589 [PID 155557] [ERROR] [USER: Michelle Nelson] webapp.home.utils.load_and_save -> 'bool' object is not subscriptable
+2026-04-15 16:53:27,590 [PID 155557] [ERROR] [USER: Michelle Nelson] webapp.home.utils.load_and_save -> load_eml: Could not load /home/pasta/ezeml/user-data/Michelle_Nelson-dccfc68c0b7efd5bdc86e2a5430b1497/_user_prop_backup_.json
+2026-04-15 16:53:27,590 [PID 155557] [ERROR] webapp -> Exception on /eml/manage_packages [GET]
+Traceback (most recent call last):
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/utils/hidden_buttons.py", line 137, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/views.py", line 1194, in manage_packages
+    data_packages = get_data_packages(sort_by=sort_by, reverse=reverse)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/manage_packages.py", line 121, in get_data_packages
+    size = f"{get_package_size(package_name):,}"
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/manage_packages.py", line 59, in get_package_size
+    package_id = eml_node.attribute_value('packageId')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'attribute_value'
+2026-04-15 16:53:27,591 [PID 155557] [ERROR] [USER: Michelle Nelson] handler: webapp.errors.handler -> 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2026-04-15 16:53:27,592 [PID 155557] [ERROR] [USER: Michelle Nelson] handler: webapp.errors.handler -> 'NoneType' object has no attribute 'attribute_value'
+2026-04-15 16:53:28,601 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1 [POST]   REFERRER: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:53:28,644 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/Reed_Hoshovsky-724ed7ea9462ecfba048bf5af10458fe/Central Delta EDI.json
+2026-04-15 16:53:28,783 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/keyword_select/Central%20Delta%20EDI [GET]   REFERRER: https://ezeml.edirepository.org/eml/keyword/Central%20Delta%20EDI/1   REMOTE_ADDR: 136.200.53.21
+2026-04-15 16:53:28,827 [PID 155557] [INFO] [USER: Reed Hoshovsky] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/Reed_Hoshovsky-724ed7ea9462ecfba048bf5af10458fe/Central Delta EDI.json
+--
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/utils/hidden_buttons.py", line 137, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/views.py", line 1403, in check_data_tables
+    check_data_table_contents.check_all_tables(current_document, eml_node)
+  File "/home/pasta/ezeml/webapp/home/check_data_table_contents.py", line 1108, in check_all_tables
+    if not check_all_table_headers(current_document, eml_node):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/check_data_table_contents.py", line 1082, in check_all_table_headers
+    if not check_table_headers(current_document=current_document, data_table_node=data_table_node):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/check_data_table_contents.py", line 1071, in check_table_headers
+    for line in urllib.request.urlopen(csv_file_url):
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/urllib/request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/urllib/request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/urllib/request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/urllib/request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/urllib/request.py", line 1483, in file_open
+    return self.open_local_file(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/urllib/request.py", line 1522, in open_local_file
+    raise URLError(exp)
+urllib.error.URLError: <urlopen error [Errno 2] No such file or directory: '/home/pasta/ezeml/user-data/Michelle_Nelson-dccfc68c0b7efd5bdc86e2a5430b1497/uploads/Sacramento-San Joaquin Delta and Suisun Bay 2021 Water Quality Data (15 Minute) /Sonde Ranges Final.csv'>
+2026-04-17 19:36:49,648 [PID 45305] [ERROR] [USER: Michelle Nelson] handler: webapp.errors.handler -> 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2026-04-17 19:36:49,648 [PID 45305] [ERROR] [USER: Michelle Nelson] handler: webapp.errors.handler -> <urlopen error [Errno 2] No such file or directory: '/home/pasta/ezeml/user-data/Michelle_Nelson-dccfc68c0b7efd5bdc86e2a5430b1497/uploads/Sacramento-San Joaquin Delta and Suisun Bay 2021 Water Quality Data (15 Minute) /Sonde Ranges Final.csv'>
+2026-04-17 19:47:49,733 [PID 2244] [INFO] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/auth/login [GET]   REFERRER: None   REMOTE_ADDR: 43.156.167.183
+2026-04-17 19:52:18,885 [PID 45305] [INFO] [USER: MCM] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/geographic_coverage_select/*MCM%20TEMPLATE* [POST]   REFERRER: https://ezeml.edirepository.org/eml/geographic_coverage_select/*MCM%20TEMPLATE*   REMOTE_ADDR: 146.75.203.10
+2026-04-17 19:52:18,911 [PID 45305] [INFO] collaborations: webapp.views.collaborations.collaborations -> cull_locks: removing lock... lock_id=2, package_id=8817, locked_by=23, timestamp=2026-04-17 19:19:59.077003
+2026-04-17 19:52:19,020 [PID 45305] [INFO] [USER: MCM] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/geographic_coverage/*MCM%20TEMPLATE*/1 [GET]   REFERRER: https://ezeml.edirepository.org/eml/geographic_coverage_select/*MCM%20TEMPLATE*   REMOTE_ADDR: 146.75.203.10
+--
+2026-04-19 21:20:52,923 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:20:53,174 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:20:55,537 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/fcba8058-2232-11f1-a59a-06421d0bd88d [POST]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/fcba8058-2232-11f1-a59a-06421d0bd88d   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:20:55,580 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:20:55,849 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt) [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/fcba8058-2232-11f1-a59a-06421d0bd88d   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:20:55,891 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:00,133 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt) [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/fcba8058-2232-11f1-a59a-06421d0bd88d   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:00,177 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:02,546 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt) [POST]   REFERRER: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:02,694 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/load_data/knb-lter-nwt.351.1(Parsons_snow_expt)?dt_node_id=1 [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:02,737 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:04,554 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/load_data/knb-lter-nwt.351.1(Parsons_snow_expt)?dt_node_id=1 [POST]   REFERRER: https://ezeml.edirepository.org/eml/load_data/knb-lter-nwt.351.1(Parsons_snow_expt)?dt_node_id=1   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:04,598 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:04,852 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)?success=False [GET]   REFERRER: https://ezeml.edirepository.org/eml/load_data/knb-lter-nwt.351.1(Parsons_snow_expt)?dt_node_id=1   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:04,895 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:10,961 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)?success=False [POST]   REFERRER: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)?success=False   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:11,110 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/1 [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)?success=False   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:11,153 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:17,539 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/1 [POST]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/1   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:17,583 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:18,056 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/ [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/1   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:18,099 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:32,287 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/ [POST]   REFERRER: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:32,330 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:32,633 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/clone_attributes_2/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/knb-lter-nwt.351.1(Parsons_snow_expt)/ [GET]   REFERRER: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:32,676 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:21:32,803 [PID 77896] [ERROR] webapp -> Exception on /eml/clone_attributes_2/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/knb-lter-nwt.351.1(Parsons_snow_expt)/ [GET]
+Traceback (most recent call last):
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/utils/hidden_buttons.py", line 137, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/views/data_tables/dt.py", line 2405, in clone_attributes_2
+    target_object_name = target_dt_node.find_descendant(names.OBJECTNAME).content
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'content'
+2026-04-19 21:21:32,804 [PID 77896] [ERROR] [USER: Claire Parsons] handler: webapp.errors.handler -> 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2026-04-19 21:21:32,804 [PID 77896] [ERROR] [USER: Claire Parsons] handler: webapp.errors.handler -> 'NoneType' object has no attribute 'content'
+2026-04-19 21:21:40,395 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/ [GET]   REFERRER: https://ezeml.edirepository.org/eml/clone_attributes_2/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/knb-lter-nwt.351.1(Parsons_snow_expt)/   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:21:40,425 [PID 77896] [INFO] [USER: Claire Parsons] webapp.auth.user_data -> current_user_directory_only: True
+2026-04-19 21:21:40,426 [PID 77896] [INFO] [USER: Claire Parsons] webapp.auth.user_data -> user_login: Claire_Parsons-c180a2ac54fba3a6668ab7db55578b43
+2026-04-19 21:21:40,426 [PID 77896] [INFO] [USER: Claire Parsons] webapp.auth.user_data -> owner_login: None
+--
+2026-04-19 21:24:00,308 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:07,952 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/edit/home.check_metadata/dev [GET]   REFERRER: https://ezeml.edirepository.org/eml/load_data/knb-lter-nwt.351.1(Parsons_snow_expt)?dt_node_id=1   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:07,983 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:08,275 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/check_metadata/knb-lter-nwt.351.1(Parsons_snow_expt) [GET]   REFERRER: https://ezeml.edirepository.org/eml/load_data/knb-lter-nwt.351.1(Parsons_snow_expt)?dt_node_id=1   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:08,305 [PID 77896] [INFO] [USER: Claire Parsons] webapp.auth.user_data -> current_user_directory_only: True
+2026-04-19 21:24:08,305 [PID 77896] [INFO] [USER: Claire Parsons] webapp.auth.user_data -> user_login: Claire_Parsons-c180a2ac54fba3a6668ab7db55578b43
+2026-04-19 21:24:08,306 [PID 77896] [INFO] [USER: Claire Parsons] webapp.auth.user_data -> owner_login: None
+2026-04-19 21:24:08,306 [PID 77896] [INFO] [USER: Claire Parsons] webapp.auth.user_data -> user_folder_name: /home/pasta/ezeml/user-data/Claire_Parsons-c180a2ac54fba3a6668ab7db55578b43
+2026-04-19 21:24:08,306 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:08,372 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.log_usage -> 2026-04-19,21:24:08,Claire Parsons,Check Metadata,knb-lter-nwt.351.1(Parsons_snow_expt),,,,,
+2026-04-19 21:24:24,271 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/edit/dt.data_table_select/dev [GET]   REFERRER: https://ezeml.edirepository.org/eml/check_metadata/knb-lter-nwt.351.1(Parsons_snow_expt)   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:24,302 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:24,431 [PID 49684] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt) [GET]   REFERRER: https://ezeml.edirepository.org/eml/check_metadata/knb-lter-nwt.351.1(Parsons_snow_expt)   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:24,474 [PID 49684] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:50,619 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt) [POST]   REFERRER: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:50,774 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:50,817 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:51,012 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:54,717 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d [POST]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:54,761 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:24:55,076 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/ [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:24:55,119 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:25:03,796 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/ [POST]   REFERRER: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:25:03,838 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:25:04,087 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/clone_attributes_2/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/knb-lter-nwt.351.1(Parsons_snow_expt)/ [GET]   REFERRER: https://ezeml.edirepository.org/eml/clone_attributes/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:25:04,130 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:25:04,256 [PID 77896] [ERROR] webapp -> Exception on /eml/clone_attributes_2/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d/knb-lter-nwt.351.1(Parsons_snow_expt)/ [GET]
+Traceback (most recent call last):
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/miniconda3/envs/ezeml/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/home/utils/hidden_buttons.py", line 137, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/pasta/ezeml/webapp/views/data_tables/dt.py", line 2405, in clone_attributes_2
+    target_object_name = target_dt_node.find_descendant(names.OBJECTNAME).content
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'content'
+2026-04-19 21:25:04,256 [PID 77896] [ERROR] [USER: Claire Parsons] handler: webapp.errors.handler -> 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2026-04-19 21:25:04,256 [PID 77896] [ERROR] [USER: Claire Parsons] handler: webapp.errors.handler -> 'NoneType' object has no attribute 'content'
+2026-04-19 21:25:06,590 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d [GET]   REFERRER: https://ezeml.edirepository.org/eml/data_table_select/knb-lter-nwt.351.1(Parsons_snow_expt)   REMOTE_ADDR: 67.253.9.97
+2026-04-19 21:25:06,633 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:25:06,830 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.utils.load_and_save -> get_pathname: pathname: /home/pasta/ezeml/user-data/NWT-1e89a34832b7cd583bed1883193a9496/knb-lter-nwt.351.1(Parsons_snow_expt).json
+2026-04-19 21:25:08,638 [PID 77896] [INFO] [USER: Claire Parsons] webapp.home.views -> **** INCOMING REQUEST: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d [POST]   REFERRER: https://ezeml.edirepository.org/eml/data_table/knb-lter-nwt.351.1(Parsons_snow_expt)/b410112a-3c35-11f1-9761-06421d0bd88d   REMOTE_ADDR: 67.253.9.97
